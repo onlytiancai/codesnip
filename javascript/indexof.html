@@ -1,0 +1,32 @@
+<!doctype html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>indexOf实现</title>
+    <script type="text/javascript" charset="utf-8">
+        String.prototype.indexOf = function(sub){
+            var pos = 0, len = this.length, sublen = sub.length, i = 0;
+            while(i < len){
+                pos = this.charAt(i) == sub.charAt(pos)?pos + 1: pos -1;
+                if (pos === sublen)
+                    return i - sublen + 1;
+                i = i + 1;
+            }
+            return -1;
+        };
+
+        function test(input, sub)
+        {
+            document.writeln('"' + input + '".indexOf("'+ sub + '")=' 
+                + input.indexOf(sub) + '<br>');
+        }
+        test('hellhelloworld','hello');
+        test('hello world','xxoo');
+        test('hello', 'helloworld');
+        test('hello world','hello');
+</script>
+</head>
+<body>
+
+</body>
+</html>
+
