@@ -1,0 +1,111 @@
+<!DOCTYPE html> 
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>CSS TAB</title>
+        <style type="text/css">
+            /*重置body, a, ul样式*/
+            body{
+                margin:0;
+                background:#fff;
+            }
+            a{
+                text-decoration:none;
+                font-size:13px;
+                color:#000;
+            }
+            ul{
+                margin:0;
+                padding:0;
+                list-style:none;
+            }
+            /*横版tab样式*/
+            ul.nav {
+                /*margin,padding,width样式可选*/
+                margin-top:10px;
+                margin-bottom:10px;
+                padding-bottom:3px;
+                width:100%;
+
+                /*li向左浮动，为了包住li，ul也要浮动*/
+                float:left;
+                /*
+                height有讲究，是ul和a下边框重合的关键，标准盒模型下
+                ul.heigh = a.height
+                +a.padding_top
+                +a.padding_bottom
+                +a.border_top
+                -ul.padding_bottom
+
+                15+5+5+1-3 = 23
+                */
+                height:23px;
+                /*下边框和a的下边框设置成一样的*/
+                border-bottom:1px solid #dcdcdc;
+            }
+            ul.nav li{
+                /*实现横版tab的关键，比display:inline更灵活*/
+                float:left;
+            }
+            ul.nav li a {
+                /*转换为块级元素才可以设置height,margin,padding等*/
+                display:block;
+
+                /*同时设置height,padding,margin在IE的兼容模式下可能会
+                布局错乱，所以要用<!DOCTYPE html>来让IE使用标准盒模型
+                ie5.5暂时不考虑了*/
+                height:15px;
+                padding:5px;
+                margin-left:10px;
+
+                /*设置背景色和边框*/
+                background:#f5f5f5;
+                border:1px solid #dcdcdc;
+            }
+            ul.nav li a.here, ul.nav li a:hover {
+                /*设置背景色，前景色以突出显示，并且把下边框颜色和背景色
+                设置相同，以表示标签前置*/
+                background:#fff;
+                color:#0000cc;
+                border-bottom:1px solid #fff;
+            }
+
+            /*竖版tab， 不解释*/
+            ul.leftnav {
+                clear:both;
+                width:110px; /*a.width+a.padding_left+a.padding_right*/
+                border-top:1px solid #dcdcdc;
+                border-right:1px solid #dcdcdc;
+            }
+            ul.leftnav li a {
+                display:block;
+                height:15px;
+                width:100px;
+                background:#f5f5f5;
+                padding:5px;
+                border-bottom:1px solid #dcdcdc;
+                border-left:1px solid #dcdcdc;
+                border-right:1px solid #dcdcdc;
+            }
+            ul.leftnav li a.here, ul.leftnav li a:hover {
+                background:#fff;
+                border-right:1px solid #fff;
+                color:#0000cc;
+            }
+        </style>
+    </head>
+    <body>
+        <ul class="nav">
+            <li><a href="#">首页</a></li>
+            <li><a href="#" class="here">技术文章</a></li>
+            <li><a href="#">提交文章</a></li>
+            <li><a href="#">联系我们</a></li>
+        </ul>
+        <ul class="leftnav">
+            <li><a href="#">首页</a></li>
+            <li><a href="#" class="here">技术文章</a></li>
+            <li><a href="#">提交文章</a></li>
+            <li><a href="#">联系我们</a></li>
+        </ul>
+    </body>
+</html>
