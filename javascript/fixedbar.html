@@ -1,0 +1,28 @@
+<html>
+    <head>
+        <title>fixed bar demo</title>
+        <style type="text/css" media="screen">
+            body{margin:0;height:2000px;}
+            #top{background-color:#333;height:80px;}
+            #nav{background-color:#999;height:30px;position:absolute;top:80px;width:100%;} 
+        </style>
+        <script src="jquery.js" type="text/javascript" charset="utf-8"></script>
+        <script type="text/javascript" charset="utf-8">
+            $(function(){
+                $(window).scroll(function(){
+                    var scrollTop = $(window).scrollTop();
+                    if(scrollTop < 80)
+                    $("#nav").css('top', '80px');
+                    else
+                    $("#nav").css('top', scrollTop +'px');
+                }); 
+            }); 
+        </script>
+    </head>
+    <body>
+        <div id="top">
+        </div>
+        <div id="nav">
+        </div>
+    </body>
+</html>
