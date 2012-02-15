@@ -34,11 +34,11 @@ def curl(ip):
     except urllib2.HTTPError, ex:
         reason, other = ex.code, ex.msg 
     except urllib2.URLError, ex:
-       reason = ex.reason
-       if isinstance(reason, socket.timeout):
-           reason = reason.message
-       elif isinstance(reason, socket.error):
-           reason = reason.strerror 
+        reason = ex.reason
+        if isinstance(reason, socket.timeout):
+            reason = reason.message
+        elif isinstance(reason, socket.error):
+            reason = reason.strerror 
     finally:
         timeout.cancel()
         print reason, ip, other
