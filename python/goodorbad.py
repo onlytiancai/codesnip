@@ -1,7 +1,8 @@
 #encoding=utf-8
 '''
 找出一个锯齿数组里长度大于5的子数组
-在符合要求的子数组里的数据小于10的话乘以2
+在符合要求的子数组里的数据里找出所有偶数
+如果数据小于10的话乘以2,大于10的除以2
 最后统计符合要求的数据的和
 '''
 inputdata = [
@@ -12,7 +13,7 @@ inputdata = [
         ]
 
 def sum1(input):
-    return sum((lambda x: (x < 10 and [x*x] or [x])[0])(num)
+    return sum((lambda x: (x < 10 and [x*2] or [x/2])[0])(num)
             for seq in inputdata 
             if len(seq) >= 5
             for num in seq
@@ -29,8 +30,8 @@ def sum2(input):
                 yield data
     def processdata(data):
         if data < 10:
-            return data * data
-        return data
+            return data * 2 
+        return data / 2
     result = 0
     for sublist in getsublist():
         for data in filterdata(sublist):
