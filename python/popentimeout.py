@@ -22,22 +22,41 @@ https://bitbucket.org/denis/gevent/src/tip/examples/geventsendfile.py
 from subprocess import Popen, PIPE
 from gevent.socket import wait_read
 from sys import exc_info
-from traceback import format_exception
+try:
+    from errno import EBADF
+except ImportError:
+    EBADF = 9
 
 def runwithtimeout(cmd, timeout):
     process = Popen(cmd,shell=True, stdout=PIPE, stderr=PIPE,
             close_fds=True)
-    f = process.stdout
+    stdout, stderr = None, None
     try:
-        wait_read(f.fileno(), timeout)
-        return f.readlines()
-    except:
+        stdout = read(process.stdout, timeout)
+        stderr = read(process.stderr, timeout)
+    except Exception, ex:
+        print 'popen timeout:', cmd
+    finally:
         process.kill()
-        raise
+        return stdout, stderr
 
+def read(fromfile, timeout):
+    while True:
+        try:
+            wait_read(fromfile.fileno(), timeout)
+            return fromfile.read()
+        except:
+            ex = exc_info()[1]
+            if ex.args[0] == EBADF:
+                return ''
+            raise
+   
 if __name__ == '__main__':
     from gevent import spawn
-    task = spawn(runwithtimeout, 'whois baidu.com', 1)
+    from traceback import format_exception
+    cmd = 'curl -I --connect-timeout %s -m %s %s ' \
+            % (5, 5, '202.99.160.68')
+    task = spawn(runwithtimeout, cmd, 10)
     try:
         print ''.join(task.get())
     except:

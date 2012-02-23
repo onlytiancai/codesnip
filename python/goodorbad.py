@@ -13,7 +13,7 @@ inputdata = [
         ]
 
 def sum1(input):
-    return sum((lambda x: (x < 10 and [x*2] or [x/2])[0])(num)
+    return sum((lambda x: x < 10 and x*2 or x/2)(num)
             for seq in inputdata 
             if len(seq) >= 5
             for num in seq

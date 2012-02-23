@@ -11,6 +11,29 @@ regex_code = re.compile(r'\b(\d\d\d)\b')
 CONNECT_TIMEOUT,DATA_TIMEOUT = 10, 10
 IP_COUNT, POOL_SIZE = 1000, 100
 
+def parse_stdout(stdout):
+    if not stdout:return None
+    lineend_index = stdout.find('\n')
+    if lineend_index < 0: return None
+    firstline = stdout[0: lineend_index]
+    match = regex_code.search(firstline)
+    if match:
+        return match.group(1)
+    return None
+
+def parse_stderr(stderr):
+    if not stderr:return None
+    match = regex_error.search(stderr)
+    if match:
+        return match.group(1)
+    return None
+
+
+def parse_curl_info(stdout, stderr):
+    info = parse_stdout(stdout)
+    if info: return info
+    return parse_stderr(stderr)
+
 def curl(ip):
     '''
     调用curl并获取结果，从结果里提取http应答码
@@ -20,17 +43,9 @@ def curl(ip):
             % (CONNECT_TIMEOUT, DATA_TIMEOUT, ip)
     process = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
 
-    info = process.stdout.readline().rstrip('\r\n')
-    info = regex_code.search(info)
-    if info:
-        info = info.group(1)
-
-    if not info:
-        info = process.stderr.read()
-        info = regex_error.search(info)
-        if info:
-            info= info.group(1)
-
+    stdout = process.stdout.read()
+    stderr = process.stderr.read()
+    info = parse_curl_info(stdout, stderr)
     print  info, ip
     return info, ip
 

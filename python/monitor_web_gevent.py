@@ -4,7 +4,7 @@
 探测一组IP的可访问性
 '''
 from gevent import joinall,Timeout
-from gevent import monkey;monkey.patch_all()
+from gevent import monkey;monkey.patch_all(thread=False)
 from gevent.pool import Pool
 import urllib2
 import socket

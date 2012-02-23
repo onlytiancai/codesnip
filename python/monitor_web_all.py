@@ -1,3 +1,7 @@
+#encoding=utf-8
+'''
+先用gevent跑，然后把超时的用curl重试
+'''
 from gevent import spawn,joinall,sleep
 from gevent.pool import Pool
 from monitor_web_gevent import process_results, curl as gevent_curl
@@ -52,15 +56,16 @@ def init_log(ips):
         with open(log_path, 'a') as f:
             f.write(ip)
 
-def log_result(result):
-    ip = result[1]
-    log_path = './log/%s' % (ip,)
-    with open(log_path, 'a') as f:
-        try:
-            int(result[0])
-            f.write('*')
-        except:
-            f.write('#')
+def log_results(results):
+    for result in results:
+        ip = result[1]
+        log_path = './log/%s' % (ip,)
+        with open(log_path, 'a') as f:
+            try:
+                int(result[0])
+                f.write('*')
+            except:
+                f.write('#')
 
 def end_log(ips):
  for ip in ips:
@@ -72,16 +77,15 @@ def process_ips(ips):
     all_results = get_results_use_pool()
     timeout_ips = get_timeout_ips(all_results)
     retry_results = retry_timeout_ips(timeout_ips)
-    merged_results = merge_results(retry_results, all_results)
-    process_results(merged_results)
-    for result in merged_results:
-        log_result(result)
+    return merge_results(retry_results, all_results)
 
 if __name__ == '__main__':
     iplist = getiplist()
     init_log(iplist)
     for i in range(100):
-        process_ips(iplist)
+        results = process_ips(iplist)
+        process_results(results)
+        log_results(results)
         print 'sleep.....'
         sleep(30)
     end_log(iplist)
