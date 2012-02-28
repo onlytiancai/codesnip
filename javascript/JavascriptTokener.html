@@ -1,0 +1,68 @@
+﻿<!doctype html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Cyclomatic complexity</title>
+    <script type="text/javascript" charset="utf-8">
+        var wawa = {};
+
+        wawa.bind = function( obj, type, fn ) {
+            if ( obj.attachEvent )
+                obj.attachEvent('on'+type, fn);
+            else
+                obj.addEventListener( type, fn, false ); 
+        };
+
+        wawa.spliter = {
+            split_rules: [
+                "(\\/\\/.*)" ,   //单行注释
+                "(\\/\\*(\\/|\\**[^\\*])*\\*+\\/)", //多行注释
+                "(\\\"[^\\\"]\\\")|(\\'[^\\']*\\')", //字符串
+                "\\w+\\d*", //标识符
+                "\\d+", //数字
+                "(\\|\\|)|(&&)|\\|&|!|\\^", //逻辑运算符
+                "(<=)|(>=)|(==)|<|>", //关系运算符
+                "=|\\.|,|;|\\\|\\/", //赋值，成员，逗号，斜杠
+                "\\{|\\}|\\[|\\]|\\(|\\)" //各种括号
+            ].join('|'),
+
+            tokens: function(input){
+                var ret = [], r = null, regex = new RegExp(this.split_rules, "g");
+                while((r = regex.exec(input)) != null){
+                    ret.push(r[0]); 
+                }
+                return ret;
+            }
+        };
+    </script>
+</head>
+<body>
+    <p><input id="btnGo" type="button" value="分析" /></p>
+    <textarea id="txtCode" rows="20" cols="100">(function (interval) {
+    var $$_builder_$$_0 = Jscex.builders["async"];
+    return $$_builder_$$_0.Start(this,
+        $$_builder_$$_0.Loop(
+            function () {
+                return true;
+            },
+            null,
+            $$_builder_$$_0.Delay(function () {
+                drawClock(new Date());
+                return $$_builder_$$_0.Bind(Jscex.Async.sleep(interval), function () {
+                    return $$_builder_$$_0.Normal();
+                });
+            }),
+            false
+        )
+    );
+})</textarea>
+    <script type="text/javascript" charset="utf-8">        
+        var txtCode = document.getElementById('txtCode'),
+            btnGo = document.getElementById('btnGo');
+
+        wawa.bind(btnGo, 'click', function(){
+            var tokens = wawa.spliter.tokens(txtCode.value);
+            txtCode.value = tokens.join('\n');
+        });
+    </script>
+</body>
+</html>
