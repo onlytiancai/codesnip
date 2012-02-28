@@ -50,7 +50,7 @@ def counter_key(key):
     keys[key] += 1
 
 def print_keys():
-    sort_key = lambda d:d[1] if orderbycount else lambda d:d[0]
+    sort_key = (lambda d:d[1]) if orderbycount else (lambda d:d[0])
     temp_items = sorted(keys.items(), key=sort_key, reverse=reverse)
     for item in temp_items:
         key = item[0]
