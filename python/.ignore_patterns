@@ -1,0 +1,8 @@
+^(\s|\d)+$
+^\s*#.*$
+^\d+\.\d+\.\d+\.\d+$
+^from .*import .*$
+^import .*$
+^if __name__ == '__main__':$
+^\s*while\s*True\s*:\s*$
+^\s*(i\s+\+=\s+1|pass|return|return None|return True|return False|"""|'''|try:|except:|else:|finally:|continue|break)\s*$
