@@ -1,0 +1,135 @@
+﻿<!doctype html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>mini backbone</title>
+    <link href="http://lib.sinaapp.com/js/bootstrap/2.0.2/css/bootstrap.min.css" rel="stylesheet">
+    <style type="text/css">
+        body {
+            padding-top: 60px;
+            padding-bottom: 40px;
+        }
+        .sidebar-nav {
+            padding: 9px 0;
+        }
+    </style>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.1/jquery.min.js" charset="utf-8" ></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/mustache.js/0.3.0/mustache.min.js"></script>
+    <script type="text/javascript" src="minibackbone.js" charset="utf-8" ></script>
+    <script type="text/javascript">
+    var demo = {};
+    (function(){
+        demo.em = new wawa.ViewManager();
+        var em = demo.em;
+
+        //## 帮助函数
+        //### 设置导航状态
+        em.addHelper('set_nav_active',function(url){
+            $('.nav-list li a[href="'+url+'"]').parent().addClass('active'); 
+            $('.nav-list li a[href!="'+url+'"]').parent().removeClass('active'); 
+        });
+
+        //## 视图列表
+        //### 最新热门话题
+        em.addView('trendlist', function(options){
+            var that = this, 
+                el = options.el,
+                force_refresh = options.force_refresh, 
+                url = 'https://api.weibo.com/2/trends/hourly.json?source=3355748460&callback=?'; 
+
+            if(!force_refresh && that.models.trends){
+                that.trigger("trendlist_loaded");
+                return; 
+            }
+
+            $.getJSON(url, function(result){
+                that.models.trends = result.data.trends;
+                $.each(that.models.trends, function(date, trends){
+                    $.each(trends, function(i, trend){
+                        el.append('<li><a href="#trend/'+trend.query+'">'+trend.name+'('+trend.amount+')</a></li>');
+                    });
+                });
+                that.trigger("trendlist_loaded");
+            });
+        });
+
+        //### 某话题详情
+        em.addView('trend', function(options){
+            var that = this, 
+                el = options.el,
+                template = $('#tpl_posts').html(),
+                html = '',
+                trendname = encodeURIComponent(options.trendname),
+                url = 'http://api.t.sina.com.cn/trends/statuses.json?trend_name='+trendname+'&source=3355748460&callback=?'; 
+            $.getJSON(url, function(result){
+                html = Mustache.to_html(template, {posts:result});
+                el.empty().append(html);
+            });
+        });
+
+
+        //## 控制器列表
+        //### 默认页
+        em.addAction('index', function(){
+            this.on("trendlist_loaded",function(){
+                this.helper.set_nav_active('#');
+            });
+            this.views.trendlist({el:$('.trend-list')});
+        });
+
+        //### 某话题详情
+        em.addAction('trend', function(trendname){
+            this.on("trendlist_loaded",function(){
+                this.helper.set_nav_active('#'+trendname);
+            });
+            this.views.trendlist({el:$('.trend-list')});
+            this.views.trend({el:$('.timeline'), trendname:trendname});
+        });
+
+    })();
+    $(function(){
+        var router = new wawa.Router(),
+            actions = demo.em.actions;
+         
+        router.setup({
+                '#trend/(.*)': actions.trend,
+            }, actions.index);
+        router.start();
+    });
+    </script>
+</head>
+<body>
+    <div class="navbar navbar-fixed-top"> 
+        <div class="navbar-inner"> 
+            <div class="container-fluid"> 
+                <a class="brand" href="#">MiniBackbone DEMO</a> 
+            </div> 
+        </div> 
+    </div> 
+
+    <div class="container-fluid"> 
+        <div class="row-fluid main_content"> 
+            <div class="span3"> 
+                <div class="well sidebar-nav"> 
+                    <ul class="nav nav-list trend-list"> 
+                        <li class="nav-header">最新热门话题</li> 
+                        <li><a href='#'>全部</a></li>
+                    </ul> 
+                </div>
+            </div>
+            <div class="span9 timeline"> 
+            </div>
+        </div>
+        <hr> 
+        <footer> 
+        <p>&copy; onlytiancai 2012.  </p> 
+        </footer> 
+    </div>
+    <script type="text/template" charset="utf-8" id="tpl_posts">
+        <ul>
+            {{#posts}}
+            <li>{{text}}-{{created_at}}</li>
+            {{/posts}}
+        </ul>
+    </script>
+    </body>
+</html>
