@@ -1,0 +1,235 @@
+cat /etc/issue 查看发行版本
+cat /proc/version 查看内核版本
+uname -r 查看内核版本
+grep "model name" /proc/cpuinfo 查看CPU信息
+cat /proc/cpuinfo CPU具体信息
+grep MemTotal /proc/meminfo 查看物理内存总数
+free 查看内存使用情况
+getconf LONG_BIT 查看系统位数
+ifconfig 查看IP配置
+cat /etc/resolv.conf 查看DNS配置
+/etc/rc.d/init.d/mysqld start 启动mysql
+pscp -r -sftp -l  username -pw passwd 10.11.44.11:/data/putty "C:\data\My Documents\ftp" 把服务器的文件复制到本地
+
+iptables -A INPUT -p tcp --dport 8000 -j ACCEPT 打开8000端口
+service iptables start 启动iptabls服务
+rm -rf temp 强制递归删除temp文件夹
+wget http://baidu.com/ -O baidu.txt 下载并重命名
+unzip xxx.zip -d . 解压到当前目录
+cp -r ./* ../ 拷贝当前目录下所有文件及文件夹到付目录
+ps -ef | grep python 查看python相关的进程
+py ./manage.py runfcgi host=127.0.0.1 port=7718 指定端口启动django程序
+lsof -Pnl +M -i4 查看正在监听的IPV4端口
+lsof -d fid //查看描述符详情
+netstat -tnpl 查看正在监听的TCP端口
+/usr/local/nginx/sbin/nginx -s  reload 重新加载nginx配置文件
+/usr/local/nginx/sbin/nginx -s reopen 重启
+/usr/local/nginx/sbin/nginx -t 测试nginx配置文件
+/usr/local/nginx/sbin/nginx -s quit 关闭nginx
+ps|grep manage.py|grep -v grep|cut -c 9-15|xargs kill -9 杀掉包含manage.py的所有进程
+ln -s /var/www www 在本地建立快捷方式
+PATH=$PATH:$HOME/bin 追加环境变量
+ps -A -o rss,vsz,command|grep manage | \
+     awk '{rss += $1; vsz += $2 } END { print "Real: ",rss, "Virtual: ",vsz }'
+以上命令查看某进程的物理内存和虚拟内存使用量
+chmod +x date 增加执行权限
+netstat -anp|grep ESTABLISHED 查看活动的连接
+tcpdump -A -s0 host www.baidu.co 抓百度的http的包
+screen -dmS zhuabao 创建一个抓包的终端会话
+screen -ls 查看所有的会话列表，在会话里exit是结束当前会话
+在会话里按ctrl+a，然后按d是离开该会话，可用screen -r zhuabao来重新回到会话，状态不丢失
+在会话里按ctrl+a,然后按z是让该会话后台执行，在shell里输入fd恢复
+tar -zxvf /tmp/etc.tar.gz 
+pkill -kill -t pts/1 踢掉另一个人
+git init 初始化一个git本地仓库
+git add . 添加到索引
+git commit -m  "改动说明" -a -a参数表示扫描所有修改和删除的改动
+git config --global user.name "huhao" 设置Git用户
+git config --global user.email "huhao@dnspod.com" 设置Git邮件
+echo "*.pyc" > .gitignore 设置所有的.pyc文件不提交更新
+git clone test.git test-copy 把test.git仓库指向的文件克隆岛test-copy子目录
+git log --stat --summary 查看提交历史
+git branch wawa 创建新分支
+git checkout wawa 切换到新分支上
+git branch 查看所有分支
+git branch -D wawa 删除某分支，需要先切换到另一个分支
+git status 查看现在有的未提交更改
+git rm *.pyc 在仓库里去掉所有的pyc文件
+git remote add origin git@github.com:你的github用户名/你的github项目名.git
+git push origin master
+pstree -H pid 查看进程树
+ssh-keygen -t rsa 生成密钥对
+ssh-keygen -t dsa -b1024
+unlink xxx 删除软连接
+jobs 查看正在运行的后台作业
+"nohup ping www.baidu.com >ping.out 2>&1 & "把任务放于后台且注销后不关闭，标准输出重定向到ping.out文件，但父进程还是本终端
+"setsid ping www.baidu.com >ping.out" 把任务单独执行，脱离本终端执行，父进程是1
+"(ping www.baidu.com >ping.out &)" 把任务在子Shell的后台运行，ps -ef|grep ping得到pid后kill，用jobs看不到
+ctrl+z是把当前任务挂起，fg是回复到前台，bg是把挂起任务到后台继续执行
+jobs 查看作业 %1是把id为1的job搞到前台运行，等同于fg 1
+disown -h %1 让ID为1的作业忽略hup信号，就是退出终端后继续运行
+ps -e 显示所有进程 -a是现实拥有终端的进程 -x是无终端的进程 -f是显示详细信息
+/etc/init.d/crond restart 重启计划任务，重新加载配置。配置文件在/etc/crontab
+chkconfig --levels 35 crond on 让crond开机自动启动
+chmod 0600 /root/.ssh/id_rsa 防止git时私钥无法读取
+/sbin/chkconfig --list | grep on 查看开机执行的脚本
+ iconv -f gbk -t utf8 984通讯录.txt >xxx.txt
+find . -name "*py*" 查找当前目录下带py的文件
+git diff //比较当前目录和索引的变化
+git diff --cached //比较索引和代码仓库的变化
+git diff --HEAD //比较当前目录和代码仓库的变化
+
+启动一个python服务：
+setsid python myapp.py 1>myapp.log 2>&1 &
+echo $! > /tmp/myapp.pid
+停止一个python服务：
+kill `cat /tmp/myapp.pid`
+查看运行日志
+tail -f myapp.log
+
+pip安装MySQLdb
+Install dependencies
+sudo apt-get build-dep python-mysqldb
+Install MySQLdb with pip/virtualenv
+cd ~/lib/python-environments
+virtualenv --distribute --no-site-packages default
+pip install -E default/ MySQL-python
+
+virtualbox 安装扩展工具
+mkdir /media/cdrom
+mount -r /dev/cdrom /media/cdrom
+cd /media/cdrom/
+
+rpm -qa | grep zlib-devel 查看某包是否安装
+
+Linux Shell编程入门
+http://www.cnblogs.com/suyang/archive/2008/05/18/1201990.html
+
+# 得到字符串的长度 
+str="hello" 
+echo ${str} | wc -L
+less -N xxx //显示行号
+
+
+ifconfig eth0:1 172.0.0.1
+scp -r ~/.ssh/ root@10.96.60.87:~/ 把本地文件拷贝到服务器
+
+//执行语句并输出
+mysql -h172.0.0.1 -uroot -p MYDB -BNe "ql> select * from dns_serverPro where Service_providers like 'dns.%';" >  out.txt
+//执行语句
+mysql -uroot mydb < xxx.sql
+
+修改时区
+mv /etc/localtime /etc/localtime.bk 
+ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+ntpdate time.asia.apple.com //同步时间
+grep -c SERVFAIL zy8000.com //查询包含SERVFAIL的行数
+strace -p pid //查看某进程的系统调用情况
+df -h //查看剩余空间
+du -sh /* 查看根目录下各目录大小
+ls -lah log /查看log目录下各文件大小
+file /usr/local/mongodb/bin/mongo
+db.createCollection('monitor_history',{capped:true,size:2*1000*1000*1000}) //mongodb创建固定大小的collection
+tcpdump tcp port 23 and host 210.27.48.1 -n
+
+useradd mongo
+passwd mongo 
+ls /data/db/ -l
+chown mongo -R /data/db/
+ls /var/log/mongod.log -l
+chown mongo /var/log/mongod.log
+su mongo
+ulimit -v 500000 #限制只是用500M内存
+curl http://180.150.162.29/ -H "host: www.kibosoft.com" -vI  //指定IP，HOST显示http应答头
+netstat -n | awk '/^tcp/ {++S[$NF]} END {for(a in S) print a, S[a]}'
+
+python test.py | sort -n //把输出按第一列的数字序排序
+python test.py | wc -l //统计输出的行数
+
+net.ipv4.tcp_max_syn_backlog=2048
+net.ipv4.tcp_syncookies=1
+net.ipv4.tcp_synack_retries=3
+net.ipv4.tcp_syn_retries=3
+
+修改机器名
+vim /etc/hosts
+127.0.0.1       url1.stage.xxx.net url1 localhost.localdomain localhost
+
+hostname url1
+
+vim /etc/sysconfig/network
+3 HOSTNAME=url1.stage.weisuo.net
+
+exit
+
+重启输入法
+ps -aux | grep ibus
+kill -9 1460
+ibus-daemon -d
+
+自动登录远程机器
+vi ~/.ssh/config
+Host wt
+User root
+
+ssh-copy-id wt
+
+A向B推送代码
+b:
+mkdir code
+cd code
+git init
+vim .git/config增加如下行
+[receive]
+    denyCurrentBranch = warn
+a:
+vim .git/config 增加如下行
+[remote "b"]
+     fetch = +refs/heads/*:refs/remotes/origin/*
+     url = ssh://root@1.1.1.1:22/~/code
+
+git push b master --force
+
+b:
+git checkout master
+
+vim编辑shell脚本，推荐:colorscheme pablo，否则变量都是蓝色的，黑底蓝字看的眼睛快瞎了有木有
+
+
+git clone ssh://user@domain.com:3022/~/Projects/my_project
+
+watch -d ls -h xxx //查看xxx文件的大小变化
+
+git diff -u aaa aaa.bak 查看两个文件的变化
+
+Git diff 比较不同版本的差异 — 三人行 http://t.cn/SxVxTJ 
+git diff ffd98b291e0caa6c33575c1ef465eae661ce40c9:filename b8e7b00c02b95b320f14b625663fdecf2d63e74c:filename 查看某两个版本的某个文件之间的差异
+
+ env GIT_SSL_NO_VERIFY=true git clone https://github.com/seajs/seajs.git 忽略证书
+curl --connect-timeout 10 -m 20 "http://www.ninthday.net"
+tcpdump port 80 -c 50000 -w netdump.cap 抓5000个包到指定目录
+tar -zcvf /tmp/etc.tar.gz /etc <==打包后，以 gzip 压缩
+ip.dst eq 122.70.188.81 or ip.src eq 122.70.188.81
+
+git cat-file -p HEAD | head -n 1 | cut -b6-15 | xargs git cat-file -p //当看当前版本所包含的blob:
+git ls-files --stage //查看当前暂存
+egrep -v '^[0-9\.]+(#+|\*+)$' retry_result.txt | wc -l //过滤掉前面一个IP跟着一堆*或跟着一堆#的结果
+
+pip install pyzmq --install-option="--zmq=/usr/local" 
+
+git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+
+curl http://115.238.185.99/ -H "host: uc.nmenu.cn" --connect-timeout 10 -m 20 -vI
+
+putty设置
+1、window\appearance\font setting:consolas 12pt 
+2、window\translate\charset:utf-8 
+3、window\selection\action of mouse buttons:windows .. 
+4、window\line of scoreback:20000 
+5、connection\auto-login username:root 
+6、connection\seconds of keepalive:10
+
+putty ssl登录：
+1、ssh-keygen -t rsa 生成密钥对，
+2、把私钥id_isa下载到用scp下载到windows并用puttygen加载并重新保存私钥。
+3、新建快捷方式输入E:\soft\putty.exe -i D:\ssh\wawa.ppk -load "(默认)172.3.11.171" 其中-i指定私钥位置，-d指定会话名称，这样机能无密码登录，又能保存putty设置，帅

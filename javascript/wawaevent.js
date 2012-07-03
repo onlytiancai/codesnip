@@ -1,6 +1,6 @@
 /* module name: wawaevent
  * version: 0.1
- * depend:underscore,backbone
+ * depend:underscore, lifesinger's Events
  * description: 处理javascript的异步任务流
  * document:
  *       setup:指定任务流逻辑
@@ -75,10 +75,10 @@ wawa.getEventManager = function(){
             if (typeof handler == 'string'){
                 handler = this.handlers[handler]; 
             }
-            this.bind(event_, handler);
+            this.on(event_, handler);
         },
     };
-    em = _.extend(em, Backbone.Events);
+    Events.mixTo(em);
     _.bindAll(em, 'start', '_handlerOption');
     return em;
 };
@@ -120,7 +120,7 @@ em.setup({
     'worker1': function(){console.log('worker1 success')}
 });
 
-em.data.name = 'Jim2';
+em.data.name = 'Jim';
 em.data.op = 'hello';
 em.start();
 console.log(em.data.result);
