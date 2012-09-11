@@ -7,7 +7,7 @@
 1. 单元测试
 1. 文档
 1. 打包
-1. 参考链接
+1. 小结
 
 ## 代码规范
 
@@ -68,12 +68,24 @@ python有专门的模块打包系统[distutils](http://docs.python.org/library/d
 
 如果你开发的是内部项目，还可以用[mypypi](http://pypi.python.org/pypi/mypypi)架设私有的pypi，然后把项目的大的版本更新发布到内部的pypi上，配置管理人员和运维人员可以很方便的从pypi上拉取代码安装到测试环境或生产环境。
 
-发布大版本的时候要给版本命名及编写ChangeList，可以参考[Git Pro的相关章节](https://github.com/chunzi/progit/blob/master/zh/05-distributed-git/01-chapter5.markdown)。
+发布大版本的时候要给版本命名及编写ChangeList，可以参考[Git Pro的相关章节](https://github.com/chunzi/progit/blob/master/zh/05-distributed-git/01-chapter5.markdown),主要记住以下几个命令。
 
- git shortlog --no-merges master --not v1.0.1
+    git tag -a v0.1 -m 'my test tag'  #给大版本命名，打Tag
+    git describe master #给小版本命名,Git将会返回一个字符串，由三部分组成：最近一次标定的版本号，加上自那次标定之后的提交次数，再加上一段SHA-1值
+    git shortlog --no-merges master --not v0.1 #生成版本简报,ChangeList
+
+python有自己的打包机制，所以一般不要用`git archive`命令。
 
 当然大版本管理用pypi管理比较合适，小的bug fix，紧急上线等好多公司都是用git直接从生产环境拉代码更新，因为git,svn等可以很方便的撤销某次更新，回滚到某个位置。
 
 如何管理好大版本上线和小的紧急上线，我还没理清思路，欢迎大家参与讨论。
 
+关于打包，请阅读如下链接：
 
+1. [Python 打包指南](http://www.ibm.com/developerworks/cn/opensource/os-pythonpackaging/)
+1. [深入Python3.0:打包 Python 类库](http://woodpecker.org.cn/diveintopython3/packaging.html)
+1. [python打包:分发指定文件](http://docs.python.org/release/3.1.5/distutils/sourcedist.html#manifest)
+
+## 小结
+
+以上是最近学到的一些东西的总结，欢迎大家一起讨论。
