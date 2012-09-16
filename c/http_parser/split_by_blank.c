@@ -13,10 +13,16 @@ struct string_array {
 
 void
 init_string_array(struct string_array * arr) {
-    arr -> length = 0;
     int i;
+    char * temp = NULL;
+
+    arr -> length = 0;
     for (i = 0; i < MAX_ARRAY_LENGTH; i++) {
-        char * temp = (char*)malloc(MAX_STRING_LENGTH + 1);
+        temp = (char*)malloc(MAX_STRING_LENGTH + 1);
+        if (NULL == temp) {
+            printf("malloc error\n");
+            exit(1);
+        }
         memset(temp, 0, MAX_STRING_LENGTH + 1);
         arr -> array[i] = temp; 
     }
@@ -25,7 +31,8 @@ init_string_array(struct string_array * arr) {
 void
 destory_string_array(struct string_array * arr){
     int i;
-    for (i = 0; i < arr -> length; i++) {
+
+    for (i = 0; i < MAX_ARRAY_LENGTH; i++) {
         free(arr -> array[i]);
     }
 }
@@ -33,6 +40,7 @@ destory_string_array(struct string_array * arr){
 void
 print_string_array(struct string_array * arr){
     int i;
+
     for (i = 0; i < arr -> length; i++) {
         printf("%d-%s\n", i, arr -> array[i]);
     }
@@ -40,25 +48,25 @@ print_string_array(struct string_array * arr){
 
 void
 split_by_blank(char * input, struct string_array * arr) {
-    int scan_index = 0, current_len = 0;
-    size_t len_input = strlen(input);
-    char ch, *p = input;
+    int scan_index = 0;
+    size_t len_input = strlen(input), current_len = 0, copy_length;
+    char ch, *p = input, *dst;
 
     while ((ch = *(input++)) != '\0') {
         scan_index++;
         current_len++;
-        if (ch == ' ' || scan_index == len_input) {
-            if (arr -> length == MAX_ARRAY_LENGTH) {
+        if (' ' == ch || scan_index == len_input) {
+            if (MAX_ARRAY_LENGTH == arr -> length) {
                 printf("array length over flow\n");
                 exit(1);
             }
-            char * dst = arr -> array[(arr -> length)++];
+            dst = arr -> array[(arr -> length)++];
 
-            size_t copy_length = scan_index == len_input ? current_len : current_len - 1;
+            copy_length = scan_index == len_input ? current_len : current_len - 1;
             if (copy_length > MAX_STRING_LENGTH)
                 copy_length = MAX_ARRAY_LENGTH;
 
-            strncpy(dst, p, copy_length);
+            snprintf(dst, copy_length, "%s", p);
 
             printf("debug1:scan_index=%d arr.length=%ld dst=%s p=%s\n", scan_index, arr -> length, dst, p);
 
@@ -70,6 +78,8 @@ split_by_blank(char * input, struct string_array * arr) {
 
 int
 main(int argc, char ** argv) {
+    struct string_array arr;
+
     if (argc !=2){
         printf("Usage: split_by_blank \"POST / HTTP/1.0\"\n");
         return 1;
@@ -77,7 +87,6 @@ main(int argc, char ** argv) {
 
     printf("%s\n", argv[1]);
 
-    struct string_array arr;
     init_string_array(&arr);
 
     split_by_blank(argv[1], &arr);
