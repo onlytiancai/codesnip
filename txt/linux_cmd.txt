@@ -1,3 +1,5 @@
+
+
 cat /etc/issue 查看发行版本
 cat /proc/version 查看内核版本
 uname -r 查看内核版本
@@ -18,7 +20,7 @@ wget http://baidu.com/ -O baidu.txt 下载并重命名
 unzip xxx.zip -d . 解压到当前目录
 cp -r ./* ../ 拷贝当前目录下所有文件及文件夹到付目录
 ps -ef | grep python 查看python相关的进程
-py ./manage.py runfcgi host=127.0.0.1 port=7718 指定端口启动django程序
+py ./manage.py runfcgi host=127.0.0.1 port=7718 指定端口启动django程序G
 lsof -Pnl +M -i4 查看正在监听的IPV4端口
 lsof -d fid //查看描述符详情
 netstat -tnpl 查看正在监听的TCP端口
@@ -233,3 +235,118 @@ putty ssl登录：
 1、ssh-keygen -t rsa 生成密钥对，
 2、把私钥id_isa下载到用scp下载到windows并用puttygen加载并重新保存私钥。
 3、新建快捷方式输入E:\soft\putty.exe -i D:\ssh\wawa.ppk -load "(默认)172.3.11.171" 其中-i指定私钥位置，-d指定会话名称，这样机能无密码登录，又能保存putty设置，帅
+
+alias prettyjson="python -c 'import os, sys, json, pygments; from pygments.lexers import JavascriptLexer as lexer; from pygments.formatters.terminal256 import Terminal256Formatter;from pygments.formatters.terminal import TerminalFormatter; fmt = (Terminal256Formatter if \"256color\" in os.environ.get(\"TERM\", \"\") else TerminalFormatter); from httpie import solarized; content = json.dumps(json.loads(sys.argv[1]), indent=4, sort_keys=True); print pygments.highlight(content, lexer(), fmt(style=solarized.SolarizedStyle));'"
+alias prettyjson="python -c 'import sys, json; print json.dumps(eval(sys.argv[1]), indent=4, sort_keys=True);'"
+
+PS1='`a=$?;if [ $a -ne 0 ]; then echo -n -e "\[\e[01;32;41m\]{$a}"; fi`\[\033[01;32m\]\u@\h\[\033[00m\] \[\033[01;34m\]\w`b=$(git symbolic-ref HEAD 2> /dev/null | cut -b 12-); [[ "$b" != "" ]] && echo -n -e "\[\e[33;00m\]($b)\[\033[01;32m\]\[\e[00m\]"`\[\033[01;34m\] $ \[\e[00m\]'
+
+[Linux 存储备份恢复] iostat来对linux硬盘IO性能进行了解
+http://www.php-oa.com/2009/02/03/iostat.html
+$iostat -x 1
+$iostat -x 1
+Linux 2.6.33-fukai (fukai-laptop)          _i686_    (2 CPU)
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           5.47    0.50    8.96   48.26    0.00   36.82
+ 
+Device:         rrqm/s   wrqm/s     r/s     w/s   rsec/s   wsec/s avgrq-sz avgqu-sz   await  svctm  %util
+sda               6.00   273.00   99.00    7.00  2240.00  2240.00    42.26     1.12   10.57   7.96  84.40
+sdb               0.00     4.00    0.00  350.00     0.00  2068.00     5.91     0.55    1.58   0.54  18.80
+
+如果 %util 接近 100%,说明产生的I/O请求太多,I/O系统已经满负荷,该磁盘可能存在瓶颈. 
+idle小于70% IO压力就较大了,一般读取速度有较多的wait.
+同时可以结合vmstat 查看查看b参数(等待资源的进程数)和wa参数(IO等待所占用的CPU时间的百分比,高过30%时IO压力高)
+另外 await 的参数也要多和 svctm 来参考.差的过高就一定有 IO 的问题.
+
+top -p 2234 //只查看某进程的信息
+
+Linux命令----分析内存的瓶颈
+http://space.itpub.net/8554499/viewspace-580301
+[root@localhost ~]# vmstat -n 3       (每个3秒刷新一次）
+procs-----------memory--------------------swap------io---- --system---- ------cpu--------
+r   b    swpd   free       buff       cache       si   so    bi    bo   in      cs        us   sy   id   wa
+1  0   144 186164 105252 2386848    0    0     18   166  83     2          48   21  31  0
+2  0   144 189620 105252 2386848    0    0      0   177  1039 1210   34   10  56   0
+0  0   144 214324 105252 2386848    0    0      0    10   1071   670    32   5    63   0
+0  0   144 202212 105252 2386848    0    0      0   189   1035   558   20   3    77   0
+2  0   144 158772 105252 2386848    0    0      0   203  1065 2832    70  14  15   0
+
+MEMORY
+-swap:切换到交换内存上的内存（默认以KB为单位）
+如果SWAP的值不为0，或者还比较大，比如超过100M了，但是SI，SO的值长期为0，这种情况我们可以不用担心，不会影响系统性能。
+
+-free:空闲的物理内存
+- buff:作为buffer cache的内存，对块设备的读写进行缓冲
+-cache：作为page cache的内存，文件系统的cache
+如果cache的值大的时候，说明cache处的文件数多，如果频繁访问到的文件都能被cache处，那么磁盘的读IO bi会非常小。
+SWAP
+-si:交换内存使用，由磁盘调入内存
+-so:交换内存使用，由内存调入磁盘
+内存够用的时候，这2个值都是0，如果这2个值长期大于0时，系统性能会受到影响，磁盘IO和CPU资源都会被消耗。
+我发现有些朋友看到空闲内存（FREE）很少的或接近于0时，就认为内存不够用了，实际上不能光看这一点，Linux是抢占内存式的OS，还要结合si,so，如果free很少，但是si,so也很少（大多时候是0），那么不用担心，系统性能这时不会受到影响的。
+
+top -p $(pidof mongod)
+
+shell> mongostat
+mapped  vsize    res faults
+  940g  1893g  21.9g      0
+  940g  1893g  21.9g      0
+  940g  1893g  21.9g      0
+  940g  1893g  21.9g      0
+  940g  1893g  21.9g      0
+其中内存相关字段的含义是：
+mapped：映射到内存的数据大小
+visze：占用的虚拟内存大小
+res：实际使用的内存大小
+
+mongo monitor_center m.js --quiet
+
+git branch -r 查看所有分支，包括远程分支
+git checkout -b v2-1 origin/v2-1 签出远程分支
+
+分支间切换
+(master) $ git stash save master //暂存当前未提交工作
+Saved working directory and index state On master: master
+HEAD is now at 57d83c6 Merge branch 'master' of scm.office.weisuo.net:git
+
+(master) $ git stash list //查看是否暂存成功
+stash@{0}: On master: master
+
+(master) $ git checkout v2-1 //切换到其它分支
+Switched to branch 'v2-1'
+
+(v2-1) $ vi monitorv2/monitorpointv2/config.py //编辑文件，未提交
+
+(v2-1) $ git stash save v2-1 //暂存当前未提交工作
+Saved working directory and index state On v2-1: v2-1
+HEAD is now at 6ca845c readme
+
+(v2-1) $ git stash list //查看是否暂存成功
+stash@{0}: On v2-1: v2-1
+stash@{1}: On master: master
+
+(v2-1) $ git checkout master //切换到master分支
+Switched to branch 'master'
+
+(master) $ git stash list //查看现有暂存列表
+stash@{0}: On v2-1: v2-1
+stash@{1}: On master: master
+
+(master) $ git stash pop stash@{1} //明确指定编号的暂存数据，恢复master的工作。
+
+(master) $ git stash list //查看暂存列表中是否去掉了master的暂存
+stash@{0}: On v2-1: v2-1
+
+(master) $ git status  //确认master工作恢复到当时状态
+
+cat remove_domains.sql | sqlite3 monitor_point.db
+
+/usr/local/mongodb/bin/mongoexport -h 10.133.42.109 -d monitor_center -c down_event -o temp
+
+call pathogen#infect()
+
+db.status_change.find({notify_time:{ $gte: new Date(new Date() - 60000)}}).count()
+
+time http POST 112.90.85.200/gethistory monitor_id=b8dc8890-402e-11e1-9301-0819a6248970
+
+gunicorn -w 4 history_webserver:application -D -b 10.133.42.109:8082
