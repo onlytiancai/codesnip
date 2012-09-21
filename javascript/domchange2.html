@@ -11,14 +11,37 @@
     <pre></pre>
     <script>
         (function(){
-           var onEvent2 = function (target, eventName) {
+            // await with timeout
+            var $await_timeout = eval(Wind.compile("async", function (task, timeout) {
+                console.log('11111111111111');
+                var any = $await(Wind.Async.Task.whenAny( task, Wind.Async.sleep(timeout)));
+                if (any.key != 0) {
+                    throw {message:'timeout'};
+                }
+                return any.task.result;
+            }));
+
+            var test_await_timeout = eval(Wind.compile("async", function () {
+                try{
+                    $await($await_timeout(Wind.Async.sleep(5000), 1000));
+                    $('pre').append('task excute ok. \r\n'); 
+                }
+                catch(e){
+                    $('pre').append('task excute:'+e.message+'. \r\n'); 
+                }
+            }));
+            test_await_timeout().start();
+           
+            //on event 2
+            var onEvent2 = function (target, eventName) {
                 return Wind.Async.Task.create(function (t) {
                     target.one(eventName, function(ev){
-                        console.log('sssss', ev);
                         t.complete("success", ev);
+                        console.log('sssss', ev);
                     });
                 });
             };
+
 
             var task = eval(Wind.compile("async", function () {
                 $('p').bind('DOMSubtreeModified',function(e){
@@ -32,6 +55,7 @@
                 $await(onEvent2($('p'), "DOMSubtreeModified"));
                 $('pre').append('label changed on windjs\r\n'); 
             }));
+
             task().start();
 
         })();
