@@ -13,7 +13,7 @@
         (function(){
             var onEvent2 = function (target, eventName) {
                 return Wind.Async.Task.create(function (t) {
-                    target.bind(eventName,function(ev){
+                    target.bind(eventName, function(ev){
                         t.complete("success", ev);
                     });
                 });
@@ -22,13 +22,16 @@
 
             var task = eval(Wind.compile("async", function () {
                 $('p').bind('DOMSubtreeModified',function(e){
-                    $('pre').append('label change on jquery bind\r\n'); 
+                    $('pre').append('label changed on jquery bind\r\n'); 
                 });
-                setTimeout(function(){
-                    $('p').text(Math.random());
-                }, 1000);
+
+                $('button').click();
+                $await(onEvent2($('button'), "click"));
+                $('pre').append('button clicked on windjs\r\n'); 
+
+                $('p').text(Math.random());
                 $await(onEvent2($('p'), "DOMSubtreeModified"));
-                $('pre').append('label change on windjs\r\n'); 
+                $('pre').append('label changed on windjs\r\n'); 
             }));
             task().start();
 
