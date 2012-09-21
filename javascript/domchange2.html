@@ -1,0 +1,26 @@
+<!doctype html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>dom变化测试</title>
+    <script src="jquery-1.8.0.js"></script>
+    <script src="wind-all-0.7.3.js"></script>
+</head>
+<body>
+    <p>1</p>
+    <pre></pre>
+    <script>
+        var task = eval(Wind.compile("async", function () {
+            $('p').bind('DOMSubtreeModified',function(e){
+                $('pre').append('label change on jquery bind\r\n'); 
+            });
+            setTimeout(function(){
+                $('p').text(Math.random());
+            }, 1000);
+            await(Wind.Async.onEvent(win.$('p'), "DOMSubtreeModified"));
+            $('pre').append('label change on windjs\r\n'); 
+        }));
+        task().start();
+    </script>
+</body>
+</html>
+
