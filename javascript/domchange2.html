@@ -6,6 +6,7 @@
     <script src="wind-all-0.7.3.js"></script>
 </head>
 <body>
+    <button>heihei</button>
     <p>1</p>
     <pre></pre>
     <script>
@@ -13,10 +14,16 @@
             $('p').bind('DOMSubtreeModified',function(e){
                 $('pre').append('label change on jquery bind\r\n'); 
             });
+            $('button').bind('click',function(e){
+                $('pre').append('button clicked on jquery bind\r\n'); 
+            });
             setTimeout(function(){
                 $('p').text(Math.random());
+                $('button').click();
             }, 1000);
-            await(Wind.Async.onEvent(win.$('p'), "DOMSubtreeModified"));
+            await(Wind.Async.onEvent($('button')[0], "click"));
+            $('pre').append('button clicked on windjs\r\n'); 
+            await(Wind.Async.onEvent($('p')[0], "DOMSubtreeModified"));
             $('pre').append('label change on windjs\r\n'); 
         }));
         task().start();
