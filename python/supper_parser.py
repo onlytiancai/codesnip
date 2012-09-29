@@ -7,56 +7,30 @@
 import re
 
 patt_tokens = r"""
-(?P<c_comment_line>(?:\/\/).*)                         # c的单行注释
-|(?P<js_regex>\/(?:\\\/)*.*?\/[a-zA-Z]?)                  # js的正则表达式字面量
-|(?P<c_comment_mutil>\/\*[\s\S]*?\*\/)                  # c的多行注释
-|(?P<python_string_mutil>:\'\'\'[\s\S]*?\'\'\')         #python多行字符串
-|(?P<python_string_mutil2>\"\"\"[\s\S]*?\"\"\")         #python多行字符串
-|(?P<python_comment>\#.*)                               # python shell的单行注释
-|(?P<operator2>(?:\+\+)                                 # 多字符运算符
-    |(?:\-\-)
-    |(?:\-\>)
-    |(?:\>\>)
-    |(?:\<\<)
-    |(?:\>\=)
-    |(?:\<\=)
-    |(?:\!\=)
-    |(?:\+\=)
-    |(?:\-\=)
-    |(?:\=\=)
-    |(?:\*\=)
-    |(?:\/\=)
-    |(?:\%\=)
-    |(?:\&\=)
-    |(?:\<\<\=)
-    |(?:\>\>\=)
-    |(?:\?\?)
-    |(?:\?\:)
- ) 
-|(?P<operator1>[\+\-!\.\(\)\[\]\{\}~&\/\*%\<\>\|\?=:])  # 单字符运算符
+(?P<comment1>(?:\/\/).*)                                # c的单行注释
+|(?P<regex>\/(?:\\\/)*.*?\/[a-zA-Z]?)                   # js的正则表达式字面量
+|(?P<comment2>\/\*[\s\S]*?\*\/)                         # c的多行注释
+|(?P<string1>:\'\'\'[\s\S]*?\'\'\')                     # python多行字符串
+|(?P<string2>\"\"\"[\s\S]*?\"\"\")                      # python多行字符串
+|(?P<comment3>\#.*)                                     # python shell的单行注释
+|(?P<operator1>(?:\+\+)                                 # 多字符运算符
+    |(?:\-\-) |(?:\-\>) |(?:\>\>) |(?:\<\<) |(?:\>\=)
+    |(?:\<\=) |(?:\!\=) |(?:\+\=) |(?:\-\=) |(?:\=\=)
+    |(?:\*\=) |(?:\/\=) |(?:\%\=) |(?:\&\=) |(?:\<\<\=)
+    |(?:\>\>\=) |(?:\?\?) |(?:\?\:)
+ )
+|(?P<operator2>[\+\-!\.\(\)\[\]\{\}~&\/\*%\<\>\|\?=:])  # 单字符运算符
 |(?P<number>\d+(?:\.\d+)?(?:[Ee]+[\+\-]?\d+)?[a-zA-Z]?) # 数字类型
 |(?P<identity>[a-zA-Z_]+\w*)                            # 标识符
-|(?P<string1>\"(?:(?:\\\")*?[^\"])*\")                   # 字符串
-|(?P<string2>\'(?:(?:\\\')*?[^\'])*\')                   # 字符串
+|(?P<string3>\"(?:(?:\\\")*[^\"])*?\")                  # 字符串
+|(?P<string4>\'(?:(?:\\\')*[^\'])*?\')                  # 字符串
 """
 re_tokens = re.compile(patt_tokens, re.VERBOSE)
 
-token_type_map = dict(c_comment_mutil='comment',
-                      python_string_mutil='comment',
-                      python_string_mutil2='comment',
-                      c_comment_line='comment',
-                      python_comment='commen',
-                      string1='string',
-                      string2='string',
-                      operator1='operator',
-                      operator2='operator'
-                      )
-
-
 def _get_token_type(result):
     groupdict = result.groupdict().items()
-    token_type = filter(lambda d: d[1] != None, groupdict)[0][0]
-    return token_type_map.get(token_type, token_type)
+    token_type = filter(lambda d: d[1] is not None, groupdict)[0][0]
+    return token_type.rstrip('123456789')
 
 
 def get_tokens(input):
