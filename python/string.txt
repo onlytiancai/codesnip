@@ -1,0 +1,33 @@
+a = "aa", b = "b\"b", c = "c"c"c"
+d = 'dd', e = 'e\'e', f = 'f'f'f'
+a = 1, b=2.2 c=3.3e3, d=4.44E-4, e=5l, d=6.0F
+1+2 1-2 1*2 1/2
+a++ a-- ++b --b
+a<=b a>=b a==b
+a<<a a>>b a!=b
+a //b//c//d
+a #b#c//d
+a = /\d\w+[abc]/ig
+/*aa
+  bb
+  cc
+*/
+/*dd
+  ee 
+  ff*/
+'''aaa
+bbb
+ccc
+'''
+'''aaa
+bbb
+ccc
+'''
+"""aaa
+bbb
+ccc
+"""
+"""aaa
+bbb
+ccc
+"""
