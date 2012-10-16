@@ -28,7 +28,7 @@
     (hotfix-xxx)$: git add xxx
     (hotfix-xxx)$: git commit -m 'commit comment'
     (master)$: git merge hotfix-xxx --no-ff       # 把hotfix分支合并到master，并上线到生产环境
-    (master)$: git merge hotfix-xxx --no-ff       # 把hotfix分支合并到dev，同步代码
+    (dev)$: git merge hotfix-xxx --no-ff          # 把hotfix分支合并到dev，同步代码
 
 #### 测试环境测试代码
 
