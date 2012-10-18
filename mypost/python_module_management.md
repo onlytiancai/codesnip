@@ -38,3 +38,11 @@ virtual_env环境里内置了pip，直接使用这个pip安装该项目依赖的
 
     . ~/.test_env/bin/activate                                          # 加载virtual_env环境
     pip install -i http://192.168.1.1:8085/simple/ -r requirements.txt  #根据依赖文件自动安装指定版本的模块
+
+## 依赖特定版本的模块-不建议使用
+
+为了防止模块升级后影响大量的项目，项目对模块的依赖要明确版本，具体如下：
+
+    用easy_install安装的包都会写在easy-install.pth里，这时候一个包只能使用一个版本，
+    easy_install -m module_name后该包信息就在.pth里去掉了，然后这个包就可以多版本并存了，
+    然后pkg_resources.require('wawa==1.0')后import wawa就可以在代码中强制使用指定版本的包了
