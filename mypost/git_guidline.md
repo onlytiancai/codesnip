@@ -8,18 +8,18 @@
 
 有一些临时分支
 
-- feture-xxx: 用于增加一个新功能
+- feature-xxx: 用于增加一个新功能
 - hotfix-xxx: 用于修复一个紧急bug
 
 ### 常见任务
 
 #### 增加一个新功能
 
-    (dev)$: git checkout -b feture-xxx            # 从dev建立特性分支
-    (feture-xxx)$: blabla                         # 开发
-    (feture-xxx)$: git add xxx
-    (feture-xxx)$: git commit -m 'commit comment'
-    (dev)$: git merge feture-xxx --no-ff          # 把特性分支合并到dev
+    (dev)$: git checkout -b feature-xxx            # 从dev建立特性分支
+    (feature-xxx)$: blabla                         # 开发
+    (feature-xxx)$: git add xxx
+    (feature-xxx)$: git commit -m 'commit comment'
+    (dev)$: git merge feature-xxx --no-ff          # 把特性分支合并到dev
 
 #### 修复一个紧急bug
 
