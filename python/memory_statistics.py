@@ -50,8 +50,6 @@ if __name__ == '__main__':
     def foo():
         return 'hello world' * 10000000
 
-    s = foo()
     print_momory_statistics()
-    import gc
-    gc.collect()
+    s = foo()
     print_momory_statistics()
