@@ -15,16 +15,10 @@
 1. 模块: 实现多项目通用的功能，如日志，通信，性能计数等，并且要有良好的版本管理，直接安装到virtual_env环境里。
 1. 项目: 实现具体的业务逻辑，依赖一些通用的模块，并以进程的形式存在。
 
-通用的模块应该比较稳定，不会经常变动，为了防止模块升级后影响大量的项目，项目对模块的依赖要明确版本，具体如下：
-
-    用easy_install安装的包都会写在easy-install.pth里，这时候一个包只能使用一个版本，
-    easy_install -m module_name后该包信息就在.pth里去掉了，然后这个包就可以多版本并存了，
-    然后pkg_resources.require('wawa==1.0')后import wawa就可以在代码中强制使用指定版本的包了
-
-一个通用模块版本升级后，在测试环境把依赖新版本的项目测试充分后再在生产环境把pkg_resources.require里的通用模块版本更新。
-
 关于通用模块的开发规范，我草拟了一份，如下：
     [如何编写高质量的python程序](https://github.com/onlytiancai/codesnip/blob/master/mypost/How_to_write_high-quality_python_program.md)
+关于生产环境模块的管理规范，我也草拟了一下，如下
+    [python 模块管理](https://github.com/onlytiancai/codesnip/blob/master/mypost/python_module_management.md)
 
 关于项目的开发规范，因为涉及到部署，备份，日志存放，配置文件等很多运行时要考虑的东西，还没想出一套最佳的方法。
 
