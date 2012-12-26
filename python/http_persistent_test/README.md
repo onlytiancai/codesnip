@@ -2,7 +2,7 @@
 
 ### 所需模块
 
-1. 支持http persistent connection的客户端组件选用urllib3
+1. 支持http persistent connection的客户端组件选用urllib3, 或requests
 1. 支持http persistent connection的服务端组件选用gunicor
 1. 其余还需要web.py和gevent
 
@@ -21,7 +21,8 @@
 
 ### 启动客户端
 
-    python client.py
+    python client_with_urllib3.py
+    python client_with_requests.py 
 
 ### 检测连接情况
 
