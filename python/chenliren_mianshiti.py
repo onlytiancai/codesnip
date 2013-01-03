@@ -8,6 +8,7 @@
 '''
 
 import itertools
+import unittest
 
 
 def get_result(t, arr):
@@ -16,10 +17,21 @@ def get_result(t, arr):
     for i in range(1, len(arr) + 1):
         for result in itertools.combinations(arr, i):
             if sum(result) == t:
-                results.add(result)
+                results.add(tuple(result))
     return results
-        
+
+
+class DefaultTestCase(unittest.TestCase):
+    t = 4
+    input = [4, 3, 2, 2, 1, 1]
+    expect = set(((4,), (3, 1), (2, 2), (2, 1, 1)))
+
+    def test_get_result(self):
+        actual = get_result(self.t, self.input) 
+        self.assertEqual(self.expect, actual)        
+
+def suite():
+    return unittest.makeSuite(DefaultTestCase, "test")
 
 if __name__ == '__main__':
-    for result in get_result(4, [4, 3, 2, 2, 1, 1]):
-        print '+'.join(map(str,result))
+    unittest.main(defaultTest='suite', verbosity=2)
