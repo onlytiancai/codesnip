@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 左耳朵耗子的csv多列排序题目
 http://weibo.com/1401880315/zd7nBxyDi
