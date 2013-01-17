@@ -1,3 +1,6 @@
 [submodule "c/study/2/http_parser"]
 	path = c/study/2/http_parser
 	url = https://github.com/joyent/http-parser.git
+[submodule "c/study/3/libuv"]
+	path = c/study/3/libuv
+	url = https://github.com/joyent/libuv.git
