@@ -7,8 +7,8 @@ main: main.c ./libuv/libuv.a
 main2: main2.c ./libuv/libuv.a
 	gcc -o run2 main2.c ./libuv/libuv.a -lpthread -lrt
 
-main3: main3.c ./libuv/libuv.a
-	gcc -o run3 main3.c ./libuv/libuv.a -lpthread -lrt
+main3: main3.c ./libuv/libuv.a ./http_parser/http_parser.o
+	gcc -o run3 main3.c ./libuv/libuv.a ./http_parser/http_parser.o -lpthread -lrt
 
 main4: main4.c ./http_parser/http_parser.o
 	gcc -o run4 main4.c ./http_parser/http_parser.o 
