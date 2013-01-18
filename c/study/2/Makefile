@@ -1,5 +1,11 @@
-main.o: main.c ./http_parser/http_parser.o
-	gcc main.c ./http_parser/http_parser.o -o main.o
+0: main main2 
+	echo 'make finished'
+	
+main: main.c ./libuv/libuv.a
+	gcc -o run main.c ./libuv/libuv.a -lpthread -lrt
 
-./http_parser/http_parser.o: ./http_parser/http_parser.c ./http_parser/http_parser.h
-	gcc -c ./http_parser/http_parser.c -o ./http_parser/http_parser.o
+main2: main2.c ./libuv/libuv.a
+	gcc -o run2 main2.c ./libuv/libuv.a -lpthread -lrt
+
+clean: 
+	rm run* -f
