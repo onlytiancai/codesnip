@@ -7,9 +7,17 @@
 1. gunicorn
 1. nginx
 1. node
+1. golang
 1. 我自己用http_parser和libuv写的http demo server
 
 系统信息
+
+    # cat /proc/cpuinfo | grep name | cut -f2 -d:|uniq -c
+    2  Intel(R) Core(TM)2 Duo CPU     P8400  @ 2.26GHz
+
+    # cat /proc/meminfo | grep MemTotal
+    MemTotal:        1994472 kB
+
     $ uname -a
     Linux huhao-ThinkPad-X200 3.2.0-29-generic #46-Ubuntu SMP Fri Jul 27 17:03:23 UTC 2012 x86_64 x86_64 x86_64 GNU/Linux
 
@@ -83,6 +91,21 @@ node ./node_app.js
     Time per request:       1.398 [ms] (mean)
     Time per request:       0.140 [ms] (mean, across all concurrent requests)
     Transfer rate:          531.06 [Kbytes/sec] received
+
+go run go_app.go
+
+    Concurrency Level:      10
+    Time taken for tests:   13.582 seconds
+    Complete requests:      100000
+    Failed requests:        0
+    Write errors:           0
+    Total transferred:      10900000 bytes
+    HTML transferred:       1200000 bytes
+    Requests per second:    7362.84 [#/sec] (mean)
+    Time per request:       1.358 [ms] (mean)
+    Time per request:       0.136 [ms] (mean, across all concurrent requests)
+    Transfer rate:          783.74 [Kbytes/sec] received
+
 
 
 sudo nginx -p `pwd`/ -c nginx_app.conf
