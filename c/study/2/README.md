@@ -8,7 +8,13 @@
 1. nginx
 1. node
 1. golang
+1. erlang
 1. 我自己用http_parser和libuv写的http demo server
+
+测试脚本
+
+    ab -r -n  100000 -c 10 http://localhost:7000/
+
 
 系统信息
 
@@ -34,6 +40,12 @@
 
     $ nginx -v
     nginx version: nginx/1.1.19
+
+    $go version
+    go version go1
+
+    $ erl -version
+    Erlang (SMP,ASYNC_THREADS) (BEAM) emulator version 5.8.5
 
 
 python gevent_webserver.py
@@ -135,4 +147,8 @@ sudo nginx -p `pwd`/ -c nginx_app.conf
     Time per request:       0.742 [ms] (mean)
     Time per request:       0.074 [ms] (mean, across all concurrent requests)
     Transfer rate:          1040.22 [Kbytes/sec] received
+
+erlc er_app.erl
+erl -noshell -s er_app start
+
 
