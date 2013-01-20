@@ -4,6 +4,10 @@
 
 测试用例就是接受一个http请求，返回http应答，应答内容是hello world.
 
+概要结果如下
+
+![测试结果](https://raw.github.com/onlytiancai/codesnip/master/c/study/2/network_test.png)
+
 ### 参与的语言和网络组件 
 
 如下
