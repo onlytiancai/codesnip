@@ -13,8 +13,10 @@ loop(Sock) ->
     loop(Sock).
 
 handle(Conn) ->
+    {ok, Bin} = gen_tcp:recv(Conn, 0),
     ok = gen_tcp:send(Conn, response("Hello World")),
-    ok = gen_tcp:close(Conn).
+    ok = gen_tcp:close(Conn),
+    Bin.
 
 response(Str) ->
     B = iolist_to_binary(Str),
