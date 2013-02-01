@@ -1,13 +1,46 @@
 ### 服务监控脚本 
 
-监控服务运行是否正常，如果不正常则kill掉重启
+比如有如下的wsgi服务
+
+    def app(environ, start_response):
+          data = "Hello, World!\n"
+          start_response("200 OK", [
+              ("Content-Type", "text/plain"),
+              ("Content-Length", str(len(data)))
+          ])
+          return iter([data])
+
+如何让它长时间的运行，并且被kill掉或crash掉后能自动重启呢？
+
+### 使用supervisor
+
+最简单的办法就是使用supervisor和gunicorn
+
+    pip install supervisor
+    pip install gunicorn
+
+然后在/etc/supervisord.conf下加入如下配置
+
+    [program:service-monitor]
+    command=gunicorn SimpleService:app -b localhost:7000
+    directory=/home/huhao/src/github/codesnip/shell/service_monitor
+
+然后用**supervisorctl start service-monitor**启动这个服务就行了。
+这时候即使这个wsgi服务crash或者被认为kill掉了，supervisor都会自动给你起来。
+supervisor还有更多的功能，详见官方文档，目前我们可以只用他这个功能。
+
+
 
 创建日志文件并赋予权限
 
     sudo touch /var/log/SimpleService.monitor.log
     sudo chown `whoami` /var/log/SimpleService.monitor.log
 
-每个服务里要有 service.start.sh service.stop.sh service.status.sh 这几个脚本，分别用来启动，停止您的服务，以及查看您服务的状态。
+### 使用shell
+
+如果你是shell控，不喜欢用第三方软件，可以参考下面。
+
+约定每个服务里要有 service.start.sh service.stop.sh service.status.sh 这几个脚本，分别用来启动，停止您的服务，以及查看您服务的状态。
 
 service.start.sh 根据您的需要来编写，比如gunicron启动的服务就如下
 
