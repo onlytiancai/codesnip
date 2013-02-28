@@ -48,11 +48,11 @@ int main(void) {
 
     if (range.location == NSNotFound)
     {
-        NSLog(@"找到了");
+        NSLog(@"found");
     }
     else
     {
-        NSLog(@"找不到");
+        NSLog(@"not found");
     }
 
     [String1 release];
