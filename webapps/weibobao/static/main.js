@@ -9,6 +9,7 @@ $(function(){
     };
 
     var get_status = function(){
+        $('.buttons_panel').show();
         WB2.anyWhere(function(W){
             W.parseCMD("/statuses/friends_timeline.json", 
                 function(sResult, bStatus){
@@ -19,7 +20,7 @@ $(function(){
                                 statuses.push(status);
                             }
                         });
-                        if (statuses.length >= 300){
+                        if (statuses.length >= 300 || page > 5){
                             report_statuses();
                         }else {
                             get_status(); 
@@ -32,7 +33,6 @@ $(function(){
         });
     };
 
-    WB2.login(get_status);
 
     $('.sortby_default').click(function(){
         statuses = _.sortBy(statuses, function(status){return -status.created_at});
@@ -46,5 +46,11 @@ $(function(){
         statuses = _.sortBy(statuses, function(status){return -status.comments_count});
         report_statuses();
     });
+
+    $('.login').click(function(){
+        WB2.login(get_status);
+    });
+
+    $('.logined_panel').hide();
 
 });
