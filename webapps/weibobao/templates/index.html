@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>微博报</title>
+    <script src="http://tjs.sjs.sinajs.cn/open/api/js/wb.js?appkey=3584018968" type="text/javascript" charset="utf-8"></script>
+    <script src="static/jquery-1.8.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="static/underscore-min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="static/mustache.js" type="text/javascript" charset="utf-8"></script>
+    <script src="static/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+<body>
+    <script id="tpl_statuses" type="text/template">
+        {{#statuses}}
+        <div>
+            <strong>{{user.screen_name}}</strong>: {{text}}({{reposts_count}}/{{comments_count}})
+        </div>
+        <div><img src="{{bmiddle_pic}}" /></div>
+        {{/statuses}}
+    </script>
+    <div>
+        <button class="sortby_default">原始顺序</button>
+        <button class="sortby_repost">转发次数</button>
+        <button class="sortby_comment">评论次数</button>
+    </div>
+    <div class="statuses" style="width:500px;">加载中...</div>
+</body>
+</html>
