@@ -9,7 +9,8 @@ $(function(){
     };
 
     var get_status = function(){
-        $('.buttons_panel').show();
+        $('.logined_panel').show();
+        $('.login_panel').hide();
         WB2.anyWhere(function(W){
             W.parseCMD("/statuses/friends_timeline.json", 
                 function(sResult, bStatus){
