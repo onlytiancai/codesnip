@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+<head>
+    <title>Template</title>
+    <style type="text/css" media="screen">
+        #container{
+            position: relative; 
+            width: 400px;
+            height: 400px;
+            background-color:#eee;
+        }
+        #hat {
+            position: absolute;
+            top:80px;
+            left:100px;
+            width: 0;
+            height: 0;
+            border-left: 25px solid transparent;
+            border-right: 25px solid transparent;
+            border-bottom: 50px solid #0191D7;
+            -webkit-transform: skew(40deg);
+            z-index:1;
+        }
+        #face{
+            position: absolute;
+            top:100px;
+            left:100px;
+            width: 200px; 
+            height: 140px;
+            background-color: #0191D7;
+            border-radius: 50%   55%  50%  50%  / 50%   55%   50%  50%;
+            z-index:2;
+        }
+        #face2{
+            position: absolute;
+            top:130px;
+            left:130px;
+            width: 130px; 
+            height: 80px;
+            background-color: #FAF786;
+            border-radius: 50%   55%  50%  50%  / 50%   55%   50%  50%;
+            z-index:3;
+        } 
+        #eye1{
+            position: absolute;
+            top:150px;
+            left:150px;
+            width: 0;
+            height: 0;
+            border-bottom: 20px solid #000; 
+            border-left: 20px solid transparent;
+            -webkit-transform:  skew(50deg) rotate(-30deg);
+            z-index:4;
+        }
+        #eye2{
+            position: absolute;
+            top:150px;
+            left:210px;
+            width: 0;
+            height: 0;
+            border-bottom: 20px solid #000; 
+            border-left: 20px solid transparent;
+            -webkit-transform:  skew(-50deg) rotate(30deg);
+            z-index:4;
+        }
+
+        #mouth{
+            position: absolute;
+            top:180px;
+            left:180px;
+            width: 0px;
+            height: 0px;
+            border-right: 8px solid transparent;
+            border-top: 8px solid red;
+            border-left: 8px solid red;
+            border-bottom: 8px solid red;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            z-index:5;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="hat"> </div>
+        <div id="face"></div>
+        <div id="face2"></div>
+        <div id="eye1"></div>
+        <div id="eye2"></div>
+        <div id="mouth"></div>
+    </div>
+</body>
+</html>
