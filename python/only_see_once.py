@@ -5,12 +5,19 @@ import uuid
 import shelve
 
 tpl_index = '''
-<h1>阅后即焚</h2>
-<h3>写一段话，生成一个网页，只有第一个人可以看到</h3>
-<form action="/gen" method="post" accept-charset="utf-8">
-    <p><input type="text" name="content" value="" placeholder="请输入你想说的话"></p>
-    <p><input type="submit" value="生成网页"></p>
-</form>
+<html>
+<head>
+<meta charset="UTF-8" />
+</head>
+<body>
+    <h1>阅后即焚</h2>
+    <h3>写一段话，生成一个网页，只有第一个人可以看到</h3>
+    <form action="/gen" method="post" accept-charset="utf-8">
+        <p><input type="text" name="content" value="" placeholder="请输入你想说的话"></p>
+        <p><input type="submit" value="生成网页"></p>
+    </form>
+</body>
+</html>
 '''
 
 tpl_gen = '''
@@ -21,6 +28,7 @@ tpl_gen = '''
 
 class index(object):
     def GET(self):
+        web.header('Content-Type', 'text/html; charset=utf-8', unique=True)
         return tpl_index 
 
 
