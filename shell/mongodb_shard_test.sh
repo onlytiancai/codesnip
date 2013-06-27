@@ -19,6 +19,9 @@ if ! id $MONGODB_USER >/dev/null ; then
     adduser --system $MONGODB_USER
 fi
 
+# 设置日志目录权限 
+chmod -R o+w $MONGODB_LOG_DIR 
+
 # create path
 function mkdir_path(){
     if [ ! -d $1 ]; then
