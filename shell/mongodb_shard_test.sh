@@ -73,3 +73,5 @@ start_mongod shard2 5555
 #for (var i=0; i<10*10000; i++) db.person.insert({name: "jack" + i, age: 1});
 #db.printShardingStatus();
 #
+## 测试插入10w条需要多久
+#time mongo localhost:3333/test insert_test_data.js --quiet
