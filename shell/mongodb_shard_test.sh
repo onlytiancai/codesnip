@@ -57,3 +57,19 @@ fi
 # mongodb shard
 start_mongod shard1 4444 
 start_mongod shard2 5555 
+
+## mongodb 测试脚本
+## 连接mongos，添加shard
+#mongo localhost:3333/admin
+#db.runCommand({addshard: "localhost:4444", allowLocal: true});
+#db.runCommand({addshard: "localhost:5555", allowLocal: true});
+#
+## 给test库和test.person集合启用sharding
+#db.runCommand({enablesharding: "test"});
+#db.runCommand({shardcollection: "test.person", key: {name: 1}});
+#
+## 往test.person插入10w条记录，查看sharding分布情况
+#use test
+#for (var i=0; i<10*10000; i++) db.person.insert({name: "jack" + i, age: 1});
+#db.printShardingStatus();
+#
