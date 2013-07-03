@@ -4,6 +4,7 @@ import web
 import os
 import json
 import shelve
+from web.httpserver import StaticMiddleware
 
 
 curdir = os.path.dirname(__file__)
@@ -42,6 +43,7 @@ urls = ["/", index,
         ]
 
 app = web.application(urls, globals())
+wsgiapp = app.wsgifunc(StaticMiddleware)
 
 if __name__ == '__main__':
     app.run()
