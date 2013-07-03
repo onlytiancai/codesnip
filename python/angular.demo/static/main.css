@@ -1,0 +1,37 @@
+body{
+    margin: 10px;
+    font-family: arial, sans-serif;
+    font-size:14px;
+}
+.house{
+    position:relative;
+    float: left;
+    width: 200px;
+    height: 200px;
+    background-color: #eee;
+    margin: 10px;
+    word-break: break-all;
+    overflow: hidden;
+}
+.house h3{
+    margin:0;
+    padding: 10px;
+    background-color: #ddd;
+}
+.house p{
+    margin:0 0 50px 0;
+    padding: 10px;
+    overflow: hidden;
+}
+.house .status{
+    width:100%;
+    position: absolute;
+    text-align: right;
+    right: 0;
+    bottom: 0;
+    color: #666;
+    font-style: italic;
+    background-color: #ddd;
+    padding:3px;
+    font-size:12px;
+}

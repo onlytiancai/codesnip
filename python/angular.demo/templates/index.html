@@ -1,0 +1,23 @@
+<!doctype html>
+<html ng-app="myApp">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="static/main.css" media="screen" rel="stylesheet" type="text/css" /> 
+    <script src="/static/angular.js"></script>
+    <script src="/static/angular-cookies.js"></script>
+    <script src="/static/controllers.js"></script>
+    <title>AngularJS Demo</title>
+</head>
+<body ng-controller="DemoCtrl">
+    <h1>我的格子</h1>
+    <div class="toolbar">
+        欢迎您：{{name}} <a href="#" ng-click="addHouse()">创建我的格子</a>
+    </div>
+    <div ng-repeat="house in houses" class="house">
+        <h3>{{house.name}}的格子</h3>
+        <p>{{house.text}}</p>
+        <div class="status"><a href="#" ng-show="house.name==name" ng-click="editHouse(house)">编辑</a> {{house.lastmodified}}</div>
+    </div>
+</body>
+</html>
+
