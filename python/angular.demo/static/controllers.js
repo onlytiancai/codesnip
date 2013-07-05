@@ -28,14 +28,16 @@ function DemoCtrl($scope, $http, $cookies) {
     $scope.addHouse = function(){
         var name = prompt("请输入您的姓名", '');
         var text = prompt("请输入您现在要说的话", '');
-        name = name.trim && name.trim(); 
+        name = name && name.trim && name.trim(); 
         name = encodeURIComponent(name);
+        if (!name || !text) return;
         var house = {
             name: name,
             text: text,
             lastmodified: moment().format("YYYY-MM-DD mm:ss") 
         };
         $http.post('/houses', house).success(function(){
+            house.name = decodeURIComponent(house.name);
             $scope.houses.push(house);
             $scope.name = decodeURIComponent(house.name);
         });
