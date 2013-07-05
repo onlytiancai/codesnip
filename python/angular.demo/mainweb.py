@@ -26,16 +26,25 @@ class houses(object):
 
     def POST(self):
         house = json.loads(web.data())
-        name = house['name'].encode('ascii')
+        name = house['name'].strip().encode('ascii')
+        house['ip'] = web.ctx.ip
         all_houses[name] = house
         all_houses.sync()
         web.setcookie('name', name, 365 * 24 * 3600)
 
     def PUT(self):
         house = json.loads(web.data())
-        name = house['name'].encode('ascii')
-        all_houses[name] = house
-        all_houses.sync()
+        name = house['name'].strip().encode('ascii')
+        dbhouse = all_houses.get(name)
+        if dbhouse is None: return 
+        
+        # 只有添加时的IP可以修改
+        if dbhouse.get('ip', '') in ('', web.ctx.ip):
+            house['ip'] = web.ctx.ip
+            all_houses[name] = house
+            all_houses.sync()
+        else:
+            print '非法修改', web.ctx.ip, name
 
 
 urls = ["/", index,

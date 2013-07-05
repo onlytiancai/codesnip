@@ -1,7 +1,8 @@
 body{
     margin: 10px;
-    font-family: arial, sans-serif;
+    font-family: "Microsoft Yahei",Tahoma,Verdana,Arial,STHeiTi,sans-serif;
     font-size:14px;
+    background: url('purty_wood.png');
 }
 .house{
     position:relative;
@@ -12,16 +13,18 @@ body{
     margin: 10px;
     word-break: break-all;
     overflow: hidden;
+    box-shadow: 0 1px 10px rgba(0, 0, 0, .3);
 }
 .house h3{
     margin:0;
     padding: 10px;
-    background-color: #ddd;
+    background-color: #FCD209;
 }
 .house p{
     margin:0 0 50px 0;
     padding: 10px;
     overflow: hidden;
+    color:#5390CC;
 }
 .house .status{
     width:100%;
@@ -31,7 +34,7 @@ body{
     bottom: 0;
     color: #666;
     font-style: italic;
-    background-color: #ddd;
+    background-color: #4DB849;
     padding:3px;
     font-size:12px;
 }
