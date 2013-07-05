@@ -18,7 +18,9 @@ body{
 .house h3{
     margin:0;
     padding: 10px;
-    background-color: #FCD209;
+    background-color: #4DB849;
+    color: white;
+    text-shadow: 0 0 10px rgba(255, 255, 255, .25);
 }
 .house p{
     margin:0 0 50px 0;
@@ -30,11 +32,11 @@ body{
     width:100%;
     position: absolute;
     text-align: right;
+    background-color: #FCD209;
     right: 0;
     bottom: 0;
     color: #666;
     font-style: italic;
-    background-color: #4DB849;
     padding:3px;
     font-size:12px;
 }
