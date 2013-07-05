@@ -5,6 +5,7 @@ import os
 import json
 import shelve
 from web.httpserver import StaticMiddleware
+import logging
 
 
 curdir = os.path.dirname(__file__)
@@ -22,10 +23,12 @@ class index(object):
 class houses(object):
     def GET(self):
         web.header('Content-Type', 'application/json; charset=utf-8', unique=True)
+        all_houses.sync()
         return json.dumps(all_houses.values(), indent=4)
 
     def POST(self):
         house = json.loads(web.data())
+        del house['ip']
         name = house['name'].strip().encode('ascii')
         house['ip'] = web.ctx.ip
         all_houses[name] = house
@@ -34,6 +37,7 @@ class houses(object):
 
     def PUT(self):
         house = json.loads(web.data())
+        del house['ip']
         name = house['name'].strip().encode('ascii')
         dbhouse = all_houses.get(name)
         if dbhouse is None: return 

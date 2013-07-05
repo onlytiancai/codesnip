@@ -1,6 +1,8 @@
 angular.module('myApp', ['ngCookies']);
 function DemoCtrl($scope, $http, $cookies) {
+    moment.lang('en');
     $scope.name = decodeURIComponent($cookies.name);
+    $scope.orderProp = '-lastmodified'; 
 
     //获取所有格子
     $http.get('/houses').success(function(houses) {
