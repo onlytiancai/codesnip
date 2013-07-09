@@ -10,15 +10,8 @@
     <script src="/static/controllers.js"></script>
     <title>AngularJS Demo</title>
 </head>
-<body ng-controller="DemoCtrl">
+<body>
     <h1>我的格子-DNSPod文化墙</h1>
-    <div class="toolbar">
-        欢迎您：{{name}} <a href="#" ng-show="willshowcreate()" ng-click="addHouse()">创建我的格子</a>
-    </div>
-    <div ng-repeat="house in houses | orderBy:orderProp" class="house">
-        <h3>{{house.name}}的格子</h3>
-        <p>{{house.text}}</p>
-        <div class="status"><a href="#" ng-show="house.name==name" ng-click="editHouse(house)">编辑</a> {{house.lastmodified}}</div>
-    </div>
+    <div ng-view></div>
 </body>
 </html>

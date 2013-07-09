@@ -1,28 +1,22 @@
-angular.module('myApp', ['ngCookies']);
-function DemoCtrl($scope, $http, $cookies) {
-    moment.lang('en');
-    $scope.name = decodeURIComponent($cookies.name);
+function HousesCtrl($scope, $http, $cookies) {
     $scope.orderProp = '-lastmodified'; 
 
-    //获取所有格子
-    $http.get('/houses').success(function(houses) {
-        _.each(houses, function(house){
-            house.name = decodeURIComponent(house.name);
+    var fech_all_houses = function(){
+        $http.get('/houses').success(function(houses) {
+            $scope.houses = houses;
+            $scope.name = decodeURIComponent($cookies.name);
         });
-        $scope.houses = houses;
-    });
+    };
+
+    fech_all_houses();
 
     //修改格子内容
     $scope.editHouse = function(house){
         var text = prompt("请输入您要说的话", house.text);
         if(!text) return;
-        $http.put('/houses', 
-                  {name: encodeURIComponent(house.name), 
-                   text: text, 
-                   lastmodified: moment().format("YYYY-MM-DD mm:ss")}
-        ).success(function(){
-            house.text = text;
-            house.lastmodified = moment().format("YYYY-MM-DD mm:ss");
+        house.text = text;
+        $http.put('/houses', house).success(function(){
+            fech_all_houses();
         });
     };
 
@@ -30,18 +24,13 @@ function DemoCtrl($scope, $http, $cookies) {
     $scope.addHouse = function(){
         var name = prompt("请输入您的姓名", '');
         var text = prompt("请输入您现在要说的话", '');
-        name = name && name.trim && name.trim(); 
-        name = encodeURIComponent(name);
         if (!name || !text) return;
         var house = {
             name: name,
             text: text,
-            lastmodified: moment().format("YYYY-MM-DD mm:ss") 
         };
         $http.post('/houses', house).success(function(){
-            house.name = decodeURIComponent(house.name);
-            $scope.houses.push(house);
-            $scope.name = decodeURIComponent(house.name);
+            fech_all_houses();
         });
     };
 
@@ -51,3 +40,19 @@ function DemoCtrl($scope, $http, $cookies) {
         }); 
     };
 }
+
+function HistoryCtrl($scope, $http, $routeParams) {
+    $scope.orderProp = '-lastmodified'; 
+    $scope.history_name = $routeParams.name;
+    $http.get('/history/' + $scope.history_name).success(function(houses) {
+        $scope.houses = houses;
+    });
+}
+
+angular.module('myApp', ['ngCookies']).
+config(['$routeProvider', function($routeProvider) {
+    $routeProvider.
+    when('/houses', {templateUrl: 'static/partials/houses.html', controller: HousesCtrl}).
+    when('/house/:name', {templateUrl: 'static/partials/house-history.html', controller: HistoryCtrl}).
+    otherwise({redirectTo: '/houses'});
+}]);

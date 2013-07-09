@@ -1,0 +1,10 @@
+<h2> {{history_name}}的历史格子</h2>
+<div class="toolbar">
+    欢迎您：{{name}} <a href="#">返回首页</a>
+</div>
+<div ng-repeat="house in houses | orderBy:orderProp" class="house">
+    <h3>{{house.name}}的格子</h3>
+    <p>{{house.text}}</p>
+    <div class="status">{{house.lastmodified}}</div>
+</div>
+

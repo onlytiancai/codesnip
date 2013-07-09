@@ -3,15 +3,18 @@
 import web
 import os
 import json
-import shelve
 from web.httpserver import StaticMiddleware
+from datetime import datetime
+import uuid
 import logging
+import db
+import urllib
+
+logging.basicConfig(filename=os.path.join(os.getcwd(), 'log.log'), level=logging.DEBUG)
 
 
 curdir = os.path.dirname(__file__)
 render = web.template.render(os.path.join(curdir, 'templates/'))
-
-all_houses = shelve.open('houses.db')
 
 
 class index(object):
@@ -23,36 +26,42 @@ class index(object):
 class houses(object):
     def GET(self):
         web.header('Content-Type', 'application/json; charset=utf-8', unique=True)
-        all_houses.sync()
-        return json.dumps(all_houses.values(), indent=4)
+        all_houses = db.get_all_houses()
+        return json.dumps(all_houses, indent=4)
 
     def POST(self):
         house = json.loads(web.data())
-        del house['ip']
-        name = house['name'].strip().encode('ascii')
-        house['ip'] = web.ctx.ip
-        all_houses[name] = house
-        all_houses.sync()
-        web.setcookie('name', name, 365 * 24 * 3600)
+        logging.debug('add houses:%s %s', web.ctx.ip, house)
+        token = str(uuid.uuid1())
+        db.add_house(web.ctx.ip,
+                     house['name'].strip(),
+                     house['text'],
+                     datetime.now().strftime('%Y-%m-%d %H:%M'),
+                     token)
+        web.setcookie('name', urllib.quote(house['name'].encode('utf-8')), 10 * 365 * 24 * 3600)
+        web.setcookie('token', token, 10 * 365 * 24 * 3600)
 
     def PUT(self):
         house = json.loads(web.data())
-        del house['ip']
-        name = house['name'].strip().encode('ascii')
-        dbhouse = all_houses.get(name)
-        if dbhouse is None: return 
+        logging.debug('edit houses:%s %s', web.ctx.ip, house)
+        token = web.cookies().get('token')
+        db.modify_house(web.ctx.ip,
+                     house['name'].strip(),
+                     house['text'],
+                     datetime.now().strftime('%Y-%m-%d %H:%M'),
+                     token)
+
+class history(object):
+    def GET(self, name):
+        web.header('Content-Type', 'application/json; charset=utf-8', unique=True)
+        all_houses = db.get_history(name)
+        return json.dumps(all_houses, indent=4)
+
+
         
-        # 只有添加时的IP可以修改
-        if dbhouse.get('ip', '') in ('', web.ctx.ip):
-            house['ip'] = web.ctx.ip
-            all_houses[name] = house
-            all_houses.sync()
-        else:
-            print '非法修改', web.ctx.ip, name
-
-
 urls = ["/", index,
-        "/houses", houses
+        "/houses", houses,
+        "/history/([^/]+)", history 
         ]
 
 app = web.application(urls, globals())
