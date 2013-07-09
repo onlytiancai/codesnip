@@ -41,9 +41,10 @@ function HousesCtrl($scope, $http, $cookies) {
     };
 }
 
-function HistoryCtrl($scope, $http, $routeParams) {
+function HistoryCtrl($scope, $http, $routeParams, $cookies) {
     $scope.orderProp = '-lastmodified'; 
     $scope.history_name = $routeParams.name;
+    $scope.name = decodeURIComponent($cookies.name);
     $http.get('/history/' + $scope.history_name).success(function(houses) {
         $scope.houses = houses;
     });
