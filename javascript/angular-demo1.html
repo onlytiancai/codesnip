@@ -1,0 +1,21 @@
+<!doctype html>
+<html ng-app="myApp">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <script src="angular.js"></script>
+        <script src="angular-demo1.js"></script>
+        <title>AngularJS Demo</title>
+    </head>
+    <body>
+        <p common:error_msg></p>
+        <p ng-controller="statusCtrl">一共有{{apple_count}}个苹果，{{orange_count}}个桔子。</p>
+        <fruits>
+            <apple ng-repeat="n in [] | range:apple_count"></apple>
+            <orange ng-repeat="n in [] | range:orange_count"></orange>
+        </fruits>
+        <p ng-controller="inputCtrl">请输入
+        <input type="text" ng-model="apple_count" />个苹果，
+        <input type="text" ng-model="orange_count" />个桔子      
+        </p>
+    </body>
+</html>
