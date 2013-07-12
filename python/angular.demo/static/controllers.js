@@ -35,6 +35,8 @@ function HousesCtrl($scope, $http, $cookies) {
     };
 
     $scope.willshowcreate = function(){
+        if(!$scope.name) return true;
+        if($scope.name == 'undefined') return true;
         return !_.find($scope.houses, function(house){ 
             return house.name == $scope.name;
         }); 
