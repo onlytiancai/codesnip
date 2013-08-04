@@ -1,6 +1,6 @@
 import sqlite3
 
-cx = sqlite3.connect("./houses", check_same_thread=False)
+cx = sqlite3.connect("./houses.db", check_same_thread=False)
 
 
 def add_house(ip, name, text, lastmodified, token):
@@ -22,7 +22,7 @@ def get_all_houses():
 
 def modify_house(ip, name, text, lastmodified, token):
     cu = cx.cursor()
-    cu.execute("update houses set ip=?, text=?, lastmodified=? where name=? and token=?",
+    cu.execute("update houses set ip=?, text=?, lastmodified=? where name=?",
                (ip, text, lastmodified, name, token))
     cu.execute("insert into history(ip, name, text, lastmodified) values(?, ?, ?, ?)",
                (ip, name, text, lastmodified))
