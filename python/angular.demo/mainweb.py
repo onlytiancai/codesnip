@@ -31,8 +31,8 @@ class houses(object):
 
     def POST(self):
         house = json.loads(web.data())
-        logging.debug('add houses:%s %s', web.ctx.ip, house)
         token = str(uuid.uuid1())
+        logging.debug('add houses:%s %s %s', web.ctx.ip, house, token)
         db.add_house(web.ctx.ip,
                      house['name'].strip(),
                      house['text'],
@@ -43,8 +43,8 @@ class houses(object):
 
     def PUT(self):
         house = json.loads(web.data())
-        logging.debug('edit houses:%s %s', web.ctx.ip, house)
         token = web.cookies().get('token')
+        logging.debug('edit houses:%s %s %s', web.ctx.ip, house, token)
         db.modify_house(web.ctx.ip,
                      house['name'].strip(),
                      house['text'],
