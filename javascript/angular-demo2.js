@@ -9,6 +9,6 @@ angular.module('app', ['ngResource'])
     }
 }]);
 function MyCtrl($resource) {
-    var User = $resource('/Api/:apiname', {apiname:'@apiname'});
-    User.save({apiname: 'Domain.List', user_id: 123});
+    var User = $resource('/Api/:apiname', {apiname:'@apiname', id: '@id'});
+    User.save({apiname: 'Domain.List', user_id: 123, id: 3333});
 }
