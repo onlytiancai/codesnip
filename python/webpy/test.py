@@ -1,4 +1,7 @@
+import logging
 import application
+
+logging.basicConfig(level=logging.NOTSET, format='%(asctime)s %(levelname)s %(module)s %(message)s')
         
 urls = (
     '/(.*)', 'hello'
@@ -10,7 +13,7 @@ class hello:
     def GET(self, name):
         if not name: 
             name = 'World'
-        return 'Hello, ' + name + '!'
+        return 'Hello, ' + name + '!\n'
 
 if __name__ == "__main__":
     app.run()
