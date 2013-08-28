@@ -2,7 +2,7 @@
 
 抽取了web.py的核心代码，只有100多行，能完成web.py最主要url路由，处理请求，返回应答，设置header等功能。
 
-1. 适合写一些纯RESTFull api的网站，不带界面，不存取Cookie，请求应答都是json。
+1. 适合写一些纯RESTFull api的网站，不带界面。
 1. 只有100多行代码，一眼就能看的清清楚楚，而且只使用了python自带的类库，不会存在不可知的因素，排查问题非常方便。
 1. 为了提高性能，可以用gunicorn去跑app.wsgifunc()。
 
@@ -12,8 +12,7 @@
 1. 去掉了session相关功能，这年头估计没人用session了吧，直接把状态存redis吧。
 1. 去掉了db相关的功能，还是直接用sqlalchemy吧。
 1. 去掉了form相关的功能，感觉没啥大用。
-1. 去掉了web.input功能，可以自己用cgi.parse_qs去取env['QUERY_STRING']或env['wsgi.input'].read(env.get('CONTENT_LENGTH', 0))， 只需三五行代码
-1. 去掉了cookie相关的功能,可用Cookie.SimpleCookie去处理env['HTTP_COOKIE']
+1. 正则的性能优化逻辑去掉了，有些复杂。
 
 相关链接
 

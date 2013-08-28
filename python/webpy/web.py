@@ -1,9 +1,6 @@
 from wsgiref.simple_server import make_server
 from threading import local as threadlocal
-import types
-import logging
-import itertools
-import re
+import os, cgi, types, logging, itertools, re, Cookie, urllib # NOQA
 
 ctx = context = threadlocal()
 
@@ -68,6 +65,7 @@ class application(object):
  
     def load(self, env):
         """Initializes ctx using env."""
+        ctx.__dict__.clear()
         ctx.status = '200 OK'
         ctx.headers = []
         ctx.output = ''
@@ -76,11 +74,14 @@ class application(object):
         ctx.ip = env.get('REMOTE_ADDR')
         ctx.method = env.get('REQUEST_METHOD')
         ctx.path = env.get('PATH_INFO')
+        ctx.homepath = os.environ.get('REAL_SCRIPT_NAME', env.get('SCRIPT_NAME', ''))
+
 
     def run(self, *middleware):
         import sys
         ip = sys.argv[1] if len(sys.argv) > 1 else 'localhost'
         port = int(sys.argv[2]) if len(sys.argv) > 2 else 8000
+        logging.info('app start with %s:%s', ip, port)
         httpd = make_server(ip, port, self.wsgifunc(*middleware))
         httpd.serve_forever()
 
@@ -139,3 +140,48 @@ def header(hdr, value, unique=False):
                 return
     
     ctx.headers.append((hdr, value))
+
+
+def setcookie(name, value, expires='', domain=None,
+              secure=False, httponly=False, path=None):
+    morsel = Cookie.Morsel()
+    name, value = safestr(name), safestr(value)
+    morsel.set(name, value, urllib.quote(value))
+    if expires < 0:
+        expires = -1000000000
+    morsel['expires'] = expires
+    morsel['path'] = path or ctx.homepath + '/'
+    if domain:
+        morsel['domain'] = domain
+    if secure:
+        morsel['secure'] = secure
+    value = morsel.OutputString()
+    if httponly:
+        value += '; httponly'
+    header('Set-Cookie', value)
+
+
+def cookies():
+    thiscookie = Cookie.SimpleCookie()
+    if 'HTTP_COOKIE' in ctx.env:
+        thiscookie.load(ctx.env['HTTP_COOKIE'])
+        return thiscookie
+
+
+def data():
+    if 'data' not in ctx.__dict__:
+        cl = ctx.env.get('CONTENT_LENGTH')
+        cl = int(cl) if cl.isdigit() else 0
+        ctx.data = ctx.env['wsgi.input'].read(cl)
+    return ctx.data
+
+
+def input():
+    query_string= cgi.parse_qs(ctx.env['QUERY_STRING'])
+    post_data = cgi.parse_qs(data())
+    for key in post_data:
+        if key in query_string:
+            query_string[key].extend(post_data[key])
+        else:
+            query_string[key] = post_data
+    return query_string 
