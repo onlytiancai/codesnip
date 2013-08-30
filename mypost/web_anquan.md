@@ -194,37 +194,47 @@ oauth
     1. 即使口令数据库被公之于众，攻击者仍然需要一个庞大的字典去搜索来获得口令。
     1. 速度快，不需要证书和第三方认证机构
 
-    协议中用到的符号表示的含义如下:
+原理
 
-    N       N = 2q + 1 ， q 是一个素数，下面所有的取模运算都和这个 N 有关
-    g       一个 N 的模数，应该是 2 个巨大的素数乘得来
-    k       k = H(N,g) 在 SRP6 中 k = 3
-    s       Salt, 是随机选择的
-    I       用户名
-    p       明文密码
-    H()     单向 hash 函数
-    ^       求幂运算
-    u       随机数
-    a,b     保密的临时数字
-    A,B     公开的临时数字
-    x       私有密匙（从 p 和 s 计算得来）,x  =  H(s,p)
-    v       密码验证数字, v = g ^ x , 用来将来验证密码
-1. 认证过程
-    1. client向server发送请求，提供username 
-    2. server从数据库中取出帐号对应的密码P, 随机生成N,g,s, 利用公式v=g^x生成密码验证数字v 
-    3. client收到n,g,s, 计算x=H(s,P)
-    4. client随机生成a,计算A=g^a  
-    5. server收到A后,随机生成b, 计算B=v + g^b,生成u=H(A+B)，并给client返回B
-    6. client收到B后计算u=H(A+B)
-    7. client计算S = (B - g^x)^(a + ux)
-    7. client计算K = H(S) 
-    8. client计算M[1] = H(A, B, K) , 把M[1]发给server
-    9. server计算S = (A · v^u)^b
-    10. server计算K = H(S)
-    11. server收到client的M[1]后，根据自己的已知条件计算出M[1], 看和client的M[1]是否一致
-        1. 不同, 发送密码错误给客户端
-        1. 相同，则计算M[2] = H(A, M[1], K), 并返回给client
-    12. client验证M[2]
+    The following is a description of SRP-6 and 6a, the latest versions of SRP:
+
+      N    A large safe prime (N = 2q+1, where q is prime)
+           All arithmetic is done modulo N.
+      g    A generator modulo N
+      k    Multiplier parameter (k = H(N, g) in SRP-6a, k = 3 for legacy SRP-6)
+      s    User's salt
+      I    Username
+      p    Cleartext Password
+      H()  One-way hash function
+      ^    (Modular) Exponentiation
+      u    Random scrambling parameter
+      a,b  Secret ephemeral values
+      A,B  Public ephemeral values
+      x    Private key (derived from p and s)
+      v    Password verifier
+    The host stores passwords using the following formula:
+      x = H(s, p)               (s is chosen randomly)
+      v = g^x                   (computes password verifier)
+    The host then keeps {I, s, v} in its password database. The authentication protocol itself goes as follows:
+    User -> Host:  I, A = g^a                  (identifies self, a = random number)
+    Host -> User:  s, B = kv + g^b             (sends salt, b = random number)
+
+            Both:  u = H(A, B)
+
+            User:  x = H(s, p)                 (user enters password)
+            User:  S = (B - kg^x) ^ (a + ux)   (computes session key)
+            User:  K = H(S)
+
+            Host:  S = (Av^u) ^ b              (computes session key)
+            Host:  K = H(S)
+    Now the two parties have a shared, strong session key K. To complete authentication, they need to prove to each other that their keys match. One possible way:
+    User -> Host:  M = H(H(N) xor H(g), H(I), s, A, B, K)
+    Host -> User:  H(A, M, K)
+    The two parties also employ the following safeguards:
+        1. The user will abort if he receives B == 0 (mod N) or u == 0.
+        2. The host will abort if it detects that A == 0 (mod N).
+        3. The user must show his proof of K first. If the server detects that the user's proof is incorrect, it must abort without showing its own proof of K.
+    A paper describing this protocol is also available, as well as a conference paper describing an older version of the protocol.
 
 **双因素认证，动态口令**
 
