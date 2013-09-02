@@ -183,59 +183,6 @@ oauth
     1. 服务提供方根据临时令牌和用户的授权情况授予客户端访问令牌。
     1. 客户端使用获取的访问令牌访问存放在服务提供方上的受保护的资源。
 
-**Secure Remote Password protocol**
-
-1. 介绍
-    1. 服务器不保存密码或密码的散列值, 防止字典攻击. 而只是保存验证因子(verifier).
-    1. 客户端和服务器可以各自计算出一个会话秘钥(session key), 其值相同. 防止窃听.
-1. 优点
-    1. 防窃听
-    1. 防暴力破解，字典攻击, 弱口令也不容易被破解
-    1. 即使口令数据库被公之于众，攻击者仍然需要一个庞大的字典去搜索来获得口令。
-    1. 速度快，不需要证书和第三方认证机构
-
-原理
-
-    The following is a description of SRP-6 and 6a, the latest versions of SRP:
-
-      N    A large safe prime (N = 2q+1, where q is prime)
-           All arithmetic is done modulo N.
-      g    A generator modulo N
-      k    Multiplier parameter (k = H(N, g) in SRP-6a, k = 3 for legacy SRP-6)
-      s    User's salt
-      I    Username
-      p    Cleartext Password
-      H()  One-way hash function
-      ^    (Modular) Exponentiation
-      u    Random scrambling parameter
-      a,b  Secret ephemeral values
-      A,B  Public ephemeral values
-      x    Private key (derived from p and s)
-      v    Password verifier
-    The host stores passwords using the following formula:
-      x = H(s, p)               (s is chosen randomly)
-      v = g^x                   (computes password verifier)
-    The host then keeps {I, s, v} in its password database. The authentication protocol itself goes as follows:
-    User -> Host:  I, A = g^a                  (identifies self, a = random number)
-    Host -> User:  s, B = kv + g^b             (sends salt, b = random number)
-
-            Both:  u = H(A, B)
-
-            User:  x = H(s, p)                 (user enters password)
-            User:  S = (B - kg^x) ^ (a + ux)   (computes session key)
-            User:  K = H(S)
-
-            Host:  S = (Av^u) ^ b              (computes session key)
-            Host:  K = H(S)
-    Now the two parties have a shared, strong session key K. To complete authentication, they need to prove to each other that their keys match. One possible way:
-    User -> Host:  M = H(H(N) xor H(g), H(I), s, A, B, K)
-    Host -> User:  H(A, M, K)
-    The two parties also employ the following safeguards:
-        1. The user will abort if he receives B == 0 (mod N) or u == 0.
-        2. The host will abort if it detects that A == 0 (mod N).
-        3. The user must show his proof of K first. If the server detects that the user's proof is incorrect, it must abort without showing its own proof of K.
-    A paper describing this protocol is also available, as well as a conference paper describing an older version of the protocol.
-
 **双因素认证，动态口令**
 
 1. 介绍：
@@ -248,7 +195,85 @@ oauth
 1. 缺点
     1. 使用不方便
 
-### 参考链接
+**用密钥加密用户密码**
+
+1. 介绍：
+    1. 本机生成一个密钥key存磁盘上，对称加密密钥。
+    1. 创建用户时，用户提供password, 然后数据库里保存db_password = encrypt(key, hash(password))
+    1. 这样黑客把数据库拖走后，因为没有key解开用db_password，所以用户密码还是安全的。
+    1. 用户登录时提供密码password, 哈希后是hash(password), 然后uncrypt(key, db_password)，
+        1. 两者比较，一致就是认证通过
+        1. 不一致就是终止认证
+1. 优点：
+    1. 防止拖库
+1. 缺点
+    1. key丢了就完蛋了，谁也登录不上了。
+
+**[Secure Remote Password protocol](http://srp.stanford.edu/design.html)**
+
+1. 介绍
+    1. 一个认证和密钥交换系统，它用来在不可靠的网络中保护口令和交换密钥。
+    1. 通过消除了在网络上发送明文口令的需要，并且通过安全的密钥交换机制来使用加密，改进了安全性。
+    1. 服务器不保存密码或密码的散列值, 防止字典攻击. 而只是保存验证因子(verifier).
+    1. 客户端和服务器可以各自计算出一个会话秘钥(session key), 其值相同. 防止窃听和会话劫持.
+    1. 好多游戏服务端用SRP认证，比如魔兽世界。
+
+1. 优点
+    1. 防窃听
+    1. 防暴力破解，字典攻击, 弱口令也不容易被破解
+    1. 即使口令数据库被公之于众，攻击者仍然需要一个庞大的字典去搜索来获得口令。
+    1. 速度快，不需要证书和第三方认证机构
+1. 缺点
+    1. 浏览器不支持，得自己实现
+
+原理
+
+    N     一个安全的大质数, 比如N=2q+1,q 是一个素数
+    g     一个以N为模的生成元，对任何X，有0 < X < N，存在一个值x，使得g^x % N == X。
+    k     k = H(N,G) 在 SRP6 中 k = 3
+    s     User’s Salt
+    I     用户名
+    p     明文密码
+    H()   单向 hash 函数
+    ^     求幂运算
+    u     随机数
+    a,b   保密的临时数字
+    A,B   公开的临时数字
+    x     私有密匙（从 p 和 s 计算得来）
+    v     密码验证数字
+
+    N和g的值必须由双方讨论来达成一致。它们可以被提前设置好，或者主机把它们发送给客户端。
+
+    服务器存储如下信息
+    x = H(s, p)               (s is chosen randomly)
+    v = g^x                   (computes password verifier)
+
+    服务器的数据库保存 {I, s, v} 整个验证流程如下:
+
+    User -> Host:  I, A = g^a                  (标识自己是谁, a是随机数)
+    Host -> User:  s, B = kv + g^b             (把salt发送给user, b是随机数)
+
+            Both:  u = H(A, B)
+
+            User:  x = H(s, p)                 (用户输入密码)
+            User:  S = (B - kg^x) ^ (a + ux)   (计算会话密钥)
+            User:  K = H(S)
+
+            Host:  S = (Av^u) ^ b              (计算会话密钥)
+            Host:  K = H(S)
+
+    这样双方都有一个会话密钥S, 后续的消息传输可以用S做加解密，从而保证安全。
+    为了完成认证过程，双方还得向对方证明自己拥有正确的S，
+    S不能让第三方知道，所以不能直接传输给对方做比较，一个可能的办法是:
+
+    User -> Host:  M = H(H(N) xor H(g), H(I), s, A, B, K)
+    Host -> User:  H(A, M, K)
+
+    双方需要做如下保障
+        1. 如果客户端收到B == 0 (mod N) 或u == 0, 客户端停止认证。
+        2. 如果服务器发现 A == 0 (mod N)则停止认证。
+        3. 用户必须得证明自己拥有正确的K，否则服务器就会终止认证。
+
+### 相关链接 
 
 1. [HTTPS的七个误解（译文）](http://www.ruanyifeng.com/blog/2011/02/seven_myths_about_https.html)
-1. [srp](http://srp.stanford.edu/design.html)
