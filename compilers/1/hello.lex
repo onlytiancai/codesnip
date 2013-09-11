@@ -13,9 +13,10 @@ words {chars}+
 {numbers} { /* one may want to add some processing here*/ }
 %%
 
-void main() {
+int main() {
     yylex(); /* start the analysis*/
     printf(" No of words: %d\n", wordCount);
+    return 0;
 }
 int yywrap()
 {

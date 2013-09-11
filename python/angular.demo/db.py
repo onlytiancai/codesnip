@@ -23,7 +23,7 @@ def get_all_houses():
 def modify_house(ip, name, text, lastmodified, token):
     cu = cx.cursor()
     cu.execute("update houses set ip=?, text=?, lastmodified=? where name=?",
-               (ip, text, lastmodified, name, token))
+               (ip, text, lastmodified, name))
     cu.execute("insert into history(ip, name, text, lastmodified) values(?, ?, ?, ?)",
                (ip, name, text, lastmodified))
     cx.commit()
