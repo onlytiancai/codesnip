@@ -1,0 +1,18 @@
+Class names: malignant benign
+
+Feature names and their values:
+    videoAddiction => none low medium heavy
+    exercising => never occasionally regularly
+    smoking => heavy medium light never
+    fatIntake => low medium heavy
+
+
+Training Data:
+
+sample     class      videoAddiction   exercising    smoking   fatIntake
+==========================================================================
+
+sample_0   benign     medium           occasionally  heavy     low
+sample_1   malignant  none             occasionally  heavy     medium
+sample_2   benign     low              occasionally  light     heavy
+sample_3   malignant  medium           occasionally  heavy     heavy
