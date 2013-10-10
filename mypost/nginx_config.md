@@ -1,7 +1,7 @@
 目的：
 
 1. 为了让一个主机IP支持多个https域名，需要启用SNI, 需要重新编译openssl和指定--with-openssl参数
-1. 为了让redis使用lua脚本，需要打开--with-luajit开关
+1. 为了让nginx使用lua脚本，需要打开--with-luajit开关
 1. 为了能查看nginx性能，需要打开http_stub_status模块
 
 最终安装脚本如下
