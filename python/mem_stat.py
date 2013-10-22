@@ -2,7 +2,7 @@
 '''
 crontab设置每隔10分钟记录一次内存耗费Top 10
 
-10 * * * * cd /root/src/down-monitor/monitorv2/stuff && python mem_stat.py >>/var/log/mem_stat.log
+*/10 * * * * cd /root/src/down-monitor/monitorv2/stuff && python mem_stat.py >>/var/log/mem_stat.log
 '''
 
 import psutil
