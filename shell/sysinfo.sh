@@ -16,6 +16,7 @@ CPU_TYPE2=`uname -m`
 OS_NAME=`uname -s`
 OS_KERNEL=`uname -r`
 UPTIME=`uptime`
+PROC_COUNT=`ps -ef | wc -l`
 
 body() {
     IFS= read -r header
@@ -33,6 +34,7 @@ echo "CPU核数           : $CPUS"
 echo "CPU类型           : $CPU_TYPE $CPU_TYPE2 $CPU_MHZ MHz"
 echo "操作系统          : $OS_NAME"
 echo "内核版本          : $OS_KERNEL"
+echo "进程总数          : $PROC_COUNT"
 echo "启动时间及负载    : $UPTIME"
 echo
 echo "内存使用情况"
@@ -70,10 +72,6 @@ echo
 echo "最近1小时磁盘IO统计"
 echo "----------------------------------"
 sar -b -s `date -d "1 hour ago" +%H:%M:%S`
-echo 
-echo "最近1小时进程创建统计"
-echo "----------------------------------"
-sar -c -s `date -d "1 hour ago" +%H:%M:%S`
 echo 
 echo "最近1小时进程队列和平均负载统计"
 echo "----------------------------------"
