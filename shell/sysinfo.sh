@@ -1,7 +1,4 @@
 #!/bin/sh
-#requires the following
-# free, hostname, grep, cut, awk, uname
-# http://www.dslreports.com/forum/remark,2069987
 
 HOSTNAME=`hostname -s`
 IP_ADDRS=`ifconfig | grep 'inet addr' | grep -v '255.0.0.0' | cut -f2 -d':' | awk '{print $1}'`
@@ -18,25 +15,75 @@ CPU_TYPE2=`uname -m`
 
 OS_NAME=`uname -s`
 OS_KERNEL=`uname -r`
-BOOT=`procinfo | grep Bootup | sed 's/Bootup: //g' | cut -f1-6 -d' '`
-UPTIME=`uptime | cut -f5-8 -d' '`
+UPTIME=`uptime`
 
-PCIINFO=`lspci | cut -f3 -d':'`
-#Another way to do it
-#PCIINFO=`lspci | cut -f3 -d':'`
+body() {
+    IFS= read -r header
+    printf '%s\n' "$header"
+    "$@"
+}
 
 #print it out
-echo "$HOSTNAME"
+echo "概要信息"
 echo "----------------------------------"
-echo "Hostname         : $HOSTNAME"
-echo "Host Address(es) : $IP_ADDRS"
-echo "Main Memory      : $MEMORY"
-echo "Number of CPUs   : $CPUS"
-echo "CPU Type         : $CPU_TYPE $CPU_TYPE2 $CPU_MHZ MHz"
-echo "OS Name          : $OS_NAME"
-echo "Kernel Version   : $OS_KERNEL"
-echo "Bootup           : $BOOT - Uptime $UPTIME"
+echo "主机名            : $HOSTNAME"
+echo "IP地址            : $IP_ADDRS"
+echo "内存大小          : $MEMORY"
+echo "CPU核数           : $CPUS"
+echo "CPU类型           : $CPU_TYPE $CPU_TYPE2 $CPU_MHZ MHz"
+echo "操作系统          : $OS_NAME"
+echo "内核版本          : $OS_KERNEL"
+echo "启动时间及负载    : $UPTIME"
 echo
-echo "Devices"
+echo "内存使用情况"
 echo "----------------------------------"
-echo "$PCIINFO"
+free -m
+echo 
+echo "磁盘使用情况"
+echo "----------------------------------"
+df -h
+echo 
+echo "网络连接情况"
+echo "----------------------------------"
+netstat -n | awk '/^tcp/ {++S[$NF]} END {for(a in S) print a, S[a]}'
+echo 
+echo "网络监听情况"
+echo "----------------------------------"
+netstat -tnpl | awk 'NR>2 {printf "%-20s %-15s \n",$4,$7}'
+echo 
+echo "内存占用Top 10"
+echo "----------------------------------"
+ps -eo rss,pmem,pcpu,vsize,args |body sort -k 1 -r -n | head -n 10
+echo 
+echo "CPU占用Top 10"
+echo "----------------------------------"
+ps -eo rss,pmem,pcpu,vsize,args |body sort -k 3 -r -n | head -n 10
+echo 
+echo "最近1小时网络流量统计"
+echo "----------------------------------"
+sar -n DEV -s `date -d "1 hour ago" +%H:%M:%S`
+echo 
+echo "最近1小时cpu使用统计"
+echo "----------------------------------"
+sar -u -s `date -d "1 hour ago" +%H:%M:%S`
+echo 
+echo "最近1小时磁盘IO统计"
+echo "----------------------------------"
+sar -b -s `date -d "1 hour ago" +%H:%M:%S`
+echo 
+echo "最近1小时进程创建统计"
+echo "----------------------------------"
+sar -c -s `date -d "1 hour ago" +%H:%M:%S`
+echo 
+echo "最近1小时进程队列和平均负载统计"
+echo "----------------------------------"
+sar -q -s `date -d "1 hour ago" +%H:%M:%S`
+echo 
+echo "最近1小时内存和交换空间的统计统计"
+echo "----------------------------------"
+sar -r -s `date -d "1 hour ago" +%H:%M:%S`
+echo 
+
+# 参考链接：
+# http://www.dslreports.com/forum/remark,2069987
+# http://www.ctohome.com/FuWuQi/1b/688.html
