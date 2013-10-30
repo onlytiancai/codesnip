@@ -1,9 +1,10 @@
 #!/bin/sh
+#requires the following
+# free, hostname, grep, cut, awk, uname, sar, ps, netstat
+. /root/.profile
+
 
 HOSTNAME=`hostname -s`
-IP_ADDRS=`ifconfig | grep 'inet addr' | grep -v '255.0.0.0' | cut -f2 -d':' | awk '{print $1}'`
-IP_ADDRS=`echo $IP_ADDRS | sed 's/\n//g'`
-
 #memory
 MEMORY=`free | grep Mem | awk '{print $2}'`
 
@@ -25,10 +26,9 @@ body() {
 }
 
 #print it out
-echo "概要信息"
+echo "概要信息" `date +'%Y-%m-%d %H:%S'`
 echo "----------------------------------"
 echo "主机名            : $HOSTNAME"
-echo "IP地址            : $IP_ADDRS"
 echo "内存大小          : $MEMORY"
 echo "CPU核数           : $CPUS"
 echo "CPU类型           : $CPU_TYPE $CPU_TYPE2 $CPU_MHZ MHz"
