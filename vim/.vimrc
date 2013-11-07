@@ -13,7 +13,7 @@ set et "编辑时将tab替换成空格
 set ambiwidth=double"防止特殊字符无法显示
 
 " Format related
-set tw=78 "光标超过78列这行
+"set tw=78 "光标超过78列这行
 set lbr "不再单词中间断行
 set fo+=mB "打开断行模块对亚洲语言的支持
 set nu "打开行号
@@ -56,7 +56,7 @@ if (has("gui_running"))
     set nowrap "设置不自动换行
 else
     colo ron "设置颜色方案
-    set wrap "设置终端模式下自动换行
+    "set wrap "设置终端模式下自动换行
 endif
 syntax on "启用语法提示
 
@@ -68,7 +68,7 @@ if (has("win32"))
 else
 
     if (has("gui_running"))
-        set guifont=Bitstream\ Vera\ Sans\ Mono\ 11 
+        set guifont=Bitstream\ Vera\ Sans\ Mono\ 11
     endif
 endif
 "=============================================================================
@@ -153,7 +153,7 @@ let g:SuperTabDefaultCompletionType="<C-X><C-O>" "设置按tab后默认补全方
 let g:neocomplcache_enable_at_startup = 1 "自动启动
 let g:neocomplcache_enable_smart_case = 1 "智能匹配大小写
 let g:neocomplcache_enable_camel_case_completion = 1 "启用首字母大写匹配
-"let g:neocomplcache_disable_auto_complete = 1 
+let g:neocomplcache_disable_auto_complete = 0
 
 autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS 
 autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags 
@@ -162,10 +162,10 @@ autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
 autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags 
 
 "======NERDTree
-map <F10> :NERDTreeToggle<CR> "f10切换树目录
+map <F8> :NERDTreeToggle<CR> "f10切换树目录
 
 "======Taglist
-let Tlist_Ctags_Cmd = 'ctags' "ctag的命令
+let Tlist_Ctags_Cmd = '/usr/bin/ctags' "ctag的命令
 let Tlist_Show_One_File = 1 "不同时显示多个文件的tag，只显示当前文件的
 let Tlist_Exit_OnlyWindow = 1 "如果taglist窗口是最后一个窗口，则退出vim
 let Tlist_Use_Right_Window = 1 "在右侧窗口中显示taglist窗口 
@@ -182,3 +182,18 @@ map <S-F2> :!pyflakes %<cr>
 
 " NERD_commenter
 map <c-h> ,c<space>
+
+"set cursorcolumn
+"set cursorline
+
+vmap <leader>tc :Align = #<cr>
+
+" https://github.com/tpope/vim-pathogen
+call pathogen#infect()
+
+" https://github.com/nvie/vim-flake8
+let g:flake8_ignore="E501,W293,E701"
+let g:flake8_max_complexity=10
+
+" 79标尺
+set colorcolumn=79
