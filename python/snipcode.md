@@ -30,7 +30,7 @@
             return inner2
         return inner
                                                                                       
-    if __name__:
+    if __name__ == "__main__":
         @log_exception("foo")
         def foo(a, b=2):
             raise Exception("heihei")
