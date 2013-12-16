@@ -58,3 +58,7 @@ web.py骨架代码
     
     # 调试启动：python testweb.py 0.0.0.0:8000
     # 正式启动：gunicorn testweb:wsgiapp -b 0.0.0.0:8000 -w 4 -D
+
+去掉requests的默认日志
+
+    logging.getLogger("requests.packages.urllib3").setLevel(logging.CRITICAL)  
