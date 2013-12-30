@@ -1,0 +1,16 @@
+### SSH
+
+复制本地公钥到远程服务器，实现无密码登录
+
+    $ ssh-copy-id user@host
+    $ ssh user@host 'mkdir -p .ssh && cat >> .ssh/authorized_keys' < ~/.ssh/id_rsa.pub
+
+将$HOME/src/目录下面的所有文件，复制到远程主机的$HOME/src/目录。
+
+    $ cd && tar czv src | ssh user@host 'tar xz'
+
+将远程主机$HOME/src/目录下面的所有文件，复制到用户的当前目录。
+
+    $ ssh user@host 'tar cz src' | tar xzv
+
+SSH登录慢的问题，在/etc/hosts里加上远程主机的IP和HOSTNAME就可以了。
