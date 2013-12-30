@@ -14,3 +14,35 @@
     $ ssh user@host 'tar cz src' | tar xzv
 
 SSH登录慢的问题，在/etc/hosts里加上远程主机的IP和HOSTNAME就可以了。
+
+ssh-keygen用于生成一对密钥
+
+ssh -v可以打印详细的日志
+
+ssh-agent启动之后，如果通过公钥做身份验证，只需第一次输入密码，以后ssh-agent会帮你自动输入。
+ssh-add 把专用密钥添加到 ssh-agent 的高速缓存中
+
+端口转发
+
+    # graphite的80端口可以访问
+    curl -vI graphite:80 2>/dev/null
+
+    # 把本机的6300端口映射到graphite主机的80端口
+    ssh -CfnNTgq -L 6300:127.0.0.1:80 root@graphite
+    netstat -tnpl | grep 6300
+
+    # 把dapingmu主机的6300端口映射到本机的6300端口
+    ssh -CfnNTgq -R 6300:127.0.0.1:6300 hongke@dapingmu
+    ssh hongke@dapingmu 'netstat -tnpl | grep 6300'
+
+    # 测试访问dapingmu主机的6300端口和访问graphite的80端口是一样的
+    ssh hongke@dapingmu 'curl -vI localhost:6300 2>/dev/null'
+
+
+- C 表示压缩数据传输
+- f 表示后台用户验证,这个选项很有用,没有shell的不可登陆账号也能使用.
+- n Redirects stdin from /dev/null -f 推荐的，不加这条参数应该也行。
+- N 不执行远程命令，专为端口转发度身打造。
+- T 不为该连接分配tty
+- g 表示允许远程主机连接转发端口
+- q 安静模式，忽略一切对话和错误提示。
