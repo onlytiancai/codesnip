@@ -15,7 +15,7 @@ function collect(){
     load=`echo  "$info" | sed -n '1p' | sed -r 's/.*load average:[[:space:]]([0-9]+).*/\1/'`
     tasks=`echo  "$info" | sed -n '2p' | awk '{print $2}'`
     cpu_use=`echo  "$info" | sed -n '3p' | awk '{print $2}' | sed -r 's/([0-9]+).*/\1/'`
-    mem_use=`echo  "$info" | sed -n '4p' | awk '{print $5}' | sed -r 's/([0-9]+).*/\1/'`
+    mem_use=`echo  "$info" | sed -n '4p' | awk '{print $4}' | sed -r 's/([0-9]+).*/\1/'`
     swap_use=`echo  "$info" | sed -n '5p' | awk '{print $4}' | sed -r 's/([0-9]+).*/\1/'`
 
     echo "collector_ip=$COLLECTOR_IP, collector_port=$COLLECTOR_PORT, api_key=$API_KEY"
