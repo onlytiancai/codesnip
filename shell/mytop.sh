@@ -11,6 +11,7 @@ function collect(){
     time=`date +%s`
 
     info=$(top -bn 1)
+    echo  "$info" | head -n5
     load=`echo  "$info" | sed -n '1p' | sed -r 's/.*load average:[[:space:]]([0-9]+).*/\1/'`
     tasks=`echo  "$info" | sed -n '2p' | awk '{print $2}'`
     cpu_use=`echo  "$info" | sed -n '3p' | awk '{print $2}' | sed -r 's/([0-9]+).*/\1/'`
