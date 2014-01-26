@@ -7,7 +7,7 @@ IP_ADDRS=`echo $IP_ADDRS | sed 's/\n//g'`
 HOSTNAME=`hostname -s`
 
 
-function collect(){
+collect() {
     time=`date +%s`
 
     info=$(top -bn 1)
@@ -28,13 +28,14 @@ function collect(){
 
 }
 
-function run(){
+run(){
     while :
     do
-        echo time=`date +"%Y-%m-%d %H:%M:%S"`, pid=$$
-        collect;
         sleep 60;
+        echo time=`date +"%Y-%m-%d %H:%M:%S"`, pid=$$
+        collect >/dev/null;
     done;
 }
 
+collect
 run
