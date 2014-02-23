@@ -1,0 +1,15 @@
+# -*- coding: utf-8 -*-
+
+import web
+
+class
+
+urls = ['/show/([^/]*)', show,
+        '/gen/([^/]*)', gen,
+        ]
+
+app = web.application(urls, globals())
+wsgiapp = app.wsgifunc(StaticMiddleware)
+
+if __name__ == '__main__':
+    app.run()
