@@ -5,3 +5,8 @@
 *.swp
 node/mydb/
 *.ipynb
+*.o
+*.pyc
+*.swp
+*.log
+*.d
