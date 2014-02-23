@@ -2,7 +2,7 @@
 <html lang="zh-cn">
     <head>
         <meta charset="utf-8">
-        <title>Huhao.me</title>
+        <title>爱练剑</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style type="text/css" media="screen">
             /* global */
@@ -62,23 +62,24 @@
             #content .item .main{
                 clear: both; 
                 overflow: hidden;
-                height:50px;
+                height:40px;
             }
             #content .item .title{
                 padding-left: 10px;
                 font-weight: bold;
-                font-size: 20px;
-                line-height: 50px;
+                font-size: 15px;
+                line-height: 40px;
                 float:left;
                 color:#3F79C2;
             }
             #content .item .days{
                 float:right;
-                height:50px;
+                height:40px;
                 width:80px;
                 text-align:center;
+                line-height: 40px;
             }
-            #content .item .days a{
+            #content .item .days span{
                 text-decoration: none;
                 color: #fff;
                 font-size: 30px;
@@ -100,7 +101,7 @@
                 background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #89BB4A), color-stop(1, #4C9F1D));
             }
 
-            #content .item .days a.done {
+            #content .item .days span.done {
                 color: #000;
             }
 
@@ -128,7 +129,7 @@
                             每天睡个好觉 
                         </div>
                         <div class="days bg1">
-                            <a href="">20</a> 
+                            <span>0</span> 
                         </div>
                     </div>
                 </div>
@@ -148,7 +149,7 @@
                             每天保持好心情
                         </div>
                         <div class="days bg2">
-                            <a href="">10</a> 
+                            <span>0</span> 
                         </div>
                     </div>
                 </div>
@@ -168,7 +169,7 @@
                             每天运动半小时 
                         </div>
                         <div class="days bg3">
-                            <a href="">7</a> 
+                            <span>0</span> 
                         </div>
                     </div>
                 </div>
@@ -188,7 +189,7 @@
                            每天学习半小时 
                         </div>
                         <div class="days bg4">
-                            <a href="">100</a> 
+                            <span>0</span> 
                         </div>
                     </div>
                 </div>
@@ -208,7 +209,7 @@
                             每天陪陪家人
                         </div>
                         <div class="days bg5">
-                            <a href="javascript:void();">73</a> 
+                            <span>0</span> 
                         </div>
                     </div>
                 </div>
@@ -238,9 +239,9 @@
                 var set_ui_item = function(op, data){
                     $('#item_' + op + ' .keep_day').html('连续保持了'+ data.keep_hits +'天');
                     $('#item_' + op + ' .from_day').html(data.from_day ? '从' + data.from_day : '还未开始');
-                    $('#item_' + op + ' .days a').text(data.total_hits);
+                    $('#item_' + op + ' .days span').text(data.total_hits);
                     if(data.last_day == get_today()){
-                        $('#item_' + op + ' .days a').addClass('done');
+                        $('#item_' + op + ' .days span').addClass('done');
                     }
                 };
 
