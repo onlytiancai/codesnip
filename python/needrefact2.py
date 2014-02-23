@@ -26,42 +26,39 @@
             ...
         Exception
         '''
-        if pet == 'dog':
-            if action == 'eat':
-                if target == 'bone':
-                    print 'ok'
-                elif target == 'ball':
-                    print 'faild'
-                else:
-                    raise Exception()
-            elif action == 'play':
-                if target == 'bone':
-                    print 'ok'
-                elif target == 'ball':
-                    print 'yes'
-                else:
-                    print 'opps' 
-            else:
-                raise Exception()
-        elif pet == 'dolphin':
-            if action == 'eat':
-                if target == 'bone':
-                    print 'faild'
-                elif target == 'ball':
-                    print 'faild'
-                else:
-                    raise Exception()
-            elif action == 'play':
-                if target == 'bone':
-                    print 'faild'
-                elif target == 'ball':
-                    print 'good'
-                else:
-                    raise Exception()
-            else:
-                raise Exception()
-        else:
+
+        def print_ok():
+            print 'ok'
+        
+        def print_yes():
+            print 'yes'
+        
+        def print_good():
+            print 'good'
+
+        def print_faild():
+            print 'faild'
+        
+        def print_opps():
+            print 'opps'
+
+        def raise_exception():
             raise Exception()
+
+        args_map = {}
+        args_map[('dog', 'eat', 'bone')] = print_ok
+        args_map[('dog', 'eat', 'ball')] = print_faild
+        args_map[('dog', 'play', 'bone')] = print_ok
+        args_map[('dog', 'play', 'ball')] = print_yes
+        args_map[('dog', 'play', 'mouse')] = print_opps
+
+        args_map[('dolphin', 'eat', 'bone')] = print_faild
+        args_map[('dolphin', 'eat', 'ball')] = print_faild
+        args_map[('dolphin', 'play', 'bone')] = print_faild
+        args_map[('dolphin', 'play', 'ball')] = print_good
+
+        func = args_map.get((pet, action, target), raise_exception)
+        func()
 
     if __name__ == '__main__':
         import doctest

@@ -17,7 +17,7 @@ count = count + 1 这个语句不是一个原子的操作，多个线程/协程�
 '''
 import threading
 
-use_gevent = False       # 是否使用gevent
+use_gevent = False        # 是否使用gevent
 use_debug = False        # 是否打印测试输出
 cycles_count = 100*10000 # 每个计数器线程/协程循环增加计数器的次数
 

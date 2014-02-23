@@ -30,7 +30,7 @@ function collect(){
 
 while :
 do
-    echo `date`
+    echo time=`date`, pid=$$
     collect;
     sleep 60;
 done;
