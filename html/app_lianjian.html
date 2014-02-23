@@ -44,6 +44,7 @@
                 -webkit-box-shadow: 0 0 3px rgba(34,25,25,.4);
                 background:#fff;
                 cursor:pointer;
+                border-radius: 10px;
             }
 
             #content .item .header{
@@ -71,10 +72,9 @@
                 font-size: 15px;
                 line-height: 40px;
                 color:#3F79C2;
-                display:table-cell;
+                width:200px;
             }
             #content .item .days{
-                display:table-cell;
                 float:right;
                 height:40px;
                 width:70px;
@@ -106,6 +106,13 @@
             #content .item .days span.done {
                 color: #000;
             }
+
+            @-webkit-keyframes bgchange
+            {
+                from {background: #8cdaca;}
+                to {background: #fff;}
+            }
+
 
         </style>
     </head>
@@ -221,7 +228,7 @@
             </div>
         </div>
 
-        <script type="text/javascript" charset="utf-8" src="static/lib/zepto.min.js"></script>
+        <script type="text/javascript" charset="utf-8" src="static/lib/zepto.js"></script>
         <script type="text/javascript" charset="utf-8">
             $(function(){
                 var get_today = function(){
@@ -274,6 +281,8 @@
                             }
                         }
 
+
+                        $('#item_' + op).animate('bgchange', 500);
                         set_ui_item(op, get_data(op));
                     }; 
                 };
