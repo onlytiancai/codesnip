@@ -7,16 +7,16 @@ IP_ADDRS=`echo $IP_ADDRS | sed 's/\n//g'`
 HOSTNAME=`hostname -s`
 
 
-function collect(){
+collect() {
     time=`date +%s`
 
     info=$(top -bn 1)
     echo  "$info" | head -n5
-    load=`echo  "$info" | sed -n '1p' | sed -r 's/.*load average:[[:space:]]([0-9]+).*/\1/'`
-    tasks=`echo  "$info" | sed -n '2p' | awk '{print $2}'`
-    cpu_use=`echo  "$info" | sed -n '3p' | awk '{print $2}' | sed -r 's/([0-9]+).*/\1/'`
-    mem_use=`echo  "$info" | sed -n '4p' | awk '{print $4}' | sed -r 's/([0-9]+).*/\1/'`
-    swap_use=`echo  "$info" | sed -n '5p' | awk '{print $4}' | sed -r 's/([0-9]+).*/\1/'`
+    load=`echo  "$info" | sed -n "1p" | grep -Eo "load average:.*"| awk '{print $3}'| sed 's/,//'`
+    tasks=`echo  "$info" | sed -n "2p" | grep -Eo ".* total"| grep -Eo "[0-9]+"`
+    cpu_use=`echo "$info" | sed -n "3p" | grep -Eo ": .*%us" | grep -Eo "[0-9]+\.?[0-9]*"`
+    mem_use=`echo  "$info" | sed -n "4p" | grep -Eo ",.* used" | grep -Eo "[0-9]+"`
+    swap_use=`echo  "$info" | sed -n "5p" | grep -Eo ",.* used" | grep -Eo "[0-9]+"`
 
     echo "collector_ip=$COLLECTOR_IP, collector_port=$COLLECTOR_PORT, api_key=$API_KEY"
     echo "load=$load, tasks=$tasks, cpu_use=$cpu_use, mem_use=$mem_use, swap_use=$swap_use, "
@@ -28,9 +28,14 @@ function collect(){
 
 }
 
-while :
-do
-    echo time=`date`, pid=$$
-    collect;
-    sleep 60;
-done;
+run(){
+    while :
+    do
+        sleep 60;
+        echo time=`date +"%Y-%m-%d %H:%M:%S"`, pid=$$
+        collect >/dev/null;
+    done;
+}
+
+collect
+run
