@@ -13,7 +13,7 @@ if [ ! -n "$1" ] ;then
 fi
 
 API_KEY=${API_KEY:=$1}
-COLLECTOR_IP=${COLLECTOR_IP:="123.151.39.172"}
+COLLECTOR_IP=${COLLECTOR_IP:="collector.monitor.dnspod.cn"}
 COLLECTOR_PORT="2003"
 PID=$$
 
