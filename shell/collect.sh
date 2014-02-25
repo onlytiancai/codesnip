@@ -1,3 +1,12 @@
+# 脚本说明
+#     本脚本用来收集本机的CPU，内存，磁盘等信息到graphite
+#
+# 如何使用：执行如下语句，可以加入到/etc/rc.local里设置开机自动启动
+#     sh <(curl https://raw2.github.com/onlytiancai/codesnip/master/shell/collect.sh -s) $API_KEY
+#
+# 如何关掉agent 
+#     ps -ef | grep $API_KEY | grep -v grep | cut -c 9-15 | xargs kill -9
+
 if [ ! -n "$1" ] ;then
     echo "you have not input the API_KEY!"
     exit 1
@@ -6,6 +15,9 @@ fi
 API_KEY=${API_KEY:=$1}
 COLLECTOR_IP=${COLLECTOR_IP:="123.151.39.172"}
 COLLECTOR_PORT="2003"
+PID=$$
+
+ps -ef | grep $API_KEY | grep -v grep | grep -v $PID | cut -c 9-15 | xargs kill -9
 
 IP_ADDRS=`ifconfig | grep 'inet addr' | grep -v '255.0.0.0' | cut -f2 -d':' | awk '{print $1}'`
 IP_ADDRS=`echo $IP_ADDRS | sed 's/\n//g'`
@@ -30,11 +42,11 @@ collect() {
 
     echo "will send: load=$load, tasks=$tasks, cpu_use=$cpu_use, mem_use=$mem_use, swap_use=$swap_use"
 
-    echo "$API_KEY/$HOSTNAME/$IP_ADDRS/load $load $time"  | nc $COLLECTOR_IP $COLLECTOR_PORT >/dev/null
-    echo "$API_KEY/$HOSTNAME/$IP_ADDRS/tasks $tasks $time" | nc $COLLECTOR_IP $COLLECTOR_PORT >/dev/null
-    echo "$API_KEY/$HOSTNAME/$IP_ADDRS/cpu_use $cpu_use $time" | nc $COLLECTOR_IP $COLLECTOR_PORT >/dev/null
-    echo "$API_KEY/$HOSTNAME/$IP_ADDRS/mem_use $mem_use $time" | nc $COLLECTOR_IP $COLLECTOR_PORT >/dev/null
-    echo "$API_KEY/$HOSTNAME/$IP_ADDRS/swap_use $swap_use $time" | nc $COLLECTOR_IP $COLLECTOR_PORT >/dev/null
+    echo "$API_KEY/$HOSTNAME/$IP_ADDRS/load $load $time"  | nc $COLLECTOR_IP $COLLECTOR_PORT -w1 >/dev/null
+    echo "$API_KEY/$HOSTNAME/$IP_ADDRS/tasks $tasks $time" | nc $COLLECTOR_IP $COLLECTOR_PORT -w1 >/dev/null
+    echo "$API_KEY/$HOSTNAME/$IP_ADDRS/cpu_use $cpu_use $time" | nc $COLLECTOR_IP $COLLECTOR_PORT -w1 >/dev/null
+    echo "$API_KEY/$HOSTNAME/$IP_ADDRS/mem_use $mem_use $time" | nc $COLLECTOR_IP $COLLECTOR_PORT -w1 >/dev/null
+    echo "$API_KEY/$HOSTNAME/$IP_ADDRS/swap_use $swap_use $time" | nc $COLLECTOR_IP $COLLECTOR_PORT -w1 >/dev/null
     echo
 
     #ifconfig info
@@ -45,8 +57,8 @@ collect() {
         rx_bytes=`ifconfig | grep "RX bytes" | sed -n "${i}p" | grep -Eo "RX bytes:[0-9]+" | grep -Eo "[0-9]+"`
         tx_bytes=`ifconfig | grep "TX bytes" | sed -n "${i}p" | grep -Eo "TX bytes:[0-9]+" | grep -Eo "[0-9]+"`
         echo "will send:rx_bytes_$card=$rx_bytes, tx_bytes_$card=$tx_bytes"
-        echo "$API_KEY/$HOSTNAME/$IP_ADDRS/rx_bytes_$card $rx_bytes $time" | nc $COLLECTOR_IP $COLLECTOR_PORT >/dev/null
-        echo "$API_KEY/$HOSTNAME/$IP_ADDRS/tx_bytes_$card $tx_bytes $time" | nc $COLLECTOR_IP $COLLECTOR_PORT >/dev/null
+        echo "$API_KEY/$HOSTNAME/$IP_ADDRS/rx_bytes_$card $rx_bytes $time" | nc $COLLECTOR_IP $COLLECTOR_PORT -w1 >/dev/null
+        echo "$API_KEY/$HOSTNAME/$IP_ADDRS/tx_bytes_$card $tx_bytes $time" | nc $COLLECTOR_IP $COLLECTOR_PORT -w1 >/dev/null
     done;
     echo
 
@@ -58,7 +70,7 @@ collect() {
         disk_use=`df -h | grep -E "^/dev/sda[0-9]" | sed -n "${i}p" | grep -Eo "[0-9]+%" | grep -Eo "[0-9]+"`
         tx_bytes=`ifconfig | grep "TX bytes" | sed -n "${i}p" | grep -Eo "TX bytes:[0-9]+" | grep -Eo "[0-9]+"`
         echo "will send:disk_use.$disk=$disk_use"
-        echo "$API_KEY/$HOSTNAME/$IP_ADDRS/disk_use.$disk $disk_use $time" | nc $COLLECTOR_IP $COLLECTOR_PORT >/dev/null
+        echo "$API_KEY/$HOSTNAME/$IP_ADDRS/disk_use.$disk $disk_use $time" | nc $COLLECTOR_IP $COLLECTOR_PORT -w1>/dev/null
     done;
     echo
 
