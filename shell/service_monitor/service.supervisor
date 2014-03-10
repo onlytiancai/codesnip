@@ -1,0 +1,3 @@
+[program:service-monitor]
+command=gunicorn SimpleService:app -b localhost:7000
+directory=/home/huhao/src/github/codesnip/shell/service_monitor

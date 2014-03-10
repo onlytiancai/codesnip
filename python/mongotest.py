@@ -11,7 +11,7 @@ from datetime import datetime
 import random
 import gevent
 
-conn = pymongo.Connection(auto_start_request=False)
+conn = pymongo.Connection(auto_start_request=False,max_pool_size=100)
 db = conn.test
 
 def gen_test_data():
@@ -26,9 +26,9 @@ def test_find_data():
     with conn.start_request():
         t1 = datetime.now()
         results = list(db.temp.find({'id':random.randint(1,10)}))
-        print 'test find data take time:%s %s' % (len(results), datetime.now() - t1)
+        print 'test find data take time:%s %s %s %s' % (len(results), datetime.now() - t1, conn._Connection__pool.max_size, len(conn._Connection__pool._tid_to_sock))
 if __name__ == '__main__':
     gen_test_data()
     while True:
-        [gevent.spawn(test_find_data) for i in range(10)]
+        [gevent.spawn(test_find_data) for i in range(50)]
         gevent.sleep(1)

@@ -1,0 +1,1 @@
+define("#test/1.0.0/a",[],function(e,t,n){t.hello=function(e){return"hello "+e}}),define("#test/1.0.0/b",["./a","#jquery/1.8.1/jquery"],function(e,t,n){var r=e("#jquery/1.8.1/jquery"),i=e("./a"),s="seajs";t.show=function(){r("body").html(i.hello(s))}}),define("#test/1.0.0/test",["./a","./b","#jquery/1.8.1/jquery"],function(e,t,n){var r=e("./a");b=e("./b"),n.exports={a:r,b:b}});

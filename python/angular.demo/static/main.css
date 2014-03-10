@@ -1,0 +1,42 @@
+body{
+    margin: 10px;
+    font-family: "Microsoft Yahei",Tahoma,Verdana,Arial,STHeiTi,sans-serif;
+    font-size:14px;
+    background: url('purty_wood.png');
+}
+.house{
+    position:relative;
+    float: left;
+    width: 200px;
+    height: 200px;
+    background-color: #eee;
+    margin: 10px;
+    word-break: break-all;
+    overflow: hidden;
+    box-shadow: 0 1px 10px rgba(0, 0, 0, .3);
+}
+.house h3{
+    margin:0;
+    padding: 10px;
+    background-color: #4DB849;
+    color: white;
+    text-shadow: 0 0 10px rgba(255, 255, 255, .25);
+}
+.house p{
+    margin:0 0 50px 0;
+    padding: 10px;
+    overflow: hidden;
+    color:#5390CC;
+}
+.house .status{
+    width:100%;
+    position: absolute;
+    text-align: right;
+    background-color: #FCD209;
+    right: 0;
+    bottom: 0;
+    color: #666;
+    font-style: italic;
+    padding:3px;
+    font-size:12px;
+}

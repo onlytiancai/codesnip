@@ -1,0 +1,143 @@
+概要信息 2013-10-30 13:58
+----------------------------------
+主机名            : testing
+内存大小          : 1026080
+CPU核数           : 1
+CPU类型           : GenuineIntel x86_64 2659.983 MHz
+操作系统          : Linux
+内核版本          : 2.6.18-308.13.1.el5
+进程总数          : 106
+启动时间及负载    : 13:26:58 up 4 days, 18:59,  2 users,  load average: 0.00, 0.00, 0.00
+
+内存使用情况
+----------------------------------
+             total       used       free     shared    buffers     cached
+Mem:          1002        921         80          0        242        372
+-/+ buffers/cache:        306        695
+Swap:         2015          0       2015
+
+磁盘使用情况
+----------------------------------
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/mapper/VolGroup00-LogVol00
+                       18G   12G  5.0G  71% /
+/dev/sda1              99M   26M   68M  28% /boot
+tmpfs                 502M     0  502M   0% /dev/shm
+
+网络连接情况
+----------------------------------
+ESTABLISHED 2
+
+网络监听情况
+----------------------------------
+0.0.0.0:8803         26946/python    
+0.0.0.0:3306         26926/mysqld    
+0.0.0.0:8812         26777/python2.7 
+0.0.0.0:621          2559/rpc.statd  
+0.0.0.0:111          2518/portmap    
+0.0.0.0:80           2958/nginx      
+0.0.0.0:22           2862/sshd       
+127.0.0.1:631        2876/cupsd      
+0.0.0.0:8888         26782/python    
+127.0.0.1:25         2917/sendmail   
+0.0.0.0:7003         26781/python    
+0.0.0.0:443          2958/nginx      
+:::22                2862/sshd       
+
+内存占用Top 10
+----------------------------------
+  RSS %MEM %CPU    VSZ COMMAND
+32788  3.1  0.0  38932 iscsiuio
+25540  2.4  0.0 211040 python run.py
+24984  2.4  0.0 190036 /usr/libexec/mysqld --basedir=/usr --datadir=/var/lib/mysql --user=mysql --pid-file=/var/run/mysqld/mysqld.pid --skip-external-locking --socket=/var/lib/mysql/mysql.sock
+17164  1.6  0.0 258384 /usr/bin/python -tt /usr/sbin/yum-updatesd
+13308  1.2  0.0 179208 /root/.monitor/bin/python /root/.monitor/bin/gunicorn mainweb:wsgiapp -b 0.0.0.0:7003 -k gevent
+13116  1.2  0.0 180808 /root/.monitor/bin/python /root/.monitor/bin/gunicorn mainweb:app -b 0.0.0.0:8888 -w 4 -k gevent
+13112  1.2  0.0 180820 /root/.monitor/bin/python /root/.monitor/bin/gunicorn mainweb:app -b 0.0.0.0:8888 -w 4 -k gevent
+13104  1.2  0.0 180800 /root/.monitor/bin/python /root/.monitor/bin/gunicorn mainweb:app -b 0.0.0.0:8888 -w 4 -k gevent
+13104  1.2  0.0 180792 /root/.monitor/bin/python /root/.monitor/bin/gunicorn mainweb:app -b 0.0.0.0:8888 -w 4 -k gevent
+
+CPU占用Top 10
+----------------------------------
+  RSS %MEM %CPU    VSZ COMMAND
+  924  0.0  0.0  12752 /sbin/udevd -d
+  908  0.0  0.0  21660 xinetd -stayalive -pidfile /var/run/xinetd.pid
+  868  0.0  0.0  63524 ps -eo rss,pmem,pcpu,vsize,args
+  860  0.0  0.0  12340 hald-addon-keyboard: listening on /dev/input/event0
+  856  0.0  0.0  12340 hald-addon-acpi: listening on acpid socket /var/run/acpid.socket
+  800  0.0  0.0  10176 rpc.statd
+  792  0.0  0.0  57252 rpc.idmapd
+  792  0.0  0.0  10448 /usr/sbin/hcid
+
+最近1小时网络流量统计
+----------------------------------
+Linux 2.6.18-308.13.1.el5 (monitor-testing) 	10/30/2013
+
+12:30:01 PM     IFACE   rxpck/s   txpck/s   rxbyt/s   txbyt/s   rxcmp/s   txcmp/s  rxmcst/s
+12:40:01 PM        lo      0.00      0.00      0.00      0.00      0.00      0.00      0.00
+12:40:01 PM      eth0      1.22      0.25     81.84     12.91      0.00      0.00      0.00
+12:40:01 PM      sit0      0.00      0.00      0.00      0.00      0.00      0.00      0.00
+12:50:01 PM        lo      0.00      0.00      0.00      0.00      0.00      0.00      0.00
+12:50:01 PM      eth0      1.57      0.24    103.54     12.40      0.00      0.00      0.00
+12:50:01 PM      sit0      0.00      0.00      0.00      0.00      0.00      0.00      0.00
+01:00:01 PM        lo      0.00      0.00      0.00      0.00      0.00      0.00      0.00
+01:00:01 PM      eth0      1.81      0.25    117.32     12.91      0.00      0.00      0.00
+01:00:01 PM      sit0      0.00      0.00      0.00      0.00      0.00      0.00      0.00
+01:10:01 PM        lo      0.00      0.00      0.00      0.00      0.00      0.00      0.00
+01:10:01 PM      eth0      1.81      0.25    117.91     13.03      0.00      0.00      0.00
+01:10:01 PM      sit0      0.00      0.00      0.00      0.00      0.00      0.00      0.00
+01:20:01 PM        lo      0.00      0.00      0.00      0.00      0.00      0.00      0.00
+01:20:01 PM      eth0      1.87      0.71    157.33     88.51      0.00      0.00      0.00
+01:20:01 PM      sit0      0.00      0.00      0.00      0.00      0.00      0.00      0.00
+Average:           lo      0.00      0.00      0.00      0.00      0.00      0.00      0.00
+Average:         eth0      1.65      0.34    115.58     27.95      0.00      0.00      0.00
+Average:         sit0      0.00      0.00      0.00      0.00      0.00      0.00      0.00
+
+最近1小时cpu使用统计
+----------------------------------
+Linux 2.6.18-308.13.1.el5 (monitor-testing) 	10/30/2013
+
+12:30:01 PM       CPU     %user     %nice   %system   %iowait    %steal     %idle
+12:40:01 PM       all      0.05      0.00      0.19      0.02      0.00     99.74
+12:50:01 PM       all      0.05      0.00      0.19      0.04      0.00     99.72
+01:00:01 PM       all      0.05      0.00      0.18      0.02      0.00     99.75
+01:10:01 PM       all      0.04      0.00      0.18      0.06      0.00     99.72
+01:20:01 PM       all      0.35      0.00      0.25      0.04      0.00     99.36
+Average:          all      0.11      0.00      0.20      0.04      0.00     99.66
+
+最近1小时磁盘IO统计
+----------------------------------
+Linux 2.6.18-308.13.1.el5 (monitor-testing) 	10/30/2013
+
+12:30:01 PM       tps      rtps      wtps   bread/s   bwrtn/s
+12:40:01 PM      4.94      0.00      4.94      0.00     65.77
+12:50:01 PM      4.94      0.00      4.94      0.00     65.04
+01:00:01 PM      5.01      0.00      5.01      0.00     66.63
+01:10:01 PM      5.02      0.00      5.02      0.00     66.41
+01:20:01 PM      7.61      0.00      7.61      0.00    104.93
+Average:         5.50      0.00      5.50      0.00     73.75
+
+最近1小时进程队列和平均负载统计
+----------------------------------
+Linux 2.6.18-308.13.1.el5 (monitor-testing) 	10/30/2013
+
+12:30:01 PM   runq-sz  plist-sz   ldavg-1   ldavg-5  ldavg-15
+12:40:01 PM         4       130      0.00      0.00      0.00
+12:50:01 PM         2       130      0.00      0.00      0.00
+01:00:01 PM         2       131      0.00      0.00      0.00
+01:10:01 PM         6       132      0.00      0.00      0.00
+01:20:01 PM         4       133      0.00      0.00      0.00
+Average:            4       131      0.00      0.00      0.00
+
+最近1小时内存和交换空间的统计统计
+----------------------------------
+Linux 2.6.18-308.13.1.el5 (monitor-testing) 	10/30/2013
+
+12:30:01 PM kbmemfree kbmemused  %memused kbbuffers  kbcached kbswpfree kbswpused  %swpused  kbswpcad
+12:40:01 PM     88264    937816     91.40    247568    381400   2064376         0      0.00         0
+12:50:01 PM     88016    938064     91.42    247632    381420   2064376         0      0.00         0
+01:00:01 PM     87760    938320     91.45    247688    381444   2064376         0      0.00         0
+01:10:01 PM     87380    938700     91.48    247772    381468   2064376         0      0.00         0
+01:20:01 PM     87620    938460     91.46    247812    381488   2064376         0      0.00         0
+Average:        87808    938272     91.44    247694    381444   2064376         0      0.00         0
+

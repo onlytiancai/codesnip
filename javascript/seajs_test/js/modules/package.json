@@ -1,0 +1,11 @@
+{
+    "name": "test",
+    "version": "1.0.0",
+    "root": "#",
+    "dependencies": {
+        "jquery": "1.8.1" 
+    },
+    "output": {
+        "test.js": "."
+    }
+}

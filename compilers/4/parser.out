@@ -1,0 +1,44 @@
+Created by PLY version 3.4 (http://www.dabeaz.com/ply)
+
+Grammar
+
+Rule 0     S' -> expression
+Rule 1     expression -> TIMERANGE CONDITION DATA QUERYDATA
+Rule 2     expression -> expression
+
+Terminals, with rules where they appear
+
+CONDITION            : 1
+DATA                 : 1
+QUERYDATA            : 1
+TIMERANGE            : 1
+error                : 
+
+Nonterminals, with rules where they appear
+
+expression           : 2 0
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . expression
+    (1) expression -> . TIMERANGE CONDITION DATA QUERYDATA
+    (2) expression -> . expression
+
+    TIMERANGE       shift and go to state 1
+
+    expression                     shift and go to state 2
+
+state 1
+
+    (1) expression -> TIMERANGE . CONDITION DATA QUERYDATA
+
+    CONDITION       shift and go to state 3
+
+
+state 2
+
+    (0) S' -> expression .
+    (2) expression -> expression .
+

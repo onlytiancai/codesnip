@@ -1,0 +1,51 @@
+/* global */
+* { margin: 0; padding: 0 }
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+img{
+    border:0;
+}
+
+body{
+    font-family: Tahoma, Helvetica, Arial, 'Microsoft YaHei', sans-serif;
+    font-size:14px;
+    line-height: 1.5;
+}
+
+
+/* 练剑样式 */
+
+body {
+    background-color:#DAF1FD;
+}
+
+.lianjian .item {
+    margin: 10px;
+    padding: 10px;
+    height: 300px;
+    box-shadow: 0 1px 3px rgba(34,25,25,.4);
+}
+
+.lianjian .item h3{
+    font-size: 200%;
+    font-family: SimHei; 
+}
+
+.lianjian .sleep{
+    background: #ABA6A7 url('1.jpg') no-repeat scroll left top;
+    background-size:600px 350px;
+}
+
+.lianjian .sport{
+    background: #ABA6A7 url('2.jpg') no-repeat scroll left -300px;
+    background-size:1000px 800px;
+}
+
+.lianjian .happy{
+    background: #ABA6A7 url('3.jpg') no-repeat scroll left -100px;
+    background-size:800px 600px;
+}
