@@ -2,7 +2,7 @@
 #     本脚本用来收集本机的CPU，内存，磁盘等信息到graphite
 #
 # 如何使用：执行如下语句，可以加入到/etc/rc.local里设置开机自动启动
-#     sh <(curl https://raw2.github.com/onlytiancai/codesnip/master/shell/collect2.sh -s) $API_KEY
+#     bash <(curl https://raw2.github.com/onlytiancai/codesnip/master/shell/collect2.sh -s) $API_KEY
 #
 # 如何关掉agent 
 #     ps -ef | grep $API_KEY | grep -v grep | cut -c 9-15 | xargs kill -9
@@ -150,13 +150,13 @@ send_all(){
     send_metric "load" $metric_load
     send_metric "tasks" $metric_tasks
     send_metric "cpu_use" $metric_cpu_use
-    send_metric "cpu_wa" $metric_cpu_wa=0
+    send_metric "cpu_wa" $metric_cpu_wa
 
     send_metric "mem_use" $metric_mem_use
     send_metric "mem_total" $metric_mem_total
     send_metric "mem_use_prec" $metric_mem_use_prec
 
-    send_metric "swap_use" metric_swap_use
+    send_metric "swap_use" $metric_swap_use
     send_metric "swap_total" $metric_swap_total
     send_metric "swap_use" $metric_swap_use_prec
 
