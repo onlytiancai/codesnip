@@ -26,7 +26,11 @@ ps -ef | grep $API_KEY | grep -v grep | grep -v " $PID " | cut -c 9-15 | xargs k
 
 
 # 获取IP地址，主机等信息
-IP_ADDRS="`ifconfig | grep 'inet addr' | grep -v '255.0.0.0'| head -n1 | cut -f2 -d':' | awk '{print $1}'`"
+IP_ADDRS="`LC_ALL=en /sbin/ifconfig | grep 'inet addr' | grep -v '255.0.0.0' \
+    | head -n1 | cut -f2 -d':' | awk '{print $1}'`"
+if [ -z "$IP_ADDRS" ]; then 
+    IP_ADDRS="127.0.0.1"
+fi
 HOSTNAME=`hostname -s`
 
 # 收集如下指标
@@ -134,9 +138,11 @@ disk_info(){
 }
 
 io_info(){
-    io_use=`iostat -c | sed -n "4p" | awk '{print $4}'`
-    if [ $DEBUG -eq 1 ]; then
-        echo io_use=$io_use
+    if [ -n "`type -p iostat`" ];then
+        io_use=`iostat -c | sed -n "4p" | awk '{print $4}'`
+        if [ $DEBUG -eq 1 ]; then
+            echo io_use=$io_use
+        fi
     fi
 }
 
@@ -172,7 +178,9 @@ send_all(){
         send_metric "${disk}_disk_use" ${metric_disks_use[$i]}
     done
     
-    send_metric "io_use" $metric_io_use 
+    if [ -n "$metric_io_use" ];then
+        send_metric "io_use" $metric_io_use 
+    fi
 }
 
 collect() {
@@ -194,7 +202,7 @@ run(){
     while :
     do
         sleep 60;
-        collect >/var/log/dnspod_collect.log 2>&1
+        collect >/dev/null 2>&1
     done;
 }
 
