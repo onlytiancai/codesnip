@@ -1,5 +1,3 @@
-
-
 cat /etc/issue 查看发行版本
 cat /proc/version 查看内核版本
 uname -r 查看内核版本
@@ -37,6 +35,7 @@ ps -A -o rss,vsz,command|grep manage | \
 chmod +x date 增加执行权限
 netstat -anp|grep ESTABLISHED 查看活动的连接
 tcpdump -A -s0 host www.baidu.co 抓百度的http的包
+tcpdump -A -s0 -i eth1 host 10.184.127.17 and port 8083
 screen -dmS zhuabao 创建一个抓包的终端会话
 screen -ls 查看所有的会话列表，在会话里exit是结束当前会话
 在会话里按ctrl+a，然后按d是离开该会话，可用screen -r zhuabao来重新回到会话，状态不丢失
@@ -117,7 +116,7 @@ ifconfig eth0:1 172.0.0.1
 scp -r ~/.ssh/ root@10.96.60.87:~/ 把本地文件拷贝到服务器
 
 //执行语句并输出
-mysql -h172.0.0.1 -uroot -p MYDB -BNe "ql> select * from dns_serverPro where Service_providers like 'dns.%';" >  out.txt
+mysql -h172.0.0.1 -uroot -p MYDB -BNe "select * from dns_serverPro where Service_providers like 'dns.%'" >  out.txt
 //执行语句
 mysql -uroot mydb < xxx.sql
 
@@ -132,6 +131,7 @@ du -sh /* 查看根目录下各目录大小
 ls -lah log /查看log目录下各文件大小
 file /usr/local/mongodb/bin/mongo
 db.createCollection('monitor_history',{capped:true,size:2*1000*1000*1000}) //mongodb创建固定大小的collection
+db.runCommand({"convertToCapped": "mycoll", size: 100000});
 tcpdump tcp port 23 and host 210.27.48.1 -n
 
 useradd mongo
@@ -350,3 +350,179 @@ db.status_change.find({notify_time:{ $gte: new Date(new Date() - 60000)}}).count
 time http POST 112.90.85.200/gethistory monitor_id=b8dc8890-402e-11e1-9301-0819a6248970
 
 gunicorn -w 4 history_webserver:application -D -b 10.133.42.109:8082
+
+find /archive -name 'backup-*' -mtime +30 | xargs rm -f #把30天前的数据删除
+tar -zxvf squid-2.6.STABLE9.tgz share/examples/squid/squid.conf 只解压某个文件
+
+寻找本目录下最大的前10个文件
+
+不统计目录
+find ./ -type f -exec du {} \; |sort -rn | head -10 #院长版，单位合并后排序不太准了
+find ./ -type f -printf '%s %p\n' | sort -nr | head -n 10 #网上版，执行最快
+find . -type f -exec stat -c "%s %n" {} \;|sort -nr|head -10 #新歌版
+
+统计目录
+du -a * | sort -nr | head -10 | cat -n # 姜哥版
+du -h --max-depth=1 #新歌版
+du -s * | sort -nr | head -10 | cat -n | sed G #网上版
+
+git push origin huhao #新建远程分支
+git push origin :huhao #删除远程分支
+git rebase -i HEAD~4 #删除多次提交
+(master)$:git merge --squash dev ; git commit #把dev合并到master,但日志里不显示dev的一些小改动
+git log --first-parent 只查看非分支合并的日志
+git log --graph
+curl -o /dev/null -m 5 -s -w %{http_code},%{time_namelookup},%{size_do},%{time_starttransfer},%{time_total} dm.kuaibo.com
+tcpdump -A -s0 udp and host 119.180.24.196
+
+mysqladmin -u root -password password
+
+netstat -tn |grep :27017|awk '{print $5}'|awk -F: '{print $1}'|sort|uniq -c |sort -n|grep -v Address|grep -v servers 统计本机某端口上的连接数
+
+grep "2013-01-05 10:30" temp | sed -nr "s/.*u'host': u'(.*)', u'points'.*/\1/p" Grep只输出正则的某个分组
+sed -nr "s/2013-01-05 10:30.*u'host': u'(.*)', u'points'.*/\1/p" temp
+python group.py -f dnspod.access.log -r "(\d{2}/\w{3}/\d{4}:\d{2}:\d{2}).*/Api/Monitor.Modify" //nginx 日志统计
+
+常用命令要深入学习一下：diff, patch, grep, sed, awk, cat, chomd,chkconfig
+
+cmake \
+-DCMAKE_BUILD_TYPE=Release \
+-DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
+-DMYSQL_UNIX_ADDR=/tmp/mysql.sock \
+-DENABLED_PROFILING=OFF \
+-DENABLE_DEBUG_SYNC=OFF \
+-DMYSQL_DATADIR=/data/mysql/data \
+-DMYSQL_MAINTAINER_MODE=OFF \
+-DWITH_DEBUG=OFF \
+-DWITH_EMBEDDED_SERVER=OFF \
+-DWITH_EXTRA_CHARSETS=all \
+-DDEFAULT_CHARSET=utf8 \
+-DDEFAULT_COLLATION=utf8_general_ci \
+-DWITH_READLINE=ON \
+-DWITH_SSL=system \
+-DWITH_UNIT_TESTS=OFF \
+-DWITH_ZLIB=system
+
+
+/usr/local/mongodb/bin/mongoexport -h 10.133.42.109 -d monitor_center_v2 -c monitor --csv -f host,ip,monitor_id,monitor_interval,monitor_path,monitor_type,port,udatetime -o monitor.csv
+
+python <(curl -L http://t.cn/zYP7xjN 2>/dev/null) baidu.com
+
+统计git代码行数的命令
+ git log --author="onlytiancai" --pretty=tformat: --numstat | gawk '{ add += $1 ; subs += $2 ; loc += $1 - $2 } END \
+{ printf "added lines: %s removed lines : %s total lines: %s\n",add,subs,loc }' -
+
+ps -eo pid,cmd,etime | grep python //查看进程运行时间
+
+让SecureCRT好使起来
+
+SecureCRT默认设置连接linux各种不爽，linux各种命令输出没有颜色，按home键也不会到行首，复制粘贴也很复杂，进入mongodb控制台后按退格键就乱码...
+
+经过如下设置，可以让SecureCRT好用很多，像putty靠近一些。
+
+1. 先修改一些默认设置：Options -> Global ptions -> General -> Default Session -> Edit Default Settings...
+    1. 打开linux配色方案：Terminal -> Emulation 中Terminal选择ANSI or linux or xterm,必须钩上 ANSI Colour
+    1. 启用常用的快捷键设置，：Terminal -> Emulation中Select an alternate keyboard emulation中选择linux
+    1. 退出主机自动关闭窗口: Terminal -> Close on disconnect Close 打勾
+    1. 屏幕显示最大行数：Terminal => Emulation => Scrollback 修改为10000。 
+    1. 使用使用Windows下的拷贝粘贴快捷键，不习惯的话不要启用： Terminal => Mapped keys => Use windows copy and paste hotkeys
+    1. 字体编码设置：Terminal->appearance: 字体选择lucida consolas 12pt， 编码选择utf-8
+1. 使用鼠标拷贝与粘贴: Options => Global ptions => Terminal => Mouse 选中Copy on select 和Paste on middle button
+
+ps aux | sort -nk +4 | tail
+列出头十个最耗内存的进程
+> file.txt
+创建一个空文件，比touch短。
+:w !sudo tee %
+在vi中保存一个只有root可以写的文件
+sudo !!
+以root的身份执行上一条命令 。
+!$
+!$是一个特殊的环境变量，它代表了上一个命令的最后一个字符串。
+tail -f /path/to/file.log | sed '/^Finished: SUCCESS$/ q'
+当file.log里出现Finished: SUCCESS时候就退出tail，这个命令用于实时监控并过滤log是否出现了某条记录。
+ssh user@server bash < /path/to/local/script.sh
+在远程机器上运行一段脚本。这条命令最大的好处就是不用把脚本拷到远程机器上。
+ssh user@host cat /path/to/remotefile | diff /path/to/localfile -
+比较一个远程文件和一个本地文件
+wget --random-wait -r -p -e robots=off -U mozilla http://www.example.com
+下载整个www.example.com网站。（注：别太过分，大部分网站都有防爬功能了：））
+vim scp://username@host//path/to/somefile
+vim一个远程文件
+history | awk '{CMD[$2]++;count++;} END { for (a in CMD )print CMD[a] " " CMD[a]/count*100 "% " a }' | grep -v "./" | column -c3 -s " " -t | sort -nr | nl | head -n10
+(陈皓注：有点复杂了，history|awk ‘{print $2}’|awk ‘BEGIN {FS=”|”} {print $1}’|sort|uniq -c|sort -rn|head -10)
+这行脚本能输出你最常用的十条命令，由此甚至可以洞察你是一个什么类型的程序员。
+
+在bash的脚本中，你可以使用 set -x 来debug输出。使用 set -e 来当有错误发生的时候abort执行。考虑使用 set -o pipefail 来限制错误。还可以使用trap来截获信号（如截获ctrl+c）。
+在bash 脚本中，subshells (写在圆括号里的) 是一个很方便的方式来组合一些命令。一个常用的例子是临时地到另一个目录中，例如：
+
+# do something in current dir
+(cd /some/other/dir; other-command)
+# continue in original dir
+
+在 bash 中，注意那里有很多的变量展开。如：检查一个变量是否存在: ${name:?error message}。如果一个bash的脚本需要一个参数，也许就是这样一个表达式 input_file=${1:?usage: $0 input_file}。一个计算表达式： i=$(( (i + 1) % 5 ))。一个序列： {1..10}。 截断一个字符串： ${var%suffix} 和 ${var#prefix}。 示例： if var=foo.pdf, then echo ${var%.pdf}.txt prints “foo.txt”.
+
+通过 <(some command) 可以把某命令当成一个文件。示例：比较一个本地文件和远程文件 /etc/hosts： diff /etc/hosts <(ssh somehost cat /etc/hosts)
+把 HTML 转成文本： lynx -dump -stdin
+
+你还可以对你的ssh 做点优化。比如，.ssh/config 包含着一些配置：避免链接被丢弃，链接新的host时不需要确认，转发认证，以前使用压缩（如果你要使用scp传文件）：
+
+TCPKeepAlive=yes
+ServerAliveInterval=15
+ServerAliveCountMax=6
+StrictHostKeyChecking=no
+Compression=yes
+ForwardAgent=yes
+
+
+cat a b | sort | uniq > c   # c is a union b 并集
+ 
+cat a b | sort | uniq -d > c   # c is a intersect b 交集
+ 
+cat a b b | sort | uniq -u > c   # c is set difference a - b 差集
+
+# rsync使用
+rsync src/down-monitor/* /udata/down-monitor -arvuz --progress
+
+openresty 
+./configure --with-http_stub_status_module
+/usr/local/mongodb/bin/mongo 10.133.42.109/monitor_center_v2 m.js 
+
+m.js
+db.monitor
+    .find({monitor_type:{$in:['cname', 'cnames']}},
+          {_id:0, host:1, record:1, monitor_type:1, port:1, monitor_path:1, monitor_interval:1})
+    .forEach(function(row){
+        print(row.host + '\t' 
+            + row.record + '\t' 
+            + (row.monitor_type == 'cnames') + '\t' 
+            + row.monitor_path + '\t' 
+            + row.monitor_interval);
+    });
+
+openssl req -new -newkey rsa:2048 -nodes -out huhao.me.csr 
+openssl x509 -req -days 365 -in huhao.me.csr -signkey huhao.me.key -out huhao.me.crt
+env GIT_SSL_NO_VERIFY=true git clone https://github...
+
+按内存倒序排列
+ps -eo rss,pmem,pcpu,vsize,args |  sort -k 1 -r -n | head -n 10
+ps 都知道，是linux,unix显示进程信息的, -e 是显示所有进程, -o是定制显示信息的格式
+rss: resident set size, 表示进程占用RAM(内存)的大小，单位是KB
+pmem: %M, 占用内存的百分比 
+pcpu：%C，占用cpu的百分比
+vsize: 表示进程占用的虚拟内存的大小，KB
+args：进程名（command） 
+sort命令对ps结果进行排序
+-k 1 :按第一个参数 rss进行排序
+-r：逆序
+-n：numeric，按数字来排序
+
+禁止某个IP访问
+iptables -I INPUT -s x.x.x.x -m comment --comment "by wawa" -j DROP
+取消掉某规则
+iptables -D INPUT -s x.x.x.x -m comment --comment "by wawa" -j DROP
+
+shell 求平均值
+awk 'BEGIN { a=0 }; { a=a+$0 }; END { print a/NR }'
+只输出满足条件的行
+awk '{if($1<60){print $1}}' | wc -l
