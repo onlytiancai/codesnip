@@ -62,3 +62,55 @@ web.py骨架代码
 去掉requests的默认日志
 
     logging.getLogger("requests.packages.urllib3").setLevel(logging.CRITICAL)  
+
+使用MYSQL
+
+    class Database:
+        '''
+        >>> db = Database(dict(host='localhost', user='root', passwd='password', db='information_schema'))
+        >>> sql = 'select TABLE_NAME from TABLES'
+        >>> result = db.fetchall(sql, ())
+        >>> len(result) > 0
+        True
+        '''
+        conns = {}
+
+        class Cursor:
+            def __init__(self, conn):
+                self.cursor = conn.cursor()
+
+            def __enter__(self):
+                return self.cursor
+                        
+            def __exit__(self, e_t, e_v, t_b):
+                self.cursor.close()
+
+        def __init__(self, conn_args):
+            self.conn_args = conn_args
+
+        def _get_conn(self):
+            '''
+            如果连接未建立，建立连接并缓存
+            如果连接被异常关闭，则重新连接
+            '''
+            sort_args = tuple("%s=%s" % (k, self.conn_args[k])
+                              for k in sorted(self.conn_args))
+            if sort_args not in Database.conns:
+                Database.conns[sort_args] = MySQLdb.connect(**self.conn_args)
+            else:
+                try:
+                    Database.conns[sort_args].ping()
+                except:
+                    Database.conns[sort_args] = MySQLdb.connect(**self.conn_args)
+
+            return Database.Cursor(Database.conns[sort_args])
+
+        def fetchall(self, sql, args):
+            with self._get_conn() as conn:
+                conn.execute(sql, tuple(args))
+                return list(conn.fetchall())
+
+        def excute(self, sql, args):
+            with self._get_conn() as conn:
+                conn.execute(sql, tuple(args))
+                conn.commit()
