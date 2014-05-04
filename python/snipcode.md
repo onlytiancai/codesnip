@@ -38,17 +38,22 @@
         foo(1, b=100)
 
 web.py骨架代码
-
+    
+    // ====== webmain.py
     # -*- coding: utf-8 -*-
+    import os
     import web
+
+    tpl_dir = os.path.join(os.path.dirname(__file__), 'templates')
+    render = web.template.render(tpl_dir, base='layout')
+
 
     class index(object):
         def GET(self):
-            return "Hello word."
+            return render.index()
 
-    urls = [ 
-            "/", index,
-           ]
+    urls = ["/", index,
+            ]
 
     app = web.application(urls, globals())
     wsgiapp = app.wsgifunc()
@@ -56,8 +61,31 @@ web.py骨架代码
     if __name__ == '__main__':
         app.run()
     
-    # 调试启动：python testweb.py 0.0.0.0:8000
-    # 正式启动：gunicorn testweb:wsgiapp -b 0.0.0.0:8000 -w 4 -D
+    # 调试启动：python webmain.py 0.0.0.0:8000
+    # 正式启动：gunicorn webmain:wsgiapp -b 0.0.0.0:8000 -w 4 -D
+
+    // ====== templates/layout.html
+    $def with (content)
+    <!DOCTYPE html>
+    <html lang="zh-cn">
+        <head>
+            <meta charset="utf-8">
+            <title>$content.get('title', 'My site')</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link href="/static/main.css" rel="stylesheet">
+            <script src="/static/main.js" type="text/javascript" charset="utf-8"></script>
+        </head>
+        <body>
+        $:content
+        </body>
+    </html>
+
+    // ====== templates/index.html
+    $var title: This is title.
+
+    <h3>Hello, world</h3>
+
+
 
 去掉requests的默认日志
 
