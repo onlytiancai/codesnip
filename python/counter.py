@@ -32,7 +32,7 @@ import logging
 
 class CounterManager(threading.Thread):
     def __init__(self, api_key, host=socket.gethostname(), ip='127.0.0.1',
-                 interval=5, collecter_url=('collector.monitor.dnspod.cn', 2003)):
+                 interval=60, collecter_url=('collector.monitor.dnspod.cn', 2003)):
 
         threading.Thread.__init__(self)
         self.setName('CounterManager:%s' % api_key)
@@ -61,8 +61,8 @@ class CounterManager(threading.Thread):
 
     def send_data_to_center(self, counter):
         to_send_data = counter._get_data()
-        logging.debug('send_data_to_center:%s', to_send_data)
         if to_send_data:
+            logging.info('send_data_to_center:%s', to_send_data)
             self.client.send(to_send_data)
 
     def run(self):
@@ -130,7 +130,7 @@ class Counter(object):
         if not self.has_data:
             return None
 
-        data = '%(api_key)s/%(host)s/%(ip)s/%(metric_name)s %(value)s %(timestamp)s'
+        data = '%(api_key)s/%(host)s/%(ip)s/%(metric_name)s %(value)s %(timestamp)s\n'
         self.timestamp = int(time.time())
         data = data % self.__dict__
 
