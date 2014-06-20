@@ -1,0 +1,136 @@
+=== 有时候误认为mysql后端挂掉，然后自动就好了，实际上根本没挂
+
+Jun 10 14:35:49 monitor-testing haproxy[31778]: Server mysql/mysql1 is DOWN, reason: Layer7 timeout, check duration: 1000ms. 0 active and 0 backup servers left. 1 sessions active, 0 requeued, 0 remaining in queue.
+Jun 10 14:35:49 monitor-testing haproxy[31778]: proxy mysql has no server available!
+Jun 10 14:35:53 monitor-testing haproxy[31778]: Server mysql/mysql1 is UP, reason: Layer7 check passed, code: 0, info: "5.0.95", check duration: 0ms. 1 active and 0 backup servers online. 0 sessions requeued, 0 total in queue.
+
+=== 手工关掉mysql
+
+Jun 10 14:39:57 monitor-testing haproxy[31778]: Server mysql/mysql1 is DOWN, reason: Layer4 connection problem, info: "Connection refused", check duration: 0ms. 0 active and 0 backup servers left. 0 sessions active, 0 requeued, 0 remaining in queue.
+Jun 10 14:39:57 monitor-testing haproxy[31778]: proxy mysql has no server available!
+
+=== 手工启动mysql
+Jun 10 14:41:13 monitor-testing haproxy[31778]: Server mysql/mysql1 is UP, reason: Layer7 check passed, code: 0, info: "5.0.95", check duration: 4ms. 1 active and 0 backup servers online. 0 sessions requeued, 0 total in queue.
+
+# 创建新的数据文件夹
+$ mkdir /dnspod/mysql_data
+
+# 初始化系统数据库
+$ mysql_install_db --datadir=/dnspod/mysql_data --user=mysql
+
+# 赋予权限
+$ chown -R mysql.mysql /dnspod/mysql_data/
+
+# 修改配置
+$ vi /etc/my3307.cnf
+
+    [mysqld_multi]
+    mysqld=/usr/bin/mysqld_safe
+    mysqladmin=/usr/bin/mysqladmin
+    user=root #用于登陆和关闭此服务
+    password=123456
+
+    [mysqld3307]
+    socket=/tmp/mysql_3307.sock
+    port=3307
+    pid-file=/var/lib/mysql_3307/3307.pid
+    datadir=/var/lib/mysql_3307/
+    log=/var/lib/mysql_3307/3307.log
+    character-set-server=utf8
+    user=mysql
+
+# 启动新实例
+$ mysqld_multi --defaults-extra-file=/etc/my3307.cnf start 3307
+
+# 启动新实例
+$ mysqld_multi --defaults-extra-file=/etc/my3307.cnf stop 3307
+
+# 查看端口是否监听
+$ netstat -tnpl
+
+# 修改密码
+$ mysqladmin -uroot -S /tmp/mysql_3307.sock password 123456
+
+# 登录新实例
+$ mysql -uroot -S /tmp/mysql_3307.sock -p
+
+# 确认数据目录
+mysql> show variables like '%datadir%';
+
+# 查用户
+mysql> select user,host from mysql.user;
+
+# 设权限
+mysql> grant all on *.* to root@'%' identified by 'root' with grant option;
+mysql> grant all privileges on *.* to 'root'@'172.4.2.20'  with grant option;
+
+# 确认权限
+show grants for root;
+
+# 创用户
+mysql> grant select on *.* to backup@'%' identified by 'backup';
+
+# this config needs haproxy-1.1.28 or haproxy-1.2.1
+
+# 安装haproxy
+$ uname -a           //查看linux内核版本
+$ make TARGET=linux26 PREFIX=/usr/local/haproxy
+$ make install PREFIX=/usr/local/haproxy
+
+# 配置haproxy
+$ vi /usr/local/haproxy/etc/haproxy.cfg
+
+    global
+            log 127.0.0.1   local3 info    #日志相关
+            maxconn 4096
+            chroot /usr/local/haproxy
+            uid root
+            gid root
+            daemon
+            #debug
+            #quiet
+            pidfile /usr/local/haproxy/haproxy.pid
+
+    defaults
+            log     global
+            mode    http
+            #option httplog
+            option  dontlognull
+            retries 3
+            option redispatch
+            maxconn         2000
+            contimeout      5000
+            clitimeout      50000
+            srvtimeout      50000
+
+    listen  mysql
+            bind 0.0.0.0:23306    #代理端口
+            mode tcp              #模式 TCP
+            balance roundrobin    #调度算法
+            option mysql-check user root   #mysql健康检查  root为mysql登录用户名
+            server mysql3306 172.4.2.20:3306 weight 1 check  inter 1s rise 2 fall 2 #健康检查加上check
+            server mysql3307 172.4.2.20:3307 weight 1 check  inter 1s rise 2 fall 2
+    listen stats     #监控
+               mode http
+               bind 0.0.0.0:8888
+               stats enable
+               stats uri /dbs
+               stats realm Global\ statistics
+               stats auth admin:admin
+
+# 启动haproxy
+$ /usr/local/haproxy/sbin/haproxy -f /usr/local/haproxy/etc/haproxy.cfg
+
+# 重启haproxy
+$ /usr/local/haproxy/sbin/haproxy -f /usr/local/haproxy/etc/haproxy.cfg -st `cat /usr/local/haproxy/haproxy.pid`
+
+# 查看haproxy监控
+http://172.4.2.20:8888/dbs
+
+# 查看haproxy日志
+tailf /var/log/haproxy.log
+
+# 登录mysql代理
+$ mysql -h172.4.2.20 -P23306
+
+
