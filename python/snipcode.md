@@ -1,5 +1,7 @@
 独立日志
 
+    logging.basicConfig(filename=os.path.join(os.getcwd(), 'log.log'), level = logging.DEBUG) 
+
     import logging                                                                 
 
     log_filename = '/var/log/monitor-feedback.log'                                 
