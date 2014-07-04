@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-cn" ng-app="testApp">
+    <head>
+        <meta charset="utf-8">
+        <title>test</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="/static/lib/jquery-1.10.2.js" type="text/javascript" charset="utf-8"></script>
+        <script src="/static/lib/angular.js" type="text/javascript" charset="utf-8"></script>
+        <style type="text/css" media="screen">
+            *{
+                margin:0;
+                padding:0;
+            }
+            .scroll_list{
+                overflow:hidden;
+                position:relative;
+            }
+            .scroll_ul{
+                width:9999px;
+                position:relative;
+                overflow:hidden;
+                clear:both;
+                *zoom:1;
+            }
+            .scroll_ul li{
+                width:100px;
+                height:100px;
+                background:#ccc;
+                margin:5px;
+                line-height:100px;
+                text-align:center;
+                list-style:none;
+                float:left;
+            }
+        </style>
+    </head>
+    <body ng-controller="myCtrl">
+        <div class="scroll_list">
+            <ul class="scroll_ul" myslid>
+            </ul>
+        </div>
+    </body>
+    <script>
+        var testApp= angular.module('testApp', []);
+        // http://wange.im/demo/marquee/
+        testApp.directive('myslid', function($timeout) {
+            return {
+                link: function(scope, elem, attrs) {
+                    scope.$watch('list', function (list) {
+                        if(list){
+                            angular.forEach(list, function(v){
+                                elem.append('<li>'+v+'</li>'); 
+                            }); 
+                            var scrollUlWidth = elem.find('li').outerWidth(true);
+                            angular.element('.scroll_list').width(scrollUlWidth);
+                            var scrollUlLeft = 0;
+                            var turn = function(){
+                                scrollUlLeft = scrollUlLeft - scrollUlWidth;
+                                elem.css('left', scrollUlLeft);
+                                elem.find('li:last').clone().prependTo('.scroll_ul');
+                                elem.find('li:last').remove();
+                                elem.animate({
+                                    left : scrollUlLeft + scrollUlWidth
+                                }, 300, function() {
+                                    scrollUlLeft = parseInt(elem.css('left'), 10);
+                                })
+                            };
+                            turn();
+
+                            var cancelRefresh = $timeout(function myFunction() {
+                                turn();
+                                cancelRefresh = $timeout(myFunction, 2000);
+                            }, 2000);
+                        }
+                    });
+                },
+            };
+        });
+        function myCtrl($scope, $timeout) {
+            $scope.list = [1, 2, 3, 4, 5, 6];
+        };
+    </script>
+</html>
