@@ -34,7 +34,7 @@ static void change_str_test(){
 }
 
 // 指针练习, 反转字符串
-static char* reversal(char* str){
+static char* reverse(char* str){
     char* ret = str;
     // 滚到字符数组末尾的\0之前
     char* p = str + w_strlen(str) - 1;
@@ -43,7 +43,7 @@ static char* reversal(char* str){
     // 两个指针，一个从前往后滚，一个从后往前滚，直到就要交错之前
     // 滚动的过程中交换两个指针指向的字符
     for ( ; p > str; --p, ++str) { 
-        printf("debug[reversal]: %p %p %c %c\n", p, str, *p, *str);
+        printf("debug[reverse]: %p %p %c %c\n", p, str, *p, *str);
         c = *p;
         *p = *str;
         *str = c;
@@ -143,6 +143,60 @@ static void customer_manager() {
     }
 }
 
+// 函数指针练习, 排序
+
+// 正序排序的比较函数
+static int cmp_default(int a, int b){
+    return a - b;
+}
+
+// 反序排序的比较函数
+static int cmp_reverse(int a, int b){
+    return b - a; 
+}
+
+// int类型的冒泡排序算法，可传入一个比较函数指针
+// 类似回调函数，该函数需要两个int参数且返回int
+static void sort(int* arr, int n, int (*cmp)(int, int)){
+    int i, j, t;
+    int *p, *q;
+
+    p = arr;
+
+    for (i = 0; i < n; i++, p++) {
+        q = p;
+        for (j = i; j < n; j++, q++) {
+            // 调用函数指针指向的函数和使用函数一样，貌似是简单写法
+            if (cmp(*p, *q) > 0) {
+                t = *p;
+                *p = *q;
+                *q = t;
+            }
+        }
+    }
+}
+
+// 测试排序函数
+static void sort_test(){
+    int arr[] = {4, 5, 3, 1, 2};
+    int i, n = 5;
+
+    // 正向排序， 传入cmp_default函数的地址，貌似不需要&取地址
+    sort(arr, 5, cmp_default);
+    for (i = 0; i < n; i ++) {
+        printf("%d%s", arr[i], i == n - 1 ? "" : ", "); 
+    }
+    printf("\n");
+
+    //反向排序，同上
+    sort(arr, 5, cmp_reverse);
+    for (i = 0; i < n; i ++) {
+        printf("%d%s", arr[i], i == n - 1 ? "" : ", "); 
+    }
+    printf("\n");
+}
+
+
 int main(){
     char str[10] = "hello";
     hello_world();
@@ -153,11 +207,13 @@ int main(){
 
     change_str_test();
 
-    printf("222 %s\n", reversal(str));
+    printf("222 %s\n", reverse(str));
 
     concat_test();
 
     customer_manager();
+
+    sort_test();
 
     return 0;
 }
