@@ -169,10 +169,6 @@ test case, 每个suit有个setup和teardown函数，分别在执行suit之前或
         gcc -o test.o $(INC) $(LIB) -g  $^ -l cunit
         ./test.o
 
-    helloworld.o: helloworld.c
-        gcc helloworld.c -o helloworld.o
-
-
     .PHONY: test
 
 再执行make test就可以执行单元测试了，结果大约如下
@@ -202,13 +198,12 @@ cunit默认把库都放这里了。
 
 ### 调试coredump
 
-就上面的单元测试, 如果使用注释掉那行，执行make test时就会产生coredump。
+就上面的单元测试, 如果使用注释掉那行，执行make test时就会产生coredump。如下
 
     // 定义suite集, 里面可以加多个suit
     CU_SuiteInfo suites[] = {
-        // 以前的版本没有那两个NULL参数，新版需要加上，否则就coredump
-        //{"testSuite1", suite_success_init, suite_success_clean, testcase },
-        {"testSuite1", suite_success_init, suite_success_clean, NULL, NULL, testcase },
+        {"testSuite1", suite_success_init, suite_success_clean, testcase },
+        //{"testSuite1", suite_success_init, suite_success_clean, NULL, NULL, testcase },
         CU_SUITE_INFO_NULL
     };
 
@@ -243,22 +238,22 @@ cunit默认把库都放这里了。
 
 这样大概知道是咋回事了，报错在testcase.c的46行上，再往里就是cunit的调用栈了，
 我们看不到行号，好像得有那个so的调试信息才可以，目前还不会在gdb里动态挂符号文件
-，所以就先不管了，
+，所以就先不管了，输入q退出调试器，其它命令用输入help学习下。
 
     if(CUE_SUCCESS != CU_register_suites(suites)){
 
 就调用了一个CU_register_suites函数，函数本身应该没有错误，可能是传给他从参数
-有问题，就是那个suites，该参数的代码如下：
+有问题，就是那个suites，该参数构建的代码如下：
 
     CU_SuiteInfo suites[] = {
         {"testSuite1", suite_success_init, suite_success_clean, testcase },
         CU_SUITE_INFO_NULL
     };
 
-是个CU_SuiteInfo的数组，就感觉是不是构建这个类型没构建对，然后就看他在哪儿定义
+是个CU_SuiteInfo的数组，就感觉是构建这个类型没构建对，然后就看他在哪儿定义
 的
 
-    [root@huhao-qcloud study]# grep -n "CU_SuiteInfo" /usr/local/include/CUnit/*
+    # grep -n "CU_SuiteInfo" /usr/local/include/CUnit/*
     /usr/local/include/CUnit/TestDB.h:696:typedef struct CU_SuiteInfo {
 
 在/usr/local/include/CUnit/TestDB.h的696行，具体如下
