@@ -3,7 +3,7 @@ LIB=-L /usr/local/lib/
 
 .PHONY: test 
 test: testcase.c
-	gcc -o test $(INC) $(LIB)  $^ -l cunit
+	gcc -o test $(INC) $(LIB) -g  $^ -l cunit
 
 helloworld.o: helloworld.c
 	gcc helloworld.c -o helloworld.o
