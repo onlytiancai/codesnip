@@ -31,7 +31,9 @@ int suite_success_clean(void) {
 
 // 定义suite集
 CU_SuiteInfo suites[] = {
-    {"testSuite1", suite_success_init, suite_success_clean, testcase },
+    // 以前的版本没有那两个NULL参数，新版需要加上，否则就coredump
+    //{"testSuite1", suite_success_init, suite_success_clean, testcase },
+    {"testSuite1", suite_success_init, suite_success_clean, NULL, NULL, testcase },
     CU_SUITE_INFO_NULL
 };
 
