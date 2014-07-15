@@ -24,6 +24,8 @@ prof:
 	
 
 clean:
-	rm *.o 
+	rm *.o -f
+	rm gmon.out -f
+	rm prof_info.txt -f
 
 .PHONY: test lint run clean prof
