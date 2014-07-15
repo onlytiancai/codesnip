@@ -1,3 +1,4 @@
 *.o
 gmon.out
 prof_info.txt
+*.swp
