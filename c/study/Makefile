@@ -1,15 +1,21 @@
 INC=-I /usr/local/include/CUnit
 LIB=-L /usr/local/lib/
 
-test: testcase.c
-	gcc -o test.o $(INC) $(LIB) -g  $^ -l cunit
-	./test.o
+all: socket_test.o helloworld.o
+
+socket_test.o: socket_test.c
+	gcc -g -o socket_test.o socket_test.c
 
 helloworld.o: helloworld.c
-	gcc helloworld.c -o helloworld.o
+	gcc -g -o helloworld.o helloworld.c
 
 lint:
 	splint helloworld.c -temptrans -mustfreefresh -usedef
+	splint socket_test.c -warnposix -usedef
+
+test: testcase.c
+	gcc -o test.o $(INC) $(LIB) -g  $^ -l cunit
+	./test.o
 
 run:
 	./helloworld.o
@@ -28,4 +34,4 @@ clean:
 	rm gmon.out -f
 	rm prof_info.txt -f
 
-.PHONY: test lint run clean prof
+.PHONY: all test lint run clean prof
