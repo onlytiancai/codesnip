@@ -6,51 +6,86 @@
 #include <netinet/in.h>  //sockaddr_in 
 #include <sys/socket.h>
 #include <unistd.h>
+#include <netdb.h>
 
-#define RECV_BUFF_SIZE 128 
+#define RECV_BUFF_SIZE 128
+#define SEND_BUF_SIZE 512
 
-int main()
+int main(int argc, const char *argv[])
 {
-    int client_fd;                                     // 客户端socket
-    struct sockaddr_in s_addr;                         // 目标主机地址
-    char * data_to_send = "GET / HTTP/1.1\r\n"         // 要发送到数据
-                          "Host: www.baidu.com\r\n"
-                          "Accept: */*\r\n"
-                          "\r\n\r\n";
-    size_t to_send_size = strlen(data_to_send);  // 要发送数据的大小
-    ssize_t sent_size = 0;                        // 实际发送的大小
+    const char* host = argv[1];                  // 目标主机
+    struct addrinfo hints;                       // 填充getaddrinfo参数
+    struct addrinfo *result;                     // 存放getaddrinfo返回数据
+    int r = 0;                                   // 临时存放函数返回值
+    ssize_t sent_size = 0;                       // 实际发送的大小
+    char send_buff[SEND_BUF_SIZE];               // 发送缓冲区
+    const char *send_tpl;                        // 数据模板，%s是host占位符 
+    size_t to_send_size = 0;                     // 要发送到数据大小 
+    int client_fd;                               // 客户端socket
+    char data_to_recv[RECV_BUFF_SIZE];           // 数据接收缓冲区
+    ssize_t recv_size;                           // 已接受到的数据大小
+    int i;                                       // 循环变量
 
-    char data_to_recv[RECV_BUFF_SIZE];                 // 数据接收缓冲区
-    ssize_t recv_size;                                     // 已接受到的数据大小
+    if (argc != 2) {
+        printf("Usage:%s [host]\n", argv[0]);
+        return 1;
+    }
 
-    int i;                                             // 循环变量
+    send_tpl = "GET / HTTP/1.1\r\n"
+               "Host: %s\r\n"
+               "Accept: */*\r\n"
+               "\r\n\r\n";
+
+
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = 0;
+    hints.ai_protocol = 0;
+
+    r = getaddrinfo(host, "80", &hints, &result); 
+    if (r != 0) {
+        printf("getaddrinfo error");
+        return 3;
+    }
+
+
+
+    // 构建发送缓冲区
+    if (strlen(host) + strlen(send_tpl) > SEND_BUF_SIZE - 2) { // 2 = strlen("%s")
+        printf("host too long.\n");
+        return 2;
+    }
+
+    to_send_size = snprintf(send_buff, SEND_BUF_SIZE, send_tpl, host);
+    if (to_send_size < 0) {
+        printf("snprintf error:.\n");
+        return 3;
+    }
+
+    
 
     // 创建socket
-    if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+    if ((client_fd = socket(result->ai_family, result->ai_socktype, 
+                    result->ai_protocol)) == -1) {
         printf("create socket error:%d\n", client_fd);
         return -1;
     }
 
     printf("cerate socket ok: %d\n", client_fd);
 
-    // 构建目标主机地址
-    memset(&s_addr, 0, sizeof(struct sockaddr_in));
-    s_addr.sin_family = AF_INET;
-    s_addr.sin_addr.s_addr = inet_addr("180.97.33.71"); 
-    s_addr.sin_port = htons(80);
-    printf("will collect s_addr=%#x, port=%#x\n", (unsigned int)s_addr.sin_addr.s_addr, 
-           (unsigned int)s_addr.sin_port);
-
     // 连接目标主机
-    if (connect(client_fd, (struct sockaddr *)(&s_addr), (socklen_t)sizeof(struct sockaddr)) == -1) {
+    r = connect(client_fd, result->ai_addr, result->ai_addrlen);
+    freeaddrinfo(result);
+    if (r == -1) {
         printf("connect error.\n");
         return -2;
     }
     printf("collect ok\n");
 
     // 发送数据
-    printf("will send:\n%s", data_to_send);
-    sent_size = write(client_fd, data_to_send, (size_t)strlen(data_to_send));
+    printf("will send:\n%s", send_buff);
+    sent_size = write(client_fd, send_buff, to_send_size);
     if (sent_size < 0) {
         printf("send data error.\n");
         return -3;
