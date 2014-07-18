@@ -11,31 +11,9 @@
 #define RECV_BUFF_SIZE 128
 #define SEND_BUF_SIZE 512
 
-int main(int argc, const char *argv[])
-{
-    const char* host = argv[1];                  // 目标主机
-    struct addrinfo hints;                       // 填充getaddrinfo参数
-    struct addrinfo *result;                     // 存放getaddrinfo返回数据
-    int r = 0;                                   // 临时存放函数返回值
-    ssize_t sent_size = 0;                       // 实际发送的大小
-    char send_buff[SEND_BUF_SIZE];               // 发送缓冲区
-    const char *send_tpl;                        // 数据模板，%s是host占位符 
-    size_t to_send_size = 0;                     // 要发送到数据大小 
-    int client_fd;                               // 客户端socket
-    char data_to_recv[RECV_BUFF_SIZE];           // 数据接收缓冲区
-    ssize_t recv_size;                           // 已接受到的数据大小
-    int i;                                       // 循环变量
-
-    if (argc != 2) {
-        printf("Usage:%s [host]\n", argv[0]);
-        return 1;
-    }
-
-    send_tpl = "GET / HTTP/1.1\r\n"
-               "Host: %s\r\n"
-               "Accept: */*\r\n"
-               "\r\n\r\n";
-
+struct addrinfo* get_addr(const char *host, const char *port){
+    struct addrinfo hints;     // 填充getaddrinfo参数
+    struct addrinfo *result;   // 存放getaddrinfo返回数据
 
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
@@ -43,80 +21,125 @@ int main(int argc, const char *argv[])
     hints.ai_flags = 0;
     hints.ai_protocol = 0;
 
-    r = getaddrinfo(host, "80", &hints, &result); 
-    if (r != 0) {
+    if(getaddrinfo(host, port, &hints, &result) != 0) {
         printf("getaddrinfo error");
-        return 3;
+        exit(1);
     }
+    return result;
+}
 
+int create_socket(const struct addrinfo * result) {
+    int fd;
 
+    if ((fd = socket(result->ai_family, result->ai_socktype, result->ai_protocol)) == -1) {
+        printf("create socket error:%d\n", fd);
+        exit(-1);
+    }
+    printf("cerate socket ok: %d\n", fd);
+    return fd;
+}
 
-    // 构建发送缓冲区
-    if (strlen(host) + strlen(send_tpl) > SEND_BUF_SIZE - 2) { // 2 = strlen("%s")
+int get_send_data(char * buf, size_t buf_size, const char* host) {
+    const char *send_tpl;                        // 数据模板，%s是host占位符 
+    size_t to_send_size;                         // 要发送到数据大小 
+
+    send_tpl = "GET / HTTP/1.1\r\n"
+               "Host: %s\r\n"
+               "Accept: */*\r\n"
+               "\r\n\r\n";
+
+    // 格式化后的长度必须小于buf的大小，因为snprintf会在最后填个'\0'
+    if (strlen(host) + strlen(send_tpl) - 2 >= buf_size) { // 2 = strlen("%s")
         printf("host too long.\n");
-        return 2;
+        exit(-1);
     }
 
-    to_send_size = snprintf(send_buff, SEND_BUF_SIZE, send_tpl, host);
+    to_send_size = snprintf(buf, buf_size, send_tpl, host);
     if (to_send_size < 0) {
-        printf("snprintf error:.\n");
-        return 3;
+        printf("snprintf error:%s.\n", to_send_size);
+        exit(-2);
     }
 
-    
+    return to_send_size;
+}
 
-    // 创建socket
-    if ((client_fd = socket(result->ai_family, result->ai_socktype, 
-                    result->ai_protocol)) == -1) {
-        printf("create socket error:%d\n", client_fd);
-        return -1;
-    }
-
-    printf("cerate socket ok: %d\n", client_fd);
-
-    // 连接目标主机
-    r = connect(client_fd, result->ai_addr, result->ai_addrlen);
-    freeaddrinfo(result);
-    if (r == -1) {
+int connect_host(int fd, const struct addrinfo* addr) {
+    if (connect(fd , addr->ai_addr, addr->ai_addrlen) == -1) {
         printf("connect error.\n");
-        return -2;
+        exit(-1);
     }
     printf("collect ok\n");
+    return 0;
+}
 
-    // 发送数据
-    printf("will send:\n%s", send_buff);
-    sent_size = write(client_fd, send_buff, to_send_size);
+int send_data(int fd, const char *data, size_t size) {
+    size_t sent_size;
+    printf("will send:\n%s", data);
+    sent_size = write(fd, data, size);
     if (sent_size < 0) {
         printf("send data error.\n");
-        return -3;
-    }else if((size_t)sent_size != to_send_size){
+        exit(-1);
+    }else if(sent_size != size){
          printf("not all send.\n");
+         exit(-2);
     }
     printf("send data ok.\n");
+    return sent_size;
+}
 
-    // 接收数据
-    recv_size = read(client_fd, &data_to_recv, RECV_BUFF_SIZE);
+int recv_data(int fd, char* buf, int size) {
+    int i;
+    int recv_size = read(fd, buf, size);
     if (recv_size < 0) {
         printf("recv data error:%d\n", (int)recv_size);
-        return -4;
+        exit(-1);
     }
     if (recv_size == 0) {
         printf("recv 0 size data.\n");
-        return -5;
+        exit(-2);
     }
-    for (i = 0; i < RECV_BUFF_SIZE - 1; i++) {
-        if (data_to_recv[i] == '\r' && data_to_recv[i+1] == '\n') {
-            data_to_recv[i] = '\0';
+    // 只取HTTP first line
+    for (i = 0; i < size - 1; i++) {
+        if (buf[i] == '\r' && buf[i+1] == '\n') {
+            buf[i] = '\0';
         }
     }
-    printf("recv data:%s\n", data_to_recv);
+    printf("recv data:%s\n", buf);
+}
 
-    // 关闭socket
-    if(close(client_fd) < 0){
+int close_socket(int fd) {
+    if(close(fd) < 0){
          printf("close socket errors\n");
-         return -6;
+         exit(-1);
     }
     printf("close socket ok\n");
-    
+}
+
+int main(int argc, const char *argv[])
+{
+    const char* host = argv[1];                  // 目标主机
+    char send_buff[SEND_BUF_SIZE];               // 发送缓冲区
+    char recv_buf[RECV_BUFF_SIZE];               // 接收缓冲区
+    size_t to_send_size = 0;                     // 要发送数据大小 
+    int client_fd;                               // 客户端socket
+    struct addrinfo *addr;                       // 存放getaddrinfo返回数据
+
+    if (argc != 2) {
+        printf("Usage:%s [host]\n", argv[0]);
+        return 1;
+    }
+
+
+    addr = get_addr(host, "80");
+    client_fd = create_socket(addr);
+    connect_host(client_fd, addr);
+    freeaddrinfo(addr);
+
+    to_send_size = get_send_data(send_buff, SEND_BUF_SIZE, host);
+    send_data(client_fd, send_buff, to_send_size);
+
+    recv_data(client_fd, recv_buf, RECV_BUFF_SIZE);
+
+    close(client_fd);
     return 0;
 }
