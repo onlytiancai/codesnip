@@ -184,7 +184,3 @@ int main(void)
     free_arr_list(arr);
     return 0;
 }
-
-### 小结
-
-自己用C实现一下高级语言的数据结构，便于对高级语言自带的数据结构有更深的理解。
