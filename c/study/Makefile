@@ -1,7 +1,10 @@
 INC=-I /usr/local/include/CUnit
 LIB=-L /usr/local/lib/
 
-all: socket_test.o helloworld.o
+all: socket_test.o helloworld.o array_list.o
+
+array_list.o: array_list.c
+	gcc -g -o array_list.o array_list.c
 
 socket_test.o: socket_test.c
 	gcc -g -o socket_test.o socket_test.c
