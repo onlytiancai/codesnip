@@ -2,17 +2,22 @@
 
     logging.basicConfig(filename=os.path.join(os.getcwd(), 'log.log'), level = logging.DEBUG) 
 
-    import logging                                                                 
-
-    log_filename = '/var/log/monitor-feedback.log'                                 
-
-    logger = logging.getLogger('monitor.feedback')                                    
-    logger.propagate = False                                                          
-    logger.setLevel(logging.DEBUG)                                                    
+    def init_logger(log_filename, level='info', console=False):
+        import logging.handlers
+        logger = logging.getLogger()
+        logger.propagate = False
+        level = logging._levelNames.get(level.upper(), logging.INFO)
+        logger.setLevel(level)
         handler = logging.handlers.RotatingFileHandler(log_filename, maxBytes=100 * 1000 * 1000, backupCount=10)
-        formatter = logging.Formatter('%(asctime)s - %(message)s')                        
-        handler.setFormatter(formatter)                                                   
+        formatter = logging.Formatter('%(asctime)s - %(message)s')
+        handler.setFormatter(formatter)
+        if console:
+            consoleHandler = logging.StreamHandler()
+            consoleHandler.setFormatter(formatter)
+            logger.addHandler(consoleHandler)
         logger.addHandler(handler)
+
+
 
 异常日志记录器
 
@@ -74,11 +79,40 @@ web.py骨架代码
             <meta charset="utf-8">
             <title>$content.get('title', 'My site')</title>
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link href="/static/main.css" rel="stylesheet">
-            <script src="/static/main.js" type="text/javascript" charset="utf-8"></script>
+            <link href="http://libs.baidu.com/bootstrap/3.2.0/css/bootstrap.css" rel="stylesheet">
+            <script src="http://libs.baidu.com/jquery/1.8.2/jquery.js"></script>
+            <script src="http://libs.baidu.com/bootstrap/3.2.0/js/bootstrap.js"></script>
         </head>
         <body>
-        $:content
+            <div class="navbar navbar-fixed-top navbar-default" role="navigation">
+                <div class="container">
+                    <div class="navbar-header">
+                        <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target=".navbar-collapse">
+                            <span class="sr-only">切换导航</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="/">我的网站</a>
+                    </div>
+                    <div class="navbar-collapse collapse">
+                        <ul class="nav navbar-nav">
+                            <li class="active"><a href="/">首页</a></li>
+                        </ul>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li><a href="/about">关于</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="container" style="margin-top:60px;min-height:500px;">
+            $:content
+            </div>
+            <footer>
+            <div class="container">
+                <p>&copy; company 2014.</p>
+            </div>
+            </footer>
         </body>
     </html>
 
