@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <title>Bootstrap Demo</title>
+        <link href="static/lib/bootstrap/css/bootstrap.css" rel="stylesheet">
+        <script src="static/lib/jquery-1.11.0.js" type="text/javascript" charset="utf-8"></script>
+        <script src="static/lib/bootstrap/js/bootstrap.js" type="text/javascript" charset="utf-8"></script>
+        <style type="text/css" media="screen">
+            .subnav {
+                padding: 8px 15px;
+                margin-bottom: 20px;
+                list-style: none;
+                background-color: #f5f5f5;
+                border-radius: 4px;
+            }
+            .subnav > li {
+                display: inline-block;
+                margin: 0 10px;
+            }
+            .subnav > .active {
+                color: #266298;
+            }
+
+            .toolbar {
+                padding: 8px 15px;
+                margin-bottom: 20px;
+                background-color: #f5f5f5;
+                border-radius: 4px;
+            }
+            
+        </style>
+    </head>
+    <body>
+        <div class="navbar navbar-inverse navbar-fixed-top">
+            <div class="navbar-header">
+                <a class="navbar-brand hidden-sm" href="/">Bootstrap Demo</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li><a href="/">首页</a></li>
+                <li><a href="/p/lesscss/" target="_blank">Less 教程</a></li>
+                <li><a href="http://jquery.bootcss.com/" target="_blank">jQuery API</a></li>
+                <li><a href="http://expo.bootcss.com" target="_blank">网站实例</a></li>
+            </ul>
+            <ul class="nav navbar-nav pull-right">
+                <li><a href="about.html">关于</a></li>
+            </ul>
+        </div>
+        <div style="margin-top:80px;"></div>
+        <h1>剪贴板项目<small>Secondary text</small></h1>
+        <ul class="nav nav-tabs">
+            <li class="active"><a href="#">主页</a></li>
+            <li><a href="#">需求</a></li>
+            <li><a href="#">报表</a></li>
+        </ul>
+        <ol class="subnav">
+            <li><a href="#">迭代</a></li>
+            <li><a href="#">故事墙</a></li>
+            <li class="内容">Data</li>
+        </ol>
+        <div class="toolbar">
+            <span>当前版本:</span>
+            <select>
+                <option>版本1</option>
+                <option>版本1</option>
+                <option>版本1</option>
+            </select>
+            <button type="button" class="btn btn-default btn-sm">Default</button>
+            <button type="button" class="btn btn-default btn-sm">Default</button>
+            <a class="btn btn-default" href="#" role="button">Link</a>
+            <a class="btn btn-default" href="#" role="button">Link</a>
+        </div>
+    </body>
+</html>

@@ -1,18 +1,25 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+'''
+各监控指标地址：http://wenku.baidu.com/view/ac9322896f1aff00bed51ed6.html
+'''
 
 import MySQLdb
 import time
+import socket
 
-conn_args = dict(host="localhost",
-                      user="root",
-                      passwd="password",
-                      db="test",
-                      charset="utf8")
-
+api_key = '5cdd8568-9268-4b2d-8cf4-184254132aaf'
+host = 'mysql'
+ip = '127.0.0.1'
+conn_args = dict(host="localhost", user="root", passwd="password", db="test", charset="utf8")
 interval = 5
+collector_url = ('collector.monitor.dnspod.cn', 2003)
+
 global_status = {}
 global_status2 = {}
+
+client = socket.socket()
+client.connect(collector_url)
 
 
 def get_mysql_status():
@@ -37,9 +44,15 @@ def get_metric2(name):
     name = name.lower().strip()
     return int(global_status2.get(name, -1))
 
+def send_metric(name, value):
+    data = '%(api_key)s/%(host)s/%(ip)s/%(metric_name)s %(value)s %(timestamp)s\n'
+    data = data % dict(api_key=api_key, host=host, ip=ip,
+                       metric_name=name, value=value, timestamp=time.time())
+    client.send(data)
 
 def show_metric(name, value):
     print name, value
+    send_metric(name, value)
 
 
 def connection_status():
@@ -128,3 +141,5 @@ if __name__ == '__main__':
     innodb_buffer_status()
     qcache_status()
     thread_cache_status()
+
+    client.close()
