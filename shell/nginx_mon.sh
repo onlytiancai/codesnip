@@ -13,7 +13,7 @@ send_metric(){
 
 
 # 前一分钟的时间, 格式为linux日志的时间格式
-time=`date -d "-1 minutes" +%d/%b/%Y:%k:%M`
+time=`date -d "-1 minutes" +%d/%b/%Y:%H:%M`
 echo ${time}
 
 count_all=`tail -n 100000 ${nginx_log_path} | grep "${time}" | wc -l`
