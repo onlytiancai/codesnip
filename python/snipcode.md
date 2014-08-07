@@ -1,6 +1,8 @@
 独立日志
 
-    logging.basicConfig(filename=os.path.join(os.getcwd(), 'log.log'), level = logging.DEBUG) 
+    logfile = '/data/log/login_mon/%s.log' % datetime.now().strftime('%Y-%m-%d')
+    logging.basicConfig(filename=logfile, level=logging.INFO, format='%(asctime)s - %(message)s')
+    logging.getLogger().addHandler(logging.StreamHandler())
 
     def init_logger(log_filename, level='info', console=False):
         import logging.handlers
