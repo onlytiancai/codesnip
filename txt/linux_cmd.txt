@@ -527,5 +527,5 @@ awk 'BEGIN { a=0 }; { a=a+$0 }; END { print a/NR }'
 只输出满足条件的行
 awk '{if($1<60){print $1}}' | wc -l
 
-持续抓包，每10分钟一个
-nohup tcpdump -Z root -i eth1 -G 600 -w cdb-%y%m%d-%H%M.dmp host 10.198.30.120 and port 3375 >/dev/null &
+持续抓包，每1分钟抓一个，共抓5个, 文件按时间命名
+tcpdump -Z root -i eth1 -G 60 -W 5 -w cdb-%y%m%d-%H%M.dmp host www.baidu.com and port 80 
