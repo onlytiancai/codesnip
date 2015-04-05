@@ -1,7 +1,13 @@
 INC=-I /usr/local/include/CUnit
 LIB=-L /usr/local/lib/
 
-all: socket_test.o helloworld.o array_list.o
+all: socket_test.o helloworld.o array_list.o dns_query.o test.o
+
+test.o: test.c
+	gcc -g -o test.o test.c
+
+dns_query.o: dns_query.c
+	gcc -g -o dns_query.o dns_query.c
 
 array_list.o: array_list.c
 	gcc -g -o array_list.o array_list.c
@@ -17,7 +23,7 @@ lint:
 	splint socket_test.c -warnposix -usedef
 
 test: testcase.c
-	gcc -o test.o $(INC) $(LIB) -g  $^ -l cunit
+	gcc -o testcase.o $(INC) $(LIB) -g  $^ -l cunit
 	./test.o
 
 run:

@@ -2,3 +2,5 @@
 gmon.out
 prof_info.txt
 *.swp
+*.data
+*.old
