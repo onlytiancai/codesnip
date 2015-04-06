@@ -1,3 +1,6 @@
+/* 启动: ./echo.o 1234
+ * 测试: nc localhost 1234， 然后输入文字回车
+ * */
 #include <stdlib.h>     // exit, malloc, free, rand
 #include <stdio.h>      // stdin, stdout, stderr, printf, getchar
 #include <errno.h>      // errno, EAGAIN, EBADF, ECONNABORTED, ECONNREFUSED, ECONNRESET
