@@ -11,14 +11,14 @@
 #include <sys/types.h>  // size_t, timer_t, pthread_t
 #include <arpa/inet.h>  // htonl, htons, ntohl, ntohs, inet_addr, inet_ntoa, inet_aton
 
+#define BUFFSIZE 1024 
 int main(int argc, const char *argv[])
 {
     int serverfd, clientfd;
     struct sockaddr_in server_addr;
     struct sockaddr_in client_addr;
     int sin_size, portnumber, nreads, nwrites;
-    int buffsize = 1024;
-    char buff[buffsize + 1]; // 如果正好读取了buffsize个字节，后面要留\0的位置。
+    char buff[BUFFSIZE + 1]; // 如果正好读取了BUFFSIZE个字节，后面要留\0的位置。
 
     if (argc != 2)
     {
@@ -70,12 +70,12 @@ int main(int argc, const char *argv[])
 
         fprintf(stdout, "accept connection: %s\n", inet_ntoa(client_addr.sin_addr));
 
-        if ((nreads = read(clientfd, buff, buffsize)) == -1)
+        if ((nreads = read(clientfd, buff, BUFFSIZE)) == -1)
         {
             fprintf(stderr, "Read Error:%s \n", strerror(errno));
             exit(1);
         }
-        buff[nreads] = '\0'; // 如果nreads == buffsize, 则\0放在buffzise + 1的位置 
+        buff[nreads] = '\0'; // 如果nreads == BUFFSIZE, 则\0放在buffzise + 1的位置 
         fprintf(stdout, "read %d bytes. \n\t%s\n", nreads, buff);
 
         if ((nwrites = write(clientfd, buff, nreads)) == -1) 
