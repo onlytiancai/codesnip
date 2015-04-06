@@ -27,6 +27,20 @@ int main(int argc, char * argv[])
         exit(EXIT_FAILURE);
     }
 
+    // ### set reuseaddr
+    int yes = 1;
+    if (setsockopt(serverfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
+    {
+        perror("setsockopt error");
+        exit(EXIT_FAILURE);
+    }
+
+    int nNetTimeout=2000;//2秒
+    //设置发送时限
+    setsockopt(serverfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&nNetTimeout, sizeof(int) );
+    ////设置接收时限
+    setsockopt(serverfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&nNetTimeout, sizeof(int));
+
     // ### create server addr
     struct sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
@@ -75,7 +89,7 @@ int main(int argc, char * argv[])
         FD_ZERO(&fdsets);
         FD_SET(serverfd, &fdsets);
 
-        tv.tv_sec = 30;
+        tv.tv_sec = 10;
         tv.tv_usec = 0;
 
         // 把client socket fd监控起来
@@ -98,27 +112,30 @@ int main(int argc, char * argv[])
             continue;
         }
 
+        int close_count = 0;
         // 接受客户端发送过来的数据
         for (i = 0; i < conn_amount; i++)
         {
             if (FD_ISSET(fdarr[i], &fdsets))
             {
                 ret = read(fdarr[i], buf, BUFSIZE);
-                if (ret <= 0)
+                if (ret <= 0) // 能检测到客户端主动断开，发fin包，进程意外中止，宕机不能检测到
                 {
-                    printf("client %d close.", i);
+                    printf("client %d close. \n", i);
                     close(fdarr[i]);
                     FD_CLR(fdarr[i], &fdsets);
                     fdarr[i] = 0;
+                    close_count += 1;
                 }else {
                     buf[ret] = '\0';
                     printf("recv data[%d]:%s \n", i, buf);
                 }
             }
         }
-
+        conn_amount -= close_count;
+        
         // 检查新连接
-        if (FD_SET(serverfd, &fdsets))
+        if (FD_ISSET(serverfd, &fdsets))
         {
             clientfd = accept(serverfd, (struct sockaddr *)&client_addr, &sin_size);
             if (clientfd < 0)
@@ -130,7 +147,17 @@ int main(int argc, char * argv[])
             // 添加到监控队列里
             if (conn_amount < BACKLOG){
                 FD_SET(clientfd, &fdsets);
-                fdarr[conn_amount++] = clientfd;
+
+                for (i = 0; i < BACKLOG; i++)
+                {
+                    if (fdarr[i] == 0)
+                    {
+                        fdarr[i] = clientfd;
+                        break;
+                    }
+                }
+                conn_amount += 1;
+
                 printf("accept conn[%d]:%s %d \n", conn_amount, 
                         inet_ntoa(client_addr.sin_addr),
                         ntohs(client_addr.sin_port));
@@ -143,7 +170,7 @@ int main(int argc, char * argv[])
                 printf("max conn, exit\n");
                 write(clientfd, "bye", 4);
                 close(clientfd);
-                break; // TODO: 这里为什么奥break呢
+                continue;
             }
         }
     }
