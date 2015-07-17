@@ -1,0 +1,4 @@
+useradd -r -s /bin/false pythonapp
+chown root .
+mkdir log
+chown pythonapp log
