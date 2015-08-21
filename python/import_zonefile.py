@@ -12,14 +12,12 @@ import dns.zone
 import requests
 
 
-domain = 'dnspod.com'  # 要导入的域名
-domain_id = 123456  # 要导入域名的ID，在网页上获取，用Chrome的开发者工具，你懂的
-
-record_line = u'默认'  # 线路名称，一般zonefile里没有线路信息，就写默认
-
+domain = 'aipai.com'  # 要导入的域名
+domain_id = 25095444 # 要导入域名的ID，在网页上获取，用Chrome的开发者工具，你懂的
+record_line = u'长城宽带'  # 线路名称，一般zonefile里没有线路信息，就写默认
 login_email = 'test@dnspod.com'  # DNSPod账户
-
 login_password = 'password'  # DNSPod密码
+login_token='10665,111'
 
 
 def parse_zone(zone_file):
@@ -41,20 +39,27 @@ def parse_zone(zone_file):
                 rdtype = dns.rdatatype.to_text(rdata.rdtype)
                 value = item.to_text()
                 mx = 0
+                
+                # CNAME值没有.结尾，加上域名做后缀
+                if rdtype == 'CNAME' and not value.endswith('.'):
+                    value = value + '.' + domain
                 if rdtype == 'MX':
                     value = value.rstrip('.')
                     value += '.'
                 if rdtype not in ['NS', 'SOA']:
                     yield sub_domain, ttl, rdtype, value, mx
 
+total = 0
 def create_record(record):
+    global total
     data = {'sub_domain': record[0],
             'ttl': record[1],
             'record_type': record[2],
             'value': record[3],
             'mx': record[4],
-            'login_email': login_email,
-            'login_password': login_password,
+            #'login_email': login_email,
+            #'login_password': login_password,
+            'login_token': login_token,
             'record_line': record_line,
             'domain_id': domain_id,
             'domain': domain,
@@ -64,7 +69,8 @@ def create_record(record):
 
     r = requests.post('https://dnsapi.cn/Record.Create', data=data)
     r = r.json()
-    print record, r['status']['code'], r['status']['message']
+    total += 1
+    print total, record, r['status']['code'], r['status']['message']
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
