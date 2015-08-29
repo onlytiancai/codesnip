@@ -12,12 +12,12 @@ import dns.zone
 import requests
 
 
-domain = 'aipai.com'  # 要导入的域名
-domain_id = 25095444 # 要导入域名的ID，在网页上获取，用Chrome的开发者工具，你懂的
-record_line = u'长城宽带'  # 线路名称，一般zonefile里没有线路信息，就写默认
+domain = 'weplay.cn'  # 要导入的域名
+domain_id = 25100001# 要导入域名的ID，在网页上获取，用Chrome的开发者工具，你懂的
+record_line = u'移动'  # 线路名称，一般zonefile里没有线路信息，就写默认
 login_email = 'test@dnspod.com'  # DNSPod账户
 login_password = 'password'  # DNSPod密码
-login_token='10665,111'
+login_token='10665,8fc6b84d52d705879807ec781a10e2f5'
 
 
 def parse_zone(zone_file):
@@ -41,7 +41,7 @@ def parse_zone(zone_file):
                 mx = 0
                 
                 # CNAME值没有.结尾，加上域名做后缀
-                if rdtype == 'CNAME' and not value.endswith('.'):
+                if rdtype == 'CNAME' and value.find('.') == -1:
                     value = value + '.' + domain
                 if rdtype == 'MX':
                     value = value.rstrip('.')
