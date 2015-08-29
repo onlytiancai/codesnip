@@ -1,7 +1,8 @@
-//http://howtonode.org/control-flow-part-iii
+// 读取某录下的所有文件内容放到一个结果数组里
+// http://howtonode.org/control-flow-part-iii
 var fs = require('fs');
 
-// Here is the async version without helpers
+// 原始版本 
 function loaddir(path, callback) {
   fs.readdir(path, function (err, filenames) {
     if (err) { callback(err); return; }
@@ -36,7 +37,7 @@ function loaddir(path, callback) {
 loaddir(__dirname, function (err, result) {
   if (err) throw err;
   result.forEach(function(x){
-    console.log("loaddir:", x.length);
+    console.log("loaddir1:", x.length);
   });
 });
 
@@ -49,13 +50,13 @@ function loaddir2(path, callback) {
         real_files = [];
 
     async.series([
-        function(callback){
+        function(callback){ // 1. 读出所有子目录和文件名
             fs.readdir(path, function (err, filenames) {
                 all_files = filenames;
                 callback(err);
             });
         },
-        function(callback){
+        function(callback){ // 2. 过滤掉子目录，剩下文件
             var filter_err = null;
             async.filter(all_files, function(file, callback2) {
                 fs.stat(file, function (err, stat) {
@@ -67,7 +68,7 @@ function loaddir2(path, callback) {
                 callback(filter_err);
             });
         },
-        function(callback){
+        function(callback){ // 3. 把文件内容读出来，放结果数组里
             async.map(real_files, function(file, callback2){
                 fs.readFile(file, function (err, data) {
                     callback2(err, data);
@@ -84,6 +85,33 @@ function loaddir2(path, callback) {
 
 loaddir2(__dirname, function (err, result) {
     result.forEach(function(x){
-        console.log("loaddir2", x.length);
+        console.log("loaddir2:", x.length);
+    });
+});
+
+function loaddir3(path, callback) {
+
+    var concat_files = function(files, callback){
+        async.map(files, function(file, callback){
+            fs.stat(file, function (err, stat) {
+                if (err) { callback(err); return; }
+                if (stat.isFile()){
+                    fs.readFile(file, function (err, data) {
+                        callback(err, data);
+                    });
+                } //TODO: else 这里不回调可以吗？
+            });
+
+        }, callback);
+    };
+
+    var compose = async.compose(concat_files, fs.readdir);
+    compose(path, callback);
+}
+
+
+loaddir3(__dirname, function (err, result) {
+    result.forEach(function(x){
+        console.log("loaddir3:", x.length);
     });
 });
