@@ -90,11 +90,10 @@ loaddir2(__dirname, function (err, result) {
 });
 
 function loaddir3(path, callback) {
-
     var concat_files = function(files, callback){
         async.map(files, function(file, callback){
             fs.stat(file, function (err, stat) {
-                if (err) { callback(err); return; }
+                if (err) { return callback(err); }
                 if (stat.isFile()){
                     fs.readFile(file, function (err, data) {
                         callback(err, data);
@@ -115,3 +114,38 @@ loaddir3(__dirname, function (err, result) {
         console.log("loaddir3:", x.length);
     });
 });
+
+function loaddir4(path, callback) {
+    var concat_files = function(files, callback){
+        async.map(files, function(file, callback){
+            fs.readFile(file, function (err, data) {
+                callback(err, data);
+            });
+
+        }, callback);
+    };
+
+    var filter_files = function(files, callback){
+        var filter_err = null; 
+        async.filter(files, function(file, callback2) {
+            fs.stat(file, function (err, stat) {
+                filter_err = err; 
+                callback2(stat.isFile());
+            });
+        }, function(results){
+            real_files = results;
+            callback(filter_err, results);
+        });
+
+    };
+
+    var compose = async.compose(concat_files, filter_files, fs.readdir);
+    compose(path, callback);
+}
+
+loaddir4(__dirname, function (err, result) {
+    result.forEach(function(x){
+        console.log("loaddir4:", x.length);
+    });
+});
+
