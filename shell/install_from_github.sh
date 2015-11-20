@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# curl -L http://logsend.io/get|sudo bash
+# curl -L http://logsend.io/get|bash -s /tmp
+
 shopt -s extglob
 set -o errtrace
 set -o errexit
