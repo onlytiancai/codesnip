@@ -7,6 +7,7 @@ export dnspod_logintoken='10000, xxxx'
 '''
 import os
 import json
+import time
 import socket
 import urllib
 import urllib2
@@ -22,6 +23,7 @@ API_HEADERS = {"Content-type": "application/x-www-form-urlencoded",
                "User-Agent": "onlytiancai/0.0.1 (onlytiancai@gmail.com)"}
 
 all_tasks = set()
+error_task = set() 
 
 
 def api(api, **data):
@@ -46,7 +48,12 @@ def domain_list():
 
 def record_list(domain_id):
     ret = api('Record.List', domain_id=domain_id)
-    return ret['records']
+    for item in ret['records']:
+        if item['type'] not in ('A', 'CNAME'):
+            continue
+        if item['enabled'] != '1':
+            continue
+        yield item
 
 
 def httptest(host, ip):
@@ -54,7 +61,7 @@ def httptest(host, ip):
     headers = {"Host": host}
     req = urllib2.Request(url, headers=headers)
     try:
-        rsp = urllib2.urlopen(req, timeout=1)
+        urllib2.urlopen(req, timeout=1)
     except urllib2.HTTPError, e:
         if e.code == 508:
             return '508 Loop Detected'
@@ -64,38 +71,48 @@ def httptest(host, ip):
             return 'timeout'
         if type(e.reason) is socket.gaierror:
             return e.reason.strerror
-        return e.reason 
+        return e.reason
     except socket.timeout as e:
-        return 'timeout' 
+        return 'timeout'
     except socket.error as e:
-        return e.strerror 
+        return e.strerror
     return ''
 
 
 def get_host(domain, sub_domain):
     if sub_domain == '@':
-        return domain 
+        return domain
     if sub_domain == '*':
         sub_domain = 'test'
     return '%s.%s' % (sub_domain, domain)
 
 
+def test_one(host, ip):
+    if (host, ip) in all_tasks:
+        return
+
+    t1 = time.time()
+    ret = httptest(host, ip)
+    all_tasks.add((host, ip))
+    duration = int((time.time() - t1) * 1000)
+
+    if ret:
+        error_task.add((host, ip))
+        print '%s(%s) %sms "%s"' % (host, ip, duration, ret)
+
+
 def run():
     all_tasks.clear()
     for domain_id, domain_name in domain_list():
-        print domain_id, domain_name
         for record in record_list(domain_id):
-            if record['type'] not in ('A', 'CNAME'):
-                continue
             sub_domain = record['name']
             ip = record['value']
             host = get_host(domain_name, sub_domain)
-            if (host, ip) in all_tasks:
-                continue
-            ret = httptest(host, ip)
-            all_tasks.add((host, ip))
+            test_one(host, ip)
 
-            print '\t%s %s "%s"' % (host, record['value'], ret or 'ok')
+    print  
+    print 'total: %s, error: %s' % (len(all_tasks), len(error_task))
+
 
 if __name__ == '__main__':
     run()
