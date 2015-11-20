@@ -12,6 +12,7 @@ import socket
 import urllib
 import urllib2
 import logging
+import itertools
 
 
 logging.basicConfig(level=logging.NOTSET)
@@ -23,7 +24,7 @@ API_HEADERS = {"Content-type": "application/x-www-form-urlencoded",
                "User-Agent": "onlytiancai/0.0.1 (onlytiancai@gmail.com)"}
 
 all_tasks = set()
-error_task = set() 
+error_task = []
 
 
 def api(api, **data):
@@ -96,13 +97,25 @@ def test_one(host, ip):
     all_tasks.add((host, ip))
     duration = int((time.time() - t1) * 1000)
 
+    print '%s(%s) %sms "%s"' % (host, ip, duration, ret or 'ok')
     if ret:
-        error_task.add((host, ip))
-        print '%s(%s) %sms "%s"' % (host, ip, duration, ret)
+        error_task.append((ret, host, ip))
+
+
+def summary():
+    print
+    print 'total: %s, error: %s' % (len(all_tasks), len(error_task))
+
+    for err, tasks in itertools.groupby(sorted(error_task), lambda x: x[0]):
+        tasks = list(tasks)
+        print '%s(%s):' % (err, len(tasks))
+        for task in sorted(tasks):
+            print '\t%s(%s)' % (task[1], task[2])
 
 
 def run():
     all_tasks.clear()
+
     for domain_id, domain_name in domain_list():
         for record in record_list(domain_id):
             sub_domain = record['name']
@@ -110,8 +123,7 @@ def run():
             host = get_host(domain_name, sub_domain)
             test_one(host, ip)
 
-    print  
-    print 'total: %s, error: %s' % (len(all_tasks), len(error_task))
+    summary()
 
 
 if __name__ == '__main__':
