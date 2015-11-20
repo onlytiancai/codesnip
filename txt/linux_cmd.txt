@@ -558,3 +558,11 @@ ss -nop state time-wait '( sport = :80 )' | head
 查看netstat统计信息
 netstat -s | grep dropped
 netstat -s | grep overflowed
+查看网络错误
+ethtool -S eth1 | grep error | greprx
+查看网卡型号
+lspci -vv| grep Ethernet
+查看网卡驱动
+ethtool -i eth1
+
+tcp的名次：mtu, mss, msl, ttl, 2msl, rtt, rto
