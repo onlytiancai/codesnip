@@ -532,3 +532,29 @@ tcpdump -Z root -i eth0 -G 60 -w cdb-%y%m%d-%H%M.dmp host www.baidu.com and port
 
 定时删除2天之前的文件
 find /data/networkdump -type f -mtime +2 | xargs rm
+
+tcpdump -A -r /data/networkdump/cdb-150105-2101.dmp 2>&1 | grep users
+
+# 看重转
+netstat -s | grep -i retr
+
+# 统计重转等异常包的数量，其中1表示按60秒统计
+$ tshark -r file.pcap -q -t ad -z io,stat,60,\
+"COUNT(tcp.analysis.retransmission) tcp.analysis.retransmission",\
+"COUNT(tcp.analysis.duplicate_ack)tcp.analysis.duplicate_ack",\
+"COUNT(tcp.analysis.lost_segment) tcp.analysis.lost_segment",\
+"COUNT(tcp.analysis.fast_retransmission) tcp.analysis.fast_retransmission"
+
+查看本机27017都被哪些IP连
+netstat | grep 27017 | awk '{print $5}' | sed -r "s/:[0-9]+//" | sort | uniq
+
+查看本机监听的baklog队列
+ss -l
+本地80端口上连接, 可以看到进程和连接时间
+ss -nop state established '( sport = :80 )' | head
+ss -nop state fin-wait-1 '( sport = :80 )' | head
+ss -nop state time-wait '( sport = :80 )' | head 
+
+查看netstat统计信息
+netstat -s | grep dropped
+netstat -s | grep overflowed
