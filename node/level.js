@@ -10,8 +10,8 @@
 
 == todo:
 
-- 测试用例用的mapSeries来添加事件，如果用map，在_statEvent里取到的汇总值会为空
 - moments进行时间多次转换，有些浪费
+- 统计纬度，粒度，聚合函数可配置化
 
 */
 var levelup = require('levelup');
@@ -36,18 +36,22 @@ function _statEvent(appid, time, data, callback) {
     })
 }
 
+var q = async.queue(function (task, callback) {
+    var event_id = uuid.v4();
+    var event_time = moment(task.time).format('YYYYMMDDHHmmss');
+    var key = ['events', task.appid, event_time , event_id].join(':'); 
+
+    _statEvent(task.appid, task.time, task.data, function(err){
+        if (err) return console.log('statEvent err')
+        db.put(key, JSON.stringify(task.data), callback);
+    });
+
+}, 1);
+
 
 function addEvent(appid, time, data, callback) {
     console.log('addEvent:', appid, time, data);
-
-    var event_id = uuid.v4();
-    var event_time = moment(time).format('YYYYMMDDHHmmss');
-    var key = ['events', appid, event_time , event_id].join(':'); 
-
-    _statEvent(appid, time, data, function(err){
-        if (err) return console.log('statEvent err')
-        db.put(key, JSON.stringify(data), callback);
-    });
+    q.push({appid: appid, time: time, data: data}, callback);
 }
 
 
@@ -86,7 +90,7 @@ describe('leveldb', function() {
   describe('#stat-events', function () {
     it('will ok', function (done) {
 
-        async.mapSeries(test_data, function(data, callback){
+        async.map(test_data, function(data, callback){
             addEvent(test_appid, data.time, data.data, callback)
         },function(){
 
