@@ -22,6 +22,7 @@ var assert = require('assert');
 var uuid = require('node-uuid');
 
 var db = levelup({ db: memdown });
+//var db = levelup('./mydb');
 
 function _statEvent(appid, time, data, callback) {
     var time = moment(time).format('YYYYMMDDHHmm');
@@ -96,13 +97,13 @@ describe('leveldb', function() {
 
             queryEvents(test_appid, 'click', function(err, data){
                 console.log(data);
-                assert(2, data.length);
+                assert(2 == data.length);
 
-                assert(new Date(2016, 4, 14, 17, 17, 0).getTime(), data[0].time.getTime());
-                assert(9, data[0].sum);
+                assert(new Date(2016, 4, 14, 17, 17, 0).getTime() == data[0].time.getTime());
+                assert(9 == data[0].sum);
 
-                assert(new Date(2016, 4, 14, 17, 18, 0).getTime(), data[1].time.getTime());
-                assert(2, data[1].sum);
+                assert(new Date(2016, 4, 14, 17, 18, 0).getTime() == data[1].time.getTime());
+                assert(2 == data[1].sum);
 
                 done(); 
             }); 
