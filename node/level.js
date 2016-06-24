@@ -75,6 +75,20 @@ function queryEvents(appid, event_name, callback) {
 
 }
 
+
+function _groupStream(stream, groupby, metric, callback) {
+    var ret = {};
+    stream.on('data', function(data) {
+        console.log('write:', data);
+        var group = data[groupby];
+        var value = ret[group] || 0;
+        ret[group] = value + data[metric];
+     }).on('end', function () {
+        console.log('end:', ret);
+        callback(null, ret);
+     });
+}
+
 // ============= unit test
 
 var test_data = [
