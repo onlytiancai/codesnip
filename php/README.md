@@ -32,3 +32,13 @@ vi etc/php-fpm.conf
 
 ini_set('display_errors', 'On');
 error_reporting(E_ALL &~ E_NOTICE)
+
+CentOS6.5下添加epel源
+http://www.centoscn.com/CentOS/config/2014/0920/3793.html
+CentOS 6.2 yum安装配置lnmp服务器(Nginx+PHP+MySQL)
+http://www.osyunwei.com/archives/2353.html
+
+composer config -g repo.packagist composer https://packagist.phpcomposer.com
+
+sudo vi /etc/php.ini
+date.timezone = "UTC"
