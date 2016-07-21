@@ -1,5 +1,5 @@
 <?php
-require_once(dirname(dirname(__FILE__)) . "/index.php");
+require_once(dirname(dirname(__FILE__)) . "/route.php");
 
 $r = new Route(dirname(__FILE__));
 
