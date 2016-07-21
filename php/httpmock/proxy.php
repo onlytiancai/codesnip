@@ -73,7 +73,7 @@ function proxy()
     }
     $url = $_SERVER['REQUEST_URI'];
     $host = $_SERVER['HTTP_HOST'];
-    $domain = 'http://' . gethostbyname2($host);
+    $domain = $_SERVER['REQUEST_SCHEME'] . '://' . gethostbyname2($host);
 
     $curl_opts = array(
         CURLOPT_URL => $domain.$url,
@@ -122,12 +122,13 @@ function gethostbyname2($host) {
     return $hostaddr;
 }
 
-$debug = 0;//设为1开启记录.
+$debug = 1;//设为1开启记录.
 if ($debug)
 {
-    if (!file_exists('debug/'))
-        mkdir('debug');
-    $debug = fopen("debug/".$_SERVER['REMOTE_ADDR'].date('_ymd_',time()).'__'.$_SERVER['SERVER_NAME'].".log",'a');
+    $logdir = dirname(__FILE__).'/debug/';
+    if (!file_exists($logdir))
+        mkdir($logdir);
+    $debug = fopen($logdir.$_SERVER['REMOTE_ADDR'].date('_ymd_',time()).'__'.$_SERVER['SERVER_NAME'].".log",'a');
     fwrite($debug,print_r($_SERVER,true));
     $phpContent = @file_get_contents('php://input');
     fwrite($debug,"===========php://input===========\r\n".$phpContent."\r\n======================\r\n");
