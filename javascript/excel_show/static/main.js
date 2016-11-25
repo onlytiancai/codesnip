@@ -23,10 +23,9 @@ function process_wb(workbook) {
             /* all keys that do not begin with "!" correspond to cell addresses */
             if(z[0] === '!') continue;
 
-            var col = get_col_num(z);
-            if (col > max_col) max_col = col;
-            var row = get_row_num(z);
-            if (row > max_row) max_row = row;
+            var cell = XLSX.utils.decode_cell(z);
+            if (cell.c > max_col) max_col = cell.c;
+            if (cell.r > max_row) max_row = cell.r;
 
             console.log(z + "=" + JSON.stringify(worksheet[z].v));
         }
@@ -45,8 +44,9 @@ function process_wb(workbook) {
 
         for (z in worksheet) {
             if(z[0] === '!') continue;
-            var col = get_col_num(z) - 1;
-            var row = get_row_num(z) - 1;
+            var cell = XLSX.utils.decode_cell(z);
+            var col = cell.c - 1;
+            var row = cell.r - 1;
             table[row][col] = worksheet[z].v;
         }
         console.table(table);
