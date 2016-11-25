@@ -14,18 +14,20 @@ function get_row_num(z) { return parseInt(z.substring(1), 10); }
 function process_wb(workbook) {
     var sheet_name_list = workbook.SheetNames;
     var worksheet = workbook.Sheets[sheet_name_list[0]];
-    console.log(worksheet);
 
         var max_col = 0, max_row = 0;
-        console.log(JSON.stringify(worksheet['!merges']));
+        var merges = worksheet['!merges'];
+        console.log(merges);
+
+
 
         for (z in worksheet) {
             /* all keys that do not begin with "!" correspond to cell addresses */
             if(z[0] === '!') continue;
 
             var cell = XLSX.utils.decode_cell(z);
-            if (cell.c > max_col) max_col = cell.c;
-            if (cell.r > max_row) max_row = cell.r;
+            if (cell.c + 1 > max_col) max_col = cell.c + 1;
+            if (cell.r + 1 > max_row) max_row = cell.r + 1;
 
             console.log(z + "=" + JSON.stringify(worksheet[z].v));
         }
@@ -45,20 +47,27 @@ function process_wb(workbook) {
         for (z in worksheet) {
             if(z[0] === '!') continue;
             var cell = XLSX.utils.decode_cell(z);
-            var col = cell.c - 1;
-            var row = cell.r - 1;
+            var col = cell.c;
+            var row = cell.r;
             table[row][col] = worksheet[z].v;
         }
         console.table(table);
 
         var container = document.getElementById('example');
         $(container).empty();
+
+        var mergeCells = merges.map(function(x) {
+            return {row: x.s.r, col: x.s.c, rowspan: x.e.r - x.s.r + 1, colspan: x.e.c - x.s.c + 1};
+        });
+
+        console.table(mergeCells);
+
         var hot = new Handsontable(container, {
             data: table,
             rowHeaders: true,
             colHeaders: true,
             contextMenu: true,
-            mergeCells: true
+            mergeCells: mergeCells
         });
 }
 
