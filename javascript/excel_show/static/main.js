@@ -14,61 +14,86 @@ function get_row_num(z) { return parseInt(z.substring(1), 10); }
 function process_wb(workbook) {
     var sheet_name_list = workbook.SheetNames;
     var worksheet = workbook.Sheets[sheet_name_list[0]];
+    console.log(worksheet);
 
-        var max_col = 0, max_row = 0;
-        var merges = worksheet['!merges'];
-        console.log(merges);
+    var ref = XLSX.utils.decode_range(worksheet['!ref']);
+    var max_col = ref.e.c + 1, max_row = ref.e.r + 1;
 
 
+    for (z in worksheet) {
+        /* all keys that do not begin with "!" correspond to cell addresses */
+        if(z[0] === '!') continue;
 
-        for (z in worksheet) {
-            /* all keys that do not begin with "!" correspond to cell addresses */
-            if(z[0] === '!') continue;
+        var cell = XLSX.utils.decode_cell(z);
 
-            var cell = XLSX.utils.decode_cell(z);
-            if (cell.c + 1 > max_col) max_col = cell.c + 1;
-            if (cell.r + 1 > max_row) max_row = cell.r + 1;
+        console.log(z + "=" + JSON.stringify(worksheet[z].v));
+    }
 
-            console.log(z + "=" + JSON.stringify(worksheet[z].v));
+    console.log('max_col=', max_col, 'max_row=', max_row);
+
+    var table = [];
+    for (var i = 0; i < max_row; i++) {
+        var row = [];
+        for (var j = 0; j < max_col; j++) {
+            row.push(''); 
         }
+        table.push(row);
+    }
+    console.table(table);
 
-        console.log('max_col=', max_col, 'max_row=', max_row);
+    for (z in worksheet) {
+        if(z[0] === '!') continue;
+        var cell = XLSX.utils.decode_cell(z);
+        var col = cell.c;
+        var row = cell.r;
+        table[row][col] = worksheet[z].w;
+    }
+    console.table(table);
 
-        var table = [];
-        for (var i = 0; i < max_row; i++) {
-            var row = [];
-            for (var j = 0; j < max_col; j++) {
-                row.push(''); 
-            }
-            table.push(row);
-        }
-        console.table(table);
+    var container = document.getElementById('example');
+    $(container).empty();
 
-        for (z in worksheet) {
-            if(z[0] === '!') continue;
-            var cell = XLSX.utils.decode_cell(z);
-            var col = cell.c;
-            var row = cell.r;
-            table[row][col] = worksheet[z].v;
-        }
-        console.table(table);
-
-        var container = document.getElementById('example');
-        $(container).empty();
-
+    var merges = worksheet['!merges'];
+    var mergeCells = true;
+    if (merges) {
         var mergeCells = merges.map(function(x) {
             return {row: x.s.r, col: x.s.c, rowspan: x.e.r - x.s.r + 1, colspan: x.e.c - x.s.c + 1};
         });
+    }
+    console.table(mergeCells);
 
-        console.table(mergeCells);
+    var colWidths = worksheet['!cols'].map(function(x) {return x.wpx});
 
-        var hot = new Handsontable(container, {
-            data: table,
-            rowHeaders: true,
-            colHeaders: true,
-            contextMenu: true,
-            mergeCells: mergeCells
+
+    function myRenderer(instance, td, row, col, prop, value, cellProperties) {
+        Handsontable.renderers.TextRenderer.apply(this, arguments);
+        var cell_index = XLSX.utils.encode_cell({c:col, r:row});
+        var cell = worksheet[cell_index];
+        if (cell) {
+            if (cell.r && cell.r.substring(0,3) === '<t>') td.style.fontWeight = 'bold';
+            if (cell.s) {
+                td.style.color = cell.s.fgColor.rgb;
+                if (cell.s.bgColor.indexed === 64) td.style.background = 'yellow';
+            }
+        }
+    }
+
+    var hot = new Handsontable(container, {
+        data: table,
+        rowHeaders: true,
+        colHeaders: true,
+        manualColumnResize: true,
+        manualRowResize: true,
+        contextMenu: true,
+        mergeCells: mergeCells,
+        colWidths: colWidths,
+        cells: function (row, col, prop) {
+            var cellProperties = {};
+            cellProperties.renderer = myRenderer;
+            return cellProperties;
+        }
         });
+    window['hot'] = hot;
 }
 
 var drop = document.getElementById('drop');
@@ -90,10 +115,10 @@ function handleDrop(e) {
             } else {
                 var wb;
                 if(rABS) {
-                    wb = X.read(data, {type: 'binary'});
+                    wb = X.read(data, {type: 'binary', cellStyles: true, cellDates: true});
                 } else {
-                var arr = fixdata(data);
-                    wb = X.read(btoa(arr), {type: 'base64'});
+                    var arr = fixdata(data);
+                    wb = X.read(btoa(arr), {type: 'base64', cellStyles: true, cellDates: true});
                 }
                 process_wb(wb);
             }
