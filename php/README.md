@@ -42,3 +42,40 @@ composer config -g repo.packagist composer https://packagist.phpcomposer.com
 
 sudo vi /etc/php.ini
 date.timezone = "UTC"
+
+https://packagist.org/packages/hassankhan/config
+
+https://packagist.org/packages/justinrainbow/json-schema
+
+https://packagist.org/packages/respect/validation
+https://packagist.org/packages/beberlei/assert
+https://packagist.org/packages/nikic/fast-route
+https://packagist.org/packages/acquia/http-hmac-php
+
+
+    server {
+        listen       80;
+        server_name  php.ihuhao.com;
+        root /home/wawa/src/phpci;
+
+        location / {
+            try_files $uri $uri/ /index.php$is_args$args;
+        }
+
+        location ~ \.php$ {
+            try_files $uri = 404;
+            fastcgi_pass   127.0.0.1:9000;
+            fastcgi_index  index.php;
+            include        fastcgi_params;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            fastcgi_param SERVER_NAME $http_host;
+            fastcgi_ignore_client_abort on; 
+            fastcgi_connect_timeout 600s;
+            fastcgi_send_timeout 600s;
+            fastcgi_read_timeout 600s;
+        }  
+
+    }
+
+
+http://stackoverflow.com/questions/1921421/get-the-first-element-of-an-array
