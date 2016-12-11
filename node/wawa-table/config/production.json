@@ -1,0 +1,7 @@
+{
+    "oauth-qq": {
+        "appid": "101152576",
+        "appkey": "9b86",
+        "callback": "http://wawatable.ihuhao.com/users/auth/qq/callback"
+    }
+}
