@@ -3,3 +3,7 @@ extends layout
 block content
   h1= title
   p Welcome to #{title}
+  - if (user)
+    p 欢迎你: #{user}
+  - else
+    a(href='/users/auth/qq') 使用QQ登录 

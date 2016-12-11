@@ -4,6 +4,12 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var passport = require('passport');
+var QQStrategy = require('passport-qq').Strategy;
+var config = require('config');
+var session = require('express-session');
+
+
 
 var index = require('./routes/index');
 var users = require('./routes/users');
@@ -20,6 +26,9 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(session({ secret: 'hello ihuhao' }));
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
@@ -41,6 +50,23 @@ app.use(function(err, req, res, next) {
   // render the error page
   res.status(err.status || 500);
   res.render('error');
+});
+
+passport.use(new QQStrategy({
+    clientID: config.get('oauth-qq.appid'),
+    clientSecret: config.get('oauth-qq.appkey'),
+    callbackURL: config.get('oauth-qq.callback'), 
+  },
+  function(accessToken, refreshToken, profile, done) {
+    done(null, profile); }
+));
+
+passport.serializeUser(function(user, done) {
+    done(null, user);
+});
+
+passport.deserializeUser(function(user, done) {
+    done(null, user);
 });
 
 module.exports = app;
