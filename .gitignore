@@ -3,3 +3,4 @@
 *.log
 *.out
 *.swp
+node/mydb/

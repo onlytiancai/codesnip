@@ -1,5 +1,6 @@
 {
     "require": {
-        "monolog/monolog": "1.2.*"
+        "monolog/monolog": "1.2.*",
+        "hassankhan/config": "^0.10.0"
     }
 }
