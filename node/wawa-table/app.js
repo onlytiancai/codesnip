@@ -8,7 +8,7 @@ var passport = require('passport');
 var QQStrategy = require('passport-qq').Strategy;
 var config = require('config');
 var session = require('express-session');
-
+var MySQLStore = require('express-mysql-session')(session);
 
 
 var index = require('./routes/index');
@@ -26,7 +26,17 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(session({ secret: 'hello ihuhao' }));
+
+console.log(config.get('db'));
+app.use(session({
+    key: config.get('session.key'),
+    secret: config.get('session.secret'),
+    store: new MySQLStore(config.get('db')),
+    resave: true,
+    saveUninitialized: true,
+}));
+
+
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')));

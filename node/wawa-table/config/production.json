@@ -3,5 +3,16 @@
         "appid": "101152576",
         "appkey": "9b86",
         "callback": "http://wawatable.ihuhao.com/users/auth/qq/callback"
+    },
+    "db": {
+        "user": "wawa",
+        "password": "wawa",
+        "host": "localhost",
+        "port": 3306,
+        "database": "wawatable"
+    },
+    "session": {
+        "key": "wawasession",
+        "secret": "j3#s03AsdfFEAI"
     }
 }
