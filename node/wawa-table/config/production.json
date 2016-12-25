@@ -1,4 +1,5 @@
 {
+    "appname": "wawatable",
     "oauth-qq": {
         "appid": "101152576",
         "appkey": "9b86",
@@ -14,5 +15,10 @@
     "session": {
         "key": "wawasession",
         "secret": "j3#s03AsdfFEAI"
+    },
+    "logger": {
+        "path" : "/data/logs/",
+        "level": "debug",
+        "console": true
     }
 }

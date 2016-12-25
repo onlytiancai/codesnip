@@ -4,6 +4,7 @@ block content
   h1= title
   p Welcome to #{title}
   - if (user)
-    p 欢迎你: #{user}
+    p 欢迎你: #{user} 
+        a(href='/users/logout') 退出登录
   - else
     a(href='/users/auth/qq') 使用QQ登录 
