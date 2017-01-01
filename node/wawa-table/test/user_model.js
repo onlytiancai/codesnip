@@ -1,4 +1,6 @@
+var Promise = require("bluebird");
 var user_model = require('../models/user_model');
+
 
 var usertype = user_model.USERTYPE_QQ,
   openid = '1',
@@ -7,11 +9,26 @@ var usertype = user_model.USERTYPE_QQ,
 
 describe('user_model', function () {
   describe('registerUser', function () {
-    it('should success', function (done) {
+
+    it('node callback should success', function (done) {
       user_model.removeUser(usertype, openid, function () {
         registerUser(done);
       });
     });
+
+    it('promise should success', function (done) {
+      user_model.removeUser(usertype, openid, function () {
+        registerUser(done);
+      });
+    });
+
+    it('promise2 should success', function (done) {
+      user_model.removeUser(usertype, openid, function () {
+        registerUser3().then(done).catch(done);
+      });
+    });
+
+
   });
 });
 
@@ -28,3 +45,48 @@ function registerUser(callback) {
     });
   });
 }
+
+userModelPromise = Promise.promisifyAll(user_model);
+
+function registerUser2(callback) {
+  userModelPromise.existsOpenidAsync(usertype, openid)
+    .then(function(exists) {
+      if (exists) return callback('您已注册');
+      userModelPromise.existsUsernameAsync(username)
+        .then(function(exists) {
+          if (exists) return callback('用户名已存在');
+            userModelPromise.registerUserAsync(usertype, openid, username, ip)
+              .then(function() {
+                callback();
+              })
+              .catch(function (err) {
+                callback(err);
+              });
+        })
+        .catch(function(err) {
+          callback(err);
+        });
+    })
+    .catch(function (err) {
+      callback(err);
+    });
+}
+
+function registerUser3() {
+  return new Promise(function(resolve, reject) {
+    userModelPromise.existsOpenidAsync(usertype, openid).then(function(exists) {
+      if (exists) return reject('您已注册'); 
+      return userModelPromise.existsUsernameAsync(username);
+    }).then(function (exists) {
+      if (exists) return reject('用户名已存在'); 
+      return userModelPromise.registerUserAsync(usertype, openid, username, ip);
+    }).then(function() {
+      resolve();
+    })
+    .catch(function(err) {
+      reject(err);
+    });
+  }); 
+}
+
+
