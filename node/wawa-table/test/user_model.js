@@ -17,8 +17,10 @@ describe('user_model', function () {
 
 function registerUser(callback) {
   user_model.existsOpenid(usertype, openid, function (err, existing) {
+    if (err) return callback(err);
     if (existing) return callback('您已注册');
     user_model.existsUsername(username, function (err, existing) {
+      if (err) return callback(err);
       if (existing) return callback('用户名已存在');
       user_model.registerUser(usertype, openid, username, ip, function (err) {
         callback(err);
