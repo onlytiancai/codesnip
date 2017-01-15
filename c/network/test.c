@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 
+struct MyStruct
+{
+    int flag;
+} g_ms, g_ms_list[2];
 
 int main(int argc, const char *argv[])
 {
@@ -25,6 +29,10 @@ int main(int argc, const char *argv[])
     for(i = 0; i < n; i ++){
         printf("after memset %d = %d \n", i, buff2[i]); 
     }
+
+    struct MyStruct ms;
+    printf("ms.flag = %d, g_ms.flag=%d, g_ms_list[0].flag=%d, g_ms_list[2].flag=%d\n",
+            ms.flag, g_ms.flag, g_ms_list[0].flag, g_ms_list[1].flag);
 
     return 0;
 }
