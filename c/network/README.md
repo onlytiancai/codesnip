@@ -22,3 +22,9 @@ C++ Structure Initialization
 http://stackoverflow.com/questions/11516657/c-structure-initialization
 C initializing structure
 http://www.c4learn.com/c-programming/c-initializing-structure/
+How to use epoll_event data.ptr
+http://stackoverflow.com/questions/11916707/how-to-use-epoll-event-data-ptr
+how to get ip address from sock structure in c ?
+http://stackoverflow.com/questions/3060950/how-to-get-ip-address-from-sock-structure-in-c
+errno after accept in Linux socket programming
+http://stackoverflow.com/questions/28098563/errno-after-accept-in-linux-socket-programming
