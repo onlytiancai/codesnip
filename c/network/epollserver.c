@@ -35,8 +35,9 @@ static int line_len;
 
 struct myevent_s
 {
+    int fd;
     int used;
-    struct sockaddr_in clientaddr;
+    struct sockaddr_in addr;
 } myevents[MAXCONN];
 
 /**
@@ -47,8 +48,9 @@ struct myevent_s * get_free_event()
     int i;
     for (i = 0; i < MAXCONN; i++) {
         if (!myevents[i].used) {
-            printf("get_free_event:%d\n", i);
+            printf("get_free_event:%d %d\n", i, sizeof(myevents[i]));
             myevents[i].used = 1;
+            myevents[i].addr.sin_port = 1111;
             return &myevents[i];
         }
     }
@@ -141,58 +143,60 @@ int create_listen_socket(char* host, int port)
  * */
 int listenfd_event_handler(int listenfd)
 {
-    socklen_t clilen;
-    //struct myevent_s *myevent = get_free_event();
-    struct sockaddr_in clientaddr;
+    struct myevent_s *myevent = get_free_event();
+    struct sockaddr_in clientaddr = (*myevent).addr; //TODO 这里是copy ?
+    socklen_t clilen = sizeof(clientaddr); //INFO：这里一定要初始化
 
-    int connfd = accept(listenfd, (struct sockaddr *)&clientaddr, &clilen);
+    int connfd = accept(listenfd, (struct sockaddr *)&((*myevent).addr), &clilen);
     if (connfd < 0) {
         perror("connfd < 0");
         exit(1);
     }
-
-    setnonblocking(connfd);
-
     char *str = inet_ntoa(clientaddr.sin_addr);
     printf("accapt a connection from %s:%d \n", str, clientaddr.sin_port);
 
+
+    //printf("111 %d %d %d\n", clilen, (*myevent).addr.sin_port, (*myevent).used);
+    setnonblocking(connfd);
+
+
+    (*myevent).fd = connfd;
     struct epoll_event ev;
-    //ev.data.ptr = myevent;
-    ev.data.fd = connfd;
+    ev.data.ptr = myevent;
     ev.events = EPOLLIN | EPOLLET;
-    epoll_ctl(epfd, EPOLL_CTL_ADD, connfd, &ev);
+    epoll_ctl(epfd, EPOLL_CTL_ADD, connfd, &ev); //TODO
 }
 
 int clientfd_revent_handler(struct epoll_event* event)
 {
-    printf("EPOLLIN\n");
     int sockfd;
     struct epoll_event ev = *event;
-    //struct myevent_s *myevent = (struct myevent_s *)ev.data.ptr;
-    //printf("myevent: %d", (*myevent).used);
+    struct myevent_s *myevent = (struct myevent_s *)ev.data.ptr;
 
-    if ((sockfd = ev.data.fd) < 0) 
+    printf("EPOLLIN %s:%d\n", inet_ntoa((*myevent).addr.sin_addr), (*myevent).addr.sin_port);
+
+    if ((sockfd = (*myevent).fd) < 0) 
         return;
 
     if ((line_len = read(sockfd, line, MAXLINE)) < 0) {
         if (errno == ECONNRESET) {
-            //release_event(myevent);
+            release_event(myevent);
             close(sockfd);
-            ev.data.fd = -1;
+            (*myevent).fd = -1;
         } else {
             printf("readline error\n");
         }
     } else if (line_len == 0) {
         printf("client closed\n");
-        //release_event(myevent);
+        release_event(myevent);
         close(sockfd);
-        ev.data.fd = -1;
+        (*myevent).fd = -1;
     }
 
     line[line_len] = '\0';
     printf("read %s \n", line);
 
-    ev.data.fd = sockfd;
+    ev.data.ptr = myevent;
     ev.events = EPOLLOUT | EPOLLET;
     epoll_ctl(epfd, EPOLL_CTL_MOD, sockfd, &ev);
 } 
@@ -201,11 +205,12 @@ int clientfd_wevent_handler(struct epoll_event* event)
 {
     printf("EPOLLOUT\n");
 
-    int sockfd = (*event).data.fd;
+    struct epoll_event ev = *event;
+    struct myevent_s *myevent = (struct myevent_s *)ev.data.ptr;
+    int sockfd = (*myevent).fd;
     write(sockfd, line, line_len);
 
-    struct epoll_event ev;
-    ev.data.fd = sockfd;
+    ev.data.ptr = myevent;
     ev.events = EPOLLIN | EPOLLET;
     epoll_ctl(epfd, EPOLL_CTL_MOD, sockfd, &ev); //TODO
 }
