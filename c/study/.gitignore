@@ -4,3 +4,5 @@ prof_info.txt
 *.swp
 *.data
 *.old
+*.txt
+*.out
