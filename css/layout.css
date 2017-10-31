@@ -1,0 +1,203 @@
+body {
+    background: #ccc;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 100px;
+}
+
+div {
+    background: green;
+}
+
+.container {
+    /* 用max-width代替widht可以防止窗口太小时出现滚动条*/
+    max-width: 800px;
+    margin: 0 auto;
+    overflow: auto;
+}
+
+.container li {
+    display: inline;
+}
+
+.box1 {
+    width: 200px;
+    margin: 20px auto;
+}
+
+.box2 {
+    box-sizing: border-box;
+    
+    width: 200px;
+    margin: 20px auto;
+    
+    padding: 10px;
+    border: 10px solid #000;
+}
+
+.relative1 {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    left: 200px;
+    top: 100px;
+}
+
+.static1 {
+    width: 300px;
+    height: 300px;
+    background: red;
+}
+
+.absolute1{
+    position: absolute;
+    background: blue;
+    width: 100px;
+    height: 100px;
+    top: 100px;
+    left: 100px;
+}
+
+.absolute2 {
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    background: red;
+    width: 100px;
+    height: 100px;
+}
+
+.fixed1 {
+    position: fixed;
+    width: 200px;
+    height: 200px;
+    bottom: 0px;
+    right: 0px;
+}
+
+.container1 {
+    position: relative;
+    margin-top: 50px;
+}
+
+.container1 nav {
+    position: absolute;
+    left: 0;
+    top:0;
+    width:200px;
+    background: yellow;
+}
+
+.container1 section {
+    margin-left: 200px;
+    border: 5px solid #fff;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.container1 footer {
+    position: fixed;
+    width: 100%; /* 必须，否则不会自动撑满*/
+    height: 70px;
+    background: #fff;
+    bottom: 0;
+}
+
+.container2 {
+    width: 500px;
+    height: 300px;
+    background: white;
+    margin-top: 50px;
+}
+
+.container2 .float_left{
+    width: 100px;
+    height: 100px;
+    float: left;
+    background: blue;
+}
+
+.container2 .float_right {
+    width: 100px;
+    height: 100px;
+    float: right;
+    background: red;
+}
+
+.container2 p {
+    clear: both;
+}
+
+.container3 {
+    position: relative;
+    width: 500px;
+    /* 这里不要设置高度，box会自动撑开，如果设置高度，就会出现滚动条*/
+    background: red;
+    margin-top:20px;
+
+    /* 防止里面的box溢出*/
+    overflow: auto;
+    zoom: 1;
+}
+
+.container3 .box{
+    display: inline-block;
+    width: 100px;
+    height: 300px;
+    float: right; 
+    background: blue;
+}
+
+.container4 {
+    position: relative;
+    margin-top: 50px;
+    overflow: auto;
+    background: white;
+}
+
+@media screen and (min-width:600px) {
+    .container4 nav {
+        float: left;
+        width: 25%;
+        background: blue;
+    }
+
+    .container4 section {
+        margin-left: 25%;
+        border: 5px solid #000;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+}
+
+@media screen and (max-width:599px) {
+    .container4 nav {
+        background: yellow; 
+    }
+    .container4 nav li {
+        display: inline;
+    }
+}
+
+.container5 {
+    position: relative;
+    margin-top: 50px;
+    width: 500px;
+    background: white;
+}
+
+.container5 .box {
+    width: 90px;
+    height: 90px;
+    margin: 1em;
+
+    /* 2选1，前者不需要清除浮动*/
+    /*display: inline-block;*/
+    float: left;
+
+    background: blue;
+}
+
+.container5 .clear {
+    clear: left;
+}
