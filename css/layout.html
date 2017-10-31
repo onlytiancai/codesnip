@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <title>布局</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="layout.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container">
+            <ul>
+                <li>aaa</li>
+                <li>aaa</li>
+                <li>aaa</li>
+            </ul>
+        </div>
+
+        <div class="box1">box1</div>
+        <div class="box2">box2</div>
+
+        <div class="relative1">
+            relative1: 相对它原有位置做相对偏离
+            <div class="absolute1">absolute1</div>
+            <div class="absolute2">absolute2</div>
+        </div>
+
+        <div class="static1">static1: relative1虽然相对偏离了，但还占据文档流，所以本div在relative1原有位置下面</div>
+
+        <div class="fixed1">fiexed</div>
+
+        <div class="container1">
+            <nav>
+                <ul>
+                    <li>aaa</li>
+                    <li>aaa</li>
+                    <li>aaa</li>
+                    <li>aaa</li>
+                    <li>aaa</li>
+                    <li>aaa</li>
+                </ul>
+            </nav>
+            <section>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus imperdiet, nulla et dictum interdum, nisi lorem egestas odio, vitae scelerisque enim ligula venenatis dolor. Maecenas nisl est, ultrices nec congue eget, auctor vitae massa. Fusce luctus vestibulum augue ut aliquet. Mauris ante ligula
+            </section>
+            <section>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus imperdiet, nulla et dictum interdum, nisi lorem egestas odio, vitae scelerisque enim ligula venenatis dolor. Maecenas nisl est, ultrices nec congue eget, auctor vitae massa. Fusce luctus vestibulum augue ut aliquet. Mauris ante ligula,
+            </section>
+            <footer>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus imperdiet, nulla et dictum interdum
+            </footer>
+        </div>
+
+        <div class="container2">
+            <div class="float_left"></div>
+            <div class="float_right"></div>
+            <p>
+            我在这里清除浮动，不围绕上面漂浮的容器
+            </p>
+        </div>
+
+        <div class="container3">
+            <div class="box">这里一定要在p前面，否则在p后面浮动，p不会环绕它</div> 
+            <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus imperdiet, nulla et dictum interdum Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus imperdiet, nulla et dictum interdum Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus imperdiet, nulla et dictum interdum Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus imperdiet, nulla et dictum interdum
+            </p>
+        </div>
+
+        <div class="container4">
+            <nav>
+                <ul>
+                    <li>aaa</li>
+                    <li>aaa</li>
+                    <li>aaa</li>
+                    <li>aaa</li>
+                    <li>aaa</li>
+                    <li>aaa</li>
+                </ul>
+            </nav>
+            <section>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus imperdiet, nulla et dictum interdum, nisi lorem egestas odio, vitae scelerisque enim ligula venenatis dolor. Maecenas nisl est, ultrices nec congue eget, auctor vitae massa. Fusce luctus vestibulum augue ut aliquet. Mauris ante ligula
+            </section>
+        </div>
+
+        <div class="container5">
+            <div class="box"></div>
+            <div class="box"></div>
+            <div class="box"></div>
+            <div class="box"></div>
+            <div class="box"></div>
+            <div class="box"></div>
+            <div class="box"></div>
+            <div class="clear">我在这里</div>
+        </div>
+    </body>
+</html>
