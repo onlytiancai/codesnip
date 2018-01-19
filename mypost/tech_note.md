@@ -42,11 +42,23 @@ Web设计初衷是一个静态信息资源发布媒介，通过超文本标记�
 - [Web开发技术的演变](http://blog.jobbole.com/45170/)
 
 
-
 # 后台
+
+## Java
+
+[Google Guava官方教程（中文版）](http://ifeve.com/google-guava/)
+
+## 算法
+
+[编程之法：面试和算法心得](https://github.com/julycoding/The-Art-Of-Programming-By-July)
+
 # 数据库
 # 网络
 # 软件工程
+## 代码风格
+
+[编程之法：面试和算法心得 Code Style](https://github.com/julycoding/The-Art-Of-Programming-By-July)
+
 ## UML
 
 ### 类图
@@ -337,7 +349,23 @@ Web设计初衷是一个静态信息资源发布媒介，通过超文本标记�
 
 # 物联网
 
+### 参考链接
+
+[关于RS232 和 RS485 的区别](http://blog.csdn.net/foreverhuylee/article/details/23375079)
+
 ## 硬件技术
+
+### IC卡，ID卡，M1卡，射频卡的区别
+
+IC卡全称集成电路卡（Integrated Circuit Card），又称智能卡（Smart Card）。可读写，容量大，有加密功能，数据记录可靠，使用更方便，如一卡通系统、消费系统等
+
+ID卡全称身份识别卡（Identification Card），是一种不可写入的感应卡，含固定的编号，
+
+[门禁卡是选择IC卡好还是ID卡好](https://jingyan.baidu.com/article/54b6b9c0d8056f2d593b474c.html)
+
+
+
+
 
 ### RFID
 
@@ -362,4 +390,8 @@ NFC传输范围比RFID小，RFID的传输范围可以达到几米、甚至几十
 NFC的短距离通信特性正是其优点，由于耗电量低、一次只和一台机器链接，拥有较高的保密性与安全性，NFC有利于信用卡交易时避免被盗用。
 
 ### PLC
+
+# 未整理
+
+
 
