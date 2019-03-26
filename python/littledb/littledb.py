@@ -30,6 +30,8 @@ class Table(object):
         self.db = db
         self.table_name = table_name
         self.table_path = os.path.join(self.db.db_path, table_name + '.data')
+        self.index_path = os.path.join(self.db.db_path, table_name + '.index')
+        self.index = {}
 
     def create(self):
         '创建表'
@@ -45,6 +47,7 @@ class Table(object):
 
         line = '%s\t%s\n' % (key, json.dumps(row))
         with open(self.table_path, 'a') as f:
+            self._index(key, f.tell())
             f.write(line)
 
     def find(self, key):
@@ -52,11 +55,28 @@ class Table(object):
         if not isinstance(key, int):
             raise Exception('key must be int')
 
+        offset = self._find_offset(key)
+
         with open(self.table_path, 'r') as f:
-            for line in f:
-                row_key, row = line.split('\t')
-                if int(row_key) == key:
-                    return json.loads(row)
+            f.seek(offset)
+            line = f.readline()
+            row_key, row = line.split('\t')
+            if int(row_key) == key:
+                return json.loads(row)
+
+    def _find_offset(self, key):
+        '索引中查找数据位置'
+        if key not in self.index:
+            raise Exception('%s not found') 
+        return self.index[key]
+
+    def _index(self, key, offset):
+        '更新索引'
+        self.index[key] = offset
+        line = '%s\t%s\n' % (key, offset)
+        with open(self.index_path, 'a') as f:
+            f.write(line)
+        
 
 def create_db(db_path):
     '创建数据库'
