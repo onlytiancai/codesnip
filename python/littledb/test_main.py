@@ -35,7 +35,7 @@ class TestDb(unittest.TestCase):
         db = littledb.create_db(self.db_path)
         table = db.create_table(self.table)
 
-        table.upinsert(1, {'a': 1, 'b': 2})
+        table.upinsert(1, {'a': 1, 'b': 2, 'c': 'test'})
         table.upinsert(2, {'a': 3, 'b': 4})
         return db, table
 

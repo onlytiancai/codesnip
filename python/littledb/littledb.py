@@ -47,13 +47,14 @@ class Table(object):
 
     def create(self):
         '创建表'
-        logging.debug('table_path:%s', self.table_path)
+        logging.debug('create table:%s', self.table_path)
         if os.path.exists(self.table_path):
             raise Exception('%s is exist' % self.table_path)
         open(self.table_path, 'a').close()
 
     def load(self):
         '加载表'
+        logging.debug('load table:%s', self.table_path)
         if not os.path.exists(self.table_path):
             raise Exception('%s is not exist' % self.table_path)
         self._load_index()
