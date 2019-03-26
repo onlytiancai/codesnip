@@ -25,6 +25,16 @@ class TestDb(unittest.TestCase):
         table.insert(3, {'a': 5, 'b': 6})
 
         row = table.find(1)
+        self.assertEqual(row['a'], 1)
+        self.assertEqual(row['b'], 2)
+
+        row = table.find(2)
+        self.assertEqual(row['a'], 3)
+        self.assertEqual(row['b'], 4)
+
+        row = table.find(3)
+        self.assertEqual(row['a'], 5)
+        self.assertEqual(row['b'], 6)
 
 if __name__ == '__main__':
     unittest.main()
