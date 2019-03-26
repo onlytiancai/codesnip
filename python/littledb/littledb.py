@@ -14,15 +14,27 @@ class Db(object):
         self.db_path = db_path
 
     def create(self):
+        '创建库'
         if os.path.exists(self.db_path):
             raise Exception('%s is exist' % self.db_path)
         os.mkdir(self.db_path)
 
     def create_table(self, table_name):
+        '创建表'
         table = Table(self, table_name)
         table.create()
         return table
 
+    def load(self):
+        '加载库'
+        if not os.path.exists(self.db_path):
+            raise Exception('%s is not exist' % self.db_path)
+
+    def load_table(self, table_name):
+        '加载表'
+        table = Table(self, table_name)
+        table.load()
+        return table
 
 class Table(object):
     '数据表'
@@ -40,7 +52,13 @@ class Table(object):
             raise Exception('%s is exist' % self.table_path)
         open(self.table_path, 'a').close()
 
-    def insert(self, key, row):
+    def load(self):
+        '加载表'
+        if not os.path.exists(self.table_path):
+            raise Exception('%s is not exist' % self.table_path)
+        self._load_index()
+
+    def upinsert(self, key, row):
         '插入数据'
         if not isinstance(key, int):
             raise Exception('key must be int')
@@ -76,10 +94,22 @@ class Table(object):
         line = '%s\t%s\n' % (key, offset)
         with open(self.index_path, 'a') as f:
             f.write(line)
-        
+
+    def _load_index(self):
+        '加载索引'
+        with open(self.index_path, 'r') as f:
+            for line in f:
+                row_key, offset = line.split('\t')
+                self.index[int(row_key)] = int(offset)
 
 def create_db(db_path):
     '创建数据库'
     db = Db(db_path)
     db.create()
+    return db
+
+def load_db(db_path):
+    '加载数据库'
+    db = Db(db_path)
+    db.load()
     return db
