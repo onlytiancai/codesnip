@@ -54,6 +54,19 @@ https://zhuanlan.zhihu.com/p/38380467
 Redis 设计与实现¶
 http://redisbook.com/index.html
 
+## 字符串
+
+［Redis源码阅读］sds字符串实现
+https://www.hoohack.me/2017/11/13/read-redis-src-sds
+JavaScript字符串底层是如何实现的？
+https://www.zhihu.com/question/51132164
+Lua中字符串的实现
+https://zhuanlan.zhihu.com/p/30757189?from_voters_page=true
+C 字符串
+http://www.runoob.com/cprogramming/c-strings.html
+C语言字符串操作总结大全(超详细)
+https://www.cnblogs.com/lidabo/p/5225868.html
+
 
 转换成八进制数，则为 r=4, w=2, x=1, -=0（这也就是用数字设置权限时为何是4代表读，2代表写，1代表执行）
 
@@ -106,3 +119,11 @@ r-- = 100 = 4
 - Controller
 - Library
 - Helper
+
+
+## 
+
+- udp 模拟 tcp
+- 内存分配
+- 多线程任务
+- mapreduce
