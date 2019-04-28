@@ -1,35 +1,47 @@
 # -*- coding: utf-8 -*-
 import re
 from pprint import pprint
+from collections import namedtuple
 
 rules = [
     ('(', r'\('),
     (')', r'\)'),
+    ('{', r'\{'),
+    ('}', r'\}'),
     ('+', r'\+'),
     ('-', r'\-'),
     ('*', r'\*'),
     ('/', r'\/'),
+    ('%', r'\%'),
     ('=', r'='),
+    ('<', r'<'),
+    ('>', r'>'),
+    ('==', r'=='),
     (';', r';'),
-    ('num', r'\d+'),
+    ('if', r'if'),
+    ('while', r'while'),
     ('var', r'var'),
+    ('num', r'\d+'),
     ('name', r'\w+'),
 ]
 
 
-def get_patten(x): return x[1]
+Rule = namedtuple('Rule', 'name pattern')
+MatchResult = namedtuple('MatchResult', 'rule result')
+rules = list(map(lambda x: Rule(x[0], x[1]), rules))
 
 
 def parse_token(input):
     '根据正则规则做最长匹配，返回匹配结果及剩余字符'
-    matchs = map(lambda rule: (rule, re.match(get_patten(rule), input)), rules)
+    results = map(lambda rule: MatchResult(
+        rule, re.match(rule.pattern, input)), rules)
 
-    matchs = list(filter(lambda x: x[1] is not None, matchs))
-    if len(matchs) < 1:
+    results = list(filter(lambda x: x.result is not None, results))
+    if len(results) < 1:
         raise Exception('Unknow input: %s' % input.split()[0])
-    
-    max_match = max(matchs, key=lambda x: x[1].end())
-    return max_match, input[max_match[1].end():].lstrip()
+
+    max_result = max(results, key=lambda x: x.result.end())
+    return max_result, input[max_result.result.end():].lstrip()
 
 
 def parse_tokens(input):

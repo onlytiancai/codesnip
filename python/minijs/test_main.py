@@ -22,7 +22,32 @@ class ParserTest(unittest.TestCase):
         expect = ['var', 'x', '=', '1', ';', 'x', '+', '1', ';']
         actual = minijs.parse_tokens(input)
         self.assertListEqual(expect, actual)
-        
+
+    def test5(self):
+        input = '''var x = 1;
+        var y = 10;
+        var z = 0;
+        while (x < y) {
+            if (x % 2 == 0) {
+                z = z + x;
+            }
+            x = x + 1;
+        }
+        z;
+        '''
+        expect = ['var', 'x', '=', '1', ';',
+                  'var', 'y', '=', '10', ';',
+                  'var', 'z', '=', '0', ';',
+                  'while', '(', 'x', '<', 'y', ')', '{',
+                  'if', '(', 'x', '%', '2', '==', '0', ')', '{',
+                  'z', '=', 'z', '+', 'x', ';',
+                  '}',
+                  'x', '=', 'x', '+', '1', ';',
+                  '}',
+                  'z', ';'
+                  ]
+        actual = minijs.parse_tokens(input)
+        self.assertListEqual(expect, actual)
 
 
 class MyTest(unittest.TestCase):
