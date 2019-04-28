@@ -17,10 +17,11 @@ rules = [
     ('<', r'<'),
     ('>', r'>'),
     ('==', r'=='),
+    ('<=', r'<='),
+    ('>=', r'>='),
     (';', r';'),
     ('if', r'if'),
     ('while', r'while'),
-    ('var', r'var'),
     ('num', r'\d+'),
     ('name', r'\w+'),
 ]
@@ -33,8 +34,7 @@ rules = list(map(lambda x: Rule(x[0], x[1]), rules))
 
 def parse_token(input):
     '根据正则规则做最长匹配，返回匹配结果及剩余字符'
-    results = map(lambda rule: MatchResult(
-        rule, re.match(rule.pattern, input)), rules)
+    results = map(lambda rule: MatchResult(rule, re.match(rule.pattern, input)), rules)
 
     results = list(filter(lambda x: x.result is not None, results))
     if len(results) < 1:
@@ -57,6 +57,29 @@ def parse_tokens(input):
 
 
 def parse_ast(tokens):
+    '''
+    P -> S $
+
+    S -> id = EXP S'
+    S -> print ( EXP S ) S'
+    S' -> ; S
+    S' -> 
+
+    EXPS -> EXP EXPS'
+    EXPS' -> , EXPS
+    EXPS' ->
+
+    EXP -> ( EXP )
+    EXP -> int EXP' 
+    EXP -> id EXP'
+    EXP' -> OP EXP
+    EXP' ->
+
+    OP -> +
+    OP -> -
+    OP -> *
+    OP -> /
+    '''
     pass
 
 

@@ -16,17 +16,17 @@ class ParserTest(unittest.TestCase):
         self.assertListEqual(expect, actual)
 
     def test4(self):
-        input = '''var x = 1;
-        x + 1;
+        input = '''x = 1;
+        x + 1 <= x - 1;
         '''
-        expect = ['var', 'x', '=', '1', ';', 'x', '+', '1', ';']
+        expect = ['x', '=', '1', ';', 'x', '+', '1', '<=', 'x', '-', '1', ';']
         actual = minijs.parse_tokens(input)
         self.assertListEqual(expect, actual)
 
     def test5(self):
-        input = '''var x = 1;
-        var y = 10;
-        var z = 0;
+        input = '''x = 1;
+        y = 10;
+        z = 0;
         while (x < y) {
             if (x % 2 == 0) {
                 z = z + x;
@@ -35,9 +35,9 @@ class ParserTest(unittest.TestCase):
         }
         z;
         '''
-        expect = ['var', 'x', '=', '1', ';',
-                  'var', 'y', '=', '10', ';',
-                  'var', 'z', '=', '0', ';',
+        expect = ['x', '=', '1', ';',
+                  'y', '=', '10', ';',
+                  'z', '=', '0', ';',
                   'while', '(', 'x', '<', 'y', ')', '{',
                   'if', '(', 'x', '%', '2', '==', '0', ')', '{',
                   'z', '=', 'z', '+', 'x', ';',
