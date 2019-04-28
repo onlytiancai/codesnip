@@ -61,7 +61,9 @@ def parse_ast(tokens):
     P -> S $
 
     S -> id = EXP S'
-    S -> print ( EXP S ) S'
+    S -> print ( EXPS ) S'
+    S -> if ( EXP ) { S } else { S }
+    S -> while ( EXP ) { S }
     S' -> ; S
     S' -> 
 
