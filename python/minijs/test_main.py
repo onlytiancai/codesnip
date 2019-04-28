@@ -15,6 +15,15 @@ class ParserTest(unittest.TestCase):
         actual = minijs.parse_tokens('(1+2)*(3+4)')
         self.assertListEqual(expect, actual)
 
+    def test4(self):
+        input = '''var x = 1;
+        x + 1;
+        '''
+        expect = ['var', 'x', '=', '1', ';', 'x', '+', '1', ';']
+        actual = minijs.parse_tokens(input)
+        self.assertListEqual(expect, actual)
+        
+
 
 class MyTest(unittest.TestCase):
     def test0(self):
