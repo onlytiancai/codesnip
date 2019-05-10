@@ -9,7 +9,7 @@ define(function(require) {
             }
         },
         mounted: function() {
-            this.get();
+            this.get(this.$route.params.page);
         },
         // 需要在 updated 事件里使用 Bootstrap 的 tooltip 组件
         updated: function() {
