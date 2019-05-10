@@ -15,9 +15,10 @@
         }
     </style>
     <script src="https://cdn.staticfile.org/require.js/2.3.6/require.min.js"></script>
+    <!-- require.js 配置提取成公共脚本，否则会有很多重复配置-->
     <script src="js/requirejs-config.js"></script>
     <script type="text/javascript">
-        // 相对 baseUrl 进行解析
+        // 应用入口，相对 baseUrl 进行解析
         requirejs(['../app/main']);
     </script>
 </head>
