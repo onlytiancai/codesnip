@@ -1,11 +1,20 @@
 define(function(require) {
     var Vue = require('vue');
+    // 加载 vue 插件
     Vue.use(require('vue_resource'));
 
     var vm = new Vue({
         el: '#app',
         data: {
             items: [],
+        },
+        // 需要在 updated 事件里使用 Bootstrap 的 tooltip 组件
+        updated: function() {
+            // Load any app-specific modules
+            // with a relative require call,
+            // like:
+            var tooltip = require('./tooltip');
+            tooltip();
         },
         methods: {
             get: function() {
@@ -20,5 +29,9 @@ define(function(require) {
             }
         }
     });
-    return vm;
+
+    var $ = require('jquery');
+    $(document).ready(function() {
+        vm.get();
+    });
 });

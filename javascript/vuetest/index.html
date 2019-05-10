@@ -17,19 +17,15 @@
     <script src="https://cdn.staticfile.org/require.js/2.3.6/require.min.js"></script>
     <script src="js/requirejs-config.js"></script>
     <script type="text/javascript">
-        requirejs(['jquery', 'bootstrap', '../app/main'], function($, _, app) {
-            $('[data-toggle="tooltip"]').tooltip();
-            $(document).ready(function() {
-                app.get();
-            });
-        });
+        // 相对 baseUrl 进行解析
+        requirejs(['../app/main']);
     </script>
 </head>
 
 <body>
     <div class="container" v-cloak id="app">
         <ul class="list-group" v-for="item in items">
-            <li class="list-group-item" data-toggle="tooltip" data-placement="left" title="{{ item.name }}">
+            <li class="list-group-item">
                 <button type="button" class="btn btn-default" data-toggle="tooltip" data-placement="left" v-bind:title="item.name">{{ item.name }}</button>
 
             </li>
