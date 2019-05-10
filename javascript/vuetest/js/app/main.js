@@ -1,37 +1,26 @@
 define(function(require) {
-    var Vue = require('vue');
+    var Vue = require('Vue');
+
     // 加载 vue 插件
-    Vue.use(require('vue_resource'));
+    Vue.use(require('VueResource'));
+    var VueRoute = require('VueRoute');
+    Vue.use(VueRoute);
 
-    var vm = new Vue({
-        el: '#app',
-        data: {
-            items: [],
-        },
-        // 需要在 updated 事件里使用 Bootstrap 的 tooltip 组件
-        updated: function() {
-            // Load any app-specific modules
-            // with a relative require call,
-            // like:
-            var tooltip = require('./tooltip');
-            tooltip();
-        },
-        methods: {
-            get: function() {
-                this.$http.get('data.json').then(function(res) {
-                    // Load library/vendor modules using
-                    // full IDs, like:
-                    var print = require('print');
-                    print(res.data);
+    var Foo = require('./foo');
 
-                    this.items = res.data;
-                });
-            }
-        }
-    });
+    var Page404 = {
+        template: '<div>404</div>'
+    };
 
-    var $ = require('jquery');
-    $(document).ready(function() {
-        vm.get();
-    });
+    new Vue({
+        router: new VueRoute({
+            routes: [{
+                path: '/foo/:page',
+                component: Foo
+            }, {
+                path: '*',
+                component: Page404
+            }]
+        }),
+    }).$mount('#app');
 });
