@@ -55,4 +55,10 @@ webpack 上手略难，需要安装 nodejs，和很多配置，虽然现今，�
     require('bootstrap');
     // 使用 bootstrap 的 tooltip 组件
     $('[data-toggle="tooltip"]').tooltip();
+    
+## vue 界面更新后使用 bootstrap 组件
+
+    updated: function() {
+        $('[data-toggle="tooltip"]').tooltip();
+    },
   
