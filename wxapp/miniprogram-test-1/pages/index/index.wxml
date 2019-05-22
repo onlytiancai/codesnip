@@ -1,0 +1,29 @@
+<view class="container">
+
+  <view class="today">
+    <text>{{Today}}</text>
+  </view>
+
+  <view class="additem" bindtap="additemTap">
+    <view class="add">
+      <image class='plus' src='../../images/plus.png' />
+      <input value="{{input}}" auto-focus class="InputAdd" placeholder='再次输入一个新计划' bindinput='AddInput' bindconfirm='AddConfirm' focus="{{inputShowed}}" />
+    </view>
+  </view>
+
+  <view class='status-info'>
+    <text>已完成 {{completedCount}} 条 / 共 {{TodayList.length}} 条</text>
+
+  </view>
+
+  <view class="todo-today1">
+    <view class="todo-today">
+      <view class="today-item" wx:for="{{TodayList}}" wx:key="{{ index }}" bindtap="toggleTodoHandle" id="{{index}}">
+        <icon class="itemcheckbox" type="{{item.completed ? 'success' : 'circle'}}" color="white" />
+        <text class="{{item.completed ? 'itemdescriptiontcompleted':'itemdescriptiont'}}">{{item.description}}</text>
+        <icon class='itemremove' type='clear' size='20' color="white" catchtap="removeTodoHandle" id='{{index}}' />
+      </view>
+    </view>
+  </view>
+
+</view>
