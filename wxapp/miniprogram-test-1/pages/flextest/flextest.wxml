@@ -42,3 +42,13 @@ flex-shrink 测试
     </view>
   </view>
 </view>
+
+<text class="desc">
+justify-content 测试
+
+</text>
+<view class="container3">
+  <view class="item item1"></view>
+  <view class="item item2"></view>
+  <view class="item item3"></view>
+</view>
