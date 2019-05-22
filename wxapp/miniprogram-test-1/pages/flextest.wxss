@@ -1,0 +1,74 @@
+.desc {
+  display: block;
+  font-size: 14px;
+  padding:20px;
+}
+.container {
+  display: flex;
+  width: 400px;
+}
+
+.container .item {
+  height: 100px;
+  flex-shrink: 1;
+}
+
+.container .item1 {
+  background: lightgreen;
+  width: 120px;
+  flex-shrink: 2;
+}
+
+.container .item2 {
+  background: lightcoral;
+  width: 150px;
+  flex-shrink: 3;
+}
+
+.container .item3 {
+  background: lightblue;
+  width: 180px;
+}
+
+.container2 {
+  display: flex;
+  flex-direction: column;
+}
+
+.container2 .item {
+  background: lightblue;
+  height: 100px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.container2 .item .img {
+  background: lightgreen;
+  width: 80px;
+  height: 80px;
+  margin-left: 10px;
+  /* 防止右边内容太多撑开时左边压缩 */
+  flex-shrink: 0;
+}
+
+.container2 .item .content {
+  background: lightcoral;
+  height: 80px;
+  /* 右侧自动撑满 */
+  flex-grow: 1;
+  margin-right: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.container2 .item .content text {
+  display: block;
+  padding-left: 10px;
+}
+
+.container2 .item .content .title {
+  font-weight: bold;
+  color: #fff;
+}
