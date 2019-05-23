@@ -58,7 +58,6 @@
   display: flex;
   padding: 20rpx;
   background-color: #85a4c3;
-  /* border: 10rpx solid #fff; */
   margin: 10px 0;
   border-radius: 10rpx;
 }
