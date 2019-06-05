@@ -38,6 +38,12 @@ QUnit.test("Num", function(assert) {
 
 });
 
+QUnit.test("String", function(assert) {
+    var newString = lexer.newString;
+    assert.ok(newString().parse('"000"').accepted());
+    assert.ok(newString().parse('""').accepted());
+});
+
 QUnit.test("ArithmeticOp", function(assert) {
     var newOp = lexer.newArithmeticOp;
     assert.ok(newOp().parse('+').accepted());
@@ -48,7 +54,7 @@ QUnit.test("ArithmeticOp", function(assert) {
     assert.notOk(newOp().parse('1').accepted());
 });
 
-QUnit.test("1 + 2", function(assert) {
+QUnit.test("1    +  2", function(assert) {
     var tokens = lexer.parse('1 + 2');
     assert.equal(tokens[0], '1');
     assert.equal(tokens[2], '+');
@@ -60,6 +66,15 @@ QUnit.test("1+2", function(assert) {
     var tokens = lexer.parse('1+2');
     assert.deepEqual(tokens, ['1', '+', '2'], 'Passed')
 });
+
+QUnit.test("111 + 222", function(assert) {
+
+    var tokens = lexer.parse('111 + 222');
+    assert.equal(tokens[0], '111');
+    assert.equal(tokens[2], '+');
+    assert.equal(tokens[4], '222');
+});
+
 
 QUnit.module("parser group");
 QUnit.test("parser test", function(assert) {

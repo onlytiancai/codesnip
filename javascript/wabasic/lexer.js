@@ -39,11 +39,12 @@ var lexer = (function() {
                         dstStates.add(rule.dst);
                     }
                 }
+
                 console.log('lexer.Nfa#parse', this.name, i, char, dstStates.list);
+
                 this.state = dstStates;
                 // 更新最后匹配成功的位置
                 if (this.accepted()) {
-                    console.log('lexer.Nfa#lastmatch', this.name, i, char);
                     this.lastMatchedIndex = i;
                 }
 
@@ -110,13 +111,25 @@ var lexer = (function() {
         ]);
     }
 
+    /**
+     * "\d+"
+     */
+    function newString() {
+        return new Nfa('String', [2], [
+            new Rule(0, '"', 1),
+            new Rule(1, '0', 1),
+            new Rule(1, '"', 2),
+            new Rule(0, '"', 2),
+        ]);
+    }
+
     function next(input) {
         var nfas = [newNum, newArithmeticOp, newWhiteSpace];
         var maxMatchedIndex = -1;
         for (var i = 0; i < nfas.length; i++) {
             var nfa = nfas[i]();
             nfa.parse(input);
-            console.log('lexer.next', nfa.name, nfa.lastMatchedIndex);
+            console.log('lexer.next:(' + nfa.name + ') lastMatchedIndex=' + nfa.lastMatchedIndex);
             if (nfa.lastMatchedIndex > maxMatchedIndex) {
                 maxMatchedIndex = nfa.lastMatchedIndex;
             }
@@ -132,7 +145,7 @@ var lexer = (function() {
             if (token != null) {
                 ret.push(token);
                 remain = remain.substr(token.length);
-                console.log('lexer.parse', token, remain);
+                console.log('lexer.parse:' + '[' + token + '](' + remain + ')');
             } else {
                 throw "Unknow input:" + remain;
             }
@@ -145,5 +158,6 @@ var lexer = (function() {
         parse: parse,
         newNum: newNum,
         newArithmeticOp: newArithmeticOp,
+        newString: newString,
     }
 }());
