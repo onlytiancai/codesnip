@@ -327,3 +327,40 @@ removeTodo: function(e) {
   this.save();
 },
 ```
+
+---
+# 使用 WeUI 视觉规范
+
+相当于 Bootstrap
+
+1. 拷贝 weui.wxss 到根目录
+2. wxss 中引入样式
+
+```
+@import '../../weui.wxss';
+```
+3. wxml 中使用样式
+```
+<button class="weui-btn" type="primary">主操作</button>
+<button class="weui-btn" type="default">次要操作</button>
+```
+
+---
+# 使用第三方组件，如 iview
+
+1. 新建 iview 子目录，把要用的组件如 button 拷贝进去
+2. 在 page.json 中引用组件
+
+```
+{
+  "usingComponents": {
+    "i-button": "../../iview/button/index"
+  }
+}
+```
+3. 在 wxml 中使用组件
+
+```
+<i-button type="primary" bind:click="handleClick">
+  这是一个按钮</i-button>
+```

@@ -1,8 +1,9 @@
 {
   "pages": [
+    "pages/index/index",
+    "pages/iviewtest/iviewtest",
     "pages/weuitest/weuitest",
-    "pages/flextest/flextest",
-    "pages/index/index"
+    "pages/flextest/flextest"
   ],
   "window": {
     "backgroundTextStyle": "light",
