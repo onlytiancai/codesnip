@@ -29,16 +29,30 @@ QUnit.test("Set#intersect", function(assert) {
 QUnit.module("lexer group");
 
 QUnit.test("Num", function(assert) {
-    var Num = lexer.Num;
-    assert.ok(new Num('123').parse().accepted());
-    assert.notOk(new Num('a').parse().accepted());
-    assert.notOk(new Num('123a').parse().accepted());
+    var newNum = lexer.newNum;
+    assert.ok(newNum().parse('123').accepted());
+    assert.notOk(newNum().parse('a').accepted());
+    var num = newNum();
+    assert.notOk(num.parse('123a').accepted());
+    assert.equal(num.lastMatchedIndex, 2);
+
+});
+
+QUnit.test("ArithmeticOp", function(assert) {
+    var newOp = lexer.newArithmeticOp;
+    assert.ok(newOp().parse('+').accepted());
+    assert.ok(newOp().parse('-').accepted());
+    assert.ok(newOp().parse('*').accepted());
+    assert.ok(newOp().parse('/').accepted());
+    assert.notOk(newOp().parse('++').accepted());
+    assert.notOk(newOp().parse('1').accepted());
 });
 
 QUnit.test("1 + 2", function(assert) {
-
     var tokens = lexer.parse('1 + 2');
-    assert.deepEqual(tokens, ['1', '+', '2'], 'Passed')
+    assert.equal(tokens[0], '1');
+    assert.equal(tokens[2], '+');
+    assert.equal(tokens[4], '2');
 });
 
 QUnit.test("1+2", function(assert) {
