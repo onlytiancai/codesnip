@@ -75,6 +75,14 @@ QUnit.test("111 + 222", function(assert) {
     assert.equal(tokens[4], '222');
 });
 
+QUnit.test('"000" + 222', function(assert) {
+
+    var tokens = lexer.parse('"000" + 222');
+    assert.equal(tokens[0], '"000"');
+    assert.equal(tokens[2], '+');
+    assert.equal(tokens[4], '222');
+});
+
 
 QUnit.module("parser group");
 QUnit.test("parser test", function(assert) {
