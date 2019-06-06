@@ -124,7 +124,7 @@ var lexer = (function() {
     }
 
     function next(input) {
-        var nfas = [newNum, newArithmeticOp, newWhiteSpace];
+        var nfas = [newNum, newArithmeticOp, newWhiteSpace, newString];
         var maxMatchedIndex = -1;
         for (var i = 0; i < nfas.length; i++) {
             var nfa = nfas[i]();
