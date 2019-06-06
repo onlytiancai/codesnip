@@ -1,5 +1,12 @@
 {
+
   // utils
+    
+
+
+  // 外部定义的话优先使用外部定义
+  var println = window.println || function (d) { console.log(d) };
+
   function extractList(list, index) {
     return list.map(function(element) { return element[index]; });
   }
@@ -26,7 +33,7 @@
     this.args = args;
     CallExp.prototype.eval = function() {
     	switch (this.name) {
-        	case 'print': console.log(this.args.eval());break;
+        	case 'print': println(this.args.eval());break;
         	default: throw 'Unknow call:' + this.name;
         }
     }
@@ -106,8 +113,7 @@
   }   
 }
 
-Start  = __ body:SourceElements? __ { 
-	if (body) body.eval()
+Start  = __ body:SourceElements? __ { 	
 	return { type: "Program", body: body}
 }
 
