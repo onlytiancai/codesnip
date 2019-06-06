@@ -13,13 +13,114 @@ QUnit.module("Parse Test", {
     beforeEach: function() { printData = []; },
 });
 
-QUnit.test('print', function(assert) {
-    var input = 'print 1 + 2';
+
+QUnit.test('+-', function(assert) {
+    var input = 'print 1 + 2 + 3 - 2';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.body.eval();
+    assert.deepEqual([4], printData);
+});
+
+QUnit.test('+-*/', function(assert) {
+    var input = 'print 1 + 2 * 3';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.body.eval();
+    assert.deepEqual([7], printData);
+});
+
+QUnit.test('(+-)*/', function(assert) {
+    var input = 'print (1 + 2) * 3';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.body.eval();
+    assert.deepEqual([9], printData);
+});
+
+QUnit.test('>,<,>=,<=,==,!=', function(assert) {
+    var input = 'print 1 < 0\n' +
+        'print 1 < 2\n' +
+        'print 1 <= 1\n' +
+        'print 1 <= 2\n' +
+        'print 1 <= 0\n' +
+        'print 1 > 0\n' +
+        'print 1 > 2\n' +
+        'print 1 >= 1\n' +
+        'print 1 >= 2\n' +
+        'print 1 >= 0\n' +
+        'print 1 == 1\n' +
+        'print 1 == 2\n' +
+        'print 1 != 1\n' +
+        'print 1 != 2\n';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.body.eval();
+    assert.deepEqual([false, true, true, true, false, true, false, true, false, true, true, false, false, true], printData);
+});
+
+QUnit.test('and', function(assert) {
+    var input = 'print 2 > 1 and 3 > 2';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.body.eval();
+    assert.deepEqual([true], printData);
+});
+
+QUnit.test('> and >', function(assert) {
+    var input = 'print 2 > 1 + 1 and 3 > 2';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.body.eval();
+    assert.deepEqual([false], printData);
+});
+
+QUnit.test('> + and > or >', function(assert) {
+    var input = 'print 2 > 1 + 1 and 3 > 2 or 1 > 0';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.body.eval();
+    assert.deepEqual([true], printData);
+});
+
+QUnit.test('> or > + and >', function(assert) {
+    var input = 'print 1 > 0 or 2 > 1 + 1 and 3 > 2';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.body.eval();
+    assert.deepEqual([true], printData);
+});
+
+QUnit.test("assign", function(assert) {
+    var input = 'a = 1 + 2\n' +
+        '    print a\n';
     var ast = parser.parse(input);
     console.log(ast);
 
     ast.body.eval();
     assert.deepEqual([3], printData);
+});
+
+QUnit.test("if", function(assert) {
+    var input = 'if 1 > 2 then\n' +
+        '    print 1\n' +
+        'end\n' +
+        'if 2 > 1 then\n' +
+        '    print 2\n' +
+        'end\n';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.body.eval();
+    assert.deepEqual([2], printData);
 });
 
 QUnit.test("while", function(assert) {
@@ -31,6 +132,20 @@ QUnit.test("while", function(assert) {
         '  a = a + 1\n' +
         'end\n';
     var ast = parser.parse(input);
+    console.log(ast);
+
     ast.body.eval();
     assert.deepEqual([2, 4, 6, 8], printData);
+});
+
+QUnit.test("def foo", function(assert) {
+    var input = 'def foo()\n' +
+        '  print 1 + 1\n' +
+        'end\n' +
+        'foo\n';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.body.eval();
+    assert.deepEqual([2], printData);
 });

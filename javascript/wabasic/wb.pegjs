@@ -14,9 +14,38 @@
   function buildList(head, tail, index) {
     return [head].concat(extractList(tail, index));
   } 
+
+  function throwError(msg) {    
+    console.error(msg);
+    throw msg; 
+  }
   
   // ast
   var env = {};
+  var funcs = {};
+
+  // print
+  function PrintFunc(args) {
+      this.params = ['o'];
+      this.args = args;
+      
+      PrintFunc.prototype.eval = function() {
+        
+        // 实参赋值
+        if (this.args.length != this.params.length) {
+            throwError('args length error:' + this.params.length + ', ' + this.args.length); 
+        }
+        var env = {};
+        for (var i = 0; i < this.params.length; i ++) {
+            env[this.params[i]] = this.args[i];
+        }
+        
+        println(this.args.eval(env)[0]);
+        
+      }
+  }
+
+  funcs['print'] = PrintFunc;
   
   function AssignStat(id, exp) {
   	this.type = 'assignStat';
@@ -26,16 +55,33 @@
     	env[this.id.id] = this.exp.eval(); 
     }    
   }
+
+    // 实参列表
+    function ArgList(args) {
+        this.args = args;
+        this.length = this.args.length;
+        ArgList.prototype.eval = function(env) {
+            var ret = [];
+            for (var i = 0; i < this.args.length; i++) {
+                ret.push(this.args[i].eval(env));
+            }
+            return ret;
+        }
+    }
   
   function CallExp(name, args) {
   	this.type = 'CallExp';
   	this.name = name;
     this.args = args;
     CallExp.prototype.eval = function() {
-    	switch (this.name) {
-        	case 'print': println(this.args.eval());break;
-        	default: throw 'Unknow call:' + this.name;
+        console.log('funcs', funcs);
+        var Fun = funcs[this.name]
+        if (!Fun) {
+            throwError('Unknow call:' + this.name);
         }
+        var args = new ArgList([this.args]);
+        var fun = new Fun(args);
+        fun.eval();
     }
   }
   
@@ -71,6 +117,15 @@
         	this.body.eval();	
         }
     }
+  }
+
+  function DefStat(name, params, body) {
+      this.name = name;
+      this.params = params;
+      this.body = body;
+      DefStat.prototype.eval = function() {
+          funcs[this.name.id] = [this.params, this.body];
+      }
   }
    
   function Integer(n) {
@@ -176,7 +231,7 @@ AndExp
     }    
   
 RelExp
-  = head:MathExp tail:(_ ("<=" / "<>"  / ">=" / "<" / ">" / "==" ) _ MathExp)*  _{
+  = head:MathExp tail:(_ ("<=" / "<>"  / ">=" / "<" / ">" / "==" / "!=" ) _ MathExp)*  _{
       return tail.reduce(function(result, element) {
       	return new BinOpExp(result, element[1], element[3])
       }, head);
