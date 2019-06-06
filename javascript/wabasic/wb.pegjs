@@ -24,28 +24,31 @@
   var env = {};
   var funcs = {};
 
+    function Func(params, func) {
+        this.params = params;
+        this.func = func;
+    }
+
   // print
-  function PrintFunc(args) {
-      this.params = ['o'];
-      this.args = args;
-      
+  function PrintFunc(env) { 
+      this.env = env;
       PrintFunc.prototype.eval = function() {
-        
-        // 实参赋值
-        if (this.args.length != this.params.length) {
-            throwError('args length error:' + this.params.length + ', ' + this.args.length); 
-        }
-        var env = {};
-        for (var i = 0; i < this.params.length; i ++) {
-            env[this.params[i]] = this.args[i];
-        }
-        
-        println(this.args.eval(env)[0]);
-        
+          console.log(111, this.env);
+        println(this.env['o'].eval());
       }
   }
 
-  funcs['print'] = PrintFunc;
+  funcs['print'] = new Func(['o'], PrintFunc);
+
+    function DefStat(name, params, body) {
+      this.name = name;
+      this.params = params;
+      this.body = body;
+      DefStat.prototype.eval = function() {
+          funcs[this.name.id] = [this.params, this.body];
+      }
+  }
+   
   
   function AssignStat(id, exp) {
   	this.type = 'assignStat';
@@ -56,18 +59,6 @@
     }    
   }
 
-    // 实参列表
-    function ArgList(args) {
-        this.args = args;
-        this.length = this.args.length;
-        ArgList.prototype.eval = function(env) {
-            var ret = [];
-            for (var i = 0; i < this.args.length; i++) {
-                ret.push(this.args[i].eval(env));
-            }
-            return ret;
-        }
-    }
   
   function CallExp(name, args) {
   	this.type = 'CallExp';
@@ -75,12 +66,23 @@
     this.args = args;
     CallExp.prototype.eval = function() {
         console.log('funcs', funcs);
-        var Fun = funcs[this.name]
-        if (!Fun) {
+        var func = funcs[this.name]
+        if (!func) {
             throwError('Unknow call:' + this.name);
         }
-        var args = new ArgList([this.args]);
-        var fun = new Fun(args);
+
+        // 形参和实参个数校验
+        if (this.args.length != func.params.length) {
+            throwError('args length error:' + func.params.length + ', ' + this.args.length); 
+        }
+
+        // 构建实参
+        var env = {};
+        for (var i = 0; i < func.params.length; i ++) {
+            env[func.params[i]] = this.args[i];
+        }
+
+        var fun = new func.func(env);
         fun.eval();
     }
   }
@@ -119,15 +121,7 @@
     }
   }
 
-  function DefStat(name, params, body) {
-      this.name = name;
-      this.params = params;
-      this.body = body;
-      DefStat.prototype.eval = function() {
-          funcs[this.name.id] = [this.params, this.body];
-      }
-  }
-   
+
   function Integer(n) {
   	this.type = 'Integer';
     this.n = n;
@@ -201,7 +195,7 @@ AssignStat
 	= id:Id _ '=' _ exp:Exp EOS { return new AssignStat(id, exp); }
     
 PrintStat
-	=  'print' _ exp:Exp { return new CallExp('print', exp) } 
+	=  'print' _ exp:Exp { return new CallExp('print', [exp]) } 
     
 IfStat
 	= 'if'i _ cond:RelExp _ 'then'i EOS
