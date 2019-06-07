@@ -149,3 +149,16 @@ QUnit.test("def foo", function(assert) {
     ast.eval();
     assert.deepEqual([2], printData);
 });
+
+
+QUnit.test("def add", function(assert) {
+    var input = 'def foo(a, b)\n' +
+        '  print a + b\n' +
+        'end\n' +
+        'foo(1, 2)\n';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.eval();
+    assert.deepEqual([3], printData);
+});

@@ -27,7 +27,7 @@ var PrintFunc = {
     params: 'o',
     eval: function(env) {
         console.log('PrintFunc#eval', env);      
-        println(env['o'].eval(env));
+        println(env['o']);
     }
 };
 
@@ -84,7 +84,7 @@ function CallExp(name, args) {
 
         // 构建实参
         for (var i = 0; i < func.params.length; i++) {           
-            env[func.params[i]] = this.args[i];
+            env[func.params[i]] = this.args[i].eval(env);
         }
         
 
@@ -156,6 +156,8 @@ function BinOpExp(left, op, right) {
     this.left = left;
     this.right = right;
     BinOpExp.prototype.eval = function (env) {
+        console.log('BinOpExp#eval', this.left, this.op, this.right);
+        console.log('BinOpExp#eval', this.left.eval(env), this.op, this.right.eval(env));
         switch (this.op) {
             case '+': return this.left.eval(env) + this.right.eval(env);
             case '-': return this.left.eval(env) - this.right.eval(env);
@@ -226,12 +228,22 @@ WhileStat
     'end'i  EOS { return new WhileStat(cond, body)  }  
   
 DefStat
-	= 'def'i _ name:Id '()' EOS
+	= 'def'i _ name:Id params:ParamList EOS
     __ body:(SourceElements?) __
-    'end'i  EOS { return new DefStat(name, [], body)  }  
+    'end'i  EOS { return new DefStat(name, params, body)  }  
 
 CallExp
-	= _ name:Id '()' { return new CallExp(name, [])  }      
+	= _ name:Id args:ArgList { return new CallExp(name, args)  }      
+
+ParamList
+    = '()' {return []}
+    / '('_ id:Id ' _)' {return [id.id]}
+    / '(' _ id1:Id _ ',' _ id2:Id ')' {return [id1.id, id2.id]}
+
+ArgList
+    = '()' {return []}
+    / '('_ exp:Exp ' _)' {return [exp]}
+    / '(' _ exp1:Exp _ ',' _ exp2:Exp ')' {return [exp1, exp2]}    
 
 Exp
 	= exp:OrExp { return exp }
