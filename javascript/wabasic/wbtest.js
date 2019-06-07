@@ -19,7 +19,7 @@ QUnit.test('+-', function(assert) {
     var ast = parser.parse(input);
     console.log(ast);
 
-    ast.body.eval();
+    ast.eval();
     assert.deepEqual([4], printData);
 });
 
@@ -28,7 +28,7 @@ QUnit.test('+-*/', function(assert) {
     var ast = parser.parse(input);
     console.log(ast);
 
-    ast.body.eval();
+    ast.eval();
     assert.deepEqual([7], printData);
 });
 
@@ -37,7 +37,7 @@ QUnit.test('(+-)*/', function(assert) {
     var ast = parser.parse(input);
     console.log(ast);
 
-    ast.body.eval();
+    ast.eval();
     assert.deepEqual([9], printData);
 });
 
@@ -59,7 +59,7 @@ QUnit.test('>,<,>=,<=,==,!=', function(assert) {
     var ast = parser.parse(input);
     console.log(ast);
 
-    ast.body.eval();
+    ast.eval();
     assert.deepEqual([false, true, true, true, false, true, false, true, false, true, true, false, false, true], printData);
 });
 
@@ -68,7 +68,7 @@ QUnit.test('and', function(assert) {
     var ast = parser.parse(input);
     console.log(ast);
 
-    ast.body.eval();
+    ast.eval();
     assert.deepEqual([true], printData);
 });
 
@@ -77,7 +77,7 @@ QUnit.test('> and >', function(assert) {
     var ast = parser.parse(input);
     console.log(ast);
 
-    ast.body.eval();
+    ast.eval();
     assert.deepEqual([false], printData);
 });
 
@@ -86,7 +86,7 @@ QUnit.test('> + and > or >', function(assert) {
     var ast = parser.parse(input);
     console.log(ast);
 
-    ast.body.eval();
+    ast.eval();
     assert.deepEqual([true], printData);
 });
 
@@ -95,7 +95,7 @@ QUnit.test('> or > + and >', function(assert) {
     var ast = parser.parse(input);
     console.log(ast);
 
-    ast.body.eval();
+    ast.eval();
     assert.deepEqual([true], printData);
 });
 
@@ -105,7 +105,7 @@ QUnit.test("assign", function(assert) {
     var ast = parser.parse(input);
     console.log(ast);
 
-    ast.body.eval();
+    ast.eval();
     assert.deepEqual([3], printData);
 });
 
@@ -119,7 +119,7 @@ QUnit.test("if", function(assert) {
     var ast = parser.parse(input);
     console.log(ast);
 
-    ast.body.eval();
+    ast.eval();
     assert.deepEqual([2], printData);
 });
 
@@ -134,7 +134,7 @@ QUnit.test("while", function(assert) {
     var ast = parser.parse(input);
     console.log(ast);
 
-    ast.body.eval();
+    ast.eval();
     assert.deepEqual([2, 4, 6, 8], printData);
 });
 
@@ -146,6 +146,6 @@ QUnit.test("def foo", function(assert) {
     var ast = parser.parse(input);
     console.log(ast);
 
-    ast.body.eval();
+    ast.eval();
     assert.deepEqual([2], printData);
 });
