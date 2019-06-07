@@ -240,7 +240,7 @@ AssignStat
 	= id:Id _ '=' _ exp:Exp EOS { return new AssignStat(id, exp); }
     
 PrintStat
-	=  'print' _ exp:Exp { return new CallExp(new Id('print'), [exp]) } 
+	=  'print' ' '+ exp:Exp { return new CallExp(new Id('print'), [exp]) } 
 
 ReturnStat
 	=  'return' _ exp:Exp { return new ReturnStat(exp) }     
