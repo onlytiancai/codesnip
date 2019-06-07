@@ -196,3 +196,17 @@ QUnit.test("call exp", function(assert) {
     ast.eval();
     assert.deepEqual([4], printData);
 });
+
+QUnit.test("return stat", function(assert) {
+    var input = 'def multadd(a, b)\n' +
+        '  a = a * 2\n'+
+        '  b = b * 2\n' +
+        '  return a + b\n' +
+        'end\n' +
+        'print multadd(2, multadd(1, 2))\n';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.eval();
+    assert.deepEqual(printData, [16]);
+});
