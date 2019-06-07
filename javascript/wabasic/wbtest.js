@@ -172,7 +172,7 @@ QUnit.test("def max", function(assert) {
         '    print b\n' +
         '  end\n' +        
         'end\n' +
-        'foo(1, 2)\n';
+        'foo(1 + 2, 2 + 2)\n';
     var ast = parser.parse(input);
     console.log(ast);
     assert.equal(ast.body.type, 'SeqStat');
@@ -180,5 +180,5 @@ QUnit.test("def max", function(assert) {
     assert.equal(ast.body.body[1].type, 'call');
 
     ast.eval();
-    assert.deepEqual([2], printData);
+    assert.deepEqual([4], printData);
 });

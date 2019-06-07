@@ -37,7 +37,7 @@ function DefStat(name, params, body) {
     this.params = params;
     this.body = body;
     DefStat.prototype.eval = function (env) {
-        console.log('DefStat#eval', env);
+        console.log('DefStat#eval', env, this.params);
         var that = this;
         env[this.name.id] = {
             type: 'func',
@@ -229,22 +229,23 @@ WhileStat
     'end'i  EOS { return new WhileStat(cond, body)  }  
   
 DefStat
-	= 'def'i _ name:Id params:ParamList EOS
+	= 'def'i _ name:Id '(' _ params:ParamList _ ')' EOS
     __ body:(SourceElements?) __
     'end'i  EOS { return new DefStat(name, params, body)  }  
 
-CallExp
-	= _ name:Id args:ArgList { return new CallExp(name, args)  }      
-
 ParamList
-    = '()' {return []}
-    / '('_ id:Id ' _)' {return [id.id]}
-    / '(' _ id1:Id _ ',' _ id2:Id ')' {return [id1.id, id2.id]}
+    = head:Id _ ',' _ tail:ParamList { tail.unshift(head.id);return tail;}
+    / id:Id { return [id.id]}  
+    / _ {return []}
+
+CallExp
+	= _ name:Id '(' _ args:ArgList _ ')' { return new CallExp(name, args)  }      
+      
 
 ArgList
-    = '()' {return []}
-    / '('_ exp:Exp ' _)' {return [exp]}
-    / '(' _ exp1:Exp _ ',' _ exp2:Exp ')' {return [exp1, exp2]}    
+    = head:Exp _ ',' _ tail:ArgList { tail.unshift(head);return tail;}
+    / exp:Exp { return [exp]}  
+    / _ {return []} 
 
 Exp
 	= exp:OrExp { return exp }
