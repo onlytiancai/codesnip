@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>VUE Test</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.4.1/css/bootstrap.min.css">
+    <style>
+        /*v-cloak解决vue解析闪烁问题*/
+        
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+    <script src="https://cdn.staticfile.org/require.js/2.3.6/require.min.js"></script>
+    <!-- require.js 配置提取成公共脚本，否则会有很多重复配置-->
+    <script src="js/requirejs-config.js"></script>
+    <script type="text/javascript">
+        // 应用入口，相对 baseUrl 进行解析
+        requirejs(['../app/main']);
+    </script>
+
+</head>
+
+<body>
+
+    <script type="text/x-template" id="foo">
+        <!-- 每个组件必须只有一个根元素 -->
+        <div>
+            <div>path: {{path}}</div>
+            <ul class="list-group" v-for="item in items">
+                <li class="list-group-item">
+                    <button type="button" class="btn btn-default" data-toggle="tooltip" data-placement="left" v-bind:title="item.name">{{ item.name }}</button>
+
+                </li>
+            </ul>
+
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    <li v-for="index in 10">
+                        <router-link :to="'/foo/'+index">{{index}}</router-link>
+                    </li>
+                </ul>
+            </nav>
+
+        </div>
+
+    </script>
+
+    <div class="container" v-cloak id="app">
+        <h1>Hello App!</h1>
+        <p>
+            <router-link to="/foo/0">Go to Foo</router-link>
+            <router-link to="/bar">Go to Bar</router-link>
+        </p>
+        <router-view></router-view>
+    </div>
+</body>
+
+</html>
