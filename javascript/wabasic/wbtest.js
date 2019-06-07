@@ -142,7 +142,7 @@ QUnit.test("def foo", function(assert) {
     var input = 'def foo()\n' +
         '  print 1 + 1\n' +
         'end\n' +
-        'foo\n';
+        'foo()\n';
     var ast = parser.parse(input);
     console.log(ast);
 

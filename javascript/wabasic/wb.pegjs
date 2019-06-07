@@ -22,21 +22,30 @@ function throwError(msg) {
 var env = {};
 
 // print
-function PrintFunc() {
-    this.type = 'func';
-    this.params = ['o'];
-    PrintFunc.prototype.eval = function (env) {  
+var PrintFunc = {
+    type: 'func',
+    params: 'o',
+    eval: function(env) {
         console.log('PrintFunc#eval', env);      
         println(env['o'].eval(env));
     }
-}
+};
 
 function DefStat(name, params, body) {
     this.name = name;
     this.params = params;
     this.body = body;
     DefStat.prototype.eval = function (env) {
-        funcs[this.name.id] = [this.params, this.body];
+        console.log('DefStat#eval', env);
+        var that = this;
+        env[this.name.id] = {
+            type: 'func',
+            params: this.params,
+            eval: function(env) {
+                console.log('Def#' + that.name.id, env);
+                that.body.eval(env);
+            }
+        };        
     }
 }
 
@@ -58,13 +67,12 @@ function CallExp(name, args) {
     CallExp.prototype.eval = function (env) {
         console.log('CallExp env:', env);
         
-        var Func = env[this.name];
+        var func = env[this.name.id];
         
-        if (!Func) {
+        if (!func) {
             throwError('Unknow func:' + this.name);
         }
 
-        var func = new Func();
         if (func.type != 'func') {
             throwError('Id is not func:' + this.name);
         }
@@ -78,6 +86,7 @@ function CallExp(name, args) {
         for (var i = 0; i < func.params.length; i++) {           
             env[func.params[i]] = this.args[i];
         }
+        
 
         func.eval(env);
     }
@@ -196,13 +205,15 @@ Statement
   / PrintStat
   / IfStat
   / WhileStat  
+  / DefStat
+  / CallExp
 
     
 AssignStat
 	= id:Id _ '=' _ exp:Exp EOS { return new AssignStat(id, exp); }
     
 PrintStat
-	=  'print' _ exp:Exp { return new CallExp('print', [exp]) } 
+	=  'print' _ exp:Exp { return new CallExp(new Id('print'), [exp]) } 
     
 IfStat
 	= 'if'i _ cond:RelExp _ 'then'i EOS
@@ -210,10 +221,18 @@ IfStat
     'end'i  EOS { return new IfStat(cond, body)   }
     
 WhileStat
-	= 'while'i _ cond:RelExp _ 'then'i EOS
+	= 'while' _ cond:RelExp _ 'then'i EOS
     __ body:(SourceElements?) __
     'end'i  EOS { return new WhileStat(cond, body)  }  
   
+DefStat
+	= 'def'i _ name:Id '()' EOS
+    __ body:(SourceElements?) __
+    'end'i  EOS { return new DefStat(name, [], body)  }  
+
+CallExp
+	= _ name:Id '()' { return new CallExp(name, [])  }      
+
 Exp
 	= exp:OrExp { return exp }
     
