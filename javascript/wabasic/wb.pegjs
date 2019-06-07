@@ -60,7 +60,9 @@ function AssignStat(id, exp) {
     }
 }
 
-
+function ReturnObject(ret) {
+    this.ret = ret;    
+}
 
 function CallExp(name, args) {
     this.type = 'call';
@@ -91,9 +93,17 @@ function CallExp(name, args) {
             env[func.params[i]] = this.args[i].eval(env);
         }        
 
-        func.eval(env);
+        try {
+            func.eval(env);
+        } catch (err) {
+            // 使用 thorw 实现 return 语句
+            if (err instanceof ReturnObject) {
+                return err.ret;
+            } 
+            throw err;
+           
+        }
         console.log('CallExp:after:', this.name.id, env);
-        return env['__return'];
     }
 }
 
@@ -102,7 +112,7 @@ function ReturnStat( exp) {
     this.exp = exp;
     ReturnStat.prototype.eval = function (env) {    
         console.log('ReturnStat:', env, exp);    
-        env['__return'] = this.exp.eval(env);
+        throw new ReturnObject(this.exp.eval(env));
     }
 }
 

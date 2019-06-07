@@ -184,8 +184,24 @@ QUnit.test("def max", function(assert) {
     assert.deepEqual([4], printData);
 });
 
+QUnit.test("Return 语句", function(assert) {
+    var input = 'def max(a, b)\n' +
+        '  if a > b then\n' +
+        '    return a\n' +
+        '  end\n'+
+        '  return b\n'+
+        'end\n' +
+        'print max(1, 2)\n' +
+        'print max(4, 3)\n';
+    var ast = parser.parse(input);
+    console.log(ast);
 
-QUnit.test("call exp", function(assert) {
+    ast.eval();
+    assert.deepEqual(printData, [2, 4]);
+});
+
+
+QUnit.test("函数表达式", function(assert) {
     var input = 'def add(a, b)\n' +
         '  return a + b\n' +
         'end\n' +
@@ -194,10 +210,10 @@ QUnit.test("call exp", function(assert) {
     console.log(ast);
 
     ast.eval();
-    assert.deepEqual([4], printData);
+    assert.deepEqual(printData, [4]);
 });
 
-QUnit.test("return stat", function(assert) {
+QUnit.test("函数表达式嵌套", function(assert) {
     var input = 'def multadd(a, b)\n' +
         '  a = a * 2\n'+
         '  b = b * 2\n' +
