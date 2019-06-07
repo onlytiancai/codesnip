@@ -61,12 +61,13 @@ function AssignStat(id, exp) {
 }
 
 
+
 function CallExp(name, args) {
     this.type = 'call';
     this.name = name;
     this.args = args;
     CallExp.prototype.eval = function (env) {
-        console.log('CallExp env:', env);
+        console.log('CallExp:before:', this.name.id, env);
         
         var func = env[this.name.id];
         
@@ -90,6 +91,17 @@ function CallExp(name, args) {
         
 
         func.eval(env);
+        console.log('CallExp:after:', this.name.id, env);
+        return env['__return'];
+    }
+}
+
+function ReturnStat( exp) {
+    this.type = 'ReturnStat';
+    this.exp = exp;
+    ReturnStat.prototype.eval = function (env) {    
+        console.log('ReturnStat:', env, exp);    
+        env['__return'] = this.exp.eval(env);
     }
 }
 
@@ -210,6 +222,7 @@ Statement
   / WhileStat  
   / DefStat
   / CallExp
+  / ReturnStat
 
     
 AssignStat
@@ -217,6 +230,9 @@ AssignStat
     
 PrintStat
 	=  'print' _ exp:Exp { return new CallExp(new Id('print'), [exp]) } 
+
+ReturnStat
+	=  'return' _ exp:Exp { return new ReturnStat(exp) }     
     
 IfStat
 	= 'if'i _ cond:RelExp _ 'then'i EOS
@@ -285,9 +301,11 @@ Term
       }, head);
     }
 
+// 注意：CallExp 要在 Id 上面
 Factor
   = "(" _ expr:MathExp _ ")" { return expr; }
+  / CallExp
   / Integer
-  / Id
+  / Id  
 
               

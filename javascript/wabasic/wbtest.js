@@ -163,6 +163,7 @@ QUnit.test("def add", function(assert) {
     assert.deepEqual([3], printData);
 });
 
+
 QUnit.test("def max", function(assert) {
     var input = 'def foo(a, b)\n' +
         '  if a > b then\n' +
@@ -178,6 +179,19 @@ QUnit.test("def max", function(assert) {
     assert.equal(ast.body.type, 'SeqStat');
     assert.equal(ast.body.body[0].type, 'def');
     assert.equal(ast.body.body[1].type, 'call');
+
+    ast.eval();
+    assert.deepEqual([4], printData);
+});
+
+
+QUnit.test("call exp", function(assert) {
+    var input = 'def add(a, b)\n' +
+        '  return a + b\n' +
+        'end\n' +
+        'print add(1, add(1, 2))\n';
+    var ast = parser.parse(input);
+    console.log(ast);
 
     ast.eval();
     assert.deepEqual([4], printData);
