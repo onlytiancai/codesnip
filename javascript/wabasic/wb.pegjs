@@ -32,6 +32,7 @@ var PrintFunc = {
 };
 
 function DefStat(name, params, body) {
+    this.type = 'def';
     this.name = name;
     this.params = params;
     this.body = body;
@@ -61,7 +62,7 @@ function AssignStat(id, exp) {
 
 
 function CallExp(name, args) {
-    this.type = 'CallExp';
+    this.type = 'call';
     this.name = name;
     this.args = args;
     CallExp.prototype.eval = function (env) {
