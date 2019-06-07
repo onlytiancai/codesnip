@@ -84,11 +84,12 @@ function CallExp(name, args) {
             throwError('args length error:' + func.params.length + ', ' + this.args.length);
         }
 
+        // copy env
+        env = Object.assign({}, env);
         // 构建实参
         for (var i = 0; i < func.params.length; i++) {           
             env[func.params[i]] = this.args[i].eval(env);
-        }
-        
+        }        
 
         func.eval(env);
         console.log('CallExp:after:', this.name.id, env);
