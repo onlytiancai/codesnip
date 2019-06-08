@@ -355,7 +355,7 @@ QUnit.test("数组测试", function (assert) {
 QUnit.test("对象测试", function (assert) {
     window.globaladd = function(a, b) { return a  + b};
     var input = 
-    'obj = mkobj()\n' +
+    'obj = mkobj("x", 8, "y", 9)\n' +
     'itemset(obj, "a", 1)\n' +
     'itemset(obj, "b", 2)\n' +
     'itemset(obj, "c", "d")\n' +
@@ -371,7 +371,7 @@ QUnit.test("对象测试", function (assert) {
     console.log(ast);
 
     ast.eval();
-    assert.deepEqual(printData, [1, 2, 'd']);
+    assert.deepEqual(printData, [1, 2, 'd', 8, 9]);
 });
 
 QUnit.test("字符串", function (assert) {

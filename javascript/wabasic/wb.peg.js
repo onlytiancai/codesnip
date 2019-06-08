@@ -69,7 +69,12 @@
      * 创建对象
      */
     window.mkobj = function () {
-        return {};
+        var args = Array.prototype.slice.call(arguments);
+        var ret = {};
+        for (var i = 0; i < args.length; i = i + 2) {
+            ret[args[i]] = args[i + 1];            
+        }
+        return ret;
     }
 
     /**
@@ -90,7 +95,7 @@
      * 获取对象属性列表
      */
     window.keys = function (obj) {
-        return Object.keys(obj);        
+        return Object.keys(obj).sort();        
     }
 
     // ###### begin 构建 AST    
