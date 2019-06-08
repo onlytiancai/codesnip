@@ -1,4 +1,4 @@
-var grammar = $.ajax({ type: "GET", url: './wb.pegjs', async: false }).responseText;
+var grammar = $.ajax({ type: "GET", url: './wb.peg.js', async: false }).responseText;
 var parser = peg.generate(grammar);
 
 // 临时存储打印的数据
