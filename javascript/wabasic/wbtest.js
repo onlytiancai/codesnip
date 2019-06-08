@@ -359,6 +359,7 @@ QUnit.test("对象测试", function (assert) {
     'itemset(obj, "a", 1)\n' +
     'itemset(obj, "b", 2)\n' +
     'itemset(obj, "c", "d")\n' +
+    'print itemget(obj, "y")\n'+
     'keys = keys(obj)\n' +
     'len =  len(keys)\n' +    
     'i = 0\n' +
@@ -371,7 +372,7 @@ QUnit.test("对象测试", function (assert) {
     console.log(ast);
 
     ast.eval();
-    assert.deepEqual(printData, [1, 2, 'd', 8, 9]);
+    assert.deepEqual(printData, [9, 1, 2, 'd', 8, 9]);
 });
 
 QUnit.test("字符串", function (assert) {
