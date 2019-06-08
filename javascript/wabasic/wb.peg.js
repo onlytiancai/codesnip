@@ -65,6 +65,34 @@
         return arr.length;
     }
 
+    /**
+     * 创建对象
+     */
+    window.mkobj = function () {
+        return {};
+    }
+
+    /**
+     * 获取对象属性值
+     */
+    window.itemget = function (obj, key) {
+        return obj[key];
+    }
+
+    /**
+     * 设置对象属性值
+     */
+    window.itemset = function (obj, key, value) {
+        obj[key] = value;
+    }
+
+    /**
+     * 获取对象属性列表
+     */
+    window.keys = function (obj) {
+        return Object.keys(obj);        
+    }
+
     // ###### begin 构建 AST    
 
     /**
@@ -75,6 +103,12 @@
         this.type = 'Integer';
         this.n = n;
         Integer.prototype.eval = function (env) { return parseInt(this.n, 10); }
+    }
+
+    function StringLiteral(str) {
+        this.type = 'StringLiteral';
+        this.str = str;
+        StringLiteral.prototype.eval = function (env) { return this.str; }        
     }
 
     /**
@@ -358,6 +392,9 @@ Comment  = "//" (!LineTerminator .)*
 Integer "integer"  = _ [0-9]+ { return new Integer(text()); }
 Id = !Keyword ([a-z]+ [0-9]* [z-z]*)  { return new Id(text())}
 Keyword  = 'if' / 'then'  / 'end'  / 'while' / 'and' / 'or'
+DoubleStringCharacter
+  = !('"' / "\\" / LineTerminator) . { return text(); }
+StringLiteral  = '"' chars:DoubleStringCharacter* '"' { return new StringLiteral(chars.join("")) }
  
 
 
@@ -416,6 +453,7 @@ Factor
   / CallExp
   / Integer
   / Id  
+  / StringLiteral
 
 // ###### begin 语句解析
     
