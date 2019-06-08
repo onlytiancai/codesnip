@@ -351,3 +351,38 @@ QUnit.test("数组测试", function (assert) {
     ast.eval();
     assert.deepEqual(printData, [6, 1, 2, 100, 4, 5, 6]);
 });
+
+QUnit.test("对象测试", function (assert) {
+    window.globaladd = function(a, b) { return a  + b};
+    var input = 
+    'obj = mkobj()\n' +
+    'itemset(obj, "a", 1)\n' +
+    'itemset(obj, "b", 2)\n' +
+    'itemset(obj, "c", "d")\n' +
+    'keys = keys(obj)\n' +
+    'len =  len(keys)\n' +    
+    'i = 0\n' +
+    'while i < len then\n' +
+    '  print itemget(obj, arrget(keys, i))\n' +
+    '  i = i + 1\n' +
+    'end\n' 
+    ;
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.eval();
+    assert.deepEqual(printData, [1, 2, 'd']);
+});
+
+QUnit.test("字符串", function (assert) {
+    var input = 
+    'print "abc"\n'+
+    'print "123"\n'+
+    'print "我是中国人"\n'
+    ;
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.eval();
+    assert.deepEqual(printData, ['abc', '123', '我是中国人']);
+});
