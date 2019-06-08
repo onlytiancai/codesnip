@@ -391,12 +391,12 @@ ReturnStat
 	=  'return' _ exp:Exp { return new ReturnStat(exp) }     
     
 IfStat
-	= 'if'i _ cond:RelExp _ 'then'i EOS
+	= 'if'i _ cond:Exp _ 'then'i EOS
     __ body:(SourceElements?) __
     'end'i  EOS { return new IfStat(cond, body)   }
     
 WhileStat
-	= 'while' _ cond:RelExp _ 'then'i EOS
+	= 'while' _ cond:Exp _ 'then'i EOS
     __ body:(SourceElements?) __
     'end'i  EOS { return new WhileStat(cond, body)  }  
   
