@@ -227,7 +227,7 @@ QUnit.test("左右递归:aaa(n)", function (assert) {
     console.log(ast);
 
     ast.eval();
-    assert.deepEqual(printData, [1, 2, 3, 4, 5]);
+    assert.deepEqual(printData, [16]);
 });
 
 
