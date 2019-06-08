@@ -215,6 +215,21 @@ QUnit.test("递归调用:printn(n)", function (assert) {
     assert.deepEqual(printData, [1, 2, 3, 4, 5]);
 });
 
+QUnit.test("左右递归:aaa(n)", function (assert) {
+    var input = 'def aaa(n)\n' +
+        '  if n > 1 then\n' +
+        '    return aaa(n - 1) + aaa(n - 1)\n' +
+        '  end\n' +
+        '  return n\n' +
+        'end\n' +
+        'print aaa(5)\n';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.eval();
+    assert.deepEqual(printData, [1, 2, 3, 4, 5]);
+});
+
 
 QUnit.test("函数表达式: add(1, add(1, 2))", function (assert) {
     var input = 'def add(a, b)\n' +
