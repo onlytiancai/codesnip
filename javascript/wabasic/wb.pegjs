@@ -38,13 +38,17 @@ function DefStat(name, params, body) {
     this.body = body;
     DefStat.prototype.eval = function (env) {
         console.log('DefStat#eval', env, this.params);
-        var that = this;
+        var that = this;        
         env[this.name.id] = {
+            // 实现闭包：捕获变量
+            capture: Object.assign({}, env),
             type: 'func',
             params: this.params,
             eval: function(env) {
                 console.log('Def#' + that.name.id, env);
                 that.body.eval(env);
+                // 实现闭包：返回修改后的环境
+                return env;
             }
         };        
     }
@@ -86,15 +90,24 @@ function CallExp(name, args) {
             throwError('args length error:' + func.params.length + ', ' + this.args.length);
         }
 
-        // copy env
-        env = Object.assign({}, env);
+        console.debug('CallExp:capture, env', this.name.id, func.capture, env);
+        // 实现闭包：合并定义期间捕获的变量
+        env = Object.assign(func.capture || {}, env);
+        
         // 构建实参
         for (var i = 0; i < func.params.length; i++) {           
             env[func.params[i]] = this.args[i].eval(env);
         }        
 
         try {
-            func.eval(env);
+            // 再次拷贝，防止递归调用时外层函数的变量被内层函数改动
+            var modifyenv = func.eval(Object.assign({}, env));            
+            // 实现闭包：修改捕获的变量            
+            var keys = Object.keys(func.capture || {});
+            for (var i = 0; i < keys.length; i ++) {
+                var key = keys[i];
+                func.capture[key] = modifyenv[key];
+            }            
         } catch (err) {
             // 使用 thorw 实现 return 语句
             if (err instanceof ReturnObject) {
@@ -217,7 +230,7 @@ EOF = !.
 EOS  = __ ";" / _ Comment? LineTerminatorSequence   / __ EOF  
 Comment  = "//" (!LineTerminator .)*  
 Integer "integer"  = _ [0-9]+ { return new Integer(text()); }
-Id = !Keyword ([a-z]+)  { return new Id(text())}
+Id = !Keyword ([a-z]+ [0-9]* [z-z]*)  { return new Id(text())}
 Keyword  = 'if' / 'then'  / 'end'  / 'while' / 'and' / 'or'
  
 SourceElements

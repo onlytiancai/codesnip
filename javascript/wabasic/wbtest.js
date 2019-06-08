@@ -138,11 +138,11 @@ QUnit.test("循环语句：while", function(assert) {
     assert.deepEqual([2, 4, 6, 8], printData);
 });
 
-QUnit.test("无参数函数定义及调用：foo()", function(assert) {
-    var input = 'def foo()\n' +
+QUnit.test("无参数函数定义及调用：foo2()", function(assert) {
+    var input = 'def foo2()\n' +
         '  print 1 + 1\n' +
         'end\n' +
-        'foo()\n';
+        'foo2()\n';
     var ast = parser.parse(input);
     console.log(ast);
 
@@ -200,19 +200,6 @@ QUnit.test("包含 Return 语句函数：max(a, b)", function(assert) {
     assert.deepEqual(printData, [2, 4]);
 });
 
-
-QUnit.test("函数表达式: add(1, add(1, 2))", function(assert) {
-    var input = 'def add(a, b)\n' +
-        '  return a + b\n' +
-        'end\n' +
-        'print add(1, add(1, 2))\n';
-    var ast = parser.parse(input);
-    console.log(ast);
-
-    ast.eval();
-    assert.deepEqual(printData, [4]);
-});
-
 QUnit.test("递归调用:printn(n)", function(assert) {
     var input = 'def printn(n)\n' +
         '  if n > 1 then\n'+
@@ -227,3 +214,67 @@ QUnit.test("递归调用:printn(n)", function(assert) {
     ast.eval();
     assert.deepEqual(printData, [1, 2, 3, 4, 5]);
 });
+
+
+QUnit.test("函数表达式: add(1, add(1, 2))", function(assert) {
+    var input = 'def add(a, b)\n' +
+        '  return a + b\n' +
+        'end\n' +
+        'print add(1, add(1, 2))\n';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.eval();
+    assert.deepEqual(printData, [4]);
+});
+
+QUnit.test("函数当变量: myprint", function(assert) {
+    var input = 'def myprint(n)\n'+
+        '  print n\n'+
+        'end\n'+
+        'p = myprint\n'+
+        'p(55)\n'+
+        'p(43)\n';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.eval();
+    assert.deepEqual(printData, [55, 43]);
+});
+
+QUnit.test("函数套函数: myprint, inner", function(assert) {
+    var input = 'def myprint()\n'+
+        '  def inner(n)\n'+
+        '    print n\n'+
+        '  end\n'+
+        '  return inner\n'+
+        'end\n'+
+        'p = myprint()\n'+
+        'p(55)\n'+
+        'p(43)\n';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.eval();
+    assert.deepEqual(printData, [55, 43]);
+});
+
+QUnit.test("闭包: makeinc", function(assert) {
+    var input = 'def makeinc(n)\n'+
+        '  def inner()\n'+        
+        '    print n\n'+
+        '    n = n + 1\n'+
+        '  end\n'+
+        '  return inner\n'+
+        'end\n'+
+        'inc = makeinc(1)\n'+
+        'inc()\n'+
+        'inc()\n'+
+        'inc()\n';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.eval();
+    assert.deepEqual(printData, [1, 2, 3]);
+});
+
