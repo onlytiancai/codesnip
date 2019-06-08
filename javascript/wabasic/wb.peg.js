@@ -28,6 +28,43 @@
         throw msg;
     }
 
+    // ###### begin 全局函数
+
+    /**
+     * 创建数组
+     */
+    window.mkarr = function() {
+        return Array.prototype.slice.call(arguments)
+    }
+
+    /**
+     * 数组末尾追加元素
+     */
+    window.arrpush = function (arr, o) {
+        arr.push(o);
+    }
+
+    /**
+     * 获取数组元素
+     */
+    window.arrget = function (arr, i) {
+        return arr[i];
+    }
+
+    /**
+     * 设置数组元素
+     */
+    window.arrset = function(arr, i, o) {
+        arr[i] = o;
+    }
+
+    /**
+     * 获取数组长度
+     */
+    window.len = function (arr) {
+        return arr.length;
+    }
+
     // ###### begin 构建 AST    
 
     /**
@@ -179,12 +216,23 @@
 
             var func = env[this.name.id];
 
+
             if (!func) {
-                throwError('Unknow func:' + this.name);
+                // 调用原生 js 函数，不需要构建 env 和 闭包捕获的变量，只传参数
+                if (typeof window[this.name.id] === 'function') {
+                    var args = [];
+                    for (var i = 0; i < this.args.length; i++) {
+                        args.push(this.args[i].eval(env));
+                    }
+                    console.log(111, window[this.name.id], args)
+                    return window[this.name.id].apply(null, args)
+                }
+            
+                throwError('Unknow func:' + this.name.id);
             }
 
             if (func.type != 'func') {
-                throwError('Id is not func:' + this.name);
+                throwError('Id is not func:' + this.name.id);
             }
 
             // 形参和实参个数校验
