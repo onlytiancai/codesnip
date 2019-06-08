@@ -1,5 +1,5 @@
 {
-    // ****** 辅助函数
+    // ###### begin 辅助函数
 
     // 外部定义的话优先使用外部定义
     var println = window.println || function (d) { console.log(d) };
@@ -28,8 +28,77 @@
         throw msg;
     }
 
-    // ****** 构建 ast
-    var env = {};
+    // ###### begin 构建 AST    
+
+    /**
+     * 整形数字
+     * @param {数字} n 
+     */
+    function Integer(n) {
+        this.type = 'Integer';
+        this.n = n;
+        Integer.prototype.eval = function (env) { return parseInt(this.n, 10); }
+    }
+
+    /**
+     * 标识符
+     * @param {名称} id 
+     */
+    function Id(id) {
+        this.type = 'Id';
+        this.id = id;
+        Id.prototype.eval = function (env) { return env[this.id]; }
+    }
+
+    /**
+     * 二元操作符
+     * @param {left} left 
+     * @param {op} op 
+     * @param {right} right 
+     */
+    function BinOpExp(left, op, right) {
+        this.type = 'BinOpExp';
+        this.op = op;
+        this.left = left;
+        this.right = right;
+        BinOpExp.prototype.eval = function (env) {
+            console.log('BinOpExp#eval', this.left, this.op, this.right);
+            console.log('BinOpExp#eval', this.left.eval(env), this.op, this.right.eval(env));
+            switch (this.op) {
+                case '+': return this.left.eval(env) + this.right.eval(env);
+                case '-': return this.left.eval(env) - this.right.eval(env);
+                case '*': return this.left.eval(env) * this.right.eval(env);
+                case '/': return this.left.eval(env) / this.right.eval(env);
+                case '%': return this.left.eval(env) % this.right.eval(env);
+                case '<': return this.left.eval(env) < this.right.eval(env);
+                case '>': return this.left.eval(env) > this.right.eval(env);
+                case '<=': return this.left.eval(env) <= this.right.eval(env);
+                case '>=': return this.left.eval(env) >= this.right.eval(env);
+                case '==': return this.left.eval(env) == this.right.eval(env);
+                case '!=': return this.left.eval(env) != this.right.eval(env);
+                case 'and': return this.left.eval(env) && this.right.eval(env);
+                case 'or': return this.left.eval(env) || this.right.eval(env);
+                default:
+                    console.log('Unknow op:' + this.op)
+                    throw 'Unknow op:' + this.op;
+            }
+        }
+    }  
+
+    /**
+     * 赋值语句
+     * @param {变量名} id 
+     * @param {表达式} exp 
+     */
+    function AssignStat(id, exp) {
+        this.type = 'assignStat';
+        this.id = id;
+        this.exp = exp;
+        AssignStat.prototype.eval = function (env) {
+            console.log('AssignStat#eval' + this.id.id, env);
+            env[this.id.id] = this.exp.eval(env);
+        }
+    }
 
     /**
      * 内置 print 函数
@@ -72,20 +141,7 @@
         }
     }
 
-    /**
-     * 赋值语句
-     * @param {变量名} id 
-     * @param {表达式} exp 
-     */
-    function AssignStat(id, exp) {
-        this.type = 'assignStat';
-        this.id = id;
-        this.exp = exp;
-        AssignStat.prototype.eval = function (env) {
-            console.log('AssignStat#eval' + this.id.id, env);
-            env[this.id.id] = this.exp.eval(env);
-        }
-    }
+
 
     /**
      * return 语句使用 throw 实现，这里封装要 throw 的对象
@@ -97,7 +153,7 @@
     }
 
     /**
-     * return 语句
+     * return 语句，使用 throw 实现
      * @param {返回的表达式} exp 
      */
     function ReturnStat(exp) {
@@ -217,26 +273,6 @@
     }
 
     /**
-     * 整形数字
-     * @param {数字} n 
-     */
-    function Integer(n) {
-        this.type = 'Integer';
-        this.n = n;
-        Integer.prototype.eval = function (env) { return parseInt(this.n, 10); }
-    }
-
-    /**
-     * 标识符
-     * @param {名称} id 
-     */
-    function Id(id) {
-        this.type = 'Id';
-        this.id = id;
-        Id.prototype.eval = function (env) { return env[this.id]; }
-    }
-
-    /**
      * 程序入口
      * @param {主体} body 
      */
@@ -248,47 +284,20 @@
             env['print'] = PrintFunc;
             this.body.eval(env);
         }
-    }
-
-    /**
-     * 二元操作符
-     * @param {left} left 
-     * @param {op} op 
-     * @param {right} right 
-     */
-    function BinOpExp(left, op, right) {
-        this.type = 'BinOpExp';
-        this.op = op;
-        this.left = left;
-        this.right = right;
-        BinOpExp.prototype.eval = function (env) {
-            console.log('BinOpExp#eval', this.left, this.op, this.right);
-            console.log('BinOpExp#eval', this.left.eval(env), this.op, this.right.eval(env));
-            switch (this.op) {
-                case '+': return this.left.eval(env) + this.right.eval(env);
-                case '-': return this.left.eval(env) - this.right.eval(env);
-                case '*': return this.left.eval(env) * this.right.eval(env);
-                case '/': return this.left.eval(env) / this.right.eval(env);
-                case '%': return this.left.eval(env) % this.right.eval(env);
-                case '<': return this.left.eval(env) < this.right.eval(env);
-                case '>': return this.left.eval(env) > this.right.eval(env);
-                case '<=': return this.left.eval(env) <= this.right.eval(env);
-                case '>=': return this.left.eval(env) >= this.right.eval(env);
-                case '==': return this.left.eval(env) == this.right.eval(env);
-                case '!=': return this.left.eval(env) != this.right.eval(env);
-                case 'and': return this.left.eval(env) && this.right.eval(env);
-                case 'or': return this.left.eval(env) || this.right.eval(env);
-                default:
-                    console.log('Unknow op:' + this.op)
-                    throw 'Unknow op:' + this.op;
-            }
-        }
-    }     
+    }   
 }
 
 Start  = __ body:SourceElements? __ { 	
 	return new Program(body);
 }
+
+SourceElements
+  = head:Statement tail:(__ Statement)* {
+  		var body = buildList(head, tail, 1);
+  		return new SeqStat(body);      
+    }
+
+// ###### begin 词法解析
 
 WhiteSpace "whitespace" = [\t ]
 LineTerminator = [\n\r]
@@ -302,63 +311,13 @@ Integer "integer"  = _ [0-9]+ { return new Integer(text()); }
 Id = !Keyword ([a-z]+ [0-9]* [z-z]*)  { return new Id(text())}
 Keyword  = 'if' / 'then'  / 'end'  / 'while' / 'and' / 'or'
  
-SourceElements
-  = head:Statement tail:(__ Statement)* {
-  		var body = buildList(head, tail, 1);
-  		return new SeqStat(body);      
-    }
-    
-Statement
-  = AssignStat
-  / PrintStat
-  / IfStat
-  / WhileStat  
-  / DefStat
-  / CallExp
-  / ReturnStat
 
-    
-AssignStat
-	= id:Id _ '=' _ exp:Exp EOS { return new AssignStat(id, exp); }
-    
-PrintStat
-	=  'print' ' '+ exp:Exp { return new CallExp(new Id('print'), [exp]) } 
 
-ReturnStat
-	=  'return' _ exp:Exp { return new ReturnStat(exp) }     
-    
-IfStat
-	= 'if'i _ cond:RelExp _ 'then'i EOS
-    __ body:(SourceElements?) __
-    'end'i  EOS { return new IfStat(cond, body)   }
-    
-WhileStat
-	= 'while' _ cond:RelExp _ 'then'i EOS
-    __ body:(SourceElements?) __
-    'end'i  EOS { return new WhileStat(cond, body)  }  
-  
-DefStat
-	= 'def'i _ name:Id '(' _ params:ParamList _ ')' EOS
-    __ body:(SourceElements?) __
-    'end'i  EOS { return new DefStat(name, params, body)  }  
-
-ParamList
-    = head:Id _ ',' _ tail:ParamList { tail.unshift(head.id);return tail;}
-    / id:Id { return [id.id]}  
-    / _ {return []}
-
-CallExp
-	= _ name:Id '(' _ args:ArgList _ ')' { return new CallExp(name, args)  }      
-      
-
-ArgList
-    = head:Exp _ ',' _ tail:ArgList { tail.unshift(head);return tail;}
-    / exp:Exp { return [exp]}  
-    / _ {return []} 
-
+// ###### begin 表达式解析
+// 注意，优先级要从低到高依次声明：或 < 与 < 关系运算符 < 加减 < 乘除 < (括号|数字|标识符|函数调用)
 Exp
 	= exp:OrExp { return exp }
-    
+
 OrExp
   = head:AndExp tail:(_ ( "or") _ AndExp)* _ {
       return tail.reduce(function(result, element) {
@@ -394,11 +353,64 @@ Term
       }, head);
     }
 
-// 注意：CallExp 要在 Id 上面
+CallExp
+	= _ name:Id '(' _ args:ArgList _ ')' { return new CallExp(name, args)  }      
+      
+
+ArgList
+    = head:Exp _ ',' _ tail:ArgList { tail.unshift(head);return tail;}
+    / exp:Exp { return [exp]}  
+    / _ {return []} 
+
+// 注意：CallExp 要在 Id 上面，因为CallExp 是 id 后加括号
 Factor
   = "(" _ expr:MathExp _ ")" { return expr; }
   / CallExp
   / Integer
   / Id  
 
+// ###### begin 语句解析
+    
+Statement
+  = AssignStat
+  / PrintStat
+  / IfStat
+  / WhileStat  
+  / DefStat
+  / CallStat
+  / ReturnStat
+
+    
+AssignStat
+	= id:Id _ '=' _ exp:Exp EOS { return new AssignStat(id, exp); }
+    
+PrintStat
+	=  'print' ' '+ exp:Exp { return new CallExp(new Id('print'), [exp]) } 
+
+ReturnStat
+	=  'return' _ exp:Exp { return new ReturnStat(exp) }     
+    
+IfStat
+	= 'if'i _ cond:RelExp _ 'then'i EOS
+    __ body:(SourceElements?) __
+    'end'i  EOS { return new IfStat(cond, body)   }
+    
+WhileStat
+	= 'while' _ cond:RelExp _ 'then'i EOS
+    __ body:(SourceElements?) __
+    'end'i  EOS { return new WhileStat(cond, body)  }  
+  
+DefStat
+	= 'def'i _ name:Id '(' _ params:ParamList _ ')' EOS
+    __ body:(SourceElements?) __
+    'end'i  EOS { return new DefStat(name, params, body)  }  
+
+ParamList
+    = head:Id _ ',' _ tail:ParamList { tail.unshift(head.id);return tail;}
+    / id:Id { return [id.id]}  
+    / _ {return []}
+
+// 函数调用既是表达式又是语句
+CallStat
+    = CallExp
               

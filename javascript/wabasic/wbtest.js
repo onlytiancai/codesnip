@@ -280,9 +280,11 @@ QUnit.test("闭包: makeinc", function (assert) {
 
 QUnit.test("多实例闭包: makeinc", function (assert) {
     var input = 'def makeinc(n)\n' +
+        '  m = 200\n' +
         '  def inner()\n' +
-        '    print n\n' +
+        '    print m + n\n' +
         '    n = n + 1\n' +
+        '    m = m + 1\n' +
         '  end\n' +
         '  return inner\n' +
         'end\n' +
@@ -290,15 +292,15 @@ QUnit.test("多实例闭包: makeinc", function (assert) {
         'inc100 = makeinc(101)\n' +
         'inc1()\n' +
         'inc100()\n' +
-        'inc1()\n' +        
+        'inc1()\n' +
         'inc100()\n' +
         'inc1()\n' +
-        'inc100()\n'         ;
+        'inc100()\n';
     var ast = parser.parse(input);
     console.log(ast);
 
     ast.eval();
-    assert.deepEqual(printData, [1, 101, 2, 102, 3, 103]);
+    assert.deepEqual(printData, [201, 301, 203, 303, 205, 305]);
 });
 
 
