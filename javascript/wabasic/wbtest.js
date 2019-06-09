@@ -319,3 +319,71 @@ QUnit.test("多实例闭包: makeinc", function (assert) {
 });
 
 
+QUnit.test("调用原生 JS 函数", function (assert) {
+    window.globaladd = function(a, b) { return a  + b};
+    var input = 'print globaladd(3, 2)';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.eval();
+    assert.deepEqual(printData, [5]);
+});
+
+QUnit.test("数组测试", function (assert) {
+    window.globaladd = function(a, b) { return a  + b};
+    var input = 
+    'arr = mkarr(1, 2, 3)\n' +
+    'arrpush(arr, 4)\n' +
+    'arrpush(arr, 5)\n' +
+    'arrpush(arr, 6)\n' +
+    'len = len(arr)\n' +
+    'print len\n' +
+    'arrset(arr, 2, 100)\n' +
+    'i = 0\n' +
+    'while i < len then\n' +
+    '  print arrget(arr, i)\n' +
+    '  i = i + 1\n' +
+    'end\n' 
+    ;
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.eval();
+    assert.deepEqual(printData, [6, 1, 2, 100, 4, 5, 6]);
+});
+
+QUnit.test("对象测试", function (assert) {
+    window.globaladd = function(a, b) { return a  + b};
+    var input = 
+    'obj = mkobj("x", 8, "y", 9)\n' +
+    'itemset(obj, "a", 1)\n' +
+    'itemset(obj, "b", 2)\n' +
+    'itemset(obj, "c", "d")\n' +
+    'print itemget(obj, "y")\n'+
+    'keys = keys(obj)\n' +
+    'len =  len(keys)\n' +    
+    'i = 0\n' +
+    'while i < len then\n' +
+    '  print itemget(obj, arrget(keys, i))\n' +
+    '  i = i + 1\n' +
+    'end\n' 
+    ;
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.eval();
+    assert.deepEqual(printData, [9, 1, 2, 'd', 8, 9]);
+});
+
+QUnit.test("字符串", function (assert) {
+    var input = 
+    'print "abc"\n'+
+    'print "123"\n'+
+    'print "我是中国人"\n'
+    ;
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.eval();
+    assert.deepEqual(printData, ['abc', '123', '我是中国人']);
+});
