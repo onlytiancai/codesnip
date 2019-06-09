@@ -30,6 +30,9 @@
             font-size: 120%;
             font-family: Consolas, Monaco, monospace;
         }
+        #help {
+            text-align: left;
+        }
     </style>
 </head>
 
@@ -59,6 +62,25 @@ end
 </textarea>
     <button id="run">运行</button>
     <button id="clear">清空</button>
+    <h4>帮助</h4>
+    <ul id="help">
+        <li>支持操作符：<ul>
+            <li>算术：+, -, *, /, %</li>
+            <li>关系：&lt;, &lt;=, &gt;, &gt;=, ==, !=</li>
+            <li>逻辑：and, or</li>
+        </ul></li>
+        <li>支持语句：<ul>
+            <li>if: 不支持 else</li>
+            <li>while: 注意防止死循环</li>
+            <li>def: 定义函数</li>
+        </ul></li>
+        <li>内置函数：<ul>
+            <li>pencolor(color): 设置画笔颜色</li>
+            <li>forward(distance), fd(d): 前进一定距离</li>
+            <li>left(deg), lt(d): 左转一定角度</li>
+            <li>right(deg), rt(d): 右转一定角度</li>
+        </ul></li>
+    </ul>
     <script src="../libs/peg-0.10.0.js"></script>
     <script src="../jquery-1.8.0.js"></script>
     <script src="./tiny-turtle.js"></script>
@@ -67,9 +89,10 @@ end
         var parser = peg.generate(grammar);
         TinyTurtle.apply(window);
         $('#run').on('click', function () {
+            $(window).scrollTop(0);
             var ast = parser.parse($('#editor').val());
             console.log(ast);
-            ast.eval();
+            ast.eval();            
         });
         $('#clear').on('click', function () {
             var c = document.getElementById("canvas");
