@@ -28,6 +28,76 @@
         throw msg;
     }
 
+    // ###### begin 全局函数
+
+    /**
+     * 创建数组
+     */
+    window.mkarr = function() {
+        return Array.prototype.slice.call(arguments)
+    }
+
+    /**
+     * 数组末尾追加元素
+     */
+    window.arrpush = function (arr, o) {
+        arr.push(o);
+    }
+
+    /**
+     * 获取数组元素
+     */
+    window.arrget = function (arr, i) {
+        return arr[i];
+    }
+
+    /**
+     * 设置数组元素
+     */
+    window.arrset = function(arr, i, o) {
+        arr[i] = o;
+    }
+
+    /**
+     * 获取数组长度
+     */
+    window.len = function (arr) {
+        return arr.length;
+    }
+
+    /**
+     * 创建对象
+     */
+    window.mkobj = function () {
+        var args = Array.prototype.slice.call(arguments);
+        var ret = {};
+        for (var i = 0; i < args.length; i = i + 2) {
+            ret[args[i]] = args[i + 1];            
+        }
+        return ret;
+    }
+
+    /**
+     * 获取对象属性值
+     */
+    window.itemget = function (obj, key) {
+        return obj[key];
+    }
+
+    /**
+     * 设置对象属性值
+     */
+    window.itemset = function (obj, key, value) {
+        obj[key] = value;
+    }
+
+    /**
+     * 获取对象属性列表
+     */
+    window.keys = function (obj) {
+        return Object.keys(obj).sort();        
+    }
+
     // ###### begin 构建 AST    
 
     /**
@@ -38,6 +108,12 @@
         this.type = 'Integer';
         this.n = n;
         Integer.prototype.eval = function (env) { return parseInt(this.n, 10); }
+    }
+
+    function StringLiteral(str) {
+        this.type = 'StringLiteral';
+        this.str = str;
+        StringLiteral.prototype.eval = function (env) { return this.str; }        
     }
 
     /**
@@ -179,12 +255,23 @@
 
             var func = env[this.name.id];
 
+
             if (!func) {
-                throwError('Unknow func:' + this.name);
+                // 调用原生 js 函数，不需要构建 env 和 闭包捕获的变量，只传参数
+                if (typeof window[this.name.id] === 'function') {
+                    var args = [];
+                    for (var i = 0; i < this.args.length; i++) {
+                        args.push(this.args[i].eval(env));
+                    }
+                    console.log(111, window[this.name.id], args)
+                    return window[this.name.id].apply(null, args)
+                }
+            
+                throwError('Unknow func:' + this.name.id);
             }
 
             if (func.type != 'func') {
-                throwError('Id is not func:' + this.name);
+                throwError('Id is not func:' + this.name.id);
             }
 
             // 形参和实参个数校验
@@ -310,6 +397,9 @@ Comment  = "//" (!LineTerminator .)*
 Integer "integer"  = _ [0-9]+ { return new Integer(text()); }
 Id = !Keyword ([a-z]+ [0-9]* [z-z]*)  { return new Id(text())}
 Keyword  = 'if' / 'then'  / 'end'  / 'while' / 'and' / 'or'
+DoubleStringCharacter
+  = !('"' / "\\" / LineTerminator) . { return text(); }
+StringLiteral  = '"' chars:DoubleStringCharacter* '"' { return new StringLiteral(chars.join("")) }
  
 
 
@@ -368,6 +458,7 @@ Factor
   / CallExp
   / Integer
   / Id  
+  / StringLiteral
 
 // ###### begin 语句解析
     
