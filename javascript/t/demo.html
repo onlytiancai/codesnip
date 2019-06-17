@@ -81,13 +81,24 @@
         <div class="turtle" id="turtle"></div>
     </div>
     <div class="code-container">
-        <textarea id="code">
-pen('red');
-rt(90);
-fd(100);
-lt(90);
-bk(50);
-    </textarea>
+        <textarea id="code">speed(30);
+function box(length){
+  for (var i = 0; i < 4; i++) {
+    fd(length);
+    rt(90);
+  }
+}            
+
+for (var i = 0; i < 18; i++) {
+  if (i % 2 != 0) {
+    pen('blue');
+  } else {
+    pen('red');
+  }
+  box(80);
+  lt(20);
+}
+</textarea>
         <div class="buttons">
             <button id='run'>运行</button>
             <button id='clear'>清空</button>
