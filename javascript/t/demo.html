@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>番茄编程入门</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background-color: #ffffff;
+        }
+        
+        .code-container {
+            padding: 0;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+            text-align: center;
+        }
+        
+        #code {
+            display: block;
+            margin: 0 auto;
+            font-size: 16px;
+            font-family: monospace;
+            width: 90%;
+            height: 100px;
+            border: 0;
+            border-radius: 5px;
+            background-color: rgba(241, 241, 241, .98);
+            resize: none;
+            padding: 5px;
+        }
+        
+        .buttons {
+            height: 50px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        
+        .canvas {
+            width: 90%;
+            max-width: 500px;
+            margin: 0 auto;
+            height: 500px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            position: relative;
+            z-index: -1;
+        }
+        
+        #turtle {
+            background-image: url(data:image/gif;base64,R0lGODlhKAAwAPIFAAAAAAFsOACSRTCuSICAgP///wAAAAAAACH5BAlkAAYAIf8LTkVUU0NBUEUyLjADAQAAACwAAAAAKAAwAAAD72i6zATEgBCAebHpzUnxhDAMAvhxKOoV3ziuZyo3RO26dTbvgXj/gsCO9ysOhENZz+gKJmcUkmA6PSKfSqrWieVtuU+KGNXbXofLEZgR/VHCgdua4isGz9mbmM6U7/94BmlyfUZ1fhqDhYuGgYqMkCOBgo+RfWsNlZZ3ewIpcZaIYaF6XaCkR6aokqqrk0qrqVinpK+fsbZkuK2ouRy0ob4bwJbCibthh6GYebGcY7/EsWqTbdNG1dd9jnXPyk2d38y0Z9Yub2yA6AvWPYk+zEnkv6xdCoPuw/X2gLqy9vJIGAN4b8pAgpQOIlzI8EkCACH5BAlkAAYALAAAAAAoADAAAAPuaLrMBMSAEIB5senNSfGEMAwC+HEo6hXfOK5nKjdE7bp1Nu+BeP+CwI73Kw6EQ1nP6AomZxSSYDo9Ip9KqtaJ5W25Xej3qqGYsdEfZbMcgZXtYpActzLMeLOP6c7f3nVNfEZ7TXSFg4lyZAYBio+LZYiQfHMbc3iTlG9ilGpdjp4ujESiI6RQpqegqkesqqhKrbEpoaa0KLaiuBy6nrxss6+3w7tomo+cDXmBnsoLza2nsb7SN2tl1nyozVOZTJhxysxnd9XYCrrAtT7KQaPruavBo2HQ8xrvffaN+GV5/JbE45fOG8Ek5Q4qXHgwAQA7);
+            width: 40px;
+            height: 48px;
+            opacity: 0.67;
+            background-size: cover;
+            position: absolute;
+            display: table;
+            top: -13px;
+            left: -10px;
+            transform: none;
+            z-index: 50;
+            width: 20px;
+            height: 24px;
+            transform-origin: 10px 13px;
+        }
+    </style>
+</head>
+
+<body>
+    <ul id="message"></ul>
+    <div class="canvas">
+        <div class="turtle" id="turtle"></div>
+    </div>
+    <div class="code-container">
+        <textarea id="code">
+pen('red');
+rt(90);
+fd(100);
+lt(90);
+bk(50);
+    </textarea>
+        <div class="buttons">
+            <button id='run'>运行</button>
+            <button id='clear'>清空</button>
+        </div>
+
+    </div>
+    <script src="../jquery.min.js"></script>
+    <script src="./jquery-turtle.min.js"></script>
+    <script>
+        function appendMessage(msg) {
+            $('#message').append('<li>' + msg + '</li>')
+        }
+
+        function clearMessage() {
+            $('#message').empty();
+        }
+        eval($.turtle('turtle'));
+        $(function() {
+            // 让画布呈方形
+            $('.canvas').height($('.canvas').width());
+            // 让海龟跳到画布中央
+            jumpto(0, 0);
+            // 运行代码
+            $('#run').on('click', function() {
+                clearMessage();
+                try {
+                    eval($('#code').val());
+                } catch (error) {
+                    appendMessage(error);
+                }
+
+            })
+
+            // 清空画布
+            $('#clear').on('click', function() {
+                cg();
+                clearMessage();
+                jumpto(0, 0);
+            })
+        });
+    </script>
+</body>
+
+</html>
