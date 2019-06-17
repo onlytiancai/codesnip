@@ -81,24 +81,27 @@
         <div class="turtle" id="turtle"></div>
     </div>
     <div class="code-container">
-        <textarea id="code">speed(30);
-function box(length){
-  for (var i = 0; i < 4; i++) {
-    fd(length);
-    rt(90);
-  }
-}            
-
-for (var i = 0; i < 18; i++) {
-  if (i % 2 != 0) {
-    pen('blue');
-  } else {
-    pen('red');
-  }
-  box(80);
-  lt(20);
-}
-</textarea>
+        <textarea id="code">speed(30)
+def box(length)
+  i = 0
+  while i < 4 then
+    fd(length)
+    rt(90)
+    i = i + 1
+  end
+end
+i = 0
+while i < 18 then
+  if i % 2 == 0 then
+    pen("blue")
+  end
+  if i % 2 != 0 then
+    pen("red")
+  end
+  box(80)
+  lt(20)
+  i = i + 1
+end</textarea>
         <div class="buttons">
             <button id='run'>运行</button>
             <button id='clear'>清空</button>
@@ -107,6 +110,7 @@ for (var i = 0; i < 18; i++) {
     </div>
     <script src="../jquery.min.js"></script>
     <script src="./jquery-turtle.min.js"></script>
+    <script src="../libs/peg-0.10.0.js"></script>
     <script>
         function appendMessage(msg) {
             $('#message').append('<li>' + msg + '</li>')
@@ -119,17 +123,28 @@ for (var i = 0; i < 18; i++) {
         $(function() {
             // 让画布呈方形
             $('.canvas').height($('.canvas').width());
+
             // 让海龟跳到画布中央
             jumpto(0, 0);
+
+            // 加载编译器
+            var grammar = $.ajax({
+                type: "GET",
+                url: '../wabasic/wb.peg.js',
+                async: false
+            }).responseText;
+            var parser = peg.generate(grammar);
+
             // 运行代码
             $('#run').on('click', function() {
                 clearMessage();
                 try {
-                    eval($('#code').val());
+                    var ast = parser.parse($('#code').val());
+                    console.log(ast);
+                    ast.eval();
                 } catch (error) {
                     appendMessage(error);
                 }
-
             })
 
             // 清空画布
