@@ -81,26 +81,21 @@
         <div class="turtle" id="turtle"></div>
     </div>
     <div class="code-container">
-        <textarea id="code">speed(30)
+        <textarea id="code">speed 30
 def box(length)
-  i = 0
-  while i < 4 then
-    fd(length)
-    rt(90)
-    i = i + 1
+  for i = 1 to 4  
+    fd length
+    rt 90    
   end
 end
-i = 0
-while i < 18 then
+for i = 1 to 18
   if i % 2 == 0 then
-    pen("blue")
+    pen "blue"
+  else
+    pen "red"
   end
-  if i % 2 != 0 then
-    pen("red")
-  end
-  box(80)
-  lt(20)
-  i = i + 1
+  box 80
+  lt 20
 end</textarea>
         <div class="buttons">
             <button id='run'>运行</button>
@@ -123,6 +118,9 @@ end</textarea>
         $(function() {
             // 让画布呈方形
             $('.canvas').height($('.canvas').width());
+            // 代码区域大小自适应            
+            $('#code').height($(window).height() - $('.canvas').height() - $('.buttons').height() - 50);
+            $('#code').width($('.canvas').width() - 8);
 
             // 让海龟跳到画布中央
             jumpto(0, 0);
