@@ -369,13 +369,18 @@
      * @param {条件} cond 
      * @param {主体} body 
      */
-    function IfStat(cond, body) {
+    function IfStat(cond, body, elseBody) {
         this.type = 'IfStat';
         this.cond = cond;
         this.body = body;
+        this.elseBody = elseBody;
         IfStat.prototype.eval = function (env) {
             if (this.cond.eval(env)) {
                 this.body.eval(env);
+            } else {
+                if (elseBody != null) {
+                    elseBody.eval(env);
+                }
             }
         }
     }
@@ -505,8 +510,13 @@ ReturnStat
 IfStat
 	= 'if' _ cond:Exp _ 'then' EOS
     __ body:(SourceElements?) __
-    'end'  EOS { return new IfStat(cond, body)   }
-    
+    elsePart:ElsePart?
+    'end'  EOS { return new IfStat(cond, body, elsePart)}
+
+ElsePart
+    = 'else' EOS 
+    __ body:(SourceElements?) __ { return body}
+
 WhileStat
 	= 'while' _ cond:Exp EOS
     __ body:(SourceElements?) __

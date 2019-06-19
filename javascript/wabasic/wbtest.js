@@ -123,6 +123,19 @@ QUnit.test("分支语句：if", function(assert) {
     assert.deepEqual([2], printData);
 });
 
+QUnit.test("分支语句：if else", function(assert) {
+    var input = 'if 1 > 2 then\n' +
+        '    print 1\n' +
+        'else\n' +
+        '    print 2\n' +
+        'end\n';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.eval();
+    assert.deepEqual([2], printData);
+});
+
 QUnit.test("循环语句：while", function(assert) {
     var input = 'a = 1\n' +
         'while a < 10\n' +
