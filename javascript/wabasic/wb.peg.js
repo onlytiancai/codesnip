@@ -262,8 +262,7 @@
                     var args = [];
                     for (var i = 0; i < this.args.length; i++) {
                         args.push(this.args[i].eval(env));
-                    }
-                    console.log(111, window[this.name.id], args)
+                    }                    
                     return window[this.name.id].apply(null, args)
                 }
             
@@ -400,7 +399,9 @@
         Program.prototype.eval = function () {
             var env = {};
             env['print'] = PrintFunc;
-            this.body.eval(env);
+            if (this.body) {
+                this.body.eval(env);
+            }
         }
     }   
 }
@@ -424,7 +425,7 @@ __  = (WhiteSpace / LineTerminatorSequence / Comment)*
 _  = (WhiteSpace)*
 EOF = !. 
 EOS  = __ ";" / _ Comment? LineTerminatorSequence   / __ EOF  
-Comment  = "//" (!LineTerminator .)*  
+Comment  = ['#] (!LineTerminator .)* 
 Integer "integer"  = _ [0-9]+ { return new Integer(text()); }
 Id = !Keyword ([a-z]+ [0-9]* [z-z]*)  { return new Id(text())}
 Keyword  = 'if' / 'then'  / 'end'  / 'while' / 'and' / 'or' / 'for' /'to'/ 'def' / 'return'
