@@ -357,7 +357,12 @@
         this.body = body;
 
         ForToStat.prototype.eval = function (env) {
-            for (var i = this.begin.eval(env), end = this.end.eval(env); i <= end; i++) {              
+            var begin = this.begin.eval(env);
+            var end = this.end.eval(env);
+            if (begin > end) {
+                throwError("begin > end");
+            }
+            for (var i = begin; i <= end; i++) {              
                 env[this.id.id] = i;
                 this.body.eval(env);
             }

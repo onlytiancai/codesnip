@@ -147,7 +147,10 @@ end</textarea>
 
             // 清空画布
             $('#clear').on('click', function() {
+                pen('grey');
+                speed(1);
                 cg();
+                turnto(0);
                 clearMessage();
                 jumpto(0, 0);
             })
