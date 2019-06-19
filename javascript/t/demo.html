@@ -2,9 +2,9 @@
 <html lang="zh-cn">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>番茄编程入门</title>
     <style>
         html,
@@ -12,11 +12,11 @@
             margin: 0;
             padding: 0;
         }
-        
+
         body {
             background-color: #ffffff;
         }
-        
+
         .code-container {
             padding: 0;
             position: fixed;
@@ -24,27 +24,27 @@
             bottom: 0;
             text-align: center;
         }
-        
+
         #code {
             display: block;
             margin: 0 auto;
-            font-size: 16px;
+            font-size: 14px;
             font-family: monospace;
             width: 90%;
             height: 100px;
             border: 0;
             border-radius: 5px;
-            background-color: rgba(241, 241, 241, .98);
+            background-color: rgba(241, 241, 241, 0.98);
             resize: none;
             padding: 5px;
         }
-        
+
         .buttons {
             height: 50px;
             padding: 10px;
             box-sizing: border-box;
         }
-        
+
         .canvas {
             width: 90%;
             max-width: 500px;
@@ -55,7 +55,7 @@
             position: relative;
             z-index: -1;
         }
-        
+
         #turtle {
             background-image: url(data:image/gif;base64,R0lGODlhKAAwAPIFAAAAAAFsOACSRTCuSICAgP///wAAAAAAACH5BAlkAAYAIf8LTkVUU0NBUEUyLjADAQAAACwAAAAAKAAwAAAD72i6zATEgBCAebHpzUnxhDAMAvhxKOoV3ziuZyo3RO26dTbvgXj/gsCO9ysOhENZz+gKJmcUkmA6PSKfSqrWieVtuU+KGNXbXofLEZgR/VHCgdua4isGz9mbmM6U7/94BmlyfUZ1fhqDhYuGgYqMkCOBgo+RfWsNlZZ3ewIpcZaIYaF6XaCkR6aokqqrk0qrqVinpK+fsbZkuK2ouRy0ob4bwJbCibthh6GYebGcY7/EsWqTbdNG1dd9jnXPyk2d38y0Z9Yub2yA6AvWPYk+zEnkv6xdCoPuw/X2gLqy9vJIGAN4b8pAgpQOIlzI8EkCACH5BAlkAAYALAAAAAAoADAAAAPuaLrMBMSAEIB5senNSfGEMAwC+HEo6hXfOK5nKjdE7bp1Nu+BeP+CwI73Kw6EQ1nP6AomZxSSYDo9Ip9KqtaJ5W25Xej3qqGYsdEfZbMcgZXtYpActzLMeLOP6c7f3nVNfEZ7TXSFg4lyZAYBio+LZYiQfHMbc3iTlG9ilGpdjp4ujESiI6RQpqegqkesqqhKrbEpoaa0KLaiuBy6nrxss6+3w7tomo+cDXmBnsoLza2nsb7SN2tl1nyozVOZTJhxysxnd9XYCrrAtT7KQaPruavBo2HQ8xrvffaN+GV5/JbE45fOG8Ek5Q4qXHgwAQA7);
             width: 40px;
@@ -81,79 +81,131 @@
         <div class="turtle" id="turtle"></div>
     </div>
     <div class="code-container">
-        <textarea id="code">speed 30
-def box(length)
-  for i = 1 to 4  
-    fd length
-    rt 90    
-  end
-end
-for i = 1 to 18
-  if i % 2 == 0 then
-    pen "blue"
-  else
-    pen "red"
-  end
-  box 80
-  lt 20
-end</textarea>
+        <textarea id="code"></textarea>
         <div class="buttons">
-            <button id='run'>运行</button>
-            <button id='clear'>清空</button>
+            <button style="display: none;" id="prev">上一页</button>
+            <button id="run">运行</button>
+            <button id="clear">清空</button>
+            <button style="display: none;" id="next">下一页</button>
         </div>
-
     </div>
     <script src="../jquery.min.js"></script>
     <script src="./jquery-turtle.min.js"></script>
     <script src="../libs/peg-0.10.0.js"></script>
     <script>
+        // 添加消息
         function appendMessage(msg) {
-            $('#message').append('<li>' + msg + '</li>')
+            $("#message").append("<li>" + msg + "</li>");
         }
 
+        // 清空消息
         function clearMessage() {
-            $('#message').empty();
+            $("#message").empty();
         }
-        eval($.turtle('turtle'));
-        $(function() {
-            // 让画布呈方形
-            $('.canvas').height($('.canvas').width());
-            // 代码区域大小自适应            
-            $('#code').height($(window).height() - $('.canvas').height() - $('.buttons').height() - 50);
-            $('#code').width($('.canvas').width() - 8);
 
-            // 让海龟跳到画布中央
-            jumpto(0, 0);
+        // 定义海龟，挂接全局函数
+        eval($.turtle("turtle"));
 
-            // 加载编译器
-            var grammar = $.ajax({
-                type: "GET",
-                url: '../wabasic/wb.peg.js',
-                async: false
-            }).responseText;
-            var parser = peg.generate(grammar);
+        $(function () {
+
+            // 语法解析器
+            var parser = null;
+            // 课程章节
+            var chapters = [];
+            // 当前章节
+            var currentPage = 0;
+
+            // 初始化
+            function init() {
+                // 让画布呈方形
+                $(".canvas").height($(".canvas").width());
+
+                // 代码区域大小自适应
+                $("#code").height(
+                    $(window).height() -
+                    $(".canvas").height() -
+                    $(".buttons").height() -
+                    50
+                );
+                $("#code").width($(".canvas").width() - 8);
+
+                // 让海龟跳到画布中央
+                jumpto(0, 0);
+
+                // 加载编译器
+                var grammar = $.ajax({
+                    type: "GET",
+                    url: "../wabasic/wb.peg.js",
+                    async: false
+                }).responseText;
+                parser = peg.generate(grammar);
+
+                $.get("./course.txt", function (data) {
+                    chapters = data.split("---");
+                    chapters = chapters.map(function(x) { return x.trim();});
+                    chapters = chapters.filter(function(x) { return x != '';})
+                    render();
+                });
+            }
 
             // 运行代码
-            $('#run').on('click', function() {
+            function run() {
                 clearMessage();
                 try {
-                    var ast = parser.parse($('#code').val());
+                    var ast = parser.parse($("#code").val());
                     console.log(ast);
                     ast.eval();
                 } catch (error) {
                     appendMessage(error);
                 }
-            })
+            }
 
-            // 清空画布
-            $('#clear').on('click', function() {
-                pen('grey');
+            // 重置画布和海龟
+            function reset() {
+                pen("grey");
                 speed(1);
                 cg();
                 turnto(0);
                 clearMessage();
                 jumpto(0, 0);
-            })
+            }
+
+            // 重绘界面
+            function render() {
+                reset();
+
+                if (currentPage > 0) {
+                    $("#prev").show();
+                } else {
+                    $("#prev").hide();
+                }
+
+                if (currentPage < chapters.length - 1) {
+                    $("#next").show();
+                } else {
+                    $("#next").hide();
+                }
+
+                $("#code").text(chapters[currentPage]);
+            }
+
+            // 下一页
+            function next() {
+                currentPage++;
+                render();
+            }
+
+            // 上一页
+            function prev() {
+                currentPage--;
+                render();
+            }
+
+            init();
+            $("#clear").on("click", reset);
+            $("#prev").on("click", prev);
+            $("#next").on("click", next);
+            $("#run").on("click", run);
         });
     </script>
 </body>

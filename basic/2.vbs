@@ -11,7 +11,9 @@ end sub
 
 includeFile "common.vbs"
 
-a = 1
-print a = 1
-print(a = 1)
-print a
+For i = 1 To 5
+    print i
+    for j = i to 5
+        print j        
+    next    
+Next
