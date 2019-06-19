@@ -10,11 +10,11 @@ function println(d) {
 }
 
 QUnit.module("Parse Test", {
-    beforeEach: function () { printData = []; },
+    beforeEach: function() { printData = []; },
 });
 
 
-QUnit.test('加减法', function (assert) {
+QUnit.test('加减法', function(assert) {
     var input = 'print 1 + 2 + 3 - 2';
     var ast = parser.parse(input);
     console.log(ast);
@@ -23,7 +23,7 @@ QUnit.test('加减法', function (assert) {
     assert.deepEqual([4], printData);
 });
 
-QUnit.test('加减乘除', function (assert) {
+QUnit.test('加减乘除', function(assert) {
     var input = 'print 1 + 2 * 3';
     var ast = parser.parse(input);
     console.log(ast);
@@ -32,7 +32,7 @@ QUnit.test('加减乘除', function (assert) {
     assert.deepEqual([7], printData);
 });
 
-QUnit.test('带括号加减乘除', function (assert) {
+QUnit.test('带括号加减乘除', function(assert) {
     var input = 'print (1 + 2) * 3';
     var ast = parser.parse(input);
     console.log(ast);
@@ -41,7 +41,7 @@ QUnit.test('带括号加减乘除', function (assert) {
     assert.deepEqual([9], printData);
 });
 
-QUnit.test('关系运算符', function (assert) {
+QUnit.test('关系运算符', function(assert) {
     var input = 'print 1 < 0\n' +
         'print 1 < 2\n' +
         'print 1 <= 1\n' +
@@ -63,7 +63,7 @@ QUnit.test('关系运算符', function (assert) {
     assert.deepEqual([false, true, true, true, false, true, false, true, false, true, true, false, false, true], printData);
 });
 
-QUnit.test('与运算符', function (assert) {
+QUnit.test('与运算符', function(assert) {
     var input = 'print 2 > 1 and 3 > 2';
     var ast = parser.parse(input);
     console.log(ast);
@@ -72,7 +72,7 @@ QUnit.test('与运算符', function (assert) {
     assert.deepEqual([true], printData);
 });
 
-QUnit.test('关系运算符和逻辑运算符混合运算：> and >', function (assert) {
+QUnit.test('关系运算符和逻辑运算符混合运算：> and >', function(assert) {
     var input = 'print 2 > 1 + 1 and 3 > 2';
     var ast = parser.parse(input);
     console.log(ast);
@@ -81,7 +81,7 @@ QUnit.test('关系运算符和逻辑运算符混合运算：> and >', function (
     assert.deepEqual([false], printData);
 });
 
-QUnit.test('关系运算符和逻辑运算符混合运算：> + and > or >', function (assert) {
+QUnit.test('关系运算符和逻辑运算符混合运算：> + and > or >', function(assert) {
     var input = 'print 2 > 1 + 1 and 3 > 2 or 1 > 0';
     var ast = parser.parse(input);
     console.log(ast);
@@ -90,7 +90,7 @@ QUnit.test('关系运算符和逻辑运算符混合运算：> + and > or >', fun
     assert.deepEqual([true], printData);
 });
 
-QUnit.test('关系运算符和逻辑运算符混合运算：> or > + and >', function (assert) {
+QUnit.test('关系运算符和逻辑运算符混合运算：> or > + and >', function(assert) {
     var input = 'print 1 > 0 or 2 > 1 + 1 and 3 > 2';
     var ast = parser.parse(input);
     console.log(ast);
@@ -99,7 +99,7 @@ QUnit.test('关系运算符和逻辑运算符混合运算：> or > + and >', fun
     assert.deepEqual([true], printData);
 });
 
-QUnit.test("赋值语句", function (assert) {
+QUnit.test("赋值语句", function(assert) {
     var input = 'a = 1 + 2\n' +
         '    print a\n';
     var ast = parser.parse(input);
@@ -109,7 +109,7 @@ QUnit.test("赋值语句", function (assert) {
     assert.deepEqual([3], printData);
 });
 
-QUnit.test("分支语句：if", function (assert) {
+QUnit.test("分支语句：if", function(assert) {
     var input = 'if 1 > 2 then\n' +
         '    print 1\n' +
         'end\n' +
@@ -123,9 +123,9 @@ QUnit.test("分支语句：if", function (assert) {
     assert.deepEqual([2], printData);
 });
 
-QUnit.test("循环语句：while", function (assert) {
+QUnit.test("循环语句：while", function(assert) {
     var input = 'a = 1\n' +
-        'while a < 10 then\n' +
+        'while a < 10\n' +
         '  if a % 2 == 0 then\n' +
         '    print a\n' +
         '  end\n' +
@@ -138,7 +138,7 @@ QUnit.test("循环语句：while", function (assert) {
     assert.deepEqual([2, 4, 6, 8], printData);
 });
 
-QUnit.test("无参数函数定义及调用：foo2()", function (assert) {
+QUnit.test("无参数函数定义及调用：foo2()", function(assert) {
     var input = 'def foo2()\n' +
         '  print 1 + 1\n' +
         'end\n' +
@@ -151,7 +151,7 @@ QUnit.test("无参数函数定义及调用：foo2()", function (assert) {
 });
 
 
-QUnit.test("两个参数的函数定义与调用:add(a, b)", function (assert) {
+QUnit.test("两个参数的函数定义与调用:add(a, b)", function(assert) {
     var input = 'def add(a, b)\n' +
         '  print a + b\n' +
         'end\n' +
@@ -164,7 +164,7 @@ QUnit.test("两个参数的函数定义与调用:add(a, b)", function (assert) {
 });
 
 
-QUnit.test("包含分支语句的函数定义与调用:showmax(a, b)", function (assert) {
+QUnit.test("包含分支语句的函数定义与调用:showmax(a, b)", function(assert) {
     var input = 'def showmax(a, b)\n' +
         '  if a > b then\n' +
         '    print a\n' +
@@ -184,7 +184,7 @@ QUnit.test("包含分支语句的函数定义与调用:showmax(a, b)", function 
     assert.deepEqual([4], printData);
 });
 
-QUnit.test("包含 Return 语句函数：max(a, b)", function (assert) {
+QUnit.test("包含 Return 语句函数：max(a, b)", function(assert) {
     var input = 'def max(a, b)\n' +
         '  if a > b then\n' +
         '    return a\n' +
@@ -200,7 +200,7 @@ QUnit.test("包含 Return 语句函数：max(a, b)", function (assert) {
     assert.deepEqual(printData, [2, 4]);
 });
 
-QUnit.test("递归调用:printn(n)", function (assert) {
+QUnit.test("递归调用:printn(n)", function(assert) {
     var input = 'def printn(n)\n' +
         '  if n > 1 then\n' +
         '    printn(n - 1)\n' +
@@ -215,7 +215,7 @@ QUnit.test("递归调用:printn(n)", function (assert) {
     assert.deepEqual(printData, [1, 2, 3, 4, 5]);
 });
 
-QUnit.test("左右递归:aaa(n)", function (assert) {
+QUnit.test("左右递归:aaa(n)", function(assert) {
     var input = 'def aaa(n)\n' +
         '  if n > 1 then\n' +
         '    return aaa(n - 1) + aaa(n - 1)\n' +
@@ -231,7 +231,7 @@ QUnit.test("左右递归:aaa(n)", function (assert) {
 });
 
 
-QUnit.test("函数表达式: add(1, add(1, 2))", function (assert) {
+QUnit.test("函数表达式: add(1, add(1, 2))", function(assert) {
     var input = 'def add(a, b)\n' +
         '  return a + b\n' +
         'end\n' +
@@ -243,7 +243,7 @@ QUnit.test("函数表达式: add(1, add(1, 2))", function (assert) {
     assert.deepEqual(printData, [4]);
 });
 
-QUnit.test("函数当变量: myprint", function (assert) {
+QUnit.test("函数当变量: myprint", function(assert) {
     var input = 'def myprint(n)\n' +
         '  print n\n' +
         'end\n' +
@@ -257,7 +257,7 @@ QUnit.test("函数当变量: myprint", function (assert) {
     assert.deepEqual(printData, [55, 43]);
 });
 
-QUnit.test("函数套函数: myprint, inner", function (assert) {
+QUnit.test("函数套函数: myprint, inner", function(assert) {
     var input = 'def myprint()\n' +
         '  def inner(n)\n' +
         '    print n\n' +
@@ -274,7 +274,7 @@ QUnit.test("函数套函数: myprint, inner", function (assert) {
     assert.deepEqual(printData, [55, 43]);
 });
 
-QUnit.test("闭包: makeinc", function (assert) {
+QUnit.test("闭包: makeinc", function(assert) {
     var input = 'def makeinc(n)\n' +
         '  def inner()\n' +
         '    print n\n' +
@@ -293,7 +293,7 @@ QUnit.test("闭包: makeinc", function (assert) {
     assert.deepEqual(printData, [1, 2, 3]);
 });
 
-QUnit.test("多实例闭包: makeinc", function (assert) {
+QUnit.test("多实例闭包: makeinc", function(assert) {
     var input = 'def makeinc(n)\n' +
         '  m = 200\n' +
         '  def inner()\n' +
@@ -319,8 +319,8 @@ QUnit.test("多实例闭包: makeinc", function (assert) {
 });
 
 
-QUnit.test("调用原生 JS 函数", function (assert) {
-    window.globaladd = function(a, b) { return a  + b};
+QUnit.test("调用原生 JS 函数", function(assert) {
+    window.globaladd = function(a, b) { return a + b };
     var input = 'print globaladd(3, 2)';
     var ast = parser.parse(input);
     console.log(ast);
@@ -329,22 +329,21 @@ QUnit.test("调用原生 JS 函数", function (assert) {
     assert.deepEqual(printData, [5]);
 });
 
-QUnit.test("数组测试", function (assert) {
-    window.globaladd = function(a, b) { return a  + b};
-    var input = 
-    'arr = mkarr(1, 2, 3)\n' +
-    'arrpush(arr, 4)\n' +
-    'arrpush(arr, 5)\n' +
-    'arrpush(arr, 6)\n' +
-    'len = len(arr)\n' +
-    'print len\n' +
-    'arrset(arr, 2, 100)\n' +
-    'i = 0\n' +
-    'while i < len then\n' +
-    '  print arrget(arr, i)\n' +
-    '  i = i + 1\n' +
-    'end\n' 
-    ;
+QUnit.test("数组测试", function(assert) {
+    window.globaladd = function(a, b) { return a + b };
+    var input =
+        'arr = mkarr(1, 2, 3)\n' +
+        'arrpush(arr, 4)\n' +
+        'arrpush(arr, 5)\n' +
+        'arrpush(arr, 6)\n' +
+        'len = len(arr)\n' +
+        'print len\n' +
+        'arrset(arr, 2, 100)\n' +
+        'i = 0\n' +
+        'while i < len\n' +
+        '  print arrget(arr, i)\n' +
+        '  i = i + 1\n' +
+        'end\n';
     var ast = parser.parse(input);
     console.log(ast);
 
@@ -352,22 +351,21 @@ QUnit.test("数组测试", function (assert) {
     assert.deepEqual(printData, [6, 1, 2, 100, 4, 5, 6]);
 });
 
-QUnit.test("对象测试", function (assert) {
-    window.globaladd = function(a, b) { return a  + b};
-    var input = 
-    'obj = mkobj("x", 8, "y", 9)\n' +
-    'itemset(obj, "a", 1)\n' +
-    'itemset(obj, "b", 2)\n' +
-    'itemset(obj, "c", "d")\n' +
-    'print itemget(obj, "y")\n'+
-    'keys = keys(obj)\n' +
-    'len =  len(keys)\n' +    
-    'i = 0\n' +
-    'while i < len then\n' +
-    '  print itemget(obj, arrget(keys, i))\n' +
-    '  i = i + 1\n' +
-    'end\n' 
-    ;
+QUnit.test("对象测试", function(assert) {
+    window.globaladd = function(a, b) { return a + b };
+    var input =
+        'obj = mkobj("x", 8, "y", 9)\n' +
+        'itemset(obj, "a", 1)\n' +
+        'itemset(obj, "b", 2)\n' +
+        'itemset(obj, "c", "d")\n' +
+        'print itemget(obj, "y")\n' +
+        'keys = keys(obj)\n' +
+        'len =  len(keys)\n' +
+        'i = 0\n' +
+        'while i < len\n' +
+        '  print itemget(obj, arrget(keys, i))\n' +
+        '  i = i + 1\n' +
+        'end\n';
     var ast = parser.parse(input);
     console.log(ast);
 
@@ -375,15 +373,28 @@ QUnit.test("对象测试", function (assert) {
     assert.deepEqual(printData, [9, 1, 2, 'd', 8, 9]);
 });
 
-QUnit.test("字符串", function (assert) {
-    var input = 
-    'print "abc"\n'+
-    'print "123"\n'+
-    'print "我是中国人"\n'
-    ;
+QUnit.test("字符串", function(assert) {
+    var input =
+        'print "abc"\n' +
+        'print "123"\n' +
+        'print "我是中国人"\n';
     var ast = parser.parse(input);
     console.log(ast);
 
     ast.eval();
     assert.deepEqual(printData, ['abc', '123', '我是中国人']);
+});
+
+QUnit.test("for to", function(assert) {
+    var input = 'for i = 1 to 5\n' +
+        '  print i\n' +
+        '  for j = i to 5\n' +
+        '    print j\n' +    
+        '   end\n' +
+        'end';
+    var ast = parser.parse(input);
+    console.log(ast);
+
+    ast.eval();
+    assert.deepEqual(printData, [1, 1, 2, 3, 4, 5, 2, 2, 3, 4, 5, 3, 3, 4, 5, 4, 4, 5, 5, 5]);
 });

@@ -342,6 +342,27 @@
             }
         }
     }
+    
+    /**
+     * for .. to 循环
+     * @param {变量} id 
+     * @param {起始点} begin 
+     * @param {结束点} end 
+     * @param {循环语句} body 
+     */
+    function ForToStat(id, begin, end, body) {
+        this.id = id;
+        this.begin = begin;
+        this.end = end;
+        this.body = body;
+
+        ForToStat.prototype.eval = function (env) {
+            for (var i = this.begin.eval(env), end = this.end.eval(env); i <= end; i++) {              
+                env[this.id.id] = i;
+                this.body.eval(env);
+            }
+        }
+    }
 
     /**
      * 分支语句：if
@@ -470,7 +491,7 @@ Statement
   / DefStat
   / CallStat
   / ReturnStat
-
+  / ForToStat
     
 AssignStat
 	= id:Id _ '=' _ exp:Exp EOS { return new AssignStat(id, exp); }
@@ -482,15 +503,20 @@ ReturnStat
 	=  'return' _ exp:Exp { return new ReturnStat(exp) }     
     
 IfStat
-	= 'if'i _ cond:Exp _ 'then'i EOS
+	= 'if' _ cond:Exp _ 'then' EOS
     __ body:(SourceElements?) __
-    'end'i  EOS { return new IfStat(cond, body)   }
+    'end'  EOS { return new IfStat(cond, body)   }
     
 WhileStat
-	= 'while' _ cond:Exp _ 'then'i EOS
+	= 'while' _ cond:Exp EOS
     __ body:(SourceElements?) __
-    'end'i  EOS { return new WhileStat(cond, body)  }  
-  
+    'end'  EOS { return new WhileStat(cond, body)  }  
+
+ForToStat
+    = 'for' _ id:Id _ '=' _ begin:Exp _ 'to' _ end:Exp EOS
+    __ body:(SourceElements?) __
+    'end' EOS { return new ForToStat(id, begin, end, body);}
+
 DefStat
 	= 'def'i _ name:Id '(' _ params:ParamList _ ')' EOS
     __ body:(SourceElements?) __
