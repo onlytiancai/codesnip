@@ -422,7 +422,7 @@ EOS  = __ ";" / _ Comment? LineTerminatorSequence   / __ EOF
 Comment  = "//" (!LineTerminator .)*  
 Integer "integer"  = _ [0-9]+ { return new Integer(text()); }
 Id = !Keyword ([a-z]+ [0-9]* [z-z]*)  { return new Id(text())}
-Keyword  = 'if' / 'then'  / 'end'  / 'while' / 'and' / 'or'
+Keyword  = 'if' / 'then'  / 'end'  / 'while' / 'and' / 'or' / 'for' /'to'/ 'def' / 'return'
 DoubleStringCharacter
   = !('"' / "\\" / LineTerminator) . { return text(); }
 StringLiteral  = '"' chars:DoubleStringCharacter* '"' { return new StringLiteral(chars.join("")) }
@@ -470,13 +470,14 @@ Term
     }
 
 CallExp
-	= _ name:Id '(' _ args:ArgList _ ')' { return new CallExp(name, args)  }      
+    =  _ name:Id  '(' _ args:ArgList _ ')' { return new CallExp(name, args)  } 
+    / _ name:Id  WhiteSpace+ args:ArgList _ { return new CallExp(name, args)  } 
+    / _ name:Id '(' _')' { return new CallExp(name, []) }
       
 
 ArgList
     = head:Exp _ ',' _ tail:ArgList { tail.unshift(head);return tail;}
-    / exp:Exp { return [exp]}  
-    / _ {return []} 
+    / exp:Exp { return [exp]}      
 
 // 注意：CallExp 要在 Id 上面，因为CallExp 是 id 后加括号
 Factor
