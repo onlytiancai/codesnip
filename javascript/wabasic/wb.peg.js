@@ -262,8 +262,7 @@
                     var args = [];
                     for (var i = 0; i < this.args.length; i++) {
                         args.push(this.args[i].eval(env));
-                    }
-                    console.log(111, window[this.name.id], args)
+                    }                    
                     return window[this.name.id].apply(null, args)
                 }
             
@@ -342,19 +341,50 @@
             }
         }
     }
+    
+    /**
+     * for .. to 循环
+     * @param {变量} id 
+     * @param {起始点} begin 
+     * @param {结束点} end 
+     * @param {循环语句} body 
+     */
+    function ForToStat(id, begin, end, body) {
+        this.id = id;
+        this.begin = begin;
+        this.end = end;
+        this.body = body;
+
+        ForToStat.prototype.eval = function (env) {
+            var begin = this.begin.eval(env);
+            var end = this.end.eval(env);
+            if (begin > end) {
+                throwError("begin > end");
+            }
+            for (var i = begin; i <= end; i++) {              
+                env[this.id.id] = i;
+                this.body.eval(env);
+            }
+        }
+    }
 
     /**
      * 分支语句：if
      * @param {条件} cond 
      * @param {主体} body 
      */
-    function IfStat(cond, body) {
+    function IfStat(cond, body, elseBody) {
         this.type = 'IfStat';
         this.cond = cond;
         this.body = body;
+        this.elseBody = elseBody;
         IfStat.prototype.eval = function (env) {
             if (this.cond.eval(env)) {
                 this.body.eval(env);
+            } else {
+                if (elseBody != null) {
+                    elseBody.eval(env);
+                }
             }
         }
     }
@@ -369,7 +399,9 @@
         Program.prototype.eval = function () {
             var env = {};
             env['print'] = PrintFunc;
-            this.body.eval(env);
+            if (this.body) {
+                this.body.eval(env);
+            }
         }
     }   
 }
@@ -393,10 +425,10 @@ __  = (WhiteSpace / LineTerminatorSequence / Comment)*
 _  = (WhiteSpace)*
 EOF = !. 
 EOS  = __ ";" / _ Comment? LineTerminatorSequence   / __ EOF  
-Comment  = "//" (!LineTerminator .)*  
+Comment  = ['#] (!LineTerminator .)* 
 Integer "integer"  = _ [0-9]+ { return new Integer(text()); }
 Id = !Keyword ([a-z]+ [0-9]* [z-z]*)  { return new Id(text())}
-Keyword  = 'if' / 'then'  / 'end'  / 'while' / 'and' / 'or'
+Keyword  = 'if' / 'then'  / 'end'  / 'while' / 'and' / 'or' / 'for' /'to'/ 'def' / 'return'
 DoubleStringCharacter
   = !('"' / "\\" / LineTerminator) . { return text(); }
 StringLiteral  = '"' chars:DoubleStringCharacter* '"' { return new StringLiteral(chars.join("")) }
@@ -444,13 +476,14 @@ Term
     }
 
 CallExp
-	= _ name:Id '(' _ args:ArgList _ ')' { return new CallExp(name, args)  }      
+    =  _ name:Id  '(' _ args:ArgList _ ')' { return new CallExp(name, args)  } 
+    / _ name:Id  WhiteSpace+ args:ArgList _ { return new CallExp(name, args)  } 
+    / _ name:Id '(' _')' { return new CallExp(name, []) }
       
 
 ArgList
     = head:Exp _ ',' _ tail:ArgList { tail.unshift(head);return tail;}
-    / exp:Exp { return [exp]}  
-    / _ {return []} 
+    / exp:Exp { return [exp]}      
 
 // 注意：CallExp 要在 Id 上面，因为CallExp 是 id 后加括号
 Factor
@@ -470,7 +503,7 @@ Statement
   / DefStat
   / CallStat
   / ReturnStat
-
+  / ForToStat
     
 AssignStat
 	= id:Id _ '=' _ exp:Exp EOS { return new AssignStat(id, exp); }
@@ -482,15 +515,25 @@ ReturnStat
 	=  'return' _ exp:Exp { return new ReturnStat(exp) }     
     
 IfStat
-	= 'if'i _ cond:Exp _ 'then'i EOS
+	= 'if' _ cond:Exp _ 'then' EOS
     __ body:(SourceElements?) __
-    'end'i  EOS { return new IfStat(cond, body)   }
-    
+    elsePart:ElsePart?
+    'end'  EOS { return new IfStat(cond, body, elsePart)}
+
+ElsePart
+    = 'else' EOS 
+    __ body:(SourceElements?) __ { return body}
+
 WhileStat
-	= 'while' _ cond:Exp _ 'then'i EOS
+	= 'while' _ cond:Exp EOS
     __ body:(SourceElements?) __
-    'end'i  EOS { return new WhileStat(cond, body)  }  
-  
+    'end'  EOS { return new WhileStat(cond, body)  }  
+
+ForToStat
+    = 'for' _ id:Id _ '=' _ begin:Exp _ 'to' _ end:Exp EOS
+    __ body:(SourceElements?) __
+    'end' EOS { return new ForToStat(id, begin, end, body);}
+
 DefStat
 	= 'def'i _ name:Id '(' _ params:ParamList _ ')' EOS
     __ body:(SourceElements?) __
