@@ -168,12 +168,13 @@ QUnit.test("两个参数的函数定义与调用:add(a, b)", function(assert) {
     var input = 'def add(a, b)\n' +
         '  print a + b\n' +
         'end\n' +
+        'add 1, 2\n'+
         'add(1, 2)\n';
     var ast = parser.parse(input);
     console.log(ast);
 
     ast.eval();
-    assert.deepEqual([3], printData);
+    assert.deepEqual([3, 3], printData);
 });
 
 
@@ -186,6 +187,7 @@ QUnit.test("包含分支语句的函数定义与调用:showmax(a, b)", function(
         '    print b\n' +
         '  end\n' +
         'end\n' +
+        'showmax 1 + 2, 2 + 2\n'+
         'showmax(1 + 2, 2 + 2)\n';
     var ast = parser.parse(input);
     console.log(ast);
@@ -194,7 +196,7 @@ QUnit.test("包含分支语句的函数定义与调用:showmax(a, b)", function(
     assert.equal(ast.body.body[1].type, 'call');
 
     ast.eval();
-    assert.deepEqual([4], printData);
+    assert.deepEqual([4, 4], printData);
 });
 
 QUnit.test("包含 Return 语句函数：max(a, b)", function(assert) {
@@ -216,16 +218,17 @@ QUnit.test("包含 Return 语句函数：max(a, b)", function(assert) {
 QUnit.test("递归调用:printn(n)", function(assert) {
     var input = 'def printn(n)\n' +
         '  if n > 1 then\n' +
-        '    printn(n - 1)\n' +
+        '    printn n - 1\n' +
         '  end\n' +
         '  print n\n' +
         'end\n' +
+        'printn 5\n' +
         'printn(5)\n';
     var ast = parser.parse(input);
     console.log(ast);
 
     ast.eval();
-    assert.deepEqual(printData, [1, 2, 3, 4, 5]);
+    assert.deepEqual(printData, [1, 2, 3, 4, 5, 1, 2, 3, 4, 5]);
 });
 
 QUnit.test("左右递归:aaa(n)", function(assert) {
