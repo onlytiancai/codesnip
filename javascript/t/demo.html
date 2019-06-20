@@ -72,6 +72,12 @@
             height: 24px;
             transform-origin: 10px 13px;
         }
+
+        .info {
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
     </style>
 </head>
 
@@ -80,8 +86,9 @@
     <div class="canvas">
         <div class="turtle" id="turtle"></div>
     </div>
+    <p class="info"><span id="current">0</span>/<span id="total">0</span></p>
     <div class="code-container">
-        <textarea id="code"></textarea>
+        <textarea id="code"></textarea>       
         <div class="buttons">
             <button style="display: none;" id="prev">上一页</button>
             <button id="run">运行</button>
@@ -125,7 +132,7 @@
                     $(window).height() -
                     $(".canvas").height() -
                     $(".buttons").height() -
-                    50
+                    70
                 );
                 $("#code").width($(".canvas").width() - 8);
 
@@ -173,7 +180,7 @@
                     console.log(ast);
                     ast.eval();
                 } catch (error) {
-                    appendMessage(error);
+                    appendMessage('代码好像出错了，仔细检查下吧。');
                 } finally {
                     done(enableButtons)
                 }
@@ -183,12 +190,12 @@
             function reset() {
                 disableButtons();
                 speed(Infinity);
-                pen('#666666');                
+                pen('#666666');
                 cg();
                 turnto(0);
                 clearMessage();
                 home();
-                speed(1);
+                speed(2);
                 done(enableButtons)
             }
 
@@ -207,8 +214,9 @@
                 } else {
                     $("#next").hide();
                 }
-
-                $("#code").text(chapters[currentPage]);
+                $('#total').text(chapters.length);
+                $('#current').text(currentPage + 1);                
+                $("#code").val(chapters[currentPage]);
             }
 
             // 下一页
