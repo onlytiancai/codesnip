@@ -88,7 +88,7 @@
     </div>
     <p class="info"><span id="current">0</span>/<span id="total">0</span></p>
     <div class="code-container">
-        <textarea id="code"></textarea>       
+        <textarea id="code"></textarea>
         <div class="buttons">
             <button style="display: none;" id="prev">上一页</button>
             <button id="run">运行</button>
@@ -147,7 +147,7 @@
                 }).responseText;
                 parser = peg.generate(grammar);
 
-                $.get("./course.txt", function (data) {
+                $.get("./course.txt?3", function (data) {
                     chapters = data.split("---");
                     chapters = chapters.map(function (x) { return x.trim(); });
                     chapters = chapters.filter(function (x) { return x != ''; })
@@ -215,8 +215,9 @@
                     $("#next").hide();
                 }
                 $('#total').text(chapters.length);
-                $('#current').text(currentPage + 1);                
+                $('#current').text(currentPage + 1);
                 $("#code").val(chapters[currentPage]);
+                $("#code").prop("scrollTop", 0);
             }
 
             // 下一页
