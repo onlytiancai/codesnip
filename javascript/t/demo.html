@@ -142,32 +142,54 @@
 
                 $.get("./course.txt", function (data) {
                     chapters = data.split("---");
-                    chapters = chapters.map(function(x) { return x.trim();});
-                    chapters = chapters.filter(function(x) { return x != '';})
+                    chapters = chapters.map(function (x) { return x.trim(); });
+                    chapters = chapters.filter(function (x) { return x != ''; })
                     render();
                 });
+            }
+
+            // 禁用按钮
+            function disableButtons() {
+                $("#prev").attr('disabled', true);
+                $("#next").attr('disabled', true);
+                $("#run").attr('disabled', true);
+                $("#clear").attr('disabled', true);
+            }
+
+            // 启用按钮
+            function enableButtons() {
+                $("#prev").attr('disabled', false);
+                $("#next").attr('disabled', false);
+                $("#run").attr('disabled', false);
+                $("#clear").attr('disabled', false);
             }
 
             // 运行代码
             function run() {
                 clearMessage();
+                disableButtons();
                 try {
                     var ast = parser.parse($("#code").val());
                     console.log(ast);
                     ast.eval();
                 } catch (error) {
                     appendMessage(error);
+                } finally {
+                    done(enableButtons)
                 }
             }
 
             // 重置画布和海龟
             function reset() {
-                pen("grey");
-                speed(1);
+                disableButtons();
+                speed(Infinity);
+                pen('#666666');                
                 cg();
                 turnto(0);
                 clearMessage();
-                jumpto(0, 0);
+                home();
+                speed(1);
+                done(enableButtons)
             }
 
             // 重绘界面
