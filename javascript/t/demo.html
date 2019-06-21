@@ -17,8 +17,8 @@
             background-color: #F9FAFE;
         }
 
-        .cover {
-            background-color: #8DAE77;
+        .cover {            
+            background-image: radial-gradient(#00A5F1, #7171B7);
             position: absolute;
             left:0;
             top: 0;
@@ -211,7 +211,7 @@
 
                 $.get("./course.txt?3", function (data) {
                     // 去掉过渡页
-                    $('.cover').remove();
+                    // $('.cover').remove();
                     chapters = data.split("---");
                     chapters = chapters.map(function (x) { return x.trim(); });
                     chapters = chapters.filter(function (x) { return x != ''; })
