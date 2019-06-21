@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>番茄编程入门</title>
+    <title>番茄编程</title>
     <style>
         html,
         body {
@@ -14,7 +14,40 @@
         }
 
         body {
-            background-color: #ffffff;
+            background-color: #F9FAFE;
+        }
+
+        .cover {
+            background-color: #8DAE77;
+            position: absolute;
+            left:0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            color: #fff;
+        }
+
+        .cover .title {            
+            position: absolute;
+            top: 40%;
+            left: 50%;                
+            width: 300px;        
+            text-align: center;
+            transform: translate(-50%, -50%);            
+            font-size: 36px;
+            letter-spacing: 15px;
+        }
+
+        .cover .desc {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            text-align: center;
+            transform: translate(-50%, -50%);             
+            font-size: 18px;    
+            letter-spacing: 5px;        
         }
 
         .code-container {
@@ -37,23 +70,45 @@
             background-color: rgba(241, 241, 241, 0.98);
             resize: none;
             padding: 5px;
+            background-color: #2F3152;
+            color: #ffffff;
         }
 
         .buttons {
             height: 50px;
             padding: 10px;
             box-sizing: border-box;
+            position: relative;
+        }
+
+        .buttons button {
+            background-color: #62D76B;
+            border: none;
+            color: white;
+            font-family: Arial;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+
+        .buttons button:disabled {
+            background-color: #dddddd;
         }
 
         .canvas {
+            background-color: #FAF7F0;
             width: 90%;
             max-width: 500px;
             margin: 0 auto;
             height: 500px;
             box-sizing: border-box;
             border: 1px solid #ddd;
+
             position: relative;
-            z-index: -1;
+            z-index: -2;
         }
 
         #turtle {
@@ -74,6 +129,9 @@
         }
 
         .info {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
             margin: 0;
             padding: 0;
             text-align: center;
@@ -82,11 +140,14 @@
 </head>
 
 <body>
+    <div class="cover">
+        <div class="title">番茄编程</div>
+        <div class="desc">让每一个中国人都学会编程</div>
+    </div>
     <ul id="message"></ul>
     <div class="canvas">
         <div class="turtle" id="turtle"></div>
     </div>
-    <p class="info"><span id="current">0</span>/<span id="total">0</span></p>
     <div class="code-container">
         <textarea id="code"></textarea>
         <div class="buttons">
@@ -94,6 +155,7 @@
             <button id="run">运行</button>
             <button id="clear">清空</button>
             <button style="display: none;" id="next">下一页</button>
+            <p class="info"><span id="current">0</span>/<span id="total">0</span></p>
         </div>
     </div>
     <script src="../jquery.min.js"></script>
@@ -148,6 +210,8 @@
                 parser = peg.generate(grammar);
 
                 $.get("./course.txt?3", function (data) {
+                    // 去掉过渡页
+                    $('.cover').remove();
                     chapters = data.split("---");
                     chapters = chapters.map(function (x) { return x.trim(); });
                     chapters = chapters.filter(function (x) { return x != ''; })
