@@ -17,10 +17,10 @@
             background-color: #F9FAFE;
         }
 
-        .cover {            
+        .cover {
             background-image: radial-gradient(#00A5F1, #7171B7);
             position: absolute;
-            left:0;
+            left: 0;
             top: 0;
             width: 100%;
             height: 100%;
@@ -28,13 +28,13 @@
             color: #fff;
         }
 
-        .cover .title {            
+        .cover .title {
             position: absolute;
             top: 40%;
-            left: 50%;                
-            width: 300px;        
+            left: 50%;
+            width: 300px;
             text-align: center;
-            transform: translate(-50%, -50%);            
+            transform: translate(-50%, -50%);
             font-size: 36px;
             letter-spacing: 15px;
         }
@@ -45,9 +45,9 @@
             left: 50%;
             width: 100%;
             text-align: center;
-            transform: translate(-50%, -50%);             
-            font-size: 18px;    
-            letter-spacing: 5px;        
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            letter-spacing: 5px;
         }
 
         .code-container {
@@ -158,150 +158,168 @@
             <p class="info"><span id="current">0</span>/<span id="total">0</span></p>
         </div>
     </div>
-    <script src="../jquery.min.js"></script>
-    <script src="./jquery-turtle.min.js"></script>
-    <script src="../libs/peg-0.10.0.js"></script>
     <script>
-        // 添加消息
-        function appendMessage(msg) {
-            $("#message").append("<li>" + msg + "</li>");
+        var head = document.getElementsByTagName('head')[0];
+        var script = document.createElement('script');
+        script.src = '../jquery.min.js';
+        head.appendChild(script);
+        script.onload = function () {
+            console.log('script loaded ...');
+            var script = document.createElement('script');
+            script.src = './jquery-turtle.min.js';
+            head.appendChild(script);
+            script.onload = function () {
+                console.log('script loaded ...');
+                var script = document.createElement('script');
+                script.src = '../libs/peg-0.10.0.js';
+                head.appendChild(script);
+                script.onload = function () {
+                    console.log('script loaded ...');
+
+
+                    $(function () {
+                        
+                        // 定义海龟，挂接全局函数
+                        eval($.turtle("turtle"));
+                        // 添加消息
+                        function appendMessage(msg) {
+                            $("#message").append("<li>" + msg + "</li>");
+                        }
+
+                        // 清空消息
+                        function clearMessage() {
+                            $("#message").empty();
+                        }
+                        // 语法解析器
+                        var parser = null;
+                        // 课程章节
+                        var chapters = [];
+                        // 当前章节
+                        var currentPage = 0;
+
+                        // 初始化
+                        function init() {
+                            // 让画布呈方形
+                            $(".canvas").height($(".canvas").width());
+
+                            // 代码区域大小自适应
+                            $("#code").height(
+                                $(window).height() -
+                                $(".canvas").height() -
+                                $(".buttons").height() -
+                                70
+                            );
+                            $("#code").width($(".canvas").width() - 8);
+
+                            // 让海龟跳到画布中央
+                            jumpto(0, 0);
+
+                            // 加载编译器
+                            var grammar = $.ajax({
+                                type: "GET",
+                                url: "../wabasic/wb.peg.js",
+                                async: false
+                            }).responseText;
+                            parser = peg.generate(grammar);
+
+                            $.get("./course.txt?3", function (data) {
+                                // 去掉过渡页
+                                $('.cover').remove();
+                                chapters = data.split("---");
+                                chapters = chapters.map(function (x) { return x.trim(); });
+                                chapters = chapters.filter(function (x) { return x != ''; })
+                                render();
+                            });
+                        }
+
+                        // 禁用按钮
+                        function disableButtons() {
+                            $("#prev").attr('disabled', true);
+                            $("#next").attr('disabled', true);
+                            $("#run").attr('disabled', true);
+                            $("#clear").attr('disabled', true);
+                        }
+
+                        // 启用按钮
+                        function enableButtons() {
+                            $("#prev").attr('disabled', false);
+                            $("#next").attr('disabled', false);
+                            $("#run").attr('disabled', false);
+                            $("#clear").attr('disabled', false);
+                        }
+
+                        // 运行代码
+                        function run() {
+                            clearMessage();
+                            disableButtons();
+                            try {
+                                var ast = parser.parse($("#code").val());
+                                console.log(ast);
+                                ast.eval();
+                            } catch (error) {
+                                appendMessage('代码好像出错了，仔细检查下吧。');
+                            } finally {
+                                done(enableButtons)
+                            }
+                        }
+
+                        // 重置画布和海龟
+                        function reset() {
+                            disableButtons();
+                            speed(Infinity);
+                            pen('#666666');
+                            cg();
+                            turnto(0);
+                            clearMessage();
+                            home();
+                            speed(2);
+                            done(enableButtons)
+                        }
+
+                        // 重绘界面
+                        function render() {
+                            reset();
+
+                            if (currentPage > 0) {
+                                $("#prev").show();
+                            } else {
+                                $("#prev").hide();
+                            }
+
+                            if (currentPage < chapters.length - 1) {
+                                $("#next").show();
+                            } else {
+                                $("#next").hide();
+                            }
+                            $('#total').text(chapters.length);
+                            $('#current').text(currentPage + 1);
+                            $("#code").val(chapters[currentPage]);
+                            $("#code").prop("scrollTop", 0);
+                        }
+
+                        // 下一页
+                        function next() {
+                            currentPage++;
+                            render();
+                        }
+
+                        // 上一页
+                        function prev() {
+                            currentPage--;
+                            render();
+                        }
+
+                        init();
+                        $("#clear").on("click", reset);
+                        $("#prev").on("click", prev);
+                        $("#next").on("click", next);
+                        $("#run").on("click", run);
+                    });
+
+                }
+            }
         }
 
-        // 清空消息
-        function clearMessage() {
-            $("#message").empty();
-        }
-
-        // 定义海龟，挂接全局函数
-        eval($.turtle("turtle"));
-
-        $(function () {
-
-            // 语法解析器
-            var parser = null;
-            // 课程章节
-            var chapters = [];
-            // 当前章节
-            var currentPage = 0;
-
-            // 初始化
-            function init() {
-                // 让画布呈方形
-                $(".canvas").height($(".canvas").width());
-
-                // 代码区域大小自适应
-                $("#code").height(
-                    $(window).height() -
-                    $(".canvas").height() -
-                    $(".buttons").height() -
-                    70
-                );
-                $("#code").width($(".canvas").width() - 8);
-
-                // 让海龟跳到画布中央
-                jumpto(0, 0);
-
-                // 加载编译器
-                var grammar = $.ajax({
-                    type: "GET",
-                    url: "../wabasic/wb.peg.js",
-                    async: false
-                }).responseText;
-                parser = peg.generate(grammar);
-
-                $.get("./course.txt?3", function (data) {
-                    // 去掉过渡页
-                    // $('.cover').remove();
-                    chapters = data.split("---");
-                    chapters = chapters.map(function (x) { return x.trim(); });
-                    chapters = chapters.filter(function (x) { return x != ''; })
-                    render();
-                });
-            }
-
-            // 禁用按钮
-            function disableButtons() {
-                $("#prev").attr('disabled', true);
-                $("#next").attr('disabled', true);
-                $("#run").attr('disabled', true);
-                $("#clear").attr('disabled', true);
-            }
-
-            // 启用按钮
-            function enableButtons() {
-                $("#prev").attr('disabled', false);
-                $("#next").attr('disabled', false);
-                $("#run").attr('disabled', false);
-                $("#clear").attr('disabled', false);
-            }
-
-            // 运行代码
-            function run() {
-                clearMessage();
-                disableButtons();
-                try {
-                    var ast = parser.parse($("#code").val());
-                    console.log(ast);
-                    ast.eval();
-                } catch (error) {
-                    appendMessage('代码好像出错了，仔细检查下吧。');
-                } finally {
-                    done(enableButtons)
-                }
-            }
-
-            // 重置画布和海龟
-            function reset() {
-                disableButtons();
-                speed(Infinity);
-                pen('#666666');
-                cg();
-                turnto(0);
-                clearMessage();
-                home();
-                speed(2);
-                done(enableButtons)
-            }
-
-            // 重绘界面
-            function render() {
-                reset();
-
-                if (currentPage > 0) {
-                    $("#prev").show();
-                } else {
-                    $("#prev").hide();
-                }
-
-                if (currentPage < chapters.length - 1) {
-                    $("#next").show();
-                } else {
-                    $("#next").hide();
-                }
-                $('#total').text(chapters.length);
-                $('#current').text(currentPage + 1);
-                $("#code").val(chapters[currentPage]);
-                $("#code").prop("scrollTop", 0);
-            }
-
-            // 下一页
-            function next() {
-                currentPage++;
-                render();
-            }
-
-            // 上一页
-            function prev() {
-                currentPage--;
-                render();
-            }
-
-            init();
-            $("#clear").on("click", reset);
-            $("#prev").on("click", prev);
-            $("#next").on("click", next);
-            $("#run").on("click", run);
-        });
     </script>
 </body>
 
