@@ -1,15 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-typedef struct Wlist {
-    int capacity;
-    int size;
-    int item_size;
-    int *list;
-    int (*push)(struct Wlist *list, int n);
-    int (*get)(struct Wlist *list, int n);
-} wlist;
+#include "list.h"
 
 static int list_push(wlist *list, int n) {
     printf("push :%d %d\n", list->size, list->capacity);
@@ -47,19 +39,4 @@ wlist *mklist() {
 void freelist(wlist *list) {
     free(list->list);
     free(list);
-}
-int main() {
-    wlist *list = mklist();
-    printf("mklist: %p\n", list);
-
-    int i ;
-    for (i = 0; i < 10; i++) {
-        list->push(list, i);
-    }
-
-    for (i = 0; i < list->size; i++) {
-        printf("list[%d] = %d\n", i, list->get(list, i)); 
-    } 
-    freelist(list);
-    return 0;
 }

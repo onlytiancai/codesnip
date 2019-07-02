@@ -16,3 +16,19 @@
 - todo: 安全编码
 - todo: 多文件项目的代码组织 
 - todo: 写个kvdb
+
+-------------
+# list
+
+- manifest 
+    - list.h
+    - list.c
+    - test_list.c
+
+测试
+
+    gcc -c list.c
+    gcc test_list.c list.o
+    gcc -o testlist.o test_list.c list.o
+    ./testlist.o
+
