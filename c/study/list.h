@@ -10,7 +10,7 @@ typedef struct Wlist {
     int (*get)(struct Wlist *list, int n);
 } wlist;
 
-wlist *mklist();
+wlist *mklist(int item_size);
 void freelist(wlist *list);
 
 #endif
