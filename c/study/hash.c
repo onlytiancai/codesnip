@@ -32,16 +32,22 @@ static unsigned int JSHash(char *str)
 static int hash_put(whash *hash, char *k, char *v) {
     unsigned int code = JSHash(k);
     int kindex = code % hash->capacity;
-    printf("put:code=%d, index=%d\n", code, kindex);
+    printf("put:code=%d, index=%d, k=%s, v=%s\n", code, kindex, k, v);
 
-    // TODO: rehash
+    // 解决冲突 
+    char *kfound = hash->keys[kindex];
+    if (kfound != NULL) {
+        printf("hash conflict:%d %s %s\n", code, k, kfound); 
+    }
 
+    // 保存 key
     size_t ksize = strnlen(k, 100);
     char* kcopy = (char*)malloc(ksize * sizeof(char)+1);
     kcopy[ksize * sizeof(char)] = '\0';
     strncpy(kcopy, k, 100);
     hash->keys[kindex] = kcopy;
 
+    // 保存 value
     size_t vsize = strnlen(v, 100);
     char* vcopy = (char*)malloc(vsize * sizeof(char)+1);
     vcopy[vsize * sizeof(char)] = '\0';
@@ -63,9 +69,15 @@ static char* hash_get(whash *hash, char *k){
 whash *mkhash() {
     whash *hash = (whash*)malloc(sizeof(whash));
     hash->size = 0;
-    hash->capacity = 11;
+    hash->capacity = 3;
+
+    // 申请keys，values 内存，并清空
     hash->keys = (char**)malloc(hash->capacity * sizeof(char*));
+    memset(hash->keys, 0, hash->capacity * sizeof(char*));
+
     hash->values = (char**)malloc(hash->capacity * sizeof(char*));
+    memset(hash->values, 0, hash->capacity * sizeof(char*));
+
     hash->put = &hash_put; 
     hash->get = &hash_get; 
     return hash;
@@ -77,9 +89,9 @@ void freehash(whash *hash) {
 
 int main() {
 
-    char keys[3][10] = {"aaa", "bbb", "ccc"};
-    char values[3][10] = {"111", "222", "333"};
-    int size = 3;
+    char keys[4][10] = {"aaa", "bbb", "ccc", "ddd"};
+    char values[4][10] = {"111", "222", "333", "444"};
+    int size = 4;
     int i;
 
     whash *hash = mkhash();

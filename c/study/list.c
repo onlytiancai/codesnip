@@ -25,11 +25,11 @@ static int list_get(wlist *list, int n) {
     return list->list[n];
 }
 
-wlist *mklist() {
+wlist *mklist(int item_size) {
     wlist *list= (wlist*)malloc(sizeof(wlist));
     list->size = 0;
     list->capacity = 3;
-    list->item_size = sizeof(int);
+    list->item_size = item_size; 
     list->list =  (int*)malloc(list->capacity * list->item_size);
     list->push = &list_push;
     list->get = &list_get;

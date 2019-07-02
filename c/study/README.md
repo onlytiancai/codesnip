@@ -28,7 +28,6 @@
 测试
 
     gcc -c list.c
-    gcc test_list.c list.o
     gcc -o testlist.o test_list.c list.o
     ./testlist.o
 

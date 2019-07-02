@@ -2,7 +2,7 @@
 #include "list.h"
 
 int main() {
-    wlist *list = mklist();
+    wlist *list = mklist(sizeof(int));
     printf("mklist: %p\n", list);
 
     int i ;
