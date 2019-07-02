@@ -2,79 +2,64 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef int wlist;
-
-struct ListNode {
+typedef struct Wlist {
     int capacity;
     int size;
     int item_size;
     int *list;
-};
+    int (*push)(struct Wlist *list, int n);
+    int (*get)(struct Wlist *list, int n);
+} wlist;
 
-static struct ListNode *list_table[10];
+static int list_push(wlist *list, int n) {
+    printf("push :%d %d\n", list->size, list->capacity);
+    if (list->size >= list->capacity) {
+        printf("capacity extend :%d %d\n", list->size + 1, list->capacity);
 
-wlist mklist() {
-    static int list_seq = 0;
-
-    struct ListNode *node = (struct ListNode*)malloc(sizeof(struct ListNode));
-    node->size = 0;
-    node->capacity = 3;
-    node->item_size = sizeof(int);
-    node->list =  (int*)malloc(node->capacity * node->item_size);
-    list_table[list_seq] = node;
-
-    return list_seq++;
-}
-
-void list_free(wlist list) {
-    struct ListNode *pnode = list_table[list];
-    free(pnode->list);
-    free(pnode);
-}
-
-int list_push(wlist list, int n) {
-    // TODO: table size check
-    struct ListNode *node = list_table[list];
-    printf("push :%d %d\n", node->size, node->capacity);
-    if (node->size >= node->capacity) {
-        printf("capacity extend :%d %d\n", node->size + 1, node->capacity);
-
-        node->capacity = node->capacity * 2;
-        int *origin_list = node->list;
-        node->list =  (int*)malloc(node->capacity * node->item_size);
-        memcpy(node->list, origin_list, node->size * node->item_size);
+        list->capacity = list->capacity * 2;
+        int *origin_list = list->list;
+        list->list =  (int*)malloc(list->capacity * list->item_size);
+        memcpy(list->list, origin_list, list->size * list->item_size);
         free(origin_list);
     }
-    node->list[node->size++] = n;
+    list->list[list->size++] = n;
 }
 
-int list_get(wlist list, int n) {
-    struct ListNode *node = list_table[list];
-    if (n >= node->capacity) {
-        printf("get error\n");
+static int list_get(wlist *list, int n) {
+    if (n < 0 || n >= list->capacity) {
+        printf("get error:size=%d n=%d\n", list->size, n);
         exit(1);
     }
-    return node->list[n];
+    return list->list[n];
 }
 
-int list_size(wlist list) {
-    struct ListNode *node = list_table[list];
-    return node->size;
+wlist *mklist() {
+    wlist *list= (wlist*)malloc(sizeof(wlist));
+    list->size = 0;
+    list->capacity = 3;
+    list->item_size = sizeof(int);
+    list->list =  (int*)malloc(list->capacity * list->item_size);
+    list->push = &list_push;
+    list->get = &list_get;
+    return list;
 }
 
+void freelist(wlist *list) {
+    free(list->list);
+    free(list);
+}
 int main() {
-    wlist list = mklist();
-    printf("mklist: %d\n", list);
+    wlist *list = mklist();
+    printf("mklist: %p\n", list);
 
-    int i, size;
-    for (i = 0; i < 20; i++) {
-        list_push(list, i);
+    int i ;
+    for (i = 0; i < 10; i++) {
+        list->push(list, i);
     }
 
-    size = list_size(list);
-    for (i = 0; i < size; i++) {
-        printf("list[%d] = %d\n", i, list_get(list, i)); 
+    for (i = 0; i < list->size; i++) {
+        printf("list[%d] = %d\n", i, list->get(list, i)); 
     } 
-    list_free(list);
+    freelist(list);
     return 0;
 }
