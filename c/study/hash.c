@@ -30,25 +30,27 @@ static unsigned int JSHash(char *str)
 
 
 // 返回负数表示找不到，0或正数表示找到
-static int find_empty(whash *hash, char* k) {
+static int find_put_index(whash *hash, char* k) {
     unsigned int code = JSHash(k);
     int index, i;
 
     for (i = 0; i < hash->capacity; i++) {
         index = code % hash->capacity;
-        if (hash->keys[index] == NULL) {
-            printf("find empty done:count=%d index=%d k=%s\n", i, index, k);
+        char *p = hash->keys[index];
+        // 找到空位或已存在相同的key
+        if (p == NULL || strncmp(k, p, 100) == 0) {
+            printf("find put index done:count=%d index=%d k=%s\n", i, index, k);
             return index;
         }
         code++;
     }
 
-    printf("find empty failed:%s\n", k);
+    printf("find put index failed:%s\n", k);
     return -1;
 }
 
 // 返回负数表示找不到，0或正数表示找到
-static int find_key(whash *hash, char* k) {
+static int find_get_index(whash *hash, char* k) {
     unsigned int code = JSHash(k);
     int index, i;
 
@@ -56,13 +58,13 @@ static int find_key(whash *hash, char* k) {
         index = code % hash->capacity;
         char *p = hash->keys[index];
         if (p != NULL && strncmp(k, p, 100) == 0) {
-            printf("find key done:count=%d index=%d k=%s\n", i, index, k);
+            printf("find get index done:count=%d index=%d k=%s\n", i, index, k);
             return index;
         }
         code++;
     }
 
-    printf("find key failed:%s\n", k);
+    printf("find get index failed:%s\n", k);
     return -1;
 }
 
@@ -70,7 +72,7 @@ static int find_key(whash *hash, char* k) {
 static free_inner(int capacity, char **keys, char **values) {
     int i;
     for (i = 0; i < capacity; i++) {
-        printf("free:%d %s\n", i, keys[i]);
+        printf("free:%d %s %s\n", i, keys[i], values[i]);
         free(keys[i]);
         free(values[i]);
     }
@@ -104,16 +106,14 @@ static int extend(whash *hash) {
 
 }
 
-
-
 static int hash_put(whash *hash, char *k, char *v) {
     printf("put: k=%s, v=%s\n", k, v);
 
-    int index = find_empty(hash, k);
+    int index = find_put_index(hash, k);
     if (index < 0) {
         printf("hash full, will extend\n"); 
         extend(hash);
-        index = find_empty(hash, k);
+        index = find_put_index(hash, k);
     }
 
     // 保存 key
@@ -134,8 +134,7 @@ static int hash_put(whash *hash, char *k, char *v) {
 }
 
 static char* hash_get(whash *hash, char *k){
-    // TODO: not found
-    int index = find_key(hash, k);
+    int index = find_get_index(hash, k);
     if (index < 0) {
         return NULL; 
     }
@@ -176,6 +175,9 @@ int main() {
         hash->put(hash, keys[i], values[i]);
     }
 
+    printf("put duplicate key:%s %s", "aaa", "duplicate");
+    hash->put(hash, "aaa", "duplicate");
+
     printf("========= begin get\n");
 
     for (i = 0; i < size; i++) {
@@ -183,6 +185,7 @@ int main() {
         char *value = hash->get(hash, key);
         printf("%s=%s\n", key, value);
     }
+    printf("get notfound key:%s %s\n", "xxx", hash->get(hash, "xxx"));
     printf("========= end get\n");
 
     freehash(hash);
