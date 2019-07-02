@@ -1,5 +1,5 @@
 #ifndef WLIST_HEADER_FILE
-#define WLISTHEADER_FILE
+#define WLIST_HEADER_FILE
 
 typedef struct Wlist {
     int capacity;
