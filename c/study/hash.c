@@ -66,6 +66,17 @@ static int find_key(whash *hash, char* k) {
     return -1;
 }
 
+// free 内部数据
+static free_inner(int capacity, char **keys, char **values) {
+    int i;
+    for (i = 0; i < capacity; i++) {
+        printf("free:%d %s\n", i, keys[i]);
+        free(keys[i]);
+        free(values[i]);
+    }
+    free(keys);
+    free(values);
+}
 
 // 扩大 hashtable
 static int extend(whash *hash) {
@@ -89,16 +100,11 @@ static int extend(whash *hash) {
     }
     printf("========= end rehash\n");
 
-    return;
-    // free
-    for (i = 0; i < capacity; i++) {
-        free(keys[i]);
-        free(values[i]);
-    }
-    free(keys);
-    free(values);
+    free_inner(capacity, keys, values);
 
 }
+
+
 
 static int hash_put(whash *hash, char *k, char *v) {
     printf("put: k=%s, v=%s\n", k, v);
@@ -114,14 +120,14 @@ static int hash_put(whash *hash, char *k, char *v) {
     size_t ksize = strnlen(k, 100);
     char* kcopy = (char*)malloc(ksize * sizeof(char)+1);
     kcopy[ksize * sizeof(char)] = '\0';
-    strncpy(kcopy, k, 100);
+    strcpy(kcopy, k);
     hash->keys[index] = kcopy;
 
     // 保存 value
     size_t vsize = strnlen(v, 100);
     char* vcopy = (char*)malloc(vsize * sizeof(char)+1);
     vcopy[vsize * sizeof(char)] = '\0';
-    strncpy(vcopy, v, 100);
+    strcpy(vcopy, v);
     hash->values[index] = vcopy;
 
     return 0;
@@ -154,7 +160,8 @@ whash *mkhash() {
 }
 
 void freehash(whash *hash) {
-
+    free_inner(hash->capacity, hash->keys, hash->values);
+    free(hash);
 }
 
 int main() {
