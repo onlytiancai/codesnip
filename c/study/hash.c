@@ -169,8 +169,9 @@ int main() {
     char values[4][10] = {"111", "222", "333", "444"};
     int size = 4;
     int i;
-
     whash *hash = mkhash();
+
+    printf("========= begin put\n");
     for (i = 0; i < size; i++) {
         hash->put(hash, keys[i], values[i]);
     }
@@ -179,15 +180,14 @@ int main() {
     hash->put(hash, "aaa", "duplicate");
 
     printf("========= begin get\n");
-
     for (i = 0; i < size; i++) {
         char *key = keys[i];
         char *value = hash->get(hash, key);
         printf("%s=%s\n", key, value);
     }
     printf("get notfound key:%s %s\n", "xxx", hash->get(hash, "xxx"));
-    printf("========= end get\n");
 
+    printf("========= begin free\n");
     freehash(hash);
     return 0;
 }
