@@ -1,21 +1,24 @@
 #include <stdio.h>
 #include "hash.h"
 
-int main() {
+// gcc -c hash.c
+// gcc -o testhash.o test_hash.c hash.o
+// ./testhash.o
 
-    char *keys[] = ["aaa", "bbb", "ccc"];
-    char *values[] = ["111", "222", "333"];
+int main() {
+    char keys[4][10] = {"aaa", "bbb", "ccc", "ddd"};
+    char values[4][10] = {"111", "222", "333", "444"};
     int size = 3;
     int i;
 
     whash *hash = mkhash();
     for (i = 0; i < size; i++) {
-        hash->put(keys[i], values[i]);
+        hash->putstr(hash, keys[i], values[i]);
     }
 
     for (i = 0; i < size; i++) {
         char *key = keys[i];
-        char *value = hash->get(key);
+        char *value = hash->getstr(hash, key);
         printf("%s=%s", key, value);
     }
 
