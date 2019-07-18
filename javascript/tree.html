@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Tree</title>
+    <link rel="stylesheet" href="libs/qunit-2.9.2.css">
+    <script src="libs/qunit-2.9.2.js"></script>
+
+</head>
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+<script>
+
+    function Tree(n) {
+        this.data = n != undefined ? n : null;
+        this.left = null;
+        this.right = null;
+    }
+
+    Tree.prototype.find = function (n) {
+        var count = 0;
+        try {
+            var t = this;
+            while (t != null) {
+                count++;
+                if (n == t.data) return true;
+                else if (n < t.data) {
+                    if (t.left == null) return false;
+                    t = t.left;
+                } else {
+                    if (t.right == null) return false;
+                    t = t.right;
+                }
+            }
+        } finally {
+            console.log("tree.find count:", count);
+        }
+
+    }
+
+    Tree.prototype.add = function (n) {
+        // 根节点
+        if (this.data == null) {
+            this.data = n;
+            //console.log('tree.add root:', n);
+            return;
+        }
+
+
+        var t = this;
+        while (t != null) {
+            if (n == t.data) {
+                //console.log('tree.add duplicate:', n);
+                return;
+            } else if (n < t.data) {
+                if (t.left != null) {
+                    t = t.left;
+                } else {
+                    //console.log('tree.add left:', n, t.data);
+                    t.left = new Tree(n);
+                    return;
+                }
+            } else {
+                if (t.right != null) {
+                    t = t.right;
+                } else {
+                    //console.log('tree.add right:', n, t.data);
+                    t.right = new Tree(n);
+                    return;
+                }
+            }
+        }
+
+        console.log("tree.add error:", n);
+    }
+
+    var tree = new Tree();
+    var list = [];
+    var len = 100000;
+    var max = Math.pow(2, 32);
+
+    // 构建测试数据
+    for (let i = 0; i < len; i++) {
+        var n = Math.floor(Math.random() * max);
+        list.push(n);
+        tree.add(n);
+    }
+    console.log("add data len:", len);
+
+    // 随机选取一个要搜索的数据
+    var to_find = list[Math.floor(Math.random() * len)];
+    console.log("to_find:", to_find);
+
+    QUnit.test('tree.find', function (assert) {
+        assert.ok(tree.find(to_find));
+    });
+
+    QUnit.test('list.find', function (assert) {
+        var i;
+        for (i = 0; i < list.length; i++) {
+            if (list[i] == to_find) break;
+        }
+        console.log("list.find count:", i);
+        assert.ok(true);
+    });
+
+</script>
+
+<body>
+
+</body>
+
+</html>
