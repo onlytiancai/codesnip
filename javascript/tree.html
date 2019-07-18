@@ -14,12 +14,14 @@
 <div id="qunit-fixture"></div>
 <script>
 
+    // 二叉查找树
     function Tree(n) {
         this.data = n != undefined ? n : null;
         this.left = null;
         this.right = null;
     }
 
+    // 查找
     Tree.prototype.find = function (n) {
         var count = 0;
         try {
@@ -36,11 +38,12 @@
                 }
             }
         } finally {
-            console.log("tree.find count:", count);
+            console.log("二叉查找树查找次数：", count);
         }
 
     }
 
+    // 添加
     Tree.prototype.add = function (n) {
         // 根节点
         if (this.data == null) {
@@ -48,7 +51,6 @@
             //console.log('tree.add root:', n);
             return;
         }
-
 
         var t = this;
         while (t != null) {
@@ -77,10 +79,10 @@
         console.log("tree.add error:", n);
     }
 
-    var tree = new Tree();
-    var list = [];
-    var len = 100000;
-    var max = Math.pow(2, 32);
+    var tree = new Tree(); // 二叉查找树
+    var list = []; // 线性列表
+    var len = 100000; // 测试数据长度
+    var max = Math.pow(2, 32); // 测试数据最大值
 
     // 构建测试数据
     for (let i = 0; i < len; i++) {
@@ -88,23 +90,32 @@
         list.push(n);
         tree.add(n);
     }
-    console.log("add data len:", len);
+    console.log("生成测试数据条数:", len);
 
     // 随机选取一个要搜索的数据
     var to_find = list[Math.floor(Math.random() * len)];
-    console.log("to_find:", to_find);
+    console.log("需要查找的数据:", to_find);
+
+    // 线性查找
+    function listfind(n) {
+        var i;
+        try {
+            for (i = 0; i < list.length; i++) {
+                if (list[i] == to_find) return true;
+            }
+            return false;
+        } finally {
+            console.log("线性列表查找次数:", i);
+        }
+
+    }
 
     QUnit.test('tree.find', function (assert) {
         assert.ok(tree.find(to_find));
     });
 
     QUnit.test('list.find', function (assert) {
-        var i;
-        for (i = 0; i < list.length; i++) {
-            if (list[i] == to_find) break;
-        }
-        console.log("list.find count:", i);
-        assert.ok(true);
+        assert.ok(listfind(to_find));
     });
 
 </script>
