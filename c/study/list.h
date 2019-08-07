@@ -4,7 +4,7 @@
 typedef struct Wlist {
     int capacity;
     int size;
-    int item_size;
+    size_t item_size;
     int *list;
     int (*push)(struct Wlist *list, int n);
     int (*get)(struct Wlist *list, int n);
