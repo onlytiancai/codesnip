@@ -1,13 +1,16 @@
 #include <stdio.h>
 #include <string.h>
 
-static int indexof(char *str, char *substr) {
+static int indexof(const char *str, const char *substr) {
     int i, j;
-    for (i = 0, j = 0; i < strlen(str); i++) {
-        printf("debug:i=%d, j=%d, str[i]=%c, substr[j]=%c\n", i, j, str[i], substr[j]); 
+    int lenstr = str == NULL ? 0 : strlen(str);
+    int lensubstr = substr == NULL ? 0 : strlen(substr);
+
+    for (i = 0, j = 0; i < lenstr; i++) {
         j = str[i] == substr[j] ? j + 1 : 0;
-        if (j == strlen(substr)) return i - j + 1;
+        if (j == lensubstr) return i - j + 1;
     }
+
     return -1;
 }
 
@@ -21,9 +24,11 @@ int main(int argc, char **argv) {
         "abc", "ab",
         "abc", "bc",
         "a",   "abc",
+        "大雄宝殿",   "宝殿",
         NULL
     };
 
+    printf("NULL.indexof(NULL)=%d\n", indexof(NULL, NULL));
     for (p = tests; *p != NULL; p+=2) {
         str = *p;
         substr = *(p+1);
