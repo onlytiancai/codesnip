@@ -1,3 +1,7 @@
+/*
+ * 解析 http 应答
+ * curl -sI baidu.com | ./parser1.o
+ * */
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -28,48 +32,57 @@ static char* hex(char *str, size_t n) {
 }
 
 
-// 读取到指定位置
+// 读取到指定 flag 
 // fd 是描述字，buffer 是读缓冲区，bufsize 是缓冲区大小，flag 是结尾标志
-// 返回值是读取到的字节数，offset 是 flag 的偏移量
-static size_t readto(int fd, char *buffer, size_t bufsize, const char *flag, size_t *offset) {
+// offset 是 flag 末尾的偏移量, total 是读取到的总字节数
+// 返回 0 表示读取到 flag，-1 表示缓冲区满
+static int readto(int fd, char *buffer, size_t bufsize, const char *flag, 
+        size_t *offset, size_t *total) {
     char *p = buffer; // 读缓冲区写入指针
-    size_t total = 0; // 已读取字节数
     size_t m, n ;     // 每次欲读取字节数及实际读取字节数
     size_t lenflag;   // flag 长度
     int ret;          // indexof 结果
 
-    lenflag = strlen(flag);
+    lenflag = strnlen(flag, 8);
     m = BLOCKSIZE;
-    *offset = -1;
-    while ((n = read(fd, p, m)) > 0) {
-        total += n;
-        printf("debug: total=%d n=%d %s\n", total, n, hex(p, n));
+    *total = 0;
+    *offset = 0;
+    while(1) {
+        n = read(fd, p, m);
+        if (n <= 0) { // 流关闭
+            fprintf(stderr, "read to eof:%d %d\n", *total, bufsize); 
+            return -1;
+        }
 
-        // 读取到标志
+        *total += n;
+        *offset += n;
+        printf("debug: total=%d n=%d %s\n", *total, n, hex(p, n));
+
+        // 回溯 lenflag 个字节，防止前面读取到半个 flag
         ret = indexof(p - lenflag, lenflag + n, flag);
-        if (ret != -1) {
-            *offset = total - lenflag + ret;
-            printf("read flag: total=%d ret=%d offset=%d\n", total, ret, *offset);
+        if (ret != -1) { // 读取到标志
+            *offset = *total - n - lenflag + ret + lenflag;
+            printf("read flag: total=%d ret=%d offset=%d\n", *total, ret, *offset);
             break;
         }
 
-        // buffer 满
-        m = bufsize - total > BLOCKSIZE ? BLOCKSIZE : bufsize - total;
-        if (m == 0) {
-            fprintf(stderr, "buff full:%d %d\n", total, bufsize); 
-            break;
+        m = bufsize - *total > BLOCKSIZE ? BLOCKSIZE : bufsize - *total;
+        if (m == 0) { // buffer 满
+            fprintf(stderr, "buff full:%d %d\n", *total, bufsize); 
+            return -1;
         }
 
         p += n;
     }
-    if (*offset == -1) *offset = total;
-    return total;
+
+    return 0;
 }
 
 int main() {
     char buffer[MAXSIZE]; // 缓冲区
-    size_t offset;        // flag 的结尾偏移量
-    size_t total = readto(STDIN_FILENO, buffer, MAXSIZE, "\r\n\r\n", &offset);
+    size_t offset;        // 读取到 flag 末尾的偏移量 
+    size_t total;         // 读取的总字节数
+    int ret = readto(STDIN_FILENO, buffer, MAXSIZE, "\r\n\r\n", &offset, &total);
     printf("result total=%d, flag_offset=%d:\n%.*s\n", total, offset, offset, buffer);
 
     return 0;
