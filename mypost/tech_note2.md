@@ -7901,3 +7901,20 @@ git commit -m "Initial commit"
 
 git remote add origin <github-uri>
 git push -u --force origin master
+
+
+清空某文件的 git 历史
+Removing and purging files from git history
+https://blog.ostermiller.org/git-remove-from-history
+
+# 某台机器
+git filter-branch -f --index-filter 'git rm --cached --ignore-unmatch myfile.txt'
+git push origin master --force
+git reflog expire --expire=now --all
+git gc --aggressive --prune=now
+# 其它机器
+cd MY_LOCAL_GIT_REPO
+git fetch origin
+git rebase
+git reflog expire --expire=now --all
+git gc --aggressive --prune=now
