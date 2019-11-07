@@ -34,7 +34,7 @@ int* sortarr(int* arr, int n) {
                 arr[j] = t;
             }
         }
-        printf("n-i-1=%i arr last=%d\n", n-i-1, arr[n-i-1]);
+        // printf("debug: n-i-1=%i arr last=%d\n", n-i-1, arr[n-i-1]);
     }
     return arr;
 }
@@ -52,10 +52,23 @@ int main(int argc, char* argv[]) {
     printf("n=%d x=%d\n", N, x);
 
     int i, m, l, r;
-    for (i = 0; i < N; i ++) {
-        if (x == arr[i]) {
+    i = 0;
+    l = 0; 
+    r = N -1;
+    while (l < r) {
+        m = (r - l) / 2 + l;
+        printf("debug:l=%d(%d), m=%d(%d), r=%d(%d) x=%d\n", l, arr[l],  m, arr[m], r, arr[r], x);
+        if (x < arr[m]) {
+            r = m - 1;
+        } else if (x > arr[m]) {
+            l = m + 1;
+        } else {
             printf("x found\n");
             return 0;
+        }
+        if (++i > N) {
+            printf("overflow\n");
+            break; 
         }
     }
     printf("x not found\n");
