@@ -6539,22 +6539,7 @@ tar xf /helloworld-data/scala-2.11.12.tgz -C /usr/local/
 mv /usr/local/scala-2.11.12/ /usr/local/scala
 echo 'export PATH=/usr/local/scala/bin:$PATH' >>/etc/profile
 
-import org.apache.spark.{ SparkConf, SparkContext }
- 
-object WordCount{
-   def main(args: Array[String]): Unit = {
-       var conf = new SparkConf().setMaster("local").setAppName("wordcount")
-       var sc = new SparkContext(conf)
-       System.setProperty("hadoop.home.dir", "/usr/local/hadoop")
-       var input = "/usr/local/spark/README.md"
-       var count = sc.textFile(input).flatMap(x => x.split(" ")).map(x => (x, 1)).reduceByKey((x, y) => x + y)
-       count.foreach(x => println(x._1 + "," + x._2))
-    }
-}
 
-
-
-./bin/spark-submit --class 'cn.helloworld.Test' /root/IdeaProjects/wordcount/out/artifacts/wordcount_jar/wordcount.jar
 
 
 Intellij Idea搭建Spark开发环境
@@ -6564,9 +6549,6 @@ https://blog.csdn.net/u012877472/article/details/51000690
 
 Spark runs on Java 8+, Python 2.7+/3.4+ and R 3.1+. For the Scala API, Spark 2.3.2 uses Scala 2.11. You will need to use a compatible Scala version (2.11.x).
 
-
-版权声明：本文为博主原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接和本声明。
-本文链接：https://blog.csdn.net/turodog/article/details/88076655
 
 
 Effective Java（第3版）各章节的中英文学习参考（已完成）
@@ -6673,6 +6655,25 @@ JRE_HOME=/usr/java/jdk1.6.0_43/jre
 
 使用Spark读写CSV格式文件
 https://www.iteblog.com/archives/1380.html
+
+## spark
+
+import org.apache.spark.{ SparkConf, SparkContext }
+ 
+object WordCount{
+   def main(args: Array[String]): Unit = {
+       var conf = new SparkConf().setMaster("local").setAppName("wordcount")
+       var sc = new SparkContext(conf)
+       System.setProperty("hadoop.home.dir", "/usr/local/hadoop")
+       var input = "/usr/local/spark/README.md"
+       var count = sc.textFile(input).flatMap(x => x.split(" ")).map(x => (x, 1)).reduceByKey((x, y) => x + y)
+       count.foreach(x => println(x._1 + "," + x._2))
+    }
+}
+
+
+
+./bin/spark-submit --class 'cn.helloworld.Test' /root/IdeaProjects/wordcount/out/artifacts/wordcount_jar/wordcount.jar
 
 import org.apache.spark.sql.SQLContext
  
@@ -7836,6 +7837,9 @@ find /data/backup/ -mtime +30 -name '*.sql' -exec rm -i {} \;
 Linux安装CUDA的正确姿势
 https://blog.csdn.net/wf19930209/article/details/81879514
 
+ubuntu安装tensorflow gpu版本
+https://zhuanlan.zhihu.com/p/44183691
+
 # lspci | grep -i nvidia
 06:00.0 VGA compatible controller: NVIDIA Corporation GK107 [GeForce GTX 650] (rev a1)
 06:00.1 Audio device: NVIDIA Corporation GK107 HDMI Audio Controller (rev a1)
@@ -7873,8 +7877,7 @@ https://www.jianshu.com/p/622f47f94784
 Zipkin和微服务链路跟踪
 https://www.cnblogs.com/danghuijian/p/9482279.html
 
-ubuntu安装tensorflow gpu版本
-https://zhuanlan.zhihu.com/p/44183691
+
 
 API 网关与高性能服务最佳实践
 https://www.upyun.com/opentalk/activity/51.html
@@ -7908,8 +7911,10 @@ Removing and purging files from git history
 https://blog.ostermiller.org/git-remove-from-history
 
 # 某台机器
-git filter-branch -f --index-filter 'git rm --cached --ignore-unmatch myfile.txt'
-git push origin master --force
+cp FILE_LIST /backup
+git filter-branch --tag-name-filter cat --index-filter 'git rm -r --cached --ignore-unmatch FILE_LIST' --prune-empty -f -- --all
+git push origin --force --all
+git push origin --force --tags
 git reflog expire --expire=now --all
 git gc --aggressive --prune=now
 # 其它机器
@@ -7918,3 +7923,715 @@ git fetch origin
 git rebase
 git reflog expire --expire=now --all
 git gc --aggressive --prune=now
+
+查看 git 里最大的文件
+git verify-pack -v .git/objects/pack/pack-*.idx | sort -k 3 -g | tail -5
+git rev-list --objects --all | grep 2ab97e4d630bfd2369770d3650548356eefd583a
+
+qcon 2019 ppt 下载
+https://qcon.infoq.cn/2019/beijing/schedule?utm_source=infoq&utm_campaign=full&utm_term=0517
+
+
+查看 cpu 命令 lscpu
+
+音频云转换
+https://cloudconvert.com/mp3-to-wav
+
+
+Spark : how to run spark file from spark shell
+https://stackoverflow.com/questions/27717379/spark-how-to-run-spark-file-from-spark-shell
+:load PATH_TO_FILE
+spark-shell -i file.scala
+
+
+
+
+scala> csv4.take(2)
+res128: Array[Array[String]] = Array(Array(xxx大酒店, aba_2069, 低星, 115, 中国, \N, 阿坝, 34.0567484663, 0.0790406185024, \N, 0, 0, 242, 129, 四川, 27, 59, 35, 72, 二星及其他, 27, 59, 6, 0.176470588235, 34, 71, 3.9779300690), Array(yyy宾馆, aba_2096, 低星, 49, 中国, \N, 阿坝, 34.0567484663, 0.0790406185024, 九寨沟沟口, 1, 0, 227, 394, 四川, 42, 74, 60, 117, 二星及其他, 38, 66, 0, 0, 47, 89, 3.9723401070))
+
+scala> val cities = Array("广州", "北京","上海")
+cities: Array[String] = Array(广州, 北京, 上海)
+
+scala> val city_index = 6
+city_index: Int = 6
+
+scala> val comments_index = 13
+comments_index: Int = 13
+
+scala> csv4.groupBy(_(city_index)).filter(x=>cities.contains(x._1)).map(x=>(x._1, x._2.map(_(comments_index).toInt).reduce((x,y)=>x+y))).collect
+res129: Array[(String, Int)] = Array((广州,627913), (北京,894305), (上海,695220))
+
+scala>
+
+
+How to flatten a List of Lists in Scala with flatten
+https://alvinalexander.com/scala/how-to-flatten-list-lists-in-scala-with-flatten-method
+
+scala> val lol = List(List(1,2), List(3,4))
+lol: List[List[Int]] = List(List(1, 2), List(3, 4))
+scala> val result = lol.flatten
+result: List[Int] = List(1, 2, 3, 4)
+
+
+
+API 网关的选型 测试和持续集成
+https://www.upyun.com/opentalk/433.html
+
+
+玩转Flume+Kafka原来也就那点事儿
+https://www.jianshu.com/p/f0a08bd4f975
+
+玩转Flume+Kafka原来也就那点事儿
+https://blog.csdn.net/csdcit/article/details/79392311
+
+这些「神秘」团队到底是做什么的？
+http://www.imooc.com/article/281307
+
+我们认为优秀的工程师或多或少有以下共同特质：
+
+A Quick Learner
+An Earnest Curiosity
+Faith in Open Source
+Self-driven
+Get Things Done
+
+
+virtual 迁移
+源机器
+    pip freeze --all > requirements.txt
+    pip download -r requirements.txt
+目标机器
+    # 解压 packages.zip 到 packages 目录
+    virtualenv --extra-search-dir=packages --never-download venv
+    venv\Scripts\activate.bat
+    pip install --no-index -f packages -r packages\requirements.txt
+    python app.py
+
+
+PyPI上package有好几种格式：
+
+源文件（一般是.tar.gz或.zip文件，用pip安装，与机器架构无关，但某些package可能涉及到C/C++编译）
+wheel文件（二进制文件，拓展名为.whl，用pip安装，无需编译，但与机器架构相关）
+.egg文件（二进制文件，用easy_install安装，无需编译，但与机器架构相关）
+
+APISIX 的高性能实践
+https://www.upyun.com/opentalk/429.html
+
+
+How to remove an item from a list in Scala having only its index?
+https://stackoverflow.com/questions/18847249/how-to-remove-an-item-from-a-list-in-scala-having-only-its-index
+val trunced = internalIdList.take(index) ++ internalIdList.drop(index + 1)
+
+Scala: what is the best way to append an element to an Array?
+0 +: array :+ 4
+
+Array 插入一列
+t.map(x =>x._1 +: x._2.productIterator.toArray)
+
+
+val rdd1 = sc.makeRDD(Array(("Spark", "1", "30K"),("Hadoop", "2", "15K"),("Scala", "3", "25K"),("Java", "4", "10K")))
+val rdd1_2 = rdd1.map(_.productIterator.toArray).map(x=>x(1) +: (x.take(1) ++ x.drop(1+1)))
+
+
+
+scala> val rdd1 = sc.makeRDD(Array(("Spark", "1"),("Hadoop", "2"),("Scala", "3"),("Java", "4")))
+rdd1: org.apache.spark.rdd.RDD[(String, String)] = ParallelCollectionRDD[17] at makeRDD at <console>:24
+
+scala> val rdd1_2 = rdd1.map(x=>(x._2, x._1))
+rdd1_2: org.apache.spark.rdd.RDD[(String, String)] = MapPartitionsRDD[18] at map at <console>:27
+
+scala> rdd1_2.collect
+res12: Array[(String, String)] = Array((1,Spark), (2,Hadoop), (3,Scala), (4,Java))
+
+scala> val rdd2 = sc.makeRDD(Array(("1","30K"),("2","15K"),("3","25K"),("5","10K")))
+rdd2: org.apache.spark.rdd.RDD[(String, String)] = ParallelCollectionRDD[19] at makeRDD at <console>:24
+
+scala> val rdd3 = rdd1_2.join(rdd2)
+rdd3: org.apache.spark.rdd.RDD[(String, (String, String))] = MapPartitionsRDD[22] at join at <console>:27
+
+scala> rdd3.collect
+res13: Array[(String, (String, String))] = Array((1,(Spark,30K)), (2,(Hadoop,15K)), (3,(Scala,25K)))
+
+scala> val rdd4 = rdd3.map(x=>(x._1, x._2._1, x._2._2))
+rdd4: org.apache.spark.rdd.RDD[(String, String, String)] = MapPartitionsRDD[23] at map at <console>:27
+
+scala> rdd4.collect
+res14: Array[(String, String, String)] = Array((1,Spark,30K), (2,Hadoop,15K), (3,Scala,25K))
+
+
+
+scala 里一个 tuple 如何变换列的位置？toArray 后用 +：, take，drop 实现效果了，但无法再转回 tuple了。
+如果用 _2, _1, _3 重新排列的话不够通用，而且有时候 tuple 有几十列，写出来代码很难看，还有没有更简单通用的办法，
+最好不用sharpless。
+
+
+val filter_func = (x:Array[String]) => csv2.filter(x(7)==_(14)).isEmpty
+
+
+val df1 = spark.read.format("csv").option("delimiter", ",").load("hdfs://localhost:9000/comments1.csv")
+val df2 = spark.read.format("csv").option("delimiter", ",").load("hdfs://localhost:9000/propertys1.csv"r)
+val df3 = df1.join(df2, df1("_c7") <=> df2("_c14"))
+val colnames = (0 to 60).map("c_"+_.toString).toArray
+val df4 = df3.toDF(colnames: _*)
+df4.repartition(1).write.format("csv").save("hdfs://localhost:9000/joined.csv")
+ val csv = sc.textFile("hdfs://localhost:9000/joined.csv").map(_.split(","))
+ 
+Ubuntu18.04安装NVIDIA显卡驱动
+https://phantomvk.github.io/2019/06/29/Ubuntu_install_nVidia_Driver/
+
+sudo add-apt-repository ppa:graphics-drivers/ppa
+sudo apt update
+ubuntu-drivers devices
+sudo apt install nvidia-driver-430 
+
+
+"RmInitAdapter failed" with 370.23 but 367.35 works fine
+dmesg | grep NVRM
+pacman -Q|grep nvidia
+journalctl -xe
+lsmod|grep nvidia
+modinfo nvidia
+cat /proc/driver/nvidia/gpus/0000\:06\:00.0/information
+lsinitcpio /boot/initramfs-linux.img|grep nvidia
+
+How do I install NVIDIA and CUDA drivers into Ubuntu?
+https://askubuntu.com/questions/1077061/how-do-i-install-nvidia-and-cuda-drivers-into-ubuntu
+
+Using GPU from a docker container?
+https://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container
+
+
+Docker 安装 TensorFlow GPU 实战
+https://blog.csdn.net/u011291159/article/details/66970202
+https://github.com/NVIDIA/nvidia-docker
+
+systemctl status nvidia-docker
+
+docker pull daocloud.io/daocloud/tensorflow:1.4.0-rc1-gpu
+nvidia-docker run -i -t -p 8888:8888 daocloud.io/daocloud/tensorflow:1.4.0-rc1-gpu /bin/bash
+nvidia-docker run -it -p 8888:8888 tensorflow/tensorflow:latest-gpu
+
+docker 
+https://download.docker.com/linux/ubuntu/dists/bionic/pool/stable/amd64/
+安装
+    dpkg -i containerd.io_1.2.6-3_amd64.deb
+    dpkg -i docker-ce-cli_19.03.4~3-0~ubuntu-bionic_amd64.deb
+    dpkg -i docker-ce_19.03.4~3-0~ubuntu-bionic_amd64.deb
+
+卸载
+    sudo apt-get purge docker-ce
+    sudo rm -rf /var/lib/docker
+
+Accessing GPUs from a Docker Swarm service
+http://cowlet.org/2018/05/21/accessing-gpus-from-a-docker-swarm-service.html
+docker19.03使用NVIDIA显卡
+https://blog.51cto.com/13447608/2437856?source=dra
+
+Runtime options with Memory, CPUs, and GPUs
+https://docs.docker.com/config/containers/resource_constraints/
+
+
+
+压缩：时间戳差值压缩，zigzag xor,snappy
+索引：LSM
+
+成本函数
+
+## scikit-learn
+
+- 基于Numpy、SciPy和Matplotlib
+- 适用于分类（向量机、最近邻、随机森林等）
+- 回归（向量回归（SVR），脊回归，Lasso回归等）
+- 聚类（K-均值、谱聚类、均值偏移等）
+- 数据降维、模型选择和数据预处理等应用。
+
+深度神经网络，顾名思义，就是包含很多隐藏层的神经网络。这就意味着深度神经网络包含很多权重和偏置，这些权重和偏置，落实到代码层面，就是很多大型浮点矩阵。所以，深度神经网络需要进行很多浮点运算，也需要较大的带宽来访问这些大型浮点矩阵。只有gpu才符合以上两点要求。
+
+目前sklearn不使用gpu，确实是早期设计原因，它并不是为海量数据的学习建模，以及企业级应用设计的。我更倾向于把它归类于教学工具，以及用于小批量数据的初步分析。因为它功能全面，使用简单。能够快速给研究人员灵感。真正的企业级部署是不可能用sklearn的。几乎所有的算法都有更好的替代。
+
+sklearn可以用到gpu吗，是只有神经网络能用gpu的算力？
+https://www.wukong.com/answer/6502778705033560334/
+
+Ubuntu18.04 + CUDA9.0 + cuDNN7.3 + Tensorflow-gpu-1.12 + Jupyter Notebook深度学习环境配置
+https://blog.csdn.net/youngping/article/details/84207234
+
+
+python 安装
+
+sudo apt-get install python3.7
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.7 2
+python --version
+
+sudo apt install python3-pip
+sudo update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
+
+sudo pip3 install -U virtualenv
+virtualenv --system-site-packages -p python3 ./venv
+source ./venv/bin/activate
+
+
+
+
+import tensorflow as tf
+print(tf.__version__)
+tf.constant(1.)+tf.constant(2.)
+tf.test.is_gpu_available()
+
+初学者的 TensorFlow 2.0 教程
+https://tensorflow.google.cn/tutorials/quickstart/beginner
+
+高效的TensorFlow 2.0 (tensorflow2官方教程翻译)
+https://www.jianshu.com/p/599c79c3a537
+
+MNIST机器学习入门
+http://www.tensorfly.cn/tfdoc/tutorials/mnist_beginners.html
+
+TensorFlow教程：TensorFlow快速入门教程（非常详细）
+http://c.biancheng.net/tensorflow/
+
+新手入门第四课——PaddlePaddle快速入门
+https://aistudio.baidu.com/aistudio/projectdetail/176740
+
+深度学习开源书，基于TensorFlow 2.0实战。
+https://github.com/dragen1860/Deep-Learning-with-TensorFlow-book
+
+TensorFlow 2.0完全入门
+https://www.bilibili.com/video/av69107165
+
+TensorFlow入门：手写体数字识别
+https://v.qq.com/x/page/a0884nk1tvp.html
+
+【帅器学习/柏欣】Tensorflow2入门
+https://www.bilibili.com/video/av69661987/?redirectFrom=h5
+
+
+复制算法
+
+黄文才：云智天枢AI中台架构及AI在K8S中的实践
+https://cloud.tencent.com/developer/article/1505465
+
+
+监控系统通过开源组件：telegraf + influxdb + grafana 搭建起来的。每个node节点会部署一个daemonset的容器monitor_agent。业务容器通过unix socket与monitor_agent通讯。monitor_agent每分钟汇总上报数据到influxdb存储，grafana通过读取influxdb进行视图展示和告警设置等。
+
+当然业界也有其他的解决方案，比如说Prometheus(普罗米修斯)，我们做了选型的对比：
+
+1. 它的采集器是以exporter的方式去运行的，每一个要监控的组件都有要装一个exporter，promethus再从多个exporter里面拉数据。
+
+2.promethus自带的展示界面比较挫，即使采用promethus，也要配合grafana才能用 
+
+3.promethus是拉模式来搜集数据的，业务要上报数据的话要安装它的一个代理pushgateway，数据先push到代理，然后再等promethus去拉，实时性和性能都比推模式略差一点 
+
+我们采用的类似侵入式的方式，更适合我们这个平台。另外telegraf有很多扩展插件，用起来会很方便。
+
+
+2007年6月，NVIDIA公司推出了CUDA (Compute Unified Device Architecture)，CUDA 不需要借助图形学API，而是采用了类C语言进行开发。
+
+从左边图来看，CUDA软件体系分为三层：（1）CUDA函数库；（2）CUDA 运行时API；（3）CUDA驱动API。
+
+所以应用程序和CUDA Libraries以及CUDA Runtime间不会有什么问题？
+
+主要问题在CUDA Runtime和CUDA Driver之间。CUDA Driver库是在创建容器时从宿主机挂载到容器中，很容易出现版本问题，需要保证CUDA Driver的版本不低于CUDA Runtime版本。
+容器内使用GPU:
+
+1、GPU设备挂载到容器里
+
+--device挂载设备到容器
+
+特权模式privileged
+
+2、CUDA Driver API挂载到容器
+
+3、CUDA Runtime API和CUDA Libraries
+
+通常跟应用程序一起打包到镜像里
+
+4、K8S通过nvidia-container-runtime实现挂载gpu设备和cuda驱动进容器
+
+5、K8S通过nvidia-device-plugin实现分卡。扩展资源 ，使gpu能像cpu那样分配。
+
+ nvidia有两种GPU虚拟化的解决方案：（1）GRID；（2）MPS。第一种模式更多用于虚拟机场景，基于驱动，隔离型会做的比较强，但不开源，性能比较好。MPS是应用到容器场景的，基于软件的方式，隔离性比较弱，但也不开源。
+ 
+ 
+浅谈GPU虚拟化技术（四）- GPU分片虚拟化
+https://yq.aliyun.com/articles/599189
+
+Docker 中玩转 GPU
+https://blog.opskumu.com/docker-gpu.html
+
+# export DEVICES=$(\ls /dev/nvidia* | xargs -I{} echo '--device {}:{}')
+# docker run -it --rm $DEVICES -v /usr/lib64/nvidia/:/usr/local/nvidia/lib64 tensorflow/tensorflow:latest-gpu bash
+
+
+root@b37235b80e1a:/notebooks# python
+Python 2.7.12 (default, Nov 19 2016, 06:48:10)
+[GCC 5.4.0 20160609] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import tensorflow as tf
+>>> a = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[2, 3], name='a')
+>>> b = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[3, 2], name='b')
+>>> c = tf.matmul(a, b)
+>>> sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
+2017-07-14 15:30:24.261480: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1030] Creating TensorFlow device (/gpu:0) -> (device: 0, name: Tesla P40, pci bus id: 0000:03:00.0)
+2017-07-14 15:30:24.261516: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1030] Creating TensorFlow device (/gpu:1) -> (device: 1, name: Tesla P40, pci bus id: 0000:82:00.0)
+Device mapping:
+/job:localhost/replica:0/task:0/gpu:0 -> device: 0, name: Tesla P40, pci bus id: 0000:03:00.0
+/job:localhost/replica:0/task:0/gpu:1 -> device: 1, name: Tesla P40, pci bus id: 0000:82:00.0
+2017-07-14 15:30:24.263788: I tensorflow/core/common_runtime/direct_session.cc:265] Device mapping:
+/job:localhost/replica:0/task:0/gpu:0 -> device: 0, name: Tesla P40, pci bus id: 0000:03:00.0
+/job:localhost/replica:0/task:0/gpu:1 -> device: 1, name: Tesla P40, pci bus id: 0000:82:00.0
+
+>>> print(sess.run(c))
+... ...
+[[ 22.  28.]
+[ 49.  64.]]
+
+docker run --rm --name tensorflow -ti tensorflow/tensorflow:latest-gpu
+python -c 'import tensorflow as tf;print(tf.test.is_gpu_available())'
+
+root@bd0fb3758da2:~# python --version
+Python 2.7.6
+root@bd0fb3758da2:~# python -m tensorflow.models.image.mnist.convolutional
+
+程序员也可以懂一点期望值管理
+https://zhuanlan.zhihu.com/p/20046507
+
+如何高效的学习掌握新技术
+https://zhuanlan.zhihu.com/p/20190356
+
+《构建之法》读后感之项目计划
+https://zhuanlan.zhihu.com/p/20044649
+
+沈4 年前
+项目管理，就是带领团队不断找到项目中最模糊的部分，在一段时间内把它清晰化到一定程度，然后再找到次模糊的部分，不断迭代。项目成员和其他涉众在这个逐步清晰化的过程中，自然会越来越有信心。
+是否勇于面对模糊的部分，是考察领导力的最基本的要素。
+
+./cuda_10.0.130_410.48_linux
+
+cd /usr/local/cuda-10.0/samples/1_Utilities/deviceQuery
+make
+./deviceQuery
+cd ../bandwidthTest
+make
+./bandwidthTest
+
+
+
+解决Could not load dynamic library 'libcudart.so.10.0'的问题
+https://blog.csdn.net/u012388993/article/details/102573117
+
+AttributeError: module 'tensorflow' has no attribute 'Session'
+https://blog.csdn.net/qq_33440324/article/details/94200046
+
+用 tf.compat.v1.Session() 代替 tf.Session()`
+
+tf.device()指定tensorflow运行的GPU或CPU设备
+https://blog.csdn.net/dcrmg/article/details/79747882
+
+TensorFlow 2.0 教程
+https://blog.csdn.net/qq_31456593/article/details/88606284
+
+『TensorFlow2.0正式版』极简安装TF2.0正式版（CPU&GPU）教程
+https://blog.csdn.net/xiaosongshine/article/details/101844926
+
+import tensorflow as tf
+version = tf.__version__
+gpu_ok = tf.test.is_gpu_available()
+print("tf version:",version,"\nuse GPU",gpu_ok)
+
+禁用 2.0 行为
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+
+tensorflow中不同的GPU使用/gpu:0和/gpu:1区分，而CPU不区分设备号，统一使用 /cpu:0
+
+
+TensorFlow2.0教程-张量及其操作
+https://blog.csdn.net/qq_31456593/article/details/90178004
+.
+Disable Tensorflow debugging information
+https://stackoverflow.com/questions/35911252/disable-tensorflow-debugging-information
+
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+import tensorflow as tf
+
+让 cat 增加语法高亮
+
+pygmentize -g 003.py
+
+Syntax highlighting/colorizing cat
+https://stackoverflow.com/questions/7851134/syntax-highlighting-colorizing-cat
+
+https://github.com/NVIDIA/nvidia-docker#ubuntu-16041804-debian-jessiestretchbuster
+
+# Add the package repositories
+$ distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+$ curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+$ curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+$ sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
+$ sudo systemctl restart docker
+
+docker run --help | grep -i gpus
+docker run -it --rm --gpus all ubuntu nvidia-smi
+
+docker run --gpus all --rm --name tensorflow -ti tensorflow/tensorflow:latest-gpu
+python -c 'import tensorflow as tf;print(tf.test.is_gpu_available())'
+
+
+给容器按比例分配CPU
+cat /sys/fs/cgroup/cpu/docker/cpu.shares
+1024
+So, if we have 2 containers, one for the database and one more for the web server
+sudo docker run -c 614 -dit --name db postgres /postgres.sh
+sudo docker run -c 410 -dit --name web nginx /nginx.sh
+
+
+GPU 编排
+CASE STUDY: GPU ORCHESTRATION USING DOCKER
+https://codingsans.com/blog/gpu-orchestration-using-docker
+Accessing GPUs from a Docker Swarm service
+http://cowlet.org/2018/05/21/accessing-gpus-from-a-docker-swarm-service.html
+
+
+docker service create --generic-resource "gpu=1" --constraint 'node.id == sqe18dxvimg8arkbn3elvkaep' tensorflow/tensorflow:latest-gpu
+
+
+ls /dev/nvidia0
+
+
+## docker gpu
+
+确认检测到显卡
+
+    lspci -vv | grep -i nvidia
+    
+Nvidia 驱动安装
+
+    sudo add-apt-repository ppa:graphics-drivers/ppa
+    sudo apt update
+    ubuntu-drivers devices
+    sudo apt install nvidia-driver-430
+    
+驱动测试
+
+    nvidia-smi
+
+CUDA 下载
+
+    # 下载 10.0，不要下载最新的 10.1，因为目前 tensorflow 2.0 不支持，
+    https://developer.nvidia.com/cuda-downloads
+    
+CUDA 安装
+
+    # 不要安装 Nvidia 驱动，因为已经安装过了
+    # 如果是双显卡，不要安装 OpenGL 库，否则可能会黑屏
+    chmod +x cuda_10.0.130_410.48_linux
+    ./cuda_10.0.130_410.48_linux
+    
+CUDA 测试
+
+    /usr/local/cuda-10.0/bin/nvcc -V
+    
+    # 测试结果应为 PASS
+    cd /usr/local/cuda-10.0/samples/1_Utilities/deviceQuery
+    make
+    ./deviceQuery
+    
+    # 测试结果应为 PASS
+    cd ../bandwidthTest
+    make
+    ./bandwidthTest
+    
+libcudnn
+
+    https://developer.nvidia.com/rdp/cudnn-archive
+
+libcudnn 安装
+
+    dpkg -i libcudnn7_7.6.3.30-1+cuda10.1_amd64.deb
+    
+tensorflow 2.0 安装
+
+    # 安装 pip 和 virtualenv
+    sudo apt install python3-pip
+    mkdir ~/.pip
+    sudo vim ~/.pip/pip.conf
+        [global]
+        index-url = https://mirrors.aliyun.com/pypi/simple
+        [install]
+        trusted-host=mirrors.aliyun.com
+    sudo pip3 install -U virtualenv
+    # 创建并加载虚拟环境
+    virtualenv --system-site-packages -p python3 ./venv
+    source ./venv/bin/activate
+    # 确认 pip 为虚拟环境中的 pip
+    which pip
+    # 安装 2.0 版本
+    pip install tensorflow-gpu==2.0.0
+    
+tensorflow with GPU 测试
+
+    python -c 'import tensorflow as tf;print(tf.test.is_gpu_available())'
+    
+jupyter notebook 安装启动
+    
+    source ./venv/bin/activate
+    pip install jupyter
+    pip install ipykernel
+    python -m ipykernel install --user --name=tensorflow
+    jupyter notebook
+    
+jupyter notebook with GPU 测试
+
+    # 打开 localhost:8888 新建 tenforflow 文件并运行如下代码
+    import tensorflow as tf
+    version = tf.__version__
+    gpu_ok = tf.test.is_gpu_available()
+    print("tf version:",version,"\nuse GPU",gpu_ok)
+    
+
+Docker 19.03 下载
+
+    https://download.docker.com/linux/ubuntu/dists/bionic/pool/stable/amd64/
+
+Docker 安装
+
+    dpkg -i containerd.io_1.2.6-3_amd64.deb
+    dpkg -i docker-ce-cli_19.03.4~3-0~ubuntu-bionic_amd64.deb
+    dpkg -i docker-ce_19.03.4~3-0~ubuntu-bionic_amd64.deb
+    
+nvidia-container-runtime-hook 安装
+    
+    distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+    curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+    curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+    sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit       
+    which nvidia-container-runtime-hook
+    
+    sudo systemctl restart docker
+    
+Docker with GPU 测试
+
+    docker run -it --rm --gpus all ubuntu nvidia-smi
+    docker run --gpus all --rm --name tensorflow -ti tensorflow/tensorflow:latest-gpu python -c 'import tensorflow as tf;print(tf.test.is_gpu_available())'
+    
+    
+虽然 Docker 19.03 默认已经支持 GPU，但只是 docker run 支持，而 docker service 和 docker-compose 都不支持，所以还需要安装 nvidia-container-runtime 并设置。
+
+nvidia-container-runtime 安装
+
+    sudo apt-get install nvidia-container-runtime
+    
+为 Docker 增加 nvidia runtime
+
+    sudo tee /etc/docker/daemon.json <<EOF
+    {
+        "runtimes": {
+            "nvidia": {
+                "path": "/usr/bin/nvidia-container-runtime",
+                "runtimeArgs": []
+            }
+        }
+    }
+    EOF
+    sudo pkill -SIGHUP dockerd
+
+默认使用 nvidia runtime
+
+    
+    sudo mkdir -p /etc/systemd/system/docker.service.d
+    # VRAM 表示显存大小，主要用于 docker service 时使用 --generic-resource 找到有显卡的节点
+    sudo tee /etc/systemd/system/docker.service.d/override.conf <<EOF
+    [Service]
+    ExecStart=
+    ExecStart=/usr/bin/dockerd -H fd:// --default-runtime=nvidia --containerd=/run/containerd/containerd.sock --node-generic-resource VRAM=8000
+    EOF
+    vi /etc/nvidia-container-runtime/config.toml
+        # 取消下面这行的注释
+        swarm-resource = "DOCKER_RESOURCE_GPU"
+    
+    sudo systemctl daemon-reload
+    sudo systemctl restart docker
+
+Docker Service 测试
+
+    # 本机不使用 --gpus 参数启动容器并查看 GPU 设备
+    docker run --rm --name tensorflow -ti tensorflow/tensorflow:latest-gpu ls /dev/nvidia0
+    # 随机节点启动容器，启动后通过 docker service ps 找到节点，并到节点机器上 docker exec 进入容器ls /dev/nvidia0，下同
+    docker service create tensorflow/tensorflow:latest-gpu-py3-jupyter
+    # 指定节点启动容器
+    docker service create  --constraint 'node.id == wnsgpwm1if9a7op0h9atrvbjb' tensorflow/tensorflow:latest-gpu-py3-jupyter
+    # 自动选择定义了 VRAM 的节点
+    docker service create --generic-resource VRAM=3000  tensorflow/tensorflow:latest-gpu-py3-jupyter
+    # 设置显存自适应，以便多容器共用一块 GPU
+    docker service create --env TF_FORCE_GPU_ALLOW_GROWTH=true --generic-resource VRAM=3000  tensorflow/tensorflow:latest-gpu-py3-jupyter
+    # 映射 8888 端口，浏览器打开 http://localhost:8888 ，密码可进入容器后 jupyter notebook list 查看
+    docker service create --publish 8888:8888 --env TF_FORCE_GPU_ALLOW_GROWTH=true \
+        --generic-resource VRAM=3000  tensorflow/tensorflow:latest-gpu-py3-jupyter
+    
+    
+    
+参考链接
+
+- https://github.com/NVIDIA/nvidia-container-runtime/
+- https://github.com/NVIDIA/nvidia-docker
+- https://codingsans.com/blog/gpu-orchestration-using-docker
+- https://docs.docker.com/config/containers/resource_constraints/
+- http://cowlet.org/2018/05/21/accessing-gpus-from-a-docker-swarm-service.html
+
+
+https://zhuanlan.zhihu.com/p/52096200
+
+
+锁屏
+%windir%\system32\rundll32.exe user32.dll,LockWorkStation
+
+export SYSTEMD_EDITOR=vim
+systemctl edit docker
+
+
+cat <<EOF >003.py
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
+import tensorflow as tf
+
+import time
+def time_matmul(x):
+    start = time.time()
+    for loop in range(10000):
+        tf.matmul(x, x)
+    result = time.time() - start
+    print('10000 loops: {:0}ms'.format(1000*result))
+
+
+x = tf.random.uniform([1000, 1000])
+assert x.device.endswith('GPU:0')
+time_matmul(x)
+
+
+EOF
+
+限制 GPU 使用率
+https://stackoverflow.com/questions/34199233/how-to-prevent-tensorflow-from-allocating-the-totality-of-a-gpu-memory
+How to prevent tensorflow from allocating the totality of a GPU memory?
+
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+session = tf.Session(config=config, ...)
+
+config = tf.ConfigProto()
+config.gpu_options.per_process_gpu_memory_fraction = 0.4
+session = tf.Session(config=config, ...)
+
+import tensorflow as tf
+physical_devices = tf.config.experimental.list_physical_devices('GPU')
+assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
+TF_FORCE_GPU_ALLOW_GROWTH=true python 008.py
+
+sudo 命令继承当前环境变量
+sudo -E xxx
