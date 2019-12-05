@@ -3,23 +3,33 @@
 
 import time
 import socket
-from multiping import multi_ping 
+from multiping import MultiPing
 
-def ping(addrs):
+def ping(addrs, timeout=1):
     with socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP) as sock:
-        responses, no_response = multi_ping(addrs, sock=sock, timeout=0.5, retry=2,
-                                                ignore_lookup_errors=True)
+        mp = MultiPing(addrs, sock=sock, ignore_lookup_errors=True)
+        mp.send()
+        responses, no_responses = mp.receive(timeout=timeout)
 
         for addr, rtt in responses.items():
-            print("%s responded in %f seconds" % (addr, rtt))
+            print("%s responded in %d ms" % (addr, rtt*1000))
+        if no_responses:
+            for addr in no_responses:
+                print("%s responded in %d ms" % (addr, timeout*1000))
 
 addrs = ['cloud.tencent.com',
            'aliyun.com',
+           'ihuhao.com',
            'baidu.com',
            'stackoverflow.com',
+           'cloud.ihuhao.com',
           ]
 
 while True:
-    ping(addrs)
+    try:
+        ping(addrs)
+        print('*'*10)
+    except Exception as ex:
+        print(ex)
     time.sleep(1)
 
