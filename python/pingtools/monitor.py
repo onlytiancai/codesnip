@@ -4,6 +4,8 @@
 import time
 import socket
 from multiping import MultiPing
+import rrd
+import settings
 
 def ping(addrs, timeout=1):
     with socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP) as sock:
@@ -13,23 +15,18 @@ def ping(addrs, timeout=1):
 
         for addr, rtt in responses.items():
             print("%s responded in %d ms" % (addr, rtt*1000))
+            rrd.rrd_init_or_update('%s.rrd' % addr, int(rtt*1000))
         if no_responses:
             for addr in no_responses:
-                print("%s responded in %d ms" % (addr, timeout*1000))
-
-addrs = ['cloud.tencent.com',
-           'aliyun.com',
-           'ihuhao.com',
-           'baidu.com',
-           'stackoverflow.com',
-           'cloud.ihuhao.com',
-          ]
+                rtt = timeout*1000
+                print("%s responded in %d ms" % (addr, rtt))
+                rrd.rrd_init_or_update('%s.rrd' % addr, rtt)
 
 while True:
     try:
-        ping(addrs)
+        ping(settings.addrs)
         print('*'*10)
     except Exception as ex:
         print(ex)
-    time.sleep(1)
-
+        raise
+    time.sleep(3)
