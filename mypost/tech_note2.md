@@ -8614,6 +8614,10 @@ time_matmul(x)
 
 EOF
 
+每隔 30 分钟定时锁屏休息
+SCHTASKS /Create /SC MINUTE  /MO 30 /TN 定时锁屏 /TR "%windir%\system32\rundll32.exe user32.dll,LockWorkStation"
+
+
 限制 GPU 使用率
 https://stackoverflow.com/questions/34199233/how-to-prevent-tensorflow-from-allocating-the-totality-of-a-gpu-memory
 How to prevent tensorflow from allocating the totality of a GPU memory?
@@ -8635,3 +8639,205 @@ TF_FORCE_GPU_ALLOW_GROWTH=true python 008.py
 
 sudo 命令继承当前环境变量
 sudo -E xxx
+
+
+
+Free Ping and Traceroute Tool
+https://www.manageengine.com/free-ping-tool/free-ping-tool-index.html
+
+
+
+FreeFileSync(免费文件同步工具) v10.18中文版
+http://www.pc6.com/softview/SoftView_46868.html
+
+免费个人数据备份软件介绍：FreeFileSync、Syncthing
+https://cloud.tencent.com/developer/news/180449
+
+
+FreeFileSync我用在离线备份，定期接上移动硬盘，打开同步方案，同步一下。
+
+Syncthing我用在在线远程备份。
+
+FreeFileSync可以保持2个文件夹同步，支持本地文件夹、网上邻居、FTP。文件比较根据文件更新时间、大小（1T几分钟就可以检查完）或者内容（很慢，没试过）比较。可以后台自动同步。带简单的版本管理。可以建立配置文件，保存多个同步方案。使用非常简单，选择2个目录，检查不同，同步即可。
+
+
+文件同步软件：filegee，FreeFileSync，goodsync，坚果云，nextcloud，seafile,syncthings
+
+
+git apply是另外一种打patch的命令，其与git am的区别是，git apply并不会将commit message等打上去，打完patch后需要重新git add和git commit，而git am会直接将patch的所有信息打上去，而且不用重新git add和git commit,author也是patch的author而不是打patch的人
+
+
+How to resolve ALL conflicts using HEAD, with any mergetool
+https://stackoverflow.com/questions/20229222/how-to-resolve-all-conflicts-using-head-with-any-mergetool
+
+git reset --hard HEAD
+git merge -Xours origin/master
+
+Git – Resolve Merge Conflicts
+https://easyengine.io/tutorials/git/git-resolve-merge-conflicts/
+git checkout --ours PATH/FILE
+git checkout --theirs PATH/FILE
+
+git checkout --conflict=merge .
+git checkout --ours .
+
+
+如何用git命令生成Patch和打Patch
+https://www.cnblogs.com/ArsenalfanInECNU/p/8931377.html
+
+# A
+git format-patch HEAD^^
+# B
+git apply --stat 0002-.patch
+git apply --check 0002-.patch
+git apply  0002-.patch
+git checkout --theirs packages/notebook-extension/src/index.ts
+
+装机必备：
+Everything
+VNC Viewer
+Putty
+WinSCP
+Notepad++
+FileZilla
+Foxmail
+Git
+7-zip
+Python
+VS Code
+WPS Office
+Chrome
+QQ 拼音
+ReplaceGoogleCDN-master
+
+
+现在坚果云有 4 条相当清晰的产品线：面向个人用户有免费的普通版和付费的专业版，另外还有为中小企业提供的团队版，以及适合大企业使用的企业版。他们的个人用户和中小企业用户基本各占一半。
+
+易用安全，两个坚持了 6 年的原则
+
+在韩竹看来，坚果云的最大优势在于易用和安全。
+
+
+
+mkdir ~/.pip/
+
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
+pip install --upgrade pip
+pip install jupyterlab==2.0.0a1
+curl -sL https://deb.nodesource.com/setup_12.x |  bash -
+apt-get install nodejs
+
+
+main.aed71038718d8fcdfab8.js
+vendors~main.f0b5361fc5ec3d5b3d77.js
+
+terminal should be login shell, not interactive shell
+https://github.com/jupyterlab/jupyterlab/issues/3094
+
+
+Ubuntu修改默认sh为bash
+
+查看当前 shell
+ps -p $$
+echo $0
+
+修改默认 shell
+
+usermod -s /bin/bash root
+sudo -u root chsh -s /bin/bash
+dpkg-reconfigure bash
+Change Shell To Bash in Linux / Unix
+https://www.cyberciti.biz/faq/how-to-change-shell-to-bash/
+
+
+Python中使用rrdtool结合Django进行带宽监控
+https://blog.csdn.net/orangleliu/article/details/52851122
+python3 rrdtool 使用
+https://www.cnblogs.com/FRESHMANS/p/8427737.html
+
+yum install rrdtool-devel python36-devel
+pip install rrdtool
+
+
+import rrdtool
+import time
+
+cur_time = str(int(time.time()))  # 获取当前Linux时间戳作为rrd起始时间
+# 数据写频率--step为300秒(即5分钟一个数据点)
+rrd = rrdtool.create('/root/xls/Flow.rrd', '--step', '300', '--start', cur_time,
+　　　　　　　　　　　　 #定义数据源ens32_in(入流量)、ens32_out(出流量)；类型都为COUNTER(递增)；600秒为心跳值,其含义是600秒没有收到值，则会用UNKNOWN代替；0为最小值；最大值用U代替，表示不确定
+                     'DS:ens32_in:COUNTER:600:0:U',　　'DS:ens32_out:COUNTER:600:0:U',
+                     #RRA定义格式为[RRA:CF:xff:steps:rows]，CF定义了AVERAGE、MAX、MIN三种数据合并方式
+　　　　　　　　　　　　 #xff定义为0.5，表示一个CDP中的PDP值如超过一半值为UNKNOWN，则该CDP的值就被标为UNKNOWN
+　　　　　　　　　　　　 #下列前4个RRA的定义说明如下，其他定义与AVERAGE方式相似，区别是存最大值与最小值
+　　　　　　　　　　　　 'RRA:AVERAGE:0.5:1:600',
+                     'RRA:AVERAGE:0.5:6:700',
+                     'RRA:AVERAGE:0.5:24:775',
+                     'RRA:AVERAGE:0.5:288:797',
+　　　　　　　　　　　　　
+                     'RRA:MAX:0.5:1:600',　　　　　　# 每隔5分钟(1*300秒)存一次数据的最大值,存600笔，即2.08天
+                     'RRA:MAX:0.5:6:700',　　　　　　# 每隔30分钟(6*300秒)存一次数据的最大值,存700笔，即14.58天（2周）
+                     'RRA:MAX:0.5:24:775',　　　　　 # 每隔2小时(24*300秒)存一次数据的最大值,存775笔，即64.58天（2个月）
+                     'RRA:MAX:0.5:444:797',　　　　　# 每隔24小时(288*300秒)存一次数据的最大值,存797笔，即797天(2年)
+                     'RRA:MIN:0.5:1:600',
+                     'RRA:MIN:0.5:6:700',
+                     'RRA:MIN:0.5:24:775',
+                     'RRA:MIN:0.5:444:797')
+if rrd:
+    print (rrdtool.error())
+	
+	
+reate filename [--start|-b start time] [--step|-s step] [DS:ds-name:DST:heartbeat:min:max] [RRA:CF:xff:steps:rows]方法，创建一个后缀为rrd的rrdtool数据库，参数说明如下：
+
+filename创建的rrdtool数据库文件名，默认后缀为.rrd；
+
+--start指定rrdtool第一条记录的起始时间，必须是timestamp的格式；
+
+--step指定rrdtool每隔多长时间就收到一个值，默认为5分钟；
+
+DS用于定义数据源，用于存放脚本的结果的变量；
+
+DST用于定义数据源类型，rrdtool支持COUNTER（递增类型）、DERIVE（可递增可递减类型）、ABSOLUTE（假定前一个时间间隔的值为0，再计算平均值）、GUAGE（收到值后直接存入RRA）、COMPUTE（定义一个表达式，引用DS并自动计算出某个值）5种，比如网卡流量属于计数器型，应该选择COUNTER；
+
+RRA用于指定数据如何存放，我们可以把一个RRA看成一个表，保存不同间隔的统计结果数据，为CF做数据合并提供依据，定义格式为：[RRA:CF:xff:steps:rows]；
+
+CF统计合并数据，支持AVERAGE（平均值）、MAX（最大值）、MIN（最小值）、LAST（最新值）4种方式。
+
+
+Python3.6关于python-rrdtool报错的问题
+https://blog.csdn.net/Mr_Yang__/article/details/81145329
+https://pythonhosted.org/rrdtool/install.html#source-code
+
+
+yum install -y gettext libffi pcre glib libpng freetype fontconfig pixman cairo fribidi graphite2 icu4c harfbuzz pango libtiff-devel.x86_64
+
+wget https://oss.oetiker.ch/rrdtool/pub/rrdtool-1.5.6.tar.gz
+
+tar zxvf rrdtool-1.5.6.tar.gz
+cd rrdtool-1.5.6
+./configure --prefix=/usr/local/rrdtool
+make && make install
+
+ln -s /usr/local/lib/librrd* /usr/lib/
+git clone https://github.com/commx/python-rrdtool.git
+cd python-rrdtool
+python setup.py install
+
+
+CentOS 6.X 安装中文字体
+https://blog.csdn.net/wh211212/article/details/78730474
+# 中文
+yum install -y fontconfig mkfontscale
+fc-list
+fc-list :lang=zh
+
+unzip win-fonts.zip -d /usr/share/fonts/
+cd /usr/share/fonts/
+mkfontscale
+mkfontdir
+fc-cache
+
+
+export FLASK_ENV=production
+flask run --port 8001
