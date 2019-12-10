@@ -8841,3 +8841,67 @@ fc-cache
 
 export FLASK_ENV=production
 flask run --port 8001
+
+
+4 年 Java 经验面试总结、心得体会 - 程序员囧辉的文章 - 知乎
+https://zhuanlan.zhihu.com/p/79224082
+
+面试挂了阿里却拿到网易offer，一个三年Java程序员的面试总结！ - <em>Java</em>架构师的文章 - 知乎
+https://zhuanlan.zhihu.com/p/61449992
+
+专业技能方面
+- 基础：JDK 常用类的原理、源码、使用场景。
+- 设计模式：常用几种的原理、使用场景，单例、动态代理、模板、责任链等。
+- 数据结构：数组、链表、栈、队列、树。
+- 网络：TCP、HTTP、HTTPS、负载均衡算法。
+- 框架：Spring IoC 原理、Spring AOP 原理和使用、Spring 常用的扩展点、MyBatis 的核心流程。
+- 中间件：常用中间件的核心原理与最佳实践，并对其中的 1 到 2 个有深入的学习，Redis、Kafka（RocketMQ、RabbitMQ）、Dubbo、Zookeeper。
+- 数据库（MySQL）：索引原理、隔离级别、锁机制、分库分表、慢 SQL 定位及优化、线上问题解决。
+- Netty：NIO 原理、核心组件、I/O 多路复用（epoll）、零拷贝。
+- JVM：运行时数据区、垃圾回收算法、垃圾回收器（CMS、G1）、常用配置参数、线上问题定位及解决。
+- 稳定性保障：隔离、限流、熔断、降级等。
+- Linux：基本命令的使用、快速定位和排查问题。
+- 分布式理论：CAP、BASE、2PC、3PC、TCC。
+
+项目方面
+- 能独立完成一个复杂模块的需求分析、方案设计和最终落地实现。
+- 能不断思考，寻找更优的设计和解决方案，积极优化慢 SQL、慢服务。
+- 具备排查问题的能力，遇到线上问题能及时定位和修复上线，例如：数据库死锁、服务器宕机、服务器 Full GC 频繁等。
+- 具备难题攻关的能力，能不断解决项目遇到的挑战，能给予初级工程师技术上的指导。
+- 初步具备带领团队（1-3人左右）的能力，能合理分配需求，做好进度把控、风险评估、Code Review。
+
+
+常见的如以下：
+
+介绍下你参与度最高的项目
+画下项目的架构图
+如果核心流程处理到一半，服务器崩溃了，会怎么处理
+项目中遇到过哪些挑战或问题，怎么解决的
+项目的稳定性和可用性怎么保障
+数据安全这块怎么设计
+项目的技术选型，为什么选这些
+
+
+Hr 面主要是了解候选人的一些通用素质，经常会问的问题如下：
+
+介绍下自己投入最多的项目（当时我就惊了，Hr 也开始问项目了）
+离职的原因
+当前的薪资、绩效
+当前在面试的其他公司的情况
+平时有没有学习的习惯，怎么学习的，现在在学习什么
+未来的规划
+
+1. 我是谁 （1句话）
+2. 我的三个亮点，最近最相关的经历？（3句话）
+3. 我为什么想要这份工作？（1句话）
+
+
+
+jupyter labextension list
+
+npm config set registry=https://registry.npm.taobao.org
+npm config set prefix $HOME
+npm config set unsafe-perm true
+npm install -g zeromq@5.2.0
+npm install -g ijavascript
+apt-get install libzmq libzmq3-dev
