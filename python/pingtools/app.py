@@ -26,7 +26,7 @@ def show():
     rrdtool.graph(path,
                   '--start', "-1h",
                   "-t", name + ' ' + ip,
-                  "-w", "400",
+                  "-w", "500",
                   "-h", "200",
                   'DEF:value1={0}:rtt:AVERAGE'.format(rrd_name),
                   'AREA:value1#00ff00:rtt',
