@@ -8897,11 +8897,102 @@ Hr 面主要是了解候选人的一些通用素质，经常会问的问题如�
 
 
 
+
 jupyter labextension list
+jupyter kernelspec list
+
+jupyterlab+nodejs
 
 npm config set registry=https://registry.npm.taobao.org
 npm config set prefix $HOME
 npm config set unsafe-perm true
-npm install -g zeromq@5.2.0
 npm install -g ijavascript
-apt-get install libzmq libzmq3-dev
+ijsinstall
+
+apt-get update
+apt install r-base-core
+
+jupyter labextension install jupyterlab-drawio
+jupyter labextension install @jupyterlab/toc
+jupyter labextension install jupyterlab_voyager
+
+apt-get install git
+git clone https://github.com/SpencerPark/IJava.git
+cd IJava/
+chmod u+x gradlew && ./gradlew installKernel
+
+
+echo 'export GOPATH=~/go' >> ~/.bashrc
+source ~/.bashrc
+go get -u github.com/gopherdata/gophernotes
+
+
+A gallery of interesting Jupyter Notebooks
+https://github.com/jupyter/jupyter/wiki/A-gallery-of-interesting-Jupyter-Notebooks
+
+利器|JupyterLab 数据分析必备IDE完全指南
+https://zhuanlan.zhihu.com/p/67959768
+
+
+nodejs jupyterlab-extension
+https://www.npmjs.com/search?q=keywords%3Ajupyterlab-extension
+
+
+How to fix ‘Configuring tzdata’ interactive input when building Docker images
+https://techoverflow.net/2019/05/18/how-to-fix-configuring-tzdata-interactive-input-when-building-docker-images/
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+
+Recursive sub folder search and return files in a list python
+Recursive sub folder search and return files in a list python
+
+
+How can I detect only deleted, changed, and created files on a volume?
+https://stackoverflow.com/questions/7421440/how-can-i-detect-only-deleted-changed-and-created-files-on-a-volume/7459109#7459109
+
+演练：创建传统的 Windows 桌面应用程序C++
+https://docs.microsoft.com/zh-cn/cpp/windows/walkthrough-creating-windows-desktop-applications-cpp?view=vs-2017
+https://docs.microsoft.com/zh-cn/windows/win32/LearnWin32/learn-to-program-for-windows
+
+精通Windows API 范文庆/周彬彬/安靖著 中文 PDF版 [50M]
+https://www.jb51.net/books/67342.html
+
+C++ 中 Windows 编程概述
+https://docs.microsoft.com/zh-cn/cpp/windows/overview-of-windows-programming-in-cpp?view=vs-2017
+
+wtl学习总结
+https://www.cnblogs.com/wliangde/p/4259281.html
+
+
+VS2015支持windowsxp
+https://blog.csdn.net/kl222/article/details/54376591
+
+1. 项目菜单->项目属性->配置属性->常规->平台工具集，选择“VS2013WindowsXP(v120_xp)”;
+2. 项目菜单->项目属性->配置属性->常规->MFC的使用，选择使用标准Windows库;如果选用静态库编译的话选用静态库中选用MFC。
+3. 项目菜单->项目属性->配置属性->常规->字符集中使用多字节字符集或使用Unicode字符集
+4. 项目菜单->项目属性->链接器->系统->子系统->控制台或窗口windows（根据你的项目类型选择），第二项版本号设成5.01。
+
+
+Visual Studio 2015 - Windows XP (v140_xp) 编译工具 ucrtbased.dll缺失
+https://blog.csdn.net/atceedsun/article/details/53583824
+
+
+
+VS2017编译在XP环境下运行的程序
+https://blog.csdn.net/qq_41917908/article/details/83512386
+
+
+如果VS2017生成的程序在xp系统提示缺少VCRUNTIME140D.dll，这是因为程序采用了动态编译，只要进行静态编译即可解决
+如下图所示，使用多线程MT就可以解决这个问题。C/C++ / 代码生成，运行库，选择多线程（/MT）
+
+但是问题又来了，VS2017以MT方式链接编译出来的exe还是没法在xp下正常运行，这是因为PE文件中的主系统版本号，不选子系统的情况下默认是6，也就是win7，我们还得修改版本号来适配XP
+
+多线程MT和多线程MD的区别
+https://www.cnblogs.com/mod109/p/3762604.html
+
+对于多线程MT的程序来说，其连接的是libcmt.lib,该文件属于C语言运行时库，整个lib都会连接到PE文件当中。而多线程MD的程序链接的却是类似msvcpXXX.dll，该文件属于微软运行时库.也就是说如果是多线程MD编译出来的文件运行时都会加载相应版本的运行时库，当如果找不到运行时库就会报错而无法运行，同时如果运行时库不匹配也会出现各种意料之外的崩溃或者程序根本跑不起来等情况。
+
+
+QUIC协议学习记录
+https://www.cnblogs.com/mod109/p/7372577.html
