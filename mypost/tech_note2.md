@@ -8723,7 +8723,7 @@ mkdir ~/.pip/
 
 pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
-pip install --upgrade pip
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade pip
 pip install jupyterlab==2.0.0a1
 curl -sL https://deb.nodesource.com/setup_12.x |  bash -
 apt-get install nodejs
@@ -8925,6 +8925,9 @@ chmod u+x gradlew && ./gradlew installKernel
 echo 'export GOPATH=~/go' >> ~/.bashrc
 source ~/.bashrc
 go get -u github.com/gopherdata/gophernotes
+mkdir /usr/local/share/jupyter/kernels/gophernotes
+cp $GOPATH/src/github.com/gopherdata/gophernotes/kernel/* /usr/local/share/jupyter/kernels/gophernotes
+cd /usr/local/share/jupyter/kernels/gophernotes
 
 
 A gallery of interesting Jupyter Notebooks
@@ -8948,7 +8951,7 @@ Recursive sub folder search and return files in a list python
 Recursive sub folder search and return files in a list python
 
 
-How can I detect only deleted, changed, and created files on a volume?
+How can I detect only deleted, changed, and created files on a volume? NTFS
 https://stackoverflow.com/questions/7421440/how-can-i-detect-only-deleted-changed-and-created-files-on-a-volume/7459109#7459109
 
 演练：创建传统的 Windows 桌面应用程序C++
@@ -8996,3 +8999,157 @@ https://www.cnblogs.com/mod109/p/3762604.html
 
 QUIC协议学习记录
 https://www.cnblogs.com/mod109/p/7372577.html
+
+
+首先介绍一下可以打包Python代码的工具：
+
+py2exe: 这个是知名度最高的，但是好像不太适合新手，需要各种库，用起来比较繁琐，不推荐。
+pyinstaller : 可以只是生成单独的可执行程序。 最新版本为3.2.1 Stable, supports Python 2.7, 3.3–3.7。 可以自定义图标。 跨平台，兼容性良好。
+
+cx_Freeze :
+这个打包质量挺好，操作也简单。缺点是不能生产单独的可执行文件，结果就是exe文件被淹没在众多文件中，看着不高大上。
+
+WIN32下的按钮标准控件
+https://blog.csdn.net/zhangkai19890929/article/details/90069188
+
+首先在win32下所有的控件其实都是子窗口.，所以我们收到WM_CREATE消息后，创建控件的.
+
+“WCHAR *”类型的实参与"const char *"类型的形参不兼容
+https://blog.csdn.net/u012686154/article/details/86241162
+https://www.cnblogs.com/dbylk/p/3696367.html
+
+通过查看LPCSTR的定义：
+
+typedef _Null_terminated_ CONST CHAR *LPCSTR, *PCSTR; 
+可以知道LPCSTR代表了const char *类型，它是一个指向以'\0'结尾的8位（单字节）ANSI字符数组的常量指针，
+
+而const wchar_t *类型是一个指向'\0'结尾的16位（双字节）Unicode字符数组的常量指针.
+
+在VS2013编译器中直接输入的字符串常量（如“abc”）默认是以const char *的格式（即ANSI编码）储存的，因此会导致类型不匹配的编译错误。
+
+ 
+
+解决的办法有两个：
+
+第一个方法是右击“解决方案资源管理器”中的项目，“属性→配置属性→常规→项目默认值→字符集”，默认的选项是“使用多字节字符集”，将它改为“使用Unicode字符集”即可。
+
+这样，输入的字符串会默认以const wchar_t *格式储存。
+
+第二个方法是使用_T宏，它在“tchar.h”中定义，它能够自动识别当前编译器字符串的储存格式并做出相应转换，避免这种类型的编译错误。
+
+具体使用方法为：将“abc”改为_T("abc")。
+
+
+[原创]Win32 编程进阶:打造自己的标准控件
+https://bbs.pediy.com/thread-129283.htm
+
+使用Win32/ATL建立窗口的过程
+https://www.cnblogs.com/liangxiaofeng/p/5066026.html
+
+有时候想写个几十kb的小程序，MFC实在是太大了，Win32有时又太麻烦，怎么办呢？用ATL写会更方便和轻量级一些 ATL和MFC不同的是，ATL并没有强制性封装WinMain函数，仅封装了WndProc，所以使用ATL写Windows程序有很高的自由度
+
+
+WTL,ATL与MFC之比较
+https://blog.csdn.net/jack_incredible/article/details/7962488
+
+
+早期的VC++开发者们发现了MFC(Microsoft Foundation Classes) 这样一个好东东。他们发现，MFC提供了一个强大的类库，很好的满足了面向对象编程的需要。随着泛型编程技术的发展和时间的推移，慢慢地，他们慢慢觉得MFC的类库过于庞大和宽泛，而且它提供的模板库只覆盖了很有限的领域。于是，ATL应运而生。
+
+ATL(Active Template Library),简称活动模板库。ATL的设计者们通过它来它提供快速的COM组件封装。ATL很好地体现了用模板进行编程的思想。如果模板设计得当，就很容易灵活的适应各种不同的需求，而且更容易跟进新技术的发展需求。
+
+但是，作为泛型编程的爱好者们始终要面对的一个主要难题，那就是如何方便地进行图形用户界面（GUI）设计。因为ATL只是提供了对Win32/64窗口的低级封装，因此ATL的使用者们在用ATL进行COM开发的同时，不得不借助于MFC来进行COM组件的UI编程。因为在GUI方面，ATL确实是爱莫能助。
+
+WTL(Windows Template Library)在体现模板编程思想的同时，对模板进行了很好的高级封装，很好的满足了UI编程的各种需求。这也是WTL设计者们的用意所在。在用WTL生成应用程序的时候不需要将DLL文件与EXE文件一起交付给用户，而且，WTL又有很好的兼容性。你可以将它与ATL, STL, VC++ 数据模板，第三方模板，或者你自己的模板这几种中的任何一种一起使用。正因为这些特点，使得当前WTL成为了大部分高级的C++开发者们进行UI设计时的首选。
+
+
+
+https://www.nuget.org/packages/wtl
+
+
+Fake Everything
+Everything的原理猜想与实现
+https://github.com/Artwalk/Fake-Everything
+
+
+Windows平台Python编程必会模块之pywin32
+https://www.cnblogs.com/achillis/p/10462585.html
+
+
+
+使用 ps 命令查看进程启动的精确时间和启动后所流逝的时间
+ps -eo pid,lstart,etime,cmd | grep nginx
+
+查看CPU最高的进程
+ps -aux --sort=-pcpu|head -10
+
+linux锁定用户和解锁用户
+https://blog.csdn.net/qq_37699336/article/details/80296670
+
+1、禁止个别用户登录。比如禁止lynn用户登录。
+passwd -l test
+这就话的意思是锁定test用户，这样该用户就不能登录了。
+passwd -u test
+对锁定的用户lynn进行解锁，用户可登录了。
+
+3、禁止所有用户登录。
+touch /etc/nologin
+除root以外的用户不能登录了！
+
+change-journals USN
+https://docs.microsoft.com/zh-cn/windows/win32/fileio/change-journals
+
+How to get the 'NextUSN' journal entry for a VSS snapshot?
+https://stackoverflow.com/questions/10544433/how-to-get-the-nextusn-journal-entry-for-a-vss-snapshot
+VSS（卷影拷贝服务）与snapshot优缺点及区别
+https://blog.csdn.net/frankarmstrong/article/details/77370253
+
+
+关于NTFS-MFT
+https://www.jianshu.com/p/8471b7f4152a
+
+引导扇区是从NTFS文件系统的第一个扇区开始，以55 AA结尾。我们主要关注前88字节的信息，其中重要的就是“NTFS”标识、扇区大小、每簇扇区数、MFT起始簇以及MFT备份MFTMirr位置这些信息。
+
+https://www.cnblogs.com/mwwf-blogs/archive/2015/05/04/4467687.html
+
+How do we access MFT through C#
+https://stackoverflow.com/questions/21661798/how-do-we-access-mft-through-c-sharp
+
+NtfsReader .NET Library
+https://sourceforge.net/projects/ntfsreader/
+
+Undelete a file in NTFS
+https://www.codeproject.com/Articles/9293/Undelete-a-file-in-NTFS
+
+
+选择C/C++ -> 常规 -> 调试信息格式 -> 选择 程序数据库 (/Zi)
+
+
+wchar_t DWORD WORD _T _L 的区
+https://bbs.csdn.net/topics/350023270
+32 bit windows:
+
+wchar_t :宽字节变量类型，用于表示Unicode字符，
+
+它实际定义在<string.h>里：typedef unsigned short wchar_t。
+
+DWORD 四字节无符号整数， unsigned long
+
+WORD 二字节无符号整数    unsigned short long
+
+为了让编译器识别Unicode字符串，必须以在前面加一个“L”,如
+
+wchar_t a[] = L"Hello!" ;
+
+
+_T( )是定义在头文件tchar.h中的宏，视是否定义了_UNICODE宏而定义成： 
+定义了_UNICODE：    #define _T(x) L##x 
+没有定义_UNICODE： #define _T(x) x 
+
+Converting contents of a byte array to wchar_t*
+https://stackoverflow.com/questions/13887348/converting-contents-of-a-byte-array-to-wchar-t
+
+
+终于理解了什么是LGPL
+https://www.cnblogs.com/findumars/p/3556883.html
+
+因 此LGPL协议的开源 代码很适合作为第三方类库被商业软件引用，但不适合希望以LGPL协议代码为基础，通过修改和衍生的方式做二次开发的商业软件采用。
