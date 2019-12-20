@@ -9153,3 +9153,86 @@ https://stackoverflow.com/questions/13887348/converting-contents-of-a-byte-array
 https://www.cnblogs.com/findumars/p/3556883.html
 
 因 此LGPL协议的开源 代码很适合作为第三方类库被商业软件引用，但不适合希望以LGPL协议代码为基础，通过修改和衍生的方式做二次开发的商业软件采用。
+
+假设我们使用一个名为 Lib 的库，这个库是基于 LGPL协议发布的。如果你使用 Lib.dll 做动态链接（Windows 下），好，一切 OK。无论你的程序怎么样，你都可以做你所做的事情。
+
+如果你因某种原因必须静态链接一个基于 LGPL 协议发布的库（一下我们简称为 LGPL 库），那么，你有义务进行下面的工作：
+
+你必须在你的文档中说明，你的程序中使用了 LGPL 库，并且说明这个库是基于 LGPL 发布的；
+你必须在你的应用程序发布中包含一份 LGPL协议，通常就是那个文本文件；
+你必须开放使用了 LGPL 库代码的所有代码，例如某些封装器。但是，其他使用这些封装器的代码就不需要开放了；
+你必须包含你的应用程序的余下部分的目标文件（通常就是我们所说的 .o 等等），或者是其他等价的文件。源代码并不是必须的。
+
+WinForm ListView虚拟模式加载数据 提高加载速度
+https://www.cnblogs.com/kest/p/4659421.html
+C# ListView双缓存代码，解决闪屏问题
+https://www.cnblogs.com/94cool/archive/2013/02/06/2899995.html
+BinarySearch limits for numbers within range
+https://stackoverflow.com/questions/8912613/binarysearch-limits-for-numbers-within-range
+
+倒排索引
+C# Inverted Index Example
+https://www.dotnetperls.com/inverted-index
+https://stackoverflow.com/questions/2110142/writing-an-inverted-index-in-c-sharp-for-an-information-retrieval-application
+C# algorithm for N-gram
+https://stackoverflow.com/questions/3829110/c-sharp-algorithm-for-n-gram
+N-gram and Fast Pattern Extraction Algorithm
+https://www.codeproject.com/articles/20423/n-gram-and-fast-pattern-extraction-algorithm
+http://jakemdrew.com/blog/ngram.htm
+
+严格遵守 GPL 的代码如何商用？
+https://www.zhihu.com/question/19703551
+
+GPL 只是规定用户在获取你的程序的时候必须可以获得源代码，但并没有规定必须免费，因此理论上说，你仍然可以收取费用。不过，由于 GPL 规定你不得阻止用户再分发，因此用户完全可以从你这里买来代码之后再免费送给所有其它人，因此对于 GPL 代码想要收费发布难度是很大的，目前比较可行的办法是像 Redhat 那样，通过提供订阅和服务的方式来收费，提供一些额外的增值服务吸引用户交费。
+
+
+/usr/bin/pipework br0 -i eth0 d_centos_ebms 1.1.1.1/23@2.2.2.2
+
+
+Docker：使用pipework配置docker网络
+https://www.cnblogs.com/1994ghj/p/5008287.html
+https://my.oschina.net/guol/blog/345038
+
+Pipework是一个Docker配置工具，是一个开源项目，由200多行shell实现。
+
+Pipework是一个集成工具，需要配合使用的两个工具是OpenvSwitch和Bridge-utils。
+
+FileLocator使用指南
+https://blog.csdn.net/code4101/article/details/83029094
+FileLocator Pro：强大高效的无索引全文搜索软件
+https://blog.csdn.net/oLanLanXiaRi/article/details/48250711
+
+文件搜索一直是大家平时最常用的功能之一。在搜索文件名方面，目前已有不少软件做到了极致，比如 Everything ( 官网 | 介绍 ) 以及 操作新颖的晚辈 Listary Pro ( 官网 | 介绍 ) 都是此领域之佳品。但有时，仅通过文件名并不足以快速找到所需文件和内容。因此，支持全文搜索的软件，也是重度知识管理、搜索用户的必备工具。这方面的解决方案中，Windows自带的索引功能，因为效率和占用资源问题，基本被用户抛弃（新版本有改进）。Google桌面及百度桌面，都基本停止更新。CDS（Copernic Desktop Search） 在国外有一定知名度，提供了免费家用版、专业版、企业版，但因为早期中文支持不佳，在国内用户极少（据称最新版本对中文支持极好）。倒是开源免费、小巧绿色的 Locat32 和开源免费、跨平台的 DocFetcher 得到了国内用户的青睐。
+
+今天 LYcHEE 所介绍的，是另一款全文检索软件 FileLocator Pro ( 介绍 | 中文帮助 )。相比同类软件，它的特点是：支持更多格式与压缩包，搜索速度更快，无索引不占硬盘空间、支持 多种搜索规则 及 日期、属性等细节设定。FileLocator Pro 在国内的影响正大迅速扩大，相关介绍文章还可参见小众软件、精品绿色便携软件。
+
+
+在docker使用devicemapper作为存储驱动时，默认每个容器和镜像的最大大小为10G。如果需要调整，可以在daemon启动参数中，使用dm.basesize来指定，但需要注意的是，修改这个值，不仅仅需要重启docker daemon服务，还会导致宿主机上的所有本地镜像和容器都被清理掉。
+
+使用aufs或者overlay等其他存储驱动时，没有这个限制。
+
+无论宿主机有多少个cpu或者内核，--cpu-shares选项都会按照比例分配cpu资源。另外只有一个容器时--cpu-shares选项无意义。
+
+$ docker run -it --rm --cpu-period=100000 --cpu-quota=200000 u-stress:latest /bin/bash
+这样的配置选项是不是让人很傻眼呀！100000 是什么？200000 又是什么？ 它们的单位是微秒，100000 表示 100 毫秒，200000 表示 200 毫秒。它们在这里的含义是：在每 100 毫秒的时间里，运行进程使用的 CPU 时间最多为 200 毫秒(需要两个 CPU 各执行 100 毫秒)。要想彻底搞明白这两个选项的同学可以参考：CFS BandWith Control。我们要知道这两个选项才是事实的真相，但是真相往往很残忍！还好 --cpus 选项成功的解救了我们，其实它就是包装了 --cpu-period 和 --cpu-quota。
+
+Docker: 限制容器可用的 CPU
+https://www.cnblogs.com/sparkdev/p/8052522.html
+Docker: 限制容器可用的内存
+https://www.cnblogs.com/sparkdev/p/8032330.html
+
+
+当 CPU 资源充足时，设置 CPU 的权重是没有意义的。只有在容器争用 CPU 资源的情况下， CPU 的权重才能让不同的容器分到不同的 CPU 用量。--cpu-shares 选项用来设置 CPU 权重，它的默认值为 1024。我们可以把它设置为 2 表示很低的权重，但是设置为 0 表示使用默认值 1024。
+下面我们分别运行两个容器，指定它们都使用 Cpu0，并分别设置 --cpu-shares 为 512 和 1024：
+
+$ docker run -it --rm --cpuset-cpus="0" --cpu-shares=512 u-stress:latest /bin/bash
+$ docker run -it --rm --cpuset-cpus="0" --cpu-shares=1024 u-stress:latest /bin/bash
+
+
+
+
+stress工具使用指南和结果分析
+https://www.cnblogs.com/muahao/p/6346775.html
+
+stress -c 4 -t 100
+stress --vm 10 --vm-bytes 1G --vm-hang 100 --timeout 100s
