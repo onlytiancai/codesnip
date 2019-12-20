@@ -47,6 +47,7 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="GetSystemIcon.cs" />
     <Compile Include="ListViewItemComparer.cs" />
     <Compile Include="ListViewNF.cs">
       <SubType>Component</SubType>

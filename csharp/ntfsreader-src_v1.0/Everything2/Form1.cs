@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.IO;
 using System.IO.Filesystem.Ntfs;
 using System.Windows.Forms;
@@ -15,6 +16,8 @@ namespace Everything2
         private List<ListViewItem> myCache;
         private BackgroundWorker bw = new BackgroundWorker();
         private int filecount = 0;
+        private ImageList imageListSmallIcon;
+        private Dictionary<string, int> iconIndex = new Dictionary<string, int>();
 
         public Form1()
         {
@@ -22,10 +25,12 @@ namespace Everything2
 
             allItems = new List<ListViewItem>();
             myCache = allItems;
+            imageListSmallIcon = new ImageList();
+            imageListSmallIcon.ImageSize = new Size(16, 16);
         }
 
         private void Form1_Load(object sender, EventArgs e)
-        {
+        {            
 
             listView1.Columns[1].Width = Convert.ToInt32(0.5 * this.listView1.Width);
 
@@ -47,6 +52,7 @@ namespace Everything2
         {
             toolStripStatusLabel1.Text = string.Format("扫描完毕，共{0}文件", filecount);
             listView1.VirtualMode = true;
+            listView1.SmallImageList = imageListSmallIcon;
             listView1.RetrieveVirtualItem += ListView1_RetrieveVirtualItem;
             listView1.VirtualListSize = myCache.Count;
         }
@@ -60,12 +66,8 @@ namespace Everything2
             IEnumerable<INode> nodes =
                 ntfsReader.GetNodes(driveToAnalyze.Name);
 
-
-
             foreach (INode node in nodes)
             {
-
-
                 ListViewItem lvi = new ListViewItem();
 
                 lvi.Tag = node;
@@ -73,7 +75,7 @@ namespace Everything2
                 lvi.SubItems.Add(node.FullName);
                 lvi.SubItems.Add(node.Size.ToString());
                 lvi.SubItems.Add(node.LastChangeTime.ToString());
-
+             
                 allItems.Add(lvi);
 
                 if (filecount++ % 1000 == 0)
@@ -84,8 +86,6 @@ namespace Everything2
 
             allItems.Sort((x, y) => string.Compare(x.Text, y.Text));
             
-
-
         }
 
         private void ListView1_RetrieveVirtualItem(object sender, RetrieveVirtualItemEventArgs e)
@@ -93,6 +93,17 @@ namespace Everything2
             if (myCache != null)
             {
                 e.Item = myCache[e.ItemIndex];
+
+                string ext = Path.GetExtension(e.Item.Text);
+                if (!iconIndex.ContainsKey(ext)) {
+                    Icon smallIcon = GetSystemIcon.GetIconByFileType(ext, false);
+                    if (smallIcon == null)
+                        smallIcon = GetSystemIcon.GetIconByFileType(Path.GetExtension("baidu.txt"), false);
+                    imageListSmallIcon.Images.Add(smallIcon);
+                    iconIndex[ext] = imageListSmallIcon.Images.Count - 1;
+                }
+
+                e.Item.ImageIndex = iconIndex[ext];
             }
             else
             {
@@ -150,6 +161,36 @@ namespace Everything2
             myCache.Sort(new ListViewSort(e.Column, listView1.Columns[e.Column].Tag));
             listView1.VirtualListSize = myCache.Count;            
             listView1.Invalidate();
+        }
+
+        private void listView1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            ListViewHitTestInfo info = listView1.HitTest(e.X, e.Y);
+            if (info.Item != null)
+            {
+                showItem(info.Item);
+            }
+        }
+
+        private static void showItem(ListViewItem item)
+        {
+            INode node = (INode)item.Tag;
+            System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo("Explorer.exe");
+            psi.Arguments = "/e,/select," + node.FullName;
+            System.Diagnostics.Process.Start(psi);
+        }
+
+        private void listView1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                if (listView1.SelectedIndices != null && listView1.SelectedIndices.Count > 0)
+                {
+                    ListView.SelectedIndexCollection c = listView1.SelectedIndices;
+                    ListViewItem item = listView1.Items[c[0]];
+                    showItem(item);
+                }
+            }
         }
     }
 }
