@@ -7802,9 +7802,10 @@ hosts=(
     "user@host2"
     "user@host3"
 )
+
 while true
 do
-    printf "%-15s %-10s %-10s %-10s\n" host cpu mem disk
+    printf "%-15s %-15s %-10s %-10s %-20s\n" host cpu mem disk load
     for host in "${hosts[@]}"
     do
         ssh $host '
@@ -7812,21 +7813,18 @@ do
             cpu=$(grep "cpu " /proc/stat | awk "{usage=(\$2+\$4)*100/(\$2+\$4+\$5)} END {print usage \"%\"}")
             mem=$(free | grep Mem | awk "{print \$3/\$2 * 100.0 \"%\"}")
             disk=$(df -hl / | grep / | awk "{print \$5}")
-            printf "%-15s %-10s %-10s %-10s\n" $host $cpu $mem $disk
+            load=$(cat /proc/loadavg | awk "{print \$1\",\"\$2\",\"\$3}")
+            printf "%-15s %-15s %-10s %-10s %-20s\n" $host $cpu $mem $disk $load
         '
     done
     sleep 1
 done
 
+
 # ./monitor.sh
-host            cpu        mem        disk
-host1           1.48722%   8.83007%   27%
-host2           0.118079%  1.0747%    4%
-host3           0.115354%  1.0558%    4%
-host            cpu        mem        disk
-host1           1.48722%   8.83314%   27%
-host2           0.11808%   1.0748%    4%
-host3           0.115355%  1.05625%   4%
+user@host1       0.0348016%      1.74837%   3%         0.00,0.00,0.00
+user@host2       0.0370607%      1.31528%   3%         0.00,0.00,0.00
+user@host3       0.053345%       1.32445%   3%         0.04,0.03,0.00
 
 
 
@@ -9239,3 +9237,6 @@ stress --vm 10 --vm-bytes 1G --vm-hang 100 --timeout 100s
 
 C# ListView实例：文件图标显示
 https://blog.csdn.net/dufangfeilong/article/details/41744847
+
+Matching strings with wildcard
+https://stackoverflow.com/questions/30299671/matching-strings-with-wildcard
