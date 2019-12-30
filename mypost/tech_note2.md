@@ -9240,3 +9240,137 @@ https://blog.csdn.net/dufangfeilong/article/details/41744847
 
 Matching strings with wildcard
 https://stackoverflow.com/questions/30299671/matching-strings-with-wildcard
+
+Super Fast String Matching in Python
+https://bergvca.github.io/2017/10/14/super-fast-string-matching.html
+
+mport re
+
+def ngrams(string, n=3):
+    string = re.sub(r'[,-./]|\sBD',r'', string)
+    ngrams = zip(*[string[i:] for i in range(n)])
+    return [''.join(ngram) for ngram in ngrams]
+
+print('All 3-grams in "McDonalds":')
+ngrams('McDonalds')
+
+基于python+whoosh的全文检索实现
+https://blog.csdn.net/qq_21149391/article/details/79509251
+
+
+https://www.how2shout.com/tools/opensource-tools-for-artificial-intelligence-ai.html
+
+Best AI Platforms Software
+https://www.g2.com/categories/ai-platforms
+
+Top 45 Artificial Intelligence Companies
+https://www.datamation.com/artificial-intelligence/top-artificial-intelligence-companies.html
+
+
+https://www.predictiveanalyticstoday.com/artificial-intelligence-platforms/
+
+PAI实现的深度学习网络可视化编辑功能-FastNerualNetwork
+https://blog.csdn.net/cpongo1/article/details/89543074
+
+刚刚，阿里重磅发布机器学习平台 PAI 3.0！
+https://www.infoq.cn/article/NxTj8-xC2KIZxGiFVMMu
+
+阿里重磅开源Blink：为什么我们等了这么久？
+https://www.jianshu.com/p/37a6acfc3124
+
+
+在线的caffe网络可视化工具： http://ethereon.github.io/netscope/quickstart.html
+
+https://machinelearningmastery.com/visualize-deep-learning-neural-network-model-keras/
+
+
+FlinkML是Flink内部的机器学习工具库。它是Flink生态圈的新组件，社区成员不断向它贡献新的算法。 
+http://flink.iteblog.com/dev/libs/ml/index.html
+
+深入理解Apache Flink核心技术
+https://www.cnblogs.com/feiyudemeng/p/8998772.html
+
+
+Apache Flink®生态所面临的机遇与挑战
+https://yq.aliyun.com/articles/701178
+
+比拼生态和未来，Spark和Flink哪家强？
+https://zhuanlan.zhihu.com/p/42511707
+
+Spark背后公司Databricks获2.5亿融资，估值27.5亿美元
+https://blog.csdn.net/cpongo4/article/details/89119256
+
+
+#删除所有未运行的容器（已经运行的删除不了，未运行的就一起被删除了）
+sudo docker rm $(sudo docker ps -a -q)
+
+#根据容器的状态，删除Exited状态的容器
+sudo docker rm $(sudo docker ps -qf status=exited)
+
+
+阿里云机器学习平台让机器学习不再远不可及，在平台上没有繁琐的公式和复杂的代码逻辑，用户看到的是各种分门别类被封装好的算法组件。在搭架实验的过程中，只要拖拽组件就可以快速的拼接成一个workflow。操作体验类似于搭积木，真正做到让小白用户也可以轻松玩转机器学习。“过去半个月才能搭建的一套数据挖掘实验，利用阿里云机器学习平台3个小时就可能解决”。
+
+同时，平台的每一个实验步骤都提供可视化的监控页面，数据挖掘工程师可以实时的掌握模型的训练情况，可视化的结果评估组件也极高的提升了模型调试效率。 在深度学习黑箱透明化方面，我们也在不断的研发集成各种可视化的工具，包括开源的TensorBoard和自研的工具，为客户提供更多可参考的信息，缩短模型优化的过程。
+
+阿里云机器学习——让人工智能触手可及
+https://yq.aliyun.com/articles/72847
+
+Code Free Machine Learning for Hadoop & Spark
+https://rapidminer.com/products/radoop/
+
+Create predictive models using the RapidMiner Studio visual workflow designer
+
+
+WOFF字体没有必要再开启GZIP，因为这个字体文本本身就是压缩过的。
+WOFF 2.0的mime type值，怎么说呢，有些许小争议。Google使用font/woff2，而W3C则推荐application/font-woff2。我个人的建议是这样的：在CSS base64字体表示时候使用Google的font/woff2，毕竟是web呈现；然后服务器配置走application/font-woff2。
+
+从云厂商宕机史谈预案建设
+https://www.infoq.cn/article/BdpCdzipGb10UN5RUhZ3
+从二十个严重的配置故障中我们能学到什么？
+https://www.infoq.cn/article/M9fY3XNJ5R53dLUNUZah
+摆脱无效报警？十年运维监控报警优化经验总结
+https://www.infoq.cn/article/1AofGj2SvqrjW3BKwXlN
+ESLint 在中大型团队的应用实践
+https://mp.weixin.qq.com/s?__biz=MjM5NjQ5MTI5OA==&mid=2651750496&idx=2&sn=2627a4bdd7e63343c8947ecf82b2349f&chksm=bd12592d8a65d03b68b25893759f62e044d91ec5dbe1cabac6246eaa61528c2ca8575d6aeef1&scene=21#wechat_redirect
+
+超大规模服务的故障“弹性自愈”
+https://www.infoq.cn/article/7NOuK1frElxWNYqEP0WJ
+
+随着云计算的发展，多云和混合云逐渐成为新常态，Kubernetes 逐渐成为企业和云的新的交互界面。从架构的角度，Kubernetes 一方面起到了异构 IAAS 的 Control Plane 的作用，一方面也对底层基础设施提出了更高的要求，无论是立体的安全风险防控，还是 10 倍的应用密度和调用频率的提升。另一方面，企业的基础设施从也单机房向全球多地域演进，如何实现全球多地域的统一管理也是需要考虑的问题。本次分享，会介绍下阿里云的上万个 Kubernetes 的最佳实践，如何从自动化到 AIOps，如何打造云原生信息高速公路。
+
+中台建设如火如荼。沉淀出一套可以复用的能力可帮助企业解决“重复造轮子”的问题，突破增长瓶颈，提升效率。本专题将就如何搭建中台以及中台建设过程中将会遇见哪些挑战等话题进行讨论。
+
+随着微服务技术迅猛发展，Service Mesh 技术也逐渐走向成熟，成为当下最吸引眼球的技术热点，本专题将聚焦微服务创新与实践。
+
+上云已经成为确定性的趋势，如何用好云？在云的环境下应该怎么做应用架构？本专题将探讨云时代的架构演进历程。
+
+软件正在改变世界，而工程师改变软件。技术日新月异，怎样构建一个可持续发展的工程师能力成长模型促进职业发展？将是本专题重点关注的。
+
+
+技术团队管理是一个很广泛的话题，是大多数研发同学职业生涯的必经之路，有明确汇报关系的技术团队管理，有项目维度轻量的技术团队管理，有小团队间小管理半径的技术团队管理，有大团队大管理半径松散的技术团队管理，甚至单纯为了攻克某个技术难题临时组建的小技术团队也需要管理，我觉得技术管理是一个技术人员必备的技能，所以在日常工作中，应该有意无意的去锻炼自己的技术管理能力，从小处入手，一步一个脚印，等将来真有这种机会的时候，就能信手拈来，把握住机会。
+
+对于已经走上管理岗位的技术人员，就需要时刻牢记你的职责是什么，但基本离不开两点：团队目标的达成和团队的成长。目标的达成是一个团队存在的原因和根本，目标如果达不成，团队都可能面临解散的风险，所以，业务型团队的目标就是持续的赋能业务而不是把技术做到超越业务，技术研究型团队的目标就是持续的技术研究而不是偏离主线去做其他研究，而这些都相应的有可衡量的指标，努力带领团队达成指标是要务，与此同时，团队的成长是时刻要考虑的事情，团队的成长是目标完成过程中持续的补给，是定海神针，是每个团队成员最在乎的事，团队的成长就包括团队梯队的搭建和团队成员的个人成长，好的梯队能让团队更稳固更健康，而关注成员个人成长让个体对团队更忠诚。
+
+技术团队管理就像一座秘密花园，当你试着去了解，去探索，去感悟，你会发现，真香。
+
+云计算从最开始的想法到步入现实，从虚拟化到现在火热的云原生，新的概念层出不穷，比如容器、Kubernetes、Serverless、Service Mesh，更多是对更优雅灵活的技术架构的追求与探索，随着这些技术落地到生产环境，我们也逐渐步入了云时代的深水区。从 IaaS 到 SaaS 的性能都面对着不同的挑战与问题，也有了许多出色的解决方案。通过我们专题，希望可以让听众收获：
+
+1. 云上的应用与服务如何通过优化表现出更佳的性能，如更稳定更短的延迟，更大的吞吐量；
+
+2. 云上的应用与服务如何充分地利用硬件性能，如调度与混合部署，软硬一体。
+
+不会数学统计没关系——5分钟教你轻松掌握箱线图
+https://www.sohu.com/a/218322591_416207
+
+在箱线图中，箱子的中间有一条线，代表了数据的中位数。箱子的上下底，分别是数据的上四分位数（Q3）和下四分位数（Q1），这意味着箱体包含了50%的数据。因此，箱子的高度在一定程度上反映了数据的波动程度。上下边缘则代表了该组数据的最大值和最小值。有时候箱子外部会有一些点，可以理解为数据中的“异常值”。
+
+
+纯CSS实现左右拖拽改变布局大小
+https://blog.csdn.net/github_35631540/article/details/92063430
+
+
+当拖动之前将iframe隐藏，换成显示一个div的虚线框，拖拽完成之后隐藏虚线框且将iframe显示到虚线框位置
+https://bbs.csdn.net/topics/370130464
+
+解决方案:拖动的时候,使用一个透明的div或其他元素,把这个iframe遮住.
+当拖动之前将iframe隐藏，换成显示一个div的虚线框，拖拽完成之后隐藏虚线框且将iframe显示到虚线框位置
