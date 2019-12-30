@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="../static/lib/bootstrap/css/bootstrap.css">
+    <script src="../static/lib/jquery-1.11.0.js"></script>
+    <title>实验楼 UI</title>
+    <style>
+        html, body {
+            height: 100%;
+        }
+        .column {
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .column-left {
+            height: 100%;
+            background-color: #fff;
+            position: relative;
+            float: left;
+        }
+
+        .column-right {
+            height: 100%;
+            padding: 0;
+            background-color: #eee;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .resize-save {
+            position: absolute;
+            top: 0;
+            right: 5px;
+            bottom: 0;
+            left: 0;
+            padding: 16px;
+            overflow-x: hidden;
+        }
+
+        .resize-bar {
+            width: 500px;
+            height: inherit;
+            resize: horizontal;
+            cursor: ew-resize;
+            opacity: 0;
+            overflow: scroll;
+        }
+
+        /* 拖拽线 */
+        .resize-line {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            border-right: 2px solid #eee;
+            border-left: 1px solid #bbb;
+            pointer-events: none;
+        }
+
+        .resize-bar:hover~.resize-line,
+        .resize-bar:active~.resize-line {
+            border-left: 2px dashed skyblue;
+        }
+
+        .resize-bar::-webkit-scrollbar {
+            width: 500px;
+            height: inherit;
+        }
+
+        /* Firefox只有下面一小块区域可以拉伸 */
+        @supports (-moz-user-select: none) {
+
+            .resize-bar:hover~.resize-line,
+            .resize-bar:active~.resize-line {
+                border-left: 1px solid #bbb;
+            }
+
+            .resize-bar:hover~.resize-line::after,
+            .resize-bar:active~.resize-line::after {
+                content: '';
+                position: absolute;
+                width: 16px;
+                height: 16px;
+                bottom: 0;
+                right: -8px;
+                background: url(./resize.svg);
+                background-size: 100% 100%;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="column">
+        <div class="column-left">
+            <div class="resize-bar"></div>
+            <div class="resize-line"></div>
+            <div class="resize-save">
+                左侧的内容，左侧的内容，左侧的内容，左侧的内容
+            </div>                                            
+        </div>
+        <div class="column-right">
+            <iframe id="ifrm" style="width: 100%; height: 100%;" src="http://demo.techaction.cn:5000/static/novnc/vnc.html?reconnect=true&resize=remote&host=192.168.1.102&port=32828&autoconnect=true&password=VjO4a8i2Xe"  scrolling="no" frameborder="0"></iframe id="ifrm-labenv">
+        </div>
+    </div>
+    <script>
+        $(function () {
+
+            // 防止左右布局拖动很卡的问题
+            $('.resize-bar').on('mousedown', function() {
+                $('#ifrm').hide();
+                console.log('mouse down', new Date());
+            });
+            $(document).on('mouseup',function() {
+                $('#ifrm').show();
+                console.log('mouse up', new Date());
+            });
+
+        });
+    </script>
+</body>
+
+</html>
