@@ -35,10 +35,9 @@
         .resize-save {
             position: absolute;
             top: 0;
-            right: 5px;
+            right: 3px;
             bottom: 0;
             left: 0;
-            padding: 16px;
             overflow-x: hidden;
         }
 
@@ -66,6 +65,9 @@
         .resize-bar:active~.resize-line {
             border-left: 2px dashed skyblue;
         }
+        .column-left .resize-bar:hover {
+            background-color: red;
+        }
 
         .resize-bar::-webkit-scrollbar {
             width: 500px;
@@ -92,6 +94,74 @@
                 background-size: 100% 100%;
             }
         }
+        .info-header {
+            border-bottom: 1px solid #eee;
+            height: 60px;
+            width: 100%;
+        }
+        .info-body {
+            position:absolute;
+            background-color: aliceblue;
+            left: 0;
+            top: 60px;
+            bottom: 0;
+            right: 0;
+        }
+        .info-body .tabs {
+            position: absolute;
+            z-index: 2;
+            left: 0;
+            width: 50px;
+            top: 0;
+            bottom: 0;
+            background-color: #fff;
+            border-right: 1px #eee solid;
+        }
+        .info-body .tab-content{ 
+            position: absolute;
+            left: 50px;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            background-color: #f9f9f9;
+        }
+        .info-body .tab-header {
+            height: 50px;
+            background-color: #fff;
+            border-bottom: 1px solid #eee;
+        }
+        .info-body .tab-footer{
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 50px;
+            line-height: 50px;
+            padding-left: 10px;
+            border-top: 1px solid #eee;
+            background-color: #fff;
+        }
+        .info-body .tab-body {
+            position: absolute;
+            top: 50px;
+            bottom: 50px;
+            width: 100%;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .info-body .tab-cov {
+            position: absolute;
+            top: 0;
+            bottom: 50px;
+            background-color: antiquewhite;
+            overflow: hidden;
+            z-index: 1;
+            width: 80%;
+            left: -80%;
+            transition: left 0.5s;
+        }
+        .info-body .cov-show {
+            left: 0;
+        }
     </style>
 
 </head>
@@ -102,11 +172,51 @@
             <div class="resize-bar"></div>
             <div class="resize-line"></div>
             <div class="resize-save">
-                左侧的内容，左侧的内容，左侧的内容，左侧的内容
+                <div class="info-header"></div>
+                <div class="info-body">
+                    <div class="tabs"></div>
+                    <div class="tab-content">
+                        <div class="tab-cov">
+                            <p>步骤 1</p>
+                            <p>步骤 2</p>
+                            <p>步骤 3</p>
+                            <p>步骤 1</p>
+                            <p>步骤 2</p>
+                            <p>步骤 3</p>
+                        </div>
+                        <div class="tab-header"></div>
+                        <div class="tab-footer">
+                            <button class="btn step-list">步骤列表</button>
+                        </div>
+                        <div class="tab-body">
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                            <p>这里是实验内容</p>
+                        </div>
+                    </div>
+                </div>
             </div>                                            
         </div>
         <div class="column-right">
-            <iframe id="ifrm" style="width: 100%; height: 100%;" src="http://demo.techaction.cn:5000/static/novnc/vnc.html?reconnect=true&resize=remote&host=192.168.1.102&port=32828&autoconnect=true&password=VjO4a8i2Xe"  scrolling="no" frameborder="0"></iframe id="ifrm-labenv">
+            <iframe id="ifrm" style="width: 100%; height: 100%;" src="http://demo.techaction.cn:5000/static/novnc/vnc.html"  scrolling="no" frameborder="0"></iframe id="ifrm-labenv">
         </div>
     </div>
     <script>
@@ -121,6 +231,10 @@
                 $('#ifrm').show();
                 console.log('mouse up', new Date());
             });
+
+            $('.step-list').click(function () {
+                $('.tab-cov').toggleClass('cov-show');
+            })
 
         });
     </script>
