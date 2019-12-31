@@ -9,9 +9,11 @@
     <script src="../static/lib/jquery-1.11.0.js"></script>
     <title>实验楼 UI</title>
     <style>
-        html, body {
+        html,
+        body {
             height: 100%;
         }
+
         .column {
             overflow: hidden;
             height: 100%;
@@ -42,7 +44,7 @@
         }
 
         .resize-bar {
-            width: 500px;
+            width: 600px;
             height: inherit;
             resize: horizontal;
             cursor: ew-resize;
@@ -65,12 +67,13 @@
         .resize-bar:active~.resize-line {
             border-left: 2px dashed skyblue;
         }
+
         .column-left .resize-bar:hover {
             background-color: red;
         }
 
         .resize-bar::-webkit-scrollbar {
-            width: 500px;
+            width: 600px;
             height: inherit;
         }
 
@@ -94,19 +97,37 @@
                 background-size: 100% 100%;
             }
         }
+
         .info-header {
             border-bottom: 1px solid #eee;
             height: 60px;
             width: 100%;
+            line-height: 60px;
+            position: absolute;
         }
+
+        .info-header h2 {
+            margin: 0 10px;
+            line-height: 60px;
+            font-size: 20px;
+            color: #25B0F3;
+        }
+
+        .info-header .btn {
+            position: absolute;
+            right: 20px;
+            top: 13px;
+        }
+
         .info-body {
-            position:absolute;
+            position: absolute;
             background-color: aliceblue;
             left: 0;
             top: 60px;
             bottom: 0;
             right: 0;
         }
+
         .info-body .tabs {
             position: absolute;
             z-index: 2;
@@ -117,7 +138,8 @@
             background-color: #fff;
             border-right: 1px #eee solid;
         }
-        .info-body .tab-content{ 
+
+        .info-body .tab-content {
             position: absolute;
             left: 50px;
             right: 0;
@@ -125,12 +147,16 @@
             bottom: 0;
             background-color: #f9f9f9;
         }
+
         .info-body .tab-header {
+            text-align: center;
             height: 50px;
+            line-height: 50px;
             background-color: #fff;
             border-bottom: 1px solid #eee;
         }
-        .info-body .tab-footer{
+
+        .info-body .tab-footer {
             position: absolute;
             bottom: 0;
             width: 100%;
@@ -140,6 +166,7 @@
             border-top: 1px solid #eee;
             background-color: #fff;
         }
+
         .info-body .tab-body {
             position: absolute;
             top: 50px;
@@ -148,19 +175,96 @@
             overflow-y: auto;
             padding: 10px;
         }
+
         .info-body .tab-cov {
             position: absolute;
             top: 0;
             bottom: 50px;
-            background-color: antiquewhite;
-            overflow: hidden;
+            background-color: #fff;
+            overflow-y: auto;
             z-index: 1;
             width: 80%;
             left: -80%;
             transition: left 0.5s;
+            padding: 10px;
         }
+
+        .info-body .tab-cov h2 {
+            font-size: 20px;
+        }
+
+        .info-body .tab-cov ul {
+            list-style: none;
+            font-size: 16px;
+        }
+
+        .info-body .tab-cov li {
+            display: block;
+            margin-top: 10px;
+        }
+
+        /* 左侧弹出步骤列表覆盖层 */
         .info-body .cov-show {
             left: 0;
+        }
+
+        /* 步骤内容遮罩 */
+        .info-body .mask {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-bottom: none;
+        }
+
+        .chapter-cov {
+            position: absolute;
+            top: 60px;
+            bottom: 100px;
+            background-color: #fff;
+            box-shadow: 0px 0px 5px #333333;
+            overflow-y: auto;
+            z-index: 3;
+            right: 20px;
+            left: 100px;
+            border-radius: 10px;
+            padding: 20px;
+            display: none;
+        }
+
+        .chapter-cov ul {
+            list-style: none;
+            font-size: 16px;
+        }
+
+        .chapter-cov li {
+            display: block;
+            margin-top: 10px;
+        }
+
+
+        .info-body .tabs ul {
+            list-style: none;
+            margin-left: 0;
+            padding-left: 0;
+        }
+
+        .info-body .tabs li {
+            padding-left: 10px;
+            /*让文字左右居中*/
+        }
+
+        .info-body .tabs li a {
+            display: block;
+            height: 80px;
+            width: 50px;
+            text-align: center;
+            line-height: 80px;
+            font-size: 16px;
+            writing-mode: vertical-rl;
+            color: #666;
+            text-decoration: none;
+        }
+
+        .info-body .tabs li.active {
+            background-color: aqua;
         }
     </style>
 
@@ -172,70 +276,133 @@
             <div class="resize-bar"></div>
             <div class="resize-line"></div>
             <div class="resize-save">
-                <div class="info-header"></div>
+                <div class="info-header">
+                    <h2><span class="glyphicon glyphicon-home" aria-hidden="true"></span> Linux Bash 实验</h2>
+                    <button class="btn btn-default chapter-list"><span class="glyphicon glyphicon-th-large"
+                            aria-hidden="true"></span> 章节列表</button>
+                </div>
+
+                <div class="chapter-cov">
+                    <h2 class="text-center">Linux Bash 实验</h2>
+                    <ul>
+                        <li><a href="#">一、实验介绍</a></li>
+                        <li><a href="#">二、什么是 Hive</a></li>
+                        <li><a href="#">三、Hive 体系结构</a></li>
+                        <li><a href="#">四、Hive 与关系数据库的区别</a></li>
+                        <li><a href="#">五、Hive 应用场景</a></li>
+                        <li><a href="#">六、Hive 的数据存储</a></li>
+                        <li><a href="#">七、Hive 的元数据存储</a></li>
+                        <li><a href="#">八、实验总结</a></li>
+                        <li><a href="#">参考文档</a></li>
+                    </ul>
+
+                </div>
                 <div class="info-body">
-                    <div class="tabs"></div>
+                    <div class="tabs">
+                        <ul>
+                            <li><a href="#">步骤</a></li>
+                            <li><a href="#">报告</a></li>
+                            <li class="active"><a href="#">笔记</a></li>
+                        </ul>
+                    </div>
                     <div class="tab-content">
                         <div class="tab-cov">
-                            <p>步骤 1</p>
-                            <p>步骤 2</p>
-                            <p>步骤 3</p>
-                            <p>步骤 1</p>
-                            <p>步骤 2</p>
-                            <p>步骤 3</p>
+                            <h2 class="text-center">Linux Bash 实验</h2>
+                            <ul>
+                                <li><a href="#">一、实验介绍</a></li>
+                                <li><a href="#">二、什么是 Hive</a></li>
+                                <li><a href="#">三、Hive 体系结构</a></li>
+                                <li><a href="#">四、Hive 与关系数据库的区别</a></li>
+                                <li><a href="#">五、Hive 应用场景</a></li>
+                                <li><a href="#">六、Hive 的数据存储</a></li>
+                                <li><a href="#">七、Hive 的元数据存储</a></li>
+                                <li><a href="#">八、实验总结</a></li>
+                                <li><a href="#">参考文档</a></li>
+                            </ul>
                         </div>
-                        <div class="tab-header"></div>
+                        <div class="tab-header">
+                            一、打开 Linux 终端
+                        </div>
                         <div class="tab-footer">
-                            <button class="btn step-list">步骤列表</button>
+                            <button class="btn btn-default step-list"><span class="glyphicon glyphicon-list"
+                                    aria-hidden="true"></span></button>
                         </div>
                         <div class="tab-body">
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
-                            <p>这里是实验内容</p>
+                            <div data-v-1fd30953="" class="markdown-content">
+                                <h4 id="实验内容">实验内容</h4>
+                                <p>本节课程主要介绍理论 ：</p>
+                                <blockquote>
+                                    <ul>
+                                        <li>Hive 的定义</li>
+                                        <li>Hive 的体系结构</li>
+                                        <li>Hive 与关系数据库的区别</li>
+                                        <li>Hive 的应用场景</li>
+                                        <li>Hive 的存储</li>
+                                    </ul>
+                                </blockquote>
+                                <h4 id="实验知识点">实验知识点</h4>
+                                <ul>
+                                    <li>Hive QL</li>
+                                    <li>数据 ETL</li>
+                                    <li>元数据存储</li>
+                                </ul>
+                                <h4 id="实验环境">实验环境</h4>
+                                <ul>
+                                    <li>Hive 1.2.1</li>
+                                    <li>hadoop2.7.3</li>
+                                    <li>Xfce终端</li>
+                                </ul>
+                                <h4 id="适合人群">适合人群</h4>
+                                <p>本课程难度为一般，属于初级级别课程，适合具有hadoop基础的用户，熟悉linux基础知识</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>                                            
+            </div>
         </div>
         <div class="column-right">
-            <iframe id="ifrm" style="width: 100%; height: 100%;" src="http://demo.techaction.cn:5000/static/novnc/vnc.html"  scrolling="no" frameborder="0"></iframe id="ifrm-labenv">
+            <iframe id="ifrm" style="width: 100%; height: 100%;"
+                src="http://demo.techaction.cn:5000/static/novnc/vnc.html" scrolling="no" frameborder="0"></iframe
+                id="ifrm-labenv">
         </div>
     </div>
     <script>
         $(function () {
 
             // 防止左右布局拖动很卡的问题
-            $('.resize-bar').on('mousedown', function() {
+            $('.resize-bar').on('mousedown', function () {
                 $('#ifrm').hide();
                 console.log('mouse down', new Date());
             });
-            $(document).on('mouseup',function() {
+            $(document).on('mouseup', function () {
                 $('#ifrm').show();
                 console.log('mouse up', new Date());
             });
 
+            // 切换步骤列表
             $('.step-list').click(function () {
                 $('.tab-cov').toggleClass('cov-show');
-            })
+                $('.chapter-cov').hide();
 
+                // 步骤正文增加黑色遮罩
+                $('.tab-body').toggleClass('mask');
+                $('.tab-header').toggleClass('mask');
+            });
+
+            // 切换章节列表
+            $('.chapter-list').click(function () {
+                $('.chapter-cov').toggle();
+            });
+
+            // 点击步骤正文，收缩步骤和章节列表
+            $('.tab-body').click(function () {
+                $('.chapter-cov').hide();
+                $('.tab-cov').removeClass('cov-show');
+
+                // 去掉步骤正文黑色遮罩
+                $('.tab-body').removeClass('mask');
+                $('.tab-header').removeClass('mask');
+            });
         });
     </script>
 </body>
