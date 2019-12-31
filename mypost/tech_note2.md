@@ -9369,6 +9369,8 @@ https://www.sohu.com/a/218322591_416207
 https://blog.csdn.net/github_35631540/article/details/92063430
 
 
+优秀！ resize-bar的opacity：0保证resize-bar透明放在最底层 resize-line的points-event：none保证不影响到resize-bar的事件响应 .resize-bar:hover~.resize-line 保证鼠标悬停resize-bar的时候resize-line做出响应
+
 当拖动之前将iframe隐藏，换成显示一个div的虚线框，拖拽完成之后隐藏虚线框且将iframe显示到虚线框位置
 https://bbs.csdn.net/topics/370130464
 
