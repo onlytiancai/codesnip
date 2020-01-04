@@ -2232,6 +2232,17 @@ rsync也可以通过校验和比较文件。
 --ignore-times 这意味着rsync将检查每个文件的和，即使时间戳和文件大小匹配。这意味着它将同步比默认行为更多的文件。
 
 
+kvm vnc
+
+
+vnc viewer连接kvm虚拟机连接不上的解决方法
+https://blog.csdn.net/kepa520/article/details/50329505
+
+video vga里变成了qxl，调回vga
+
+
+
+
 rsync “Operation not permitted”
 https://serverfault.com/questions/296587/rsync-operation-not-permitted
 
@@ -9376,3 +9387,142 @@ https://bbs.csdn.net/topics/370130464
 
 解决方案:拖动的时候,使用一个透明的div或其他元素,把这个iframe遮住.
 当拖动之前将iframe隐藏，换成显示一个div的虚线框，拖拽完成之后隐藏虚线框且将iframe显示到虚线框位置
+
+
+
+linux下怎么退出vi编辑器，按esc没有用；vim recording
+https://blog.csdn.net/hellocsz/article/details/82593482
+
+
+virt-install \
+    --accelerate \
+    --name xp \
+    --ram 2048 \
+    --vcpus=2 \
+    --controller type=scsi,model=virtio-scsi \
+    --disk path=/var/lib/libvirt/images/xp.qcow2,size=50,sparse=true,cache=none,bus=virtio \
+    --cdrom=/home/action/xp.iso \
+    --graphics vnc,listen=0.0.0.0,port=5904 \
+    --network bridge=br0
+
+virsh edit xp    
+    
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2' cache='none'/>
+      <source file='/var/lib/libvirt/images/xp.qcow2'/>
+      <target dev='vda' bus='virtio'/>
+      <boot order='1'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='/home/action/xp.iso'/>
+      <target dev='hda' bus='ide'/>
+      <readonly/>
+      <boot order='2'/>
+      <address type='drive' controller='0' bus='0' target='0' unit='0'/>
+    </disk>
+
+virsh start xp
+virsh reboot xp
+virsh shutdown xp
+virsh destroy  xp
+
+
+
+https://docs.fedoraproject.org/en-US/Fedora/18/html/Virtualization_Administration_Guide/sect-Attaching_and_updating_a_device_with_virsh.html
+
+Docker管理工具-Swarm
+https://www.cnblogs.com/bigberg/p/8761047.html
+
+Swarm 主要功能
+
+集群管理与Docker Engine集成:使用Docker Engine CLI来创建一个你能部署应用服务到Docker Engine的swarm。你不需要其他编排软件来创建或管理swarm。
+分散式设计：Docker Engine不是在部署时处理节点角色之间的差异，而是在运行时扮演自己角色。你可以使用Docker Engine部署两种类型的节点，管理器和worker。这意味着你可以从单个磁盘映像构建整个swarm。
+声明性服务模型： Docker Engine使用声明性方法来定义应用程序堆栈中各种服务的所需状态。例如，你可以描述由消息队列服务和数据库后端的Web前端服务组成的应用程序。
+伸缩性：对于每个服务，你可以声明要运行的任务数。当你向上或向下缩放时，swarm管理器通过添加或删除任务来自动适应，以保持所需状态。
+期望的状态协调：swarm管理器节点持续监控群集状态，并调整你描述的期望状态与实际状态之间的任何差异。 例如，如果设置运行一个10个副本容器的服务，这时worker机器托管其中的两个副本崩溃，管理器则将创建两个新副本以替换已崩溃的副本。 swarm管理器将新副本分配给正在运行和可用的worker。
+多主机网络：你可以为服务指定覆盖网络(overlay network)。 当swarm管理器初始化或更新应用程序时，它会自动为容器在覆盖网络(overlay network)上分配地址。
+服务发现：Swarm管理器节点为swarm中的每个服务分配唯一的DNS名称，并负载平衡运行中的容器。 你可以通过嵌入在swarm中的DNS服务器查询在swarm中运行中的每个容器。
+负载平衡：你可以将服务的端口暴露给外部的负载均衡器。 在内部，swarm允许你指定如何在节点之间分发服务容器。
+安全通信：swarm中的每个节点强制执行TLS相互验证和加密，以保护其自身与所有其他节点之间的通信。 你可以选择使用自签名根证书或来自自定义根CA的证书。
+滚动更新：在上线新功能期间，你可以增量地应用服务更新到节点。 swarm管理器允许你控制将服务部署到不同节点集之间的延迟。 如果出现任何问题，你可以将任务回滚到服务的先前版本。
+
+Swarm在scheduler节点（leader节点）运行容器的时候，会根据指定的策略来计算最适合运行容器的节点，目前支持的策略有：spread, binpack, random。
+
+　　1）Random 顾名思义，就是随机选择一个Node来运行容器，一般用作调试用，spread和binpack策略会根据各个节点的可用的CPU, RAM以及正在运 行的容器的数量来计算应该运行容器的节点。
+
+　　2）Spread 在同等条件下，Spread策略会选择运行容器最少的那台节点来运行新的容器，binpack策略会选择运行容器最集中的那台机器来运行新的节点。 使用Spread策略会使得容器会均衡的分布在集群中的各个节点上运行，一旦一个节点挂掉了只会损失少部分的容器。
+
+　　3）Binpack Binpack策略最大化的避免容器碎片化，就是说binpack策略尽可能的把还未使用的节点留给需要更大空间的容器运行，尽可能的把容器运行在 一个节点上面。
+
+
+Docker Swarm集群搭建教程
+http://c.biancheng.net/view/3178.html
+
+内置的 Swarm 安全机制
+Swarm 集群内置有繁多的安全机制，并提供了开箱即用的合理的默认配置——如 CA 设置、接入 Token、公用 TLS、加密集群存储、加密网络、加密节点 ID 等。
+
+
+Docker Swarm 包含两方面：一个企业级的 Docker 安全集群，以及一个微服务应用编排引擎。
+
+集群方面，Swarm 将一个或多个 Docker 节点组织起来，使得用户能够以集群方式管理它们。
+
+Swarm 默认内置有加密的分布式集群存储（encrypted distributed cluster store）、加密网络（Encrypted Network）、公用TLS（Mutual TLS）、安全集群接入令牌 Secure Cluster Join Token）以及一套简化数字证书管理的 PKI（Public Key Infrastructure）。我们可以自如地添加或删除节点。
+
+编排方面，Swarm 提供了一套丰富的 API 使得部署和管理复杂的微服务应用变得易如反掌。通过将应用定义在声明式配置文件中，就可以使用原生的 Docker 命令完成部署。
+
+此外，甚至还可以执行滚动升级、回滚以及扩缩容操作，同样基于简单的命令即可完成。
+
+
+docker service create --name redis --mode global  redis:3.0.6
+
+docker开启远程访问
+https://blog.csdn.net/lynx7/article/details/84789682
+
+vim /lib/systemd/system/docker.service
+    ExecStart=/usr/bin/dockerd -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375
+systemctl daemon-reload
+systemctl restart docker    
+
+export DOCKER_HOST="tcp://0.0.0.0:2375"
+docker ps
+sudo docker -H tcp://0.0.0.0:2375 pssudo docker -H tcp://0.0.0.0:2375 ps
+
+
+请教个 docker 的问题，我搞了个测试的 swarm 集群， 3 个 manager 节点，停掉 leader 节点后会自动选取出一个新的  leader 节点，但我要访问这个集群的话应该如何访问才能不会访问到挂掉的 manager 节点 ip 上呀？想到有四种方案
+A、客户端缓存 3 个 master ip，哪个能通访问哪个
+B、用 etcd 搭一个配置中心，把 swarm leader ip 存起来，再写个健康检查程序定时更新 leader ip，最后客户端从 etcd 读取 swarm ip
+C、搭一个 DNS 服务器，写个健康检查程序定时更新 swarm ip 的 A 记录，最后客户端通过域名访问 swarm ip
+D、客户端通过单一的 ip 访问 swarm，写一个监控程序当发现 swarm leader 漂移后告警，然后人工修改客户端配置并热更新程序。
+
+从架构复杂度，可维护性，自动化的角度看最优的选择应该选哪个方案呀？
+
+在Windows环境中使用Nginx, Consul, Consul Template搭建负载均衡和服务发现服务
+https://www.cnblogs.com/lwqlun/p/8835867.html
+
+Nginx+upstream针对后端服务器容错的配置说明
+https://www.cnblogs.com/kevingrace/p/8185218.html
+
+浅析AnyCast网络技术
+https://www.cnblogs.com/zafu/p/9168617.html
+
+最后，针对Anycast 做如下总结：
+
+ 
+
+优点：
+
+Anycast可以零成本实现负载均衡，无视流量大小。
+
+Anycast是天然的DDOS防御措施，体现了大事化小，小事化了的解决方法。
+
+部署Anycast可以获得设备的高冗余性和可用性。
+
+Anycast适用于无连接的UDP，以及有连接的TCP协议。
+
+ 
+
+缺点：
+
+Anycast严重依赖于BGP的选路原则，在整个Internet网络拓扑复杂的情况下，会导致次优路由选择。

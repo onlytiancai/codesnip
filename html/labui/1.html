@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            height: 100%;
+            overflow: hidden;
+        }
+        .container .l {
+            background-color: aliceblue;
+            height: 100%;
+            width: 300px;
+            float: left;
+            resize:horizontal;
+            overflow: auto;
+            cursor: ew-resize; 
+            opacity: 0;
+        }
+        .l::-webkit-scrollbar {
+            width: 250px;
+            height: 100%;
+        }
+        .container .r { 
+            background-color: aqua;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="l">left</div>
+        <div class="r">right</div>
+    </div>
+</body>
+</html>
