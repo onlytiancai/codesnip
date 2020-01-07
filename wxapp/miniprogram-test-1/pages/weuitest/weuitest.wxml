@@ -1,0 +1,17 @@
+<page>
+  <button class="weui-btn" type="primary">页面主操作 Normal</button>
+  <button class="weui-btn" type="default">页面次要操作 Normal</button>
+
+  <view class="weui-grids" style='margin-top: 20px;'>
+    <block wx:for="{{grids}}" wx:key="*this">
+      <navigator url="" class="weui-grid" hover-class="weui-grid_active">
+        <image class="weui-grid__icon" src="../../images/plus.png" />
+        <view class="weui-grid__label">Grid</view>
+      </navigator>
+    </block>
+  </view>
+
+  <view class="weui-footer">
+    <view class="weui-footer__text">Copyright © 2008-2016 weui.io</view>
+  </view>
+</page>

@@ -1,0 +1,7 @@
+{
+  NOTE = "Automatically generated, do not edit!";
+  NSExecutable = "HelloWorld";
+  NSMainNibFile = "";
+  GSMainMarkupFile = "";
+  NSPrincipalClass = "NSApplication";
+}

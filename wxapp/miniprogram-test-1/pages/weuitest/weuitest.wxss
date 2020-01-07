@@ -1,0 +1,5 @@
+@import '../../weui.wxss';
+page {
+  width: 80%;
+  margin: 0 auto;
+}
