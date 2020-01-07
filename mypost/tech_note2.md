@@ -3469,6 +3469,10 @@ CLASSPATH环境变量。作用是指定类搜索路径，要使用已经编写�
  
  ## git
  
+删除远程分支
+
+git push origin --delete dev
+ 
 git config --global core.editor vim
 git config --global core.autocrlf true
 git config --global core.safecrlf true
@@ -9526,3 +9530,24 @@ Anycast适用于无连接的UDP，以及有连接的TCP协议。
 缺点：
 
 Anycast严重依赖于BGP的选路原则，在整个Internet网络拓扑复杂的情况下，会导致次优路由选择。
+
+
+人人都能看懂的LSTM
+https://zhuanlan.zhihu.com/p/32085405
+
+LSTM内部主要有三个阶段：
+
+1. 忘记阶段。这个阶段主要是对上一个节点传进来的输入进行选择性忘记。简单来说就是会 “忘记不重要的，记住重要的”。
+2. 选择记忆阶段。这个阶段将这个阶段的输入有选择性地进行“记忆”。
+3. 输出阶段。这个阶段将决定哪些将会被当成当前状态的输出。
+
+基于神经网络（LSTM）的股票数据分析
+https://zhuanlan.zhihu.com/p/55841946
+
+不同数据集，正确率和损失率有很大不同。在创业板300+只股票数据中，LSTM模型正确率可高达88.97%，损失率可以低至3.64%。在主板股票数据中，正确率为77.53%，损失率为7.97%。在中小板数据中，正确率为76.81%，损失率为8.63%。
+
+正确率：预测结果正确数 / 测试数据总数 * 100%
+损失率：（预测涨幅为正 and 实际涨幅为负） / 测试数据总数 * 100%
+
+AI For Trading： LSTM模型预测三天后个股收盘价
+https://zhuanlan.zhihu.com/p/94889284
