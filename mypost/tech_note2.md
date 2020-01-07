@@ -1152,6 +1152,7 @@ $ forever start app.js          #启动
 $ forever stop app.js           #关闭
 $ forever start -l forever.log -o out.log -e err.log app.js   #输出日志和错误
 
+## nginx
 
 ## Apache backend for www.quancha.cn ##
 upstream apachephp  {
@@ -1863,13 +1864,7 @@ https://www.cnblogs.com/liuxianan/p/disable-chrome-extension-warning.html 真够
 
 
 
-## 重装系统
 
-备份
-
-- chrome 收藏夹
-- putty 配置
-- git key
 
 
 至强CPU多数都是可以配置多路的，就是多个CPU放在同一个板子上，这一点是i7无法做到的。
@@ -8702,7 +8697,7 @@ git apply --check 0002-.patch
 git apply  0002-.patch
 git checkout --theirs packages/notebook-extension/src/index.ts
 
-装机必备：
+### 装机必备：
 Everything
 VNC Viewer
 Putty
@@ -8718,6 +8713,16 @@ WPS Office
 Chrome
 QQ 拼音
 ReplaceGoogleCDN-master
+
+## 重装系统
+
+备份
+
+- chrome 收藏夹
+- putty 配置
+- git key
+- 我的文档，图片
+
 
 
 现在坚果云有 4 条相当清晰的产品线：面向个人用户有免费的普通版和付费的专业版，另外还有为中小企业提供的团队版，以及适合大企业使用的企业版。他们的个人用户和中小企业用户基本各占一半。
@@ -9498,6 +9503,57 @@ D、客户端通过单一的 ip 访问 swarm，写一个监控程序当发现 sw
 
 从架构复杂度，可维护性，自动化的角度看最优的选择应该选哪个方案呀？
 
+客户端新增 nginx 配置，如下
+
+```
+cat <<EOF >/etc/nginx/conf.d/docker.conf
+upstream devdocker {
+    server 192.168.1.200:2375 max_fails=1 fail_timeout=10s;
+    server 192.168.1.201:2375 max_fails=1 fail_timeout=10s;
+    server 192.168.1.202:2375 max_fails=1 fail_timeout=10s;
+}
+
+log_format dockerlog '$time_iso8601 $status $request_time $upstream_response_time $remote_addr'
+                  ' $http_host $upstream_addr "$request" $body_bytes_sent "$http_referer" '
+                  '"$http_user_agent" "$http_x_forwarded_for"';
+server {
+    listen 2375;
+    server_name  devdocker;
+
+    access_log  logs/devdocker.access.log dockerlog;
+    error_log  logs/devdocker.error.log;
+
+    location / {
+        proxy_pass  http://devdocker;
+
+        proxy_set_header   Host             $host;
+        proxy_set_header   X-Real-IP        $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+   }
+}
+EOF
+nginx -t && nginx -s reload
+```
+
+客户端修改 hosts
+
+```
+echo '127.0.1.1   devdocker' >> /etc/hosts
+```
+
+客户端测试访问 docker 集群，并查看请求日志
+
+```
+docker -H devdocker node ls
+tail /usr/share/nginx/logs/devdocker.access.log
+```
+
+登录到 192.168.1.200，201，203 任意一台服务器关掉 docker 服务 `systemctl stop docker`，
+再次在客户端多次测试访问 docker 集群，不会有任何失败访问。
+
+
+
 在Windows环境中使用Nginx, Consul, Consul Template搭建负载均衡和服务发现服务
 https://www.cnblogs.com/lwqlun/p/8835867.html
 
@@ -9526,3 +9582,261 @@ Anycast适用于无连接的UDP，以及有连接的TCP协议。
 缺点：
 
 Anycast严重依赖于BGP的选路原则，在整个Internet网络拓扑复杂的情况下，会导致次优路由选择。
+
+
+选择存储驱动并正确地配置在 Docker 环境中是一件重要的事情，特别是在生产环境中。
+
+下面的清单可以作为一个参考指南，帮助我们选择合适的存储驱动。同时还可以参阅 Docker 官网上由 Linux 发行商提供的最新文档来做出选择。
+Red Hat Enterprise Linux：4.x版本内核或更高版本 + Docker 17.06 版本或更高版本，建议使用 Overlay2。
+Red Hat Enterprise Linux：低版本内核或低版本的 Docker，建议使用 Device Mapper。
+Ubuntu Linux：4.x 版本内核或更高版本，建议使用 Overlay2。
+Ubuntu Linux：更早的版本建议使用 AUFS。
+SUSE Linux Enterprise Server：Btrfs。
+
+log_format为nginx设置日志格式
+https://blog.csdn.net/wanchaopeng/article/details/93205621
+
+MySQL报错 Error_code: 1045
+http://blog.itpub.net/20893244/viewspace-2137789/
+mysql主从同步
+https://www.jianshu.com/p/80f30029cdf5
+
+MySQL主从仅同步指定库
+https://www.cnblogs.com/new-journey/p/11319527.html
+
+有两种方式，1.在主库上指定主库二进制日志记录的库或忽略的库：
+
+vim  /etc/my.cnf
+    ...
+    binlog-do-db=xxxx   二进制日志记录的数据库
+    binlog-ignore-db=xxxx 二进制日志中忽略数据库
+    以上任意指定其中一行参数就行，如果需要忽略多个库，则添加多行
+    ...<br>重启mysql
+ 2.在从库上指定复制哪些库或者不负责哪些库
+
+#编辑my.cnf，在mysqld字段添加如下内容：
+  
+replicate-do-db    设定需要复制的数据库
+replicate-ignore-db 设定需要忽略的复制数据库
+replicate-do-table  设定需要复制的表
+replicate-ignore-table 设定需要忽略的复制表
+replicate-wild-do-table 同replication-do-table功能一样，但是可以通配符
+replicate-wild-ignore-table 同replication-ignore-table功能一样，但是可以加通配符
+  
+mysql主从同步 binlog-do-db replicate-do-db
+https://blog.csdn.net/z69183787/article/details/70183284  
+
+binlog_do_db是指定binlog日志记录那些库的二进制日志。replicate_do_db则在slave库中指定同步那些库的binlog日志。
+
+而应该采用拷贝文件的方式，请按如下操作步骤：
+
+先在主服务器上锁定所有的表，以免在复制过程中数据发生变化：
+
+mysql> flush tables with read lock;
+
+然后在主服务器上查询当前二进制文件的文件名及偏移位置：
+
+mysql > show master status;
+
+然后停止主服务器上的MySQL服务：
+
+shell> mysqladmin -u root shutdown
+
+再拷贝数据文件：
+
+shell> tar -cvf /tmp/mysql-snapshot.tar .
+
+拷贝完别忘了启动主服务上的MySQL服务了。
+
+然后把数据文件应用到从服务器上，再次启动slave的时候使用，记得启动时加上skip-slave-start选项，使之不会立刻去连接master，再在从服务器上设置相关的二进制日志信息：
+
+  
+#修改后重启mysql
+
+Mysql从库重建
+https://blog.csdn.net/devotedwife/article/details/81915072
+
+主库
+mysqldump -u*** -p*** -h db-master --default-character-set=utf8 --master-data=2 --single-transaction --databases DB1 DB2 DB3  > product_data_backup_20170515.sql
+
+注意–master-data=2 –single-transaction的配合使用，前一个参数会在开始导出时锁全表，记录当前的binlog文件和位置，然后释放锁，然后在同一个事务中导出数据，以保证一致性。
+
+从库
+stop slave;
+从库先drop需要同步的数据库，然后source product_data_backup_20170515.sql导入数据；
+
+不要修改从库的表结构以及数据，避免同步冲突失败；
+不要滥用set global sql_slave_skip_counter,这会跳过某些同步sql，可能导致数据不一致；
+附件类数据尽量不要直接存储在数据库中，备份和恢复时会特别慢
+
+从未在从服务器上手动更新过数据，但还是可能遇到“Error: 1062 Duplicate entry”错误，具体原因不详，可能是MySQL本身的问题。遇到这类问题的时候，从服务器会停止复制操作，我们只能手动解决问题，具体的操作步骤如下：
+
+mysql> set global sql_slave_skip_counter = 1;
+mysql> start slave;
+
+同样的操作可能需要进行多次，也可以设置自动处理此类操作，在从服务器的my.cnf里设置：
+
+slave-skip-errors=1062
+
+## mysql 主从同步
+
+主节点
+
+vi /etc/mysql/mysql.conf.d/mysqld.cnf
+
+    [mysqld]
+    log_bin=master60
+    server_id=60
+    binlog_format="mixed"
+    bind-address            = 0.0.0.0
+
+systemctl restart mysql
+systemctl status mysql
+
+mysqldump -uroot -p --default-character-set=utf8 --master-data=2 --single-transaction --databases db1 db2 db3  > backup.sql
+
+mysql -uroot -p
+
+    show master status\G;
+    #授权给从服务器，单个数据库授权无效，必须设置*.*
+    grant replication slave on *.* to repluser@'%' identified by '123456'; 
+    show grants for 'repluser';
+
+从节点
+
+mysql -uroot -p
+    stop slave;
+    drop database db1;
+    drop database db2;
+    drop database db3;
+    
+# grep 'CHANGE MASTER TO MASTER_LOG_FILE' backup.sql
+-- CHANGE MASTER TO MASTER_LOG_FILE='master60.000002', MASTER_LOG_POS=154;
+    
+mysql -uroot -p <backup.sql
+
+
+    
+mysql -uroot -p
+    show databases;
+
+vi /etc/mysql/mysql.conf.d/mysqld.cnf
+    [mysqld]
+    server_id=128
+    replicate-do-db="db1"
+    replicate-do-db="db2"
+    replicate-do-db="db3"
+
+systemctl restart mysqld
+systemctl status mysql
+mysql -uroot -p
+
+    # master_log_file 与主库binlog日志名相同，master_log_pos 偏移量与主库相同
+    change master to master_host='192.168.1.60', master_user='repluser', master_password='123456', master_log_file='master60.000002', master_log_pos=154;
+    start slave;
+    show slave status\G;
+
+
+看到 Slave_IO_Running: Yes，Slave_SQL_Running: Yes 表示成功
+如果 Slave_IO_Running 不为 Yes，可能是没连上主库，如下方式定为
+
+tail -f /var/log/mysql/error.log
+perror 1045	
+mysql -urepluser -h 192.168.1.60 -p -P3306
+
+Slave_SQL_Running 不为 yes 表示执行中继日志的 sql 命令时出错，需要停掉slave，在从库新建相关表,重启slave
+
+测试：
+
+主库
+
+create table t1(id int );#
+insert into t1 values(1);
+
+从库
+
+select * from t1;
+
+
+MySQL 双主模式，两台机器互为主从，A 修改自动同步 B，B 修改自动同步 A。
+为了防止并发引起的自增主键冲突，虽然双主，但不双写，平时只写 A。
+当确认 A 宕机后，手工或自动把 vip 指向 B，或域名指向 B，或修改应用配置指向 B。
+这样配置后，除了 A 切到 B 时会有短暂业务影响外，还有没有别的坑？
+
+
+MySQL 双主问题集
+https://www.cnblogs.com/GO-NO-1/p/10218304.html
+
+MySQL双主一致性架构优化
+https://www.jianshu.com/p/e2296eff932e
+
+主库高可用，主库一致性，一些小技巧：
+
+双主同步是一种常见的保证写库高可用的方式
+
+设置相同步长，不同初始值，可以避免auto increment生成冲突主键
+
+不依赖数据库，业务调用方自己生成全局唯一ID是一个好方法
+
+shadow master保证写库高可用，只有一个写库提供服务，并不能完全保证一致性
+
+内网DNS探测，可以实现在主库1出现问题后，延时一个时间，再进行主库切换，以保证数据一致性
+
+
+请教下各位大佬，关于 mysql 的双主复制问题
+https://www.v2ex.com/t/579370
+
+不是 DBA，但是了解一些 msyql。
+这个是比较野的多主方案吧。看样子是两个节点互为主从。这么用的比较少。
+
+mysql 多主现在生产环境用的一般有 PXC/MGC，或者 MGR 方案。
+pxc 和 MGC 其实同样的东西，都是 Percona 主导的技术。
+MGR 是比较新的方案，没怎么了解。
+应用层都不用重新设计。
+
+多主一般强调一致性，同时在所有的节点做写入操作。保证所有的节点数据一致。
+缺点明显，集群性能估计是单节点的 60%左右。如果有个节点性能差，会直接拖后腿。
+
+mysql5.6配置semi_sync
+https://www.cnblogs.com/caibird2005/p/4311544.html
+
+mysql的replication协议是异步的，虽然异步效率、性能很好，但是却无法保证主从数据一致性,
+如果master crash，已经commit的事务不会被传送到任何的slave上，
+从mysql5.5之后，mysql为了保证主从库数据一致性，引进了semi-sync功能，
+semi-sync意思是MASTER只需要接收到其中一台SLAVE的返回信息，就会commit；否则需等待直至切换成异步再提交。
+
+优点：
+当事务返回客户端成功后，则日志一定在至少两台主机上存在。
+MySQL的Semi-sync适合小事务，且两台主机的延迟又较小，则Semi-sync可以实现在性能很小损失的情况下的零数据丢失。
+
+缺点：
+完成单个事务增加了额外的等待延迟，延迟的大小取决于网络的好坏。
+
+PXC、MGR、MGC集群之新建、备份、恢复操作步骤 
+http://www.sohu.com/a/339960973_610509
+
+PXC的原理
+https://www.cnblogs.com/zengkefu/p/5678279.html
+
+即将开源的新一代MySQL高可用组件：MySQL Plus
+https://blog.csdn.net/n88lpo/article/details/80015256
+
+
+mysql 从库升级为主库的步骤
+https://blog.csdn.net/weixin_33759269/article/details/92350851
+
+1、进入主库，设置只读；
+
+SET GLOBAL read_only=1;
+
+2、进入从库，等同步完成后，暂停同步，并设置读写；
+
+
+stop slave;
+SET GLOBAL read_only=0;
+reset slave all;
+
+-- RESET SLAVE ALL是清除从库的同步复制信息、包括连接信息和二进制文件名、位置
+-- 从库上执行这个命令后，使用show slave status将不会有输出。
+
+3、修改配置文件连接到新的主库上。
