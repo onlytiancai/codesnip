@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NtfsReader", "NtfsReader\NtfsReader.csproj", "{DBACEFC5-0234-4317-B096-F212ECAE1DD1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NtfsReaderSample", "NtfsReaderSample\NtfsReaderSample.csproj", "{DC78CFBB-6034-4931-9DE3-E85825EA52D8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Everything2", "Everything2\Everything2.csproj", "{C669BA3C-D4ED-4792-B168-345E663D55C3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DBACEFC5-0234-4317-B096-F212ECAE1DD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBACEFC5-0234-4317-B096-F212ECAE1DD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBACEFC5-0234-4317-B096-F212ECAE1DD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBACEFC5-0234-4317-B096-F212ECAE1DD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC78CFBB-6034-4931-9DE3-E85825EA52D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC78CFBB-6034-4931-9DE3-E85825EA52D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC78CFBB-6034-4931-9DE3-E85825EA52D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC78CFBB-6034-4931-9DE3-E85825EA52D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C669BA3C-D4ED-4792-B168-345E663D55C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C669BA3C-D4ED-4792-B168-345E663D55C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C669BA3C-D4ED-4792-B168-345E663D55C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C669BA3C-D4ED-4792-B168-345E663D55C3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

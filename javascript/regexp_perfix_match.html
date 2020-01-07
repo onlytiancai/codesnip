@@ -1,0 +1,39 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <script src="jquery-1.8.0.js"></script>
+        <script type="text/javascript" charset="utf-8">
+            var match_prefix = function(regex, input){
+                for (var i = 1; i <= regex.length; i ++){
+                    var prefix_regex = Array.prototype.slice.call(regex, 0, i).join('');
+                    try{
+                        var match = new RegExp(prefix_regex + '$').test(input);
+                        console.log('prefix_regex', prefix_regex, match);
+                        if(match) return true;
+                    }
+                    catch(err){ }
+                }
+                return false;
+            };
+            $(function(){
+                $('#input').keyup(function(){
+                    var regex = $('#regex').val();
+                    var input = $('#input').val();
+                    console.log('input', input);
+                    if(match_prefix(regex, input)){
+                        $('#result').html('可以继续输入。');
+                    }else{
+                        $('#result').html('输入错误。');
+                    }
+                });
+            });    
+        </script>
+    </head>
+    <body>
+        <p>regex:<input id="regex" type="text" value="^11a+[0-9]\d{1,3}$"></p>
+        <p>input:<input id="input" type="text" value=""></p>
+        <p id="result"></p>
+    </body>
+</html>

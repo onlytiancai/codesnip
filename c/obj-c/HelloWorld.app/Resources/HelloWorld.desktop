@@ -1,0 +1,8 @@
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Version=0.94
+Categories=GNUstep
+Exec=openapp HelloWorld.app
+#TryExec=HelloWorld.app
+FilePattern=HelloWorld.app;HelloWorld

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>test</title>
+		<style>
+html,body {
+    height: 100%;
+    margin: 0;
+    padding:0;
+}
+.a {
+    width: 300px;
+    background: green;
+    height: 100%;
+    min-height: 500px;
+    float: left;
+}
+.b {
+    background: lightgreen;
+    height: 800px;
+    margin-left: 310px;
+    min-width: 500px;
+}
+.c {
+    background: lightblue;
+    height: 200px;
+    margin-left: 310px;
+}
+		</style>
+        <script src='js/jquery.js'></script>
+        <script>
+            function auto_resize() {
+                $('.b').height($('.a').height() - $('.c').height());
+            }
+            $(window).resize(auto_resize);
+            $(document).ready(auto_resize);
+        </script>
+	</head>
+	<body>
+		<div class="a"></div>
+		<div class="b"></div>
+		<div class="c"></div>
+	</body>
+</html>

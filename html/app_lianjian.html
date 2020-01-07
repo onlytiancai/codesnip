@@ -2,8 +2,8 @@
 <html lang="zh-cn">
     <head>
         <meta charset="utf-8">
-        <title>Huhao.me</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>爱练剑</title>
+        <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" name="viewport" />
         <style type="text/css" media="screen">
             /* global */
             * { margin: 0; padding: 0 }
@@ -43,6 +43,8 @@
                 margin:10px; 
                 -webkit-box-shadow: 0 0 3px rgba(34,25,25,.4);
                 background:#fff;
+                cursor:pointer;
+                border-radius: 10px;
             }
 
             #content .item .header{
@@ -60,24 +62,26 @@
             }
             #content .item .main{
                 clear: both; 
-                overflow: hidden;
-                height:50px;
+                overflow: auto;
+                height:40px;
             }
             #content .item .title{
+                float:left;
                 padding-left: 10px;
                 font-weight: bold;
-                font-size: 20px;
-                line-height: 50px;
-                float:left;
+                font-size: 15px;
+                line-height: 40px;
                 color:#3F79C2;
+                width:200px;
             }
             #content .item .days{
                 float:right;
-                height:50px;
-                width:80px;
+                height:40px;
+                width:70px;
                 text-align:center;
+                line-height: 40px;
             }
-            #content .item .days a{
+            #content .item .days span{
                 text-decoration: none;
                 color: #fff;
                 font-size: 30px;
@@ -99,9 +103,16 @@
                 background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #89BB4A), color-stop(1, #4C9F1D));
             }
 
-            .done {
-                color:#3F79C2;
+            #content .item .days span.done {
+                color: #000;
             }
+
+            @-webkit-keyframes bgchange
+            {
+                from {background: #dfa52a;}
+                to {background: #fff;}
+            }
+
 
         </style>
     </head>
@@ -113,13 +124,13 @@
             <div id="content">
 
                 <!-- begin item-->
-                <div class="item">
+                <div class="item" id="item_sleep">
                     <div class="header">
                         <div class="keep_day">
                             坚持了22天 
                         </div>
                         <div class="from_day">
-                            从2013年7月13日 
+                            还未开始
                         </div>
                     </div>
                     <div class="main">
@@ -127,19 +138,19 @@
                             每天睡个好觉 
                         </div>
                         <div class="days bg1">
-                            <a href="">20</a> 
+                            <span>0</span> 
                         </div>
                     </div>
                 </div>
                 <!-- end item-->
                 <!-- begin item-->
-                <div class="item">
+                <div class="item" id="item_happy">
                     <div class="header">
                         <div class="keep_day">
-                            坚持了22天 
+                            连续保持了0天
                         </div>
                         <div class="from_day">
-                            从2013年7月13日 
+                            还未开始
                         </div>
                     </div>
                     <div class="main">
@@ -147,19 +158,19 @@
                             每天保持好心情
                         </div>
                         <div class="days bg2">
-                            <a href="">10</a> 
+                            <span>0</span> 
                         </div>
                     </div>
                 </div>
                 <!-- end item-->
                 <!-- begin item-->
-                <div class="item">
+                <div class="item" id="item_sport">
                     <div class="header">
                         <div class="keep_day">
-                            坚持了22天 
+                            连续保持了0天
                         </div>
                         <div class="from_day">
-                            从2013年7月13日 
+                            还未开始
                         </div>
                     </div>
                     <div class="main">
@@ -167,19 +178,19 @@
                             每天运动半小时 
                         </div>
                         <div class="days bg3">
-                            <a href="">7</a> 
+                            <span>0</span> 
                         </div>
                     </div>
                 </div>
                 <!-- end item-->
                 <!-- begin item-->
-                <div class="item">
+                <div class="item" id="item_learning">
                     <div class="header">
                         <div class="keep_day">
-                            坚持了22天 
+                            连续保持了0天
                         </div>
                         <div class="from_day">
-                            从2013年7月13日 
+                            还未开始
                         </div>
                     </div>
                     <div class="main">
@@ -187,19 +198,19 @@
                            每天学习半小时 
                         </div>
                         <div class="days bg4">
-                            <a href="">100</a> 
+                            <span>0</span> 
                         </div>
                     </div>
                 </div>
                 <!-- end item-->
                 <!-- begin item-->
-                <div class="item">
+                <div class="item" id="item_family">
                     <div class="header">
                         <div class="keep_day">
-                            坚持了22天 
+                            连续保持了0天
                         </div>
                         <div class="from_day">
-                            从2013年7月13日 
+                            还未开始
                         </div>
                     </div>
                     <div class="main">
@@ -207,7 +218,7 @@
                             每天陪陪家人
                         </div>
                         <div class="days bg5">
-                            <a href="" class="done">73</a> 
+                            <span>0</span> 
                         </div>
                     </div>
                 </div>
@@ -216,5 +227,89 @@
 
             </div>
         </div>
+
+        <script type="text/javascript" charset="utf-8" src="static/lib/zepto.js"></script>
+        <script type="text/javascript" charset="utf-8">
+            $(function(){
+                var get_today = function(){
+                    var d = new Date();
+                    d = d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();
+                    // 2014-1-1 => 2014-01-01
+                    return d.replace(/\b(\w)\b/g, '0$1');
+                };
+
+                var get_diff_day = function(d1, d2){
+                    // 2014-01-01 => 2014/01/01, 后者可以做Date的构造函数
+                    d1 = d1.replace(/-/g, '/');
+                    d2 = d2.replace(/-/g, '/');
+                    return (new Date(d1)-new Date(d2))/1000/60/60/24;
+                };
+
+                var set_ui_item = function(op, data){
+                    $('#item_' + op + ' .keep_day').html('连续保持了'+ data.keep_hits +'天');
+                    $('#item_' + op + ' .from_day').html(data.from_day ? '从' + data.from_day : '还未开始');
+                    $('#item_' + op + ' .days span').text(data.total_hits);
+                    if(data.last_day == get_today()){
+                        $('#item_' + op + ' .days span').addClass('done');
+                    }
+                };
+
+                var set_hits = function(op){
+                    return function(e){
+                        var today = get_today();
+                        var old_data = get_data(op);
+
+                        if (!old_data.from_day) { //第一次操作
+                            localStorage['from_day_' + op] = today;
+                            localStorage['total_hits_' + op] = 1;
+                            localStorage['last_day_' + op] = today;
+                            localStorage['keep_hits_' + op] = 1;
+                        }else{
+                            var diff_day = get_diff_day(today, old_data.last_day);
+
+                            if (diff_day > 0){ //当天的重复操作不处理
+                                var total_hits = parseInt(localStorage['total_hits_' + op]);
+                                localStorage['total_hits_' + op] = total_hits + 1;
+                                localStorage['last_day_' + op] = today;
+
+                                if (diff_day < 2){ //持续天数
+                                    var keep_hits = parseInt(localStorage['keep_hits_' + op]);
+                                    localStorage['keep_hits_' + op] = keep_hits + 1;
+                                }else {
+                                    localStorage['keep_hits_' + op] = 1;
+                                }
+                            }
+                        }
+
+
+                        $('#item_' + op).animate('bgchange', 1000);
+                        set_ui_item(op, get_data(op));
+                    }; 
+                };
+
+                var get_data = function(op){
+                    var keep_hits = localStorage['keep_hits_' + op] || 0;
+                    var total_hits = localStorage['total_hits_' + op] || 0;
+                    var from_day = localStorage['from_day_' + op];
+                    var last_day = localStorage['last_day_' + op];
+
+                    return {keep_hits: parseInt(keep_hits), total_hits: parseInt(total_hits),
+                            from_day: from_day, last_day: last_day};
+                };
+
+                $('#item_family').click(set_hits('family'));
+                $('#item_sleep').click(set_hits('sleep'));
+                $('#item_sport').click(set_hits('sport'));
+                $('#item_learning').click(set_hits('learning'));
+                $('#item_happy').click(set_hits('happy'));
+
+
+                set_ui_item('family', get_data('family'));
+                set_ui_item('sleep', get_data('sleep'));
+                set_ui_item('sport', get_data('sport'));
+                set_ui_item('learning', get_data('learning'));
+                set_ui_item('happy', get_data('happy'));
+            });
+        </script>
     </body>
 </html>

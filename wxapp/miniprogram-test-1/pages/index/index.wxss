@@ -1,0 +1,75 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.status-info {
+  text-align: left;
+  font-size: 12px;
+  color: #999;
+  /* 必须设置宽度 100%，因为父容器设置 align-items后，子容器宽度会收缩到内容宽度 */
+  width: 100%;
+}
+
+.status-info text {
+  margin-left: 30rpx;
+}
+
+.today {
+  font-size: 14px;
+}
+
+.add-container {
+  width: 100%;
+}
+
+.add-inner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border: 1rpx solid #e0e0e0;
+  border-radius: 10rpx;
+  box-shadow: 0 0 5rpx #e0e0e0;
+  margin: 30rpx;
+  padding: 20rpx;
+}
+
+.plus {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.input-add {
+  padding-left: 20rpx;
+  font-size: 28rpx;
+  flex-grow: 1;
+}
+
+.todo-container {
+  width: 100%;
+}
+
+.todo-inner {
+  padding: 0 20rpx;  
+}
+
+.todo-item {
+  display: flex;
+  padding: 20rpx;
+  background-color: #85a4c3;
+  margin: 10px 0;
+  border-radius: 10rpx;
+}
+
+.todo-item text {
+  /* 占满剩余左右图标剩余的全部 */
+  flex: 1;
+  font-size: 40rpx;
+  color: white;
+  margin-left: 20rpx;
+}
+
+.todo-item .completed {
+  text-decoration: line-through;
+}

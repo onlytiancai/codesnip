@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>WaBasic 海龟画图</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        #canvas {
+            display: block;
+            margin: 10px auto;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid #000;
+        }
+
+        #editor {
+            display: block;
+            margin: 10px auto;
+            width: 90%;
+            max-width: 500px;
+            font-size: 120%;
+            font-family: Consolas, Monaco, monospace;
+        }
+        #help {
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+    <h3>WaBasic 海龟画图</h3>
+    <canvas id='canvas' width="300" height="300"></canvas>
+    <textarea autoHeight="true" id="editor" cols="30" rows="15">def box(length)
+    i = 0
+    while i < 4 then
+        forward(length)
+        right(90)
+        i = i + 1
+    end
+end
+i = 0
+while i < 36 then
+    if i % 2 == 0 then
+        pencolor("blue")
+    end
+    if i % 2 != 0 then
+        pencolor("red")
+    end
+    box(80)
+    left(10)
+    i = i + 1
+end
+</textarea>
+    <button id="run">运行</button>
+    <button id="clear">清空</button>
+    <h4>帮助</h4>
+    <ul id="help">
+        <li>支持操作符：<ul>
+            <li>算术：+, -, *, /, %</li>
+            <li>关系：&lt;, &lt;=, &gt;, &gt;=, ==, !=</li>
+            <li>逻辑：and, or</li>
+        </ul></li>
+        <li>支持语句：<ul>
+            <li>if: 不支持 else</li>
+            <li>while: 注意防止死循环</li>
+            <li>def: 定义函数</li>
+        </ul></li>
+        <li>内置函数：<ul>
+            <li>pencolor(color): 设置画笔颜色</li>
+            <li>forward(distance), fd(d): 前进一定距离</li>
+            <li>left(deg), lt(d): 左转一定角度</li>
+            <li>right(deg), rt(d): 右转一定角度</li>
+        </ul></li>
+    </ul>
+    <script src="../libs/peg-0.10.0.js"></script>
+    <script src="../jquery-1.8.0.js"></script>
+    <script src="./tiny-turtle.js"></script>
+    <script>
+        var grammar = $.ajax({ type: "GET", url: './wb.peg.js', async: false }).responseText;
+        var parser = peg.generate(grammar);
+        TinyTurtle.apply(window);
+        $('#run').on('click', function () {
+            $(window).scrollTop(0);
+            var ast = parser.parse($('#editor').val());
+            console.log(ast);
+            ast.eval();            
+        });
+        $('#clear').on('click', function () {
+            var c = document.getElementById("canvas");
+            var cxt = c.getContext("2d");
+            c.height = c.height;
+            reset();
+        })
+
+        // 代码区域高度自适应
+        $.fn.autoHeight = function () {
+            function autoHeight(elem) {
+                elem.style.height = 'auto';
+                elem.scrollTop = 0; //防抖动
+                elem.style.height = elem.scrollHeight + 'px';
+            }
+            this.each(function () {
+                autoHeight(this);
+                $(this).on('keyup', function () {
+                    autoHeight(this);
+                });
+            });
+        }
+        $('textarea[autoHeight]').autoHeight();
+        window.pencolor = function(color) {
+            penStyle = color;
+        }
+        
+    </script>
+</body>
+
+</html>

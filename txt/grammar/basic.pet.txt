@@ -1,0 +1,202 @@
+! -----------------------------------------------------------------------
+! Commodore PET BASIC 
+!
+! Beginner's All-purpose Symbolic Instruction Code 
+!
+!    "It is practically impossible to teach good programming style to students 
+!    that have had prior exposure to BASIC; as potential programmers they are 
+!    mentally mutilated beyond hope of regeneration."    
+!
+!    - Edsger W. Dijkstra 
+!
+!
+! BASIC is one of the oldest programming language and one of the most popular. 
+! It was developed in 1964 by John G. Kemeny and Thomas E. Kurtz to teach 
+! students the basics of programming concepts. At the advent of the microcomputer,
+! BASIC was implemented on numerous platforms such as the Commodore, Atari, 
+! Apple II, Altair, IBM PC computers. Over time, BASIC evolved into GW-BASIC, 
+! QBasic, Visual Basic, and recently Visual Basic .NET.
+!
+! In practically all programming languages, the reserved word/symbol that denotes
+! a comment is treated as a form of whitespace - having no effect in the manner in
+! which the program runs. Once such type of comment is used to indicate the remainder
+! of the line is to be ignored. These can be added to the end of any line without
+! changing the meaning of the program. In C++, it is the '//' symbol.
+!
+! However, in the BASIC programming language, the line comment is treated like a 
+! statement. For instance, if 'REM' was a normal line comment:
+!
+!    10  PRINT "Hello World" REM Common first program
+!
+! would be a valid statement. However, in BASIC, this is illegal. In the example 
+! above, the comment must be added as an additional statement.
+!
+!    10  PRINT "Hello World" : REM Common first program
+!
+! As a result, the Line Comment terminal that is used in the GOLD Parser cannot be
+! used here. In the grammar below, a 'Remark' terminal was created that accepts all 
+! series of printable characters starting with the characters "REM ". In some 
+! implementations of BASIC, any string starting with "REM" is a comment statement.
+! Examples include "REMARK", "REMARKABLE" and "REMODEL". This grammar requires the space.
+!
+! -----------------------------------------------------------------------
+
+
+"Name"    = 'Commodore PET BASIC'
+"Author"  = 'Commodore Business Machines'
+"Version" = '2.0'
+"About"   = 'This is the version of BASIC that was used on the Commodore 64.'
+
+"Case Sensitive" = False 
+"Start Symbol"   = <Lines>
+
+{String Chars} = {Printable} - ["]
+{WS}           = {Whitespace} - {CR} - {LF}
+
+NewLine        = {CR}{LF}|{CR}
+Whitespace     = {WS}+
+
+Remark         = REM{Space}{Printable}*
+ID             = {Letter}{Alphanumeric}?[$%]?      !IDs are can only have a maximum of 2 characters
+FunctionID     = FN {Letter}{Letter}?
+
+String         = '"'{String Chars}*'"' 
+Integer        = {Digit}+ 
+Real           = {Digit}+'.'{Digit}+ 
+
+<Lines>       ::= <Lines> <Line>
+                | <Line>
+
+<Line>        ::= Integer <Statements> NewLine 
+                                
+<Statements>  ::= <Statements> ':' <Statement>
+                | <Statement>
+
+<Statement>   ::= CLOSE Integer
+                | CLR
+                | CMD  <Expression>
+                | CONT                                          !Continue
+                | DATA <Constant List> 
+                | DEF FunctionID '(' <ID List> ')' '=' <Expression>    !The ID must start with FN
+                | DIM ID '(' <Expression List> ')'
+                | END          
+                | FOR ID '=' <Expression> TO <Expression> <Step Opt>     
+                | GET ID
+                | GET '#' Integer ',' ID
+                | GOSUB <Expression> 
+                | GOTO <Expression>                 
+                | IF <Expression> THEN <Then Clause>                
+                | INPUT <ID List>       
+                | INPUT '#' Integer ',' <ID List>       
+                | LET ID '=' <Expression> 
+                | LIST <Line Range>
+                | LOAD <Value List>        
+                | ID '=' <Expression> 
+                | NEW
+                | NEXT <ID List>               
+                | ON ID GOTO <Expression List>
+                | OPEN <Expression List>         
+                | POKE <Expression> ',' <Expression>
+                | PRINT <Print list>
+                | PRINT '#' Integer ',' <Print List>
+                | READ <ID List>           
+                | RETURN
+                | RESTORE
+                | RUN
+                | RUN <Expression>
+                | STOP
+                | SYS <Expression>
+                | WAIT <Expression List>     
+                | VERIFY <Expression List>     
+                | Remark
+
+<Step Opt> ::= STEP <Expression>
+             | 
+                   
+<ID List>  ::= ID ',' <ID List> 
+             | ID 
+
+<Value List>      ::= <Value> ',' <Value List> 
+                    | <Value> 
+
+<Constant List>   ::= <Constant> ',' <Constant List> 
+                    | <Constant> 
+                 
+<Expression List> ::= <Expression> ',' <Expression List> 
+                    | <Expression> 
+
+<Print List>      ::= <Expression> ';' <Print List>
+                    | <Expression> 
+                    |  
+
+<Line Range>  ::= Integer 
+                | Integer '-'
+                | Integer '-' Integer 
+
+<Then Clause> ::= Integer
+                | <Statement>
+
+! ----------------------------------------------- Expressions
+
+<Expression>  ::= <And Exp> OR <Expression> 
+                | <And Exp> 
+
+<And Exp>     ::= <Not Exp> AND <And Exp> 
+                | <Not Exp> 
+ 
+<Not Exp>     ::= NOT <Compare Exp> 
+                | <Compare Exp> 
+
+<Compare Exp> ::= <Add Exp> '='  <Compare Exp> 
+                | <Add Exp> '<>' <Compare Exp> 
+                | <Add Exp> '>'  <Compare Exp> 
+                | <Add Exp> '>=' <Compare Exp> 
+                | <Add Exp> '<'  <Compare Exp> 
+                | <Add Exp> '<=' <Compare Exp> 
+                | <Add Exp> 
+
+<Add Exp>     ::= <Mult Exp> '+' <Add Exp> 
+                | <Mult Exp> '-' <Add Exp> 
+                | <Mult Exp> 
+
+<Mult Exp>    ::= <Negate Exp> '*' <Mult Exp> 
+                | <Negate Exp> '/' <Mult Exp> 
+                | <Negate Exp> 
+
+<Negate Exp>  ::= '-' <Power Exp> 
+                | <Power Exp> 
+
+<Power Exp>   ::= <Power Exp> '^' <Sub Exp>        !On the Commodore, the symbol was an up-arrow
+                | <Sub Exp> 
+
+<Sub Exp>     ::= '(' <Expression> ')'
+                | <Value>
+
+<Value>       ::= ID 
+                | ABS        '(' <Expression> ')'
+                | ASC        '(' <Expression> ')'
+                | ATN        '(' <Expression> ')'
+                | 'CHR$'     '(' <Expression> ')'
+                | COS        '(' <Expression> ')'
+                | EXP        '(' <Expression> ')'
+                | FunctionID '(' <Expression List> ')'
+                | FRE        '(' <Value> ')'                  !The <Value> is  irrelevant
+                | INT        '(' <Expression> ')'
+                | 'LEFT$'    '(' <Expression> ',' <Expression> ')'
+                | LEN        '(' <Expression> ')'
+                | PEEK       '(' <Expression> ')'
+                | POS        '(' <Value> ')'                  !The <Value> is  irrelevant
+                | 'RIGHT$'   '(' <Expression> ',' <Expression> ')'
+                | RND        '(' <Expression> ')'
+                | SGN        '(' <Expression> ')' 
+                | SPC        '(' <Expression> ')' 
+                | SQR        '(' <Expression> ')' 
+                | TAB        '(' <Expression> ')' 
+                | TAN        '(' <Expression> ')' 
+                | VAL        '(' <Expression> ')' 
+                
+                | <Constant> 
+
+<Constant>    ::= Integer 
+                | String 
+                | Real 

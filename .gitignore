@@ -4,3 +4,12 @@
 *.out
 *.swp
 node/mydb/
+*.ipynb
+*.o
+*.pyc
+*.swp
+*.log
+*.out
+*.swp
+node/mydb/
+*.d
