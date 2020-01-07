@@ -9,4 +9,7 @@ node/mydb/
 *.pyc
 *.swp
 *.log
+*.out
+*.swp
+node/mydb/
 *.d
