@@ -9492,7 +9492,7 @@ https://blog.csdn.net/lynx7/article/details/84789682
 vim /lib/systemd/system/docker.service
     ExecStart=/usr/bin/dockerd -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375
 systemctl daemon-reload
-systemctl restart docker    
+systemctl restart docker
 
 export DOCKER_HOST="tcp://0.0.0.0:2375"
 docker ps
@@ -9733,6 +9733,7 @@ vi /etc/mysql/mysql.conf.d/mysqld.cnf
 
 systemctl restart mysqld
 systemctl status mysql
+
 mysql -uroot -p
 
     # master_log_file 与主库binlog日志名相同，master_log_pos 偏移量与主库相同
@@ -9863,3 +9864,312 @@ https://zhuanlan.zhihu.com/p/55841946
 
 AI For Trading： LSTM模型预测三天后个股收盘价
 https://zhuanlan.zhihu.com/p/94889284
+
+
+
+规格型号：超融合计算节点：8台、华为/FusionCube HCI、18.9万元/台；虚拟化软件：1套、华为/FusionSphere、13.15万元/套；云管套件：1套、华为/ManageOne、17.65万元/套；等
+
+华为FusionCube超融合基础设施融合计算、存储、网络、虚拟化、管理于一体，具有高性能、低时延和快速部署等特点，并内置华为自研分布式存储引擎，深度融合计算和存储，消除性能瓶颈，灵活扩容，支持业界主流数据库和业界主流虚拟化软件。
+
+基于教育信息化2.0的指导，遵循大数据的智慧校园建设标准，通过大数据技术，打通学校“人、财、物”的基础数据，以学校基本对象（学生/教师/资产/科研成果/招生就业等）为业务数据基础，整合梳理多源日志、行为等数据构建学生画像、教师画像等，通过人工智能方法，结合高校场景，实现数据信息全面，过程可见，智能辅助，决策科学的目标，提升学校的教学、科研、人才培养、后勤服务等多方面需求。
+1、业务大数据、日志大数据及有关社会大数据的采集和存储。对接校内各应用系统获取各类业务数据、异构系统设备的日志数据，结合社会大数据资源，采用大数据管理技术进行统一存储，为数据的挖掘和分析打好基础。
+2、大数据分析应用，以学生画像为纽带，日志行为数据为入口，通过AI行为建模，挖掘和发现数据中隐含的、未知的、极具潜在应用价值的信息和规律，实现面向领导、面向老师、面向学生、面向网络等多角色的大数据应用需求的可视化交付，并且支持大屏、WEB、H5、分析报告等多样化的成果交付，为我校的教务管理、科研管理、学生管理等各项工作提供决策和指导。
+
+
+
+云原生技术公开课：
+https://edu.aliyun.com/roadmap/cloudnative
+大数据学习路线
+https://edu.aliyun.com/roadmap/bigdata
+数据库学习路线
+https://edu.aliyun.com/roadmap/database
+人工智能学习路线
+https://edu.aliyun.com/roadmap/ai
+
+如何快速学习Tableau Desktop
+https://www.jianshu.com/p/0adf8fea3351
+
+Apache Superset(孵化)是一个现代的、企业级的商业智能web应用程序。
+https://www.jianshu.com/p/4a1c213a8b1c
+
+给大数据分析师的一双大礼: Apache Kylin和Superset
+https://www.jianshu.com/p/828fa6f45ff3
+
+阿里巴巴大数据竞赛
+https://github.com/sunnotes/Ali-Data-Mining
+
+Free Data Mining Tools
+http://www.rdatamining.com/resources/tools
+
+Top 15 Best Free Data Mining Tools: The Most Comprehensive List
+https://www.softwaretestinghelp.com/data-mining-tools/
+https://opensourceforu.com/2017/03/top-10-open-source-data-mining-tools/
+
+
+CC中英字幕 - Weka在数据挖掘中的运用（Data Mining with Weka）
+https://www.bilibili.com/video/av45489204?from=search&seid=13827735967963188412
+
+
+哪些事情是weka能做的但是spss无法做到的？
+https://www.zhihu.com/question/20985683/answer/16819027
+
+初试weka数据挖掘
+https://www.cnblogs.com/hxsyl/p/3307343.html
+
+
+python数据挖掘orange
+https://blog.csdn.net/pipisorry/article/details/52845804
+
+
+完成 Orange3 数据挖掘 汉化版
+https://blog.csdn.net/err2008/article/details/89000962
+
+# Install some build requirements via your system's package manager
+sudo apt install virtualenv build-essential python3-dev
+
+# Create a separate Python environment for Orange and its dependencies ...
+virtualenv --python=python3 --system-site-packages orange3venv
+# ... and make it the active one
+source orange3venv/bin/activate
+
+# Install Qt dependencies for the GUI
+pip install PyQt5 PyQtWebEngine
+
+# Install Orange
+pip install orange3
+
+1.3.2 sklearn自带的小数据集
+自带的小数据集
+
+名称	数据包调用方式	适用算法
+鸢尾花数据集	load_iris()	分类
+乳腺癌数据集	load_bread_cancer()	二分类任务
+手写数字数据集	load_digits()	分类
+糖尿病数据集	load_diabetes()	回归
+波士顿房价数据集	load_boston()	回归
+体能训练数据集	load_linnerud()	多变量回归
+
+
+Orange数据挖掘工具介绍
+https://blog.csdn.net/SunChao3555/article/details/84975783
+
+轻量级BI工具Superset的搭建与使用
+https://www.jianshu.com/p/b02fcea7eb5b
+
+开源数据挖掘工具Orange简介
+https://blog.csdn.net/Tulongf/article/details/23992007
+
+Orange,RapidMiner,Weka,JHepWork,KNIM,五个免费开源的数据挖掘软件
+https://blog.csdn.net/bruce__ray/article/details/49699461
+
+26种数据挖掘软件比较及介绍
+https://blog.csdn.net/Tulongf/article/details/23994233
+
+几经折腾，终于完成Orange3数据挖掘新版的汉化工作！需要合作的加Q：726008，Orange3群：681586766
+
+Orange是一款底层基于C++，并且提供了Python接口的开源数据挖掘工具。与Sklearn，pyml这 类数据挖掘包相比，Orange的历史更加悠久，在上面实现的算法也更加丰富，此外，除了以python模块的形式使用之外，Orange还提供了GUI，可以用通过预先 定义好的多种模块组成工作流来完成复杂的数据挖掘工作。
+
+Orange的发起最早可以追溯到1997年WebLab会议，在这个会议上人们提到了构建一个灵活的实验基准以便大家可以将自己的算法，实验结果放在上面，这些想法最终 催生了Orange项目。
+
+Orange包含大量标准或非标准的机器学习和数据挖掘的算法，以及常规数据读写和操作，其底层的核心是由C++来实现的，同时Orange也利用python脚本来快速 实现新算法的原型以及一些不太要求执行时间的功能。
+
+
+docker swarm 端口开放
+The network ports required for a Docker Swarm to function properly are:
+
+TCP port 2376 for secure Docker client communication. This port is required for Docker Machine to work. Docker Machine is used to orchestrate Docker hosts.
+TCP port 2377. This port is used for communication between the nodes of a Docker Swarm or cluster. It only needs to be opened on manager nodes.
+TCP and UDP port 7946 for communication among nodes (container network discovery).
+UDP port 4789 for overlay network traffic (container ingress networking).
+
+### 技能树：初级后台
+
+C 基础
+
+- 编写，编译，运行 hello world。
+- 实现 atoi 函数。
+- 复制一个文件。
+- 对一个整型数组进行冒泡排序。
+- 对一个整型数组进行二分查找。
+- 用结构数组表示一个成绩列表｛姓名，科目，成绩｝，求出指定科目平均成绩最高的姓名。
+
+Linux
+
+- 安装系统
+- 分区，格式化，挂载
+- 配置动态、静态网络IP，DNS，网关，子网掩码
+- 使用 top 查看系统运行情况
+- 使用 ifconfig, ip 查看本机网络配置
+- 使用 uname 查看本机信息，
+- 添加新用户，加入组，切换用户
+- 使用 ulimit 修改描述符最大限制
+- touch，mkdir，cd，pwd，ls，cp, mv，rm 进行文件管理
+- 熟悉文件查看命令：cat, head, more, less, tail
+- 使用 find 查找文件
+- 使用 grep 查找文本
+- 使用 sort 排序命令输出
+- 使用 diff 命令比较文件
+- 使用 wc 统计输出行数
+- chown 和 chmod 修改文件权限
+- 开启 openssh 服务，指定允许远程登录的用户
+- 指定拥有 sudo 权限的用户
+- 编写简单 shell 脚本：if, while, $?
+- 使用管道组合多个命令
+- 对标注输入，标准输出，标准错误进行重定向
+- 持续监控日志输出
+- 使用 scp 和 rsync 在多台机器间同步文件
+- 配置 ssh 免密登录
+- 使用 netstat, ss 查看端口监听列表
+- 使用 ps 查看进程列表
+- 使用 ping, curl, nc 测试远程服务是否正常
+- 使用 free 查看内存使用情况，定位内存占用大的进程
+- 查看 CPU 使用情况，定位 CPU 使用高的进程
+- 查看磁盘使用情况，定位磁盘占用大的目录
+- 查看网络流量情况
+- 使用包管理工具安装软件，修改源到国内镜像
+- 启动，停止，禁用，启用某个服务
+- 使用防火墙开放或关闭某个端口: ufw, iptables
+- 使用 rc.local 设置开机自启动脚本
+- 使用 crontab 设置定时任务
+- 使用 vi 编辑配置文件
+- 修改 .bashrc 里的环境变量，使用 alias 添加别名
+- 使用 ln 建立文件软连接
+- 使用 shell 进行数学运算
+- 使用 tar，zip, unzip 解压，压缩文件
+- 挂接，弹出 U 盘
+
+
+git
+
+- 配置密钥，创建仓库，克隆仓库，.git/config 改动
+- git status，代码拉取，代码提交，代码推送，修改最后一次 commit 信息
+- git rm， git mv, .gitignore 使用
+- 代码对比：工作区对比，暂存区对比，分支间对比，历史对比
+- 解决冲突：使用 A， 使用 B，两者合并
+- 新建分支，合并分支，删除分支，删除远程分支，常见分支规划（dev, testing, master, hotfix, feat）
+- 查看历史：查看历史改动，指定某文件改动，提取指定历史版本
+- 撤销修改：撤销修改的文件，撤销暂存的文件，撤销已提交改动，撤销已推送改动
+- 使用书架暂存: git stash
+- git rebase -i
+- 恢复文件：git reflog
+
+
+HTML
+
+- HTML 基本文档：doctype, lang, meta，head, body
+- 引入 css, js
+- 排版相关元素：h1-h5, p，a，img，br, hr，span，strong，code，pre，q
+- 列表相关元素：ul, ol, dl，li，dd
+- 布局相关元素: div，span，table
+- 表格相关元素：table, tr, td, col
+- 表单相关元素：form，input, select，textarea，button
+- input 类型：text, password, checkbox, radio, hidden，color，date，time，number
+- h5 验证属性：required ，max，min，minlength，maxlength
+- 实现用户注册页面：姓名，年龄，职业，爱好，手机号
+
+
+CSS
+
+- 常见选择器：id, class，后代选择器，子选择器，属性选择器，伪类选择器
+- 传统布局：position，display，width, height，margin, padding, border, overflow, float
+- flex 布局：flex-flow， justify-content，align-items，flex，align-self
+- 装饰类规则：字体，字号，行高，颜色，背景色，链接，列表，阴影，圆角
+- 常见布局实现：图标和文字水平对齐，文字垂直水平居中，div 垂直水平居中，左右分栏（左定宽右弹性），左中右分栏（左右定宽，中间弹性），水平菜单，下拉菜单
+- Bootstrap 使用：表格，表单，辅助类，小图标，按钮组，导航条，标签页，面包屑，分页，警告框，面板，轮播，模态框
+
+
+PHP
+
+- 变量，分支，循环，函数，字符串操作，数组操作，时间操作，文件操作，面向对象
+- 理解 empty，is_null，isset
+- 读取 get, post, cookie，header，文件上传等数据
+- 设置 HTTP 应答码， header, cookie，输出 json，HTML，文件下载
+- 数据校验，XSS 过滤，SQL 注入过滤
+- 配置并使用 session
+- 使用正则表达式 preg
+- 访问数据库：mysqli，PDO
+- 访问网络：curl
+- 调试拍错：die，exit，var_dump, print_r，debug_print_backtrace ，error_log，file_put_contents, error_reporting
+- 使用命名空间和自动加载，使用 composer 安装第三方组件
+- 使用 MVC 框架：理解 model, view, controller, templeate，library，helper 的职责
+- 使用 HMVC modules 进行模块化开发
+- 配置 php.ini 和 php-fpm.conf
+
+
+MySQL
+
+- 增删改查，多表关联，分组统计
+- 导入导出数据库或数据表
+- 创建用户，指定权限
+- 查看表结构，添加列，修改列
+- 查看执行计划，添加有效索引
+
+
+Nginx
+
+- 配置 PHP-fpm
+- 配置静态目录，启用文件索引，压缩，过期时间
+- 配置反向代理，设置必要的转发头
+- 配置虚拟目录为 php，反向代理或静态目录
+- 配置 https 证书
+
+
+Javascript
+
+- 基本语法：分支，循环，函数，数组，hash
+- DOM API，BOM API
+- jquery 选择器，dom 操作，css 操作，事件操作
+- jquery ajax
+- underscore, async 使用
+
+
+网络
+
+- 常见 HTTP 方法：GET, PUT, POST, DELETE, OPTION
+- 常见 HTTP 应答码：100, 200, 301, 302, 400, 401, 403, 404, 413，500
+- 常见请求头：Accept，Accept-Encoding，Host，UserAgent，Cookie，Connection，Referer
+- 常见应答头: Connection，Content-Type，Content-Length，Server, Transfer-Encoding，Set-Cookie
+- 浏览器开发者工具网络标签
+- 常用网络工具：ifconfig, ip, lsof, netstat,ss, ping, traceroute，mtr，telnet, curl, wget, nc，tcpdump, nslookup, dig, whois, nload, iftop
+- 防火墙相关：iptables, ufw
+
+
+问题定位
+
+- 信息查看工具使用：uptime, top, htop, vmstat, iostat, sar
+- 优雅重启服务：php-fpm, nginx，gunicorn, supervisord
+- 系统日志查看
+- crontab 日志查看
+- Nginx 日志配置及查看
+- PHP/fpm 日志配置及查看
+- 应用服务日志查看
+- MySQL 慢日志配置及查看
+
+
+Linux常用网络工具总结
+https://blog.csdn.net/li_101357/article/details/70256411
+
+本文总结了Linux中的常用的网络工具，其中包括
+
+网络配置相关：ifconfig、ip
+路由相关：route、netstat、ip
+查看端口工具：netstat、lsof、ss、nc、telnet
+下载工具：curl、wget、axel
+防火墙：iptables、ipset
+流量相关：iftop、nethogs
+连通性及响应速度：ping、traceroute、mtr、tracepath
+域名相关：nslookup、dig、whois
+web服务器：python、nginx
+抓包相关：tcpdump
+网桥相关：ip、brctl、ifconfig、ovs
+
+
+图解HTTP（六）—— HTTP请求头（首部）
+https://blog.csdn.net/alexshi5/article/details/80379086
+
+Git鲜为人知的四个命令：bisect，blame，reflog和提交范围
+https://baijiahao.baidu.com/s?id=1598885936030644678&wfr=spider&for=pc
+
+
+TensorSpace是一套用于构建神经网络3D可视化应用的框架。 开发者可以使用 TensorSpace API，轻松创建可视化网络、加载神经网络模型并在浏览器中基于已加载的模型进行3D可交互呈现。 TensorSpace可以使您更直观地观察神经网络模型，并了解该模型是如何通过中间层 tensor 的运算来得出最终结果的。 TensorSpace 支持3D可视化经过适当预处理之后的 TensorFlow、Keras、TensorFlow.js 模型。
+https://github.com/tensorspace-team/tensorspace/blob/master/README_zh.md
