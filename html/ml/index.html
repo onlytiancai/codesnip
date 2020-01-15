@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Machine Learning in Web</title>
+    <script src="../static/lib/jquery-1.11.0.js"></script>
+    <script src="../static//lib/ml-dataset-iris.js"></script>
+    <script src="../static/lib/ml.min.js"></script>
+
+    <link type="text/css" rel="stylesheet" href="../static/lib/jsgrid/jsgrid.min.css" />
+    <link type="text/css" rel="stylesheet" href="../static/lib/jsgrid/jsgrid-theme.min.css" />
+    <script type="text/javascript" src="../static/lib/jsgrid/jsgrid.min.js"></script>
+
+</head>
+
+<body>
+  
+    <script>
+
+        const dataset = require('ml-dataset-iris').getNumbers();
+        const fields = ['sepal length', 'sepal width', 'petal length', 'petal width'];
+
+
+    </script>
+
+    <style>
+        #jsGrid {
+            margin-left: 50px;
+            width: 50%;
+            float: left; 
+        }
+        #diagramContainer {
+            width: 800px;
+            float: left;
+            position: relative;
+            font-size: smaller;
+            padding: 20px;
+            height: 400px;
+            border: 1px solid gray;
+            background: #fff;
+            background-image: linear-gradient(#bab5b54d 1px, transparent 0),
+            linear-gradient(90deg, #bab5b54d 1px, transparent 0),
+            linear-gradient(#bab5b54d 1px, transparent 0),
+            linear-gradient(90deg, #bab5b54d 1px, transparent 0);
+            background-size: 15px 15px, 15px 15px, 75px 75px, 75px 75px;
+        }
+
+        .rectangle-size {
+            position: absolute;
+            text-align: center;
+            line-height: 40px;
+            height: 40px;
+            width: 100px;
+            border: 2px solid #000;
+            border-radius: 5px;
+        }
+
+        .circle-size {
+            position: absolute;
+            text-align: center;
+            line-height: 100px;
+            height: 100px;
+            width: 100px;
+            border: 2px solid #000;
+            border-radius: 50px;
+        }
+
+        .cst-label {
+            background-color: white;
+            padding: 5px;
+        }
+
+        .dim-color {
+            color: #a2a1a1;
+            border-color: #a2a1a1;
+        }
+    </style>
+    <script src="../static/lib/jquery-ui.js"></script>
+    <script src="../static/lib/jquery.jsplumb.js"></script>
+
+
+    <div id="diagramContainer">
+        <div id="node-input" class="rectangle-size">数据源</div>
+        <div id="node-datatable" class="rectangle-size" style="top:200px;">数据显示</div>
+        <div id="node-pca" class="rectangle-size" style="left: 200px;">主成分分析</div>
+        <div id="node-datatable2" class="rectangle-size" style="left: 400px;">数据显示</div>
+    </div>
+    <div id="jsGrid"></div>
+    <script>
+        /* global jsPlumb */
+        function makeStyle(flag) {
+            let config = {};
+            config.connectorPaintStyle = {
+                lineWidth: 1,
+                strokeStyle: flag == 'dim' ? '#a2a1a1' : 'black',
+                joinstyle: 'round',
+                outlineColor: '',
+                outlineWidth: ''
+            };
+
+            // 鼠标悬浮在连接线上的样式
+            config.connectorHoverStyle = {
+                lineWidth: 2,
+                strokeStyle: '#4caf50',
+                outlineWidth: 10,
+                outlineColor: ''
+            };
+
+            return {
+                // 端点形状
+                endpoint: ['Dot', {
+                    radius: 6,
+                    fill: flag == 'dim' ? '#a2a1a1' : 'black'
+                }],
+                // 连接线的样式
+                connectorStyle: config.connectorPaintStyle,
+                connectorHoverStyle: config.connectorHoverStyle,
+                // 端点的样式
+                paintStyle: {
+                    fillStyle: flag == 'dim' ? '#a2a1a1' : 'black',
+                    radius: 4
+                },
+                hoverPaintStyle: {
+                    fillStyle: '#4caf50',
+                    strokeStyle: '#4caf50'
+                },
+                isSource: true,
+                connector: ['Straight', {
+                    gap: 0,
+                    cornerRadius: 5,
+                    alwaysRespectStubs: true
+                }],
+                isTarget: true,
+                // 设置连接点最多可以链接几条线
+                maxConnections: -1,
+                connectorOverlays: [
+                    ['Arrow', {
+                        width: 8,
+                        length: 10,
+                        location: 1
+                    }]
+                ]
+            };
+        }
+
+        let config = {
+            baseStyle: makeStyle('base'),
+            dimStyle: makeStyle('dim')
+        };
+
+        jsPlumb.ready(function () {
+
+            let pointStyle = config.baseStyle;
+
+            jsPlumb.setContainer('diagramContainer');
+            jsPlumb.addEndpoint('node-input', { uuid: 'node-input', anchor: 'Bottom' }, pointStyle);
+            jsPlumb.addEndpoint('node-input', { uuid: 'node-input2', anchor: 'Right' }, pointStyle);
+            jsPlumb.addEndpoint('node-datatable', { uuid: 'node-datatable', anchor: 'Top' }, pointStyle);
+            jsPlumb.addEndpoint('node-pca', { uuid: 'node-pca', anchor: 'Left' }, pointStyle);
+            jsPlumb.addEndpoint('node-pca', { uuid: 'node-pca2', anchor: 'Right' }, pointStyle);
+            jsPlumb.addEndpoint('node-datatable2', { uuid: 'node-datatable2', anchor: 'Left' }, pointStyle);
+
+            jsPlumb.connect({ uuids: ['node-input', 'node-datatable'] });
+            jsPlumb.connect({ uuids: ['node-input2', 'node-pca'] });
+            jsPlumb.connect({ uuids: ['node-pca2', 'node-datatable2'] });
+
+            jsPlumb.draggable(
+                $(".rectangle-size,.circle-size"),
+                { containment: 'diagramContainer' }
+            );
+
+            jsPlumb.bind('click', function (conn, originalEvent) {
+                if (window.prompt('确定删除所点击的链接吗？ 输入1确定') === '1') {
+                    jsPlumb.detach(conn)
+                }
+            })
+
+            $('#node-datatable').click(function () {
+
+    
+                const data = dataset.map(x => x.reduce(function (pre, cur, i) { pre[fields[i]] = cur; return pre }, {}));
+
+                $("#jsGrid").jsGrid({
+                    width: "900px",
+                    height: "400px",
+                    data: data,
+                    fields: fields.map(function (x) { return { name: x } }),
+                });
+            });
+            $('#node-datatable2').click(function () {
+
+                const pca = new ML.PCA(dataset);
+                console.log(pca.getExplainedVariance());
+
+                const newPoints = [[4.9, 3.2, 1.2, 0.4], [5.4, 3.3, 1.4, 0.9], [4.6, 3.4, 1.4, 0.3]];
+                const ret = pca.predict(newPoints);
+                console.log(ret);
+                const data = ret.toJSON().map(x => x.reduce(function (pre, cur, i) { pre[fields[i]] = cur; return pre }, {}));
+
+                $("#jsGrid").jsGrid({
+                    width: "900px",
+                    height: "400px",
+                    data: data,
+                    fields: fields.map(function (x) { return { name: x } }),
+                });
+            });
+
+        });
+
+
+    </script>
+</body>
+
+</html>
