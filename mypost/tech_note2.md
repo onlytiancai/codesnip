@@ -1142,6 +1142,8 @@ ln -s /root/node-v8.9.3-linux-x64/bin/npm /usr/local/bin/npm
 npm -v
 npm install -g cnpm --registry=https://registry.npm.taobao.org
 
+npm config set registry http://registry.npm.taobao.org/
+
 alias cnpm="npm --registry=https://registry.npm.taobao.org \
 --cache=$HOME/.npm/.cache/cnpm \
 --disturl=https://npm.taobao.org/dist \
@@ -10173,3 +10175,262 @@ https://baijiahao.baidu.com/s?id=1598885936030644678&wfr=spider&for=pc
 
 TensorSpace是一套用于构建神经网络3D可视化应用的框架。 开发者可以使用 TensorSpace API，轻松创建可视化网络、加载神经网络模型并在浏览器中基于已加载的模型进行3D可交互呈现。 TensorSpace可以使您更直观地观察神经网络模型，并了解该模型是如何通过中间层 tensor 的运算来得出最终结果的。 TensorSpace 支持3D可视化经过适当预处理之后的 TensorFlow、Keras、TensorFlow.js 模型。
 https://github.com/tensorspace-team/tensorspace/blob/master/README_zh.md
+
+
+机器学习指机器通过统计学算法，对大量的历史数据进行学习从而生成经验模型，利用经验模型指导业务。目前机器学习主要在以下方面发挥作用：
+
+营销类场景：商品推荐、用户群体画像、广告精准投放
+金融类场景：贷款发放预测、金融风险控制、股票走势预测、黄金价格预测
+SNS关系挖掘：微博粉丝领袖分析、社交关系链分析
+文本类场景：新闻分类、关键词提取、文章摘要、文本内容分析
+非结构化数据处理场景：图片分类、图片文本内容提取OCR
+其它各类预测场景：降雨预测、足球比赛结果预测
+笼统地讲，机器学习可以分为三类：
+
+有监督学习（Supervised Learning）：指每个样本都有对应的期望值，通过模型搭建，完成从输入的特征向量到目标值的映射。典型的案例就是回归和分类问题。
+无监督学习（Unsupervised Learning）：指在所有的样本中没有任何目标值，期望从数据本身发现一些潜在的规律，例如一些简单的聚类。
+增强学习（Reinforcement Learning）：相对来说比较复杂，是指一个系统和外界环境不断地交互，获得外界反馈，然后决定自身的行为，达到长期目标的最优化。其中典型的案例就是阿法狗下围棋，或者无人驾驶。
+
+PAI底层支持多种计算框架：有流式算法框架Flink，基于开源版本深度优化的深度学习框架TensorFlow，支持千亿特征千亿样本的大规模并行化计算框架Parameter Server，同时也兼容Spark、PYSpark、MapReduce等业内主流开源框架。
+
+PAI平台提供：PAI-STUDIO（可视化建模和分布式训练）、PAI-DSW（notebook交互式AI研发）、PAI-AutoLearning（自动化建模）、PAI-EAS（在线预测服务）四套服务，每个服务既可单独使用，也可相互打通。用户可以从数据上传、数据预处理、特征工程、模型训练、模型评估，到最终的模型发布到离线或者在线环境，一站式完成建模，有效的提升开发效率。在数据预处理方面，PAI跟阿里云DataWorks（一站式大数据智能云研发平台）也是无缝打通的，支持SQL、UDF、UDAF、MR等多种数据处理开发方式，灵活性较高。在PAI平台上训练模型，生成的模型可以通过EAS部署到线上环境，整个实验流程支持周期性调度，可以发布到DataWorks与其它上下游任务节点打通依赖关系，另外调度任务区分生产环境以及开发环境，可以做到数据安全隔离。
+
+一站式的机器学习平台意味着只要训练数据准备好（存放到OSS或MaxCompute中），用户就不需要额外的迁移工作，所有的建模工作都可以通过PAI来实现。
+
+DataWorks
+DataWorks是一个提供了大数据OS能力、并以all in one box的方式提供专业高效、安全可靠的一站式大数据智能云研发平台。 同时能满足用户对数据治理、质量管理需求，赋予用户对外提供数据服务的能力。
+
+
+全生命周期数据应用开发
+从数据开发到算法开发，从服务开发到应用开发，闭环涵盖数据业务全流程。
+
+
+下一代大数据云研发平台
+提供离线、实时、机器学习Studio满足大数据全业务场景。
+
+完美支持数据中台
+为全域数据汇聚与融合加工、数据治理与分享提供温床，助力企业完美升级数据体系。
+
+全智能化体验
+引入SQL智能编辑器、智能基线监控、数据质量监控、数据保护伞，赋能AI时代必备能力。
+
+覆盖大数据全业务场景的功能体系
+
+
+数据集成
+供复杂网络环境下、丰富的异构数据源之间数据高速稳定的数据移动及同步能力。
+
+ 
+    多数据源快速上云
+    支持多库、多表整体数据上云的快捷配置。
+
+
+    多种配置方式
+    同时兼容可视化向导模式、复杂配置的脚本模式以及API模式创建数据集成任务。
+
+
+    多种同步方式
+    支持实时、历史数据的批量、增量同步，同步速度可以打满万兆网卡。
+
+
+    任意数据源、任意网络环境数据抽取
+    支持任意结构化、非结构化、半结构化的数据传输；同时可配置Agent至自有跳板机，实现对内网环境数据源的抽取与同步。
+
+ 
+数据开发
+构建项目->解决方案->业务流程三级结构，帮助用户获得更加清晰的开发逻辑。
+
+ 
+    多引擎工作流混编
+    以DataStudio为核心的多引擎混编工作流，串联跨引擎数据节点开发，每个类型的引擎数据节点都有对应的Studio进行开发。
+
+
+    SQL智能编辑器
+    提供SQL格式化、智能补齐、关键字高亮、错误提示、SQL内部结构等人性化功能，带来更顺滑的SQL开发体验。
+
+
+    科学规范的项目模式
+    提供开发、生产环境隔离的“标准项目模式”，将更稳定的生产环境带给用户。
+
+
+    业务流程与解决方案
+    从业务视角管理整体工作流，将同类业务组织为解决方案，实现沉浸式开发。
+
+ 
+数据治理
+保障数据定时产出、有效产出，让数据满足企业“存、通、用”的高标准数据管理要求。
+
+ 
+    数据质量监控
+    提供对多种异构数据源的质量校验、通知、管理能力。
+
+
+    任务智能监控
+    通过简单配置赋予智能监控系统自行决策“是否报警、何时报警、如何报警、给谁报警”的能力，以实现复杂工作流的全链路监控。
+
+ 
+数据安全
+提供可视化数据权限申请审批流程，并一些类诸如敏感数据分级、访问行为识别、数据脱敏、风险识别的数据审计能力。
+
+ 
+    数据权限申请与审批
+    开发者可在线批量发起数据权限申请，管理者酌情进行审批，实现流程可控与可视化，利于事后审计与追溯。
+
+
+    敏感数据智能识别
+    基于自学习的模型算法，自动识别企业拥有的敏感数据，并以直观的形式展示具体类型、分布、数量等信息；同时支持自定义类型的数据识别
+
+
+    精准的数据分级分类
+    支持自定义分级信息功能，满足不同企业对数据等级管理需要
+
+
+    灵活的数据脱敏
+    提供丰富多样、可配置的数据脱敏方式，无论是存储环节的静态脱敏，还是使用环节的动态脱敏
+
+
+    用户异常操作风险监控和审计
+    利用多维度关联分析及算法，主动发现异常风险操作，提供预警以及可视化一站式审计
+
+ 
+数据服务
+基于Serverless为企业搭建统一的数据服务总线，帮助企业统一管理对内对外的API服务。
+
+ 
+    Serverless构建方式
+    告别传统构建API的开发、运维流程，仅需关注API本身逻辑即可在web页面完成配置，并支持弹性扩展，运维成本为0。
+
+
+    过滤器与函数
+    灵活变换API返回结果数据结构，适配各类业务系统要求。
+
+
+    服务编排
+    支持将多个数据服务API串联为工作流，实现复杂业务请求逻辑。
+
+
+    简单管理API生命周期
+    基于web页面可完成API发布、管理、运维、售卖的全生命周期管理，助力用户简单、快速、低成本、低风险地实现微服务聚合、前后端分离、系统集成的工作。
+
+
+    一键打通商业模式
+    支持一键将API发布至阿里云市场进行售卖，直接将数据能力变现。
+
+ 
+应用开发
+实现在线Web轻量化开发能力，提供丰富的前端组件，通过自由拖拽即可简单快速搭建前端应用。
+
+ 
+    托管Web应用开发
+    无需下载安装本地IDE和配置维护环境变量，只需一个浏览器，即可在办公室、家或任何可以连接网络的地方，进行您的数据开发工作。
+
+
+    功能完备的编辑器
+    提供智能提示、补全代码并提供修复建议，让您轻松地编写、运行和调试项目。
+
+
+    在线调试
+    在线调试具有本地IDE所有的断点类型和断点操作，支持线程切换、过滤，支持变量值查看、监视，支持远程调试和热部署。
+
+
+    协同编辑
+    支持多人同时在线编辑同一个工程的同一个文件，提高工作效率。
+
+
+    插件体系
+    支持业务插件、工具插件和语言插件三种插件。
+
+ 
+机器学习
+阿里云机器学习平台（PAI）集数据处理、建模、离线预测、在线预测为一体，向用户提供更简易的操作体验。
+
+ 
+    良好的交互设计
+    通过对底层的分布式算法封装，提供拖拉拽的可视化操作环境，让数据挖掘的创建过程像搭积木一样简单。
+
+
+    优质、丰富的机器学习算法
+    提供经过阿里大规模业务锤炼而成的基础的聚类、回归类等算法与文本分析、特征处理等复杂算法。
+
+
+    规格支持主流深度学习框架
+    包含Tensorflow、Caffe、MXNet三款主流的机器学习框架，底层提供M40型号的GPU卡进行训练。
+
+    
+可视化模型
+
+javascript workflow builder
+    
+10+ JavaScript libraries to draw your own diagrams (2019 edition)
+https://modeling-languages.com/javascript-drawing-libraries-diagrams/    
+
+https://jsplumbtoolkit.com/demos.html
+https://gojs.net/latest/index.html
+
+html5 javascript workflow diagram generator [closed]
+https://stackoverflow.com/questions/20190581/html5-javascript-workflow-diagram-generator
+
+jsplumb 中文基础教程
+https://wdd.js.org/jsplumb-chinese-tutorial/#/
+
+jsplumb实现流程图
+https://www.jianshu.com/p/a3cd623cdbb7
+https://github.com/wangduanduan/visual-ivr
+
+开源HTML5拓扑图绘制工具？
+https://www.zhihu.com/question/41026400
+
+百度脑图核心——kityminder-editor 本地化改造
+https://www.jianshu.com/p/9b53499d9031
+
+
+Machine learning tools in JavaScript
+https://github.com/mljs/ml
+https://ml5js.org/
+
+Top Machine Learning Libraries for Javascript 
+https://www.kdnuggets.com/2016/06/top-machine-learning-libraries-javascript.html
+
+orange3-web
+https://github.com/biolab/orange3/issues/1419
+
+Node-RED
+Low-code programming for event-driven applications
+https://nodered.org/
+
+Business Intelligence (BI) in Python, OLAP
+https://github.com/mining/mining
+
+老师和学生都喜欢 Orange3
+https://orange.biolab.si/home/teachers_and_students_love_it/
+
+
+Browserify：浏览器加载Node.js模块
+http://javascript.ruanyifeng.com/tool/browserify.html
+
+browserify -r through -r ./my-file.js:my-module > bundle.js
+
+
+计算矩阵的相关系数时，为什么提示说标准差是0
+ 
+应该是有某一列的数字完全一样吧
+
+
+b.reduce(function(pre, cur, i) { pre[a[i]] = cur; return pre }, {})
+
+jsPlumb使用学习-在线流程设计器demo参考说明
+https://blog.csdn.net/hexin8888/article/details/83992816
+
+基于 vue 和 element-ui 实现的表单设计器，使用了最新的前端技术栈，内置了 i18n 国际化解决方案，可以让表单开发简单而高效。
+https://github.com/GavinZhuLei/vue-form-making/blob/master/README.zh-CN.md
+
+vue内引入jsPlumb流程控制器（一）
+https://blog.csdn.net/weixin_30872671/article/details/94822539
+
+Graphlib JS 学习笔记
+https://blog.csdn.net/qq_32773935/article/details/81236461
+
+Div Background Image Z-Index Issue
+https://stackoverflow.com/questions/10507871/div-background-image-z-index-issue
+
+发现一个 CSS BUG，一个正常position 的 div a 无论如何设置 z-index，都不能在一个 position: relative 并且设置了 ackground-image 的div b 上面。
