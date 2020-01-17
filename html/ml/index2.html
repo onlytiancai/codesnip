@@ -1,14 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-cn">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Machine Learning in Web</title>
-    
-    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">  
+    <link rel="stylesheet" href="../static/lib/bootstrap/css/bootstrap.min.css">
+    <script src="../static/lib/uuid.min.js"></script>
+    <script src="../static/lib/jquery-1.11.0.js"></script>
+    <script src="../static/lib/mustache.js"></script>
+    <script src="../static//lib/ml-dataset-iris.js"></script>
+    <script src="../static/lib/ml.min.js"></script>
+
+    <link rel="stylesheet" href="../static/lib/jquery-ui.min.css">
+    <script src="../static/lib/jquery-ui.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="../static/lib/jsgrid/jsgrid.min.css" />
+    <link type="text/css" rel="stylesheet" href="../static/lib/jsgrid/jsgrid-theme.min.css" />
+    <script type="text/javascript" src="../static/lib/jsgrid/jsgrid.min.js"></script>
+
+    <script src="../static/lib/jquery.jsplumb.js"></script>
     <link rel="stylesheet" href="static/main.css">
+    <script src="static/main.js"></script>
+
 </head>
 
 <body>
@@ -35,8 +49,7 @@
     </div>
     <script id="tpl-node" type="text/html">
         <div id='{{id}}' data-type={{type}} class="rectangle-size"  style='top:{{top}}px;left:{{left}}px'>{{text}}</div>
-    </script>
-    <script src="dist/bundle.js"></script>
+      </script>
 </body>
 
 </html>
