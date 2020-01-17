@@ -1,12 +1,29 @@
 {
-  "name": "ml",
+  "name": "actionml",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack"
+    "build": "webpack",
+    "dev": "webpack-dev-server"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "bootstrap": "^4.4.1",
+    "jquery": "^3.4.1",
+    "jsgrid": "^1.5.3",
+    "jsplumb": "^2.12.8",
+    "ml": "^5.0.0",
+    "ml-dataset-iris": "^1.1.1",
+    "mustache": "^3.2.1",
+    "uuid": "^3.3.3",
+    "webpack-jquery-ui": "^2.0.1"
+  },
+  "devDependencies": {
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.10.1"
+  }
 }
