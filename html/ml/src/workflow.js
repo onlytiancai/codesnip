@@ -1,35 +1,53 @@
 const uuid = require('uuid');
 const Mustache = require('Mustache')
 const jsPlumb = require('jsplumb').jsPlumb;
-const testdata = require('testdata').data;
 
-// 放入拖动节点
+const srcOptions = { isSource: true, anchor: ["Perimeter", { shape: "Rectangle" }], maxConnections: -1 };
+const dstOptions = { isTarget: true, anchor: "Left", endpoint: ["Rectangle", { width: 8, height: 8 }] };
+var nodeTpl = $('#tpl-node').html();
+
+// 拖入节点
 function dropNode(position) {
     position.left -= $('#toolbox').outerWidth()
     position.id = uuid.v1()
 
-    var html = renderHtml(position)
+    addNode(position);
+}
+
+// 添加节点
+function addNode(position) {
+    var html = Mustache.render(nodeTpl, position)
     $('#workspace').append(html)
 
-    addDraggable(position.id)
+    // 添加端点               
+    jsPlumb.addEndpoint(position.id, { uuid: position.id + '-source', }, srcOptions);
+    jsPlumb.addEndpoint(position.id, { uuid: position.id + '-target', }, dstOptions);
+    // 设置可拖动
+    jsPlumb.draggable(position.id, { containment: 'workspace' })
 }
 
-// 渲染html
-function renderHtml(position) {
-    return Mustache.render($('#tpl-node').html(), position)
+
+// 加载 workflow
+exports.load = function (input) {
+
+    // 添加节点
+    input.forEach(addNode);
+
+    // 连线
+    input.forEach(function (n) {
+        n.connects.forEach(function (c) {
+            jsPlumb.connect({ uuids: [n.id + '-source', c + '-target'] });
+        });
+    });
 }
 
-// 让元素可拖动
-function addDraggable(id) {
-    jsPlumb.draggable(id, {
-        containment: 'parent'
-    })
-}
-
+// 工作区初始化
 exports.init = function () {
 
+    // 设置工作区
     jsPlumb.setContainer('workspace');
 
+    // 设置默认工作流默认配置
     jsPlumb.importDefaults({
         Connector: ["Bezier", { curviness: 30 }],
         Endpoint: ["Dot", { radius: 5 }],
@@ -37,37 +55,7 @@ exports.init = function () {
         Anchor: [0.5, 0.5, 1, 1]
     });
 
-    var endpointOptions = { isSource: true, isTarget: true };
-    var nodeInputEp1 = jsPlumb.addEndpoint('node-input', { anchor: "Bottom" }, endpointOptions);
-    var nodeInputEp2 = jsPlumb.addEndpoint('node-input', { anchor: "Right" }, endpointOptions);
-
-    var nodeDatatableEp1Top = jsPlumb.addEndpoint('node-datatable', { anchor: "Top" }, endpointOptions);
-
-    var nodePCAEp1 = jsPlumb.addEndpoint('node-pca', { anchor: "Left" }, endpointOptions);
-    var nodePCAEp2 = jsPlumb.addEndpoint('node-pca', { anchor: "Right" }, endpointOptions);
-
-    var nodeDatatableEp2Left = jsPlumb.addEndpoint('node-datatable2', { anchor: "Left" }, endpointOptions);
-
-    jsPlumb.connect({ source: nodeInputEp2, target: nodePCAEp1 });
-    jsPlumb.connect({ source: nodeInputEp1, target: nodeDatatableEp1Top });
-    jsPlumb.connect({ source: nodePCAEp2, target: nodeDatatableEp2Left });
-
-
-    jsPlumb.draggable(
-        $(".rectangle-size,.circle-size"),
-        { containment: 'workspace' }
-    );
-
-    jsPlumb.bind('click', function (conn, originalEvent) {
-        if (window.prompt('确定删除所点击的链接吗？ 输入1确定') === '1') {
-            jsPlumb.detach(conn)
-        }
-    })
-}
-
-
-exports.droppable = function () {
-
+    // 设置 widget 可放置区域
     $('#workspace').droppable({
         scope: 'ss',
         drop: function (event, ui) {
@@ -79,6 +67,11 @@ exports.droppable = function () {
         }
     })
 
-
+    // 点击锚点可删除连线
+    jsPlumb.bind('click', function (conn, originalEvent) {
+        if (window.prompt('确定删除所点击的链接吗？ 输入1确定') === '1') {
+            jsPlumb.detach(conn)
+        }
+    })
 
 }
