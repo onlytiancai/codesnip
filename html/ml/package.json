@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "bootstrap": "^4.4.1",
+    "file-saver": "^2.0.2",
     "jquery": "^3.4.1",
     "jsgrid": "^1.5.3",
     "jsplumb": "^2.12.8",

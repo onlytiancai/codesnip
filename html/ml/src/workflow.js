@@ -1,21 +1,29 @@
 const uuid = require('uuid');
 const Mustache = require('Mustache')
 const jsPlumb = require('jsplumb').jsPlumb;
+var FileSaver = require('file-saver');
 
 const srcOptions = { isSource: true, anchor: ["Perimeter", { shape: "Rectangle" }], maxConnections: -1 };
 const dstOptions = { isTarget: true, anchor: "Left", endpoint: ["Rectangle", { width: 8, height: 8 }] };
-var nodeTpl = $('#tpl-node').html();
+const nodeTpl = $('#tpl-node').html();
+
+// 全局 nodes，保存时用， connects 不实时更新
+let allNodes = [];
 
 // 拖入节点
 function dropNode(position) {
     position.left -= $('#toolbox').outerWidth()
     position.id = uuid.v1()
+    position.connects = [];
 
     addNode(position);
 }
 
 // 添加节点
 function addNode(position) {
+    // 添加到全局 nodes    
+    allNodes.push(position);
+
     var html = Mustache.render(nodeTpl, position)
     $('#workspace').append(html)
 
@@ -26,19 +34,55 @@ function addNode(position) {
     jsPlumb.draggable(position.id, { containment: 'workspace' })
 }
 
+// 清空所有
+function clearAll() {
+    allNodes = [];
+    jsPlumb.empty("workspace");
+    $('#workspace').empty();
+
+}
+
+exports.save = function () {
+
+    // 清空 connect ，重新添加
+    allNodes.forEach(n => n.connects = []);
+
+    // 遍历 connect 添加到 node
+    const connects = jsPlumb.select();
+    connects.each(function (c) {
+        const found = allNodes.find(n => n.id == c.sourceId);
+        found.connects.push(c.targetId);
+    });
+
+    var blob = new Blob([JSON.stringify(allNodes, null, 2)], { type: "text/plain;charset=utf-8" });
+    FileSaver.saveAs(blob, "workflow.json");
+
+}
 
 // 加载 workflow
-exports.load = function (input) {
+exports.load = function (fileInput) {
+    
+    var selectedFile = document.getElementById(fileInput).files[0];
+    var reader = new FileReader();
+    reader.readAsText(selectedFile);
+    reader.onload = function () {        
+        console.debug("workflow onload", selectedFile.name,  selectedFile.size);
+        clearAll();
+    
+        let input = JSON.parse(this.result);
 
-    // 添加节点
-    input.forEach(addNode);
+        // 添加节点
+        input.forEach(addNode);
 
-    // 连线
-    input.forEach(function (n) {
-        n.connects.forEach(function (c) {
-            jsPlumb.connect({ uuids: [n.id + '-source', c + '-target'] });
+        // 连线
+        input.forEach(function (n) {
+            n.connects.forEach(function (c) {
+                jsPlumb.connect({ uuids: [n.id + '-source', c + '-target'] });
+            });
         });
-    });
+    };
+
+
 }
 
 // 工作区初始化
