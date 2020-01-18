@@ -6,9 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>艾氪森机器学习平台</title>
-
-    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" href="static/main.css">
 </head>
 
@@ -16,12 +13,17 @@
     <div class="container-fluid" id='app'>
         <h3>艾氪森机器学习平台</h3>
 
-        <div class="btn-group" role="group" aria-label="...">
-            <button id="btn-open" class="btn btn-default">打开</button>
-            <input type="file" id="btn-load"  />
-            <button id="btn-save" class="btn btn-default">保存</button>
+        <div class="row" style="margin-bottom: 10px;">
+            <div class="col-md-2">
+                <input type="file" id="btn-load" class="filestyle" data-icon="false" data-buttonText="打开" />
+            </div>
+            <div class="col-md-3">
+                <div class="btn-group" role="group" aria-label="...">
+                    <button id="btn-new" class="btn btn-default">新建</button>
+                    <button id="btn-save" class="btn btn-default">保存</button>
+                </div>
+            </div>
         </div>
-
 
         <div class="row">
             <div class="col-md-1" id="toolbox">
@@ -39,6 +41,7 @@
         <div id='{{id}}' data-type={{type}} class="rectangle-size"  style='top:{{top}}px;left:{{left}}px'>{{text}}</div>
     </script>
     <script src="assets/bundle.js"></script>
+
 </body>
 
 </html>

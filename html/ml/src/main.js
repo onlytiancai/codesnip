@@ -2,6 +2,11 @@ const testdata = require('./testdata').data;
 const widgets = require('./widgets/index');
 const workflow = require('./workflow');
 
+require('bootstrap3/dist/css/bootstrap.min.css')
+require('bootstrap3')
+require('bootstrap-filestyle')
+
+
 $(function () {
     widgets.initToolbox();
     $('#btn-save').click(workflow.save);    
