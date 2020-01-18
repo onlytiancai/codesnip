@@ -10457,3 +10457,10 @@ https://www.cnblogs.com/videring/articles/7641555.html
 
 深入解析webpack-dev-server的用法
 https://www.jianshu.com/p/bbb55217d124
+
+
+Managing jQuery plugin dependency in webpack
+https://stackoverflow.com/questions/28969861/managing-jquery-plugin-dependency-in-webpack
+
+vue引入bootstrap——webpack
+https://blog.csdn.net/wild46cat/article/details/77662555

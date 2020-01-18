@@ -48,3 +48,4 @@ Workflow
 - 禁止自我连接
 - 删除节点
 - 节点重命名
+- npm 安装指定版本 bootstrap
