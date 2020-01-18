@@ -10438,3 +10438,22 @@ b 去掉 background-image 就可以了，或者 a 得设置 position: relative�
 
 webpack
 https://www.jianshu.com/p/2ce732125376
+
+npm install=npm i。在git clone项目的时候，项目文件中并没有 node_modules文件夹，项目的依赖文件可能很大。直接执行，npm会根据package.json配置文件中的依赖配置下载安装。
+-global=-g，全局安装，安装后的包位于系统预设目录下
+--save=-S，安装的包将写入package.json里面的dependencies，dependencies：生产环境需要依赖的库
+--save-dev=-D，安装的包将写入packege.json里面的devDependencies，devdependencies：只有开发环境下需要依赖的库
+
+
+webpack 引入 bootstrap(一)
+https://www.cnblogs.com/wyxxj/p/7381050.html
+
+
+Bootstrap4与Bootstrap3不同
+https://blog.csdn.net/drl_blogs/article/details/89305729
+
+webpack-dev-server，iframe与inline的区别
+https://www.cnblogs.com/videring/articles/7641555.html
+
+深入解析webpack-dev-server的用法
+https://www.jianshu.com/p/bbb55217d124
