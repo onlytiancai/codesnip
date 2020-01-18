@@ -4,8 +4,8 @@ module.exports = {
 }
 
 require('jsgrid')
-require('jsgrid/dist/jsgrid.css')
-require('jsgrid/dist/jsgrid-theme.css')
+// require('jsgrid/dist/jsgrid.css')
+// require('jsgrid/dist/jsgrid-theme.css')
 
 const ml = require('ml');
 
