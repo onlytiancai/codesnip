@@ -9,6 +9,7 @@ require('bootstrap-filestyle')
 
 $(function () {
     widgets.initToolbox();
+    $('#btn-new').click(workflow.new);
     $('#btn-save').click(workflow.save);    
     $('#btn-load').change(function () { workflow.load('btn-load') });
 });

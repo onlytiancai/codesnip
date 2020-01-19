@@ -1,9 +1,26 @@
-module.exports = {
-    type: 'datatable',
-    text: '数据表格',
+const type =  'datatable';
+const text =  '数据表格';
+
+
+function Node(id, data) {
+    this.id = id;
+    this.type = type;
+    this.text = text;
+    this.data = data;
+    
+    $('#'+id).dblclick(this.dblclick.bind(this));
 }
 
-require('jquery')
+Node.prototype.dblclick = function() {
+    console.log('dbclick', this.type, this.text);
+}
+
+module.exports = {
+    type: type,
+    text: text,
+    Node: Node,
+};
+
 require('jsgrid')
 require('jsgrid/dist/jsgrid.css')
 require('jsgrid/dist/jsgrid-theme.css')
