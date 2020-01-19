@@ -10467,3 +10467,9 @@ https://blog.csdn.net/wild46cat/article/details/77662555
 
 Convert string to variable name in JavaScript
 https://stackoverflow.com/questions/5613834/convert-string-to-variable-name-in-javascript
+
+vue-loader13.0有一个变更就是默认启用了esModule 把vue-loader降至13.0以下，就可以解决
+https://www.cnblogs.com/qq364735538/p/9097157.html
+
+webpack配置babel执行ES module语法
+https://blog.csdn.net/zemprogram/article/details/99252944
