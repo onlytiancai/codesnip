@@ -2,12 +2,15 @@ const uuid = require('uuid');
 const Mustache = require('Mustache')
 const jsPlumb = require('jsplumb').jsPlumb;
 var FileSaver = require('file-saver');
+const widgets = require('./widgets/index');
 
 const srcOptions = { isSource: true, anchor: ["Perimeter", { shape: "Rectangle" }], maxConnections: -1 };
 const dstOptions = { isTarget: true, anchor: "Left", endpoint: ["Rectangle", { width: 8, height: 8 }] };
 const nodeTpl = $('#tpl-node').html();
 
-// 全局 nodes，保存时用， connects 不实时更新
+const utils = require('./utils')
+
+// 全局 nodes，保存时用， connects, 位置不实时更新
 let allNodes = [];
 
 // 拖入节点
@@ -20,18 +23,20 @@ function dropNode(position) {
 }
 
 // 添加节点
-function addNode(position) {
-    // 添加到全局 nodes    
-    allNodes.push(position);
-
-    var html = Mustache.render(nodeTpl, position)
+function addNode(options) {
+    var html = Mustache.render(nodeTpl, options)
     $('#workspace').append(html)
-
+    
+    // 添加到全局 nodes    
+    const node = widgets.makeNode(options)    
+    allNodes.push(node);
+    
     // 添加端点               
-    jsPlumb.addEndpoint(position.id, { uuid: position.id + '-source', }, srcOptions);
-    jsPlumb.addEndpoint(position.id, { uuid: position.id + '-target', }, dstOptions);
+    jsPlumb.addEndpoint(node.id, { uuid: node.id + '-source', }, srcOptions);
+    jsPlumb.addEndpoint(node.id, { uuid: node.id + '-target', }, dstOptions);
+
     // 设置可拖动
-    jsPlumb.draggable(position.id, { containment: 'workspace' })
+    jsPlumb.draggable(node.id, { containment: 'workspace' })
 }
 
 // 清空所有
@@ -39,10 +44,27 @@ function clearAll() {
     allNodes = [];
     jsPlumb.empty("workspace");
     $('#workspace').empty();
-
 }
 
+exports.new = function () {
+    if (utils.confirm("新建工作流会清空现有数据，确认要清空吗？")) {
+        clearAll();
+    }
+};
+
 exports.save = function () {
+
+    if (allNodes.length == 0) {
+        utils.showWarning('空白文件，无法保存。');
+        return;
+    }
+
+    // 保存位置
+    for (const node of allNodes) {
+        const p = $('#'+node.id).position();
+        node.data.left = p.left;
+        node.data.top = p.top;
+    }
 
     // 清空 connect ，重新添加
     allNodes.forEach(n => n.connects = []);
@@ -72,7 +94,9 @@ exports.load = function (fileInput) {
         let input = JSON.parse(this.result);
 
         // 添加节点
-        input.forEach(addNode);
+        for (const node of input) {
+            addNode(node.data);
+        }
 
         // 连线
         input.forEach(function (n) {
