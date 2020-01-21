@@ -15,6 +15,7 @@
     "bootstrap-filestyle": "^1.2.1",
     "bootstrap-vue": "^2.2.2",
     "bootstrap3": "^3.3.5",
+    "echarts": "^4.6.0",
     "file-saver": "^2.0.2",
     "jquery": "^3.4.1",
     "jsgrid": "^1.5.3",
