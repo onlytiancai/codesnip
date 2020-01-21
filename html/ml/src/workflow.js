@@ -11,7 +11,7 @@ const nodeTpl = $('#tpl-node').html();
 const utils = require('./utils')
 
 // 全局 nodes，保存时用， connects, 位置不实时更新
-let allNodes = [];
+let allNodes = {};
 
 // 拖入节点
 function dropNode(position) {
@@ -26,11 +26,11 @@ function dropNode(position) {
 function addNode(options) {
     var html = Mustache.render(nodeTpl, options)
     $('#workspace').append(html)
-    
+
     // 添加到全局 nodes    
-    const node = widgets.makeNode(options)    
-    allNodes.push(node);
-    
+    const node = widgets.makeNode(options)
+    allNodes[node.id] = node;
+
     // 添加端点               
     jsPlumb.addEndpoint(node.id, { uuid: node.id + '-source', }, srcOptions);
     jsPlumb.addEndpoint(node.id, { uuid: node.id + '-target', }, dstOptions);
@@ -41,7 +41,7 @@ function addNode(options) {
 
 // 清空所有
 function clearAll() {
-    allNodes = [];
+    allNodes = {};
     jsPlumb.empty("workspace");
     $('#workspace').empty();
 }
@@ -54,43 +54,55 @@ exports.new = function () {
 
 exports.save = function () {
 
-    if (allNodes.length == 0) {
+    const nodes = Object.values(allNodes);
+    if (nodes.length == 0) {
         utils.showWarning('空白文件，无法保存。');
         return;
     }
 
+
+    // 克隆一份，删除掉不需要序列化的属性
+    for (const node of nodes) {
+        const n = Object.assign({}, node);
+        delete n.vue;
+        n.data.vuedata = Object.assign({}, node.vue.$data);
+        nodes.push(n);
+    }
     // 保存位置
-    for (const node of allNodes) {
-        const p = $('#'+node.id).position();
+    for (const node of nodes) {
+        const p = $('#' + node.id).position();
         node.data.left = p.left;
         node.data.top = p.top;
     }
 
     // 清空 connect ，重新添加
-    allNodes.forEach(n => n.connects = []);
+    nodes.forEach(n => n.connects = []);
 
     // 遍历 connect 添加到 node
     const connects = jsPlumb.select();
     connects.each(function (c) {
-        const found = allNodes.find(n => n.id == c.sourceId);
+        const found = nodes.find(n => n.id == c.sourceId);
         found.connects.push(c.targetId);
     });
 
-    var blob = new Blob([JSON.stringify(allNodes, null, 2)], { type: "text/plain;charset=utf-8" });
+    const json = JSON.stringify(nodes, null, 2);
+    console.log(json);
+    return;
+    var blob = new Blob([json], { type: "text/plain;charset=utf-8" });
     FileSaver.saveAs(blob, "workflow.json");
 
 }
 
 // 加载 workflow
 exports.load = function (fileInput) {
-    
+
     var selectedFile = document.getElementById(fileInput).files[0];
     var reader = new FileReader();
     reader.readAsText(selectedFile);
-    reader.onload = function () {        
-        console.debug("workflow onload", selectedFile.name,  selectedFile.size);
+    reader.onload = function () {
+        console.debug("workflow onload", selectedFile.name, selectedFile.size);
         clearAll();
-    
+
         let input = JSON.parse(this.result);
 
         // 添加节点
@@ -142,4 +154,17 @@ exports.init = function () {
         }
     })
 
+    // 连线事件
+    jsPlumb.bind("connection", function (info) {
+        const sourceNode = allNodes[info.sourceId]
+        const targetNode = allNodes[info.targetId];
+        targetNode.setSource(sourceNode);
+    });
+
+    // 连线分离事件
+    jsPlumb.bind("beforeDetach", function (info) {
+        const targetNode = allNodes[info.targetId];
+        targetNode.clearSource();
+        return true;
+    });
 }

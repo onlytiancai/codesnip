@@ -1,5 +1,9 @@
-const type =  'datatable';
-const text =  '数据表格';
+import Vue from "vue";
+import App from './datatable.vue';
+const AppClass = Vue.extend(App);
+
+const type = 'datatable';
+const text = '数据表格';
 
 
 function Node(id, data) {
@@ -7,11 +11,55 @@ function Node(id, data) {
     this.type = type;
     this.text = text;
     this.data = data;
-    
-    $('#'+id).dblclick(this.dblclick.bind(this));
+
+    $('#' + id).dblclick(this.dblclick.bind(this));
 }
 
-Node.prototype.dblclick = function() {
+// 设置数据源
+Node.prototype.setSource = function (widget) {
+    console.debug('set source', this.id, this.type, widget.id, widget.type);
+    this.sourceWidget = widget;
+}
+
+// 清空数据源
+Node.prototype.clearSource = function () {
+    console.debug('clear source', this.id, this.type);
+    this.sourceWidget = null;
+}
+
+
+// 分页获取数据
+Node.prototype.fetch = function (offset, limit) {
+    return this.dataset.slice(offset, offset + limit);
+}
+
+// 双击
+Node.prototype.dblclick = function () {
+    if (!this.sourceWidget) {
+        $('#detail-box').html('未设置数据源');
+        return;
+    }
+
+    const {dataset, fields } = this.sourceWidget.getDataset();
+    
+    this.columns = fields.map(function (x) {
+        return { title: x, field: x, sortable: true }
+    });
+
+    // [1,2,3,4] => {a:1, b:2, c:3, d:4}
+    this.dataset = dataset.map(x => x.reduce(function (pre, cur, i) { pre[fields[i]] = cur; return pre }, {}));
+
+    const vueData = {
+        columns: this.columns,
+        data: [],
+        total: this.dataset.length,
+        query: {},
+        widget: this,
+    }
+
+    this.vue = new AppClass({ data: vueData });
+
+    $('#detail-box').empty().append(this.vue.$mount().$el);
     console.log('dbclick', this.type, this.text);
 }
 
@@ -20,10 +68,6 @@ module.exports = {
     text: text,
     Node: Node,
 };
-
-require('jsgrid')
-require('jsgrid/dist/jsgrid.css')
-require('jsgrid/dist/jsgrid-theme.css')
 
 const ml = require('ml');
 
