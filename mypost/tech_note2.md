@@ -10491,3 +10491,7 @@ var parsedobj = JSON.parse(JSON.stringify(obj))
 console.log(parsedobj)
 
 Object.assign({}, node.vue.$data)
+
+
+在Vue中使用echarts的两种方式
+https://segmentfault.com/a/1190000015453413
