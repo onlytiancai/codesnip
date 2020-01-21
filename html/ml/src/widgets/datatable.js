@@ -40,7 +40,14 @@ Node.prototype.dblclick = function () {
         return;
     }
 
-    const {dataset, fields } = this.sourceWidget.getDataset();
+    const ret = this.sourceWidget.getDataset();
+    if (!ret.fields) {
+        $('#detail-box').html('数据源为空');
+        return;
+    }
+    const {dataset, fields } = ret;
+    console.debug('test 111', dataset);
+ 
     
     this.columns = fields.map(function (x) {
         return { title: x, field: x, sortable: true }
@@ -69,18 +76,7 @@ module.exports = {
     Node: Node,
 };
 
-const ml = require('ml');
 
-$('#node-datatable').click(function () {
-    const data = dataset.map(x => x.reduce(function (pre, cur, i) { pre[fields[i]] = cur; return pre }, {}));
-
-    $("#grid").jsGrid({
-        width: "100%",
-        height: "600px",
-        data: data,
-        fields: fields.map(function (x) { return { name: x } }),
-    });
-});
 
 $('#node-datatable2').click(function () {
 
