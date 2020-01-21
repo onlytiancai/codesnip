@@ -10473,3 +10473,21 @@ https://www.cnblogs.com/qq364735538/p/9097157.html
 
 webpack配置babel执行ES module语法
 https://blog.csdn.net/zemprogram/article/details/99252944
+
+
+How can I render a new instance of vue component dynamically with dynamic props data
+https://stackoverflow.com/questions/53065722/how-can-i-render-a-new-instance-of-vue-component-dynamically-with-dynamic-props
+
+VueJs how to get data from Vue.component
+https://stackoverflow.com/questions/43677645/vuejs-how-to-get-data-from-vue-component
+
+vue -- 父组件通过$refs获取子组件的值和方法
+https://blog.csdn.net/wxl1555/article/details/84107969
+
+Vue JS returns [__ob__: Observer] data instead of my array of objects
+https://stackoverflow.com/questions/52873516/vue-js-returns-ob-observer-data-instead-of-my-array-of-objects
+
+var parsedobj = JSON.parse(JSON.stringify(obj))
+console.log(parsedobj)
+
+Object.assign({}, node.vue.$data)

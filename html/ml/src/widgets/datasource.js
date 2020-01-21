@@ -1,23 +1,53 @@
 const dataset = require('ml-dataset-iris').getNumbers();
+const  fields =  ['花萼长度', '花萼宽度', '花瓣长度', '花瓣宽度'];
 var Vue = require('vue')
 
 const type = 'datasource';
 const text = '数据源';
 
-// const App = require('./app.vue')
-import App from './app.vue';
+import App from './datasource.vue';
+const AppClass = Vue.extend(App);
+
+
+
+const input = {
+    name: 'iris',
+    data: dataset,
+    cols: fields,
+};
+
+const vueDefault = {
+    name: input.name,
+    cols: input.cols,
+    rows: input.data.length,    
+}
 
 function Node(id, data) {
     this.id = id;
     this.type = type;
     this.text = text;
     this.data = data;
+    
+    this.vue = new AppClass({data: this.data.vuedata || vueDefault});    
 
     $('#' + id).dblclick(this.dblclick.bind(this));
 }
 
+Node.prototype.getData = function () {
+    return input;
+}
+
+// 获取数据集，数据表组件获取数据用
+Node.prototype.getDataset = function () {
+    console.debug('get dataset:', this.id, this.type);
+    return {
+        dataset: dataset,
+        fields: ['花萼长度', '花萼宽度', '花瓣长度', '花瓣宽度']
+    }
+}
+
 Node.prototype.dblclick = function () {
-    new Vue({ el: '#app', template: '<App/>', components: { App } })
+    $('#detail-box').empty().append(this.vue.$mount().$el);    
     console.log('dbclick', this.type, this.text);
 }
 
