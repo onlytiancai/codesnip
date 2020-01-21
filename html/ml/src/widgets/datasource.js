@@ -1,4 +1,4 @@
-const dataset = require('ml-dataset-iris').getNumbers();
+const dataset = require('ml-dataset-iris');
 const  fields =  ['花萼长度', '花萼宽度', '花瓣长度', '花瓣宽度'];
 var Vue = require('vue')
 
@@ -12,7 +12,7 @@ const AppClass = Vue.extend(App);
 
 const input = {
     name: 'iris',
-    data: dataset,
+    data: dataset.getNumbers(),
     cols: fields,
 };
 
@@ -41,8 +41,10 @@ Node.prototype.getData = function () {
 Node.prototype.getDataset = function () {
     console.debug('get dataset:', this.id, this.type);
     return {
-        dataset: dataset,
-        fields: ['花萼长度', '花萼宽度', '花瓣长度', '花瓣宽度']
+        dataset: dataset.getNumbers(),
+        fields: ['花萼长度', '花萼宽度', '花瓣长度', '花瓣宽度'],
+        classes: dataset.getClasses(),
+        classLabels: ['setosa', 'versicolor', 'virginica'],
     }
 }
 

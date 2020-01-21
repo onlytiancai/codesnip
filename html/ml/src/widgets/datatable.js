@@ -46,8 +46,6 @@ Node.prototype.dblclick = function () {
         return;
     }
     const {dataset, fields } = ret;
-    console.debug('test 111', dataset);
- 
     
     this.columns = fields.map(function (x) {
         return { title: x, field: x, sortable: true }
