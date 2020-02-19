@@ -9551,3 +9551,142 @@ https://zhuanlan.zhihu.com/p/55841946
 
 AI For Trading： LSTM模型预测三天后个股收盘价
 https://zhuanlan.zhihu.com/p/94889284
+
+
+组成原理是让你从整体上精略地让你了解计算机是怎么工作的，内容上侧重于计算机的几大组成（运算器，控制器，存储器，输入设备，输出设备与总线结构），具体来说，是具体一条指令在cpu中是如何执行的，计算机的储存体系是如何的（分三层），还有就是一是I/O接口的基本概念。 之后学的就是体系结构和微机原理，都是以组成为知识背景的。
+
+体系结构可以认为是对《计算机组成》的抽象化与进一步的理论化，里面计的技术包罗万象，包括大型机和微机中所应用的技术。主要内容是学习指令的流水技术，动态调度，静态调度。你学懂了后会觉得cpu一点也不神奇了。
+
+微机原理是是对《计算机组成》的具体实现。一般会选x86计算机来说，这时一般不会再详细讲工作原理了（因为大多数原理都在《计算机组成》中讲了），而是直接讲述cpu的具本结构是什么，具体引脚的作用，各种总线多少多少，各种控制寄存器的各个位有什么意义，I/O的具体交接口（ISA,pci）……因为是具体的东西，所以有好多东东要记的。
+
+计算机体系结构
+https://www.icourse163.org/course/HUST-1207109824?from=study
+
+国泰安大数据科研工具平台
+https://cloud.tencent.com/developer/news/377055
+芝诺大数据产教融合开放教学平台
+http://www.cpdasoft.com/zenodt.php
+http://www.cpdasoft.com/zncp.php
+大数据实践教学及科研平台（大数据实验室建设方案）
+https://www.jianshu.com/p/c98692689267
+高校大数据专业教学科研平台建设方案
+https://wenku.baidu.com/view/85b713fd82c4bb4cf7ec4afe04a1b0717fd5b3b9.html
+
+虚拟仿真
+http://www.esimsoft.com/virtual/show.php?lang=cn&id=146
+
+“智慧教室”提醒您：教室千万间，“智慧”第一间
+https://mp.weixin.qq.com/s?__biz=MzAxMTEzNzg1MQ==&mid=2652018963&idx=1&sn=95ccfa39f50f8d6f298f7c76caea9680&chksm=80a39f47b7d41651c360eb6700cb6ba2243bbd978239ce4b09fb15fbe33d2d5b27cd169a2b9f&mpshare=1&scene=1&srcid=0211RvBTrlc36B2YomkgVNcF&sharer_sharetime=1581352146690&sharer_shareid=0c1ca2a2bd08074213d5041ac82980a4&key=4cfd2d8588c09c4ccf6149148e073912fc8dd08f0ffaf9110d9c9fd02d9cfe9f67e8a407a0e64ac6f98be64dbba271ab6725b046bbbed6a573594d485c354f1c81b5e2355c5f520c5b97ae8361fd6c3f&ascene=1&uin=MTA5OTIy&devicetype=Windows+7&version=62080074&lang=zh_CN&exportkey=AaNnxzSLkW1w3lr2wijBa4s%3D&pass_ticket=TYkKe6APSV0q64tuj8%2FWs5GFObq7C6nBa2uFVQzS%2Bo8%3D
+
+AI云端大数据实训室支撑平台
+https://baijiahao.baidu.com/s?id=1616080982040347340&wfr=spider&for=pc
+
+windows如何添加静态路由
+https://blog.csdn.net/u010178308/article/details/80969112
+
+
+2020年高考专业选择最全指南，看完你就明白了
+http://zhuanye.eol.cn/jiedu/201910/t20191023_1688772.shtml
+
+RoboCup仿真3D TC笔记（2014年合肥中国公开赛 仿真3D比赛环境搭建）
+https://www.cnblogs.com/ansersion/p/4050308.html
+https://www.cnblogs.com/shiraka/p/10705466.html
+
+Memory Barriers and JVM Concurrency
+https://www.infoq.com/articles/memory_barriers_jvm_concurrency/
+
+LINUX KERNEL MEMORY BARRIERS
+https://www.kernel.org/doc/Documentation/memory-barriers.txt
+
+
+throughput  吞吐
+Latency 延迟
+
+
+excel 快捷键
+CTRL＋ "－" 快速删除 ctrl+shift+ "＝" 快速插入
+
+
+防止一个脚本同时执行多次
+
+#!/bin/bash
+
+LOCK_NAME="/tmp/my.lock"
+if ( set -o noclobber; echo "$$" > "$LOCK_NAME") 2> /dev/null; 
+then
+    trap 'rm -f "$LOCK_NAME"; exit $?' INT TERM EXIT
+
+    ### 开始正常流程
+    ### 正常流程结束
+
+    ### Removing lock
+    rm -f $LOCK_NAME
+    trap - INT TERM EXIT
+else
+    echo "Failed to acquire lockfile: $LOCK_NAME." 
+    echo "Held by $(cat $LOCK_NAME)"
+    exit 1
+fi
+
+
+
+echo "Done."
+ 
+ 
+$ php -r '$file="/etc/passwd;echo 222";echo shell_exec("head -n1 $file");'
+root:x:0:0:root:/root:/bin/bash
+222 
+
+
+“刚需、高频和低价”
+
+最后，我来做个总结。
+1）平台并不适合所有行业。
+2）一个真正的平台模式需要满足两个要素：服务的标准化和需求的随机性。
+3）一个真正平台做的是撮合交易，平台方不应该重度参与到任何一方。
+4）一个好的平台模式，除了要选对赛道以外，还要有很强的执行力和融资能力。
+
+
+\text{已知}\sqrt{3+\sqrt{2}+\sqrt{3}+\sqrt{6}} = \sqrt{x}+\sqrt{y}+\sqrt{z}\text{ 求 }xyz\\
+
+\text{两边平方}\\
+3+\sqrt{2}+\sqrt{3}+\sqrt{6}=(\sqrt{x}+\sqrt{y}+\sqrt{z})*(\sqrt{x}+\sqrt{y}+\sqrt{z})\\
+=\sqrt{x^2} + \sqrt{xy} + \sqrt{xz} + \sqrt{yx} + \sqrt{y^2} + \sqrt{yz} + \sqrt{zx} + \sqrt{zy} + \sqrt{z^2}\\
+=x+y+z+2\sqrt{xy}+2\sqrt{xz}+2\sqrt{yz}\\
+
+\text{每项一一对应得出}
+\left\{\begin{matrix}
+3=x+y+z\\
+\sqrt{2}=2\sqrt{xy}\\
+\sqrt{3}=2\sqrt{xz}\\
+\sqrt{6}=2\sqrt{yz}\\
+\end{matrix}\right.
+
+\Rightarrow
+
+\text{两边平方得出}\left\{\begin{matrix}
+2=4xy~~\text{(1)}\\
+3=4xz~~\text{(2)}\\
+6=4yz~~\text{(3)}\\
+\end{matrix}\right.\\
+
+\text{由式 1 得}x=\frac{2}{4y} \text{，由式 3 得}z=\frac{6}{4y} \\
+\text{把 x, z 带入式 2 得 }\\
+3 = 4*\frac{2}{4y}*\frac{6}{4y}
+= \frac{4*2*6}{16y^2}
+= \frac{48}{16y^2}
+= 3*y^2\\
+\text{所以 }y=1\\
+\text{带入式 1 得出 } 2=4x \Rightarrow x=\frac{1}{2}\\
+\text{带入式 3 得出 } 6=4z \Rightarrow z=\frac{3}{2}\\
+
+\text{综上}\\
+\left\{\begin{matrix}
+x=\frac{1}{2}\\
+y=1\\
+z=\frac{3}{2}
+\end{matrix}\right.
+
+\Rightarrow
+
+xyz=\frac{1}{2}*1*\frac{3}{2}=\frac{1}{2}*\frac{3}{2}=\frac{3}{4}
