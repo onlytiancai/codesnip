@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>艾氪森机器学习平台</title>
+    <link rel="stylesheet" href="static/main.css">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <h3>艾氪森机器学习平台</h3>
+        <div id="app">
+           
+        </div>
+        <div class="row">
+            <div class="col-md-6" id="message-box">
+
+            </div>
+        </div>
+
+
+        <div class="row button-box" style="margin-bottom: 10px;">
+            <div class="col-md-2">
+                <input type="file" id="btn-load" class="filestyle" data-icon="false" data-buttonText="打开" />
+            </div>
+            <div class="col-md-3">
+                <div class="btn-group" role="group" aria-label="...">
+                    <button id="btn-new" class="btn btn-default">新建</button>
+                    <button id="btn-save" class="btn btn-default">保存</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-1" id="toolbox">
+
+            </div>
+            <div class="col-md-6" id="workspace">
+
+            </div>
+            <div class="col-md-5" id="detail-box">
+            </div>
+        </div>
+    </div>
+    <script id="tpl-node" type="text/html">
+        <div id='{{id}}' data-type={{type}} class="rectangle-size"  style='top:{{top}}px;left:{{left}}px'>{{text}}</div>
+    </script>
+    <script src="assets/bundle.js"></script>
+
+</body>
+
+</html>

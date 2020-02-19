@@ -1,0 +1,35 @@
+#toolbox .item {
+    width:100px;    
+    background: aqua;
+    margin: 10px 0;
+    padding: 10px;
+    text-align: center;
+    border-radius: 10px;
+    cursor: pointer;
+    z-index: 2;
+    position: relative; 
+}
+
+#workspace {
+    position: relative;
+    font-size: smaller;
+    padding: 20px;
+    height: 600px;
+    border: 1px solid gray;
+    background: #fff;
+    background-image: linear-gradient(#bab5b54d 1px, transparent 0),
+    linear-gradient(90deg, #bab5b54d 1px, transparent 0),
+    linear-gradient(#bab5b54d 1px, transparent 0),
+    linear-gradient(90deg, #bab5b54d 1px, transparent 0);
+    background-size: 15px 15px, 15px 15px, 75px 75px, 75px 75px;
+}
+
+#workspace .rectangle-size {
+    position: absolute;
+    text-align: center;
+    line-height: 40px;
+    height: 40px;
+    width: 100px;
+    border: 2px solid #000;
+    border-radius: 5px;
+}
