@@ -1142,6 +1142,8 @@ ln -s /root/node-v8.9.3-linux-x64/bin/npm /usr/local/bin/npm
 npm -v
 npm install -g cnpm --registry=https://registry.npm.taobao.org
 
+npm config set registry http://registry.npm.taobao.org/
+
 alias cnpm="npm --registry=https://registry.npm.taobao.org \
 --cache=$HOME/.npm/.cache/cnpm \
 --disturl=https://npm.taobao.org/dist \
@@ -1152,6 +1154,7 @@ $ forever start app.js          #启动
 $ forever stop app.js           #关闭
 $ forever start -l forever.log -o out.log -e err.log app.js   #输出日志和错误
 
+## nginx
 
 ## Apache backend for www.quancha.cn ##
 upstream apachephp  {
@@ -1863,13 +1866,7 @@ https://www.cnblogs.com/liuxianan/p/disable-chrome-extension-warning.html 真够
 
 
 
-## 重装系统
 
-备份
-
-- chrome 收藏夹
-- putty 配置
-- git key
 
 
 至强CPU多数都是可以配置多路的，就是多个CPU放在同一个板子上，这一点是i7无法做到的。
@@ -8706,7 +8703,7 @@ git apply --check 0002-.patch
 git apply  0002-.patch
 git checkout --theirs packages/notebook-extension/src/index.ts
 
-装机必备：
+### 装机必备：
 Everything
 VNC Viewer
 Putty
@@ -8722,6 +8719,16 @@ WPS Office
 Chrome
 QQ 拼音
 ReplaceGoogleCDN-master
+
+## 重装系统
+
+备份
+
+- chrome 收藏夹
+- putty 配置
+- git key
+- 我的文档，图片
+
 
 
 现在坚果云有 4 条相当清晰的产品线：面向个人用户有免费的普通版和付费的专业版，另外还有为中小企业提供的团队版，以及适合大企业使用的企业版。他们的个人用户和中小企业用户基本各占一半。
@@ -9487,7 +9494,7 @@ https://blog.csdn.net/lynx7/article/details/84789682
 vim /lib/systemd/system/docker.service
     ExecStart=/usr/bin/dockerd -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375
 systemctl daemon-reload
-systemctl restart docker    
+systemctl restart docker
 
 export DOCKER_HOST="tcp://0.0.0.0:2375"
 docker ps
@@ -9501,6 +9508,57 @@ C、搭一个 DNS 服务器，写个健康检查程序定时更新 swarm ip 的 
 D、客户端通过单一的 ip 访问 swarm，写一个监控程序当发现 swarm leader 漂移后告警，然后人工修改客户端配置并热更新程序。
 
 从架构复杂度，可维护性，自动化的角度看最优的选择应该选哪个方案呀？
+
+客户端新增 nginx 配置，如下
+
+```
+cat <<EOF >/etc/nginx/conf.d/docker.conf
+upstream devdocker {
+    server 192.168.1.200:2375 max_fails=1 fail_timeout=10s;
+    server 192.168.1.201:2375 max_fails=1 fail_timeout=10s;
+    server 192.168.1.202:2375 max_fails=1 fail_timeout=10s;
+}
+
+log_format dockerlog '$time_iso8601 $status $request_time $upstream_response_time $remote_addr'
+                  ' $http_host $upstream_addr "$request" $body_bytes_sent "$http_referer" '
+                  '"$http_user_agent" "$http_x_forwarded_for"';
+server {
+    listen 2375;
+    server_name  devdocker;
+
+    access_log  logs/devdocker.access.log dockerlog;
+    error_log  logs/devdocker.error.log;
+
+    location / {
+        proxy_pass  http://devdocker;
+
+        proxy_set_header   Host             $host;
+        proxy_set_header   X-Real-IP        $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+   }
+}
+EOF
+nginx -t && nginx -s reload
+```
+
+客户端修改 hosts
+
+```
+echo '127.0.1.1   devdocker' >> /etc/hosts
+```
+
+客户端测试访问 docker 集群，并查看请求日志
+
+```
+docker -H devdocker node ls
+tail /usr/share/nginx/logs/devdocker.access.log
+```
+
+登录到 192.168.1.200，201，203 任意一台服务器关掉 docker 服务 `systemctl stop docker`，
+再次在客户端多次测试访问 docker 集群，不会有任何失败访问。
+
+
 
 在Windows环境中使用Nginx, Consul, Consul Template搭建负载均衡和服务发现服务
 https://www.cnblogs.com/lwqlun/p/8835867.html
@@ -9532,6 +9590,263 @@ Anycast适用于无连接的UDP，以及有连接的TCP协议。
 Anycast严重依赖于BGP的选路原则，在整个Internet网络拓扑复杂的情况下，会导致次优路由选择。
 
 
+选择存储驱动并正确地配置在 Docker 环境中是一件重要的事情，特别是在生产环境中。
+
+下面的清单可以作为一个参考指南，帮助我们选择合适的存储驱动。同时还可以参阅 Docker 官网上由 Linux 发行商提供的最新文档来做出选择。
+Red Hat Enterprise Linux：4.x版本内核或更高版本 + Docker 17.06 版本或更高版本，建议使用 Overlay2。
+Red Hat Enterprise Linux：低版本内核或低版本的 Docker，建议使用 Device Mapper。
+Ubuntu Linux：4.x 版本内核或更高版本，建议使用 Overlay2。
+Ubuntu Linux：更早的版本建议使用 AUFS。
+SUSE Linux Enterprise Server：Btrfs。
+
+log_format为nginx设置日志格式
+https://blog.csdn.net/wanchaopeng/article/details/93205621
+
+MySQL报错 Error_code: 1045
+http://blog.itpub.net/20893244/viewspace-2137789/
+mysql主从同步
+https://www.jianshu.com/p/80f30029cdf5
+
+MySQL主从仅同步指定库
+https://www.cnblogs.com/new-journey/p/11319527.html
+
+有两种方式，1.在主库上指定主库二进制日志记录的库或忽略的库：
+
+vim  /etc/my.cnf
+    ...
+    binlog-do-db=xxxx   二进制日志记录的数据库
+    binlog-ignore-db=xxxx 二进制日志中忽略数据库
+    以上任意指定其中一行参数就行，如果需要忽略多个库，则添加多行
+    ...<br>重启mysql
+ 2.在从库上指定复制哪些库或者不负责哪些库
+
+#编辑my.cnf，在mysqld字段添加如下内容：
+  
+replicate-do-db    设定需要复制的数据库
+replicate-ignore-db 设定需要忽略的复制数据库
+replicate-do-table  设定需要复制的表
+replicate-ignore-table 设定需要忽略的复制表
+replicate-wild-do-table 同replication-do-table功能一样，但是可以通配符
+replicate-wild-ignore-table 同replication-ignore-table功能一样，但是可以加通配符
+  
+mysql主从同步 binlog-do-db replicate-do-db
+https://blog.csdn.net/z69183787/article/details/70183284  
+
+binlog_do_db是指定binlog日志记录那些库的二进制日志。replicate_do_db则在slave库中指定同步那些库的binlog日志。
+
+而应该采用拷贝文件的方式，请按如下操作步骤：
+
+先在主服务器上锁定所有的表，以免在复制过程中数据发生变化：
+
+mysql> flush tables with read lock;
+
+然后在主服务器上查询当前二进制文件的文件名及偏移位置：
+
+mysql > show master status;
+
+然后停止主服务器上的MySQL服务：
+
+shell> mysqladmin -u root shutdown
+
+再拷贝数据文件：
+
+shell> tar -cvf /tmp/mysql-snapshot.tar .
+
+拷贝完别忘了启动主服务上的MySQL服务了。
+
+然后把数据文件应用到从服务器上，再次启动slave的时候使用，记得启动时加上skip-slave-start选项，使之不会立刻去连接master，再在从服务器上设置相关的二进制日志信息：
+
+  
+#修改后重启mysql
+
+Mysql从库重建
+https://blog.csdn.net/devotedwife/article/details/81915072
+
+主库
+mysqldump -u*** -p*** -h db-master --default-character-set=utf8 --master-data=2 --single-transaction --databases DB1 DB2 DB3  > product_data_backup_20170515.sql
+
+注意–master-data=2 –single-transaction的配合使用，前一个参数会在开始导出时锁全表，记录当前的binlog文件和位置，然后释放锁，然后在同一个事务中导出数据，以保证一致性。
+
+从库
+stop slave;
+从库先drop需要同步的数据库，然后source product_data_backup_20170515.sql导入数据；
+
+不要修改从库的表结构以及数据，避免同步冲突失败；
+不要滥用set global sql_slave_skip_counter,这会跳过某些同步sql，可能导致数据不一致；
+附件类数据尽量不要直接存储在数据库中，备份和恢复时会特别慢
+
+从未在从服务器上手动更新过数据，但还是可能遇到“Error: 1062 Duplicate entry”错误，具体原因不详，可能是MySQL本身的问题。遇到这类问题的时候，从服务器会停止复制操作，我们只能手动解决问题，具体的操作步骤如下：
+
+mysql> set global sql_slave_skip_counter = 1;
+mysql> start slave;
+
+同样的操作可能需要进行多次，也可以设置自动处理此类操作，在从服务器的my.cnf里设置：
+
+slave-skip-errors=1062
+
+## mysql 主从同步
+
+主节点
+
+vi /etc/mysql/mysql.conf.d/mysqld.cnf
+
+    [mysqld]
+    log_bin=master60
+    server_id=60
+    binlog_format="mixed"
+    bind-address            = 0.0.0.0
+
+systemctl restart mysql
+systemctl status mysql
+
+mysqldump -uroot -p --default-character-set=utf8 --master-data=2 --single-transaction --databases db1 db2 db3  > backup.sql
+
+mysql -uroot -p
+
+    show master status\G;
+    #授权给从服务器，单个数据库授权无效，必须设置*.*
+    grant replication slave on *.* to repluser@'%' identified by '123456'; 
+    show grants for 'repluser';
+
+从节点
+
+mysql -uroot -p
+    stop slave;
+    drop database db1;
+    drop database db2;
+    drop database db3;
+    
+# grep 'CHANGE MASTER TO MASTER_LOG_FILE' backup.sql
+-- CHANGE MASTER TO MASTER_LOG_FILE='master60.000002', MASTER_LOG_POS=154;
+    
+mysql -uroot -p <backup.sql
+
+
+    
+mysql -uroot -p
+    show databases;
+
+vi /etc/mysql/mysql.conf.d/mysqld.cnf
+    [mysqld]
+    server_id=128
+    replicate-do-db="db1"
+    replicate-do-db="db2"
+    replicate-do-db="db3"
+
+systemctl restart mysqld
+systemctl status mysql
+
+mysql -uroot -p
+
+    # master_log_file 与主库binlog日志名相同，master_log_pos 偏移量与主库相同
+    change master to master_host='192.168.1.60', master_user='repluser', master_password='123456', master_log_file='master60.000002', master_log_pos=154;
+    start slave;
+    show slave status\G;
+
+
+看到 Slave_IO_Running: Yes，Slave_SQL_Running: Yes 表示成功
+如果 Slave_IO_Running 不为 Yes，可能是没连上主库，如下方式定为
+
+tail -f /var/log/mysql/error.log
+perror 1045	
+mysql -urepluser -h 192.168.1.60 -p -P3306
+
+Slave_SQL_Running 不为 yes 表示执行中继日志的 sql 命令时出错，需要停掉slave，在从库新建相关表,重启slave
+
+测试：
+
+主库
+
+create table t1(id int );#
+insert into t1 values(1);
+
+从库
+
+select * from t1;
+
+
+MySQL 双主模式，两台机器互为主从，A 修改自动同步 B，B 修改自动同步 A。
+为了防止并发引起的自增主键冲突，虽然双主，但不双写，平时只写 A。
+当确认 A 宕机后，手工或自动把 vip 指向 B，或域名指向 B，或修改应用配置指向 B。
+这样配置后，除了 A 切到 B 时会有短暂业务影响外，还有没有别的坑？
+
+
+MySQL 双主问题集
+https://www.cnblogs.com/GO-NO-1/p/10218304.html
+
+MySQL双主一致性架构优化
+https://www.jianshu.com/p/e2296eff932e
+
+主库高可用，主库一致性，一些小技巧：
+
+双主同步是一种常见的保证写库高可用的方式
+
+设置相同步长，不同初始值，可以避免auto increment生成冲突主键
+
+不依赖数据库，业务调用方自己生成全局唯一ID是一个好方法
+
+shadow master保证写库高可用，只有一个写库提供服务，并不能完全保证一致性
+
+内网DNS探测，可以实现在主库1出现问题后，延时一个时间，再进行主库切换，以保证数据一致性
+
+
+请教下各位大佬，关于 mysql 的双主复制问题
+https://www.v2ex.com/t/579370
+
+不是 DBA，但是了解一些 msyql。
+这个是比较野的多主方案吧。看样子是两个节点互为主从。这么用的比较少。
+
+mysql 多主现在生产环境用的一般有 PXC/MGC，或者 MGR 方案。
+pxc 和 MGC 其实同样的东西，都是 Percona 主导的技术。
+MGR 是比较新的方案，没怎么了解。
+应用层都不用重新设计。
+
+多主一般强调一致性，同时在所有的节点做写入操作。保证所有的节点数据一致。
+缺点明显，集群性能估计是单节点的 60%左右。如果有个节点性能差，会直接拖后腿。
+
+mysql5.6配置semi_sync
+https://www.cnblogs.com/caibird2005/p/4311544.html
+
+mysql的replication协议是异步的，虽然异步效率、性能很好，但是却无法保证主从数据一致性,
+如果master crash，已经commit的事务不会被传送到任何的slave上，
+从mysql5.5之后，mysql为了保证主从库数据一致性，引进了semi-sync功能，
+semi-sync意思是MASTER只需要接收到其中一台SLAVE的返回信息，就会commit；否则需等待直至切换成异步再提交。
+
+优点：
+当事务返回客户端成功后，则日志一定在至少两台主机上存在。
+MySQL的Semi-sync适合小事务，且两台主机的延迟又较小，则Semi-sync可以实现在性能很小损失的情况下的零数据丢失。
+
+缺点：
+完成单个事务增加了额外的等待延迟，延迟的大小取决于网络的好坏。
+
+PXC、MGR、MGC集群之新建、备份、恢复操作步骤 
+http://www.sohu.com/a/339960973_610509
+
+PXC的原理
+https://www.cnblogs.com/zengkefu/p/5678279.html
+
+即将开源的新一代MySQL高可用组件：MySQL Plus
+https://blog.csdn.net/n88lpo/article/details/80015256
+
+
+mysql 从库升级为主库的步骤
+https://blog.csdn.net/weixin_33759269/article/details/92350851
+
+1、进入主库，设置只读；
+
+SET GLOBAL read_only=1;
+
+2、进入从库，等同步完成后，暂停同步，并设置读写；
+
+
+stop slave;
+SET GLOBAL read_only=0;
+reset slave all;
+
+-- RESET SLAVE ALL是清除从库的同步复制信息、包括连接信息和二进制文件名、位置
+-- 从库上执行这个命令后，使用show slave status将不会有输出。
+
+3、修改配置文件连接到新的主库上。
 人人都能看懂的LSTM
 https://zhuanlan.zhihu.com/p/32085405
 
@@ -9690,3 +10005,630 @@ z=\frac{3}{2}
 \Rightarrow
 
 xyz=\frac{1}{2}*1*\frac{3}{2}=\frac{1}{2}*\frac{3}{2}=\frac{3}{4}
+
+规格型号：超融合计算节点：8台、华为/FusionCube HCI、18.9万元/台；虚拟化软件：1套、华为/FusionSphere、13.15万元/套；云管套件：1套、华为/ManageOne、17.65万元/套；等
+
+华为FusionCube超融合基础设施融合计算、存储、网络、虚拟化、管理于一体，具有高性能、低时延和快速部署等特点，并内置华为自研分布式存储引擎，深度融合计算和存储，消除性能瓶颈，灵活扩容，支持业界主流数据库和业界主流虚拟化软件。
+
+基于教育信息化2.0的指导，遵循大数据的智慧校园建设标准，通过大数据技术，打通学校“人、财、物”的基础数据，以学校基本对象（学生/教师/资产/科研成果/招生就业等）为业务数据基础，整合梳理多源日志、行为等数据构建学生画像、教师画像等，通过人工智能方法，结合高校场景，实现数据信息全面，过程可见，智能辅助，决策科学的目标，提升学校的教学、科研、人才培养、后勤服务等多方面需求。
+1、业务大数据、日志大数据及有关社会大数据的采集和存储。对接校内各应用系统获取各类业务数据、异构系统设备的日志数据，结合社会大数据资源，采用大数据管理技术进行统一存储，为数据的挖掘和分析打好基础。
+2、大数据分析应用，以学生画像为纽带，日志行为数据为入口，通过AI行为建模，挖掘和发现数据中隐含的、未知的、极具潜在应用价值的信息和规律，实现面向领导、面向老师、面向学生、面向网络等多角色的大数据应用需求的可视化交付，并且支持大屏、WEB、H5、分析报告等多样化的成果交付，为我校的教务管理、科研管理、学生管理等各项工作提供决策和指导。
+
+
+
+云原生技术公开课：
+https://edu.aliyun.com/roadmap/cloudnative
+大数据学习路线
+https://edu.aliyun.com/roadmap/bigdata
+数据库学习路线
+https://edu.aliyun.com/roadmap/database
+人工智能学习路线
+https://edu.aliyun.com/roadmap/ai
+
+如何快速学习Tableau Desktop
+https://www.jianshu.com/p/0adf8fea3351
+
+Apache Superset(孵化)是一个现代的、企业级的商业智能web应用程序。
+https://www.jianshu.com/p/4a1c213a8b1c
+
+给大数据分析师的一双大礼: Apache Kylin和Superset
+https://www.jianshu.com/p/828fa6f45ff3
+
+阿里巴巴大数据竞赛
+https://github.com/sunnotes/Ali-Data-Mining
+
+Free Data Mining Tools
+http://www.rdatamining.com/resources/tools
+
+Top 15 Best Free Data Mining Tools: The Most Comprehensive List
+https://www.softwaretestinghelp.com/data-mining-tools/
+https://opensourceforu.com/2017/03/top-10-open-source-data-mining-tools/
+
+
+CC中英字幕 - Weka在数据挖掘中的运用（Data Mining with Weka）
+https://www.bilibili.com/video/av45489204?from=search&seid=13827735967963188412
+
+
+哪些事情是weka能做的但是spss无法做到的？
+https://www.zhihu.com/question/20985683/answer/16819027
+
+初试weka数据挖掘
+https://www.cnblogs.com/hxsyl/p/3307343.html
+
+
+python数据挖掘orange
+https://blog.csdn.net/pipisorry/article/details/52845804
+
+
+完成 Orange3 数据挖掘 汉化版
+https://blog.csdn.net/err2008/article/details/89000962
+
+# Install some build requirements via your system's package manager
+sudo apt install virtualenv build-essential python3-dev
+
+# Create a separate Python environment for Orange and its dependencies ...
+virtualenv --python=python3 --system-site-packages orange3venv
+# ... and make it the active one
+source orange3venv/bin/activate
+
+# Install Qt dependencies for the GUI
+pip install PyQt5 PyQtWebEngine
+
+# Install Orange
+pip install orange3
+
+1.3.2 sklearn自带的小数据集
+自带的小数据集
+
+名称	数据包调用方式	适用算法
+鸢尾花数据集	load_iris()	分类
+乳腺癌数据集	load_bread_cancer()	二分类任务
+手写数字数据集	load_digits()	分类
+糖尿病数据集	load_diabetes()	回归
+波士顿房价数据集	load_boston()	回归
+体能训练数据集	load_linnerud()	多变量回归
+
+
+Orange数据挖掘工具介绍
+https://blog.csdn.net/SunChao3555/article/details/84975783
+
+轻量级BI工具Superset的搭建与使用
+https://www.jianshu.com/p/b02fcea7eb5b
+
+开源数据挖掘工具Orange简介
+https://blog.csdn.net/Tulongf/article/details/23992007
+
+Orange,RapidMiner,Weka,JHepWork,KNIM,五个免费开源的数据挖掘软件
+https://blog.csdn.net/bruce__ray/article/details/49699461
+
+26种数据挖掘软件比较及介绍
+https://blog.csdn.net/Tulongf/article/details/23994233
+
+几经折腾，终于完成Orange3数据挖掘新版的汉化工作！需要合作的加Q：726008，Orange3群：681586766
+
+Orange是一款底层基于C++，并且提供了Python接口的开源数据挖掘工具。与Sklearn，pyml这 类数据挖掘包相比，Orange的历史更加悠久，在上面实现的算法也更加丰富，此外，除了以python模块的形式使用之外，Orange还提供了GUI，可以用通过预先 定义好的多种模块组成工作流来完成复杂的数据挖掘工作。
+
+Orange的发起最早可以追溯到1997年WebLab会议，在这个会议上人们提到了构建一个灵活的实验基准以便大家可以将自己的算法，实验结果放在上面，这些想法最终 催生了Orange项目。
+
+Orange包含大量标准或非标准的机器学习和数据挖掘的算法，以及常规数据读写和操作，其底层的核心是由C++来实现的，同时Orange也利用python脚本来快速 实现新算法的原型以及一些不太要求执行时间的功能。
+
+
+docker swarm 端口开放
+The network ports required for a Docker Swarm to function properly are:
+
+TCP port 2376 for secure Docker client communication. This port is required for Docker Machine to work. Docker Machine is used to orchestrate Docker hosts.
+TCP port 2377. This port is used for communication between the nodes of a Docker Swarm or cluster. It only needs to be opened on manager nodes.
+TCP and UDP port 7946 for communication among nodes (container network discovery).
+UDP port 4789 for overlay network traffic (container ingress networking).
+
+### 技能树：初级后台
+
+C 基础
+
+- 编写，编译，运行 hello world。
+- 实现 atoi 函数。
+- 复制一个文件。
+- 对一个整型数组进行冒泡排序。
+- 对一个整型数组进行二分查找。
+- 用结构数组表示一个成绩列表｛姓名，科目，成绩｝，求出指定科目平均成绩最高的姓名。
+
+Linux
+
+- 安装系统
+- 分区，格式化，挂载
+- 配置动态、静态网络IP，DNS，网关，子网掩码
+- 使用 top 查看系统运行情况
+- 使用 ifconfig, ip 查看本机网络配置
+- 使用 uname 查看本机信息，
+- 添加新用户，加入组，切换用户
+- 使用 ulimit 修改描述符最大限制
+- touch，mkdir，cd，pwd，ls，cp, mv，rm 进行文件管理
+- 熟悉文件查看命令：cat, head, more, less, tail
+- 使用 find 查找文件
+- 使用 grep 查找文本
+- 使用 sort 排序命令输出
+- 使用 diff 命令比较文件
+- 使用 wc 统计输出行数
+- chown 和 chmod 修改文件权限
+- 开启 openssh 服务，指定允许远程登录的用户
+- 指定拥有 sudo 权限的用户
+- 编写简单 shell 脚本：if, while, $?
+- 使用管道组合多个命令
+- 对标注输入，标准输出，标准错误进行重定向
+- 持续监控日志输出
+- 使用 scp 和 rsync 在多台机器间同步文件
+- 配置 ssh 免密登录
+- 使用 netstat, ss 查看端口监听列表
+- 使用 ps 查看进程列表
+- 使用 ping, curl, nc 测试远程服务是否正常
+- 使用 free 查看内存使用情况，定位内存占用大的进程
+- 查看 CPU 使用情况，定位 CPU 使用高的进程
+- 查看磁盘使用情况，定位磁盘占用大的目录
+- 查看网络流量情况
+- 使用包管理工具安装软件，修改源到国内镜像
+- 启动，停止，禁用，启用某个服务
+- 使用防火墙开放或关闭某个端口: ufw, iptables
+- 使用 rc.local 设置开机自启动脚本
+- 使用 crontab 设置定时任务
+- 使用 vi 编辑配置文件
+- 修改 .bashrc 里的环境变量，使用 alias 添加别名
+- 使用 ln 建立文件软连接
+- 使用 shell 进行数学运算
+- 使用 tar，zip, unzip 解压，压缩文件
+- 挂接，弹出 U 盘
+
+
+git
+
+- 配置密钥，创建仓库，克隆仓库，.git/config 改动
+- git status，代码拉取，代码提交，代码推送，修改最后一次 commit 信息
+- git rm， git mv, .gitignore 使用
+- 代码对比：工作区对比，暂存区对比，分支间对比，历史对比
+- 解决冲突：使用 A， 使用 B，两者合并
+- 新建分支，合并分支，删除分支，删除远程分支，常见分支规划（dev, testing, master, hotfix, feat）
+- 查看历史：查看历史改动，指定某文件改动，提取指定历史版本
+- 撤销修改：撤销修改的文件，撤销暂存的文件，撤销已提交改动，撤销已推送改动
+- 使用书架暂存: git stash
+- git rebase -i
+- 恢复文件：git reflog
+
+
+HTML
+
+- HTML 基本文档：doctype, lang, meta，head, body
+- 引入 css, js
+- 排版相关元素：h1-h5, p，a，img，br, hr，span，strong，code，pre，q
+- 列表相关元素：ul, ol, dl，li，dd
+- 布局相关元素: div，span，table
+- 表格相关元素：table, tr, td, col
+- 表单相关元素：form，input, select，textarea，button
+- input 类型：text, password, checkbox, radio, hidden，color，date，time，number
+- h5 验证属性：required ，max，min，minlength，maxlength
+- 实现用户注册页面：姓名，年龄，职业，爱好，手机号
+
+
+CSS
+
+- 常见选择器：id, class，后代选择器，子选择器，属性选择器，伪类选择器
+- 传统布局：position，display，width, height，margin, padding, border, overflow, float
+- flex 布局：flex-flow， justify-content，align-items，flex，align-self
+- 装饰类规则：字体，字号，行高，颜色，背景色，链接，列表，阴影，圆角
+- 常见布局实现：图标和文字水平对齐，文字垂直水平居中，div 垂直水平居中，左右分栏（左定宽右弹性），左中右分栏（左右定宽，中间弹性），水平菜单，下拉菜单
+- Bootstrap 使用：表格，表单，辅助类，小图标，按钮组，导航条，标签页，面包屑，分页，警告框，面板，轮播，模态框
+
+
+PHP
+
+- 变量，分支，循环，函数，字符串操作，数组操作，时间操作，文件操作，面向对象
+- 理解 empty，is_null，isset
+- 读取 get, post, cookie，header，文件上传等数据
+- 设置 HTTP 应答码， header, cookie，输出 json，HTML，文件下载
+- 数据校验，XSS 过滤，SQL 注入过滤
+- 配置并使用 session
+- 使用正则表达式 preg
+- 访问数据库：mysqli，PDO
+- 访问网络：curl
+- 调试拍错：die，exit，var_dump, print_r，debug_print_backtrace ，error_log，file_put_contents, error_reporting
+- 使用命名空间和自动加载，使用 composer 安装第三方组件
+- 使用 MVC 框架：理解 model, view, controller, templeate，library，helper 的职责
+- 使用 HMVC modules 进行模块化开发
+- 配置 php.ini 和 php-fpm.conf
+
+
+MySQL
+
+- 增删改查，多表关联，分组统计
+- 导入导出数据库或数据表
+- 创建用户，指定权限
+- 查看表结构，添加列，修改列
+- 查看执行计划，添加有效索引
+
+
+Nginx
+
+- 配置 PHP-fpm
+- 配置静态目录，启用文件索引，压缩，过期时间
+- 配置反向代理，设置必要的转发头
+- 配置虚拟目录为 php，反向代理或静态目录
+- 配置 https 证书
+
+
+Javascript
+
+- 基本语法：分支，循环，函数，数组，hash
+- DOM API，BOM API
+- jquery 选择器，dom 操作，css 操作，事件操作
+- jquery ajax
+- underscore, async 使用
+
+
+网络
+
+- 常见 HTTP 方法：GET, PUT, POST, DELETE, OPTION
+- 常见 HTTP 应答码：100, 200, 301, 302, 400, 401, 403, 404, 413，500
+- 常见请求头：Accept，Accept-Encoding，Host，UserAgent，Cookie，Connection，Referer
+- 常见应答头: Connection，Content-Type，Content-Length，Server, Transfer-Encoding，Set-Cookie
+- 浏览器开发者工具网络标签
+- 常用网络工具：ifconfig, ip, lsof, netstat,ss, ping, traceroute，mtr，telnet, curl, wget, nc，tcpdump, nslookup, dig, whois, nload, iftop
+- 防火墙相关：iptables, ufw
+
+
+问题定位
+
+- 信息查看工具使用：uptime, top, htop, vmstat, iostat, sar
+- 优雅重启服务：php-fpm, nginx，gunicorn, supervisord
+- 系统日志查看
+- crontab 日志查看
+- Nginx 日志配置及查看
+- PHP/fpm 日志配置及查看
+- 应用服务日志查看
+- MySQL 慢日志配置及查看
+
+
+Linux常用网络工具总结
+https://blog.csdn.net/li_101357/article/details/70256411
+
+本文总结了Linux中的常用的网络工具，其中包括
+
+网络配置相关：ifconfig、ip
+路由相关：route、netstat、ip
+查看端口工具：netstat、lsof、ss、nc、telnet
+下载工具：curl、wget、axel
+防火墙：iptables、ipset
+流量相关：iftop、nethogs
+连通性及响应速度：ping、traceroute、mtr、tracepath
+域名相关：nslookup、dig、whois
+web服务器：python、nginx
+抓包相关：tcpdump
+网桥相关：ip、brctl、ifconfig、ovs
+
+
+图解HTTP（六）—— HTTP请求头（首部）
+https://blog.csdn.net/alexshi5/article/details/80379086
+
+Git鲜为人知的四个命令：bisect，blame，reflog和提交范围
+https://baijiahao.baidu.com/s?id=1598885936030644678&wfr=spider&for=pc
+
+
+TensorSpace是一套用于构建神经网络3D可视化应用的框架。 开发者可以使用 TensorSpace API，轻松创建可视化网络、加载神经网络模型并在浏览器中基于已加载的模型进行3D可交互呈现。 TensorSpace可以使您更直观地观察神经网络模型，并了解该模型是如何通过中间层 tensor 的运算来得出最终结果的。 TensorSpace 支持3D可视化经过适当预处理之后的 TensorFlow、Keras、TensorFlow.js 模型。
+https://github.com/tensorspace-team/tensorspace/blob/master/README_zh.md
+
+
+机器学习指机器通过统计学算法，对大量的历史数据进行学习从而生成经验模型，利用经验模型指导业务。目前机器学习主要在以下方面发挥作用：
+
+营销类场景：商品推荐、用户群体画像、广告精准投放
+金融类场景：贷款发放预测、金融风险控制、股票走势预测、黄金价格预测
+SNS关系挖掘：微博粉丝领袖分析、社交关系链分析
+文本类场景：新闻分类、关键词提取、文章摘要、文本内容分析
+非结构化数据处理场景：图片分类、图片文本内容提取OCR
+其它各类预测场景：降雨预测、足球比赛结果预测
+笼统地讲，机器学习可以分为三类：
+
+有监督学习（Supervised Learning）：指每个样本都有对应的期望值，通过模型搭建，完成从输入的特征向量到目标值的映射。典型的案例就是回归和分类问题。
+无监督学习（Unsupervised Learning）：指在所有的样本中没有任何目标值，期望从数据本身发现一些潜在的规律，例如一些简单的聚类。
+增强学习（Reinforcement Learning）：相对来说比较复杂，是指一个系统和外界环境不断地交互，获得外界反馈，然后决定自身的行为，达到长期目标的最优化。其中典型的案例就是阿法狗下围棋，或者无人驾驶。
+
+PAI底层支持多种计算框架：有流式算法框架Flink，基于开源版本深度优化的深度学习框架TensorFlow，支持千亿特征千亿样本的大规模并行化计算框架Parameter Server，同时也兼容Spark、PYSpark、MapReduce等业内主流开源框架。
+
+PAI平台提供：PAI-STUDIO（可视化建模和分布式训练）、PAI-DSW（notebook交互式AI研发）、PAI-AutoLearning（自动化建模）、PAI-EAS（在线预测服务）四套服务，每个服务既可单独使用，也可相互打通。用户可以从数据上传、数据预处理、特征工程、模型训练、模型评估，到最终的模型发布到离线或者在线环境，一站式完成建模，有效的提升开发效率。在数据预处理方面，PAI跟阿里云DataWorks（一站式大数据智能云研发平台）也是无缝打通的，支持SQL、UDF、UDAF、MR等多种数据处理开发方式，灵活性较高。在PAI平台上训练模型，生成的模型可以通过EAS部署到线上环境，整个实验流程支持周期性调度，可以发布到DataWorks与其它上下游任务节点打通依赖关系，另外调度任务区分生产环境以及开发环境，可以做到数据安全隔离。
+
+一站式的机器学习平台意味着只要训练数据准备好（存放到OSS或MaxCompute中），用户就不需要额外的迁移工作，所有的建模工作都可以通过PAI来实现。
+
+DataWorks
+DataWorks是一个提供了大数据OS能力、并以all in one box的方式提供专业高效、安全可靠的一站式大数据智能云研发平台。 同时能满足用户对数据治理、质量管理需求，赋予用户对外提供数据服务的能力。
+
+
+全生命周期数据应用开发
+从数据开发到算法开发，从服务开发到应用开发，闭环涵盖数据业务全流程。
+
+
+下一代大数据云研发平台
+提供离线、实时、机器学习Studio满足大数据全业务场景。
+
+完美支持数据中台
+为全域数据汇聚与融合加工、数据治理与分享提供温床，助力企业完美升级数据体系。
+
+全智能化体验
+引入SQL智能编辑器、智能基线监控、数据质量监控、数据保护伞，赋能AI时代必备能力。
+
+覆盖大数据全业务场景的功能体系
+
+
+数据集成
+供复杂网络环境下、丰富的异构数据源之间数据高速稳定的数据移动及同步能力。
+
+ 
+    多数据源快速上云
+    支持多库、多表整体数据上云的快捷配置。
+
+
+    多种配置方式
+    同时兼容可视化向导模式、复杂配置的脚本模式以及API模式创建数据集成任务。
+
+
+    多种同步方式
+    支持实时、历史数据的批量、增量同步，同步速度可以打满万兆网卡。
+
+
+    任意数据源、任意网络环境数据抽取
+    支持任意结构化、非结构化、半结构化的数据传输；同时可配置Agent至自有跳板机，实现对内网环境数据源的抽取与同步。
+
+ 
+数据开发
+构建项目->解决方案->业务流程三级结构，帮助用户获得更加清晰的开发逻辑。
+
+ 
+    多引擎工作流混编
+    以DataStudio为核心的多引擎混编工作流，串联跨引擎数据节点开发，每个类型的引擎数据节点都有对应的Studio进行开发。
+
+
+    SQL智能编辑器
+    提供SQL格式化、智能补齐、关键字高亮、错误提示、SQL内部结构等人性化功能，带来更顺滑的SQL开发体验。
+
+
+    科学规范的项目模式
+    提供开发、生产环境隔离的“标准项目模式”，将更稳定的生产环境带给用户。
+
+
+    业务流程与解决方案
+    从业务视角管理整体工作流，将同类业务组织为解决方案，实现沉浸式开发。
+
+ 
+数据治理
+保障数据定时产出、有效产出，让数据满足企业“存、通、用”的高标准数据管理要求。
+
+ 
+    数据质量监控
+    提供对多种异构数据源的质量校验、通知、管理能力。
+
+
+    任务智能监控
+    通过简单配置赋予智能监控系统自行决策“是否报警、何时报警、如何报警、给谁报警”的能力，以实现复杂工作流的全链路监控。
+
+ 
+数据安全
+提供可视化数据权限申请审批流程，并一些类诸如敏感数据分级、访问行为识别、数据脱敏、风险识别的数据审计能力。
+
+ 
+    数据权限申请与审批
+    开发者可在线批量发起数据权限申请，管理者酌情进行审批，实现流程可控与可视化，利于事后审计与追溯。
+
+
+    敏感数据智能识别
+    基于自学习的模型算法，自动识别企业拥有的敏感数据，并以直观的形式展示具体类型、分布、数量等信息；同时支持自定义类型的数据识别
+
+
+    精准的数据分级分类
+    支持自定义分级信息功能，满足不同企业对数据等级管理需要
+
+
+    灵活的数据脱敏
+    提供丰富多样、可配置的数据脱敏方式，无论是存储环节的静态脱敏，还是使用环节的动态脱敏
+
+
+    用户异常操作风险监控和审计
+    利用多维度关联分析及算法，主动发现异常风险操作，提供预警以及可视化一站式审计
+
+ 
+数据服务
+基于Serverless为企业搭建统一的数据服务总线，帮助企业统一管理对内对外的API服务。
+
+ 
+    Serverless构建方式
+    告别传统构建API的开发、运维流程，仅需关注API本身逻辑即可在web页面完成配置，并支持弹性扩展，运维成本为0。
+
+
+    过滤器与函数
+    灵活变换API返回结果数据结构，适配各类业务系统要求。
+
+
+    服务编排
+    支持将多个数据服务API串联为工作流，实现复杂业务请求逻辑。
+
+
+    简单管理API生命周期
+    基于web页面可完成API发布、管理、运维、售卖的全生命周期管理，助力用户简单、快速、低成本、低风险地实现微服务聚合、前后端分离、系统集成的工作。
+
+
+    一键打通商业模式
+    支持一键将API发布至阿里云市场进行售卖，直接将数据能力变现。
+
+ 
+应用开发
+实现在线Web轻量化开发能力，提供丰富的前端组件，通过自由拖拽即可简单快速搭建前端应用。
+
+ 
+    托管Web应用开发
+    无需下载安装本地IDE和配置维护环境变量，只需一个浏览器，即可在办公室、家或任何可以连接网络的地方，进行您的数据开发工作。
+
+
+    功能完备的编辑器
+    提供智能提示、补全代码并提供修复建议，让您轻松地编写、运行和调试项目。
+
+
+    在线调试
+    在线调试具有本地IDE所有的断点类型和断点操作，支持线程切换、过滤，支持变量值查看、监视，支持远程调试和热部署。
+
+
+    协同编辑
+    支持多人同时在线编辑同一个工程的同一个文件，提高工作效率。
+
+
+    插件体系
+    支持业务插件、工具插件和语言插件三种插件。
+
+ 
+机器学习
+阿里云机器学习平台（PAI）集数据处理、建模、离线预测、在线预测为一体，向用户提供更简易的操作体验。
+
+ 
+    良好的交互设计
+    通过对底层的分布式算法封装，提供拖拉拽的可视化操作环境，让数据挖掘的创建过程像搭积木一样简单。
+
+
+    优质、丰富的机器学习算法
+    提供经过阿里大规模业务锤炼而成的基础的聚类、回归类等算法与文本分析、特征处理等复杂算法。
+
+
+    规格支持主流深度学习框架
+    包含Tensorflow、Caffe、MXNet三款主流的机器学习框架，底层提供M40型号的GPU卡进行训练。
+
+    
+可视化模型
+
+javascript workflow builder
+    
+10+ JavaScript libraries to draw your own diagrams (2019 edition)
+https://modeling-languages.com/javascript-drawing-libraries-diagrams/    
+
+https://jsplumbtoolkit.com/demos.html
+https://gojs.net/latest/index.html
+
+html5 javascript workflow diagram generator [closed]
+https://stackoverflow.com/questions/20190581/html5-javascript-workflow-diagram-generator
+
+jsplumb 中文基础教程
+https://wdd.js.org/jsplumb-chinese-tutorial/#/
+
+jsplumb实现流程图
+https://www.jianshu.com/p/a3cd623cdbb7
+https://github.com/wangduanduan/visual-ivr
+
+开源HTML5拓扑图绘制工具？
+https://www.zhihu.com/question/41026400
+
+百度脑图核心——kityminder-editor 本地化改造
+https://www.jianshu.com/p/9b53499d9031
+
+
+Machine learning tools in JavaScript
+https://github.com/mljs/ml
+https://ml5js.org/
+
+Top Machine Learning Libraries for Javascript 
+https://www.kdnuggets.com/2016/06/top-machine-learning-libraries-javascript.html
+
+orange3-web
+https://github.com/biolab/orange3/issues/1419
+
+Node-RED
+Low-code programming for event-driven applications
+https://nodered.org/
+
+Business Intelligence (BI) in Python, OLAP
+https://github.com/mining/mining
+
+老师和学生都喜欢 Orange3
+https://orange.biolab.si/home/teachers_and_students_love_it/
+
+
+Browserify：浏览器加载Node.js模块
+http://javascript.ruanyifeng.com/tool/browserify.html
+
+browserify -r through -r ./my-file.js:my-module > bundle.js
+
+
+计算矩阵的相关系数时，为什么提示说标准差是0
+ 
+应该是有某一列的数字完全一样吧
+
+
+b.reduce(function(pre, cur, i) { pre[a[i]] = cur; return pre }, {})
+
+jsPlumb使用学习-在线流程设计器demo参考说明
+https://blog.csdn.net/hexin8888/article/details/83992816
+
+基于 vue 和 element-ui 实现的表单设计器，使用了最新的前端技术栈，内置了 i18n 国际化解决方案，可以让表单开发简单而高效。
+https://github.com/GavinZhuLei/vue-form-making/blob/master/README.zh-CN.md
+
+vue内引入jsPlumb流程控制器（一）
+https://blog.csdn.net/weixin_30872671/article/details/94822539
+
+Graphlib JS 学习笔记
+https://blog.csdn.net/qq_32773935/article/details/81236461
+
+Div Background Image Z-Index Issue
+https://stackoverflow.com/questions/10507871/div-background-image-z-index-issue
+
+发现一个 CSS BUG，一个正常position 的 div a 无论如何设置 z-index，都不能在一个 position: relative 并且设置了 background-image 的div b 上面。
+b 去掉 background-image 就可以了，或者 a 得设置 position: relative，怪不得 css 难掌握，这 z-index 有时候毫无作用呀。
+
+webpack
+https://www.jianshu.com/p/2ce732125376
+
+npm install=npm i。在git clone项目的时候，项目文件中并没有 node_modules文件夹，项目的依赖文件可能很大。直接执行，npm会根据package.json配置文件中的依赖配置下载安装。
+-global=-g，全局安装，安装后的包位于系统预设目录下
+--save=-S，安装的包将写入package.json里面的dependencies，dependencies：生产环境需要依赖的库
+--save-dev=-D，安装的包将写入packege.json里面的devDependencies，devdependencies：只有开发环境下需要依赖的库
+
+
+webpack 引入 bootstrap(一)
+https://www.cnblogs.com/wyxxj/p/7381050.html
+
+
+Bootstrap4与Bootstrap3不同
+https://blog.csdn.net/drl_blogs/article/details/89305729
+
+webpack-dev-server，iframe与inline的区别
+https://www.cnblogs.com/videring/articles/7641555.html
+
+深入解析webpack-dev-server的用法
+https://www.jianshu.com/p/bbb55217d124
+
+
+Managing jQuery plugin dependency in webpack
+https://stackoverflow.com/questions/28969861/managing-jquery-plugin-dependency-in-webpack
+
+vue引入bootstrap——webpack
+https://blog.csdn.net/wild46cat/article/details/77662555
+
+Convert string to variable name in JavaScript
+https://stackoverflow.com/questions/5613834/convert-string-to-variable-name-in-javascript
+
+vue-loader13.0有一个变更就是默认启用了esModule 把vue-loader降至13.0以下，就可以解决
+https://www.cnblogs.com/qq364735538/p/9097157.html
+
+webpack配置babel执行ES module语法
+https://blog.csdn.net/zemprogram/article/details/99252944
+
+
+How can I render a new instance of vue component dynamically with dynamic props data
+https://stackoverflow.com/questions/53065722/how-can-i-render-a-new-instance-of-vue-component-dynamically-with-dynamic-props
+
+VueJs how to get data from Vue.component
+https://stackoverflow.com/questions/43677645/vuejs-how-to-get-data-from-vue-component
+
+vue -- 父组件通过$refs获取子组件的值和方法
+https://blog.csdn.net/wxl1555/article/details/84107969
+
+Vue JS returns [__ob__: Observer] data instead of my array of objects
+https://stackoverflow.com/questions/52873516/vue-js-returns-ob-observer-data-instead-of-my-array-of-objects
+
+var parsedobj = JSON.parse(JSON.stringify(obj))
+console.log(parsedobj)
+
+Object.assign({}, node.vue.$data)
+
+
+在Vue中使用echarts的两种方式
+https://segmentfault.com/a/1190000015453413
