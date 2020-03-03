@@ -453,7 +453,15 @@ InfraredCounterParser InfraredCounterHandler InfraredCounterSender 等字符串�
 
 ### Eclipse
 
+- 文件名查找 Ctrl+shift+r
 - 格式化代码：Ctrl + Shift + F
+- outline 搜索：ctrl + o
+- 快速找到变量或方法的调用处：Ctrl+Shift+G
+- 快速进入方法：F3 或 Ctrl+点击方法名
+- 快速切换编辑的文件：Ctrl+E快捷键
+- 光标间切换：Alt+左右方向键
+
+https://jingyan.baidu.com/article/f7ff0bfc3ecb122e26bb13b6.html
 
 参考链接：
 
@@ -10632,3 +10640,265 @@ Object.assign({}, node.vue.$data)
 
 在Vue中使用echarts的两种方式
 https://segmentfault.com/a/1190000015453413
+
+
+用crystal disk info或者其他ssd健康检测软件 测试一下 就知道了
+ssd寿命关系最大的还是存储芯片：
+SLC
+写入寿命最长，速度最快，据估测大概有100000次擦写寿命，接近于无限。但是由于成本过高，现逐渐远离ssd市场。
+EMLC
+写入寿命仅次于slc，擦写次数几乎是用不完的，但由于成本高，一般作为服务器级ssd使用。
+MLC
+写入寿命中等，视制程不同大约有，3000---10000次擦写寿命，为主流ssd所采用。
+TLC
+寿命最差，只有不到1000次，目前部分三星低端以及山寨ssd使用
+
+ACM算法模板 · 一些常用的算法模板-模板合集（打比赛专用）
+https://blog.csdn.net/qq_32265245/article/details/53046750?utm_source=distribute.pc_relevant.none-task
+
+
+https://time.geekbang.org/course/detail/272-188698
+
+
+ffmpeg -f muxer=hls
+ffmpeg -i source.ts -c copy -map 0 -f segment -segment_list playlist.m3u8 -segment_time 10 output%03d.ts
+ffmpeg -i source.mp4 -codec:v libx264 -codec:a mp3 -map 0 -f ssegment -segment_format mpegts -segment_list playlist.m3u8 -segment_time 10 out%03d.ts
+
+D:\haohu\soft\ffmpeg\bin\ffmpeg -i source.mp4 -movflags frag_keyframe+empty_moov fragmented.mp4
+
+"C:\Program Files\WinFF\ffmpeg.exe" -i  out_dashinit.mp4 -map 0 -f segment -segment_format mpegts -segment_list playlist.m3u8 -segment_time 10 out%03d.ts
+
+
+https://vedu.csdnimg.cn/d5b5fe534969481dbc3ee13971dc18e1/d0649aa27d1242a6b57fa4364ad9b850-50ef6d42e544d4048c0f4d9327aa461a-4k-encrypt-stream.m3u8
+
+https://github.com/nilaoda/The-New-M3U8-Downloader
+https://github.com/videojs/mux.js
+https://github.com/phoboslab/jsmpeg
+
+
+Web端直接播放 .ts 视频
+https://segmentfault.com/a/1190000018503818
+使用FFMPEG生成HLS
+https://blog.csdn.net/ai2000ai/article/details/80756892
+
+H5直播系列二 MSE(Media Source Extensions)
+https://www.jianshu.com/p/1bfe4470349b
+
+js中ArrayBuffer操作
+https://www.jianshu.com/p/8d5c78ddcda7
+
+使用copy命令合并二进制文件
+https://www.cnblogs.com/zhanglin-0/p/6840537.html
+
+
+
+"c:\Program Files\WinFF\ffmpeg.exe" -i "D:\temp\v\000.mp4" -ss 00:00:05 -t 00:00:16 -c copy -f mp4  "d:\temp\v\000-out.mp4"
+ 
+"c:\Program Files\WinFF\ffmpeg.exe" -i frag_bunny -ss 00:00:00 -t 00:00:10 -c copy -f mp4 out.mp4
+
+ffmpeg 常用命令
+
+合并字幕
+ffmpeg -i in.mp4 -preset slow -crf 26 -vf "ass=zimu.ass" out.mp4
+其中crf后的数字越大，文件越小效果越差
+
+剪切视频
+ffmpeg -ss 00:00:33.08 -t 00:10:35.10 -accurate_seek -i in.mp4 -codec copy -avoid_negative_ts 1 out.mp4
+
+合并视频
+"C:\Program Files\FormatFactory\ffmpeg.exe" -f concat -i file-list.txt -c copy out.mp4
+其中file-list.txt的格式：
+file '1.mp4'
+file '2.mp4'
+
+
+
+### 视频防下载方案
+
+思路：
+
+把原始 mp4 文件前面增加几个字节的随机数据进行视频混淆，这样用户把mp4文件下载到本地就无法播放了。
+浏览器里使用 XMLHttpRequest 获取 mp4 文件为 ArrayBuffer 对象，再使用 DataView 功能过滤掉前几个字节。
+然后把解码后的 DataView 传递给的 MediaSource（ MSE：Media Source Extensions ）的 SourceBuffer
+
+注意：
+1、MSE 只支持 non-fragment MP4，可用 ffmpeg 进行转换
+    ffmpeg -i non_fragmented.mp4 -movflags frag_keyframe+empty_moov fragmented.mp4
+2、给视频增加混淆数据可用如下 wndows 命令执行，其中 magic.txt 是一个普通文本文件
+    copy magic.txt /a + frag_bunny.mp4 /b 22.mp4
+
+参考代码：
+https://nickdesaulniers.github.io/netfix/demo/bufferAll.html
+
+
+核心代码：
+```
+<video controls=""></video>
+<script>
+  var video = document.querySelector('video');
+
+  // 混淆后的视频文件
+  var assetURL = '22.mp4';
+  // Need to be specific for Blink regarding codecs
+  // ./mp4info frag_bunny.mp4 | grep Codec
+  var mimeCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
+
+  if ('MediaSource' in window && 
+  MediaSource.isTypeSupported(mimeCodec)) {
+    var mediaSource = new MediaSource;
+    //console.log(mediaSource.readyState); // closed
+    video.src = URL.createObjectURL(mediaSource);
+    mediaSource.addEventListener('sourceopen', sourceOpen);
+  } else {
+    console.error('Unsupported MIME type or codec: ', mimeCodec);
+  }
+
+  function sourceOpen (e) {
+    //console.log(this.readyState); // open
+    var mediaSource = e.target;
+    var sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+    fetchAB(assetURL, function (buf) {
+      sourceBuffer.addEventListener('updateend', function (_) {
+        mediaSource.endOfStream();
+        //video.play();
+        //console.log(mediaSource.readyState); // ended
+      });
+      console.log("buf",buf);
+      
+      // 过滤掉最前面的混淆字节
+      var dataView = new DataView(buf,6);
+      console.log('dataview',dataView)
+      sourceBuffer.appendBuffer(dataView);
+    });
+  };
+
+  function fetchAB (url, cb) {
+    console.log(url);
+    var xhr = new XMLHttpRequest;
+    xhr.open('get', url);
+    xhr.responseType = 'arraybuffer';
+    xhr.onload = function () {
+      cb(xhr.response);
+    };
+    xhr.send();
+  };
+</script>
+```
+
+
+"C:\Program Files\FormatFactory\FFModules\Encoder\MP4Box\mp4box.exe" -dash 1000 -rap -frag-rap out.mp4
+
+Unable to get MediaSource working with mp4 format in chrome
+https://stackoverflow.com/questions/22996665/unable-to-get-mediasource-working-with-mp4-format-in-chrome
+
+手把手教你搭建Nginx-rtmp流媒体服务器+使用ffmpeg推流
+https://www.jianshu.com/p/06c2025edcd3
+
+mp4、ts、m3u8、hls简述
+https://www.jianshu.com/p/38ee17af3ed0
+
+hls.js
+https://github.com/video-dev/hls.js/
+
+
+ffmpeg -i test.mp4 -c copy -f segment -segment_list test.m3u8 test_%d.ts
+ffplay test.m3u8
+
+
+mp4 转 m3u8
+"C:\Program Files\FormatFactory\ffmpeg.exe" -i 1.mp4 -c copy -f segment -segment_list test.m3u8 test_%d.ts
+
+"C:\Program Files\FormatFactory\ffmpeg.exe" -y -i frag_bunny.mp4 -hls_time 12 -hls_key_info_file enc.keyinfo -hls_playlist_type vod -hls_segment_filename "file%d.ts" playlist.m3u8
+
+用 hls.js 在 web 上播放 m3u8
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<video width="500" id="video" controls ></video>
+<script>
+  var video = document.getElementById('video');
+  if(Hls.isSupported()) {
+    var hls = new Hls();
+    hls.loadSource('playlist.m3u8');
+    hls.attachMedia(video);
+ }
+</script>
+
+
+ffmpeg分解视频文件并加密
+https://blog.csdn.net/cnhome/article/details/73250495
+使用ffmpeg视频切片并加密和视频AES-128加密后播放
+https://blog.csdn.net/AugustDY/article/details/83005690?utm_source=distribute.pc_relevant.none-task
+FFmpeg 加密 mpegts 文件的处理方式
+http://blog.chinaunix.net/uid-11344913-id-5780164.html
+
+
+openssl rand -base64 20 > enc.key
+cat enc.key
+openssl rand -hex 16
+
+vi enc.keyinfo
+    http://localhost:8000/enc.key
+    enc.key
+    6387c91fecff39835dccfb43b477c18d
+    
+    
+"C:\Program Files\FormatFactory\ffmpeg.exe" -y -i frag_bunny.mp4 -hls_time 12 -hls_key_info_file enc.keyinfo -hls_playlist_type vod -hls_segment_filename "file%d.ts" playlist.m3u8
+
+
+拦截导弹问题
+http://blog.sina.com.cn/s/blog_78d89c480102xn3s.html
+https://bbs.csdn.net/topics/390155435
+https://blog.csdn.net/qq_34557770/article/details/100152796
+http://www.51nod.com/question/index.html#questionId=160&isAsc=false
+https://blog.csdn.net/liuchuo/article/details/56676974
+
+
+EPS：每股收益＝利润/总股数
+
+1、基本反映了公司每一股所具有的当前获利能力；
+2、考察每股收益历年的变化，是研究公司经营业绩变化最简单明了的方法。
+3、公司的利润是通过会计制度核算的收益。中国会计制度核算的利润比国际通用的会计制度核算的利润高
+
+ROE：净资产收益率 =税后利润/净资产
+
+1、净资产收益率可衡量公司对股东投入资本的利用效率。
+
+PE：市盈率 = 股票的价格/每股收益 注：比股票的价格一般为一个固定周期内的价格，通常为12个月。
+
+1、表明了股票市价相对于股票的盈利能力。
+2、表明了股票当前市价下的投资回收期。
+
+PEG：PEG = 市盈率/盈利增长比率
+
+1、表明了股票市价的盈利的增长能力。
+2、PEG越低，说明当前市价下的盈利能力越高，且盈利增长能力越高。
+
+PB：市净率=股价/账面价值（每股净资产）注：账面价值=总资产-无形资产-负债-优先股权益 
+
+1、用来衡量当前股价中所含的净资产。
+2、PB低，说明每股中所含的净资产较高，越具有安全边际。
+
+EXPMA实战指标
+https://www.sohu.com/a/251895767_100268067
+
+音视频剪辑
+http://www.yyzsoft.com/downloads.html
+
+
+linux ms sql server
+
+Linux 上的 SQL Server 的安装指南
+https://docs.microsoft.com/zh-cn/sql/linux/sql-server-linux-setup?view=sql-server-ver15
+
+sudo apt-get install mssql-server
+
+下载并安装 Azure Data Studio
+https://docs.microsoft.com/zh-cn/sql/azure-data-studio/download-azure-data-studio?view=sql-server-2017
+
+cd ~
+sudo dpkg -i ./Downloads/azuredatastudio-linux-<version string>.deb
+
+azuredatastudio
+
+
+MS SQL Server GUI Tools
+https://razorsql.com/features/sqlserver_gui_tools.html
