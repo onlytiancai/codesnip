@@ -1,7 +1,7 @@
 const { PCA } = require('ml-pca');
 
 const type =  'pca';
-const text =  '主成分分析';
+const text =  'PCA';
 
 
 function Node(id, data) {

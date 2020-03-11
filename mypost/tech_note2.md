@@ -10902,3 +10902,126 @@ azuredatastudio
 
 MS SQL Server GUI Tools
 https://razorsql.com/features/sqlserver_gui_tools.html
+
+apt-get install libcurl3
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/16.04/mssql-server-2019.list)"
+apt-get update
+apt-get install -y mssql-server
+
+
+Ubuntu的软件源格式详解
+https://blog.csdn.net/wykkunkun/article/details/79430187
+
+dpkg -I mssql-server_versionnumber_amd64.deb
+sudo dpkg -i mssql-server_versionnumber_amd64.deb
+
+apt-get -f install --fix-missing ./mssql-server_14.0.3281.6-2_amd64.deb
+/opt/mssql/bin/mssql-conf setup
+
+
+/opt/mssql/lib/mssql-conf/invokesqlservr.sh
+vi /opt/mssql/lib/mssql-conf/mssqlconfhelper.py
+
+
+
+
+python 版本切换
+update-alternatives --list python
+update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
+update-alternatives --install /usr/bin/python python /usr/bin/python3.6 2
+update-alternatives --config python
+
+
+azuredatastudio --user-data-dir ./
+
+很多方法可以分析系统调用。这里有一些（按照开销从大到小排序）：
+
+strace
+perf record
+perf trace
+sysdig
+perf stat
+bcc/eBPF
+ftrace/mcount
+
+
+docker ubunt镜像中文乱码，文件名问号解决
+https://www.cnblogs.com/xqnq2007/p/8124584.html
+
+apt-get install language-pack-zh-hans language-pack-zh-hans-base language-pack-gnome-zh-hans language-pack-gnome-zh-hans-base
+apt-get install `check-language-support -l zh-hans`
+
+另外还有一个LANGUAGE参数，它与LC_MESSAGES相似，但如果该参数一旦设置，则LC_MESSAGES参数就会失效。 LANGUAGE参数可同时设置多种语言信息，如LANGUAGE="zh_CN.GB18030:zh_CN.GB2312:zh_CN"。
+
+LANG，LC_*的默认值，是最低级别的设置，如果LC_*没有设置，则使用该值。类似于 LC_ALL
+
+LC_ALL，它是一个宏，如果该值设置了，则该值会覆盖所有LC_*的设置值。注意，LANG的值不受该宏影响
+
+公理：你需要一个小连接池，和一个充满了等待连接的线程的队列
+
+如果你有10000个并发用户，设置一个10000的连接池基本等于失了智。1000仍然很恐怖。即是100也太多了。你需要一个10来个连接的小连接池，然后让剩下的业务线程都在队列里等待。连接池中的连接数量应该等于你的数据库能够有效同时进行的查询任务数（通常不会高于2*CPU核心数）。
+
+我们经常见到一些小规模的web应用，应付着大约十来个的并发用户，却使用着一个100连接数的连接池。这会对你的数据库造成极其不必要的负担。
+
+请注意
+
+连接池的大小最终与系统特性相关。
+比如一个混合了长事务和短事务的系统，通常是任何连接池都难以进行调优的。最好的办法是创建两个连接池，一个服务于长事务，一个服务于短事务。
+再例如一个系统执行一个任务队列，只允许一定数量的任务同时执行，此时并发任务数应该去适应连接池连接数，而不是反过来。
+
+
+前端领域主管是刚需，中小前端团队Team Leader如何养成？
+https://mp.weixin.qq.com/s/oGGyyJu-SjgA8TGFFVad-w
+
+
+Your feedback will help us improve 
+
+
+Hi Namer
+
+Have suggestions on how we can improve? 
+
+Reply to this email with ways you think we can improve your experience on Namebase. As a thank you, we will credit your account with 10 HNS.
+
+What can we improve? 
+What we are doing well? 
+Improving our product and customer service is really important to us.  
+
+We appreciate your time and feedback. 
+
+Thank you, 
+Namebase Customer Experience Team
+
+https://www.zhihu.com/question/23444414/answer/1001219132?utm_source=weibo
+
+如果你的markov模型输入都是历史股价，那如果第二天政府颁布了新法案禁止X行业发展，你在X行业历史利好基础上做出的判断就白瞎了；如果你的输入是历史股价和政策趋势，那第二天邻国出了个X行业B公司产品弄死人的新闻，你在X行业A公司本国股票的投资又白瞎了；如果你的输入是历史股价、政策趋势和国际新闻（这是很多对冲基金公司做的事情），那第二天某个大新闻网站的官方微博被黑了，发了条假消息，你做的投资组合又白瞎了（真事：Stocks plunge, recover after fake tweet）；如果你的输入是历史股价、政策趋势、国际新闻并自动判断新闻的真假，结果第二天A公司总部地震了，A公司从此一蹶不振，你的投资又白瞎了。能影响股价的factor太多，所有模型不管简单/复杂，都有适用范围和被坑的时候，所以机器学习（或者说统计）这种东西不能不信，但切忌全信。
+
+
+似乎马尔科夫在股票里面一般不是用来做预测的，一般是结合蒙地卡罗方法来做风险对冲的。用马尔科夫做预测比较适合的领域一般是大宗商品，期货，债券这种周期性较强的金融衍生品。
+
+
+为何要选择石家庄外国语师范学校
+
+http://blog.sina.com.cn/s/articlelist_1239751472_0_1.html
+
+1、国办学校河北石家庄外国语师范学校原名石家庄市师范学校，创建于1948年，已有58年的办学历史，为石家庄和周遍县市培养了大批的小学和中学教师。该校是石家庄市教育局直属的国办全日制学校，面向全省招收应届初中毕业生。该校同时还负担着石家庄市中小学校长和骨干教师的培训任务。
+
+2、业绩辉煌1989年因办学成绩显著被国家教委授予“全国中等专业教育先进学校”；自1990年连续十六年被石家庄市委、市政府授予“文明单位”称号 ； 1998年被评为首批石家庄市德育示范学校和德育科研先进单位；1999年被中央教科所评为“全国先进实验学校”；2000年被河北省教育厅命名为“安全文明校园”；2005年被市委宣传部、市教育局命名为石家庄市心理健康教育示范学校。学校从2002年开始对口升学，2002年升学率96%，2003年、2004、2005年升学率达98%以上，四年来考入河北大学、河北师范大学共400余人，我校学生连续四年荣获全省对口师范类高考状元。中央电视台和河北电视台著名节目主持人王玲玲即是我校毕业生。初此之外，我校毕业生很多都已成为各级政府机关、教育行政部门、学校的领导和骨干教师。
+
+3、师资雄厚我校师资力量一流，拥有全国模范教师、全国优秀外语教师和特级教师5人，高级教师36人，石家庄市拔尖人才10名，20%的教师有研究生学历。我校历史上和目前有很多诸如马骏骥、周鸿祥、樊钢民、祝琪等在全国具有一定影响的名师。师资力量在全省同类学校中首屈一指。同时，我校聘有数名美国、英国、澳大利亚、新西兰、加拿大的外教，为学生创造了良好的学习氛围。
+
+4、完善管理我校地处石家庄市西部北方大学园，占地500多亩。学校实施封闭式寄宿制管理，有效的保护了学生的安全，有利于学生安心学习。同时具有完善的学校制度，具有优良的校风。学校同时开展丰富多彩的活动，活跃了学生的业余生活，拓展了学生的视野，提高了学生的全面素质。配有教学楼、食堂、图书馆、体育馆等完备的学习、生活设施。小桥流水、花红草绿、宁静幽雅。
+
+5、优惠政策在校学生享受每月46元的国家生活助学金；品学兼优者每学期享受奖学金；生活困难者学校提供勤工助学岗位。
+
+6、专业优势我校目前已从原有以培养师范人才拓展为综合性院校。有英语、计算机、幼师等目前和将来的具有极强就业优势的热门专业。为了满足部门学生上高中的愿望，我校还开设了特色高中，学生不用参加高中会考，可以集中精力学习高考课程。
+
+
+
+kvm 轻量虚拟机
+https://firecracker-microvm.github.io/
+
+
+图片压缩工具 数码照片压缩大师
+https://pc.qq.com/detail/13/detail_160753.html
