@@ -11025,3 +11025,32 @@ https://firecracker-microvm.github.io/
 
 图片压缩工具 数码照片压缩大师
 https://pc.qq.com/detail/13/detail_160753.html
+
+
+直接运行 MANIFEST.MF 中指定的 main 方法：
+java -jar mplus-service-jar-with-dependencies.jar
+
+运行指定的 main 方法：
+java -cp mplus-service-jar-with-dependencies.jar com.smbea.dubbo.bin.Console start
+
+
+date("Y-m-d H:i:s")
+
+
+Jupyter Enterprise Gateway
+Papermill
+labextension
+serverextension
+
+
+在股票投资基本分析的诸多工具中，与市盈率、市净率、现金流量折现等指标一样，EPS也是最常见的参考指标之一。
+
+计算每股收益时要注意以下问题。编制合并会计报表的公司，应以合并报表中的数据计算该指标。如果公司发行了不可转换优先股，则计算时要扣除优先股数及其分享的股利，以使每股收益反映普通股的收益状况，已作部分扣除的净利润，通常被称为"盈余"，扣除优先股股利后计算出的每股收益又称为"每股盈余"。有的公司具有复杂的股权结构，除普通股和不可转换优先股以外，还有可转换优先股、可转换债券、购股权证等。可转换债券的持有者，可以通过转换使自己成为普通股股东，从而造成公司普通股总数增加。购股权证持有者，可以按预定价格购买普通股，也会使公司普通股份增加。普通股增加会使每股收益变小，称为"稀释"。计算这种复杂的股权结构的每股收益时，应按照有关部门的规定进行，没有相关规定的，应按国际惯例计算该指标，并说明计算方法和参照依据。
+每股收益，是衡量上市公司盈利能力最重要的财务指标。它反映普通股的获利水平。在分析时，可以进行公司间的比较，以评价该公司相对的盈利能力；可以进行不同时期的比较，了解该公司盈利能力的变化趋势；可以进行经营实绩和盈利预测的比较，掌握该公司的管理能力。
+
+
+是时候联盟Jupyter与PyCharm了，Jupytext就是你需要的
+https://baijiahao.baidu.com/s?id=1632312881652181052&wfr=spider&for=pc
+
+在 GitHub 的一项分析中（Nature，30 OCTOBER 2018）显示，截至 2018 年 9 月，公开的 Jupyter Notebook 已经超过了 250 万份，而 2015 年这一数字仅为 20 万左右。Jupyter Notebook 之所以这么流行，主要还是它的演示和可视化，我们可以查看每一段代码的输出与运行效果。
+
