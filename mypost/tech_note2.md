@@ -5200,6 +5200,15 @@ https://www.template.net/business/brochure/product-brochure-template/
 
 # vim
 
+# vimrc
+set nocp nu ts=4 sw=4 sta et hls si
+color desert
+syntax on
+filetype plugin indent on
+
+autocmd FileType html colorscheme default | set fdm=indent nofoldenable
+autocmd BufNewFile,BufRead *.html,*.htm,*.css,*.js set noet ts=2 sw=2
+
 3，屏幕滚动：
 
 按键 操作描述
@@ -11054,3 +11063,136 @@ https://baijiahao.baidu.com/s?id=1632312881652181052&wfr=spider&for=pc
 
 在 GitHub 的一项分析中（Nature，30 OCTOBER 2018）显示，截至 2018 年 9 月，公开的 Jupyter Notebook 已经超过了 250 万份，而 2015 年这一数字仅为 20 万左右。Jupyter Notebook 之所以这么流行，主要还是它的演示和可视化，我们可以查看每一段代码的输出与运行效果。
 
+
+服务器搭建 office web apps 实现线文档预览
+https://blog.csdn.net/jiaqu2177/article/details/81944185
+
+How to convert Word (doc) to PDF in linux?
+https://superuser.com/questions/156189/how-to-convert-word-doc-to-pdf-in-linux
+
+https://askubuntu.com/questions/678125/error-in-function-createsettingsdocument-elements-cxx-when-using-a-libreoffice
+
+
+## doc 转 PDF    
+apt-get install `check-language-support -l zh-hans`
+apt-get install cups-pdf
+apt install libreoffice-writer
+lowriter --headless --convert-to pdf 1.doc
+
+<?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+$file='./1.doc';
+if (!file_exists($file)) {
+    exit('文件不存在');
+}
+
+$info = pathinfo($file);
+$new_file = "{$info['dirname']}/{$info['filename']}.pdf";
+if (!file_exists($new_file)) {
+    $cmd = 'export HOME=/tmp && /usr/bin/lowriter --headless --convert-to pdf --outdir '.escapeshellarg($info['dirname']).' '. escapeshellarg($file) . ' 2>&1';
+    exec($cmd, $output, $return_val);
+    //var_dump($cmd, $return_val, $output);
+}
+header("Content-type:application/pdf");
+readfile($new_file);
+
+
+
+Jupyter Notebook---不需认证，与nginx搭配远程访问及下载
+https://www.cnblogs.com/aguncn/p/11238882.html
+
+
+
+
+linux:有效使用docker logs查看日志
+https://www.cnblogs.com/yangxiayi1987/p/11818130.html
+
+
+docker 暂停某个节点
+docker node update --availability pause vnj4lfipwdhkopmqvznacbl86
+
+
+docker以管理员角色进入jupyter/scipy-notebook镜像的命令
+docker run -it -p 8888:8888 --user root -e GRANT_SUDO=yes -e NB_UID=1000 -e NB_GID=100 jupyter/scipy-notebook
+
+装扮你的Jupyter
+https://segmentfault.com/a/1190000009305646
+
+autocmd BufNewFile,BufRead *.html,*.htm,*.css,*.js set noexpandtab tabstop=2 shiftwidth=2
+autocmd 即“自动命令”，在发生某些事件时自动执行，类似于钩子函数。
+BufNewFile 表示编辑一个不存在的文件时
+BufRead 是读取一个已存在的文件时
+后面是文件名 pattern（用 , 分隔）以及要执行的命令。若要执行多个命令，命令之间可用 | 分隔。
+
+
+vim多标签和多窗口
+https://blog.csdn.net/fuxingdaima/article/details/8658342
+
+标签页
+:tabe <文件名>  在新标签页中打开指定的文件。
+:tabnew <文件名>  在新标签页中编辑新的文件。
+:tabc  关闭当前标签页。
+:tabo  关闭所有的标签页。
+:tabn或gt  移动到下一个标签页。
+:tabp或gT  移动到上一个标签页。
+
+7、文件浏览
+:Ex 开启目录浏览器，可以浏览当前目录下的所有文件，并可以选择
+:Sex 水平分割当前窗口，并在一个窗口中开启目录浏览器
+:ls 显示当前buffer情况
+8、vi与shell切换
+:shell 可以在不关闭vi的情况下切换到shell命令行
+:exit 从shell回到vi
+
+ctags
+2.跳转
+1)用vim打开一个已经建过标签的c文件    
+2)ctrl+] 找到光标所在位置的标签定义的地方
+3)ctrl+t 回到跳转之前的标签处
+
+:ta function_name 搜索
+:ts or :tselect shows the list
+:tn or :tnext goes to the next tag in that list
+:tp or :tprev goes to the previous tag in that list
+:tf or :tfirst goes to the first tag of the list
+:tl or :tlast goes to the last tag of the list 
+
+
+前缀键默认为“\”。使用以下命令，可以将前缀键定义为逗号：
+
+let mapleader=","
+
+
+git clone --depth 1 -b master https://github.com/ctrlpvim/ctrlp.vim.git bundle/ctrlp.vim
+git clone --depth 1 -b master https://github.com/majutsushi/tagbar.git bundle/tagbar
+
+建议废弃taglist(年久失修了), ctrlp+tagbar实际使用效果更好
+如果在写golang的时候要用到tagbar, 需要安装gotags支持
+
+        
+Vim与Python真乃天作之合：打造强大的Python开发环境
+https://segmentfault.com/a/1190000003962806
+
+Vim and Ctags
+https://andrew.stwrt.ca/posts/vim-ctags/
+
+curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+    
+# ~/.vimrc
+    
+call plug#begin()
+Plug 'majutsushi/tagbar'
+Plug 'ctrlpvim/ctrlp.vim'
+call plug#end()
+
+set nocp nu ts=4 sw=4 et sta hls si
+set tags=tags;/
+nnoremap <leader>. :CtrlPTag<cr>
+nmap <F8> :TagbarToggle<CR>
+
+
+Reload .vimrc and :PlugInstall to install plugins.
