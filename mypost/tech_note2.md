@@ -11138,6 +11138,8 @@ https://blog.csdn.net/fuxingdaima/article/details/8658342
 :tabo  关闭所有的标签页。
 :tabn或gt  移动到下一个标签页。
 :tabp或gT  移动到上一个标签页。
+:tabfirst或:tabr  移动到第一个标签页。
+:tablast  移动到最后一个标签页。
 
 7、文件浏览
 :Ex 开启目录浏览器，可以浏览当前目录下的所有文件，并可以选择
@@ -11183,16 +11185,62 @@ curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
     
 # ~/.vimrc
-    
+
+```
+set nocp nu ts=4 sw=4 et sta hls si acd
+autocmd BufNewFile,BufRead *.html,*.htm,*.css,*.js set noet ts=2 sw=2
+
 call plug#begin()
 Plug 'majutsushi/tagbar'
 Plug 'ctrlpvim/ctrlp.vim'
+Plug 'tacahiroy/ctrlp-funky'
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
 call plug#end()
 
-set nocp nu ts=4 sw=4 et sta hls si
-set tags=tags;/
+set tags=tags;
+noremap <F6> :!ctags -R<CR>
+nnoremap <silent> <F9> :TagbarToggle<CR>
 nnoremap <leader>. :CtrlPTag<cr>
-nmap <F8> :TagbarToggle<CR>
-
+nnoremap <Leader>fu :CtrlPFunky<Cr>
+```
 
 Reload .vimrc and :PlugInstall to install plugins.
+
+
+windows下关闭gvim叮叮叮和闪屏
+
+" 关闭各种按键叮叮声音和闪屏
+set vb t_vb=
+au GuiEnter * set t_vb=
+
+GuiEnter这一行为关闭闪屏，因为关闭声音后，vim会用闪屏提示，多按一次esc也会闪。
+
+在 Vim 命令行模式下使用命令 :mksession [file_name] 可用来创建一个会话文件
+可以在 Vim 命令行模式下使用 :source file_name 来导入指定的会话文件。
+
+vim自带的自动补全功能
+https://blog.csdn.net/li4850729/article/details/7932702
+
+,Vim在查找一个单词时是按照如下的步骤:
+1 在当前文件中进行查找
+2 在其他窗口中进行查找
+3 在其他的已装入的缓冲区中进行查找
+4 在没有装入缓冲区的文件中进行查找
+5 在当前的标记(tag)列表是进行查找
+6 在所有的由当前文件的#include包含进来的文件中进行查找
+当然了我们也可以自定义我们的查找顺序.
+我们在使用自动完成功能时的命令CTRL-P是向后查找匹配的单词,而还有一个命令CTRL-N是向前查找匹配的单词.他们有同样的功能和作用,所不同的只是查找方向上的不同.
+
+Vim速查表-帮你提高N倍效率
+https://www.jianshu.com/p/6aa2e0e39f99
+
+VIM 代码片段插件 ultisnips 使用教程
+https://www.jianshu.com/p/12cdb3364ad1
+
+终于用正确的方式解决nginx 403 错误
+http://aftercode.club/aftercode/nginx/2017/03/23/solve-nginx-403-problem-the-right-way.html
+
+namei -l $PWD/static/jupyter/notebook_main.min.js
+
+当 nginx 使用一个目录作为 root 来使用的时候, 除了需要获得这个目录下所有文件的下的读权限以外, 还需要能够成功的访问到这个路径. 换句话说到达这个目录的每个文件夹, nginx 都要有x权限. 确认是否都有 x 的权限可以使用目录 namei 帮助查找.
