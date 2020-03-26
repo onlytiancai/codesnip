@@ -11244,3 +11244,28 @@ http://aftercode.club/aftercode/nginx/2017/03/23/solve-nginx-403-problem-the-rig
 namei -l $PWD/static/jupyter/notebook_main.min.js
 
 当 nginx 使用一个目录作为 root 来使用的时候, 除了需要获得这个目录下所有文件的下的读权限以外, 还需要能够成功的访问到这个路径. 换句话说到达这个目录的每个文件夹, nginx 都要有x权限. 确认是否都有 x 的权限可以使用目录 namei 帮助查找.
+
+## 文件备份
+
+下载安装 freefilesync, 选择源目录和目标目录，同步规则选择“更新”，过滤规则里去掉 .git, .metadata 等，保存为批处理文件，用计划任务定时备份。
+
+
+搭建Jitsi Meet视频会议服务器
+https://blog.csdn.net/qq_32523587/article/details/90111616
+
+
+
+pytorch通过torch.cuda使用GPU加速运算且比较GPU与CPU运算效果以及应用场景
+https://ptorch.com/news/53.html
+
+
+linux cuda10.0使用pip安装pytorch
+https://blog.csdn.net/tiandd12/article/details/102967888
+
+wget https://download.pytorch.org/whl/cu100/torch-1.3.0%2Bcu100-cp36-cp36m-linux_x86_64.whl
+
+wget https://download.pytorch.org/whl/cu100/torchvision-0.4.1%2Bcu100-cp36-cp36m-linux_x86_64.whl
+
+pip3 install 'pillow<7.0.0'
+
+print torch.cuda.is_available()
