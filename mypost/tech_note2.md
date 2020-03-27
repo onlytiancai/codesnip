@@ -11269,3 +11269,66 @@ wget https://download.pytorch.org/whl/cu100/torchvision-0.4.1%2Bcu100-cp36-cp36m
 pip3 install 'pillow<7.0.0'
 
 print torch.cuda.is_available()
+
+## centos 6 升级 gcc
+
+gun 国内镜像
+https://mirrors.tuna.tsinghua.edu.cn/gnu/
+
+
+### 升级 glibc++
+
+下载路径：http://ftp.de.debian.org/debian/pool/main/g/
+
+
+    wget http://ftp.de.debian.org/debian/pool/main/g/gcc-8/libstdc++6_8.3.0-6_amd64.deb
+    ar -x libstdc++6_8.3.0-6_amd64.deb
+
+    tar -xf data.tar.xz
+    sudo rm /usr/lib64/libstdc++.so.6
+    sudo cp usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25 /usr/lib64/
+    sudo ln /usr/lib64/libstdc++.so.6.0.25    /usr/lib64/libstdc++.so.6
+    strings /usr/lib64/libstdc++.so.6 | grep GLIBCXX
+
+
+### 升级 glibc
+
+    strings /lib64/libc.so.6 | grep GLIBC_
+    wget http://mirrors.ustc.edu.cn/gnu/libc/glibc-2.18.tar.gz
+    tar xf glibc-2.18.tar.gz
+    cd glibc-2.18
+    mkdir build
+    cd build
+    ../configure  --prefix=/usr --disable-profile --enable-add-ons --with-headers=/usr/include --with-binutils=/usr/bin
+    make
+    sudo make install
+    strings /lib64/libc.so.6 | grep GLIBC_
+
+### 升级 binutils
+
+    ld -v
+    wget https://mirrors.tuna.tsinghua.edu.cn/gnu/binutils/binutils-2.27.tar.gz
+    tar -zxf binutils-2.27.tar.gz
+    cd binutils-2.27
+    ./configure --prefix=/usr
+    make
+    make install
+    /usr/bin/ld -v
+
+### 升级 gcc
+
+为CentOS 6、7升级gcc至4.8、4.9、5.2、6.3、7.3等高版本
+https://www.vpser.net/manage/centos-6-upgrade-gcc.html
+
+CentOS 7虽然已经出了很多年了，但依然会有很多人选择安装CentOS 6，CentOS 6有些依赖包和软件都比较老旧，如今天的主角gcc编译器，CentOS 6的gcc版本为4.4，CentOS 7为4.8。gcc 4.8最主要的一个特性就是全面支持C++11，如果不清楚什么用的也没关系，简单说一些C++11标准的程序都需要gcc 4.8以上版本的gcc编译器编译，如MySQL 8.0版本(8.0.16以上版本是C++14标准，需gcc 5.3以上版本)。
+
+CentOS 6虽然是gcc 4.4的老旧版本，但是也可以升级gcc来安装gcc 4.8，我们今天就不采用编译安装的方法了，gcc安装起来非常费时，我们采用CentOS的一个第三方库SCL(软件选集)，SCL可以在不覆盖原系统软件包的情况下安装新的软件包与老软件包共存并且可以使用scl命令切换，不过也有个缺点就是只支持64位的。
+
+确定当前gcc版本，执行命令：gcc --version
+
+一般如果需要升级gcc至4.8或更高版本，建议直接采用安装SCL源之后安装devtoolset-6（devtoolset-6目前gcc版本为6.3），因为devtoolset-4及之前的版本都已经结束支持，只能通过其他方法安装
+
+    wget https://copr.fedoraproject.org/coprs/rhscl/devtoolset-3/repo/epel-6/rhscl-devtoolset-3-epel-6.repo -O /etc/yum.repos.d/devtoolset-3.repo
+    yum -y install devtoolset-3-gcc devtoolset-3-gcc-c++ devtoolset-3-binutils
+    scl enable devtoolset-3 bash
+
