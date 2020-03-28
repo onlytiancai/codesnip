@@ -11332,3 +11332,8 @@ CentOS 6虽然是gcc 4.4的老旧版本，但是也可以升级gcc来安装gcc 4
     yum -y install devtoolset-3-gcc devtoolset-3-gcc-c++ devtoolset-3-binutils
     scl enable devtoolset-3 bash
 
+GitBook 使用教程
+https://www.jianshu.com/p/421cc442f06c
+
+GitBook - 快速打造可留言的博客
+https://blog.csdn.net/weixin_34293141/article/details/91413019
