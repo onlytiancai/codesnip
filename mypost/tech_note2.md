@@ -11355,3 +11355,34 @@ vim --version | grep clipboard
 - 层次
 - 常量定义
 - 名次概念
+
+在编译时指定的Redis使用的内存分配器，可以是libc、jemalloc、tcmalloc，默认是jemalloc。jemalloc在64位系统中，将内存空间划分为小、大、巨大三个范围；每个范围内又划分了许多小的内存块单位；存储数据的时候，会选择大小最合适的内存块进行存储。
+jemalloc划分的内存单元如下图所示：
+
+
+知数堂公开课
+https://pan.baidu.com/s/1slWxyjV#list/path=%2F
+
+蓝牙HID无线触摸屏
+https://www.jianshu.com/p/81747aa385c2
+
+Kubernetes Deployment
+http://docs.kubernetes.org.cn/317.html
+
+Kubernetes kubectl 与 Docker 命令关系
+http://docs.kubernetes.org.cn/70.html
+
+Kubernetes 给容器和Pod分配内存资源
+http://docs.kubernetes.org.cn/729.html
+
+kubernetes安装（国内环境）
+https://zhuanlan.zhihu.com/p/46341911
+
+k8s 入门教程和实战
+https://blog.51cto.com/wutengfei/2160771
+
+kubernetes部署NFS持久存储（静态和动态）
+https://www.jianshu.com/p/5e565a8049fc
+
+Kubernetes Python API中文使用说明
+https://blog.csdn.net/wmj2004/article/details/103527860
