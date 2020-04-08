@@ -11386,3 +11386,15 @@ https://www.jianshu.com/p/5e565a8049fc
 
 Kubernetes Python API中文使用说明
 https://blog.csdn.net/wmj2004/article/details/103527860
+
+How to expose a Kubernetes service on a specific Nodeport?
+https://stackoverflow.com/questions/52522570/how-to-expose-a-kubernetes-service-on-a-specific-nodeport
+
+https://www.cnblogs.com/chenjinxinlove/p/10104854.html
+https://www.cnblogs.com/amyzhu/p/8285300.html
+
+k8s-集群里的三种IP（NodeIP、PodIP、ClusterIP）
+https://blog.csdn.net/qq_21187515/article/details/101363521
+
+设置service的nodeport以后外部无法访问对应的端口的问题
+https://blog.51cto.com/11288550/2378289
