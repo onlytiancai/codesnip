@@ -3473,6 +3473,9 @@ CLASSPATH环境变量。作用是指定类搜索路径，要使用已经编写�
  
  
  ## git
+
+git diff master origin/dev --stat
+git diff master origin/dev config.py
  
 删除远程分支
 
@@ -11398,3 +11401,37 @@ https://blog.csdn.net/qq_21187515/article/details/101363521
 
 设置service的nodeport以后外部无法访问对应的端口的问题
 https://blog.51cto.com/11288550/2378289
+
+iptables -P FORWARD ACCEPT
+
+gpushare-scheduler-extender
+https://github.com/AliyunContainerService/gpushare-scheduler-extender
+https://www.cnblogs.com/oolo/p/11672720.html
+https://developer.aliyun.com/article/690623
+
+调度 GPUs
+https://kubernetes.io/zh/docs/tasks/manage-gpus/scheduling-gpus/
+
+在k8s中调用NVIDIA-GPU
+https://www.jianshu.com/p/eae199a4cce0
+
+flask_SQLALchemy之多表查询
+https://www.cnblogs.com/moying-wq/p/10698783.html
+
+金融行业微服务架构解析
+http://www.java2nb.com/article/106.html
+
+
+NAT网关支持SNAT和DNAT功能。
+SNAT可以为VPC内无公网IP的ECS实例提供访问互联网的代理服务。
+DNAT可以将NAT网关上的公网IP映射给ECS实例使用，使ECS实例能够提供互联网服务。
+
+kubectl run nginx --image nginx:1.13
+# 如果集群没开通公网能力(NAT+EIP)，则镜像智能拉取同区域的阿里镜像仓库的镜像
+kubectl run nginx --image registry-vpc.cn-beijing.aliyuncs.com/sigma/nginx:alpine
+kubectl expose pod nginx --port=80 --target-port=80 --name=nginx-svc --type=LoadBalancer
+kubectl get pod -l run=nginx
+kubectl get service nginx-svc
+LB_ENDPOINT=$(kubectl get service nginx-svc -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
+echo $LB_ENDPOINT
+curl $LB_ENDPOINT 
