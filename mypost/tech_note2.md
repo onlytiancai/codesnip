@@ -2683,8 +2683,7 @@ http://www.sohu.com/a/223781695_413876
     
     # 用 parted 进行大分区
     parted /dev/vdb
-        mklable
-            gpt
+        mklabel gpt
         print
         mkpart primary 0 -1   # 0表示分区的开始  -1表示分区的结尾  意思是划分整个硬盘空间为主分区        
         
@@ -11428,6 +11427,7 @@ DNAT可以将NAT网关上的公网IP映射给ECS实例使用，使ECS实例能�
 
 kubectl run nginx --image nginx:1.13
 # 如果集群没开通公网能力(NAT+EIP)，则镜像智能拉取同区域的阿里镜像仓库的镜像
+# 可以是自己上传的私有镜像，也可以是同 regin 其它用户公开的镜像，要使用镜像的专有网络地址
 kubectl run nginx --image registry-vpc.cn-beijing.aliyuncs.com/sigma/nginx:alpine
 kubectl expose pod nginx --port=80 --target-port=80 --name=nginx-svc --type=LoadBalancer
 kubectl get pod -l run=nginx
@@ -11435,3 +11435,113 @@ kubectl get service nginx-svc
 LB_ENDPOINT=$(kubectl get service nginx-svc -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
 echo $LB_ENDPOINT
 curl $LB_ENDPOINT 
+
+
+压缩搜索出来的文件
+find . -name '*.ipynb' | grep -v tf1.0 | grep -v checkpoints |  perl -p -e 's#^(.*?)$#"\1"#' | xargs tar cvjf notebook.tar.bz2
+sed -r 's/^(.*?)$/"\1"/ig'
+
+查看压缩包
+tar tvf notebook.tar.bz2
+tar tf notebook.tar.bz2
+
+
+tensorflow各个版本的CUDA以及Cudnn版本对应关系
+https://blog.csdn.net/qq_27825451/article/details/89082978
+
+CUDA Toolkit本地安装包时内含特定版本Nvidia显卡驱动的，所以只选择下载CUDA Toolkit就足够了，如果想安装其他版本的显卡驱动就下载相应版本即可。
+
+NVIDIA的显卡驱动器与CUDA并不是一一对应的哦，CUDA本质上只是一个工具包而已，所以我可以在同一个设备上安装很多个不同版本的CUDA工具包
+
+cuDNN是一个SDK，是一个专门用于神经网络的加速包，注意，它跟我们的CUDA没有一一对应的关系，即每一个版本的CUDA可能有好几个版本的cuDNN与之对应，但一般有一个最新版本的cuDNN版本与CUDA对应更好。
+
+
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-10.1/lib64
+    export PATH=$PATH:/usr/local/cuda-10.1/bin
+    export CUDA_HOME=$CUDA_HOME:/usr/local/cuda-10.1
+
+
+Kubernetes - GC的镜像自动清理导致的问题
+https://blog.csdn.net/qingyafan/article/details/89096030
+
+Kubernetes集群随着应用的迭代，会产生很多无用的镜像和容器，因此需要定时清理，分布在每个节点的Kubelet有GC（垃圾收集）的职责，当集群中有断定为垃圾的镜像或容器，那么kubelet会清除掉相关镜像或容器。容器GC间隔为1分钟，镜像GC间隔为5分钟。
+
+Kubernetes中的垃圾回收机制
+https://www.cnblogs.com/openxxs/p/5275051.html
+
+Kubernetes(k8s)存储资源的NFS PersistentVolume类型
+https://blog.csdn.net/qq_41709494/article/details/104360014
+
+iptables -nvL --line-number
+firewall-cmd --list-port
+
+不要让“Clean Code”更难维护，请使用“Rule of Three”
+https://www.infoq.cn/article/qTBDahNgemdI6F4uxiwt
+
+当我们开始重构遗留代码时，通常会将内容提取到较小的方法中。然后再将方法提取到类中。很快，我们可能就能感觉到原来 30 行的方法现在已经分散在不同的类中。
+
+我们应该做的是，创建正确的抽象。 正确的抽象，正确地划分职责。它们阐明了代码的意图。它们可以防止代码重复。
+
+两段代码看起来是一样的，但却代表了不同的概念。不同的抽象。在这种情况下，重复是偶然的。保留重复会更好。
+
+“重复与错误的抽象相比，代价要小的多”  —— Sandi Metz， 所有的小事
+
+
+location /pypi {
+    proxy_pass  http://mirrors.aliyun.com;
+
+    proxy_set_header   Host             "mirrors.aliyun.com";
+    proxy_set_header   X-Real-IP        $remote_addr;
+    proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+}
+
+nginx正向代理配置, proxy_connect 是 https 代理，默认 nginx 没装
+
+    server {
+      listen 8080;
+      resolver 8.8.8.8;
+      resolver_timeout 5s;
+      proxy_connect;
+      proxy_connect_allow 443 563;
+      proxy_connect_connect_timeout 10s;
+      proxy_connect_read_timeout 10s;
+      proxy_connect_send_timeout 10s;
+      location / {
+          proxy_pass $scheme://$host$request_uri;
+          proxy_set_header Host $http_host;
+          proxy_buffers 256 4k;
+          proxy_max_temp_file_size 0;
+          proxy_connect_timeout 30;
+      }
+      access_log /export/home/logs/proxy/access.log main;
+      error_log /export/home/logs/proxy/error.log;
+    }
+
+    kubectl exec mypod -- curl -s -x 172.17.1.1:30003 baidu.com
+    kubectl exec mypod -- curl -sv --connect-timeout 1 baidu.com
+
+# 在 /etc/profile 文件中增加如下三项。
+    export proxy="http://{proxy_server_ip}:8080"
+    export http_proxy=$proxy
+    export https_proxy=$proxy
+
+# 使配置生效
+    shell> source /etc/profile
+
+自动输入密码
+
+    #!/bin/bash
+
+    passwd='123456'
+
+    /usr/bin/expect <<-EOF
+
+    set time 30
+    spawn ssh saneri@192.168.56.103 df -Th
+    expect {
+    "*yes/no" { send "yes\r"; exp_continue }
+    "*password:" { send "$passwd\r" }
+    }
+    expect eof
+    EOF
