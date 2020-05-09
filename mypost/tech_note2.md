@@ -11545,3 +11545,150 @@ nginx正向代理配置, proxy_connect 是 https 代理，默认 nginx 没装
     }
     expect eof
     EOF
+
+Glib 数据类型 数组，链表，哈希表
+https://developer.gnome.org/glib/stable/glib-data-types.html
+
+Pythons map, reduce and filter as list comprehensions
+https://martin-thoma.com/python-map-reduce-filter/
+
+
+php实现单点登录实例
+https://zhuanlan.zhihu.com/p/97783052
+
+php-fpm搭建及加固
+https://zhuanlan.zhihu.com/p/111094258
+
+
+A – Z LINUX COMMANDS – OVERVIEW WITH EXAMPLES
+https://www.tecmint.com/linux-commands-cheat-sheet/
+
+CTRL+F5 和F5 两种刷新有什么区别?
+https://zhidao.baidu.com/question/568487385.html
+
+一、刷新原理不同。
+
+F5触发的HTTP请求的请求头中通常包含了If-Modified-Since 或 If-None-Match字段,或者两者兼有；
+
+CTRL+F5触发的HTTP请求的请求头中没有上面的那两个头,却有Pragma: no-cache 或 Cache-Control: no-cache 字段,或者两者兼有。
+
+二、服务端返回不同。
+
+F5刷新服务端返回304 Not Modified；
+
+Ctrl + F5刷新返回HTTP状态码200，原因是Ctrl+F5在发出请求时，会在请求消息头中加入Cache-Control:no-cache，Pragma:no-cache参数。
+
+三、刷新结果不同。
+
+F5刷新按钮只对当前页面进行刷新，只刷新本地缓存；
+
+Ctrl + F5 的行为也是刷新页面，但是会把浏览器中的临时文件夹的文件删除再重新从服务器下载。
+
+比如某网站更新了 style.css 文件，如果单纯按 F5 刷新，那么当前页面还是使用未修改的 style.css 文件内容，如果按 Ctrl + F5 就会重新从服务器下载 style.css 文件，并使用修改后的 style.css 文件。
+
+踩坑记： go 服务内存暴涨
+https://www.v2ex.com/t/666257#reply151
+
+如何使用excel中的规划求解来快速优化
+https://www.jisilu.cn/question/59370
+
+
+鲲鹏计算产业发展白皮书
+https://mp.weixin.qq.com/s/gf_bl9bjkLQYMEmsTRZUpQ
+
+当人民币对美元汇率上升的时候，由于出口货物的收益下降，导致出口量的下降，会导致我国换取的美元减少，而相反的是进口收益增大，所以进口也会增加，导致花掉更多美元。这样，一定时间后，导致我国持有美元总量减少，导致我国对美元的需求增加，所以会导致美元的增值，也就是人民币对美元的汇率下降。同样的道理，如果人民币对美元下降的时候，由于进出口的作用，调节了我国持有美元的总量上升，而导致对美元的需求下降，这样反而会导致人民币的升值。
+
+作者：外贸精英
+链接：https://www.zhihu.com/question/358110678/answer/913763061
+
+净资产收益率与投入资本回报率的区别如下：百
+
+一、表达意思不同
+“roe”意思是：净资产度收益率。
+
+“roic”意思是：投入资本回报率。
+
+二、计算方式不同
+
+roe：roe的计算方式是净利润与平均股东权益的百分比。
+
+roic：roic的计算方式是息前税后问经营利润与投入资本答的比值。
+
+三、作用不同
+
+roe：roe主要是用于衡量公司运用自有资本的效率。
+
+roic：roic主要是用于衡量投出资金的使用效果，用来评估一个企业或其专事业部门历史绩效。
+
+
+roe反应公司为普通股股东创造的收益，
+roic反应的是公司为普通股股东以及债权人创造的收益
+
+
+ROIC高不代表ROE就高，因为二者中ROE的分子包含了非经常性的损益，比如公司出售了一项资产，所得的收益也会归为ROE的分子，而在计算ROIC的时候，非经常性损益是排除的，这样就会造成ROE可能高，但内是ROIC却是下滑的。
+如果公司的利润都是来自主业，那ROE高，ROIC也可能是降低的，因为ROE是净资产的收益速度，在分子不容变的情况下，公司大批举债，就会造成ROIC的分母变大，使得ROIC降低。
+
+一套最核心的投资体系
+https://xueqiu.com/6899105006/127947466
+https://xueqiu.com/6899105006/127947473
+https://xueqiu.com/6899105006/116963176
+
+因为市场长期看必然有效，所以需要估值模型是用来估算长期的安全边际的；但买卖发生在当下，而短期看，市场经常无效，股价短期的上涨和下跌根本不是基本面推动的，而仅仅是人类情绪和资金偏好的变化推动的估值的变化，因为这种无效的存在，所以即便是你精确的通过各种估值模型计算的“安全边际”，也可能被市场打的一文不值
+
+一般的投资者即使足够努力学习、累积经验，也只能成为一个优秀的投资者，但想要成为一个伟大的投资者几乎是不可能的。世界上伟大的投资者是极少数，因为伟大的投资者，他们所具备的价格和价值的发现能力，这并不是能通过后天的学习和累积产生的，发现好价格的能力几乎是天生的，对人性的和对市场的理解是无法复制的
+
+行业研报｜在线教育是个好生意吗？
+https://www.heibandongcha.com/7515.html#
+
+
+管理后台
+https://www.layui.com/admin/std/dist/views/
+https://github.com/artiely/vue-admin
+https://pro.iviewui.com/admin-pro/introduce
+https://adminlte.io/blog/free-admin-panels
+https://gitee.com/zlt2000/microservices-platform
+https://artiely.gitee.io/antd-admin/#/login2
+
+https://gitee.com/zlt2000/microservices-platform
+
+基于SpringBoot2.x、SpringCloud和SpringCloudAlibaba并采用前后端分离的企业级微服务多租户系统架构。并引入组件化的思想实现高内聚低耦合并且高度可配置化，适合学习和企业中使用。真正实现了基于RBAC、jwt和oauth2的无状态统一权限认证的解决方案，面向互联网设计同时适合B端和C端用户，支持CI/CD多环境部署，并提供应用管理方便第三方系统接入；同时还集合各种微服务治理功能和监控功能。模块包括:企业级的认证系统、开发平台、应用监控、慢sql监控、统一日志、单点登录、Redis分布式高速缓存、配置中心、分布式任务调度、接口文档、代码生成等等。
+
+
+前端框架bootstrap和layui的区别有哪些
+https://www.cnblogs.com/huaguo/p/11057282.html
+
+
+JSP 中的 Filter 过滤器和 Listener 监听器
+https://blog.csdn.net/dengliushuai/article/details/61622475
+
+组合
+http://www.myzaker.com/article/592ba0549490cba024000003/
+
+1）格雷厄姆股债平衡
+- 股和债各占一定比例
+- 50：50 股债平衡
+- 80% 债券 + 20% 股票 
+- 75% 股票  +25% 债券
+
+2）全天候策略 
+- 桥水基金全天候策略，就是求稳健收益的一种策略，基于风险均而不是资产均衡来确定投资组合中各资产的权重。
+- 全天候策略通过调整资产的预期风险和收益使得他们更匹配，优秀的金融机构通过创造一个更好的分散组合
+- 这个分散组合将有更好的收益风险比率，通俗的说就是尽量风险最小化利润最大化。
+- 债券基金、股票基金、黄金 ETF 和商品 ETF 各占一定比例
+- 55% 债券 + 30% 股票 + 10% 黄金 ETF + 5% 商品 
+
+3）美林时钟策略：根据不同的经济周期，在主要资产类别股票、债券、商品和货币之间做调整
+- 以均衡配置为基准，各占 25%，市场衰退期，提高债券基金的配置比例，大约为 70%，其他三类各占 10%。
+- 要对经济每个周期拐点有个准确的判断，要综合考虑市场估值、经济基本面、市场风格、监管政策的走向 
+
+4）目标风险型策略
+- 建一个投资策略组合，确保每年的回撤不超过一定比例，在此基础上，追求最大化收益。
+
+5）目标期限性策略
+- 投资组合中配置的权益类资产 = 100 - 当前你的年纪，比如，你现在 25 岁，能配置权益型基金 =75%
+
+6）哑铃式投资策略
+- 市场机会不在此就在彼，风险不在此也就在彼，投资于中间地带资产，既不能有效规避风险也不能获取尽可能高的收益
+- 而投资于两端，无论市场向何种极端演变，整个资产的抗击打能力都很强，无论机会出现在哪一端，资产组合也都能抓住。
+- 关键在于所选择的两类核心资产要有较大的差异性，相关性低，并且能在某一市场风格较为明显的时候，获取较好的收益。
+- 基于市场风格变动情况及交易成本的考量，每三个月调整一次即可。
