@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+     <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <script src="http://echarts.baidu.com/build/dist/echarts-all.js"></script>
+<style>
+h1, h2, h3 {
+    color: #fff;
+}
+</style>
+</head>
+<body style="background:#6A7FA6">
+    <div class="container-fluid">
+        <h1 class="text-center" >疫情大数据分析中心</h1>
+        <div class="row">
+            <div class="col-md-6">
+            <h2>体温状态</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div id="aaa" style="width:100%;height:300px;">
+                            <script>
+                                   var myChart = echarts.init(document.getElementById('aaa')); 
+                                   option = {
+
+    title : {
+        text: '今日统计',
+    },
+    tooltip : {
+        trigger: 'item',
+        formatter: "{a} <br/>{b} : {c} ({d}%)"
+    },
+    legend: {
+        orient : 'vertical',
+        x : 'right',
+        data:['正常','发热']
+    },
+    calculable : true,
+    series : [
+        {
+            name:'体温',
+            type:'pie',
+            radius : ['50%', '70%'],
+           data:[
+                {value:80, name:'正常'},
+                {value:20, name:'发热'},
+            ]
+        }
+    ]
+};
+myChart.setOption(option); 
+                            </script>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="bbb" style="width:100%;height:300px"></div>
+                            <script>
+                                   var myChart = echarts.init(document.getElementById('bbb')); 
+                                   option = {
+    title : {
+        text: '本周汇总统计',
+    },
+
+    tooltip : {
+        trigger: 'item',
+        formatter: "{a} <br/>{b} : {c} ({d}%)"
+    },
+    legend: {
+        orient : 'vertical',
+        x : 'right',
+        data:['正常','发热']
+    },
+    calculable : true,
+    series : [
+        {
+            name:'体温',
+            type:'pie',
+            radius : ['50%', '70%'],
+           data:[
+                {value:90, name:'正常'},
+                {value:10, name:'发热'},
+            ]
+        }
+    ]
+};
+myChart.setOption(option); 
+                            </script>
+
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div id="ccc" style="height:300px;"></div>
+    <script>
+                                   var myChart = echarts.init(document.getElementById('ccc')); 
+option = {
+    title : {
+        text: '发热人数趋势',
+    },
+    tooltip : {
+        trigger: 'axis'
+    },
+    legend: {
+        data:['发热人数']
+    },
+    calculable : true,
+    xAxis : [
+        {
+            type : 'value',
+            boundaryGap : [0, 0.01]
+        }
+    ],
+    yAxis : [
+        {
+            type : 'category',
+            data : ['2月1日','2月2日','2月3日','2月4日','2月5日','2月6日']
+        }
+    ],
+    series : [
+        {
+            name:'人数',
+            type:'bar',
+            data:[10, 8, 7, 9, 6, 12]
+        }
+    ]
+};
+
+myChart.setOption(option); 
+    </script>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h2>体温监控</h2>
+                <div class="table-responsive" style="background:#93B0CE">
+                        <table class="table table-striped">
+                          <thead>
+                            <tr>
+                              <th>姓名</th>
+                              <th>编号</th>
+                              <th>测温位置</th>
+                              <th>测温时间</th>
+                              <th>体温</th>
+                              <th>体温状态</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>赵楠楠</td>
+                              <td>100128</td>
+                              <td>大厅</td>
+                              <td>02-03 13:00</td>
+                              <td>36.1</td>
+                              <td>正常</td>
+                            </tr>
+                            <tr>
+                              <td>罗露露</td>
+                              <td>100120</td>
+                              <td>大厅</td>
+                              <td>02-03 13:10</td>
+                              <td>36.3</td>
+                              <td>正常</td>
+                            </tr>
+                            <tr>
+                              <td>张琪</td>
+                              <td>100118</td>
+                              <td>大厅</td>
+                              <td>02-03 13:30</td>
+                              <td>36.5</td>
+                              <td>正常</td>
+                            </tr>
+                            <tr>
+                              <td>王洋</td>
+                              <td>100178</td>
+                              <td>大厅</td>
+                              <td>02-03 14:00</td>
+                              <td>36.1</td>
+                              <td>正常</td>
+                            </tr>
+                            <tr>
+                              <td>赵楠楠</td>
+                              <td>100128</td>
+                              <td>大厅</td>
+                              <td>02-03 13:00</td>
+                              <td>36.1</td>
+                              <td>正常</td>
+                            </tr>
+                            <tr>
+                              <td>罗露露</td>
+                              <td>100120</td>
+                              <td>大厅</td>
+                              <td>02-03 13:10</td>
+                              <td>36.3</td>
+                              <td>正常</td>
+                            </tr>
+                            <tr>
+                              <td>张琪</td>
+                              <td>100118</td>
+                              <td>大厅</td>
+                              <td>02-03 13:30</td>
+                              <td>36.5</td>
+                              <td>正常</td>
+                            </tr>
+                            <tr>
+                              <td>王洋</td>
+                              <td>100178</td>
+                              <td>大厅</td>
+                              <td>02-03 14:00</td>
+                              <td>36.1</td>
+                              <td>正常</td>
+                            </tr>
+                            <tr>
+                              <td>赵楠楠</td>
+                              <td>100128</td>
+                              <td>大厅</td>
+                              <td>02-03 13:00</td>
+                              <td>36.1</td>
+                              <td>正常</td>
+                            </tr>
+                            <tr>
+                              <td>罗露露</td>
+                              <td>100120</td>
+                              <td>大厅</td>
+                              <td>02-03 13:10</td>
+                              <td>36.3</td>
+                              <td>正常</td>
+                            </tr>
+                            <tr>
+                              <td>赵楠楠</td>
+                              <td>100128</td>
+                              <td>大厅</td>
+                              <td>02-03 13:00</td>
+                              <td>36.1</td>
+                              <td>正常</td>
+                            </tr>
+                            <tr>
+                              <td>罗露露</td>
+                              <td>100120</td>
+                              <td>大厅</td>
+                              <td>02-03 13:10</td>
+                              <td>36.3</td>
+                              <td>正常</td>
+                            </tr>
+                            <tr>
+                              <td>张琪</td>
+                              <td>100118</td>
+                              <td>大厅</td>
+                              <td>02-03 13:30</td>
+                              <td>36.5</td>
+                              <td>正常</td>
+                            </tr>
+                            <tr>
+                              <td>王洋</td>
+                              <td>100178</td>
+                              <td>大厅</td>
+                              <td>02-03 14:00</td>
+                              <td>36.1</td>
+                              <td>正常</td>
+                            </tr>
+                            <tr>
+                              <td>王洋</td>
+                              <td>100178</td>
+                              <td>大厅</td>
+                              <td>02-03 14:00</td>
+                              <td>36.1</td>
+                              <td>正常</td>
+                            </tr>
+
+
+
+                          </tbody>
+                        </table>
+                      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
