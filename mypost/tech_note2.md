@@ -453,7 +453,15 @@ InfraredCounterParser InfraredCounterHandler InfraredCounterSender 等字符串�
 
 ### Eclipse
 
+- 文件名查找 Ctrl+shift+r
 - 格式化代码：Ctrl + Shift + F
+- outline 搜索：ctrl + o
+- 快速找到变量或方法的调用处：Ctrl+Shift+G
+- 快速进入方法：F3 或 Ctrl+点击方法名
+- 快速切换编辑的文件：Ctrl+E快捷键
+- 光标间切换：Alt+左右方向键
+
+https://jingyan.baidu.com/article/f7ff0bfc3ecb122e26bb13b6.html
 
 参考链接：
 
@@ -1142,6 +1150,8 @@ ln -s /root/node-v8.9.3-linux-x64/bin/npm /usr/local/bin/npm
 npm -v
 npm install -g cnpm --registry=https://registry.npm.taobao.org
 
+npm config set registry http://registry.npm.taobao.org/
+
 alias cnpm="npm --registry=https://registry.npm.taobao.org \
 --cache=$HOME/.npm/.cache/cnpm \
 --disturl=https://npm.taobao.org/dist \
@@ -1152,6 +1162,7 @@ $ forever start app.js          #启动
 $ forever stop app.js           #关闭
 $ forever start -l forever.log -o out.log -e err.log app.js   #输出日志和错误
 
+## nginx
 
 ## Apache backend for www.quancha.cn ##
 upstream apachephp  {
@@ -1863,13 +1874,7 @@ https://www.cnblogs.com/liuxianan/p/disable-chrome-extension-warning.html 真够
 
 
 
-## 重装系统
 
-备份
-
-- chrome 收藏夹
-- putty 配置
-- git key
 
 
 至强CPU多数都是可以配置多路的，就是多个CPU放在同一个板子上，这一点是i7无法做到的。
@@ -2230,6 +2235,17 @@ rsync也可以通过校验和比较文件。
 --size-only这意味着rsync将跳过大小匹配的文件，即使时间戳不同。这意味着它将同步比默认行为更少的文件
 
 --ignore-times 这意味着rsync将检查每个文件的和，即使时间戳和文件大小匹配。这意味着它将同步比默认行为更多的文件。
+
+
+kvm vnc
+
+
+vnc viewer连接kvm虚拟机连接不上的解决方法
+https://blog.csdn.net/kepa520/article/details/50329505
+
+video vga里变成了qxl，调回vga
+
+
 
 
 rsync “Operation not permitted”
@@ -2667,8 +2683,7 @@ http://www.sohu.com/a/223781695_413876
     
     # 用 parted 进行大分区
     parted /dev/vdb
-        mklable
-            gpt
+        mklabel gpt
         print
         mkpart primary 0 -1   # 0表示分区的开始  -1表示分区的结尾  意思是划分整个硬盘空间为主分区        
         
@@ -3457,6 +3472,13 @@ CLASSPATH环境变量。作用是指定类搜索路径，要使用已经编写�
  
  
  ## git
+
+git diff master origin/dev --stat
+git diff master origin/dev config.py
+ 
+删除远程分支
+
+git push origin --delete dev
  
 git config --global core.editor vim
 git config --global core.autocrlf true
@@ -5179,6 +5201,15 @@ https://baijiahao.baidu.com/s?id=1632228588716085927&wfr=spider&for=pc
 https://www.template.net/business/brochure/product-brochure-template/
 
 # vim
+
+# vimrc
+set nocp nu ts=4 sw=4 sta et hls si
+color desert
+syntax on
+filetype plugin indent on
+
+autocmd FileType html colorscheme default | set fdm=indent nofoldenable
+autocmd BufNewFile,BufRead *.html,*.htm,*.css,*.js set noet ts=2 sw=2
 
 3，屏幕滚动：
 
@@ -7802,9 +7833,10 @@ hosts=(
     "user@host2"
     "user@host3"
 )
+
 while true
 do
-    printf "%-15s %-10s %-10s %-10s\n" host cpu mem disk
+    printf "%-15s %-15s %-10s %-10s %-20s\n" host cpu mem disk load
     for host in "${hosts[@]}"
     do
         ssh $host '
@@ -7812,21 +7844,18 @@ do
             cpu=$(grep "cpu " /proc/stat | awk "{usage=(\$2+\$4)*100/(\$2+\$4+\$5)} END {print usage \"%\"}")
             mem=$(free | grep Mem | awk "{print \$3/\$2 * 100.0 \"%\"}")
             disk=$(df -hl / | grep / | awk "{print \$5}")
-            printf "%-15s %-10s %-10s %-10s\n" $host $cpu $mem $disk
+            load=$(cat /proc/loadavg | awk "{print \$1\",\"\$2\",\"\$3}")
+            printf "%-15s %-15s %-10s %-10s %-20s\n" $host $cpu $mem $disk $load
         '
     done
     sleep 1
 done
 
+
 # ./monitor.sh
-host            cpu        mem        disk
-host1           1.48722%   8.83007%   27%
-host2           0.118079%  1.0747%    4%
-host3           0.115354%  1.0558%    4%
-host            cpu        mem        disk
-host1           1.48722%   8.83314%   27%
-host2           0.11808%   1.0748%    4%
-host3           0.115355%  1.05625%   4%
+user@host1       0.0348016%      1.74837%   3%         0.00,0.00,0.00
+user@host2       0.0370607%      1.31528%   3%         0.00,0.00,0.00
+user@host3       0.053345%       1.32445%   3%         0.04,0.03,0.00
 
 
 
@@ -8614,6 +8643,10 @@ time_matmul(x)
 
 EOF
 
+每隔 30 分钟定时锁屏休息
+SCHTASKS /Create /SC MINUTE  /MO 30 /TN 定时锁屏 /TR "%windir%\system32\rundll32.exe user32.dll,LockWorkStation"
+
+
 限制 GPU 使用率
 https://stackoverflow.com/questions/34199233/how-to-prevent-tensorflow-from-allocating-the-totality-of-a-gpu-memory
 How to prevent tensorflow from allocating the totality of a GPU memory?
@@ -8635,3 +8668,3027 @@ TF_FORCE_GPU_ALLOW_GROWTH=true python 008.py
 
 sudo 命令继承当前环境变量
 sudo -E xxx
+
+
+
+Free Ping and Traceroute Tool
+https://www.manageengine.com/free-ping-tool/free-ping-tool-index.html
+
+
+
+FreeFileSync(免费文件同步工具) v10.18中文版
+http://www.pc6.com/softview/SoftView_46868.html
+
+免费个人数据备份软件介绍：FreeFileSync、Syncthing
+https://cloud.tencent.com/developer/news/180449
+
+
+FreeFileSync我用在离线备份，定期接上移动硬盘，打开同步方案，同步一下。
+
+Syncthing我用在在线远程备份。
+
+FreeFileSync可以保持2个文件夹同步，支持本地文件夹、网上邻居、FTP。文件比较根据文件更新时间、大小（1T几分钟就可以检查完）或者内容（很慢，没试过）比较。可以后台自动同步。带简单的版本管理。可以建立配置文件，保存多个同步方案。使用非常简单，选择2个目录，检查不同，同步即可。
+
+
+文件同步软件：filegee，FreeFileSync，goodsync，坚果云，nextcloud，seafile,syncthings
+
+
+git apply是另外一种打patch的命令，其与git am的区别是，git apply并不会将commit message等打上去，打完patch后需要重新git add和git commit，而git am会直接将patch的所有信息打上去，而且不用重新git add和git commit,author也是patch的author而不是打patch的人
+
+
+How to resolve ALL conflicts using HEAD, with any mergetool
+https://stackoverflow.com/questions/20229222/how-to-resolve-all-conflicts-using-head-with-any-mergetool
+
+git reset --hard HEAD
+git merge -Xours origin/master
+
+Git – Resolve Merge Conflicts
+https://easyengine.io/tutorials/git/git-resolve-merge-conflicts/
+git checkout --ours PATH/FILE
+git checkout --theirs PATH/FILE
+
+git checkout --conflict=merge .
+git checkout --ours .
+
+
+如何用git命令生成Patch和打Patch
+https://www.cnblogs.com/ArsenalfanInECNU/p/8931377.html
+
+# A
+git format-patch HEAD^^
+# B
+git apply --stat 0002-.patch
+git apply --check 0002-.patch
+git apply  0002-.patch
+git checkout --theirs packages/notebook-extension/src/index.ts
+
+### 装机必备：
+Everything
+VNC Viewer
+Putty
+WinSCP
+Notepad++
+FileZilla
+Foxmail
+Git
+7-zip
+Python
+VS Code
+WPS Office
+Chrome
+QQ 拼音
+ReplaceGoogleCDN-master
+
+## 重装系统
+
+备份
+
+- chrome 收藏夹
+- putty 配置
+- git key
+- 我的文档，图片
+
+
+
+现在坚果云有 4 条相当清晰的产品线：面向个人用户有免费的普通版和付费的专业版，另外还有为中小企业提供的团队版，以及适合大企业使用的企业版。他们的个人用户和中小企业用户基本各占一半。
+
+易用安全，两个坚持了 6 年的原则
+
+在韩竹看来，坚果云的最大优势在于易用和安全。
+
+
+
+mkdir ~/.pip/
+
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade pip
+pip install jupyterlab==2.0.0a1
+curl -sL https://deb.nodesource.com/setup_12.x |  bash -
+apt-get install nodejs
+
+
+main.aed71038718d8fcdfab8.js
+vendors~main.f0b5361fc5ec3d5b3d77.js
+
+terminal should be login shell, not interactive shell
+https://github.com/jupyterlab/jupyterlab/issues/3094
+
+
+Ubuntu修改默认sh为bash
+
+查看当前 shell
+ps -p $$
+echo $0
+
+修改默认 shell
+
+usermod -s /bin/bash root
+sudo -u root chsh -s /bin/bash
+dpkg-reconfigure bash
+Change Shell To Bash in Linux / Unix
+https://www.cyberciti.biz/faq/how-to-change-shell-to-bash/
+
+
+Python中使用rrdtool结合Django进行带宽监控
+https://blog.csdn.net/orangleliu/article/details/52851122
+python3 rrdtool 使用
+https://www.cnblogs.com/FRESHMANS/p/8427737.html
+
+yum install rrdtool-devel python36-devel
+pip install rrdtool
+
+
+import rrdtool
+import time
+
+cur_time = str(int(time.time()))  # 获取当前Linux时间戳作为rrd起始时间
+# 数据写频率--step为300秒(即5分钟一个数据点)
+rrd = rrdtool.create('/root/xls/Flow.rrd', '--step', '300', '--start', cur_time,
+　　　　　　　　　　　　 #定义数据源ens32_in(入流量)、ens32_out(出流量)；类型都为COUNTER(递增)；600秒为心跳值,其含义是600秒没有收到值，则会用UNKNOWN代替；0为最小值；最大值用U代替，表示不确定
+                     'DS:ens32_in:COUNTER:600:0:U',　　'DS:ens32_out:COUNTER:600:0:U',
+                     #RRA定义格式为[RRA:CF:xff:steps:rows]，CF定义了AVERAGE、MAX、MIN三种数据合并方式
+　　　　　　　　　　　　 #xff定义为0.5，表示一个CDP中的PDP值如超过一半值为UNKNOWN，则该CDP的值就被标为UNKNOWN
+　　　　　　　　　　　　 #下列前4个RRA的定义说明如下，其他定义与AVERAGE方式相似，区别是存最大值与最小值
+　　　　　　　　　　　　 'RRA:AVERAGE:0.5:1:600',
+                     'RRA:AVERAGE:0.5:6:700',
+                     'RRA:AVERAGE:0.5:24:775',
+                     'RRA:AVERAGE:0.5:288:797',
+　　　　　　　　　　　　　
+                     'RRA:MAX:0.5:1:600',　　　　　　# 每隔5分钟(1*300秒)存一次数据的最大值,存600笔，即2.08天
+                     'RRA:MAX:0.5:6:700',　　　　　　# 每隔30分钟(6*300秒)存一次数据的最大值,存700笔，即14.58天（2周）
+                     'RRA:MAX:0.5:24:775',　　　　　 # 每隔2小时(24*300秒)存一次数据的最大值,存775笔，即64.58天（2个月）
+                     'RRA:MAX:0.5:444:797',　　　　　# 每隔24小时(288*300秒)存一次数据的最大值,存797笔，即797天(2年)
+                     'RRA:MIN:0.5:1:600',
+                     'RRA:MIN:0.5:6:700',
+                     'RRA:MIN:0.5:24:775',
+                     'RRA:MIN:0.5:444:797')
+if rrd:
+    print (rrdtool.error())
+	
+	
+reate filename [--start|-b start time] [--step|-s step] [DS:ds-name:DST:heartbeat:min:max] [RRA:CF:xff:steps:rows]方法，创建一个后缀为rrd的rrdtool数据库，参数说明如下：
+
+filename创建的rrdtool数据库文件名，默认后缀为.rrd；
+
+--start指定rrdtool第一条记录的起始时间，必须是timestamp的格式；
+
+--step指定rrdtool每隔多长时间就收到一个值，默认为5分钟；
+
+DS用于定义数据源，用于存放脚本的结果的变量；
+
+DST用于定义数据源类型，rrdtool支持COUNTER（递增类型）、DERIVE（可递增可递减类型）、ABSOLUTE（假定前一个时间间隔的值为0，再计算平均值）、GUAGE（收到值后直接存入RRA）、COMPUTE（定义一个表达式，引用DS并自动计算出某个值）5种，比如网卡流量属于计数器型，应该选择COUNTER；
+
+RRA用于指定数据如何存放，我们可以把一个RRA看成一个表，保存不同间隔的统计结果数据，为CF做数据合并提供依据，定义格式为：[RRA:CF:xff:steps:rows]；
+
+CF统计合并数据，支持AVERAGE（平均值）、MAX（最大值）、MIN（最小值）、LAST（最新值）4种方式。
+
+
+Python3.6关于python-rrdtool报错的问题
+https://blog.csdn.net/Mr_Yang__/article/details/81145329
+https://pythonhosted.org/rrdtool/install.html#source-code
+
+
+yum install -y gettext libffi pcre glib libpng freetype fontconfig pixman cairo fribidi graphite2 icu4c harfbuzz pango libtiff-devel.x86_64
+
+wget https://oss.oetiker.ch/rrdtool/pub/rrdtool-1.5.6.tar.gz
+
+tar zxvf rrdtool-1.5.6.tar.gz
+cd rrdtool-1.5.6
+./configure --prefix=/usr/local/rrdtool
+make && make install
+
+ln -s /usr/local/lib/librrd* /usr/lib/
+git clone https://github.com/commx/python-rrdtool.git
+cd python-rrdtool
+python setup.py install
+
+
+CentOS 6.X 安装中文字体
+https://blog.csdn.net/wh211212/article/details/78730474
+# 中文
+yum install -y fontconfig mkfontscale
+fc-list
+fc-list :lang=zh
+
+unzip win-fonts.zip -d /usr/share/fonts/
+cd /usr/share/fonts/
+mkfontscale
+mkfontdir
+fc-cache
+
+
+export FLASK_ENV=production
+flask run --port 8001
+
+
+4 年 Java 经验面试总结、心得体会 - 程序员囧辉的文章 - 知乎
+https://zhuanlan.zhihu.com/p/79224082
+
+面试挂了阿里却拿到网易offer，一个三年Java程序员的面试总结！ - <em>Java</em>架构师的文章 - 知乎
+https://zhuanlan.zhihu.com/p/61449992
+
+专业技能方面
+- 基础：JDK 常用类的原理、源码、使用场景。
+- 设计模式：常用几种的原理、使用场景，单例、动态代理、模板、责任链等。
+- 数据结构：数组、链表、栈、队列、树。
+- 网络：TCP、HTTP、HTTPS、负载均衡算法。
+- 框架：Spring IoC 原理、Spring AOP 原理和使用、Spring 常用的扩展点、MyBatis 的核心流程。
+- 中间件：常用中间件的核心原理与最佳实践，并对其中的 1 到 2 个有深入的学习，Redis、Kafka（RocketMQ、RabbitMQ）、Dubbo、Zookeeper。
+- 数据库（MySQL）：索引原理、隔离级别、锁机制、分库分表、慢 SQL 定位及优化、线上问题解决。
+- Netty：NIO 原理、核心组件、I/O 多路复用（epoll）、零拷贝。
+- JVM：运行时数据区、垃圾回收算法、垃圾回收器（CMS、G1）、常用配置参数、线上问题定位及解决。
+- 稳定性保障：隔离、限流、熔断、降级等。
+- Linux：基本命令的使用、快速定位和排查问题。
+- 分布式理论：CAP、BASE、2PC、3PC、TCC。
+
+项目方面
+- 能独立完成一个复杂模块的需求分析、方案设计和最终落地实现。
+- 能不断思考，寻找更优的设计和解决方案，积极优化慢 SQL、慢服务。
+- 具备排查问题的能力，遇到线上问题能及时定位和修复上线，例如：数据库死锁、服务器宕机、服务器 Full GC 频繁等。
+- 具备难题攻关的能力，能不断解决项目遇到的挑战，能给予初级工程师技术上的指导。
+- 初步具备带领团队（1-3人左右）的能力，能合理分配需求，做好进度把控、风险评估、Code Review。
+
+
+常见的如以下：
+
+介绍下你参与度最高的项目
+画下项目的架构图
+如果核心流程处理到一半，服务器崩溃了，会怎么处理
+项目中遇到过哪些挑战或问题，怎么解决的
+项目的稳定性和可用性怎么保障
+数据安全这块怎么设计
+项目的技术选型，为什么选这些
+
+
+Hr 面主要是了解候选人的一些通用素质，经常会问的问题如下：
+
+介绍下自己投入最多的项目（当时我就惊了，Hr 也开始问项目了）
+离职的原因
+当前的薪资、绩效
+当前在面试的其他公司的情况
+平时有没有学习的习惯，怎么学习的，现在在学习什么
+未来的规划
+
+1. 我是谁 （1句话）
+2. 我的三个亮点，最近最相关的经历？（3句话）
+3. 我为什么想要这份工作？（1句话）
+
+
+
+
+jupyter labextension list
+jupyter kernelspec list
+
+jupyterlab+nodejs
+
+npm config set registry=https://registry.npm.taobao.org
+npm config set prefix $HOME
+npm config set unsafe-perm true
+npm install -g ijavascript
+ijsinstall
+
+apt-get update
+apt install r-base-core
+
+jupyter labextension install jupyterlab-drawio
+jupyter labextension install @jupyterlab/toc
+jupyter labextension install jupyterlab_voyager
+
+apt-get install git
+git clone https://github.com/SpencerPark/IJava.git
+cd IJava/
+chmod u+x gradlew && ./gradlew installKernel
+
+
+echo 'export GOPATH=~/go' >> ~/.bashrc
+source ~/.bashrc
+go get -u github.com/gopherdata/gophernotes
+mkdir /usr/local/share/jupyter/kernels/gophernotes
+cp $GOPATH/src/github.com/gopherdata/gophernotes/kernel/* /usr/local/share/jupyter/kernels/gophernotes
+cd /usr/local/share/jupyter/kernels/gophernotes
+
+
+A gallery of interesting Jupyter Notebooks
+https://github.com/jupyter/jupyter/wiki/A-gallery-of-interesting-Jupyter-Notebooks
+
+利器|JupyterLab 数据分析必备IDE完全指南
+https://zhuanlan.zhihu.com/p/67959768
+
+
+nodejs jupyterlab-extension
+https://www.npmjs.com/search?q=keywords%3Ajupyterlab-extension
+
+
+How to fix ‘Configuring tzdata’ interactive input when building Docker images
+https://techoverflow.net/2019/05/18/how-to-fix-configuring-tzdata-interactive-input-when-building-docker-images/
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+
+Recursive sub folder search and return files in a list python
+Recursive sub folder search and return files in a list python
+
+
+How can I detect only deleted, changed, and created files on a volume? NTFS
+https://stackoverflow.com/questions/7421440/how-can-i-detect-only-deleted-changed-and-created-files-on-a-volume/7459109#7459109
+
+演练：创建传统的 Windows 桌面应用程序C++
+https://docs.microsoft.com/zh-cn/cpp/windows/walkthrough-creating-windows-desktop-applications-cpp?view=vs-2017
+https://docs.microsoft.com/zh-cn/windows/win32/LearnWin32/learn-to-program-for-windows
+
+精通Windows API 范文庆/周彬彬/安靖著 中文 PDF版 [50M]
+https://www.jb51.net/books/67342.html
+
+C++ 中 Windows 编程概述
+https://docs.microsoft.com/zh-cn/cpp/windows/overview-of-windows-programming-in-cpp?view=vs-2017
+
+wtl学习总结
+https://www.cnblogs.com/wliangde/p/4259281.html
+
+
+VS2015支持windowsxp
+https://blog.csdn.net/kl222/article/details/54376591
+
+1. 项目菜单->项目属性->配置属性->常规->平台工具集，选择“VS2013WindowsXP(v120_xp)”;
+2. 项目菜单->项目属性->配置属性->常规->MFC的使用，选择使用标准Windows库;如果选用静态库编译的话选用静态库中选用MFC。
+3. 项目菜单->项目属性->配置属性->常规->字符集中使用多字节字符集或使用Unicode字符集
+4. 项目菜单->项目属性->链接器->系统->子系统->控制台或窗口windows（根据你的项目类型选择），第二项版本号设成5.01。
+
+
+Visual Studio 2015 - Windows XP (v140_xp) 编译工具 ucrtbased.dll缺失
+https://blog.csdn.net/atceedsun/article/details/53583824
+
+
+
+VS2017编译在XP环境下运行的程序
+https://blog.csdn.net/qq_41917908/article/details/83512386
+
+
+如果VS2017生成的程序在xp系统提示缺少VCRUNTIME140D.dll，这是因为程序采用了动态编译，只要进行静态编译即可解决
+如下图所示，使用多线程MT就可以解决这个问题。C/C++ / 代码生成，运行库，选择多线程（/MT）
+
+但是问题又来了，VS2017以MT方式链接编译出来的exe还是没法在xp下正常运行，这是因为PE文件中的主系统版本号，不选子系统的情况下默认是6，也就是win7，我们还得修改版本号来适配XP
+
+多线程MT和多线程MD的区别
+https://www.cnblogs.com/mod109/p/3762604.html
+
+对于多线程MT的程序来说，其连接的是libcmt.lib,该文件属于C语言运行时库，整个lib都会连接到PE文件当中。而多线程MD的程序链接的却是类似msvcpXXX.dll，该文件属于微软运行时库.也就是说如果是多线程MD编译出来的文件运行时都会加载相应版本的运行时库，当如果找不到运行时库就会报错而无法运行，同时如果运行时库不匹配也会出现各种意料之外的崩溃或者程序根本跑不起来等情况。
+
+
+QUIC协议学习记录
+https://www.cnblogs.com/mod109/p/7372577.html
+
+
+首先介绍一下可以打包Python代码的工具：
+
+py2exe: 这个是知名度最高的，但是好像不太适合新手，需要各种库，用起来比较繁琐，不推荐。
+pyinstaller : 可以只是生成单独的可执行程序。 最新版本为3.2.1 Stable, supports Python 2.7, 3.3–3.7。 可以自定义图标。 跨平台，兼容性良好。
+
+cx_Freeze :
+这个打包质量挺好，操作也简单。缺点是不能生产单独的可执行文件，结果就是exe文件被淹没在众多文件中，看着不高大上。
+
+WIN32下的按钮标准控件
+https://blog.csdn.net/zhangkai19890929/article/details/90069188
+
+首先在win32下所有的控件其实都是子窗口.，所以我们收到WM_CREATE消息后，创建控件的.
+
+“WCHAR *”类型的实参与"const char *"类型的形参不兼容
+https://blog.csdn.net/u012686154/article/details/86241162
+https://www.cnblogs.com/dbylk/p/3696367.html
+
+通过查看LPCSTR的定义：
+
+typedef _Null_terminated_ CONST CHAR *LPCSTR, *PCSTR; 
+可以知道LPCSTR代表了const char *类型，它是一个指向以'\0'结尾的8位（单字节）ANSI字符数组的常量指针，
+
+而const wchar_t *类型是一个指向'\0'结尾的16位（双字节）Unicode字符数组的常量指针.
+
+在VS2013编译器中直接输入的字符串常量（如“abc”）默认是以const char *的格式（即ANSI编码）储存的，因此会导致类型不匹配的编译错误。
+
+ 
+
+解决的办法有两个：
+
+第一个方法是右击“解决方案资源管理器”中的项目，“属性→配置属性→常规→项目默认值→字符集”，默认的选项是“使用多字节字符集”，将它改为“使用Unicode字符集”即可。
+
+这样，输入的字符串会默认以const wchar_t *格式储存。
+
+第二个方法是使用_T宏，它在“tchar.h”中定义，它能够自动识别当前编译器字符串的储存格式并做出相应转换，避免这种类型的编译错误。
+
+具体使用方法为：将“abc”改为_T("abc")。
+
+
+[原创]Win32 编程进阶:打造自己的标准控件
+https://bbs.pediy.com/thread-129283.htm
+
+使用Win32/ATL建立窗口的过程
+https://www.cnblogs.com/liangxiaofeng/p/5066026.html
+
+有时候想写个几十kb的小程序，MFC实在是太大了，Win32有时又太麻烦，怎么办呢？用ATL写会更方便和轻量级一些 ATL和MFC不同的是，ATL并没有强制性封装WinMain函数，仅封装了WndProc，所以使用ATL写Windows程序有很高的自由度
+
+
+WTL,ATL与MFC之比较
+https://blog.csdn.net/jack_incredible/article/details/7962488
+
+
+早期的VC++开发者们发现了MFC(Microsoft Foundation Classes) 这样一个好东东。他们发现，MFC提供了一个强大的类库，很好的满足了面向对象编程的需要。随着泛型编程技术的发展和时间的推移，慢慢地，他们慢慢觉得MFC的类库过于庞大和宽泛，而且它提供的模板库只覆盖了很有限的领域。于是，ATL应运而生。
+
+ATL(Active Template Library),简称活动模板库。ATL的设计者们通过它来它提供快速的COM组件封装。ATL很好地体现了用模板进行编程的思想。如果模板设计得当，就很容易灵活的适应各种不同的需求，而且更容易跟进新技术的发展需求。
+
+但是，作为泛型编程的爱好者们始终要面对的一个主要难题，那就是如何方便地进行图形用户界面（GUI）设计。因为ATL只是提供了对Win32/64窗口的低级封装，因此ATL的使用者们在用ATL进行COM开发的同时，不得不借助于MFC来进行COM组件的UI编程。因为在GUI方面，ATL确实是爱莫能助。
+
+WTL(Windows Template Library)在体现模板编程思想的同时，对模板进行了很好的高级封装，很好的满足了UI编程的各种需求。这也是WTL设计者们的用意所在。在用WTL生成应用程序的时候不需要将DLL文件与EXE文件一起交付给用户，而且，WTL又有很好的兼容性。你可以将它与ATL, STL, VC++ 数据模板，第三方模板，或者你自己的模板这几种中的任何一种一起使用。正因为这些特点，使得当前WTL成为了大部分高级的C++开发者们进行UI设计时的首选。
+
+
+
+https://www.nuget.org/packages/wtl
+
+
+Fake Everything
+Everything的原理猜想与实现
+https://github.com/Artwalk/Fake-Everything
+
+
+Windows平台Python编程必会模块之pywin32
+https://www.cnblogs.com/achillis/p/10462585.html
+
+
+
+使用 ps 命令查看进程启动的精确时间和启动后所流逝的时间
+ps -eo pid,lstart,etime,cmd | grep nginx
+
+查看CPU最高的进程
+ps -aux --sort=-pcpu|head -10
+
+linux锁定用户和解锁用户
+https://blog.csdn.net/qq_37699336/article/details/80296670
+
+1、禁止个别用户登录。比如禁止lynn用户登录。
+passwd -l test
+这就话的意思是锁定test用户，这样该用户就不能登录了。
+passwd -u test
+对锁定的用户lynn进行解锁，用户可登录了。
+
+3、禁止所有用户登录。
+touch /etc/nologin
+除root以外的用户不能登录了！
+
+change-journals USN
+https://docs.microsoft.com/zh-cn/windows/win32/fileio/change-journals
+
+How to get the 'NextUSN' journal entry for a VSS snapshot?
+https://stackoverflow.com/questions/10544433/how-to-get-the-nextusn-journal-entry-for-a-vss-snapshot
+VSS（卷影拷贝服务）与snapshot优缺点及区别
+https://blog.csdn.net/frankarmstrong/article/details/77370253
+
+
+关于NTFS-MFT
+https://www.jianshu.com/p/8471b7f4152a
+
+引导扇区是从NTFS文件系统的第一个扇区开始，以55 AA结尾。我们主要关注前88字节的信息，其中重要的就是“NTFS”标识、扇区大小、每簇扇区数、MFT起始簇以及MFT备份MFTMirr位置这些信息。
+
+https://www.cnblogs.com/mwwf-blogs/archive/2015/05/04/4467687.html
+
+How do we access MFT through C#
+https://stackoverflow.com/questions/21661798/how-do-we-access-mft-through-c-sharp
+
+NtfsReader .NET Library
+https://sourceforge.net/projects/ntfsreader/
+
+Undelete a file in NTFS
+https://www.codeproject.com/Articles/9293/Undelete-a-file-in-NTFS
+
+
+选择C/C++ -> 常规 -> 调试信息格式 -> 选择 程序数据库 (/Zi)
+
+
+wchar_t DWORD WORD _T _L 的区
+https://bbs.csdn.net/topics/350023270
+32 bit windows:
+
+wchar_t :宽字节变量类型，用于表示Unicode字符，
+
+它实际定义在<string.h>里：typedef unsigned short wchar_t。
+
+DWORD 四字节无符号整数， unsigned long
+
+WORD 二字节无符号整数    unsigned short long
+
+为了让编译器识别Unicode字符串，必须以在前面加一个“L”,如
+
+wchar_t a[] = L"Hello!" ;
+
+
+_T( )是定义在头文件tchar.h中的宏，视是否定义了_UNICODE宏而定义成： 
+定义了_UNICODE：    #define _T(x) L##x 
+没有定义_UNICODE： #define _T(x) x 
+
+Converting contents of a byte array to wchar_t*
+https://stackoverflow.com/questions/13887348/converting-contents-of-a-byte-array-to-wchar-t
+
+
+终于理解了什么是LGPL
+https://www.cnblogs.com/findumars/p/3556883.html
+
+因 此LGPL协议的开源 代码很适合作为第三方类库被商业软件引用，但不适合希望以LGPL协议代码为基础，通过修改和衍生的方式做二次开发的商业软件采用。
+
+假设我们使用一个名为 Lib 的库，这个库是基于 LGPL协议发布的。如果你使用 Lib.dll 做动态链接（Windows 下），好，一切 OK。无论你的程序怎么样，你都可以做你所做的事情。
+
+如果你因某种原因必须静态链接一个基于 LGPL 协议发布的库（一下我们简称为 LGPL 库），那么，你有义务进行下面的工作：
+
+你必须在你的文档中说明，你的程序中使用了 LGPL 库，并且说明这个库是基于 LGPL 发布的；
+你必须在你的应用程序发布中包含一份 LGPL协议，通常就是那个文本文件；
+你必须开放使用了 LGPL 库代码的所有代码，例如某些封装器。但是，其他使用这些封装器的代码就不需要开放了；
+你必须包含你的应用程序的余下部分的目标文件（通常就是我们所说的 .o 等等），或者是其他等价的文件。源代码并不是必须的。
+
+WinForm ListView虚拟模式加载数据 提高加载速度
+https://www.cnblogs.com/kest/p/4659421.html
+C# ListView双缓存代码，解决闪屏问题
+https://www.cnblogs.com/94cool/archive/2013/02/06/2899995.html
+BinarySearch limits for numbers within range
+https://stackoverflow.com/questions/8912613/binarysearch-limits-for-numbers-within-range
+
+倒排索引
+C# Inverted Index Example
+https://www.dotnetperls.com/inverted-index
+https://stackoverflow.com/questions/2110142/writing-an-inverted-index-in-c-sharp-for-an-information-retrieval-application
+C# algorithm for N-gram
+https://stackoverflow.com/questions/3829110/c-sharp-algorithm-for-n-gram
+N-gram and Fast Pattern Extraction Algorithm
+https://www.codeproject.com/articles/20423/n-gram-and-fast-pattern-extraction-algorithm
+http://jakemdrew.com/blog/ngram.htm
+
+严格遵守 GPL 的代码如何商用？
+https://www.zhihu.com/question/19703551
+
+GPL 只是规定用户在获取你的程序的时候必须可以获得源代码，但并没有规定必须免费，因此理论上说，你仍然可以收取费用。不过，由于 GPL 规定你不得阻止用户再分发，因此用户完全可以从你这里买来代码之后再免费送给所有其它人，因此对于 GPL 代码想要收费发布难度是很大的，目前比较可行的办法是像 Redhat 那样，通过提供订阅和服务的方式来收费，提供一些额外的增值服务吸引用户交费。
+
+
+/usr/bin/pipework br0 -i eth0 d_centos_ebms 1.1.1.1/23@2.2.2.2
+
+
+Docker：使用pipework配置docker网络
+https://www.cnblogs.com/1994ghj/p/5008287.html
+https://my.oschina.net/guol/blog/345038
+
+Pipework是一个Docker配置工具，是一个开源项目，由200多行shell实现。
+
+Pipework是一个集成工具，需要配合使用的两个工具是OpenvSwitch和Bridge-utils。
+
+FileLocator使用指南
+https://blog.csdn.net/code4101/article/details/83029094
+FileLocator Pro：强大高效的无索引全文搜索软件
+https://blog.csdn.net/oLanLanXiaRi/article/details/48250711
+
+文件搜索一直是大家平时最常用的功能之一。在搜索文件名方面，目前已有不少软件做到了极致，比如 Everything ( 官网 | 介绍 ) 以及 操作新颖的晚辈 Listary Pro ( 官网 | 介绍 ) 都是此领域之佳品。但有时，仅通过文件名并不足以快速找到所需文件和内容。因此，支持全文搜索的软件，也是重度知识管理、搜索用户的必备工具。这方面的解决方案中，Windows自带的索引功能，因为效率和占用资源问题，基本被用户抛弃（新版本有改进）。Google桌面及百度桌面，都基本停止更新。CDS（Copernic Desktop Search） 在国外有一定知名度，提供了免费家用版、专业版、企业版，但因为早期中文支持不佳，在国内用户极少（据称最新版本对中文支持极好）。倒是开源免费、小巧绿色的 Locat32 和开源免费、跨平台的 DocFetcher 得到了国内用户的青睐。
+
+今天 LYcHEE 所介绍的，是另一款全文检索软件 FileLocator Pro ( 介绍 | 中文帮助 )。相比同类软件，它的特点是：支持更多格式与压缩包，搜索速度更快，无索引不占硬盘空间、支持 多种搜索规则 及 日期、属性等细节设定。FileLocator Pro 在国内的影响正大迅速扩大，相关介绍文章还可参见小众软件、精品绿色便携软件。
+
+
+在docker使用devicemapper作为存储驱动时，默认每个容器和镜像的最大大小为10G。如果需要调整，可以在daemon启动参数中，使用dm.basesize来指定，但需要注意的是，修改这个值，不仅仅需要重启docker daemon服务，还会导致宿主机上的所有本地镜像和容器都被清理掉。
+
+使用aufs或者overlay等其他存储驱动时，没有这个限制。
+
+无论宿主机有多少个cpu或者内核，--cpu-shares选项都会按照比例分配cpu资源。另外只有一个容器时--cpu-shares选项无意义。
+
+$ docker run -it --rm --cpu-period=100000 --cpu-quota=200000 u-stress:latest /bin/bash
+这样的配置选项是不是让人很傻眼呀！100000 是什么？200000 又是什么？ 它们的单位是微秒，100000 表示 100 毫秒，200000 表示 200 毫秒。它们在这里的含义是：在每 100 毫秒的时间里，运行进程使用的 CPU 时间最多为 200 毫秒(需要两个 CPU 各执行 100 毫秒)。要想彻底搞明白这两个选项的同学可以参考：CFS BandWith Control。我们要知道这两个选项才是事实的真相，但是真相往往很残忍！还好 --cpus 选项成功的解救了我们，其实它就是包装了 --cpu-period 和 --cpu-quota。
+
+Docker: 限制容器可用的 CPU
+https://www.cnblogs.com/sparkdev/p/8052522.html
+Docker: 限制容器可用的内存
+https://www.cnblogs.com/sparkdev/p/8032330.html
+
+
+当 CPU 资源充足时，设置 CPU 的权重是没有意义的。只有在容器争用 CPU 资源的情况下， CPU 的权重才能让不同的容器分到不同的 CPU 用量。--cpu-shares 选项用来设置 CPU 权重，它的默认值为 1024。我们可以把它设置为 2 表示很低的权重，但是设置为 0 表示使用默认值 1024。
+下面我们分别运行两个容器，指定它们都使用 Cpu0，并分别设置 --cpu-shares 为 512 和 1024：
+
+$ docker run -it --rm --cpuset-cpus="0" --cpu-shares=512 u-stress:latest /bin/bash
+$ docker run -it --rm --cpuset-cpus="0" --cpu-shares=1024 u-stress:latest /bin/bash
+
+
+
+
+stress工具使用指南和结果分析
+https://www.cnblogs.com/muahao/p/6346775.html
+
+stress -c 4 -t 100
+stress --vm 10 --vm-bytes 1G --vm-hang 100 --timeout 100s
+
+C# ListView实例：文件图标显示
+https://blog.csdn.net/dufangfeilong/article/details/41744847
+
+Matching strings with wildcard
+https://stackoverflow.com/questions/30299671/matching-strings-with-wildcard
+
+Super Fast String Matching in Python
+https://bergvca.github.io/2017/10/14/super-fast-string-matching.html
+
+mport re
+
+def ngrams(string, n=3):
+    string = re.sub(r'[,-./]|\sBD',r'', string)
+    ngrams = zip(*[string[i:] for i in range(n)])
+    return [''.join(ngram) for ngram in ngrams]
+
+print('All 3-grams in "McDonalds":')
+ngrams('McDonalds')
+
+基于python+whoosh的全文检索实现
+https://blog.csdn.net/qq_21149391/article/details/79509251
+
+
+https://www.how2shout.com/tools/opensource-tools-for-artificial-intelligence-ai.html
+
+Best AI Platforms Software
+https://www.g2.com/categories/ai-platforms
+
+Top 45 Artificial Intelligence Companies
+https://www.datamation.com/artificial-intelligence/top-artificial-intelligence-companies.html
+
+
+https://www.predictiveanalyticstoday.com/artificial-intelligence-platforms/
+
+PAI实现的深度学习网络可视化编辑功能-FastNerualNetwork
+https://blog.csdn.net/cpongo1/article/details/89543074
+
+刚刚，阿里重磅发布机器学习平台 PAI 3.0！
+https://www.infoq.cn/article/NxTj8-xC2KIZxGiFVMMu
+
+阿里重磅开源Blink：为什么我们等了这么久？
+https://www.jianshu.com/p/37a6acfc3124
+
+
+在线的caffe网络可视化工具： http://ethereon.github.io/netscope/quickstart.html
+
+https://machinelearningmastery.com/visualize-deep-learning-neural-network-model-keras/
+
+
+FlinkML是Flink内部的机器学习工具库。它是Flink生态圈的新组件，社区成员不断向它贡献新的算法。 
+http://flink.iteblog.com/dev/libs/ml/index.html
+
+深入理解Apache Flink核心技术
+https://www.cnblogs.com/feiyudemeng/p/8998772.html
+
+
+Apache Flink®生态所面临的机遇与挑战
+https://yq.aliyun.com/articles/701178
+
+比拼生态和未来，Spark和Flink哪家强？
+https://zhuanlan.zhihu.com/p/42511707
+
+Spark背后公司Databricks获2.5亿融资，估值27.5亿美元
+https://blog.csdn.net/cpongo4/article/details/89119256
+
+
+#删除所有未运行的容器（已经运行的删除不了，未运行的就一起被删除了）
+sudo docker rm $(sudo docker ps -a -q)
+
+#根据容器的状态，删除Exited状态的容器
+sudo docker rm $(sudo docker ps -qf status=exited)
+
+
+阿里云机器学习平台让机器学习不再远不可及，在平台上没有繁琐的公式和复杂的代码逻辑，用户看到的是各种分门别类被封装好的算法组件。在搭架实验的过程中，只要拖拽组件就可以快速的拼接成一个workflow。操作体验类似于搭积木，真正做到让小白用户也可以轻松玩转机器学习。“过去半个月才能搭建的一套数据挖掘实验，利用阿里云机器学习平台3个小时就可能解决”。
+
+同时，平台的每一个实验步骤都提供可视化的监控页面，数据挖掘工程师可以实时的掌握模型的训练情况，可视化的结果评估组件也极高的提升了模型调试效率。 在深度学习黑箱透明化方面，我们也在不断的研发集成各种可视化的工具，包括开源的TensorBoard和自研的工具，为客户提供更多可参考的信息，缩短模型优化的过程。
+
+阿里云机器学习——让人工智能触手可及
+https://yq.aliyun.com/articles/72847
+
+Code Free Machine Learning for Hadoop & Spark
+https://rapidminer.com/products/radoop/
+
+Create predictive models using the RapidMiner Studio visual workflow designer
+
+
+WOFF字体没有必要再开启GZIP，因为这个字体文本本身就是压缩过的。
+WOFF 2.0的mime type值，怎么说呢，有些许小争议。Google使用font/woff2，而W3C则推荐application/font-woff2。我个人的建议是这样的：在CSS base64字体表示时候使用Google的font/woff2，毕竟是web呈现；然后服务器配置走application/font-woff2。
+
+从云厂商宕机史谈预案建设
+https://www.infoq.cn/article/BdpCdzipGb10UN5RUhZ3
+从二十个严重的配置故障中我们能学到什么？
+https://www.infoq.cn/article/M9fY3XNJ5R53dLUNUZah
+摆脱无效报警？十年运维监控报警优化经验总结
+https://www.infoq.cn/article/1AofGj2SvqrjW3BKwXlN
+ESLint 在中大型团队的应用实践
+https://mp.weixin.qq.com/s?__biz=MjM5NjQ5MTI5OA==&mid=2651750496&idx=2&sn=2627a4bdd7e63343c8947ecf82b2349f&chksm=bd12592d8a65d03b68b25893759f62e044d91ec5dbe1cabac6246eaa61528c2ca8575d6aeef1&scene=21#wechat_redirect
+
+超大规模服务的故障“弹性自愈”
+https://www.infoq.cn/article/7NOuK1frElxWNYqEP0WJ
+
+随着云计算的发展，多云和混合云逐渐成为新常态，Kubernetes 逐渐成为企业和云的新的交互界面。从架构的角度，Kubernetes 一方面起到了异构 IAAS 的 Control Plane 的作用，一方面也对底层基础设施提出了更高的要求，无论是立体的安全风险防控，还是 10 倍的应用密度和调用频率的提升。另一方面，企业的基础设施从也单机房向全球多地域演进，如何实现全球多地域的统一管理也是需要考虑的问题。本次分享，会介绍下阿里云的上万个 Kubernetes 的最佳实践，如何从自动化到 AIOps，如何打造云原生信息高速公路。
+
+中台建设如火如荼。沉淀出一套可以复用的能力可帮助企业解决“重复造轮子”的问题，突破增长瓶颈，提升效率。本专题将就如何搭建中台以及中台建设过程中将会遇见哪些挑战等话题进行讨论。
+
+随着微服务技术迅猛发展，Service Mesh 技术也逐渐走向成熟，成为当下最吸引眼球的技术热点，本专题将聚焦微服务创新与实践。
+
+上云已经成为确定性的趋势，如何用好云？在云的环境下应该怎么做应用架构？本专题将探讨云时代的架构演进历程。
+
+软件正在改变世界，而工程师改变软件。技术日新月异，怎样构建一个可持续发展的工程师能力成长模型促进职业发展？将是本专题重点关注的。
+
+
+技术团队管理是一个很广泛的话题，是大多数研发同学职业生涯的必经之路，有明确汇报关系的技术团队管理，有项目维度轻量的技术团队管理，有小团队间小管理半径的技术团队管理，有大团队大管理半径松散的技术团队管理，甚至单纯为了攻克某个技术难题临时组建的小技术团队也需要管理，我觉得技术管理是一个技术人员必备的技能，所以在日常工作中，应该有意无意的去锻炼自己的技术管理能力，从小处入手，一步一个脚印，等将来真有这种机会的时候，就能信手拈来，把握住机会。
+
+对于已经走上管理岗位的技术人员，就需要时刻牢记你的职责是什么，但基本离不开两点：团队目标的达成和团队的成长。目标的达成是一个团队存在的原因和根本，目标如果达不成，团队都可能面临解散的风险，所以，业务型团队的目标就是持续的赋能业务而不是把技术做到超越业务，技术研究型团队的目标就是持续的技术研究而不是偏离主线去做其他研究，而这些都相应的有可衡量的指标，努力带领团队达成指标是要务，与此同时，团队的成长是时刻要考虑的事情，团队的成长是目标完成过程中持续的补给，是定海神针，是每个团队成员最在乎的事，团队的成长就包括团队梯队的搭建和团队成员的个人成长，好的梯队能让团队更稳固更健康，而关注成员个人成长让个体对团队更忠诚。
+
+技术团队管理就像一座秘密花园，当你试着去了解，去探索，去感悟，你会发现，真香。
+
+云计算从最开始的想法到步入现实，从虚拟化到现在火热的云原生，新的概念层出不穷，比如容器、Kubernetes、Serverless、Service Mesh，更多是对更优雅灵活的技术架构的追求与探索，随着这些技术落地到生产环境，我们也逐渐步入了云时代的深水区。从 IaaS 到 SaaS 的性能都面对着不同的挑战与问题，也有了许多出色的解决方案。通过我们专题，希望可以让听众收获：
+
+1. 云上的应用与服务如何通过优化表现出更佳的性能，如更稳定更短的延迟，更大的吞吐量；
+
+2. 云上的应用与服务如何充分地利用硬件性能，如调度与混合部署，软硬一体。
+
+不会数学统计没关系——5分钟教你轻松掌握箱线图
+https://www.sohu.com/a/218322591_416207
+
+在箱线图中，箱子的中间有一条线，代表了数据的中位数。箱子的上下底，分别是数据的上四分位数（Q3）和下四分位数（Q1），这意味着箱体包含了50%的数据。因此，箱子的高度在一定程度上反映了数据的波动程度。上下边缘则代表了该组数据的最大值和最小值。有时候箱子外部会有一些点，可以理解为数据中的“异常值”。
+
+
+纯CSS实现左右拖拽改变布局大小
+https://blog.csdn.net/github_35631540/article/details/92063430
+
+
+优秀！ resize-bar的opacity：0保证resize-bar透明放在最底层 resize-line的points-event：none保证不影响到resize-bar的事件响应 .resize-bar:hover~.resize-line 保证鼠标悬停resize-bar的时候resize-line做出响应
+
+当拖动之前将iframe隐藏，换成显示一个div的虚线框，拖拽完成之后隐藏虚线框且将iframe显示到虚线框位置
+https://bbs.csdn.net/topics/370130464
+
+解决方案:拖动的时候,使用一个透明的div或其他元素,把这个iframe遮住.
+当拖动之前将iframe隐藏，换成显示一个div的虚线框，拖拽完成之后隐藏虚线框且将iframe显示到虚线框位置
+
+
+
+linux下怎么退出vi编辑器，按esc没有用；vim recording
+https://blog.csdn.net/hellocsz/article/details/82593482
+
+
+virt-install \
+    --accelerate \
+    --name xp \
+    --ram 2048 \
+    --vcpus=2 \
+    --controller type=scsi,model=virtio-scsi \
+    --disk path=/var/lib/libvirt/images/xp.qcow2,size=50,sparse=true,cache=none,bus=virtio \
+    --cdrom=/home/action/xp.iso \
+    --graphics vnc,listen=0.0.0.0,port=5904 \
+    --network bridge=br0
+
+virsh edit xp    
+    
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2' cache='none'/>
+      <source file='/var/lib/libvirt/images/xp.qcow2'/>
+      <target dev='vda' bus='virtio'/>
+      <boot order='1'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='/home/action/xp.iso'/>
+      <target dev='hda' bus='ide'/>
+      <readonly/>
+      <boot order='2'/>
+      <address type='drive' controller='0' bus='0' target='0' unit='0'/>
+    </disk>
+
+virsh start xp
+virsh reboot xp
+virsh shutdown xp
+virsh destroy  xp
+
+
+
+https://docs.fedoraproject.org/en-US/Fedora/18/html/Virtualization_Administration_Guide/sect-Attaching_and_updating_a_device_with_virsh.html
+
+Docker管理工具-Swarm
+https://www.cnblogs.com/bigberg/p/8761047.html
+
+Swarm 主要功能
+
+集群管理与Docker Engine集成:使用Docker Engine CLI来创建一个你能部署应用服务到Docker Engine的swarm。你不需要其他编排软件来创建或管理swarm。
+分散式设计：Docker Engine不是在部署时处理节点角色之间的差异，而是在运行时扮演自己角色。你可以使用Docker Engine部署两种类型的节点，管理器和worker。这意味着你可以从单个磁盘映像构建整个swarm。
+声明性服务模型： Docker Engine使用声明性方法来定义应用程序堆栈中各种服务的所需状态。例如，你可以描述由消息队列服务和数据库后端的Web前端服务组成的应用程序。
+伸缩性：对于每个服务，你可以声明要运行的任务数。当你向上或向下缩放时，swarm管理器通过添加或删除任务来自动适应，以保持所需状态。
+期望的状态协调：swarm管理器节点持续监控群集状态，并调整你描述的期望状态与实际状态之间的任何差异。 例如，如果设置运行一个10个副本容器的服务，这时worker机器托管其中的两个副本崩溃，管理器则将创建两个新副本以替换已崩溃的副本。 swarm管理器将新副本分配给正在运行和可用的worker。
+多主机网络：你可以为服务指定覆盖网络(overlay network)。 当swarm管理器初始化或更新应用程序时，它会自动为容器在覆盖网络(overlay network)上分配地址。
+服务发现：Swarm管理器节点为swarm中的每个服务分配唯一的DNS名称，并负载平衡运行中的容器。 你可以通过嵌入在swarm中的DNS服务器查询在swarm中运行中的每个容器。
+负载平衡：你可以将服务的端口暴露给外部的负载均衡器。 在内部，swarm允许你指定如何在节点之间分发服务容器。
+安全通信：swarm中的每个节点强制执行TLS相互验证和加密，以保护其自身与所有其他节点之间的通信。 你可以选择使用自签名根证书或来自自定义根CA的证书。
+滚动更新：在上线新功能期间，你可以增量地应用服务更新到节点。 swarm管理器允许你控制将服务部署到不同节点集之间的延迟。 如果出现任何问题，你可以将任务回滚到服务的先前版本。
+
+Swarm在scheduler节点（leader节点）运行容器的时候，会根据指定的策略来计算最适合运行容器的节点，目前支持的策略有：spread, binpack, random。
+
+　　1）Random 顾名思义，就是随机选择一个Node来运行容器，一般用作调试用，spread和binpack策略会根据各个节点的可用的CPU, RAM以及正在运 行的容器的数量来计算应该运行容器的节点。
+
+　　2）Spread 在同等条件下，Spread策略会选择运行容器最少的那台节点来运行新的容器，binpack策略会选择运行容器最集中的那台机器来运行新的节点。 使用Spread策略会使得容器会均衡的分布在集群中的各个节点上运行，一旦一个节点挂掉了只会损失少部分的容器。
+
+　　3）Binpack Binpack策略最大化的避免容器碎片化，就是说binpack策略尽可能的把还未使用的节点留给需要更大空间的容器运行，尽可能的把容器运行在 一个节点上面。
+
+
+Docker Swarm集群搭建教程
+http://c.biancheng.net/view/3178.html
+
+内置的 Swarm 安全机制
+Swarm 集群内置有繁多的安全机制，并提供了开箱即用的合理的默认配置——如 CA 设置、接入 Token、公用 TLS、加密集群存储、加密网络、加密节点 ID 等。
+
+
+Docker Swarm 包含两方面：一个企业级的 Docker 安全集群，以及一个微服务应用编排引擎。
+
+集群方面，Swarm 将一个或多个 Docker 节点组织起来，使得用户能够以集群方式管理它们。
+
+Swarm 默认内置有加密的分布式集群存储（encrypted distributed cluster store）、加密网络（Encrypted Network）、公用TLS（Mutual TLS）、安全集群接入令牌 Secure Cluster Join Token）以及一套简化数字证书管理的 PKI（Public Key Infrastructure）。我们可以自如地添加或删除节点。
+
+编排方面，Swarm 提供了一套丰富的 API 使得部署和管理复杂的微服务应用变得易如反掌。通过将应用定义在声明式配置文件中，就可以使用原生的 Docker 命令完成部署。
+
+此外，甚至还可以执行滚动升级、回滚以及扩缩容操作，同样基于简单的命令即可完成。
+
+
+docker service create --name redis --mode global  redis:3.0.6
+
+docker开启远程访问
+https://blog.csdn.net/lynx7/article/details/84789682
+
+vim /lib/systemd/system/docker.service
+    ExecStart=/usr/bin/dockerd -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375
+systemctl daemon-reload
+systemctl restart docker
+
+export DOCKER_HOST="tcp://0.0.0.0:2375"
+docker ps
+sudo docker -H tcp://0.0.0.0:2375 pssudo docker -H tcp://0.0.0.0:2375 ps
+
+
+请教个 docker 的问题，我搞了个测试的 swarm 集群， 3 个 manager 节点，停掉 leader 节点后会自动选取出一个新的  leader 节点，但我要访问这个集群的话应该如何访问才能不会访问到挂掉的 manager 节点 ip 上呀？想到有四种方案
+A、客户端缓存 3 个 master ip，哪个能通访问哪个
+B、用 etcd 搭一个配置中心，把 swarm leader ip 存起来，再写个健康检查程序定时更新 leader ip，最后客户端从 etcd 读取 swarm ip
+C、搭一个 DNS 服务器，写个健康检查程序定时更新 swarm ip 的 A 记录，最后客户端通过域名访问 swarm ip
+D、客户端通过单一的 ip 访问 swarm，写一个监控程序当发现 swarm leader 漂移后告警，然后人工修改客户端配置并热更新程序。
+
+从架构复杂度，可维护性，自动化的角度看最优的选择应该选哪个方案呀？
+
+客户端新增 nginx 配置，如下
+
+```
+cat <<EOF >/etc/nginx/conf.d/docker.conf
+upstream devdocker {
+    server 192.168.1.200:2375 max_fails=1 fail_timeout=10s;
+    server 192.168.1.201:2375 max_fails=1 fail_timeout=10s;
+    server 192.168.1.202:2375 max_fails=1 fail_timeout=10s;
+}
+
+log_format dockerlog '$time_iso8601 $status $request_time $upstream_response_time $remote_addr'
+                  ' $http_host $upstream_addr "$request" $body_bytes_sent "$http_referer" '
+                  '"$http_user_agent" "$http_x_forwarded_for"';
+server {
+    listen 2375;
+    server_name  devdocker;
+
+    access_log  logs/devdocker.access.log dockerlog;
+    error_log  logs/devdocker.error.log;
+
+    location / {
+        proxy_pass  http://devdocker;
+
+        proxy_set_header   Host             $host;
+        proxy_set_header   X-Real-IP        $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+   }
+}
+EOF
+nginx -t && nginx -s reload
+```
+
+客户端修改 hosts
+
+```
+echo '127.0.1.1   devdocker' >> /etc/hosts
+```
+
+客户端测试访问 docker 集群，并查看请求日志
+
+```
+docker -H devdocker node ls
+tail /usr/share/nginx/logs/devdocker.access.log
+```
+
+登录到 192.168.1.200，201，203 任意一台服务器关掉 docker 服务 `systemctl stop docker`，
+再次在客户端多次测试访问 docker 集群，不会有任何失败访问。
+
+
+
+在Windows环境中使用Nginx, Consul, Consul Template搭建负载均衡和服务发现服务
+https://www.cnblogs.com/lwqlun/p/8835867.html
+
+Nginx+upstream针对后端服务器容错的配置说明
+https://www.cnblogs.com/kevingrace/p/8185218.html
+
+浅析AnyCast网络技术
+https://www.cnblogs.com/zafu/p/9168617.html
+
+最后，针对Anycast 做如下总结：
+
+ 
+
+优点：
+
+Anycast可以零成本实现负载均衡，无视流量大小。
+
+Anycast是天然的DDOS防御措施，体现了大事化小，小事化了的解决方法。
+
+部署Anycast可以获得设备的高冗余性和可用性。
+
+Anycast适用于无连接的UDP，以及有连接的TCP协议。
+
+ 
+
+缺点：
+
+Anycast严重依赖于BGP的选路原则，在整个Internet网络拓扑复杂的情况下，会导致次优路由选择。
+
+
+选择存储驱动并正确地配置在 Docker 环境中是一件重要的事情，特别是在生产环境中。
+
+下面的清单可以作为一个参考指南，帮助我们选择合适的存储驱动。同时还可以参阅 Docker 官网上由 Linux 发行商提供的最新文档来做出选择。
+Red Hat Enterprise Linux：4.x版本内核或更高版本 + Docker 17.06 版本或更高版本，建议使用 Overlay2。
+Red Hat Enterprise Linux：低版本内核或低版本的 Docker，建议使用 Device Mapper。
+Ubuntu Linux：4.x 版本内核或更高版本，建议使用 Overlay2。
+Ubuntu Linux：更早的版本建议使用 AUFS。
+SUSE Linux Enterprise Server：Btrfs。
+
+log_format为nginx设置日志格式
+https://blog.csdn.net/wanchaopeng/article/details/93205621
+
+MySQL报错 Error_code: 1045
+http://blog.itpub.net/20893244/viewspace-2137789/
+mysql主从同步
+https://www.jianshu.com/p/80f30029cdf5
+
+MySQL主从仅同步指定库
+https://www.cnblogs.com/new-journey/p/11319527.html
+
+有两种方式，1.在主库上指定主库二进制日志记录的库或忽略的库：
+
+vim  /etc/my.cnf
+    ...
+    binlog-do-db=xxxx   二进制日志记录的数据库
+    binlog-ignore-db=xxxx 二进制日志中忽略数据库
+    以上任意指定其中一行参数就行，如果需要忽略多个库，则添加多行
+    ...<br>重启mysql
+ 2.在从库上指定复制哪些库或者不负责哪些库
+
+#编辑my.cnf，在mysqld字段添加如下内容：
+  
+replicate-do-db    设定需要复制的数据库
+replicate-ignore-db 设定需要忽略的复制数据库
+replicate-do-table  设定需要复制的表
+replicate-ignore-table 设定需要忽略的复制表
+replicate-wild-do-table 同replication-do-table功能一样，但是可以通配符
+replicate-wild-ignore-table 同replication-ignore-table功能一样，但是可以加通配符
+  
+mysql主从同步 binlog-do-db replicate-do-db
+https://blog.csdn.net/z69183787/article/details/70183284  
+
+binlog_do_db是指定binlog日志记录那些库的二进制日志。replicate_do_db则在slave库中指定同步那些库的binlog日志。
+
+而应该采用拷贝文件的方式，请按如下操作步骤：
+
+先在主服务器上锁定所有的表，以免在复制过程中数据发生变化：
+
+mysql> flush tables with read lock;
+
+然后在主服务器上查询当前二进制文件的文件名及偏移位置：
+
+mysql > show master status;
+
+然后停止主服务器上的MySQL服务：
+
+shell> mysqladmin -u root shutdown
+
+再拷贝数据文件：
+
+shell> tar -cvf /tmp/mysql-snapshot.tar .
+
+拷贝完别忘了启动主服务上的MySQL服务了。
+
+然后把数据文件应用到从服务器上，再次启动slave的时候使用，记得启动时加上skip-slave-start选项，使之不会立刻去连接master，再在从服务器上设置相关的二进制日志信息：
+
+  
+#修改后重启mysql
+
+Mysql从库重建
+https://blog.csdn.net/devotedwife/article/details/81915072
+
+主库
+mysqldump -u*** -p*** -h db-master --default-character-set=utf8 --master-data=2 --single-transaction --databases DB1 DB2 DB3  > product_data_backup_20170515.sql
+
+注意–master-data=2 –single-transaction的配合使用，前一个参数会在开始导出时锁全表，记录当前的binlog文件和位置，然后释放锁，然后在同一个事务中导出数据，以保证一致性。
+
+从库
+stop slave;
+从库先drop需要同步的数据库，然后source product_data_backup_20170515.sql导入数据；
+
+不要修改从库的表结构以及数据，避免同步冲突失败；
+不要滥用set global sql_slave_skip_counter,这会跳过某些同步sql，可能导致数据不一致；
+附件类数据尽量不要直接存储在数据库中，备份和恢复时会特别慢
+
+从未在从服务器上手动更新过数据，但还是可能遇到“Error: 1062 Duplicate entry”错误，具体原因不详，可能是MySQL本身的问题。遇到这类问题的时候，从服务器会停止复制操作，我们只能手动解决问题，具体的操作步骤如下：
+
+mysql> set global sql_slave_skip_counter = 1;
+mysql> start slave;
+
+同样的操作可能需要进行多次，也可以设置自动处理此类操作，在从服务器的my.cnf里设置：
+
+slave-skip-errors=1062
+
+## mysql 主从同步
+
+主节点
+
+vi /etc/mysql/mysql.conf.d/mysqld.cnf
+
+    [mysqld]
+    log_bin=master60
+    server_id=60
+    binlog_format="mixed"
+    bind-address            = 0.0.0.0
+
+systemctl restart mysql
+systemctl status mysql
+
+mysqldump -uroot -p --default-character-set=utf8 --master-data=2 --single-transaction --databases db1 db2 db3  > backup.sql
+
+mysql -uroot -p
+
+    show master status\G;
+    #授权给从服务器，单个数据库授权无效，必须设置*.*
+    grant replication slave on *.* to repluser@'%' identified by '123456'; 
+    show grants for 'repluser';
+
+从节点
+
+mysql -uroot -p
+    stop slave;
+    drop database db1;
+    drop database db2;
+    drop database db3;
+    
+# grep 'CHANGE MASTER TO MASTER_LOG_FILE' backup.sql
+-- CHANGE MASTER TO MASTER_LOG_FILE='master60.000002', MASTER_LOG_POS=154;
+    
+mysql -uroot -p <backup.sql
+
+
+    
+mysql -uroot -p
+    show databases;
+
+vi /etc/mysql/mysql.conf.d/mysqld.cnf
+    [mysqld]
+    server_id=128
+    replicate-do-db="db1"
+    replicate-do-db="db2"
+    replicate-do-db="db3"
+
+systemctl restart mysqld
+systemctl status mysql
+
+mysql -uroot -p
+
+    # master_log_file 与主库binlog日志名相同，master_log_pos 偏移量与主库相同
+    change master to master_host='192.168.1.60', master_user='repluser', master_password='123456', master_log_file='master60.000002', master_log_pos=154;
+    start slave;
+    show slave status\G;
+
+
+看到 Slave_IO_Running: Yes，Slave_SQL_Running: Yes 表示成功
+如果 Slave_IO_Running 不为 Yes，可能是没连上主库，如下方式定为
+
+tail -f /var/log/mysql/error.log
+perror 1045	
+mysql -urepluser -h 192.168.1.60 -p -P3306
+
+Slave_SQL_Running 不为 yes 表示执行中继日志的 sql 命令时出错，需要停掉slave，在从库新建相关表,重启slave
+
+测试：
+
+主库
+
+create table t1(id int );#
+insert into t1 values(1);
+
+从库
+
+select * from t1;
+
+
+MySQL 双主模式，两台机器互为主从，A 修改自动同步 B，B 修改自动同步 A。
+为了防止并发引起的自增主键冲突，虽然双主，但不双写，平时只写 A。
+当确认 A 宕机后，手工或自动把 vip 指向 B，或域名指向 B，或修改应用配置指向 B。
+这样配置后，除了 A 切到 B 时会有短暂业务影响外，还有没有别的坑？
+
+
+MySQL 双主问题集
+https://www.cnblogs.com/GO-NO-1/p/10218304.html
+
+MySQL双主一致性架构优化
+https://www.jianshu.com/p/e2296eff932e
+
+主库高可用，主库一致性，一些小技巧：
+
+双主同步是一种常见的保证写库高可用的方式
+
+设置相同步长，不同初始值，可以避免auto increment生成冲突主键
+
+不依赖数据库，业务调用方自己生成全局唯一ID是一个好方法
+
+shadow master保证写库高可用，只有一个写库提供服务，并不能完全保证一致性
+
+内网DNS探测，可以实现在主库1出现问题后，延时一个时间，再进行主库切换，以保证数据一致性
+
+
+请教下各位大佬，关于 mysql 的双主复制问题
+https://www.v2ex.com/t/579370
+
+不是 DBA，但是了解一些 msyql。
+这个是比较野的多主方案吧。看样子是两个节点互为主从。这么用的比较少。
+
+mysql 多主现在生产环境用的一般有 PXC/MGC，或者 MGR 方案。
+pxc 和 MGC 其实同样的东西，都是 Percona 主导的技术。
+MGR 是比较新的方案，没怎么了解。
+应用层都不用重新设计。
+
+多主一般强调一致性，同时在所有的节点做写入操作。保证所有的节点数据一致。
+缺点明显，集群性能估计是单节点的 60%左右。如果有个节点性能差，会直接拖后腿。
+
+mysql5.6配置semi_sync
+https://www.cnblogs.com/caibird2005/p/4311544.html
+
+mysql的replication协议是异步的，虽然异步效率、性能很好，但是却无法保证主从数据一致性,
+如果master crash，已经commit的事务不会被传送到任何的slave上，
+从mysql5.5之后，mysql为了保证主从库数据一致性，引进了semi-sync功能，
+semi-sync意思是MASTER只需要接收到其中一台SLAVE的返回信息，就会commit；否则需等待直至切换成异步再提交。
+
+优点：
+当事务返回客户端成功后，则日志一定在至少两台主机上存在。
+MySQL的Semi-sync适合小事务，且两台主机的延迟又较小，则Semi-sync可以实现在性能很小损失的情况下的零数据丢失。
+
+缺点：
+完成单个事务增加了额外的等待延迟，延迟的大小取决于网络的好坏。
+
+PXC、MGR、MGC集群之新建、备份、恢复操作步骤 
+http://www.sohu.com/a/339960973_610509
+
+PXC的原理
+https://www.cnblogs.com/zengkefu/p/5678279.html
+
+即将开源的新一代MySQL高可用组件：MySQL Plus
+https://blog.csdn.net/n88lpo/article/details/80015256
+
+
+mysql 从库升级为主库的步骤
+https://blog.csdn.net/weixin_33759269/article/details/92350851
+
+1、进入主库，设置只读；
+
+SET GLOBAL read_only=1;
+
+2、进入从库，等同步完成后，暂停同步，并设置读写；
+
+
+stop slave;
+SET GLOBAL read_only=0;
+reset slave all;
+
+-- RESET SLAVE ALL是清除从库的同步复制信息、包括连接信息和二进制文件名、位置
+-- 从库上执行这个命令后，使用show slave status将不会有输出。
+
+3、修改配置文件连接到新的主库上。
+人人都能看懂的LSTM
+https://zhuanlan.zhihu.com/p/32085405
+
+LSTM内部主要有三个阶段：
+
+1. 忘记阶段。这个阶段主要是对上一个节点传进来的输入进行选择性忘记。简单来说就是会 “忘记不重要的，记住重要的”。
+2. 选择记忆阶段。这个阶段将这个阶段的输入有选择性地进行“记忆”。
+3. 输出阶段。这个阶段将决定哪些将会被当成当前状态的输出。
+
+基于神经网络（LSTM）的股票数据分析
+https://zhuanlan.zhihu.com/p/55841946
+
+不同数据集，正确率和损失率有很大不同。在创业板300+只股票数据中，LSTM模型正确率可高达88.97%，损失率可以低至3.64%。在主板股票数据中，正确率为77.53%，损失率为7.97%。在中小板数据中，正确率为76.81%，损失率为8.63%。
+
+正确率：预测结果正确数 / 测试数据总数 * 100%
+损失率：（预测涨幅为正 and 实际涨幅为负） / 测试数据总数 * 100%
+
+AI For Trading： LSTM模型预测三天后个股收盘价
+https://zhuanlan.zhihu.com/p/94889284
+
+
+组成原理是让你从整体上精略地让你了解计算机是怎么工作的，内容上侧重于计算机的几大组成（运算器，控制器，存储器，输入设备，输出设备与总线结构），具体来说，是具体一条指令在cpu中是如何执行的，计算机的储存体系是如何的（分三层），还有就是一是I/O接口的基本概念。 之后学的就是体系结构和微机原理，都是以组成为知识背景的。
+
+体系结构可以认为是对《计算机组成》的抽象化与进一步的理论化，里面计的技术包罗万象，包括大型机和微机中所应用的技术。主要内容是学习指令的流水技术，动态调度，静态调度。你学懂了后会觉得cpu一点也不神奇了。
+
+微机原理是是对《计算机组成》的具体实现。一般会选x86计算机来说，这时一般不会再详细讲工作原理了（因为大多数原理都在《计算机组成》中讲了），而是直接讲述cpu的具本结构是什么，具体引脚的作用，各种总线多少多少，各种控制寄存器的各个位有什么意义，I/O的具体交接口（ISA,pci）……因为是具体的东西，所以有好多东东要记的。
+
+计算机体系结构
+https://www.icourse163.org/course/HUST-1207109824?from=study
+
+国泰安大数据科研工具平台
+https://cloud.tencent.com/developer/news/377055
+芝诺大数据产教融合开放教学平台
+http://www.cpdasoft.com/zenodt.php
+http://www.cpdasoft.com/zncp.php
+大数据实践教学及科研平台（大数据实验室建设方案）
+https://www.jianshu.com/p/c98692689267
+高校大数据专业教学科研平台建设方案
+https://wenku.baidu.com/view/85b713fd82c4bb4cf7ec4afe04a1b0717fd5b3b9.html
+
+虚拟仿真
+http://www.esimsoft.com/virtual/show.php?lang=cn&id=146
+
+“智慧教室”提醒您：教室千万间，“智慧”第一间
+https://mp.weixin.qq.com/s?__biz=MzAxMTEzNzg1MQ==&mid=2652018963&idx=1&sn=95ccfa39f50f8d6f298f7c76caea9680&chksm=80a39f47b7d41651c360eb6700cb6ba2243bbd978239ce4b09fb15fbe33d2d5b27cd169a2b9f&mpshare=1&scene=1&srcid=0211RvBTrlc36B2YomkgVNcF&sharer_sharetime=1581352146690&sharer_shareid=0c1ca2a2bd08074213d5041ac82980a4&key=4cfd2d8588c09c4ccf6149148e073912fc8dd08f0ffaf9110d9c9fd02d9cfe9f67e8a407a0e64ac6f98be64dbba271ab6725b046bbbed6a573594d485c354f1c81b5e2355c5f520c5b97ae8361fd6c3f&ascene=1&uin=MTA5OTIy&devicetype=Windows+7&version=62080074&lang=zh_CN&exportkey=AaNnxzSLkW1w3lr2wijBa4s%3D&pass_ticket=TYkKe6APSV0q64tuj8%2FWs5GFObq7C6nBa2uFVQzS%2Bo8%3D
+
+AI云端大数据实训室支撑平台
+https://baijiahao.baidu.com/s?id=1616080982040347340&wfr=spider&for=pc
+
+windows如何添加静态路由
+https://blog.csdn.net/u010178308/article/details/80969112
+
+
+2020年高考专业选择最全指南，看完你就明白了
+http://zhuanye.eol.cn/jiedu/201910/t20191023_1688772.shtml
+
+RoboCup仿真3D TC笔记（2014年合肥中国公开赛 仿真3D比赛环境搭建）
+https://www.cnblogs.com/ansersion/p/4050308.html
+https://www.cnblogs.com/shiraka/p/10705466.html
+
+Memory Barriers and JVM Concurrency
+https://www.infoq.com/articles/memory_barriers_jvm_concurrency/
+
+LINUX KERNEL MEMORY BARRIERS
+https://www.kernel.org/doc/Documentation/memory-barriers.txt
+
+
+throughput  吞吐
+Latency 延迟
+
+
+excel 快捷键
+CTRL＋ "－" 快速删除 ctrl+shift+ "＝" 快速插入
+
+
+防止一个脚本同时执行多次
+
+#!/bin/bash
+
+LOCK_NAME="/tmp/my.lock"
+if ( set -o noclobber; echo "$$" > "$LOCK_NAME") 2> /dev/null; 
+then
+    trap 'rm -f "$LOCK_NAME"; exit $?' INT TERM EXIT
+
+    ### 开始正常流程
+    ### 正常流程结束
+
+    ### Removing lock
+    rm -f $LOCK_NAME
+    trap - INT TERM EXIT
+else
+    echo "Failed to acquire lockfile: $LOCK_NAME." 
+    echo "Held by $(cat $LOCK_NAME)"
+    exit 1
+fi
+
+
+
+echo "Done."
+ 
+ 
+$ php -r '$file="/etc/passwd;echo 222";echo shell_exec("head -n1 $file");'
+root:x:0:0:root:/root:/bin/bash
+222 
+
+
+“刚需、高频和低价”
+
+最后，我来做个总结。
+1）平台并不适合所有行业。
+2）一个真正的平台模式需要满足两个要素：服务的标准化和需求的随机性。
+3）一个真正平台做的是撮合交易，平台方不应该重度参与到任何一方。
+4）一个好的平台模式，除了要选对赛道以外，还要有很强的执行力和融资能力。
+
+
+\text{已知}\sqrt{3+\sqrt{2}+\sqrt{3}+\sqrt{6}} = \sqrt{x}+\sqrt{y}+\sqrt{z}\text{ 求 }xyz\\
+
+\text{两边平方}\\
+3+\sqrt{2}+\sqrt{3}+\sqrt{6}=(\sqrt{x}+\sqrt{y}+\sqrt{z})*(\sqrt{x}+\sqrt{y}+\sqrt{z})\\
+=\sqrt{x^2} + \sqrt{xy} + \sqrt{xz} + \sqrt{yx} + \sqrt{y^2} + \sqrt{yz} + \sqrt{zx} + \sqrt{zy} + \sqrt{z^2}\\
+=x+y+z+2\sqrt{xy}+2\sqrt{xz}+2\sqrt{yz}\\
+
+\text{每项一一对应得出}
+\left\{\begin{matrix}
+3=x+y+z\\
+\sqrt{2}=2\sqrt{xy}\\
+\sqrt{3}=2\sqrt{xz}\\
+\sqrt{6}=2\sqrt{yz}\\
+\end{matrix}\right.
+
+\Rightarrow
+
+\text{两边平方得出}\left\{\begin{matrix}
+2=4xy~~\text{(1)}\\
+3=4xz~~\text{(2)}\\
+6=4yz~~\text{(3)}\\
+\end{matrix}\right.\\
+
+\text{由式 1 得}x=\frac{2}{4y} \text{，由式 3 得}z=\frac{6}{4y} \\
+\text{把 x, z 带入式 2 得 }\\
+3 = 4*\frac{2}{4y}*\frac{6}{4y}
+= \frac{4*2*6}{16y^2}
+= \frac{48}{16y^2}
+= 3*y^2\\
+\text{所以 }y=1\\
+\text{带入式 1 得出 } 2=4x \Rightarrow x=\frac{1}{2}\\
+\text{带入式 3 得出 } 6=4z \Rightarrow z=\frac{3}{2}\\
+
+\text{综上}\\
+\left\{\begin{matrix}
+x=\frac{1}{2}\\
+y=1\\
+z=\frac{3}{2}
+\end{matrix}\right.
+
+\Rightarrow
+
+xyz=\frac{1}{2}*1*\frac{3}{2}=\frac{1}{2}*\frac{3}{2}=\frac{3}{4}
+
+规格型号：超融合计算节点：8台、华为/FusionCube HCI、18.9万元/台；虚拟化软件：1套、华为/FusionSphere、13.15万元/套；云管套件：1套、华为/ManageOne、17.65万元/套；等
+
+华为FusionCube超融合基础设施融合计算、存储、网络、虚拟化、管理于一体，具有高性能、低时延和快速部署等特点，并内置华为自研分布式存储引擎，深度融合计算和存储，消除性能瓶颈，灵活扩容，支持业界主流数据库和业界主流虚拟化软件。
+
+基于教育信息化2.0的指导，遵循大数据的智慧校园建设标准，通过大数据技术，打通学校“人、财、物”的基础数据，以学校基本对象（学生/教师/资产/科研成果/招生就业等）为业务数据基础，整合梳理多源日志、行为等数据构建学生画像、教师画像等，通过人工智能方法，结合高校场景，实现数据信息全面，过程可见，智能辅助，决策科学的目标，提升学校的教学、科研、人才培养、后勤服务等多方面需求。
+1、业务大数据、日志大数据及有关社会大数据的采集和存储。对接校内各应用系统获取各类业务数据、异构系统设备的日志数据，结合社会大数据资源，采用大数据管理技术进行统一存储，为数据的挖掘和分析打好基础。
+2、大数据分析应用，以学生画像为纽带，日志行为数据为入口，通过AI行为建模，挖掘和发现数据中隐含的、未知的、极具潜在应用价值的信息和规律，实现面向领导、面向老师、面向学生、面向网络等多角色的大数据应用需求的可视化交付，并且支持大屏、WEB、H5、分析报告等多样化的成果交付，为我校的教务管理、科研管理、学生管理等各项工作提供决策和指导。
+
+
+
+云原生技术公开课：
+https://edu.aliyun.com/roadmap/cloudnative
+大数据学习路线
+https://edu.aliyun.com/roadmap/bigdata
+数据库学习路线
+https://edu.aliyun.com/roadmap/database
+人工智能学习路线
+https://edu.aliyun.com/roadmap/ai
+
+如何快速学习Tableau Desktop
+https://www.jianshu.com/p/0adf8fea3351
+
+Apache Superset(孵化)是一个现代的、企业级的商业智能web应用程序。
+https://www.jianshu.com/p/4a1c213a8b1c
+
+给大数据分析师的一双大礼: Apache Kylin和Superset
+https://www.jianshu.com/p/828fa6f45ff3
+
+阿里巴巴大数据竞赛
+https://github.com/sunnotes/Ali-Data-Mining
+
+Free Data Mining Tools
+http://www.rdatamining.com/resources/tools
+
+Top 15 Best Free Data Mining Tools: The Most Comprehensive List
+https://www.softwaretestinghelp.com/data-mining-tools/
+https://opensourceforu.com/2017/03/top-10-open-source-data-mining-tools/
+
+
+CC中英字幕 - Weka在数据挖掘中的运用（Data Mining with Weka）
+https://www.bilibili.com/video/av45489204?from=search&seid=13827735967963188412
+
+
+哪些事情是weka能做的但是spss无法做到的？
+https://www.zhihu.com/question/20985683/answer/16819027
+
+初试weka数据挖掘
+https://www.cnblogs.com/hxsyl/p/3307343.html
+
+
+python数据挖掘orange
+https://blog.csdn.net/pipisorry/article/details/52845804
+
+
+完成 Orange3 数据挖掘 汉化版
+https://blog.csdn.net/err2008/article/details/89000962
+
+# Install some build requirements via your system's package manager
+sudo apt install virtualenv build-essential python3-dev
+
+# Create a separate Python environment for Orange and its dependencies ...
+virtualenv --python=python3 --system-site-packages orange3venv
+# ... and make it the active one
+source orange3venv/bin/activate
+
+# Install Qt dependencies for the GUI
+pip install PyQt5 PyQtWebEngine
+
+# Install Orange
+pip install orange3
+
+1.3.2 sklearn自带的小数据集
+自带的小数据集
+
+名称	数据包调用方式	适用算法
+鸢尾花数据集	load_iris()	分类
+乳腺癌数据集	load_bread_cancer()	二分类任务
+手写数字数据集	load_digits()	分类
+糖尿病数据集	load_diabetes()	回归
+波士顿房价数据集	load_boston()	回归
+体能训练数据集	load_linnerud()	多变量回归
+
+
+Orange数据挖掘工具介绍
+https://blog.csdn.net/SunChao3555/article/details/84975783
+
+轻量级BI工具Superset的搭建与使用
+https://www.jianshu.com/p/b02fcea7eb5b
+
+开源数据挖掘工具Orange简介
+https://blog.csdn.net/Tulongf/article/details/23992007
+
+Orange,RapidMiner,Weka,JHepWork,KNIM,五个免费开源的数据挖掘软件
+https://blog.csdn.net/bruce__ray/article/details/49699461
+
+26种数据挖掘软件比较及介绍
+https://blog.csdn.net/Tulongf/article/details/23994233
+
+几经折腾，终于完成Orange3数据挖掘新版的汉化工作！需要合作的加Q：726008，Orange3群：681586766
+
+Orange是一款底层基于C++，并且提供了Python接口的开源数据挖掘工具。与Sklearn，pyml这 类数据挖掘包相比，Orange的历史更加悠久，在上面实现的算法也更加丰富，此外，除了以python模块的形式使用之外，Orange还提供了GUI，可以用通过预先 定义好的多种模块组成工作流来完成复杂的数据挖掘工作。
+
+Orange的发起最早可以追溯到1997年WebLab会议，在这个会议上人们提到了构建一个灵活的实验基准以便大家可以将自己的算法，实验结果放在上面，这些想法最终 催生了Orange项目。
+
+Orange包含大量标准或非标准的机器学习和数据挖掘的算法，以及常规数据读写和操作，其底层的核心是由C++来实现的，同时Orange也利用python脚本来快速 实现新算法的原型以及一些不太要求执行时间的功能。
+
+
+docker swarm 端口开放
+The network ports required for a Docker Swarm to function properly are:
+
+TCP port 2376 for secure Docker client communication. This port is required for Docker Machine to work. Docker Machine is used to orchestrate Docker hosts.
+TCP port 2377. This port is used for communication between the nodes of a Docker Swarm or cluster. It only needs to be opened on manager nodes.
+TCP and UDP port 7946 for communication among nodes (container network discovery).
+UDP port 4789 for overlay network traffic (container ingress networking).
+
+### 技能树：初级后台
+
+C 基础
+
+- 编写，编译，运行 hello world。
+- 实现 atoi 函数。
+- 复制一个文件。
+- 对一个整型数组进行冒泡排序。
+- 对一个整型数组进行二分查找。
+- 用结构数组表示一个成绩列表｛姓名，科目，成绩｝，求出指定科目平均成绩最高的姓名。
+
+Linux
+
+- 安装系统
+- 分区，格式化，挂载
+- 配置动态、静态网络IP，DNS，网关，子网掩码
+- 使用 top 查看系统运行情况
+- 使用 ifconfig, ip 查看本机网络配置
+- 使用 uname 查看本机信息，
+- 添加新用户，加入组，切换用户
+- 使用 ulimit 修改描述符最大限制
+- touch，mkdir，cd，pwd，ls，cp, mv，rm 进行文件管理
+- 熟悉文件查看命令：cat, head, more, less, tail
+- 使用 find 查找文件
+- 使用 grep 查找文本
+- 使用 sort 排序命令输出
+- 使用 diff 命令比较文件
+- 使用 wc 统计输出行数
+- chown 和 chmod 修改文件权限
+- 开启 openssh 服务，指定允许远程登录的用户
+- 指定拥有 sudo 权限的用户
+- 编写简单 shell 脚本：if, while, $?
+- 使用管道组合多个命令
+- 对标注输入，标准输出，标准错误进行重定向
+- 持续监控日志输出
+- 使用 scp 和 rsync 在多台机器间同步文件
+- 配置 ssh 免密登录
+- 使用 netstat, ss 查看端口监听列表
+- 使用 ps 查看进程列表
+- 使用 ping, curl, nc 测试远程服务是否正常
+- 使用 free 查看内存使用情况，定位内存占用大的进程
+- 查看 CPU 使用情况，定位 CPU 使用高的进程
+- 查看磁盘使用情况，定位磁盘占用大的目录
+- 查看网络流量情况
+- 使用包管理工具安装软件，修改源到国内镜像
+- 启动，停止，禁用，启用某个服务
+- 使用防火墙开放或关闭某个端口: ufw, iptables
+- 使用 rc.local 设置开机自启动脚本
+- 使用 crontab 设置定时任务
+- 使用 vi 编辑配置文件
+- 修改 .bashrc 里的环境变量，使用 alias 添加别名
+- 使用 ln 建立文件软连接
+- 使用 shell 进行数学运算
+- 使用 tar，zip, unzip 解压，压缩文件
+- 挂接，弹出 U 盘
+
+
+git
+
+- 配置密钥，创建仓库，克隆仓库，.git/config 改动
+- git status，代码拉取，代码提交，代码推送，修改最后一次 commit 信息
+- git rm， git mv, .gitignore 使用
+- 代码对比：工作区对比，暂存区对比，分支间对比，历史对比
+- 解决冲突：使用 A， 使用 B，两者合并
+- 新建分支，合并分支，删除分支，删除远程分支，常见分支规划（dev, testing, master, hotfix, feat）
+- 查看历史：查看历史改动，指定某文件改动，提取指定历史版本
+- 撤销修改：撤销修改的文件，撤销暂存的文件，撤销已提交改动，撤销已推送改动
+- 使用书架暂存: git stash
+- git rebase -i
+- 恢复文件：git reflog
+
+
+HTML
+
+- HTML 基本文档：doctype, lang, meta，head, body
+- 引入 css, js
+- 排版相关元素：h1-h5, p，a，img，br, hr，span，strong，code，pre，q
+- 列表相关元素：ul, ol, dl，li，dd
+- 布局相关元素: div，span，table
+- 表格相关元素：table, tr, td, col
+- 表单相关元素：form，input, select，textarea，button
+- input 类型：text, password, checkbox, radio, hidden，color，date，time，number
+- h5 验证属性：required ，max，min，minlength，maxlength
+- 实现用户注册页面：姓名，年龄，职业，爱好，手机号
+
+
+CSS
+
+- 常见选择器：id, class，后代选择器，子选择器，属性选择器，伪类选择器
+- 传统布局：position，display，width, height，margin, padding, border, overflow, float
+- flex 布局：flex-flow， justify-content，align-items，flex，align-self
+- 装饰类规则：字体，字号，行高，颜色，背景色，链接，列表，阴影，圆角
+- 常见布局实现：图标和文字水平对齐，文字垂直水平居中，div 垂直水平居中，左右分栏（左定宽右弹性），左中右分栏（左右定宽，中间弹性），水平菜单，下拉菜单
+- Bootstrap 使用：表格，表单，辅助类，小图标，按钮组，导航条，标签页，面包屑，分页，警告框，面板，轮播，模态框
+
+
+PHP
+
+- 变量，分支，循环，函数，字符串操作，数组操作，时间操作，文件操作，面向对象
+- 理解 empty，is_null，isset
+- 读取 get, post, cookie，header，文件上传等数据
+- 设置 HTTP 应答码， header, cookie，输出 json，HTML，文件下载
+- 数据校验，XSS 过滤，SQL 注入过滤
+- 配置并使用 session
+- 使用正则表达式 preg
+- 访问数据库：mysqli，PDO
+- 访问网络：curl
+- 调试拍错：die，exit，var_dump, print_r，debug_print_backtrace ，error_log，file_put_contents, error_reporting
+- 使用命名空间和自动加载，使用 composer 安装第三方组件
+- 使用 MVC 框架：理解 model, view, controller, templeate，library，helper 的职责
+- 使用 HMVC modules 进行模块化开发
+- 配置 php.ini 和 php-fpm.conf
+
+
+MySQL
+
+- 增删改查，多表关联，分组统计
+- 导入导出数据库或数据表
+- 创建用户，指定权限
+- 查看表结构，添加列，修改列
+- 查看执行计划，添加有效索引
+
+
+Nginx
+
+- 配置 PHP-fpm
+- 配置静态目录，启用文件索引，压缩，过期时间
+- 配置反向代理，设置必要的转发头
+- 配置虚拟目录为 php，反向代理或静态目录
+- 配置 https 证书
+
+
+Javascript
+
+- 基本语法：分支，循环，函数，数组，hash
+- DOM API，BOM API
+- jquery 选择器，dom 操作，css 操作，事件操作
+- jquery ajax
+- underscore, async 使用
+
+
+网络
+
+- 常见 HTTP 方法：GET, PUT, POST, DELETE, OPTION
+- 常见 HTTP 应答码：100, 200, 301, 302, 400, 401, 403, 404, 413，500
+- 常见请求头：Accept，Accept-Encoding，Host，UserAgent，Cookie，Connection，Referer
+- 常见应答头: Connection，Content-Type，Content-Length，Server, Transfer-Encoding，Set-Cookie
+- 浏览器开发者工具网络标签
+- 常用网络工具：ifconfig, ip, lsof, netstat,ss, ping, traceroute，mtr，telnet, curl, wget, nc，tcpdump, nslookup, dig, whois, nload, iftop
+- 防火墙相关：iptables, ufw
+
+
+问题定位
+
+- 信息查看工具使用：uptime, top, htop, vmstat, iostat, sar
+- 优雅重启服务：php-fpm, nginx，gunicorn, supervisord
+- 系统日志查看
+- crontab 日志查看
+- Nginx 日志配置及查看
+- PHP/fpm 日志配置及查看
+- 应用服务日志查看
+- MySQL 慢日志配置及查看
+
+
+Linux常用网络工具总结
+https://blog.csdn.net/li_101357/article/details/70256411
+
+本文总结了Linux中的常用的网络工具，其中包括
+
+网络配置相关：ifconfig、ip
+路由相关：route、netstat、ip
+查看端口工具：netstat、lsof、ss、nc、telnet
+下载工具：curl、wget、axel
+防火墙：iptables、ipset
+流量相关：iftop、nethogs
+连通性及响应速度：ping、traceroute、mtr、tracepath
+域名相关：nslookup、dig、whois
+web服务器：python、nginx
+抓包相关：tcpdump
+网桥相关：ip、brctl、ifconfig、ovs
+
+
+图解HTTP（六）—— HTTP请求头（首部）
+https://blog.csdn.net/alexshi5/article/details/80379086
+
+Git鲜为人知的四个命令：bisect，blame，reflog和提交范围
+https://baijiahao.baidu.com/s?id=1598885936030644678&wfr=spider&for=pc
+
+
+TensorSpace是一套用于构建神经网络3D可视化应用的框架。 开发者可以使用 TensorSpace API，轻松创建可视化网络、加载神经网络模型并在浏览器中基于已加载的模型进行3D可交互呈现。 TensorSpace可以使您更直观地观察神经网络模型，并了解该模型是如何通过中间层 tensor 的运算来得出最终结果的。 TensorSpace 支持3D可视化经过适当预处理之后的 TensorFlow、Keras、TensorFlow.js 模型。
+https://github.com/tensorspace-team/tensorspace/blob/master/README_zh.md
+
+
+机器学习指机器通过统计学算法，对大量的历史数据进行学习从而生成经验模型，利用经验模型指导业务。目前机器学习主要在以下方面发挥作用：
+
+营销类场景：商品推荐、用户群体画像、广告精准投放
+金融类场景：贷款发放预测、金融风险控制、股票走势预测、黄金价格预测
+SNS关系挖掘：微博粉丝领袖分析、社交关系链分析
+文本类场景：新闻分类、关键词提取、文章摘要、文本内容分析
+非结构化数据处理场景：图片分类、图片文本内容提取OCR
+其它各类预测场景：降雨预测、足球比赛结果预测
+笼统地讲，机器学习可以分为三类：
+
+有监督学习（Supervised Learning）：指每个样本都有对应的期望值，通过模型搭建，完成从输入的特征向量到目标值的映射。典型的案例就是回归和分类问题。
+无监督学习（Unsupervised Learning）：指在所有的样本中没有任何目标值，期望从数据本身发现一些潜在的规律，例如一些简单的聚类。
+增强学习（Reinforcement Learning）：相对来说比较复杂，是指一个系统和外界环境不断地交互，获得外界反馈，然后决定自身的行为，达到长期目标的最优化。其中典型的案例就是阿法狗下围棋，或者无人驾驶。
+
+PAI底层支持多种计算框架：有流式算法框架Flink，基于开源版本深度优化的深度学习框架TensorFlow，支持千亿特征千亿样本的大规模并行化计算框架Parameter Server，同时也兼容Spark、PYSpark、MapReduce等业内主流开源框架。
+
+PAI平台提供：PAI-STUDIO（可视化建模和分布式训练）、PAI-DSW（notebook交互式AI研发）、PAI-AutoLearning（自动化建模）、PAI-EAS（在线预测服务）四套服务，每个服务既可单独使用，也可相互打通。用户可以从数据上传、数据预处理、特征工程、模型训练、模型评估，到最终的模型发布到离线或者在线环境，一站式完成建模，有效的提升开发效率。在数据预处理方面，PAI跟阿里云DataWorks（一站式大数据智能云研发平台）也是无缝打通的，支持SQL、UDF、UDAF、MR等多种数据处理开发方式，灵活性较高。在PAI平台上训练模型，生成的模型可以通过EAS部署到线上环境，整个实验流程支持周期性调度，可以发布到DataWorks与其它上下游任务节点打通依赖关系，另外调度任务区分生产环境以及开发环境，可以做到数据安全隔离。
+
+一站式的机器学习平台意味着只要训练数据准备好（存放到OSS或MaxCompute中），用户就不需要额外的迁移工作，所有的建模工作都可以通过PAI来实现。
+
+DataWorks
+DataWorks是一个提供了大数据OS能力、并以all in one box的方式提供专业高效、安全可靠的一站式大数据智能云研发平台。 同时能满足用户对数据治理、质量管理需求，赋予用户对外提供数据服务的能力。
+
+
+全生命周期数据应用开发
+从数据开发到算法开发，从服务开发到应用开发，闭环涵盖数据业务全流程。
+
+
+下一代大数据云研发平台
+提供离线、实时、机器学习Studio满足大数据全业务场景。
+
+完美支持数据中台
+为全域数据汇聚与融合加工、数据治理与分享提供温床，助力企业完美升级数据体系。
+
+全智能化体验
+引入SQL智能编辑器、智能基线监控、数据质量监控、数据保护伞，赋能AI时代必备能力。
+
+覆盖大数据全业务场景的功能体系
+
+
+数据集成
+供复杂网络环境下、丰富的异构数据源之间数据高速稳定的数据移动及同步能力。
+
+ 
+    多数据源快速上云
+    支持多库、多表整体数据上云的快捷配置。
+
+
+    多种配置方式
+    同时兼容可视化向导模式、复杂配置的脚本模式以及API模式创建数据集成任务。
+
+
+    多种同步方式
+    支持实时、历史数据的批量、增量同步，同步速度可以打满万兆网卡。
+
+
+    任意数据源、任意网络环境数据抽取
+    支持任意结构化、非结构化、半结构化的数据传输；同时可配置Agent至自有跳板机，实现对内网环境数据源的抽取与同步。
+
+ 
+数据开发
+构建项目->解决方案->业务流程三级结构，帮助用户获得更加清晰的开发逻辑。
+
+ 
+    多引擎工作流混编
+    以DataStudio为核心的多引擎混编工作流，串联跨引擎数据节点开发，每个类型的引擎数据节点都有对应的Studio进行开发。
+
+
+    SQL智能编辑器
+    提供SQL格式化、智能补齐、关键字高亮、错误提示、SQL内部结构等人性化功能，带来更顺滑的SQL开发体验。
+
+
+    科学规范的项目模式
+    提供开发、生产环境隔离的“标准项目模式”，将更稳定的生产环境带给用户。
+
+
+    业务流程与解决方案
+    从业务视角管理整体工作流，将同类业务组织为解决方案，实现沉浸式开发。
+
+ 
+数据治理
+保障数据定时产出、有效产出，让数据满足企业“存、通、用”的高标准数据管理要求。
+
+ 
+    数据质量监控
+    提供对多种异构数据源的质量校验、通知、管理能力。
+
+
+    任务智能监控
+    通过简单配置赋予智能监控系统自行决策“是否报警、何时报警、如何报警、给谁报警”的能力，以实现复杂工作流的全链路监控。
+
+ 
+数据安全
+提供可视化数据权限申请审批流程，并一些类诸如敏感数据分级、访问行为识别、数据脱敏、风险识别的数据审计能力。
+
+ 
+    数据权限申请与审批
+    开发者可在线批量发起数据权限申请，管理者酌情进行审批，实现流程可控与可视化，利于事后审计与追溯。
+
+
+    敏感数据智能识别
+    基于自学习的模型算法，自动识别企业拥有的敏感数据，并以直观的形式展示具体类型、分布、数量等信息；同时支持自定义类型的数据识别
+
+
+    精准的数据分级分类
+    支持自定义分级信息功能，满足不同企业对数据等级管理需要
+
+
+    灵活的数据脱敏
+    提供丰富多样、可配置的数据脱敏方式，无论是存储环节的静态脱敏，还是使用环节的动态脱敏
+
+
+    用户异常操作风险监控和审计
+    利用多维度关联分析及算法，主动发现异常风险操作，提供预警以及可视化一站式审计
+
+ 
+数据服务
+基于Serverless为企业搭建统一的数据服务总线，帮助企业统一管理对内对外的API服务。
+
+ 
+    Serverless构建方式
+    告别传统构建API的开发、运维流程，仅需关注API本身逻辑即可在web页面完成配置，并支持弹性扩展，运维成本为0。
+
+
+    过滤器与函数
+    灵活变换API返回结果数据结构，适配各类业务系统要求。
+
+
+    服务编排
+    支持将多个数据服务API串联为工作流，实现复杂业务请求逻辑。
+
+
+    简单管理API生命周期
+    基于web页面可完成API发布、管理、运维、售卖的全生命周期管理，助力用户简单、快速、低成本、低风险地实现微服务聚合、前后端分离、系统集成的工作。
+
+
+    一键打通商业模式
+    支持一键将API发布至阿里云市场进行售卖，直接将数据能力变现。
+
+ 
+应用开发
+实现在线Web轻量化开发能力，提供丰富的前端组件，通过自由拖拽即可简单快速搭建前端应用。
+
+ 
+    托管Web应用开发
+    无需下载安装本地IDE和配置维护环境变量，只需一个浏览器，即可在办公室、家或任何可以连接网络的地方，进行您的数据开发工作。
+
+
+    功能完备的编辑器
+    提供智能提示、补全代码并提供修复建议，让您轻松地编写、运行和调试项目。
+
+
+    在线调试
+    在线调试具有本地IDE所有的断点类型和断点操作，支持线程切换、过滤，支持变量值查看、监视，支持远程调试和热部署。
+
+
+    协同编辑
+    支持多人同时在线编辑同一个工程的同一个文件，提高工作效率。
+
+
+    插件体系
+    支持业务插件、工具插件和语言插件三种插件。
+
+ 
+机器学习
+阿里云机器学习平台（PAI）集数据处理、建模、离线预测、在线预测为一体，向用户提供更简易的操作体验。
+
+ 
+    良好的交互设计
+    通过对底层的分布式算法封装，提供拖拉拽的可视化操作环境，让数据挖掘的创建过程像搭积木一样简单。
+
+
+    优质、丰富的机器学习算法
+    提供经过阿里大规模业务锤炼而成的基础的聚类、回归类等算法与文本分析、特征处理等复杂算法。
+
+
+    规格支持主流深度学习框架
+    包含Tensorflow、Caffe、MXNet三款主流的机器学习框架，底层提供M40型号的GPU卡进行训练。
+
+    
+可视化模型
+
+javascript workflow builder
+    
+10+ JavaScript libraries to draw your own diagrams (2019 edition)
+https://modeling-languages.com/javascript-drawing-libraries-diagrams/    
+
+https://jsplumbtoolkit.com/demos.html
+https://gojs.net/latest/index.html
+
+html5 javascript workflow diagram generator [closed]
+https://stackoverflow.com/questions/20190581/html5-javascript-workflow-diagram-generator
+
+jsplumb 中文基础教程
+https://wdd.js.org/jsplumb-chinese-tutorial/#/
+
+jsplumb实现流程图
+https://www.jianshu.com/p/a3cd623cdbb7
+https://github.com/wangduanduan/visual-ivr
+
+开源HTML5拓扑图绘制工具？
+https://www.zhihu.com/question/41026400
+
+百度脑图核心——kityminder-editor 本地化改造
+https://www.jianshu.com/p/9b53499d9031
+
+
+Machine learning tools in JavaScript
+https://github.com/mljs/ml
+https://ml5js.org/
+
+Top Machine Learning Libraries for Javascript 
+https://www.kdnuggets.com/2016/06/top-machine-learning-libraries-javascript.html
+
+orange3-web
+https://github.com/biolab/orange3/issues/1419
+
+Node-RED
+Low-code programming for event-driven applications
+https://nodered.org/
+
+Business Intelligence (BI) in Python, OLAP
+https://github.com/mining/mining
+
+老师和学生都喜欢 Orange3
+https://orange.biolab.si/home/teachers_and_students_love_it/
+
+
+Browserify：浏览器加载Node.js模块
+http://javascript.ruanyifeng.com/tool/browserify.html
+
+browserify -r through -r ./my-file.js:my-module > bundle.js
+
+
+计算矩阵的相关系数时，为什么提示说标准差是0
+ 
+应该是有某一列的数字完全一样吧
+
+
+b.reduce(function(pre, cur, i) { pre[a[i]] = cur; return pre }, {})
+
+jsPlumb使用学习-在线流程设计器demo参考说明
+https://blog.csdn.net/hexin8888/article/details/83992816
+
+基于 vue 和 element-ui 实现的表单设计器，使用了最新的前端技术栈，内置了 i18n 国际化解决方案，可以让表单开发简单而高效。
+https://github.com/GavinZhuLei/vue-form-making/blob/master/README.zh-CN.md
+
+vue内引入jsPlumb流程控制器（一）
+https://blog.csdn.net/weixin_30872671/article/details/94822539
+
+Graphlib JS 学习笔记
+https://blog.csdn.net/qq_32773935/article/details/81236461
+
+Div Background Image Z-Index Issue
+https://stackoverflow.com/questions/10507871/div-background-image-z-index-issue
+
+发现一个 CSS BUG，一个正常position 的 div a 无论如何设置 z-index，都不能在一个 position: relative 并且设置了 background-image 的div b 上面。
+b 去掉 background-image 就可以了，或者 a 得设置 position: relative，怪不得 css 难掌握，这 z-index 有时候毫无作用呀。
+
+webpack
+https://www.jianshu.com/p/2ce732125376
+
+npm install=npm i。在git clone项目的时候，项目文件中并没有 node_modules文件夹，项目的依赖文件可能很大。直接执行，npm会根据package.json配置文件中的依赖配置下载安装。
+-global=-g，全局安装，安装后的包位于系统预设目录下
+--save=-S，安装的包将写入package.json里面的dependencies，dependencies：生产环境需要依赖的库
+--save-dev=-D，安装的包将写入packege.json里面的devDependencies，devdependencies：只有开发环境下需要依赖的库
+
+
+webpack 引入 bootstrap(一)
+https://www.cnblogs.com/wyxxj/p/7381050.html
+
+
+Bootstrap4与Bootstrap3不同
+https://blog.csdn.net/drl_blogs/article/details/89305729
+
+webpack-dev-server，iframe与inline的区别
+https://www.cnblogs.com/videring/articles/7641555.html
+
+深入解析webpack-dev-server的用法
+https://www.jianshu.com/p/bbb55217d124
+
+
+Managing jQuery plugin dependency in webpack
+https://stackoverflow.com/questions/28969861/managing-jquery-plugin-dependency-in-webpack
+
+vue引入bootstrap——webpack
+https://blog.csdn.net/wild46cat/article/details/77662555
+
+Convert string to variable name in JavaScript
+https://stackoverflow.com/questions/5613834/convert-string-to-variable-name-in-javascript
+
+vue-loader13.0有一个变更就是默认启用了esModule 把vue-loader降至13.0以下，就可以解决
+https://www.cnblogs.com/qq364735538/p/9097157.html
+
+webpack配置babel执行ES module语法
+https://blog.csdn.net/zemprogram/article/details/99252944
+
+
+How can I render a new instance of vue component dynamically with dynamic props data
+https://stackoverflow.com/questions/53065722/how-can-i-render-a-new-instance-of-vue-component-dynamically-with-dynamic-props
+
+VueJs how to get data from Vue.component
+https://stackoverflow.com/questions/43677645/vuejs-how-to-get-data-from-vue-component
+
+vue -- 父组件通过$refs获取子组件的值和方法
+https://blog.csdn.net/wxl1555/article/details/84107969
+
+Vue JS returns [__ob__: Observer] data instead of my array of objects
+https://stackoverflow.com/questions/52873516/vue-js-returns-ob-observer-data-instead-of-my-array-of-objects
+
+var parsedobj = JSON.parse(JSON.stringify(obj))
+console.log(parsedobj)
+
+Object.assign({}, node.vue.$data)
+
+
+在Vue中使用echarts的两种方式
+https://segmentfault.com/a/1190000015453413
+
+
+用crystal disk info或者其他ssd健康检测软件 测试一下 就知道了
+ssd寿命关系最大的还是存储芯片：
+SLC
+写入寿命最长，速度最快，据估测大概有100000次擦写寿命，接近于无限。但是由于成本过高，现逐渐远离ssd市场。
+EMLC
+写入寿命仅次于slc，擦写次数几乎是用不完的，但由于成本高，一般作为服务器级ssd使用。
+MLC
+写入寿命中等，视制程不同大约有，3000---10000次擦写寿命，为主流ssd所采用。
+TLC
+寿命最差，只有不到1000次，目前部分三星低端以及山寨ssd使用
+
+ACM算法模板 · 一些常用的算法模板-模板合集（打比赛专用）
+https://blog.csdn.net/qq_32265245/article/details/53046750?utm_source=distribute.pc_relevant.none-task
+
+
+https://time.geekbang.org/course/detail/272-188698
+
+
+ffmpeg -f muxer=hls
+ffmpeg -i source.ts -c copy -map 0 -f segment -segment_list playlist.m3u8 -segment_time 10 output%03d.ts
+ffmpeg -i source.mp4 -codec:v libx264 -codec:a mp3 -map 0 -f ssegment -segment_format mpegts -segment_list playlist.m3u8 -segment_time 10 out%03d.ts
+
+D:\haohu\soft\ffmpeg\bin\ffmpeg -i source.mp4 -movflags frag_keyframe+empty_moov fragmented.mp4
+
+"C:\Program Files\WinFF\ffmpeg.exe" -i  out_dashinit.mp4 -map 0 -f segment -segment_format mpegts -segment_list playlist.m3u8 -segment_time 10 out%03d.ts
+
+
+https://vedu.csdnimg.cn/d5b5fe534969481dbc3ee13971dc18e1/d0649aa27d1242a6b57fa4364ad9b850-50ef6d42e544d4048c0f4d9327aa461a-4k-encrypt-stream.m3u8
+
+https://github.com/nilaoda/The-New-M3U8-Downloader
+https://github.com/videojs/mux.js
+https://github.com/phoboslab/jsmpeg
+
+
+Web端直接播放 .ts 视频
+https://segmentfault.com/a/1190000018503818
+使用FFMPEG生成HLS
+https://blog.csdn.net/ai2000ai/article/details/80756892
+
+H5直播系列二 MSE(Media Source Extensions)
+https://www.jianshu.com/p/1bfe4470349b
+
+js中ArrayBuffer操作
+https://www.jianshu.com/p/8d5c78ddcda7
+
+使用copy命令合并二进制文件
+https://www.cnblogs.com/zhanglin-0/p/6840537.html
+
+
+
+"c:\Program Files\WinFF\ffmpeg.exe" -i "D:\temp\v\000.mp4" -ss 00:00:05 -t 00:00:16 -c copy -f mp4  "d:\temp\v\000-out.mp4"
+ 
+"c:\Program Files\WinFF\ffmpeg.exe" -i frag_bunny -ss 00:00:00 -t 00:00:10 -c copy -f mp4 out.mp4
+
+ffmpeg 常用命令
+
+合并字幕
+ffmpeg -i in.mp4 -preset slow -crf 26 -vf "ass=zimu.ass" out.mp4
+其中crf后的数字越大，文件越小效果越差
+
+剪切视频
+ffmpeg -ss 00:00:33.08 -t 00:10:35.10 -accurate_seek -i in.mp4 -codec copy -avoid_negative_ts 1 out.mp4
+
+合并视频
+"C:\Program Files\FormatFactory\ffmpeg.exe" -f concat -i file-list.txt -c copy out.mp4
+其中file-list.txt的格式：
+file '1.mp4'
+file '2.mp4'
+
+
+
+### 视频防下载方案
+
+思路：
+
+把原始 mp4 文件前面增加几个字节的随机数据进行视频混淆，这样用户把mp4文件下载到本地就无法播放了。
+浏览器里使用 XMLHttpRequest 获取 mp4 文件为 ArrayBuffer 对象，再使用 DataView 功能过滤掉前几个字节。
+然后把解码后的 DataView 传递给的 MediaSource（ MSE：Media Source Extensions ）的 SourceBuffer
+
+注意：
+1、MSE 只支持 non-fragment MP4，可用 ffmpeg 进行转换
+    ffmpeg -i non_fragmented.mp4 -movflags frag_keyframe+empty_moov fragmented.mp4
+2、给视频增加混淆数据可用如下 wndows 命令执行，其中 magic.txt 是一个普通文本文件
+    copy magic.txt /a + frag_bunny.mp4 /b 22.mp4
+
+参考代码：
+https://nickdesaulniers.github.io/netfix/demo/bufferAll.html
+
+
+核心代码：
+```
+<video controls=""></video>
+<script>
+  var video = document.querySelector('video');
+
+  // 混淆后的视频文件
+  var assetURL = '22.mp4';
+  // Need to be specific for Blink regarding codecs
+  // ./mp4info frag_bunny.mp4 | grep Codec
+  var mimeCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
+
+  if ('MediaSource' in window && 
+  MediaSource.isTypeSupported(mimeCodec)) {
+    var mediaSource = new MediaSource;
+    //console.log(mediaSource.readyState); // closed
+    video.src = URL.createObjectURL(mediaSource);
+    mediaSource.addEventListener('sourceopen', sourceOpen);
+  } else {
+    console.error('Unsupported MIME type or codec: ', mimeCodec);
+  }
+
+  function sourceOpen (e) {
+    //console.log(this.readyState); // open
+    var mediaSource = e.target;
+    var sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+    fetchAB(assetURL, function (buf) {
+      sourceBuffer.addEventListener('updateend', function (_) {
+        mediaSource.endOfStream();
+        //video.play();
+        //console.log(mediaSource.readyState); // ended
+      });
+      console.log("buf",buf);
+      
+      // 过滤掉最前面的混淆字节
+      var dataView = new DataView(buf,6);
+      console.log('dataview',dataView)
+      sourceBuffer.appendBuffer(dataView);
+    });
+  };
+
+  function fetchAB (url, cb) {
+    console.log(url);
+    var xhr = new XMLHttpRequest;
+    xhr.open('get', url);
+    xhr.responseType = 'arraybuffer';
+    xhr.onload = function () {
+      cb(xhr.response);
+    };
+    xhr.send();
+  };
+</script>
+```
+
+
+"C:\Program Files\FormatFactory\FFModules\Encoder\MP4Box\mp4box.exe" -dash 1000 -rap -frag-rap out.mp4
+
+Unable to get MediaSource working with mp4 format in chrome
+https://stackoverflow.com/questions/22996665/unable-to-get-mediasource-working-with-mp4-format-in-chrome
+
+手把手教你搭建Nginx-rtmp流媒体服务器+使用ffmpeg推流
+https://www.jianshu.com/p/06c2025edcd3
+
+mp4、ts、m3u8、hls简述
+https://www.jianshu.com/p/38ee17af3ed0
+
+hls.js
+https://github.com/video-dev/hls.js/
+
+
+ffmpeg -i test.mp4 -c copy -f segment -segment_list test.m3u8 test_%d.ts
+ffplay test.m3u8
+
+
+mp4 转 m3u8
+"C:\Program Files\FormatFactory\ffmpeg.exe" -i 1.mp4 -c copy -f segment -segment_list test.m3u8 test_%d.ts
+
+"C:\Program Files\FormatFactory\ffmpeg.exe" -y -i frag_bunny.mp4 -hls_time 12 -hls_key_info_file enc.keyinfo -hls_playlist_type vod -hls_segment_filename "file%d.ts" playlist.m3u8
+
+用 hls.js 在 web 上播放 m3u8
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<video width="500" id="video" controls ></video>
+<script>
+  var video = document.getElementById('video');
+  if(Hls.isSupported()) {
+    var hls = new Hls();
+    hls.loadSource('playlist.m3u8');
+    hls.attachMedia(video);
+ }
+</script>
+
+
+ffmpeg分解视频文件并加密
+https://blog.csdn.net/cnhome/article/details/73250495
+使用ffmpeg视频切片并加密和视频AES-128加密后播放
+https://blog.csdn.net/AugustDY/article/details/83005690?utm_source=distribute.pc_relevant.none-task
+FFmpeg 加密 mpegts 文件的处理方式
+http://blog.chinaunix.net/uid-11344913-id-5780164.html
+
+
+openssl rand -base64 20 > enc.key
+cat enc.key
+openssl rand -hex 16
+
+vi enc.keyinfo
+    http://localhost:8000/enc.key
+    enc.key
+    6387c91fecff39835dccfb43b477c18d
+    
+    
+"C:\Program Files\FormatFactory\ffmpeg.exe" -y -i frag_bunny.mp4 -hls_time 12 -hls_key_info_file enc.keyinfo -hls_playlist_type vod -hls_segment_filename "file%d.ts" playlist.m3u8
+
+
+拦截导弹问题
+http://blog.sina.com.cn/s/blog_78d89c480102xn3s.html
+https://bbs.csdn.net/topics/390155435
+https://blog.csdn.net/qq_34557770/article/details/100152796
+http://www.51nod.com/question/index.html#questionId=160&isAsc=false
+https://blog.csdn.net/liuchuo/article/details/56676974
+
+
+EPS：每股收益＝利润/总股数
+
+1、基本反映了公司每一股所具有的当前获利能力；
+2、考察每股收益历年的变化，是研究公司经营业绩变化最简单明了的方法。
+3、公司的利润是通过会计制度核算的收益。中国会计制度核算的利润比国际通用的会计制度核算的利润高
+
+ROE：净资产收益率 =税后利润/净资产
+
+1、净资产收益率可衡量公司对股东投入资本的利用效率。
+
+PE：市盈率 = 股票的价格/每股收益 注：比股票的价格一般为一个固定周期内的价格，通常为12个月。
+
+1、表明了股票市价相对于股票的盈利能力。
+2、表明了股票当前市价下的投资回收期。
+
+PEG：PEG = 市盈率/盈利增长比率
+
+1、表明了股票市价的盈利的增长能力。
+2、PEG越低，说明当前市价下的盈利能力越高，且盈利增长能力越高。
+
+PB：市净率=股价/账面价值（每股净资产）注：账面价值=总资产-无形资产-负债-优先股权益 
+
+1、用来衡量当前股价中所含的净资产。
+2、PB低，说明每股中所含的净资产较高，越具有安全边际。
+
+EXPMA实战指标
+https://www.sohu.com/a/251895767_100268067
+
+音视频剪辑
+http://www.yyzsoft.com/downloads.html
+
+
+linux ms sql server
+
+Linux 上的 SQL Server 的安装指南
+https://docs.microsoft.com/zh-cn/sql/linux/sql-server-linux-setup?view=sql-server-ver15
+
+sudo apt-get install mssql-server
+
+下载并安装 Azure Data Studio
+https://docs.microsoft.com/zh-cn/sql/azure-data-studio/download-azure-data-studio?view=sql-server-2017
+
+cd ~
+sudo dpkg -i ./Downloads/azuredatastudio-linux-<version string>.deb
+
+azuredatastudio
+
+
+MS SQL Server GUI Tools
+https://razorsql.com/features/sqlserver_gui_tools.html
+
+apt-get install libcurl3
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/16.04/mssql-server-2019.list)"
+apt-get update
+apt-get install -y mssql-server
+
+
+Ubuntu的软件源格式详解
+https://blog.csdn.net/wykkunkun/article/details/79430187
+
+dpkg -I mssql-server_versionnumber_amd64.deb
+sudo dpkg -i mssql-server_versionnumber_amd64.deb
+
+apt-get -f install --fix-missing ./mssql-server_14.0.3281.6-2_amd64.deb
+/opt/mssql/bin/mssql-conf setup
+
+
+/opt/mssql/lib/mssql-conf/invokesqlservr.sh
+vi /opt/mssql/lib/mssql-conf/mssqlconfhelper.py
+
+
+
+
+python 版本切换
+update-alternatives --list python
+update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
+update-alternatives --install /usr/bin/python python /usr/bin/python3.6 2
+update-alternatives --config python
+
+
+azuredatastudio --user-data-dir ./
+
+很多方法可以分析系统调用。这里有一些（按照开销从大到小排序）：
+
+strace
+perf record
+perf trace
+sysdig
+perf stat
+bcc/eBPF
+ftrace/mcount
+
+
+docker ubunt镜像中文乱码，文件名问号解决
+https://www.cnblogs.com/xqnq2007/p/8124584.html
+
+apt-get install language-pack-zh-hans language-pack-zh-hans-base language-pack-gnome-zh-hans language-pack-gnome-zh-hans-base
+apt-get install `check-language-support -l zh-hans`
+
+另外还有一个LANGUAGE参数，它与LC_MESSAGES相似，但如果该参数一旦设置，则LC_MESSAGES参数就会失效。 LANGUAGE参数可同时设置多种语言信息，如LANGUAGE="zh_CN.GB18030:zh_CN.GB2312:zh_CN"。
+
+LANG，LC_*的默认值，是最低级别的设置，如果LC_*没有设置，则使用该值。类似于 LC_ALL
+
+LC_ALL，它是一个宏，如果该值设置了，则该值会覆盖所有LC_*的设置值。注意，LANG的值不受该宏影响
+
+公理：你需要一个小连接池，和一个充满了等待连接的线程的队列
+
+如果你有10000个并发用户，设置一个10000的连接池基本等于失了智。1000仍然很恐怖。即是100也太多了。你需要一个10来个连接的小连接池，然后让剩下的业务线程都在队列里等待。连接池中的连接数量应该等于你的数据库能够有效同时进行的查询任务数（通常不会高于2*CPU核心数）。
+
+我们经常见到一些小规模的web应用，应付着大约十来个的并发用户，却使用着一个100连接数的连接池。这会对你的数据库造成极其不必要的负担。
+
+请注意
+
+连接池的大小最终与系统特性相关。
+比如一个混合了长事务和短事务的系统，通常是任何连接池都难以进行调优的。最好的办法是创建两个连接池，一个服务于长事务，一个服务于短事务。
+再例如一个系统执行一个任务队列，只允许一定数量的任务同时执行，此时并发任务数应该去适应连接池连接数，而不是反过来。
+
+
+前端领域主管是刚需，中小前端团队Team Leader如何养成？
+https://mp.weixin.qq.com/s/oGGyyJu-SjgA8TGFFVad-w
+
+
+Your feedback will help us improve 
+
+
+Hi Namer
+
+Have suggestions on how we can improve? 
+
+Reply to this email with ways you think we can improve your experience on Namebase. As a thank you, we will credit your account with 10 HNS.
+
+What can we improve? 
+What we are doing well? 
+Improving our product and customer service is really important to us.  
+
+We appreciate your time and feedback. 
+
+Thank you, 
+Namebase Customer Experience Team
+
+https://www.zhihu.com/question/23444414/answer/1001219132?utm_source=weibo
+
+如果你的markov模型输入都是历史股价，那如果第二天政府颁布了新法案禁止X行业发展，你在X行业历史利好基础上做出的判断就白瞎了；如果你的输入是历史股价和政策趋势，那第二天邻国出了个X行业B公司产品弄死人的新闻，你在X行业A公司本国股票的投资又白瞎了；如果你的输入是历史股价、政策趋势和国际新闻（这是很多对冲基金公司做的事情），那第二天某个大新闻网站的官方微博被黑了，发了条假消息，你做的投资组合又白瞎了（真事：Stocks plunge, recover after fake tweet）；如果你的输入是历史股价、政策趋势、国际新闻并自动判断新闻的真假，结果第二天A公司总部地震了，A公司从此一蹶不振，你的投资又白瞎了。能影响股价的factor太多，所有模型不管简单/复杂，都有适用范围和被坑的时候，所以机器学习（或者说统计）这种东西不能不信，但切忌全信。
+
+
+似乎马尔科夫在股票里面一般不是用来做预测的，一般是结合蒙地卡罗方法来做风险对冲的。用马尔科夫做预测比较适合的领域一般是大宗商品，期货，债券这种周期性较强的金融衍生品。
+
+
+为何要选择石家庄外国语师范学校
+
+http://blog.sina.com.cn/s/articlelist_1239751472_0_1.html
+
+1、国办学校河北石家庄外国语师范学校原名石家庄市师范学校，创建于1948年，已有58年的办学历史，为石家庄和周遍县市培养了大批的小学和中学教师。该校是石家庄市教育局直属的国办全日制学校，面向全省招收应届初中毕业生。该校同时还负担着石家庄市中小学校长和骨干教师的培训任务。
+
+2、业绩辉煌1989年因办学成绩显著被国家教委授予“全国中等专业教育先进学校”；自1990年连续十六年被石家庄市委、市政府授予“文明单位”称号 ； 1998年被评为首批石家庄市德育示范学校和德育科研先进单位；1999年被中央教科所评为“全国先进实验学校”；2000年被河北省教育厅命名为“安全文明校园”；2005年被市委宣传部、市教育局命名为石家庄市心理健康教育示范学校。学校从2002年开始对口升学，2002年升学率96%，2003年、2004、2005年升学率达98%以上，四年来考入河北大学、河北师范大学共400余人，我校学生连续四年荣获全省对口师范类高考状元。中央电视台和河北电视台著名节目主持人王玲玲即是我校毕业生。初此之外，我校毕业生很多都已成为各级政府机关、教育行政部门、学校的领导和骨干教师。
+
+3、师资雄厚我校师资力量一流，拥有全国模范教师、全国优秀外语教师和特级教师5人，高级教师36人，石家庄市拔尖人才10名，20%的教师有研究生学历。我校历史上和目前有很多诸如马骏骥、周鸿祥、樊钢民、祝琪等在全国具有一定影响的名师。师资力量在全省同类学校中首屈一指。同时，我校聘有数名美国、英国、澳大利亚、新西兰、加拿大的外教，为学生创造了良好的学习氛围。
+
+4、完善管理我校地处石家庄市西部北方大学园，占地500多亩。学校实施封闭式寄宿制管理，有效的保护了学生的安全，有利于学生安心学习。同时具有完善的学校制度，具有优良的校风。学校同时开展丰富多彩的活动，活跃了学生的业余生活，拓展了学生的视野，提高了学生的全面素质。配有教学楼、食堂、图书馆、体育馆等完备的学习、生活设施。小桥流水、花红草绿、宁静幽雅。
+
+5、优惠政策在校学生享受每月46元的国家生活助学金；品学兼优者每学期享受奖学金；生活困难者学校提供勤工助学岗位。
+
+6、专业优势我校目前已从原有以培养师范人才拓展为综合性院校。有英语、计算机、幼师等目前和将来的具有极强就业优势的热门专业。为了满足部门学生上高中的愿望，我校还开设了特色高中，学生不用参加高中会考，可以集中精力学习高考课程。
+
+
+
+kvm 轻量虚拟机
+https://firecracker-microvm.github.io/
+
+
+图片压缩工具 数码照片压缩大师
+https://pc.qq.com/detail/13/detail_160753.html
+
+
+直接运行 MANIFEST.MF 中指定的 main 方法：
+java -jar mplus-service-jar-with-dependencies.jar
+
+运行指定的 main 方法：
+java -cp mplus-service-jar-with-dependencies.jar com.smbea.dubbo.bin.Console start
+
+
+date("Y-m-d H:i:s")
+
+
+Jupyter Enterprise Gateway
+Papermill
+labextension
+serverextension
+
+
+在股票投资基本分析的诸多工具中，与市盈率、市净率、现金流量折现等指标一样，EPS也是最常见的参考指标之一。
+
+计算每股收益时要注意以下问题。编制合并会计报表的公司，应以合并报表中的数据计算该指标。如果公司发行了不可转换优先股，则计算时要扣除优先股数及其分享的股利，以使每股收益反映普通股的收益状况，已作部分扣除的净利润，通常被称为"盈余"，扣除优先股股利后计算出的每股收益又称为"每股盈余"。有的公司具有复杂的股权结构，除普通股和不可转换优先股以外，还有可转换优先股、可转换债券、购股权证等。可转换债券的持有者，可以通过转换使自己成为普通股股东，从而造成公司普通股总数增加。购股权证持有者，可以按预定价格购买普通股，也会使公司普通股份增加。普通股增加会使每股收益变小，称为"稀释"。计算这种复杂的股权结构的每股收益时，应按照有关部门的规定进行，没有相关规定的，应按国际惯例计算该指标，并说明计算方法和参照依据。
+每股收益，是衡量上市公司盈利能力最重要的财务指标。它反映普通股的获利水平。在分析时，可以进行公司间的比较，以评价该公司相对的盈利能力；可以进行不同时期的比较，了解该公司盈利能力的变化趋势；可以进行经营实绩和盈利预测的比较，掌握该公司的管理能力。
+
+
+是时候联盟Jupyter与PyCharm了，Jupytext就是你需要的
+https://baijiahao.baidu.com/s?id=1632312881652181052&wfr=spider&for=pc
+
+在 GitHub 的一项分析中（Nature，30 OCTOBER 2018）显示，截至 2018 年 9 月，公开的 Jupyter Notebook 已经超过了 250 万份，而 2015 年这一数字仅为 20 万左右。Jupyter Notebook 之所以这么流行，主要还是它的演示和可视化，我们可以查看每一段代码的输出与运行效果。
+
+
+服务器搭建 office web apps 实现线文档预览
+https://blog.csdn.net/jiaqu2177/article/details/81944185
+
+How to convert Word (doc) to PDF in linux?
+https://superuser.com/questions/156189/how-to-convert-word-doc-to-pdf-in-linux
+
+https://askubuntu.com/questions/678125/error-in-function-createsettingsdocument-elements-cxx-when-using-a-libreoffice
+
+
+## doc 转 PDF    
+apt-get install `check-language-support -l zh-hans`
+apt-get install cups-pdf
+apt install libreoffice-writer
+lowriter --headless --convert-to pdf 1.doc
+
+<?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+$file='./1.doc';
+if (!file_exists($file)) {
+    exit('文件不存在');
+}
+
+$info = pathinfo($file);
+$new_file = "{$info['dirname']}/{$info['filename']}.pdf";
+if (!file_exists($new_file)) {
+    $cmd = 'export HOME=/tmp && /usr/bin/lowriter --headless --convert-to pdf --outdir '.escapeshellarg($info['dirname']).' '. escapeshellarg($file) . ' 2>&1';
+    exec($cmd, $output, $return_val);
+    //var_dump($cmd, $return_val, $output);
+}
+header("Content-type:application/pdf");
+readfile($new_file);
+
+
+
+Jupyter Notebook---不需认证，与nginx搭配远程访问及下载
+https://www.cnblogs.com/aguncn/p/11238882.html
+
+
+
+
+linux:有效使用docker logs查看日志
+https://www.cnblogs.com/yangxiayi1987/p/11818130.html
+
+
+docker 暂停某个节点
+docker node update --availability pause vnj4lfipwdhkopmqvznacbl86
+
+
+docker以管理员角色进入jupyter/scipy-notebook镜像的命令
+docker run -it -p 8888:8888 --user root -e GRANT_SUDO=yes -e NB_UID=1000 -e NB_GID=100 jupyter/scipy-notebook
+
+装扮你的Jupyter
+https://segmentfault.com/a/1190000009305646
+
+autocmd BufNewFile,BufRead *.html,*.htm,*.css,*.js set noexpandtab tabstop=2 shiftwidth=2
+autocmd 即“自动命令”，在发生某些事件时自动执行，类似于钩子函数。
+BufNewFile 表示编辑一个不存在的文件时
+BufRead 是读取一个已存在的文件时
+后面是文件名 pattern（用 , 分隔）以及要执行的命令。若要执行多个命令，命令之间可用 | 分隔。
+
+
+vim多标签和多窗口
+https://blog.csdn.net/fuxingdaima/article/details/8658342
+
+标签页
+:tabe <文件名>  在新标签页中打开指定的文件。
+:tabnew <文件名>  在新标签页中编辑新的文件。
+:tabc  关闭当前标签页。
+:tabo  关闭所有的标签页。
+:tabn或gt  移动到下一个标签页。
+:tabp或gT  移动到上一个标签页。
+:tabfirst或:tabr  移动到第一个标签页。
+:tablast  移动到最后一个标签页。
+
+7、文件浏览
+:Ex 开启目录浏览器，可以浏览当前目录下的所有文件，并可以选择
+:Sex 水平分割当前窗口，并在一个窗口中开启目录浏览器
+:ls 显示当前buffer情况
+8、vi与shell切换
+:shell 可以在不关闭vi的情况下切换到shell命令行
+:exit 从shell回到vi
+
+ctags
+2.跳转
+1)用vim打开一个已经建过标签的c文件    
+2)ctrl+] 找到光标所在位置的标签定义的地方
+3)ctrl+t 回到跳转之前的标签处
+
+:ta function_name 搜索
+:ts or :tselect shows the list
+:tn or :tnext goes to the next tag in that list
+:tp or :tprev goes to the previous tag in that list
+:tf or :tfirst goes to the first tag of the list
+:tl or :tlast goes to the last tag of the list 
+
+
+前缀键默认为“\”。使用以下命令，可以将前缀键定义为逗号：
+
+let mapleader=","
+
+
+git clone --depth 1 -b master https://github.com/ctrlpvim/ctrlp.vim.git bundle/ctrlp.vim
+git clone --depth 1 -b master https://github.com/majutsushi/tagbar.git bundle/tagbar
+
+建议废弃taglist(年久失修了), ctrlp+tagbar实际使用效果更好
+如果在写golang的时候要用到tagbar, 需要安装gotags支持
+
+        
+Vim与Python真乃天作之合：打造强大的Python开发环境
+https://segmentfault.com/a/1190000003962806
+
+Vim and Ctags
+https://andrew.stwrt.ca/posts/vim-ctags/
+
+curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+    
+# ~/.vimrc
+
+```
+set nocp nu ts=4 sw=4 et sta hls si acd
+autocmd BufNewFile,BufRead *.html,*.htm,*.css,*.js set noet ts=2 sw=2
+
+call plug#begin()
+Plug 'majutsushi/tagbar'
+Plug 'ctrlpvim/ctrlp.vim'
+Plug 'tacahiroy/ctrlp-funky'
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
+call plug#end()
+
+set tags=tags;
+noremap <F6> :!ctags -R<CR>
+nnoremap <silent> <F9> :TagbarToggle<CR>
+nnoremap <leader>. :CtrlPTag<cr>
+nnoremap <Leader>fu :CtrlPFunky<Cr>
+```
+
+Reload .vimrc and :PlugInstall to install plugins.
+
+
+windows下关闭gvim叮叮叮和闪屏
+
+" 关闭各种按键叮叮声音和闪屏
+set vb t_vb=
+au GuiEnter * set t_vb=
+
+GuiEnter这一行为关闭闪屏，因为关闭声音后，vim会用闪屏提示，多按一次esc也会闪。
+
+在 Vim 命令行模式下使用命令 :mksession [file_name] 可用来创建一个会话文件
+可以在 Vim 命令行模式下使用 :source file_name 来导入指定的会话文件。
+
+vim自带的自动补全功能
+https://blog.csdn.net/li4850729/article/details/7932702
+
+,Vim在查找一个单词时是按照如下的步骤:
+1 在当前文件中进行查找
+2 在其他窗口中进行查找
+3 在其他的已装入的缓冲区中进行查找
+4 在没有装入缓冲区的文件中进行查找
+5 在当前的标记(tag)列表是进行查找
+6 在所有的由当前文件的#include包含进来的文件中进行查找
+当然了我们也可以自定义我们的查找顺序.
+我们在使用自动完成功能时的命令CTRL-P是向后查找匹配的单词,而还有一个命令CTRL-N是向前查找匹配的单词.他们有同样的功能和作用,所不同的只是查找方向上的不同.
+
+Vim速查表-帮你提高N倍效率
+https://www.jianshu.com/p/6aa2e0e39f99
+
+VIM 代码片段插件 ultisnips 使用教程
+https://www.jianshu.com/p/12cdb3364ad1
+
+终于用正确的方式解决nginx 403 错误
+http://aftercode.club/aftercode/nginx/2017/03/23/solve-nginx-403-problem-the-right-way.html
+
+namei -l $PWD/static/jupyter/notebook_main.min.js
+
+当 nginx 使用一个目录作为 root 来使用的时候, 除了需要获得这个目录下所有文件的下的读权限以外, 还需要能够成功的访问到这个路径. 换句话说到达这个目录的每个文件夹, nginx 都要有x权限. 确认是否都有 x 的权限可以使用目录 namei 帮助查找.
+
+## 文件备份
+
+下载安装 freefilesync, 选择源目录和目标目录，同步规则选择“更新”，过滤规则里去掉 .git, .metadata 等，保存为批处理文件，用计划任务定时备份。
+
+
+搭建Jitsi Meet视频会议服务器
+https://blog.csdn.net/qq_32523587/article/details/90111616
+
+
+
+pytorch通过torch.cuda使用GPU加速运算且比较GPU与CPU运算效果以及应用场景
+https://ptorch.com/news/53.html
+
+
+linux cuda10.0使用pip安装pytorch
+https://blog.csdn.net/tiandd12/article/details/102967888
+
+wget https://download.pytorch.org/whl/cu100/torch-1.3.0%2Bcu100-cp36-cp36m-linux_x86_64.whl
+
+wget https://download.pytorch.org/whl/cu100/torchvision-0.4.1%2Bcu100-cp36-cp36m-linux_x86_64.whl
+
+pip3 install 'pillow<7.0.0'
+
+print torch.cuda.is_available()
+
+## centos 6 升级 gcc
+
+gun 国内镜像
+https://mirrors.tuna.tsinghua.edu.cn/gnu/
+
+
+### 升级 glibc++
+
+下载路径：http://ftp.de.debian.org/debian/pool/main/g/
+
+
+    wget http://ftp.de.debian.org/debian/pool/main/g/gcc-8/libstdc++6_8.3.0-6_amd64.deb
+    ar -x libstdc++6_8.3.0-6_amd64.deb
+
+    tar -xf data.tar.xz
+    sudo rm /usr/lib64/libstdc++.so.6
+    sudo cp usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25 /usr/lib64/
+    sudo ln /usr/lib64/libstdc++.so.6.0.25    /usr/lib64/libstdc++.so.6
+    strings /usr/lib64/libstdc++.so.6 | grep GLIBCXX
+
+
+### 升级 glibc
+
+    strings /lib64/libc.so.6 | grep GLIBC_
+    wget http://mirrors.ustc.edu.cn/gnu/libc/glibc-2.18.tar.gz
+    tar xf glibc-2.18.tar.gz
+    cd glibc-2.18
+    mkdir build
+    cd build
+    ../configure  --prefix=/usr --disable-profile --enable-add-ons --with-headers=/usr/include --with-binutils=/usr/bin
+    make
+    sudo make install
+    strings /lib64/libc.so.6 | grep GLIBC_
+
+### 升级 binutils
+
+    ld -v
+    wget https://mirrors.tuna.tsinghua.edu.cn/gnu/binutils/binutils-2.27.tar.gz
+    tar -zxf binutils-2.27.tar.gz
+    cd binutils-2.27
+    ./configure --prefix=/usr
+    make
+    make install
+    /usr/bin/ld -v
+
+### 升级 gcc
+
+为CentOS 6、7升级gcc至4.8、4.9、5.2、6.3、7.3等高版本
+https://www.vpser.net/manage/centos-6-upgrade-gcc.html
+
+CentOS 7虽然已经出了很多年了，但依然会有很多人选择安装CentOS 6，CentOS 6有些依赖包和软件都比较老旧，如今天的主角gcc编译器，CentOS 6的gcc版本为4.4，CentOS 7为4.8。gcc 4.8最主要的一个特性就是全面支持C++11，如果不清楚什么用的也没关系，简单说一些C++11标准的程序都需要gcc 4.8以上版本的gcc编译器编译，如MySQL 8.0版本(8.0.16以上版本是C++14标准，需gcc 5.3以上版本)。
+
+CentOS 6虽然是gcc 4.4的老旧版本，但是也可以升级gcc来安装gcc 4.8，我们今天就不采用编译安装的方法了，gcc安装起来非常费时，我们采用CentOS的一个第三方库SCL(软件选集)，SCL可以在不覆盖原系统软件包的情况下安装新的软件包与老软件包共存并且可以使用scl命令切换，不过也有个缺点就是只支持64位的。
+
+确定当前gcc版本，执行命令：gcc --version
+
+一般如果需要升级gcc至4.8或更高版本，建议直接采用安装SCL源之后安装devtoolset-6（devtoolset-6目前gcc版本为6.3），因为devtoolset-4及之前的版本都已经结束支持，只能通过其他方法安装
+
+    wget https://copr.fedoraproject.org/coprs/rhscl/devtoolset-3/repo/epel-6/rhscl-devtoolset-3-epel-6.repo -O /etc/yum.repos.d/devtoolset-3.repo
+    yum -y install devtoolset-3-gcc devtoolset-3-gcc-c++ devtoolset-3-binutils
+    scl enable devtoolset-3 bash
+
+GitBook 使用教程
+https://www.jianshu.com/p/421cc442f06c
+
+GitBook - 快速打造可留言的博客
+https://blog.csdn.net/weixin_34293141/article/details/91413019
+
+如何将 Vim 剪贴板里面的东西粘贴到 Vim 之外的地方？ - 胖君的回答 - 知乎
+https://www.zhihu.com/question/19863631/answer/442180294
+
+vim --version | grep clipboard
+如果结果里你找到加号开头的+clipboard， 恭喜你，你的vim没问题，是你姿势问题。
+用"+y 代替y将选中的内容复制到系统剪贴板，效果和ctrl-c一致。
+用"+p代替p将剪贴板内容复制到指定位置，也可以用ctrl-v。
+如果找到的是负号开头的-clipboard，说明你的vim不支持系统剪切板，
+
+当sizeof的参数是数组名时，计算的是整个数组的存储大小；当sizeof的参数是指针时，计算的是指针的大小（8字节，64位系统）。而且，可以定义对指针的引用，但却不能用数组名来作为指针引用的右值，可见数组名和指针还是有区别的。同时，将数组名作为实参传入函数时，因为形参是指针，所以在函数体内的其实是通过数组名初始化的指针形参，故不能在函数中通过 sizeof(指针形参)/sizeof(数组元素类型) 来计算数组长度。所以一般将数组名作为形参传入函数时，也会同时传递一个数组长度的参数。
+
+- 配置
+- 入口
+- 模块
+- 层次
+- 常量定义
+- 名次概念
+
+在编译时指定的Redis使用的内存分配器，可以是libc、jemalloc、tcmalloc，默认是jemalloc。jemalloc在64位系统中，将内存空间划分为小、大、巨大三个范围；每个范围内又划分了许多小的内存块单位；存储数据的时候，会选择大小最合适的内存块进行存储。
+jemalloc划分的内存单元如下图所示：
+
+
+知数堂公开课
+https://pan.baidu.com/s/1slWxyjV#list/path=%2F
+
+蓝牙HID无线触摸屏
+https://www.jianshu.com/p/81747aa385c2
+
+Kubernetes Deployment
+http://docs.kubernetes.org.cn/317.html
+
+Kubernetes kubectl 与 Docker 命令关系
+http://docs.kubernetes.org.cn/70.html
+
+Kubernetes 给容器和Pod分配内存资源
+http://docs.kubernetes.org.cn/729.html
+
+kubernetes安装（国内环境）
+https://zhuanlan.zhihu.com/p/46341911
+
+k8s 入门教程和实战
+https://blog.51cto.com/wutengfei/2160771
+
+kubernetes部署NFS持久存储（静态和动态）
+https://www.jianshu.com/p/5e565a8049fc
+
+Kubernetes Python API中文使用说明
+https://blog.csdn.net/wmj2004/article/details/103527860
+
+How to expose a Kubernetes service on a specific Nodeport?
+https://stackoverflow.com/questions/52522570/how-to-expose-a-kubernetes-service-on-a-specific-nodeport
+
+https://www.cnblogs.com/chenjinxinlove/p/10104854.html
+https://www.cnblogs.com/amyzhu/p/8285300.html
+
+k8s-集群里的三种IP（NodeIP、PodIP、ClusterIP）
+https://blog.csdn.net/qq_21187515/article/details/101363521
+
+设置service的nodeport以后外部无法访问对应的端口的问题
+https://blog.51cto.com/11288550/2378289
+
+iptables -P FORWARD ACCEPT
+
+gpushare-scheduler-extender
+https://github.com/AliyunContainerService/gpushare-scheduler-extender
+https://www.cnblogs.com/oolo/p/11672720.html
+https://developer.aliyun.com/article/690623
+
+调度 GPUs
+https://kubernetes.io/zh/docs/tasks/manage-gpus/scheduling-gpus/
+
+在k8s中调用NVIDIA-GPU
+https://www.jianshu.com/p/eae199a4cce0
+
+flask_SQLALchemy之多表查询
+https://www.cnblogs.com/moying-wq/p/10698783.html
+
+金融行业微服务架构解析
+http://www.java2nb.com/article/106.html
+
+
+NAT网关支持SNAT和DNAT功能。
+SNAT可以为VPC内无公网IP的ECS实例提供访问互联网的代理服务。
+DNAT可以将NAT网关上的公网IP映射给ECS实例使用，使ECS实例能够提供互联网服务。
+
+kubectl run nginx --image nginx:1.13
+# 如果集群没开通公网能力(NAT+EIP)，则镜像智能拉取同区域的阿里镜像仓库的镜像
+# 可以是自己上传的私有镜像，也可以是同 regin 其它用户公开的镜像，要使用镜像的专有网络地址
+kubectl run nginx --image registry-vpc.cn-beijing.aliyuncs.com/sigma/nginx:alpine
+kubectl expose pod nginx --port=80 --target-port=80 --name=nginx-svc --type=LoadBalancer
+kubectl get pod -l run=nginx
+kubectl get service nginx-svc
+LB_ENDPOINT=$(kubectl get service nginx-svc -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
+echo $LB_ENDPOINT
+curl $LB_ENDPOINT 
+
+
+压缩搜索出来的文件
+find . -name '*.ipynb' | grep -v tf1.0 | grep -v checkpoints |  perl -p -e 's#^(.*?)$#"\1"#' | xargs tar cvjf notebook.tar.bz2
+sed -r 's/^(.*?)$/"\1"/ig'
+
+查看压缩包
+tar tvf notebook.tar.bz2
+tar tf notebook.tar.bz2
+
+
+tensorflow各个版本的CUDA以及Cudnn版本对应关系
+https://blog.csdn.net/qq_27825451/article/details/89082978
+
+CUDA Toolkit本地安装包时内含特定版本Nvidia显卡驱动的，所以只选择下载CUDA Toolkit就足够了，如果想安装其他版本的显卡驱动就下载相应版本即可。
+
+NVIDIA的显卡驱动器与CUDA并不是一一对应的哦，CUDA本质上只是一个工具包而已，所以我可以在同一个设备上安装很多个不同版本的CUDA工具包
+
+cuDNN是一个SDK，是一个专门用于神经网络的加速包，注意，它跟我们的CUDA没有一一对应的关系，即每一个版本的CUDA可能有好几个版本的cuDNN与之对应，但一般有一个最新版本的cuDNN版本与CUDA对应更好。
+
+
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-10.1/lib64
+    export PATH=$PATH:/usr/local/cuda-10.1/bin
+    export CUDA_HOME=$CUDA_HOME:/usr/local/cuda-10.1
+
+
+Kubernetes - GC的镜像自动清理导致的问题
+https://blog.csdn.net/qingyafan/article/details/89096030
+
+Kubernetes集群随着应用的迭代，会产生很多无用的镜像和容器，因此需要定时清理，分布在每个节点的Kubelet有GC（垃圾收集）的职责，当集群中有断定为垃圾的镜像或容器，那么kubelet会清除掉相关镜像或容器。容器GC间隔为1分钟，镜像GC间隔为5分钟。
+
+Kubernetes中的垃圾回收机制
+https://www.cnblogs.com/openxxs/p/5275051.html
+
+Kubernetes(k8s)存储资源的NFS PersistentVolume类型
+https://blog.csdn.net/qq_41709494/article/details/104360014
+
+iptables -nvL --line-number
+firewall-cmd --list-port
+
+不要让“Clean Code”更难维护，请使用“Rule of Three”
+https://www.infoq.cn/article/qTBDahNgemdI6F4uxiwt
+
+当我们开始重构遗留代码时，通常会将内容提取到较小的方法中。然后再将方法提取到类中。很快，我们可能就能感觉到原来 30 行的方法现在已经分散在不同的类中。
+
+我们应该做的是，创建正确的抽象。 正确的抽象，正确地划分职责。它们阐明了代码的意图。它们可以防止代码重复。
+
+两段代码看起来是一样的，但却代表了不同的概念。不同的抽象。在这种情况下，重复是偶然的。保留重复会更好。
+
+“重复与错误的抽象相比，代价要小的多”  —— Sandi Metz， 所有的小事
+
+
+location /pypi {
+    proxy_pass  http://mirrors.aliyun.com;
+
+    proxy_set_header   Host             "mirrors.aliyun.com";
+    proxy_set_header   X-Real-IP        $remote_addr;
+    proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+}
+
+nginx正向代理配置, proxy_connect 是 https 代理，默认 nginx 没装
+
+    server {
+      listen 8080;
+      resolver 8.8.8.8;
+      resolver_timeout 5s;
+      proxy_connect;
+      proxy_connect_allow 443 563;
+      proxy_connect_connect_timeout 10s;
+      proxy_connect_read_timeout 10s;
+      proxy_connect_send_timeout 10s;
+      location / {
+          proxy_pass $scheme://$host$request_uri;
+          proxy_set_header Host $http_host;
+          proxy_buffers 256 4k;
+          proxy_max_temp_file_size 0;
+          proxy_connect_timeout 30;
+      }
+      access_log /export/home/logs/proxy/access.log main;
+      error_log /export/home/logs/proxy/error.log;
+    }
+
+    kubectl exec mypod -- curl -s -x 172.17.1.1:30003 baidu.com
+    kubectl exec mypod -- curl -sv --connect-timeout 1 baidu.com
+
+# 在 /etc/profile 文件中增加如下三项。
+    export proxy="http://{proxy_server_ip}:8080"
+    export http_proxy=$proxy
+    export https_proxy=$proxy
+
+# 使配置生效
+    shell> source /etc/profile
+
+自动输入密码
+
+    #!/bin/bash
+
+    passwd='123456'
+
+    /usr/bin/expect <<-EOF
+
+    set time 30
+    spawn ssh saneri@192.168.56.103 df -Th
+    expect {
+    "*yes/no" { send "yes\r"; exp_continue }
+    "*password:" { send "$passwd\r" }
+    }
+    expect eof
+    EOF
+
+Glib 数据类型 数组，链表，哈希表
+https://developer.gnome.org/glib/stable/glib-data-types.html
+
+Pythons map, reduce and filter as list comprehensions
+https://martin-thoma.com/python-map-reduce-filter/
+
+
+php实现单点登录实例
+https://zhuanlan.zhihu.com/p/97783052
+
+php-fpm搭建及加固
+https://zhuanlan.zhihu.com/p/111094258
+
+
+A – Z LINUX COMMANDS – OVERVIEW WITH EXAMPLES
+https://www.tecmint.com/linux-commands-cheat-sheet/
+
+CTRL+F5 和F5 两种刷新有什么区别?
+https://zhidao.baidu.com/question/568487385.html
+
+一、刷新原理不同。
+
+F5触发的HTTP请求的请求头中通常包含了If-Modified-Since 或 If-None-Match字段,或者两者兼有；
+
+CTRL+F5触发的HTTP请求的请求头中没有上面的那两个头,却有Pragma: no-cache 或 Cache-Control: no-cache 字段,或者两者兼有。
+
+二、服务端返回不同。
+
+F5刷新服务端返回304 Not Modified；
+
+Ctrl + F5刷新返回HTTP状态码200，原因是Ctrl+F5在发出请求时，会在请求消息头中加入Cache-Control:no-cache，Pragma:no-cache参数。
+
+三、刷新结果不同。
+
+F5刷新按钮只对当前页面进行刷新，只刷新本地缓存；
+
+Ctrl + F5 的行为也是刷新页面，但是会把浏览器中的临时文件夹的文件删除再重新从服务器下载。
+
+比如某网站更新了 style.css 文件，如果单纯按 F5 刷新，那么当前页面还是使用未修改的 style.css 文件内容，如果按 Ctrl + F5 就会重新从服务器下载 style.css 文件，并使用修改后的 style.css 文件。
+
+踩坑记： go 服务内存暴涨
+https://www.v2ex.com/t/666257#reply151
+
+如何使用excel中的规划求解来快速优化
+https://www.jisilu.cn/question/59370
+
+
+鲲鹏计算产业发展白皮书
+https://mp.weixin.qq.com/s/gf_bl9bjkLQYMEmsTRZUpQ
+
+当人民币对美元汇率上升的时候，由于出口货物的收益下降，导致出口量的下降，会导致我国换取的美元减少，而相反的是进口收益增大，所以进口也会增加，导致花掉更多美元。这样，一定时间后，导致我国持有美元总量减少，导致我国对美元的需求增加，所以会导致美元的增值，也就是人民币对美元的汇率下降。同样的道理，如果人民币对美元下降的时候，由于进出口的作用，调节了我国持有美元的总量上升，而导致对美元的需求下降，这样反而会导致人民币的升值。
+
+作者：外贸精英
+链接：https://www.zhihu.com/question/358110678/answer/913763061
+
+净资产收益率与投入资本回报率的区别如下：百
+
+一、表达意思不同
+“roe”意思是：净资产度收益率。
+
+“roic”意思是：投入资本回报率。
+
+二、计算方式不同
+
+roe：roe的计算方式是净利润与平均股东权益的百分比。
+
+roic：roic的计算方式是息前税后问经营利润与投入资本答的比值。
+
+三、作用不同
+
+roe：roe主要是用于衡量公司运用自有资本的效率。
+
+roic：roic主要是用于衡量投出资金的使用效果，用来评估一个企业或其专事业部门历史绩效。
+
+
+roe反应公司为普通股股东创造的收益，
+roic反应的是公司为普通股股东以及债权人创造的收益
+
+
+ROIC高不代表ROE就高，因为二者中ROE的分子包含了非经常性的损益，比如公司出售了一项资产，所得的收益也会归为ROE的分子，而在计算ROIC的时候，非经常性损益是排除的，这样就会造成ROE可能高，但内是ROIC却是下滑的。
+如果公司的利润都是来自主业，那ROE高，ROIC也可能是降低的，因为ROE是净资产的收益速度，在分子不容变的情况下，公司大批举债，就会造成ROIC的分母变大，使得ROIC降低。
+
+一套最核心的投资体系
+https://xueqiu.com/6899105006/127947466
+https://xueqiu.com/6899105006/127947473
+https://xueqiu.com/6899105006/116963176
+
+因为市场长期看必然有效，所以需要估值模型是用来估算长期的安全边际的；但买卖发生在当下，而短期看，市场经常无效，股价短期的上涨和下跌根本不是基本面推动的，而仅仅是人类情绪和资金偏好的变化推动的估值的变化，因为这种无效的存在，所以即便是你精确的通过各种估值模型计算的“安全边际”，也可能被市场打的一文不值
+
+一般的投资者即使足够努力学习、累积经验，也只能成为一个优秀的投资者，但想要成为一个伟大的投资者几乎是不可能的。世界上伟大的投资者是极少数，因为伟大的投资者，他们所具备的价格和价值的发现能力，这并不是能通过后天的学习和累积产生的，发现好价格的能力几乎是天生的，对人性的和对市场的理解是无法复制的
+
+行业研报｜在线教育是个好生意吗？
+https://www.heibandongcha.com/7515.html#
+
+
+管理后台
+https://www.layui.com/admin/std/dist/views/
+https://github.com/artiely/vue-admin
+https://pro.iviewui.com/admin-pro/introduce
+https://adminlte.io/blog/free-admin-panels
+https://gitee.com/zlt2000/microservices-platform
+https://artiely.gitee.io/antd-admin/#/login2
+
+https://gitee.com/zlt2000/microservices-platform
+
+基于SpringBoot2.x、SpringCloud和SpringCloudAlibaba并采用前后端分离的企业级微服务多租户系统架构。并引入组件化的思想实现高内聚低耦合并且高度可配置化，适合学习和企业中使用。真正实现了基于RBAC、jwt和oauth2的无状态统一权限认证的解决方案，面向互联网设计同时适合B端和C端用户，支持CI/CD多环境部署，并提供应用管理方便第三方系统接入；同时还集合各种微服务治理功能和监控功能。模块包括:企业级的认证系统、开发平台、应用监控、慢sql监控、统一日志、单点登录、Redis分布式高速缓存、配置中心、分布式任务调度、接口文档、代码生成等等。
+
+
+前端框架bootstrap和layui的区别有哪些
+https://www.cnblogs.com/huaguo/p/11057282.html
+
+
+JSP 中的 Filter 过滤器和 Listener 监听器
+https://blog.csdn.net/dengliushuai/article/details/61622475
+
+组合
+http://www.myzaker.com/article/592ba0549490cba024000003/
+
+1）格雷厄姆股债平衡
+- 股和债各占一定比例
+- 50：50 股债平衡
+- 80% 债券 + 20% 股票 
+- 75% 股票  +25% 债券
+
+2）全天候策略 
+- 桥水基金全天候策略，就是求稳健收益的一种策略，基于风险均而不是资产均衡来确定投资组合中各资产的权重。
+- 全天候策略通过调整资产的预期风险和收益使得他们更匹配，优秀的金融机构通过创造一个更好的分散组合
+- 这个分散组合将有更好的收益风险比率，通俗的说就是尽量风险最小化利润最大化。
+- 债券基金、股票基金、黄金 ETF 和商品 ETF 各占一定比例
+- 55% 债券 + 30% 股票 + 10% 黄金 ETF + 5% 商品 
+
+3）美林时钟策略：根据不同的经济周期，在主要资产类别股票、债券、商品和货币之间做调整
+- 以均衡配置为基准，各占 25%，市场衰退期，提高债券基金的配置比例，大约为 70%，其他三类各占 10%。
+- 要对经济每个周期拐点有个准确的判断，要综合考虑市场估值、经济基本面、市场风格、监管政策的走向 
+
+4）目标风险型策略
+- 建一个投资策略组合，确保每年的回撤不超过一定比例，在此基础上，追求最大化收益。
+
+5）目标期限性策略
+- 投资组合中配置的权益类资产 = 100 - 当前你的年纪，比如，你现在 25 岁，能配置权益型基金 =75%
+
+6）哑铃式投资策略
+- 市场机会不在此就在彼，风险不在此也就在彼，投资于中间地带资产，既不能有效规避风险也不能获取尽可能高的收益
+- 而投资于两端，无论市场向何种极端演变，整个资产的抗击打能力都很强，无论机会出现在哪一端，资产组合也都能抓住。
+- 关键在于所选择的两类核心资产要有较大的差异性，相关性低，并且能在某一市场风格较为明显的时候，获取较好的收益。
+- 基于市场风格变动情况及交易成本的考量，每三个月调整一次即可。

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: notebook-pod
+  labels:
+    app: notebook 
+spec:
+  containers:
+  - name: notebook-container
+    image: jupyter/scipy-notebook:latest
+    ports:
+    - containerPort: 8888 
