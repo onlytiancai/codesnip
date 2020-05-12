@@ -49,26 +49,32 @@ static void mat_add(int *A, int *B, int *C, int n) {
 
 // zero row count
 static int zero_row_count(int *C, int m, int n) {
-    int sum, i, j, count = 0;
+    int nonzero, i, j, count = 0;
     for (i = 0; i < m; i++)  {
-        sum = 0;
+        nonzero = 0;
         for (j = 0; j < n; j++)  { 
-            sum += C[i*n+j];
+            if (C[i*n+j] != 0) {
+                nonzero = 1;
+                break;
+            }
         }
-        if (sum == 0) count++;
+        if (nonzero == 0) count++;
     }
     return count;
 }
 
 // zero col count
 static int zero_col_count(int *C, int m, int n) { 
-    int sum, i, j, count = 0;
+    int nonzero, i, j, count = 0;
     for (i = 0; i < n; i++)  {
-        sum = 0;
+        nonzero = 0;
         for (j = 0; j < m; j++)  { 
-            sum += C[j*n+i];
+            if (C[j*n+i] != 0) {
+                nonzero = 1;
+                break;
+            }
         }
-        if (sum == 0) count++;
+        if (nonzero == 0) count++;
     }
     return count;
 }
