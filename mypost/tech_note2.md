@@ -6178,12 +6178,34 @@ run
 l
 q
 
+$ dmesg | tail
+[1042578.029167] segfault3[30141]: segfault at 5560947426a4 ip 000055609474260d sp 00007ffcd856e2f0 error 7 in segfault3[556094742000+1000]
+$ python3 -c "print((0x000055609474260d-0x556094742000).to_bytes(4, 'big').hex())"
+0000060d
+$ objdump -d ./segfault3 > segfault3Dump
+$ grep -n -A 10 -B 10 "60d" ./segfault3Dump
+111- 5f1:       48 89 e5                mov    %rsp,%rbp
+112- 5f4:       5d                      pop    %rbp
+113- 5f5:       e9 66 ff ff ff          jmpq   560 <register_tm_clones>
+114-
+115-00000000000005fa <main>:
+116- 5fa:       55                      push   %rbp
+117- 5fb:       48 89 e5                mov    %rsp,%rbp
+118- 5fe:       48 8d 05 9f 00 00 00    lea    0x9f(%rip),%rax        # 6a4 <_IO_stdin_used+0x4>
+119- 605:       48 89 45 f8             mov    %rax,-0x8(%rbp)
+120- 609:       48 8b 45 f8             mov    -0x8(%rbp),%rax
+121: 60d:       c7 00 54 45 53 54       movl   $0x54534554,(%rax)
+122- 613:       c6 40 04 00             movb   $0x0,0x4(%rax)
+123- 617:       90                      nop
+124- 618:       5d                      pop    %rbp
+125- 619:       c3                      retq
+126- 61a:       66 0f 1f 44 00 00       nopw   0x0(%rax,%rax,1)
+127-
+128-0000000000000620 <__libc_csu_init>:
+129- 620:       41 57                   push   %r15
+130- 622:       41 56                   push   %r14
+131- 624:       49 89 d7                mov    %rdx,%r15
 
-
-[3556306.638909] segfault3[17334]: segfault at 5607116686a4 ip 000056071166860d sp 00007ffdd874bd50 error 7 in segfault3[560711668000+1000]
-objdump -d ./segfault3 > segfault3Dump
- grep -n -A 10 -B 10 "80484e0" ./segfault3Dump 
- 
 
 1、出现段错误时，首先应该想到段错误的定义，从它出发考虑引发错误的原因。
 2、在使用指针时，定义了指针后记得初始化指针，在使用的时候记得判断是否为NULL。
@@ -6210,10 +6232,24 @@ nginx[31752]: segfault at 0 ip 000000000047c0d5 sp 00007fff688cab40 error 4 in n
 一次segfault错误的排查过程
 https://blog.csdn.net/zhaohaijie600/article/details/45246569
 
-xxxxx.o[2374]: segfault at7f0ed0bfbf70 ip 00007f0edd646fe7 sp 00007f0ed3603978 error 4 inlibc-2.17.so[7f0edd514000+1b6000]
-7f0ed0bfbf70，00007f0edd646fe7，00007f0ed3603978这三个值：第一个值为出错的地址，用处不大；第二个值为发生错误时指令的地址，这个值在有些错误时是错误的，下面会讲一下，第三个值为堆栈指针。
+xxxxx.o[2374]: segfault at 7f0ed0bfbf70 ip 00007f0edd646fe7 sp 00007f0ed3603978 error 4 inlibc-2.17.so[7f0edd514000+1b6000]
+
+1、从libc-2.17.so[7f0edd514000+1b6000]可以看出错误发生在libc上，libc在此程序中映射的内存基址为7f0edd514000，这个信息是个坏消息，这个so上的东西太多了；
+
+2、segfault at和error 4这两条信息可以得出是内存读出错，4的意义如下，可以对照参考：
+
+bit2:值为1表示是用户态程序内存访问越界，值为0表示是内核态程序内存访问越界
+bit1: 值为1表示是写操作导致内存访问越界，值为0表示是读操作导致内存访问越界
+bit0: 值为1表示没有足够的权限访问非法地址的内容，值为0表示访问的非法地址根本没有对应的页面，也就是无效地址
+
+4正好为用户态内存读操作访问出界。
+
+3、7f0ed0bfbf70，00007f0edd646fe7，00007f0ed3603978这三个值：第一个值为出错的地址，用处不大；第二个值为发生错误时指令的地址，这个值在有些错误时是错误的，下面会讲一下，第三个值为堆栈指针。
+
 
 C++段错误就几类，读写错误，这个主要是参数没有控制好，这种错误比较常见，我们经常把NULL指针、未初始化或非法值的指针传递给函数，从而引出此错误；指令地址出错，这类错误主要是由虚函数，回调函数引起，最常出现的是虚函数，由于虚函数保存在类变量中，如果不小心用了非安全函数，就可能把虚数指针覆盖掉，从而影响出现错误。但指令地址出错的情况相对参数出错来讲还是要少很多的，因为用到此功能的还是需要一定的水平的，不容易犯一些低级错误。
+
+从上面分析的第二点来看，基本上属于读写错误，但从六七万行代码找出问题，可能性不大，只能缩小范围，我决定从上面提到的三点，找到出错的函数，然后再从代码中找出所有出错函数调用的地方来定位问题。由于错误指出出错的组件为libc，而且基本上是参数出现，所以发现错误的指令地址应该是可信的，我们可以根据指令地址查出是哪个函数。指令地址为：00007f0edd646fe7 ，libc指令的基地址为：7f0edd514000，可以根据这两个值计算一下该指令的相对地址为132FE7，下面我们需要找到相对代码段地址为132FE7的地方为什么函数。
 
 catchsegv ./segfault3
 
@@ -9120,6 +9156,8 @@ ps -eo pid,lstart,etime,cmd | grep nginx
 
 查看CPU最高的进程
 ps -aux --sort=-pcpu|head -10
+top -b -n 1 | head -n20
+ps -eo pid,pcpu,comm | sort -n -k 2 | tail -n 10
 
 linux锁定用户和解锁用户
 https://blog.csdn.net/qq_37699336/article/details/80296670
@@ -11692,3 +11730,297 @@ http://www.myzaker.com/article/592ba0549490cba024000003/
 - 而投资于两端，无论市场向何种极端演变，整个资产的抗击打能力都很强，无论机会出现在哪一端，资产组合也都能抓住。
 - 关键在于所选择的两类核心资产要有较大的差异性，相关性低，并且能在某一市场风格较为明显的时候，获取较好的收益。
 - 基于市场风格变动情况及交易成本的考量，每三个月调整一次即可。
+
+
+RapidWeaver 8是适用于Mac的最佳网页设计软件，新的插件管理器，可以轻松启用，禁用和管理主题，插件和堆栈。
+https://blog.csdn.net/llhf688/article/details/89516318
+
+管理后台 UI
+https://rapidweavercommunity.com/
+https://preview.dashboard-ui.com/
+
+天天基金数据处理
+https://github.com/weibycn/fund
+
+基金列表
+http://fund.eastmoney.com/js/fundcode_search.js
+基金详情
+http://fund.eastmoney.com/pingzhongdata/519772.js
+基金重仓股
+http://data.eastmoney.com/zlsj/
+
+
+“单位净值”和“累计净值”
+https://baijiahao.baidu.com/s?id=1623976112571815751&wfr=spider&for=pc
+
+基金的单位净值是指每份基金份额的净值，等于基金的总资产减去总负债后的余额再除以基金份额总数。简单来说，单位净值就是每一份基金的价值，也是基金的交易价格。
+
+基金累计净值是在单位净值的基础上加上了基金成立以来累计分红及拆分的金额。所以一旦基金分红或拆分后，累计净值就会大于单位净值。累计净值是反映该基金自成立以来总体收益情况的数据，评估基金业绩时，应该参考基金的累计净值。
+
+一般来说，单位净值和累计净值之间相差的越多，说明这只基金分红的金额也越多。但基金分红次数或金额的多少并非评判基金业绩好坏的标准
+
+
+ptrace理解
+https://www.cnblogs.com/mysky007/p/11047943.html
+
+
+Ptrace 提供了一种父进程可以控制子进程运行，并可以检查和改变它的核心image。它主要用于实现断点调试。一个被跟踪的进程运行中，直到发生一个信号。则进程被中止，并且通知其父进程。在进程中止的状态下，进程的内存空间可以被读写。父进程还可以使子进程继续执行，并选择是否是否忽略引起中止的信号
+
+函数调用过程探究
+https://www.cnblogs.com/bangerlee/archive/2012/05/22/2508772.html
+用objdump只反汇编想要的函数
+https://blog.csdn.net/weixin_34319374/article/details/85966059
+objdump反汇编用法示例
+https://blog.csdn.net/zoomdy/article/details/50563680
+How to use debug version of libc
+https://stackoverflow.com/questions/10000335/how-to-use-debug-version-of-libc
+
+The libraries in /usr/lib/debug are not real libraries. Rather, the contain only debug info, but do not contain .text nor .data sections of the real libc.so.6. You can read about the separate debuginfo files here.
+(gdb) info sharedlibrary
+(gdb) show debug-file-directory
+
+sudo apt-get install libc6-dbg
+
+How to disassemble one single function using objdump?
+https://stackoverflow.com/questions/22769246/how-to-disassemble-one-single-function-using-objdump
+
+从汇编层面看函数调用的实现原理
+https://www.cnblogs.com/abozhang/p/10788396.html
+
+汇编语言--Linux 汇编语言开发指南
+https://zhuanlan.zhihu.com/p/54853591
+
+寄存器
+https://www.jianshu.com/p/57128e477efb
+
+$ cat 019.c
+#include <assert.h>
+
+int myfunc(int i) {
+    i = i + 2;
+    i = i * 2;
+    return i;
+}
+
+int main(void) {
+    assert(myfunc(1) == 6);
+    assert(myfunc(2) == 8);
+    return 0;
+}
+$ gcc -O0 -ggdb3 -std=c99 -Wall -Wextra -pedantic -o main.out 019.c
+$ gdb -batch -ex "disassemble/rs myfunc" main.out
+Dump of assembler code for function myfunc:
+019.c:
+3       int myfunc(int i) {
+   0x000000000000064a <+0>:     55      push   %rbp
+   0x000000000000064b <+1>:     48 89 e5        mov    %rsp,%rbp
+   0x000000000000064e <+4>:     89 7d fc        mov    %edi,-0x4(%rbp)
+
+4           i = i + 2;
+   0x0000000000000651 <+7>:     83 45 fc 02     addl   $0x2,-0x4(%rbp)
+
+5           i = i * 2;
+   0x0000000000000655 <+11>:    d1 65 fc        shll   -0x4(%rbp)
+
+6           return i;
+   0x0000000000000658 <+14>:    8b 45 fc        mov    -0x4(%rbp),%eax
+
+7       }
+   0x000000000000065b <+17>:    5d      pop    %rbp
+   0x000000000000065c <+18>:    c3      retq
+End of assembler dump.
+
+Linux objdump Command Explained for Beginners (7 Examples)
+https://www.howtoforge.com/linux-objdump-command/
+
+objdump -f /bin/ls
+objdump -p /bin/ls
+objdump -h /bin/ls
+objdump -x /bin/ls
+objdump -d /bin/ls
+objdump -g /bin/ls
+objdump -t /bin/ls
+
+libc source
+https://www.gnu.org/software/libc/sources.html
+
+
+汇编寻址方式
+https://www.cnblogs.com/jadeshu/p/10663543.html
+
+# 段错误问题排查
+
+$ cat 018.c
+#include <stdio.h>
+
+int main(int argc, char *argv[])
+{
+    FILE *fp = NULL;
+    fprintf(fp, "%s\n", "hello");
+    fclose(fp);
+    return 0;
+}
+
+$ gcc 018.c
+$ ./a.out
+Segmentation fault (core dumped)
+$ dmesg | tail -n1
+[1105761.999602] a.out[7822]: segfault at c0 ip 00007f93d96cf3cc sp 00007ffcc490e7f0 error 4 in libc-2.27.so[7f93d9674000+1e7000]
+$ python3 -c "print((0x00007f93d96cf3cc-0x7f93d9674000).to_bytes(4, 'big').hex())"
+0005b3cc
+$ ldd a.out
+        linux-vdso.so.1 (0x00007ffe67ffd000)
+        libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f786946f000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007f7869a62000)
+$ objdump -tT /lib/x86_64-linux-gnu/libc.so.6 | grep 5b3
+000000000005b390 g    DF .text  0000000000003235  GLIBC_2.2.5 _IO_vfprintf
+000000000005b390 g    DF .text  0000000000003235  GLIBC_2.2.5 vfprintf
+$ gdb /lib/x86_64-linux-gnu/libc.so.6 -batch -ex 'disassemble/rs _IO_vfprintf' | grep 5b3cc
+
+$ objdump -d /lib/x86_64-linux-gnu/libc.so.6 --start-address=0x5b390 | head -n100 | grep -A5 -B5 5b3cc
+   5b3b6:       48 89 45 c8             mov    %rax,-0x38(%rbp)
+   5b3ba:       31 c0                   xor    %eax,%eax
+   5b3bc:       48 8b 05 a5 fa 38 00    mov    0x38faa5(%rip),%rax        # 3eae68 <h_errlist@@GLIBC_2.2.5+0xdc8>
+   5b3c3:       64 8b 00                mov    %fs:(%rax),%eax
+   5b3c6:       89 85 48 fb ff ff       mov    %eax,-0x4b8(%rbp)
+   5b3cc:       8b 87 c0 00 00 00       mov    0xc0(%rdi),%eax
+   5b3d2:       85 c0                   test   %eax,%eax
+   5b3d4:       0f 85 d6 01 00 00       jne    5b5b0 <_IO_vfprintf@@GLIBC_2.2.5+0x220>
+   5b3da:       c7 87 c0 00 00 00 ff    movl   $0xffffffff,0xc0(%rdi)
+   5b3e1:       ff ff ff
+   5b3e4:       45 8b 3e                mov    (%r14),%r15d
+$ locate libc-2.27.so
+/lib/i386-linux-gnu/libc-2.27.so
+/lib/x86_64-linux-gnu/libc-2.27.so
+/usr/lib/debug/lib/x86_64-linux-gnu/libc-2.27.so
+$ nm /usr/lib/debug/lib/x86_64-linux-gnu/libc-2.27.so | grep _IO_vfprintf
+000000000005b390 t __GI__IO_vfprintf
+000000000005b390 T _IO_vfprintf
+000000000005b390 t _IO_vfprintf_internal
+$ readelf -ed /usr/lib/debug/lib/x86_64-linux-gnu/libc-2.27.so  | grep Entry
+  Entry point address:               0x21cb0
+
+
+Python数据科学手册 https://item.jd.com/12293703.html
+鸟哥的Linux私房菜 基础学习篇 第四版 https://item.jd.com/12443890.html
+浪潮之巅 第四版 吴军博士作品 https://item.jd.com/12626736.html
+阿里云运维架构实践秘籍 https://item.jd.com/12633183.html
+Vue.js 从入门到实战 Web前端开发框架（微课视频版）https://item.jd.com/12832164.html#
+
+T140/T340/T440/T640/R240/R340/R440/R540/R640/R740/R840/R940/M640安装Ubuntu系统的操作步骤
+https://www.dell.com/community/PowerEdge%E6%9C%8D%E5%8A%A1%E5%99%A8/T140-T340-T440-T640-R240-R340-R440-R540-R640-R740-R840-R940/td-p/7445776
+
+What is a data dashboard?
+https://www.klipfolio.com/resources/articles/what-is-data-dashboard
+
+18年6大BI与数据可视化工具的比较分析
+https://baijiahao.baidu.com/s?id=1595001201407735122&wfr=spider&for=pc
+
+API 接口应该如何设计？如何保证安全？如何签名？如何防重？
+https://mp.weixin.qq.com/s/uPqsosR4EIrozqRKzyA0Xg
+
+Token
+
+一般情况下客户端(接口调用方)需要先向服务器端申请一个接口调用的账号，服务器会给出一个appId和一个key, key用于参数签名使用，注意key保存到客户端，需要做一些安全处理，防止泄露。
+
+Token的值一般是UUID，服务端生成Token后需要将token做为key，将一些和token关联的信息作为value保存到缓存服务器中(redis)，当一个请求过来后，服务器就去缓存服务器中查询这个Token是否存在，存在则调用接口，不存在返回接口错误，
+
+常见 DDOS
+
+Pingflood: 该攻击在短时间内向目的主机发送大量ping包，造成网络堵塞或主机资源耗尽。
+Synflood: 该攻击以多个随机的源主机地址向目的主机发送SYN包，而在收到目的主机的SYN ACK后并不回应，这样，目的主机就为这些源主机建立了大量的连接队列，而且由于没有收到ACK一直维护着这
+些队列，造成了资源的大量消耗而不能向正常请求提供服务。
+Smurf：该攻击向一个子网的广播地址发一个带有特定请求（如ICMP回应请求）的包，并且将源地址伪装成想要攻击的主机地址。子网上所有主机都回应广播包请求而向被攻击主机发包，使该主机受到攻击。
+Land-based：攻击者将一个包的源地址和目的地址都设置为目标主机的地址，然后将该包通过IP欺骗的方式发送给被攻击主机，这种包可以造成被攻击主机因试图与自己建立连接而陷入死循环，从而很大程度地降低了系统性能。
+Ping of Death：根据TCP/IP的规范，一个包的长度最大为65536字节。尽管一个包的长度不能超过65536字节，但是一个包分成的多个片段的叠加却能做到。当一个主机收到了长度大于65536字节的包时，就是受到了Ping of Death攻击，该攻击会造成主机的宕机。
+Teardrop：IP数据包在网络传递时，数据包可以分成更小的片段。攻击者可以通过发送两段（或者更多）数据包来实现TearDrop攻击。第一个包的偏移量为0，长度为N，第二个包的偏移量小于N。为了合并这些数据段，TCP/IP堆栈会分配超乎寻常的巨大资源，从而造成系统资源的缺乏甚至机器的重新启动。
+PingSweep：使用ICMP Echo轮询多个主机。
+
+防止参数篡改
+sign: 一般用于参数签名，防止参数被非法篡改，最常见的是修改金额等重要敏感参数，
+sign的值一般是将所有非空参数按照升续排序然后+token+key+timestamp+nonce(随机数)拼接在一起，然后使用某种加密算法进行加密，作为接口中的一个参数sign来传递，也可以将sign放到请求头中。
+
+接口在网络传输过程中如果被黑客挟持，并修改其中的参数值，然后再继续调用接口，虽然参数的值被修改了，但是因为黑客不知道sign是如何计算出来的，不知道sign都有哪些值构成，不知道以怎样的顺序拼接在一起的，最重要的是不知道签名字符串中的key是什么，所以黑客可以篡改参数的值，但没法修改sign的值，当服务器调用接口前会按照sign的规则重新计算出sign的值然后和接口传递的sign参数的值做比较，如果相等表示参数值没有被篡改，如果不等，表示参数被非法篡改了，就不执行接口了。
+
+防止重复提交
+对于一些重要的操作需要防止客户端重复提交的(如非幂等性重要操作)，具体办法是当请求第一次提交时将sign作为key保存到redis，并设置超时时间，超时时间和Timestamp中设置的差值相同。当同一个请求第二次访问时会先检测redis是否存在该sign，如果存在则证明重复提交了，接口就不再继续调用了。
+
+如果sign在缓存服务器中因过期时间到了，而被删除了，此时当这个url再次请求服务器时，因token的过期时间和sign的过期时间一直，sign过期也意味着token过期，那样同样的url再访问服务器会因token错误会被拦截掉，这就是为什么sign和token的过期时间要保持一致的原因。
+
+拒绝重复调用机制确保URL被别人截获了也无法使用（如抓取数据）。对于哪些接口需要防止重复提交可以自定义个注解来标记。
+
+使用流程
+- 接口调用方(客户端)向接口提供方(服务器)申请接口调用账号，申请成功后，接口提供方会给接口调用方一个appId和一个key参数
+- 客户端携带参数appId、timestamp、sign去调用服务器端的API token，其中sign=加密(appId + timestamp + key)
+- 客户端拿着api_token 去访问不需要登录就能访问的接口
+- 当访问用户需要登录的接口时，客户端跳转到登录页面，通过用户名和密码调用登录接口，登录接口会返回一个usertoken, 客户端拿着usertoken 去访问需要登录才能访问的接口
+
+sign 的作用是防止参数被篡改，客户端调用服务端时需要传递sign参数，服务器响应客户端时也可以返回一个sign用于客户度校验返回的值是否被非法篡改了。客户端传的sign和服务器端响应的sign算法可能会不同。
+
+
+《性能之巅》学习心得
+https://www.jianshu.com/p/88dae2476508
+
+云计算下性能优化-读《性能之巅》
+https://www.jianshu.com/p/30f46b1e69ae
+
+https://finance.sina.com.cn/money/fund/fundzmt/2020-05-19/doc-iircuyvi3822357.shtml
+
+竞争格局的判断标准是行业前几名市场份额之间的差距，以及该公司所处的位置。如果差距拉得开，往往意味着行业大局已定，几家头部公司都占据了细分市场相对垄断地位，谁也吃不掉谁的份额，那就没有打价格战的必要，大家的利润就都有保证。
+
+最好的格局是寡头格局，例子是高端酒中的茅台，与其竞争者五粮液(151.130, -0.06, -0.04%)分属酱香和浓香型的老大，且市场份额领先很多，几乎不存在竞争。
+
+其次是双巨头，且定位有一定的差异。比如乳制品中的伊利和蒙牛，伊利的方向更多元化，蒙牛更关注低温奶，白电中的格力与美的，其中美的更多元化，定价更低，形成错位竞争。
+
+特别是伊利和蒙牛，因为牛奶消费者对新鲜的追求，两家时不时会打价格战，但有意思的是，一旦开打，双方好像约好了似的，都主动降低广告费，以减少对利润的影响，这实际上还是竞争格局转好的表现。
+
+竞争格局不好，是指多家公司市场份额接近，产品的同质化程度又很高。
+
+一般而言，竞争格局差的结果有三种，一种是打价格战，导致利润率下降，一种是拼命研发新技术，导致费用高；一种是需要不停地融资，扩大规模，以弥补利润率越来越低的问题。
+
+
+大规模视频CDN架构设计-刘歧
+https://wenku.baidu.com/view/66db6c8d227916888486d793.html
+
+
+Tdrag
+Tdrag属于拖拽类的一款插件，基于jquery而成，兼容1.4以上版本的jquery，兼容浏览器：chrome、firfox、IE7等以上主流浏览器
+http://www.jq22.com/yanshi8362
+
+
+Airtable，不仅仅是强大的在线表格应用，而是一个新物种
+https://www.jianshu.com/p/8cce932fa6a3
+
+码代码，到白头|专访SRS创始作者&阿里云RTC服务器团队负责人杨成立
+https://mp.weixin.qq.com/s/cRFbd7A0bDN4hbKqsFV4bQ
+
+腾讯大数据套件带你玩转大数据
+https://data.qq.com/article?id=2835#body
+
+国内单是表单的话，有麦客、金数据、简道云、等等等…… 麦客便宜实用、金数据资格老、简道云功能强大。 CRM用麦客，企业数据管理用简道云吧。
+
+
+格雷厄姆的50条精彩投资语录
+http://guba.eastmoney.com/news,of000942,816171527.html
+
+
+中国利率体系可分为7类，其中较为重要的种类有货币政策利率、银行间市场利率、交易所利率、存贷款利率和标准化债权利率。其理想的传导途径为：央行执行货币政策形成货币政策利率，传导至银行间市场，再由金融机构传导至交易所利率及标准化债权利率、由银行传导至存贷款利率，最终影响实体经济。
+
+用Python爬取历年基金数据
+https://www.jianshu.com/p/1d67cfbfd9bb
+
+基金大数据分析及基金投资建议（Python与Excel实现）
+https://blog.csdn.net/Hill_L/article/details/99425383
+
+穷学IT（给侄女的一封信） 
+http://gigix.thoughtworkers.org/2018/9/3/why-study-it/
+
+数字化企业的实验基础设施
+http://gigix.thoughtworkers.org/2018/2/27/dps-experimental-infrastructure/
+
+动态代理的前世今生
+http://gigix.thoughtworkers.org/2018/7/27/dynamic-proxy/
+
+Rendering PDF in HTML5 Canvas
+https://www.codediesel.com/javascript/rendering-pdf-in-html5-canvas/
+https://mozilla.github.io/pdf.js/examples/index.html#interactive-examples
