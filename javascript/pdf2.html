@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>PDF</title>
+		<script src="https://cdn.bootcdn.net/ajax/libs/pdf.js/2.4.456/pdf.min.js"></script>
+	</head>
+	<body oncontextmenu="return false;">
+		<div id="pdf-container" style="width:1800px;"></div>
+		<script charset="utf-8">
+				var loadingTask = pdfjsLib.getDocument('ui.pdf');
+				loadingTask.promise.then(function(pdf) {
+					var container = document.getElementById('pdf-container');
+					var desiredWidth = container.clientWidth;
+					var current = 0;
+
+					function next_page() {
+						if (current >= pdf.numPages) return;
+						pdf.getPage(++current).then(render);
+					}
+
+					function render(page) {
+						var viewport = page.getViewport({ scale: 1, });
+						var scale = desiredWidth / viewport.width;
+						viewport = page.getViewport({ scale: scale, });
+
+						var canvas = document.createElement('canvas');
+						var context = canvas.getContext('2d');
+						canvas.height = viewport.height;
+						canvas.width = viewport.width;
+						container.appendChild(canvas);
+
+						var renderContext = {
+							canvasContext: context,
+							viewport: viewport
+						};
+						page.render(renderContext).promise.then(next_page);
+					}
+
+					next_page();
+				});
+		</script>
+	</body>
+</html>

@@ -4954,7 +4954,7 @@ CFG和PEG都可以描述我们常见的编程语言，但是PEG不需要进行�
 通过 PEG.js 实现一个 JSON Parser
 https://www.codercto.com/a/45502.html
 
-
+QBASIC Programming for Kids by Ted Felix http://tedfelix.com/qbasic/ 这里有一份适合孩子学习的 QBasic 教程
 http://tedfelix.com/qbasic/
 
 VB 的语法
@@ -12024,3 +12024,125 @@ http://gigix.thoughtworkers.org/2018/7/27/dynamic-proxy/
 Rendering PDF in HTML5 Canvas
 https://www.codediesel.com/javascript/rendering-pdf-in-html5-canvas/
 https://mozilla.github.io/pdf.js/examples/index.html#interactive-examples
+
+PSD 和 网页对比
+1px Chrome Extesnion can help F2E to find the 1px difference between the psd and HTML.
+https://github.com/dainiel/1px
+
+Python 金融: 回测过往10年上海各区房产配置
+https://zhuanlan.zhihu.com/p/104108047
+
+Python 金融: 建立A股最优投资组合
+https://zhuanlan.zhihu.com/p/100900447
+
+
+PHP 后台把 PDF 转出图片
+
+在 Web 上预览 PDF，为防止内容被复制或下载，常用方案有使用 swftools 转成 flash，使用 PDF.js 转成 html5 canvas，或者 使用 embed ， iframe 嵌入 PDF 的方式来完成，但各浏览器对  flash，canvas，ifram 嵌入 pdf 会有各种兼容性问题。本方案使用 PHP 实时把 PDF 转换成图片进行显示以实现最大的浏览器兼容性。
+
+
+sudo apt-get install imagemagick php-imagick
+php7.2 -m | grep imagic
+sudo systemctl restart php7.2-fpm
+
+sudo vi /etc/ImageMagick-6/policy.xml
+
+<policy domain="coder" rights="read|write" pattern="PDF" />
+
+sudo systemctl restart php7.2-fpm
+
+<?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+if (isset($_GET['p'])) {
+    $p = intval($_GET['p']);
+    $im = new imagick("ui.pdf[$p]");
+    $im->setImageFormat('jpg');
+    header('Content-Type: image/jpeg');
+    echo $im;
+} else {
+    $im = new imagick("ui.pdf");
+    // 获取总页数较慢，尽量第一次执行后缓存在数据库里
+    $n = $im->getNumberImages();
+    for ($i = 0; $i < $n; $i++) {
+        echo "<img width='100%' src='?p=$i'><br>";
+    }
+}
+
+网页上如何实现禁止复制粘贴以及如何破解
+https://www.cnblogs.com/momo798/p/6797670.html
+防止复制
+-webkit-user-select: none
+
+视频下载
+Dumb downloader that scrapes the web https://you-get.org/
+https://github.com/soimort/you-get
+
+这些波普海报见证了世界“计划生育”的热潮
+http://news.99ys.com/news/2016/0804/10_205128_1.shtml
+
+## 人工智能
+
+线性代数
+
+- 集合
+- 标量、向量、矩阵、张量
+- 描述向量
+    - 范数: 大小度量
+        - L1, L2, L无穷
+    - 内积：两向量关系
+        - 为 0 表示正交
+- 线性空间
+    - 内积空间
+    - 点用向量表示
+    - 正交基
+- 描述空间上点变化
+    - 向量的线性变换
+    - 矩阵描述点变化 Ax = y
+    - 正交基变换
+- 描述矩阵 Ax = λx
+    - 特征值：速度
+    - 特征向量：方向
+    - 特征值分解，奇异值分解
+
+概率论
+
+- 频率学派
+    - 独立可重复实验单个结果出现的频率极限
+    - 古典概率模型的事件概率
+    - 条件概率：两个随机事件的关系
+    - 联合概率：两个随机事件共同发生的概率
+    - 相互独立事件：条件概率等于自身概率
+    - 全概率公式：将复杂事件的概率求解转换为不同情况下简单事件概率求和
+- 贝叶斯学派
+    - 根据全概率公式，求解逆概率
+        - 已知事件结果，推断各种假设发生的可能性
+    - 贝叶斯公式，贝叶斯定理
+        - 先验概率 P(H)：预先设定的假设成立的概率
+        - 似然概率 P(D|H)：假设成立的前提下观测结果的概率
+        - 后验概率 P(H|D)：已知结果的前提下假设成立的概率
+- 概率估计
+    - 频率学派：假设客观存在且不会改变，存在固定的先验分布及参数
+        - 最大似然估计：已知分布类型，寻找未知参数，使训练数据出现的概率最大化
+    - 贝叶斯学派：固定先验分布不存在，参数也是随机数，假设取决于观察结果
+        - 最大后验概率法：根据训练数据和部分已知条件，使未知参数出现的可能性最大化
+- 随机变量：离散，连续
+- 描述随机变量
+    - 概率质量函数
+        - 两点分布：投硬币
+        - 二项分布: 投 n 次硬币
+            - n 很大 p 很小时，可用泊松分布近似
+        - 泊松分布：放射物质在规定时间内的放出的粒子数
+    - 概率密度函数
+        - 均匀分布
+        - 指数分布
+        - 正态分布：μ=0,σ=1时为标准正态分布
+    - 数字特征
+        - 描述自身
+            - 数学期望：可能取值的加权平均
+            - 方差：取值与期望的偏离程度
+        - 描述两个随机变量关系
+            - 协方差：描述线性关系 aX+b
+            - 相关系数：1 正相关，-1 负相关， 0 不相关
