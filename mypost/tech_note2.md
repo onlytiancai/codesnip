@@ -12146,3 +12146,375 @@ http://news.99ys.com/news/2016/0804/10_205128_1.shtml
         - 描述两个随机变量关系
             - 协方差：描述线性关系 aX+b
             - 相关系数：1 正相关，-1 负相关， 0 不相关
+
+# 数理统计
+
+- 目的：对机器学习算法和数据挖掘结果做出解释
+- 定义：根据观察结果研究随机现象，对研究对象做出估计和判断
+- 与概率论区别：
+    - 概率论是已知分布，分析特征和规律
+    - 数理统计是未知分布，通过对数据独立重复的观察，推断真实的分布
+- 概念
+    - 总体：观察对象所有可能取值
+    - 样本：对总体进行多次独立重复观测得到，保证独立同分布
+    - 统计量：关于样本的函数，也是一个随机变量，用于进行统计推断
+        - 样本均值
+        - 样本方差 
+- 统计推断
+    - 参数估计：根据样本估计总体分布及参数
+        - 点估计：已知分布函数，求未知参数，重点是构造统计量
+            - 矩估计：矩表示 k 次方均值，依据是样本矩几乎处处收敛于总体矩
+            - 最大似然估计：既然取到一个样本，就表示取到该样本的概率最大
+                - 确定似然函数，表示样本值出现的概率
+                - 使用微积分求函数最大值
+                - 因样本独立同分布，所以似然函数可以写成若干概率质量函数
+                  相乘，因为取对数后单调性不变，可再简化为对数方程求解
+        - 区间估计：在点估计的基础上提供取值范围和误差界限
+            - 置信区间：除了求出估计量，还要求出一个区间
+                - 多次抽样得到上界和下界两个统计量
+            - 置信水平：区间内包含真实值的可信程度
+                - 对所有置信区间包含真实值的比率进行统计得出
+    - 假设检验
+- 估计量评价
+    - 无偏性：估计量构造不变，多次抽样得到的估计值与真实值偏差均值为 0，
+              即无系统性偏差
+    - 有效性：每次抽样得到的估计值与真实值之间的偏离程度，体现精确性
+    - 一致性：随着样本容量增大，估计值稳定在真实值上
+- 假设检验
+    - 目的：推断学习器的泛化能力，确定结论的精确度
+    - 概念：原假设，备择假设
+    - 依据：全称命题只能被证伪不能被证实
+    - 发生概率小于 1% 的事件称为小概率事件，单次实验认为不会发生
+    - 逻辑：根据实验观测小概率事件来推翻某个假设
+        - 备择假设被推翻，接受原假设
+        - 原假设被推翻，拒绝原假设
+- 泛化性能解释
+    - 偏差：预测值和真实值之间的偏离程度，刻画欠拟合程度
+    - 方差：数据扰动对预测性能的影响，刻画过拟合程度
+    - 噪声：表示能达到的最小误差，刻画任务本身难度
+    - 方差和偏差很难同时优化
+
+# 最优化
+
+- 目的：几乎所有的人工智能问题最后都会归结为一个最优化问题的求解
+- 目标：判定目标函数是否有最大(小)值，并找到令目标函数取到最大(小)值的参数
+- 目标函数，评价函数：要实现最大化或最小化的函数，最小化可以用 -f(x) 表示
+- 局部最小值：当输入参数较多，解空间较大时，一般只能求出局部最小值
+- 优化分类：
+    - 无约束优化：自变量 x 取值无限制
+    - 约束优化：自变量 x 限制在特定集合内
+        - 引入拉格朗日乘子，把 n 个变量，k 个条件的约束优化问题转换成有
+          n + k 个变量的无约束优化问题
+- 求解无约束优化问题
+    - 线性搜索法
+        - 梯度下降：沿目标函数值下降最快的方向寻找最小值
+            - 梯度：参数为向量时，梯度是垂直于曲面等高线，指向高度增加方向的向量，
+                    和目标函数导数的方向相反，多元函数沿其负梯度方向下降最快。
+            - 步长：逐渐变小，防止跳过最小值
+            - 训练模式：
+                - 批处理模式：每次迭代遍历所有样本，将每个样本梯度求和，运算量大。
+                - 随机梯度下降法：每次迭代随机选取一个样本，训练规模较大时，性能更好。
+        - 牛顿法：使用二阶导数包含的曲率信息，可知道导数长期为负的方向，具备全局视角。
+            - 一阶导数：描述目标函数如何随输入变化而变化
+            - 二阶导数：描述一阶导数如何随输入变化而变化
+            - 曲率：影响目标函数下降速度，为正表示目标函数会比梯度下降法的预期下降更慢
+            - 梯度下降法只能利用目标函数局部信息，可能会陷入盲目搜索中，使用二阶导数能
+              获取更优的收敛性，收敛速度更快
+            - 牛顿法：目标函数被泰勒展开，写成二阶近似形式，再令其导数为0，得到的向量
+                      表示的就是下降最快的方向。
+    - 置信域方法: 先确定步长，划定一个区域，在区域内寻找下降最快的方向
+        - 确定半径 s
+        - 以当前点为中心，s 为半径的封闭球形区域作为置信域
+        - 在置信域内寻找目标函数二阶近似模型的最优点
+        - 最优点和当前点之间距离记作备选位移
+        - 如果在备选位移上目标函数的二次近似产生了充分的下降，则移动当前点到最优点，继续迭代
+        - 如果下降不够理想，则说明 s 太大，需要缩小 s 计算新位移，直到满足中止条件
+    - 启发式方法：核心思想是 优胜劣汰
+        - 遗传算法：模拟生物进化规律
+        - 模拟退化算法：模拟固体结晶过程
+        - 蚁群算法：模拟低等动物产生的集群智能
+        - 神经网络算法：模拟大脑中神经元竞争和协作
+
+# 选基 Check List
+
+- 基金成立是否超过5年
+- 基金经理管理经验（非从业经验）是否超过5年
+- 对基金经理的投资风格，偏好，思路，策略，重点是否了解
+- 基金属于什么风格：(价值，平衡，成长) * (小盘，中盘，大盘)
+- 基金持有人结构如何
+- 基金目前仓位如何，权益，固收，现金
+- 基金经理变动历史了解，历史正收益是否为当前经理所获得
+- 夏普率是否为正
+- 历史回撤率是否在合理范围
+- 换手率是否在合理范围
+- 规模是否适中
+- 重仓股比重是否合适
+- 重仓股是否稳定
+- 基金经理投资风格是否稳定
+- 是否是五星基金
+- 是否得过金牛奖
+- 基金当前是否在低位
+- 重仓股基本面是否良好
+- 牛市是否跑赢指数
+- 熊市回撤是否低于指数
+- 是否看过基金经理路演
+- 基金公司近三年是否有过暴雷或丑闻
+- 是否看过关于基金的三篇分析文章
+- 是否看过关于基金经理的三篇分析文章
+- 基金近3年，近5年业绩是否在前 1/4
+- 基金每个自然年度是否没有暴涨暴跌
+- 基金最近 3 年最大回撤是否能够承受
+- 基金百分比排名走势是否没有经常垫底
+
+# 选股 Check List
+
+- 所处行业发展前景如何，是否有长期上涨空间
+- 所处行业竞争格局如何，是否有龙头
+- 当前 PE 的历史百分位如何
+- 当前 PE 的同行百分位如何 
+- 公司是否有充裕的现金流
+- 公司近年毛利率是否稳定
+- 公司近年净利率是否持续增长
+- 公司管理团队了解，股权结构了解
+- 管理人员最近持股变化
+- 公司历史股价下跌原因分析
+- 是否看过最近的该公司深度研报
+- 公司目前持仓结构如何，机构和散户持仓比
+- 股票流通性如何，换手率多少
+- 当前股价是否未处于高位
+- 最近成交量变化了解
+
+
+安装 tomcat
+
+tar xf /var/www/html/common/apache-tomcat-8.5.34.tar.gz -C /usr/local/
+cd /usr/local
+mv apache-tomcat-8.5.34/ tomcat
+cd bin/
+./startup.sh
+cd ..
+tail -f logs/catalina.out
+cp /var/www/html/common/mysql-connector-java-5.1.26-bin.jar /usr/local/tomcat/lib/
+
+GRANT SELECT ON *.* TO 'readonly'@'localhost' IDENTIFIED BY 'readonly';
+flush privileges;
+
+
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.io.*,java.util.*,java.sql.*"%>
+<%@ page import="javax.servlet.http.*,javax.servlet.*" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/sql" prefix="sql"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>我的 Java Web 程序</title>
+    </head>
+    <body>
+        <h1>我的 Java Web 程序</h1>
+        <sql:setDataSource var="mysql" driver="com.mysql.jdbc.Driver"
+            url="jdbc:mysql://localhost:3306/mysql?useUnicode=true&characterEncoding=utf-8"
+            user="readonly"  password="readonly"/>
+        <sql:query dataSource="${mysql}" var="result">
+        SELECT * from user limit 10;
+        </sql:query>
+        <table border="1" >
+            <tr>
+                <th>Host</th>
+                <th>User</th>
+                <th>Update At</th>
+            </tr>
+            <c:forEach var="row" items="${result.rows}">
+            <tr>
+                <td><c:out value="${row.host}"/></td>
+                <td><c:out value="${row.user}"/></td>
+                <td><c:out value="${row.password_last_changed}"/></td>
+            </tr>
+            </c:forEach>
+        </table>
+    </body>
+</html>
+
+纯css3虚幻背景动画特效
+https://www.17sucai.com/preview/1232113/2018-06-04/st/demo.html
+
+国内镜像
+https://mirrors.cloud.tencent.com/
+
+ubuntu 镜像
+https://mirrors.cloud.tencent.com/ubuntu-cdimage/
+
+
+Ubuntu更换apt源之arm版
+https://blog.csdn.net/zong596568821xp/article/details/90604966
+
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal main multiverse restricted universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-security main multiverse restricted universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-updates main multiverse restricted universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-backports main multiverse restricted universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal main multiverse restricted universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-security main multiverse restricted universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-updates main multiverse restricted universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-backports main multiverse restricted universe
+
+arm ubuntu
+apt-get install -y mysql-server php7.4-fpm php7.4-mysql php7.4-gd php7.4-curl php7.4-intl php7.4-mbstring php7.4-xml php7.4-zip php-redis
+
+Ubuntu 20.04换阿里源
+https://www.cnblogs.com/sundahua/p/12824855.html
+
+2 搞清楚ubuntu的代号，比如：
+
+4.10 Warty Warthog(长疣的疣猪)
+5.04 Hoary Hedgehog(灰白的刺猬)
+5.10 Breezy Badger(活泼的獾)
+
+6.06(LTS) Dapper Drake(整洁的公鸭)
+6.10 Edgy Eft(急躁的水蜥)
+7.04 Feisty Fawn(坏脾气的小鹿)
+7.10 Gutsy Gibbon(勇敢的长臂猿)
+
+8.04(LTS) Hardy Heron(耐寒的苍鹭)
+8.10 Intrepid Ibex (勇敢的野山羊)
+9.04 Jaunty Jackalope(得意洋洋的怀俄明野兔)
+9.10 Karmic Koala(幸运的考拉)
+
+10.04(LTS) Lucid Lynx(清醒的猞猁)
+10.10 Oneiric Ocelot(梦幻的豹猫)
+11.04 Natty Narwhal(敏捷的独角鲸)
+11.10 Oneiric Ocelot（有梦的虎猫）
+
+12.04(LTS) Precise Pangolin(精准的穿山甲)
+12.10 Quantal Quetzal(量子的绿咬鹃)
+13.04 Raring Ringtail(铆足了劲的猫熊)
+13.10 Saucy Salamander(活泼的蝾螈)
+
+14.04(LTS) Trusty Tahr (可靠的塔尔羊)(LTS)
+14.10 Utopic Unicorn(乌托邦独角兽)
+15.04 Vivid Vervet (活泼的小猴)
+15.10 Wily Werewolf (狡猾的狼人)
+
+16.04(LTS) Xenial Xerus (好客的非洲地松鼠)
+16.10 Yakkety Yak（牦牛）
+17.04 Zesty Zapus(开心的跳鼠)
+17.10 Artful Aardvark(机灵的土豚)
+
+18.04(LTS) Bionic Beaver（仿生海狸）
+18.10 Cosmic Cuttlefish（宇宙墨鱼）
+19.04 Disco Dingo（舞动的灵犬）
+19.10 Eoan Ermine（白貂）
+20.04(LTS) Focal Fossa（专注的马达加斯加长尾狸猫）
+
+lsb_release -a
+
+
+Linux 磁盘管理之 LVM 详解与实战上
+https://blog.csdn.net/qq_36148847/article/details/79794852
+
+
+Linux使用 lvresize扩展或缩减LV大小 （二）
+https://blog.csdn.net/qq_22805577/article/details/80496957
+
+
+root@arm-server:/etc/apt# lvdisplay | grep -E 'Path|Size'
+  LV Path                /dev/4/4
+  LV Size                32.74 TiB
+  LV Path                /dev/ubuntu-vg/ubuntu-lv
+  LV Size                4.00 GiB
+root@arm-server:/etc/apt# lvresize -L +300G /dev/ubuntu-vg/ubuntu-lv
+  Size of logical volume ubuntu-vg/ubuntu-lv changed from 4.00 GiB (1024 extents) to 304.00 GiB (77824 extents).
+  Logical volume ubuntu-vg/ubuntu-lv successfully resized.
+root@arm-server:/etc/apt# resize2fs /dev/ubuntu-vg/ubuntu-lv
+resize2fs 1.45.5 (07-Jan-2020)
+Filesystem at /dev/ubuntu-vg/ubuntu-lv is mounted on /; on-line resizing required
+old_desc_blocks = 1, new_desc_blocks = 38
+The filesystem on /dev/ubuntu-vg/ubuntu-lv is now 79691776 (4k) blocks long.
+
+root@arm-server:/etc/apt# df -h /
+Filesystem                         Size  Used Avail Use% Mounted on
+/dev/mapper/ubuntu--vg-ubuntu--lv  300G  3.6G  284G   2% /
+Linux使用 lvresize扩展或缩减LV大小 （二）
+https://blog.csdn.net/qq_22805577/article/details/80496957
+
+
+root@arm-server:/etc/apt# lvdisplay | grep -E 'Path|Size'
+  LV Path                /dev/4/4
+  LV Size                32.74 TiB
+  LV Path                /dev/ubuntu-vg/ubuntu-lv
+  LV Size                4.00 GiB
+root@arm-server:/etc/apt# lvresize -L +300G /dev/ubuntu-vg/ubuntu-lv
+  Size of logical volume ubuntu-vg/ubuntu-lv changed from 4.00 GiB (1024 extents) to 304.00 GiB (77824 extents).
+  Logical volume ubuntu-vg/ubuntu-lv successfully resized.
+root@arm-server:/etc/apt# resize2fs /dev/ubuntu-vg/ubuntu-lv
+resize2fs 1.45.5 (07-Jan-2020)
+Filesystem at /dev/ubuntu-vg/ubuntu-lv is mounted on /; on-line resizing required
+old_desc_blocks = 1, new_desc_blocks = 38
+The filesystem on /dev/ubuntu-vg/ubuntu-lv is now 79691776 (4k) blocks long.
+
+root@arm-server:/etc/apt# df -h /
+Filesystem                         Size  Used Avail Use% Mounted on
+/dev/mapper/ubuntu--vg-ubuntu--lv  300G  3.6G  284G   2% /
+
+
+pip --default-timeout=100 install -U pip
+
+
+apt  install libfreetype6  libfreetype-dev
+
+apt  install libxml2-dev libxml2 libxslt1-dev libxslt1.1
+
+apt-get install libgl1-mesa-glx libegl1-mesa libxrandr2 libxrandr2 libxss1 libxcursor1 libxcomposite1 libasound2 libxi6 libxtst6
+
+sudo apt-get install python-scipy
+
+sudo apt-get install gcc gfortran python-dev libopenblas-dev liblapack-dev cython
+
+
+
+Does Python SciPy need BLAS?
+https://stackoverflow.com/questions/7496547/does-python-scipy-need-blas
+
+sudo apt-get install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose
+
+https://docs.scipy.org/doc/scipy-1.1.0/reference/building/index.html
+
+
+https://github.com/lhelontra/tensorflow-on-arm
+
+
+apt-get install libpython3-all-dev:armhf
+
+
+鲲鹏软件栈
+https://www.huaweicloud.com/kunpeng/software.html
+
+jupyter notebook --allow-root --ip 0.0.0.0 books/
+
+
+Python机器学习笔记：sklearn库的学习
+https://www.cnblogs.com/wj-1314/p/10179741.html
+
+
+docker pull tensorflow/tensorflow:2.1.1-jupyter
+docker run -it --rm -p 8888:8888 tensorflow/tensorflow:2.1.1-jupyter
+
+curl -sL https://bootstrap.pypa.io/get-pip.py | python3 -
+
+curl -L https://github.com/lherman-cs/tensorflow-aarch64/releases/download/r1.4/tensorflow-1.4.0rc0-cp35-cp35m-linux_aarch64.whl > /tmp/tensorflow-1.4.0rc0-cp35-cp35m-linux_aarch64.whl
+python3 -m pip install /tmp/tensorflow-1.4.0rc0-cp35-cp35m-linux_aarch64.whl
+
+
+风险控制笔记，适用于互联网企业
+https://github.com/WalterInSH/risk-management-note
+
+
+https://askubuntu.com/questions/473037/how-to-permanently-disable-sleep-suspend
+sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
+
+
+线性近似和二阶近似
+https://www.cnblogs.com/bigmonkey/p/7509083.html
+
+线性近似求解的是近似值，其几何意义是在基点的切线近似于原函数的曲线。
+二阶近似的几何意义是最接近原函数的抛物线，它比线性近似更为精确。
