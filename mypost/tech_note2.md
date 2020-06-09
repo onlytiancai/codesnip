@@ -12518,3 +12518,41 @@ https://www.cnblogs.com/bigmonkey/p/7509083.html
 
 线性近似求解的是近似值，其几何意义是在基点的切线近似于原函数的曲线。
 二阶近似的几何意义是最接近原函数的抛物线，它比线性近似更为精确。
+
+睿远成长价值还要持有吗？
+https://zhuanlan.zhihu.com/p/128650068?from_voters_page=true
+闲聊两句+如何转移投资外的风险
+https://zhuanlan.zhihu.com/p/145004861
+【基金经理】谢治宇
+https://mp.weixin.qq.com/s?__biz=MzA5MDQxODY5MQ==&mid=2247488488&idx=1&sn=14220e33ace85951ed08e5644ceefd98&chksm=900aa884a77d21922cd86bb7f74c86349e856b9b04e8fd0424ac593e6f4546dfe5bc935373c9&scene=21#wechat_redirect
+
+
+联想云桌面
+https://saas.ecloud.10086.cn/Store/TSDetail/1403?cityname=%E5%85%A8%E5%9B%BD#usehelp
+
+
+519736,163402,163406,007119,161005,519712,206018,000948
+
+聚宽量化
+https://www.joinquant.com/help/api/help?name=OTCfund#%E8%8E%B7%E5%8F%96%E5%85%AC%E5%8B%9F%E5%9F%BA%E9%87%91%E4%B8%BB%E4%BD%93%E4%BF%A1%E6%81%AF
+
+from jqdatasdk import finance
+code='519736'
+finance.run_query(query(finance.FUND_NET_VALUE.day,finance.FUND_NET_VALUE.net_value).filter(finance.FUND_NET_VALUE.code==code).order_by(finance.FUND_NET_VALUE.day.desc()).limit(10))
+
+如何使用Python进行投资收益和风险分析
+https://www.cnblogs.com/dreamboy/p/11320814.html
+
+使用python爬取新浪财经等网站中的股票交易数据。数据包括了交易日期、开盘价、最高价、最低价、收盘价、调整后的收盘价以及成交量。其中调整后的收盘价最为重要，它对股票分割、股息和其他公司行为进行了标准化，能真实地反映股票随时间的回报。
+将爬取的数据进行清洗，得到结构化的数据，并存储到MySQL中。 
+使用pandas的.pct_change()方法来计算收益率。绘制股票历史每日收益随时间变化的图。
+使用numpy包中的mean()函数计算股票历史收益的均值（日平均收益）。
+根据日平均收益计算平均年化收益。
+使用matplotlib绘图包中的hist()函数绘制收益直方图，了解收益分布情况及收益中的异常值。
+使用numpy包中的std()函数计算收益的方差，并转为年化方差。投资回报中较高的标准差意味着较高的风险。
+用scipy.stats提供的skew()函数计算收益分布的偏度。在金融领域，人们更倾向于正的偏度，因为这意味着高盈利的概率更大。
+使用scipy.stats提供的 kurtosis() 函数计算收益分布的超值峰度。大部分金融收益都具有正的超值峰度。
+使用scipy.stats提供的shapiro()函数判断收益分布的正态性。
+
+股票分析之——收益率（附完整代码和讲解）
+https://zhuanlan.zhihu.com/p/91948053
