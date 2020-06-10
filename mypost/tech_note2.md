@@ -12029,6 +12029,9 @@ PSD 和 网页对比
 1px Chrome Extesnion can help F2E to find the 1px difference between the psd and HTML.
 https://github.com/dainiel/1px
 
+Python 基本功: 11. 初学 Pandas 库
+https://zhuanlan.zhihu.com/p/88632689
+
 Python 金融: 回测过往10年上海各区房产配置
 https://zhuanlan.zhihu.com/p/104108047
 
@@ -12556,3 +12559,17 @@ https://www.cnblogs.com/dreamboy/p/11320814.html
 
 股票分析之——收益率（附完整代码和讲解）
 https://zhuanlan.zhihu.com/p/91948053
+
+
+Git如何永久删除文件(包括历史记录)（转载）
+https://blog.csdn.net/bodybo/article/details/80655781
+
+git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch path-to-your-remove-file' --prune-empty --tag-name-filter cat -- --all
+
+git push origin master --force
+
+rm -rf .git/refs/original/
+git reflog expire --expire=now
+git gc --prune=now
+
+
