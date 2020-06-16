@@ -24,53 +24,52 @@
             margin: 0 auto;
         }
 
-        header {
-            background-color: chartreuse;
-        }
-
-        header .container {
+        .header .container {
             height: 120px;
             line-height: 120px;
-
+						overflow: hidden;
         }
 
-        header img {
+        .header .imgs {
+						float: left;
+				}
+
+        .header img {
             vertical-align: middle;
             margin-right: 20px;
         }
 
-        header .search {
+        .header .search {
             float: right;
             margin-right: 20px;
 
         }
 
-        header .search input {
+        .header .search input {
             display: inline-block;
             border: 0 none;
             height: 25px;
         }
 
-        header .search input[type=text] {
+        .header .search input[type=text] {
             background-color: #fff;
         }
 
-        header .search input[type=button] {
+        .header .search input[type=button] {
             background-color: aqua;
         }
 
-        nav {
+        .nav {
             background-color: blueviolet;
         }
 
-        nav ul {
+        .nav ul {
             list-style: none;
             overflow: hidden;
-            margin: 0;
             padding: 0;
         }
 
-        nav ul a {
+        .nav ul a {
             color: #fff;
             text-decoration: none;
             display: block;
@@ -81,25 +80,28 @@
             font-size: 18px;
         }
 
-        nav ul a:hover,
-        nav ul .active {
+        .nav ul a:hover,
+        .nav ul .active {
             background: #fff;
             color: #000;
         }
 
-        nav ul li {
+        .nav ul li {
             float: left;
         }
 
         .breadcrumb {
             margin: 0;
             padding: 0;
-            line-height: 30px;
+						list-style: none;
+						overflow: hidden;
         }
 
         .breadcrumb li {
-            line-height: 20px;
-            display: inline-block;
+            line-height: 30px;
+						height: 30px;
+						float: left;
+						margin-right: 5px;
         }
 
         .breadcrumb li a {
@@ -125,16 +127,14 @@
         }
 
         .wrap .right {
-            box-sizing: border-box;
             background-color: #fff;
             padding: 1px 20px 20px 220px;
-            width: 100%;
+						
+						width: auto; /* 这个div的所有部分（content+margin+padding+border）相加为父元素的width大小 */
 
             min-height: 500px;
-            height: auto !important;
-            /*兼容FF,IE7也支持 !important标签*/
-            height: 500px;
-            /*兼容ie6*/
+            height: auto !important; /*兼容FF,IE7也支持 !important标签*/
+            height: 500px; /*兼容ie6*/
             overflow: visible;        
         }
 
@@ -164,7 +164,7 @@
             background: #fff;
         }
 
-        footer {
+        .footer {
             background-color: #3D3C42;
             color: #7E8C99;
             text-align: center;
@@ -184,17 +184,19 @@
     <![endif]-->
 
     <div class="topbar"></div>
-    <header>
+    <div class="header">
         <div class="container">
-            <img src="http://140.249.48.80:8014/assets/uploads/img/logo_1.png" alt="">
-            <img src="http://140.249.48.80:8014/assets/uploads/img/logo_3.png" alt="">
+						<div class="imgs">
+            		<img src="http://140.249.48.80:8014/assets/uploads/img/logo_1.png" alt="">
+            		<img src="http://140.249.48.80:8014/assets/uploads/img/logo_3.png" alt="">
+						</div>
             <div class="search">
                 <input type="text"><input type="button" value="搜索">
             </div>
         </div>
-    </header>
+    </div>
 
-    <nav>
+    <div class="nav">
         <ul class="container">
             <li>
                 <a class="active" href="">首页</a>
@@ -206,10 +208,11 @@
                 <a href="">师资队伍</a>
             </li>
         </ul>
-    </nav>
+    </div>
 
     <div class="container">
-        <ol class="breadcrumb">当前位置：
+        <ol class="breadcrumb">
+            <li>当前位置：</li>
             <li>
                 <a href="">首页</a>
             </li>
@@ -241,9 +244,9 @@
         </div>
     </div>
 
-    <footer>
+    <div class="footer">
         <div class="container">&copy; 2020 All rights reserved.</div>
-    </footer>
+    </div>
 </body>
 
 </html>
