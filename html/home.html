@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>艾氪森网站首页</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #F0F0F0;
+            font: 14px 'Microsoft Yahei', Arial, Helvetica, sans-serif;
+        }
+
+        .topbar {
+            height: 3px;
+            background-color: blue;
+        }
+
+        .container {
+            width: 1080px;
+            margin: 0 auto;
+        }
+
+        header {
+            background-color: chartreuse;
+        }
+
+        header .container {
+            height: 120px;
+            line-height: 120px;
+
+        }
+
+        header img {
+            vertical-align: middle;
+            margin-right: 20px;
+        }
+
+        header .search {
+            float: right;
+            margin-right: 20px;
+
+        }
+
+        header .search input {
+            display: inline-block;
+            border: 0 none;
+            height: 25px;
+        }
+
+        header .search input[type=text] {
+            background-color: #fff;
+        }
+
+        header .search input[type=button] {
+            background-color: aqua;
+        }
+
+        nav {
+            background-color: blueviolet;
+        }
+
+        nav ul {
+            list-style: none;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav ul a {
+            color: #fff;
+            text-decoration: none;
+            display: block;
+            width: 100px;
+            height: 50px;
+            line-height: 50px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        nav ul a:hover,
+        nav ul .active {
+            background: #fff;
+            color: #000;
+        }
+
+        nav ul li {
+            float: left;
+        }
+
+        .breadcrumb {
+            margin: 0;
+            padding: 0;
+            line-height: 30px;
+        }
+
+        .breadcrumb li {
+            line-height: 20px;
+            display: inline-block;
+        }
+
+        .breadcrumb li a {
+            text-decoration: none;
+        }
+
+        .wrap {
+            position: relative;
+        }
+
+        .wrap .left {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 200px;
+            background-color:#F7F7F7;
+
+            border: 1px solid #D8D8D8;
+            background-image: url(http://140.249.48.80:8014/assets/uploads/img/background.png);
+            background-position-y: bottom;
+            background-repeat: no-repeat;
+        }
+
+        .wrap .right {
+            box-sizing: border-box;
+            background-color: #fff;
+            padding: 1px 20px 20px 220px;
+            width: 100%;
+
+            min-height: 500px;
+            height: auto !important;
+            /*兼容FF,IE7也支持 !important标签*/
+            height: 500px;
+            /*兼容ie6*/
+            overflow: visible;        
+        }
+
+        .wrap .right p {
+            line-height: 2em;
+            font-size: 16px;
+            text-indent: 2em;
+        }
+
+        .wrap .left ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .wrap .left li a {
+            display: block;
+            height: 50px;
+            line-height: 50px;
+            color: #000;
+            text-decoration: none;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .wrap .left li a:hover {
+            background: #fff;
+        }
+
+        footer {
+            background-color: #3D3C42;
+            color: #7E8C99;
+            text-align: center;
+
+            padding: 20px;
+            height: 50px;
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <!--[if lt IE 9]>
+        <script>function close_ie_tips() {var div = document.getElementById('ie_tips');div.parentNode.removeChild(div);}</script>
+        <div id="ie_tips" style="text-align: center;position: absolute; left:0; top:0;background-color:#f9f947;line-height: 25px;width: 100%;height: 25px;text-indent: 2em; overflow: hidden; font-size: 12px; ">您正在使用老版本 Internet Explorer ,在本页面的显示效果可能有差异或导致部分页面无法正常使用,建议您升级到 <a href="http://www.microsoft.com/china/windows/internet-explorer/" target="_blank">Internet Explorer 9</a>或以上浏览器。<span onclick="close_ie_tips()" style="margin-right: 20px; float: right; font-size:18px;color:#919191;cursor: pointer;">×</span></div>
+    <![endif]-->
+
+    <div class="topbar"></div>
+    <header>
+        <div class="container">
+            <img src="http://140.249.48.80:8014/assets/uploads/img/logo_1.png" alt="">
+            <img src="http://140.249.48.80:8014/assets/uploads/img/logo_3.png" alt="">
+            <div class="search">
+                <input type="text"><input type="button" value="搜索">
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <ul class="container">
+            <li>
+                <a class="active" href="">首页</a>
+            </li>
+            <li>
+                <a href="">基本情况</a>
+            </li>
+            <li>
+                <a href="">师资队伍</a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <ol class="breadcrumb">当前位置：
+            <li>
+                <a href="">首页</a>
+            </li>
+            <li>></li>
+            <li>师资队伍</li>
+        </ol>
+
+        <div class="wrap">
+            <div class="left">
+                <ul>
+                    <li>
+                        <a href="">教改项目</a>
+                    </li>
+                    <li>
+                        <a href="">精品课程</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="right">
+                <h1>艾氪森数字科技有限公司</h1>
+                <p>艾氪森团队自主研发的智能学习平台，助力教师教学内容持续更新、教学样式不断变化、学习效果即时反馈、教学效果数据分析、企业实训无缝衔接。</p>
+                <p>艾氪森联合华为打造软件开发云实验室，将华为近三十年的研发能力和实践平台引入教学。艾氪森作为教育解决方案伙伴，研发教学案例、项目实践案例，提供多样的教学内容。</p>
+                <p>智能制造实验室汲取了“工业4.0”和“中国制造2025”精华，以水产品加工车间为对象，通过以MES为核心的一体化管理软件实现水产品去头、开片、挑刺、切段、烘焙、包装等加工流程的精益生产。通过实时操作演示，可以看到其集电气自动化、智能控制、无线通信、检测、RFID射频识别等技术于一体。适用于程序设计、C#、C++、Java、无线通信等多门学科的实战练习。</p>
+                <p>艾氪森团队自主研发的智能学习平台，助力教师教学内容持续更新、教学样式不断变化、学习效果即时反馈、教学效果数据分析、企业实训无缝衔接。</p>
+                <p>艾氪森联合华为打造软件开发云实验室，将华为近三十年的研发能力和实践平台引入教学。艾氪森作为教育解决方案伙伴，研发教学案例、项目实践案例，提供多样的教学内容。</p>
+                <p>智能制造实验室汲取了“工业4.0”和“中国制造2025”精华，以水产品加工车间为对象，通过以MES为核心的一体化管理软件实现水产品去头、开片、挑刺、切段、烘焙、包装等加工流程的精益生产。通过实时操作演示，可以看到其集电气自动化、智能控制、无线通信、检测、RFID射频识别等技术于一体。适用于程序设计、C#、C++、Java、无线通信等多门学科的实战练习。</p>
+               
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">&copy; 2020 All rights reserved.</div>
+    </footer>
+</body>
+
+</html>
