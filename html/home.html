@@ -8,142 +8,227 @@
     <title>艾氪森网站首页</title>
     <style>
         body {
+            /* 去掉边框和填充，防止整体有白边 */
             margin: 0;
             padding: 0;
             background-color: #F0F0F0;
+            /* 设置全局字体 */
             font: 14px 'Microsoft Yahei', Arial, Helvetica, sans-serif;
         }
 
+        /* 顶部小蓝条 */
         .topbar {
             height: 3px;
             background-color: blue;
         }
 
+        /* 居中容器 */
         .container {
             width: 1080px;
+            /* 块元素水平居中 */
             margin: 0 auto;
         }
 
-        .header .container {
-            height: 120px;
-            line-height: 120px;
-						overflow: hidden;
+        /* begin header */
+        .header {
+            background-color: #1878CE;
         }
 
+        /* header 居中容器 */
+        .header .container {
+            /* 设置高度*/
+            height: 120px;
+
+            /* 设置行高，是内部的行元素垂直居中  */
+            line-height: 120px;
+
+            /* 触发 BFC，防止内部浮动元素塌陷 */
+            overflow: hidden;
+
+            /* 承当内部绝对定位元素的父容器 */
+            position: relative;
+        }
+
+        /* 左侧 logo 容器，可放多个浮动图片 */
         .header .imgs {
-						float: left;
-				}
+            float: left;
+        }
 
         .header img {
+            /* 垂直居中，需要父容器设置行高，只有行元素支持 */
             vertical-align: middle;
+
+            /* 多个图片间增加水平间隔 */
             margin-right: 20px;
         }
 
-        .header .search {
-            float: right;
-            margin-right: 20px;
+        /* 右侧搜索条容器 */
+        .header .box {
+            /* 针对父容器做绝对定位 */
+            position: absolute;
 
+            /* 靠父容器右侧 */
+            right: 0;
+
+            /* 设置本容器高度 */
+            height: 30px;
+
+            /* 在父容器垂直居中，负 margin 为本身高度的一般  */
+            top: 50%;
+            margin-top: -15px;
         }
 
-        .header .search input {
-            display: inline-block;
+        /* 搜索条分左右两个浮动 span 做容器，以让左右紧挨在一起 */
+        .header .box span {
+            float: left;
+            /* 高度为父容器高度， 浮动元素高度会塌陷为 0  */
+            height: 100%;
+            /* 每个 span 作为 input 绝对定位的容器 */
+            position: relative;
+        }
+
+        /*  span 内的 输入框绝对定位，顶部对齐，高度和容器相同 */
+        .header .box input {
             border: 0 none;
-            height: 25px;
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 100%;
+
+            /* 让光标垂直居中，默认 IE 7 下光标在顶部闪烁，这里不能使用百分比 */
+            line-height: 30px;
         }
 
-        .header .search input[type=text] {
-            background-color: #fff;
+        /* 输入框容器，设定宽，子元素宽度 100% 继承容器宽度 */
+        .header .box .span1 {
+            width: 150px;
         }
 
-        .header .search input[type=button] {
-            background-color: aqua;
+        /* 按钮容器，设置宽，子元素宽度 100%  继承容器宽度*/
+        .header .box .span2 {
+            width: 50px;
         }
 
+        .header .box .input {
+            /* 防止输入框多出 1 像素 */
+            padding: 0;
+        }
+
+        /* 导航条 */
         .nav {
             background-color: blueviolet;
         }
 
         .nav ul {
+            /* 去掉序号和边距 */
             list-style: none;
-            overflow: hidden;
             padding: 0;
+
+            /* 防止浮动子元素塌陷 */
+            overflow: hidden;
+        }
+
+        /* 子元素浮动，实现水平扩展，高宽由子元素撑开 */
+        .nav ul li {
+            float: left;
         }
 
         .nav ul a {
-            color: #fff;
-            text-decoration: none;
+            /* 行元素变为块元素并设置高宽 */
             display: block;
             width: 100px;
             height: 50px;
             line-height: 50px;
+
+            /* 设置字号，颜色，对齐，去掉下划线 */
+            color: #fff;
             text-align: center;
             font-size: 18px;
+            text-decoration: none;
         }
 
+        /* 设置激活状态和 hover 状态 */
         .nav ul a:hover,
         .nav ul .active {
             background: #fff;
             color: #000;
         }
 
-        .nav ul li {
-            float: left;
-        }
-
+        /* 面包屑 */
         .breadcrumb {
+            /* 去掉默认的边距，填充和序号 */
             margin: 0;
             padding: 0;
-						list-style: none;
-						overflow: hidden;
+            list-style: none;
+
+            /* 防止浮动子元素塌陷 */
+            overflow: hidden;
         }
 
         .breadcrumb li {
+            /* 子元素浮动 */
+            float: left;
+
+            /* 设置高，默认塌陷，宽度由内容自动撑开 */
             line-height: 30px;
-						height: 30px;
-						float: left;
-						margin-right: 5px;
+            height: 30px;
+
+            /* 防止挤在一起 */
+            margin-right: 5px;
         }
 
         .breadcrumb li a {
+            /* 去掉默认下划线 */
             text-decoration: none;
         }
 
+        /* 主体区域，实现左右等高布局 */
         .wrap {
+            /* 作为绝对定位子元素的容器 */
             position: relative;
         }
 
+        /* 左侧绝对布局，脱离文档流，高度通过 top bottom 自适应父容器，宽度固定 */
         .wrap .left {
             position: absolute;
             left: 0;
             top: 0;
             bottom: 0;
             width: 200px;
-            background-color:#F7F7F7;
 
+            /* 装饰属性 */
+            background-color: #F7F7F7;
             border: 1px solid #D8D8D8;
-            background-image: url(http://140.249.48.80:8014/assets/uploads/img/background.png);
-            background-position-y: bottom;
-            background-repeat: no-repeat;
         }
 
+        /* 右侧默认文档流 */
         .wrap .right {
-            background-color: #fff;
-            padding: 1px 20px 20px 220px;
-						
-						width: auto; /* 这个div的所有部分（content+margin+padding+border）相加为父元素的width大小 */
 
+            /* 左侧填充 left 的宽度加间距，防止内容被遮住 */
+            /* 顶部填充 1 像素是防止内部 margin 溢出到容器外侧 */
+            padding: 1px 20px 20px 220px;
+
+            /* 宽度自适应，（content+margin+padding+border）为父元素的宽度，不需要设置和模型和 100% 宽度 */
+            width: auto;
+
+            /* 设置最小高度，当没内容时，不会塌陷，后三行为兼容旧浏览器 */
             min-height: 500px;
-            height: auto !important; /*兼容FF,IE7也支持 !important标签*/
-            height: 500px; /*兼容ie6*/
-            overflow: visible;        
+            height: auto !important;
+            height: 500px;
+            overflow: visible;
+
+            /* 装饰类属性 */
+            background-color: #fff;
         }
 
+        /* 主题内容设置 */
         .wrap .right p {
             line-height: 2em;
             font-size: 16px;
             text-indent: 2em;
         }
 
+        /* 左侧垂直菜单 */
         .wrap .left ul {
             margin: 0;
             padding: 0;
@@ -151,19 +236,24 @@
         }
 
         .wrap .left li a {
+            /* 布局相关 */
             display: block;
             height: 50px;
             line-height: 50px;
+
+            /* 装是相关 */
             color: #000;
             text-decoration: none;
             text-align: center;
             border-bottom: 1px solid #ddd;
         }
 
+        /* hover 效果 */
         .wrap .left li a:hover {
             background: #fff;
         }
 
+        /* 底部 footer  */
         .footer {
             background-color: #3D3C42;
             color: #7E8C99;
@@ -186,12 +276,16 @@
     <div class="topbar"></div>
     <div class="header">
         <div class="container">
-						<div class="imgs">
-            		<img src="http://140.249.48.80:8014/assets/uploads/img/logo_1.png" alt="">
-            		<img src="http://140.249.48.80:8014/assets/uploads/img/logo_3.png" alt="">
-						</div>
-            <div class="search">
-                <input type="text"><input type="button" value="搜索">
+            <div class="imgs">
+                <img src="https://news.fudan.edu.cn/_upload/site/00/03/3/logo.png" alt="">
+            </div>
+            <div class="box">
+                <span class="span1">
+                    <input type="text" class="input">
+                </span>
+                <span class="span2">
+                    <input type="button" value="搜索" class="button">
+                </span>
             </div>
         </div>
     </div>
@@ -232,14 +326,16 @@
                 </ul>
             </div>
             <div class="right">
-                <h1>艾氪森数字科技有限公司</h1>
-                <p>艾氪森团队自主研发的智能学习平台，助力教师教学内容持续更新、教学样式不断变化、学习效果即时反馈、教学效果数据分析、企业实训无缝衔接。</p>
-                <p>艾氪森联合华为打造软件开发云实验室，将华为近三十年的研发能力和实践平台引入教学。艾氪森作为教育解决方案伙伴，研发教学案例、项目实践案例，提供多样的教学内容。</p>
-                <p>智能制造实验室汲取了“工业4.0”和“中国制造2025”精华，以水产品加工车间为对象，通过以MES为核心的一体化管理软件实现水产品去头、开片、挑刺、切段、烘焙、包装等加工流程的精益生产。通过实时操作演示，可以看到其集电气自动化、智能控制、无线通信、检测、RFID射频识别等技术于一体。适用于程序设计、C#、C++、Java、无线通信等多门学科的实战练习。</p>
-                <p>艾氪森团队自主研发的智能学习平台，助力教师教学内容持续更新、教学样式不断变化、学习效果即时反馈、教学效果数据分析、企业实训无缝衔接。</p>
-                <p>艾氪森联合华为打造软件开发云实验室，将华为近三十年的研发能力和实践平台引入教学。艾氪森作为教育解决方案伙伴，研发教学案例、项目实践案例，提供多样的教学内容。</p>
-                <p>智能制造实验室汲取了“工业4.0”和“中国制造2025”精华，以水产品加工车间为对象，通过以MES为核心的一体化管理软件实现水产品去头、开片、挑刺、切段、烘焙、包装等加工流程的精益生产。通过实时操作演示，可以看到其集电气自动化、智能控制、无线通信、检测、RFID射频识别等技术于一体。适用于程序设计、C#、C++、Java、无线通信等多门学科的实战练习。</p>
-               
+                <h1>疫情下，留美学子应当这样做好自我管理</h1>
+                <p>近日，复旦大学承办的“教育部留美学子线上健康咨询和诊疗服务平台”系列讲座第二场——“新冠疫情下的自我管理：个人防护和心理管理”在复旦大学上海医学院治道楼和汉堂开讲。复旦大学附属中山医院感染病科主任胡必杰教授和心理医学科主任季建林教授分别从医学防护和心理调节的角度为在海外的广大留学生们提供了防疫抗疫应对建议。本场讲座由复旦大学附属中山医院副院长仓静主持。
+                </p>
+                <p>仓静在讲座开场之前简要介绍了平台成立的背景，回顾了5月29日平台启动仪式上由张文宏教授主讲的首场讲座及其引起的热烈反响，以及中山医院在此次防疫战疫中所作出的积极贡献。</p>
+                <p>近日，复旦大学承办的“教育部留美学子线上健康咨询和诊疗服务平台”系列讲座第二场——“新冠疫情下的自我管理：个人防护和心理管理”在复旦大学上海医学院治道楼和汉堂开讲。复旦大学附属中山医院感染病科主任胡必杰教授和心理医学科主任季建林教授分别从医学防护和心理调节的角度为在海外的广大留学生们提供了防疫抗疫应对建议。本场讲座由复旦大学附属中山医院副院长仓静主持。
+                </p>
+                <p>仓静在讲座开场之前简要介绍了平台成立的背景，回顾了5月29日平台启动仪式上由张文宏教授主讲的首场讲座及其引起的热烈反响，以及中山医院在此次防疫战疫中所作出的积极贡献。</p>
+                <p>近日，复旦大学承办的“教育部留美学子线上健康咨询和诊疗服务平台”系列讲座第二场——“新冠疫情下的自我管理：个人防护和心理管理”在复旦大学上海医学院治道楼和汉堂开讲。复旦大学附属中山医院感染病科主任胡必杰教授和心理医学科主任季建林教授分别从医学防护和心理调节的角度为在海外的广大留学生们提供了防疫抗疫应对建议。本场讲座由复旦大学附属中山医院副院长仓静主持。
+                </p>
+                <p>仓静在讲座开场之前简要介绍了平台成立的背景，回顾了5月29日平台启动仪式上由张文宏教授主讲的首场讲座及其引起的热烈反响，以及中山医院在此次防疫战疫中所作出的积极贡献。</p>
             </div>
         </div>
     </div>
