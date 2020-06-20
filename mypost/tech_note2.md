@@ -12572,4 +12572,324 @@ rm -rf .git/refs/original/
 git reflog expire --expire=now
 git gc --prune=now
 
+# arm tensorflow
+add-apt-repository ppa:deadsnakes/ppa
+apt-get update
+apt-get install python3.7
+curl -sL https://bootstrap.pypa.io/get-pip.py | python3.7
+pip3.7 --timeout 100 install -U numpy
+pip3.7 --timeout 100 install -U scipy
+apt install libhdf5-dev
+# https://github.com/lhelontra/tensorflow-on-arm/releases
+wget https://github.com/lhelontra/tensorflow-on-arm/releases/download/v2.2.0/tensorflow-2.2.0-cp37-none-linux_aarch64.whl
+pip3.7 --timeout 100 install tensorflow-2.2.0-cp37-none-linux_aarch64.whl
 
+pip3.7 --timeout 100 install matplotlib
+pip3.7 uninstall pillow
+pip install pillow==4.0.0
+
+
+github：
+
+人脸联合语音身份认证：https://github.com/tsstss123/faceUnionVoiceRecognition
+
+身份证识别简易版：https://github.com/novioleo/simplest_idcard_recognizition
+
+文本检测ctpn：https://github.com/eragonruan/text-detection-ctp
+
+
+使用Python提取身份证上的信息
+https://zhuanlan.zhihu.com/p/37423187
+https://zhuanlan.zhihu.com/p/37442305
+
+
+apt install tesseract-ocr
+pip3 install pytesseract opencv-python Scikit-Image dlib
+
+2.从清华的镜像
+	`https://pypi.tuna.tsinghua.edu.cn/simple/opencv-python/ `
+	中下载其他版本的库，因为根据安装的python 版本下载相应的镜像文件
+	比如 python 3.5.4 64bit
+	我下载的是
+	opencv_python-3.1.0.0-cp35-cp35m-win_amd64.whl
+
+shape_predictor_5_face_landmarks.dat以及shape_predictor_68_face_landmarks.dat资源分享
+https://blog.csdn.net/Viadimir/article/details/105035660    
+
+tesseract 安装及使用
+https://blog.csdn.net/showgea/article/details/82656515
+
+Failed loading language 'chi_sim'
+https://www.jianshu.com/p/5265b2480938
+https://links.jianshu.com/go?to=https%3A%2F%2Fgithub.com%2Ftesseract-ocr%2Ftessdata
+
+
+cd /usr/share/tesseract-ocr/4.00/tessdata/
+wget https://github.com/tesseract-ocr/tessdata/raw/master/chi_sim.traineddata
+
+文本检测之OpenCV实现
+https://zhuanlan.zhihu.com/p/120780518
+
+How to use OpenCV to process image so that the text become sharp and clear?
+https://stackoverflow.com/questions/17874149/how-to-use-opencv-to-process-image-so-that-the-text-become-sharp-and-clear
+
+Python下opencv使用笔记（十）（图像频域滤波与傅里叶变换）
+https://blog.csdn.net/on2way/article/details/46981825
+
+过滤 style 标签
+style="[^"]+"
+
+
+Install Eclipse IDE on Ubuntu 19.04/18.04/16.04
+https://computingforgeeks.com/install-latest-eclipse-ide-on-ubuntu/
+
+RISV-V未来将面临怎样的挑战？
+https://blog.csdn.net/cf2suds8x8f0v/article/details/88386622
+
+https://forum.manjaro.org/t/eclipse-for-aarch64/147579
+https://www.eclipse.org/lists/platform-dev/msg01893.html
+
+
+Hadoop _ 疑难杂症 解决1 - WARN util.NativeCodeLoader: Unable to load native-hadoop library for your plat
+https://blog.csdn.net/u010003835/article/details/81127984
+
+Hadoop for arm64
+https://github.com/owlab-exp/hadoop-arm64/blob/master/README.md
+
+auxService:mapreduce_shuffle does not exist on hive
+https://stackoverflow.com/questions/30921838/auxservicemapreduce-shuffle-does-not-exist-on-hive
+
+
+http://mvnrepository.com/artifact/mysql/mysql-connector-java
+
+
+Linux挂载移动硬盘
+https://www.cnblogs.com/weiyiming007/p/8522056.html
+
+yum -y install ntfs-3g
+mount -t ntfs /dev/sdb1 /mydata/data
+
+
+http://www.microsoft.com/china/windows/internet-explorer/
+
+左右等高
+
+.wrap {
+    position: relative;
+}
+
+.wrap .left {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 200px;
+    background-color: aliceblue;
+}
+
+.wrap .right {
+    background-color: aqua;
+    margin-left: 200px;
+    width: 100%;
+
+    min-height:100px;
+    height:auto !important; /*兼容FF,IE7也支持 !important标签*/
+    height:100px; /*兼容ie6*/
+    overflow:visible;
+}
+
+
+CSS代码(四)：float元素的垂直居中
+
+https://blog.csdn.net/yiifaa/article/details/74905464
+
+
+深入浅出vertical-align和line-height
+https://blog.csdn.net/woyuanliulian/article/details/80929799
+
+
+解决input宽度设置成100%与padding的冲突
+https://www.cnblogs.com/screw/p/5219259.html
+
+首页模版
+https://www.huduntech.com/
+
+
+作者回复: 这是从贝叶斯角度出发的。假定参数本身已经服从正态/拉普拉斯分布，那么在高斯噪声之下，用参数的似然概率乘以先验就可以得到后验。对后验概率取对数得到的结果和正则化的损失函数形式一致，所以对后验概率的最大化就是对正则化损失函数的最小化。
+这相当于先假定参数符合特定条件，在此基础上再来计算最优参数。
+
+
+有了训练数据集，先验概率 P(Y) 和似然概率 P(X|Y) 就可以视为已知条件，用来求解后验概率 P(Y|X)。对于给定的输入 x，朴素贝叶斯分类器利用贝叶斯定理求解后验概率，并将后验概率最大的类作为输出。
+
+
+OA+ ERP + PLM + PDM+WMS + MES + SCADA + PLC
+
+
+1、2-3年及以上软件开发经验；    
+2、精通PHP开发语言和Mysql数据库，至少熟练目前市面上一款主流的PHP开发框架如Thinkphp，ci， YII等；    
+3、熟练HTML5, ajax，jquery等Web前端技术    
+3、具备优秀的面向对象的分析与设计能力，以及大型数据库的设计能力；    
+4、了解编程开发技术，具备较强的质量管理意识；     
+5、有良好的团队合作能力，独立分析与解决问题的能力。    
+6、工作踏实认真，对移动WEB开发行业充满热情，有不断提升自己的学习意识；     
+7、有高并发和网络编程开发经验者优先 ； 
+
+
+在线 ER图
+https://drawerd.com/
+
+
+TCP限流技术
+https://blog.csdn.net/qq_40910541/article/details/88761208
+
+
+ksoftirqd进程耗尽单核100%si处理软中断导致性能瓶颈
+https://www.jianshu.com/p/f0ed38a79041
+
+第6点：修改设备中断方式。通过修改设置中断/proc/irq/${网卡中断号}/smp_affinity：
+测试服务器CPU为四核，理论上网卡的smp_affinity值为1、2、4、8分别对应cpu0、cpu1、cpu2、cpu3。
+结果：
+1、网卡的smp_affinity默认值为8，测试过程中软中断全部由cpu3处理。正确
+2、设置smp_affinity = 1，测试过程中软中断全部由cpu0处理。正确
+3、设置smp_affinity = 2，测试过程中软中断全部由cpu1处理。正确
+4、设置smp_affinity = 4，测试过程中软中断全部由cpu2处理。正确
+5、设置smp_affinity = 5，测试过程中软中断全部由cpu0处理，预期应该分配给cpu0和cpu2处理。无效
+6、设置smp_affinity = f，测试过程中软中断全部由cpu0处理，预期应该分配给cpu0、cpu1、cpu2和cpu2处理。无效
+即：修改smp_affinity的功能只针对单核有效。
+第7点：使用多网卡负载均衡。此方案可行！使用两张网卡绑定一个IP地址，性能就提升了一倍，效果非常明显。原因就是两张网卡各用一个CPU核，相比用单核而言，性能自然提升一倍。
+
+
+Receive many UDP packets & ksoftirqd load
+https://serverfault.com/questions/638014/receive-many-udp-packets-ksoftirqd-load
+
+The card is Intel E10G42BT X520-T2 10Gigabit Ethernet Card. The workload I'm testing right now is 64B UDP packets generated by netperf. CPU is E5-2650 v2 @ 2.60GHz, 16 cores
+
+I thought ksoftirq tries to handle interrupts. When I look at /proc/interrupts, the numbers do not increase a lot (10 per core per second) but ksoftireq uses 100% of a core when the server tries to receive 600kpps. Does ksoftirq also handles DMA received packets? I have enabled IOAT DMA. Does ksoftirq is called per network packets? I have set interruptthrottling as 16000,16000 for my 10G NIC (ixgbe driver).
+
+iptables processing runs almost all of the network stack in softirq context. Do you have a lot of rules or modules with a heavy workload like conntrack loaded?
+
+
+Linux之TCPIP内核参数优化
+https://www.cnblogs.com/wuchanming/p/4028341.html
+
+关于网卡特性TSO、UFO、GSO、LRO、GRO
+https://blog.csdn.net/notbaron/article/details/79837821
+
+TSO(TCP Segmentation Offload)，是利用网卡对TCP数据包分片，减轻CPU负荷的一种技术，也有人叫 LSO (Large segment offload) ，TSO是针对TCP的，UFO是针对UDP的。如果硬件支持 TSO功能，同时也需要硬件支持的TCP校验计算和分散/聚集 (Scatter Gather) 功能。如果网卡支持TSO/GSO，可以把最多64K大小的TCP payload直接往下传给协议栈，此时IP层也不会进行segmentation，网卡会生成TCP/IP包头和帧头，这样可以offload很多协议栈上的内存操作，节省CPU资源，当然如果都是小包，那么功能基本就没啥用了。
+
+GSO(Generic Segmentation Offload)，GSO是TSO的增强 ，GSO不只针对TCP，对任意协议。比TSO更通用，推迟数据分片直至发送到网卡驱动之前，此时会检查网卡是否支持分片功能（如TSO、UFO）,如果支持直接发送到网卡，如果不支持就进行分片后再发往网卡。
+
+LRO(Large Receive Offload)，通过将接收到的多个TCP数据聚合成一个大的数据包，然后传递给网络协议栈处理，以减少上层协议栈处理 开销，提高系统接收TCP数据包的能力。
+
+GRO(Generic Receive Offload)，跟LRO类似，克服了LRO的一些缺点，更通用。后续的驱动都使用GRO的接口，而不是LRO。
+
+中国Pyhon量化的启蒙人与开拓者
+http://www.topquant.vip/
+
+
+Linux 下修改socket接收缓冲区
+https://blog.csdn.net/u012707739/article/details/78288367
+
+在进行socket编程有时候可能需要修改下socket的接收缓冲区大小，这里可以使用 setsockopt 函数，但是如果需要修改的缓冲区很大（比如500MB），则还需要修改系统内核的TCP/IP参数，不然接收缓冲区大小会收到内核参数的限制，所以需要改两个地方。下面以把socket接收缓冲区修改为500MB说明一下要作的修改。
+
+###1、修改内核TCP/IP参数
+
+在终端用sysctl命令修改socket最大缓冲区限制：
+
+sudo sysctl -w net.core.rmem_max=524288000
+
+###2、在代码中用setsockopt函数修改SO_RCVBUF选项
+
+int recvbuff = 500*1024*1024;
+if(setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (const char*)&recvbuff, sizeof(int)) == -1)
+	printf("setsocket error\n");
+else
+	printf("setsocket success\n");
+
+以上两点，只改第1点，一个socket只会预留63个报文的接收缓冲；只改第2点，缓冲区大小会受到rmem_max的限制，如果需要的缓冲区很大的话，必须两点都改。    
+
+
+linux 查看SOCKET使用情况
+https://blog.csdn.net/zeweig/article/details/51760624
+
+
+# cat /proc/net/sockstat
+sockets: used 141
+TCP: inuse 93 orphan 0 tw 13 alloc 94 mem 19
+UDP: inuse 0 mem 0
+UDPLITE: inuse 0
+RAW: inuse 0
+FRAG: inuse 0 memory 0
+
+说明：
+sockets: used：已使用的所有协议套接字总量
+TCP: inuse：正在使用（正在侦听）的TCP套接字数量。其值≤ netstat –lnt | grep ^tcp | wc –l
+TCP: orphan：无主（不属于任何进程）的TCP连接数（无用、待销毁的TCP socket数）
+TCP: tw：等待关闭的TCP连接数。其值等于netstat –ant | grep TIME_WAIT | wc –l
+TCP：alloc(allocated)：已分配（已建立、已申请到sk_buff）的TCP套接字数量。其值等于netstat –ant | grep ^tcp | wc –l
+TCP：mem：套接字缓冲区使用量（单位不详。用scp实测，速度在4803.9kB/s时：其值=11，netstat –ant 中相应的22端口的Recv-Q＝0，Send-Q≈400）
+UDP：inuse：正在使用的UDP套接字数量
+RAW：
+FRAG：使用的IP段数量
+
+
+5G User Plane Function (UPF) - Performance with ASTRI
+https://builders.intel.com/docs/networkbuilders/5g-user-plane-function-upf-performance-with-astri-solution-brief.pdf
+
+
+UDP Socket接收缓冲区与netstat Recv-Q
+https://blog.csdn.net/test1280/article/details/79749210
+
+我们通常使用netstat查看网络的诸多状态，其中包含Send-Q与Recv-Q。
+
+我们知道：
+
+每一个Socket对象在系统中都被映射为一个Socket文件；
+每一个Socket对象在系统中都关联有两个内核缓冲区：一个接收缓冲区（读缓冲区），一个发送缓冲区（写缓冲区）；
+
+Send-Q：指代的是内核中Socket对应的发送缓冲区尚未发送完毕的字节数；
+Recv-Q：指代的是内核中Socket对应的接收缓冲区尚未被用户收走（read）而滞留在接收缓冲区的字节数；
+
+通常来说，setsockopt可以设置的缓冲区是系统设置的Socket最大缓冲区数值大小的一半。
+
+[udpdriver@eb6347 0329]$ cat /proc/sys/net/core/rmem_max
+131071
+系统内核设置的这个接收缓冲区大小值，就是udp socket默认的最大接收缓冲区值的一半。
+
+实际一个udp socket的接收缓冲区最大为：131071*2=262142.
+
+如果你够仔细，你会发现，Recv-Q的最大值，就是我们的udp内核接收缓冲区的实际值。
+无论发包多快，多大，在Recv-Q永远不会超过getsockopt得出的实际的udp socket内核接收缓冲区的max值。
+
+到此我们明白： getsockopt获取的接收缓冲区的大小，等价于在netstat中Recv-Q中可滞留在接收缓冲区数据的最大值。
+
+如果数据加入不到Recv-Q（内核读缓冲区）中，那内核就将其丢弃（特指udp）。 此时，我们应该考虑的是提高服务器的性能，而不是扩大接收缓冲区的大小。
+
+无论何时，应当保证你的消耗速率（从内核中将读缓冲区的数据读到用户态缓冲区）大于你的生产速率（内核收到来自网络的数据包，将其从网卡中写入内核的写缓冲区的速率）。
+
+接收缓冲区有堆积是一定有问题的，增大缓冲区并不能解决问题，要从服务器角度考虑，优化、增强其处理性能，快快地将接收缓冲区滞留的待读数据处理完毕。
+
+压力测试模拟程序（C实现）
+https://blog.csdn.net/test1280/article/details/79733708
+
+
+TCP/IP：连接服务器失败（错误原因：Connection refused）
+https://blog.csdn.net/test1280/article/details/80642847
+
+UDP数据包接收逻辑的优化修改以及对性能的影响
+https://blog.csdn.net/test1280/article/details/79779835
+
+UDP：Socket缓冲区大小修改与系统设置
+https://blog.csdn.net/test1280/article/details/79776938
+
+
+Linux：在非本机IP地址监听
+https://blog.csdn.net/test1280/article/details/106677327
+
+
+sklearn的一般流程，以鸢尾花分类为例
+https://blog.csdn.net/ycarry2017/article/details/85053217
+
+
+Python数据可视化实战——iris数据集可视化
+https://blog.csdn.net/weixin_39506322/article/details/82960476
