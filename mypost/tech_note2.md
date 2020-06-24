@@ -12893,3 +12893,22 @@ https://blog.csdn.net/ycarry2017/article/details/85053217
 
 Python数据可视化实战——iris数据集可视化
 https://blog.csdn.net/weixin_39506322/article/details/82960476
+
+
+坡县生存指北V1.0
+https://cmgs.me/life/life-in-singapore
+
+
+用canvas实现对图片的处理 使用fileAPI
+https://blog.csdn.net/oliverpeng1521314/article/details/70820912
+
+
+canvas转换成file类型
+https://blog.csdn.net/Small_Pang/article/details/103661417
+
+
+html5 canvas 画板
+https://blog.csdn.net/zxlstudio/article/details/27996261
+
+【apache】Apache Rewrite url重定向功能的简单配置
+https://www.cnblogs.com/opensmarty/p/10875627.html
