@@ -757,13 +757,6 @@ How to set up Spark on Windows?
 https://stackoverflow.com/questions/25481325/how-to-set-up-spark-on-windows
 
 
-Git for windows 中文乱码解决方案
-https://segmentfault.com/a/1190000000578037
-
-git config --global i18n.commitencoding utf-8
-git config --global i18n.logoutputencoding utf-8
-export LESSCHARSET=utf-8
-
 Best way to find if an item is in a JavaScript array? [duplicate]
 https://stackoverflow.com/questions/143847/best-way-to-find-if-an-item-is-in-a-javascript-array
 后台管理UI的选择
@@ -3472,6 +3465,13 @@ CLASSPATH环境变量。作用是指定类搜索路径，要使用已经编写�
  
  
  ## git
+Git for windows 中文乱码解决方案
+https://segmentfault.com/a/1190000000578037
+
+git config --global i18n.commitencoding utf-8
+git config --global i18n.logoutputencoding utf-8
+export LESSCHARSET=utf-8
+
 
 git diff master origin/dev --stat
 git diff master origin/dev config.py
@@ -12912,3 +12912,284 @@ https://blog.csdn.net/zxlstudio/article/details/27996261
 
 【apache】Apache Rewrite url重定向功能的简单配置
 https://www.cnblogs.com/opensmarty/p/10875627.html
+
+微信支付的软件架构究竟有多牛逼...
+https://xie.infoq.cn/article/086068c020f124d49cdde5b6f
+
+
+FFT(快速傅里叶) c语言版
+https://blog.csdn.net/tuwenqi2013/article/details/71772841
+
+
+译体验｜Drift：2019 会话式营销体验报告
+https://zhuanlan.zhihu.com/p/89527284
+
+
+vue+websocket+express+mongodb实战项目（实时聊天）
+https://blog.csdn.net/blueblueskyhua/article/details/73250992
+https://blog.csdn.net/blueblueskyhua/article/details/70807847
+
+## 英语
+
+
+Web Animations API Now Supported in All Evergreen Browsers
+https://www.infoq.com/news/2020/06/web-animations-evergreen-browser/
+
+
+Microsoft Releases gRPC-Web for .NET
+https://www.infoq.com/news/2020/06/microsoft-releases-grpc-web-net/
+
+2nd Generation JavaScript Frameworks & Libraries: beyond Angular, React, and Vue!
+https://www.infoq.com/news/2020/06/second-generation-js-frameworks
+
+How does a TCP Reset Attack work?
+https://robertheaton.com/2020/04/27/how-does-a-tcp-reset-attack-work/
+
+
+50道CSS基础面试题（附答案）
+https://blog.csdn.net/weixin_34242509/article/details/88899834
+
+Visual studio code 扩展 ssh 连接失败：The "path" argument must be of type string. Received type undefined
+https://blog.csdn.net/mostone/article/details/103023476
+
+按 F1，输入 Remote-SSH: Settings，找到 Remote.SSH: Path，注意，不是 Remote.SSH: Config File。使用 Git 包内的 ssh 程序：C:\Program Files\Git\usr\bin\ssh.exe
+
+穷佐罗的Linux书
+https://zorrozou.github.io/
+
+
+Nginx配置SSL自签名证书
+https://www.cnblogs.com/thunderLL/p/9068254.html
+
+生成RSA密钥(过程需要设置一个密码,记住这个密码)
+$ openssl genrsa -des3 -out domain.key 1024
+
+拷贝一个不需要输入密码的密钥文件
+$ openssl rsa -in domain.key -out domain_nopass.key
+
+生成一个证书请求
+$ openssl req -new -key domain.key -out domain.csr
+这里会提示输入国家,地区组织,email等信息.最重要的一个是"common name",需要与网站域名相同.
+
+Enter pass phrase for domain.key:							# 之前设置的密码
+-----
+Country Name (2 letter code) [XX]:CN    					# 国家
+State or Province Name (full name) []:Jilin   				# 地区或省份
+Locality Name (eg, city) [Default City]:Changchun			# 地区局部名
+Organization Name (eg, company) [Default Company Ltd]:Python # 机构名称
+Organizational Unit Name (eg, section) []:Python			# 组织单位名称
+Common Name (eg, your name or your server's hostname) []:domain.com # 网站域名
+Email Address []:123@domain.com								# 邮箱
+A challenge password []:									# 私钥保护密码,可直接回车
+An optional company name []:								# 一个可选公司名称,可直接回车
+输入完这些就会生成一个domain.csr文件,提交给ssl提供商的时候就是这个csr文件.当然这里并没有向任何证书提供商申请,而是自己签发证书.
+
+使用上面的密钥和CSR对证书签名
+$ openssl x509 -req -days 365 -in domain.csr -signkey domain.key -out domain.crt
+
+
+我们知道硬盘的第一个扇区也就是第0扇区是用来存放主引导记录(MBR)的，因此也称MBR扇区。一个扇区是512字节，因此MBR的大小也是512字 节，其具体数据结构是：446个字节的引导代码、64个字节的分区表及2个字节的签名值"55AA"。由于MBR的分区表只有64个字节，这决定了它只能 存储4个分区记录。这就是为什么一块硬盘最多只能有4个“主分区"的原因。记住，“主分区”就是指记录在主引导记录MBR分区表中的分区，除此之外主分区 并无特别之处，但是过去的一些老操作系统往往不能安装在主分区之外的分区上，所以，主分区也贴上“专门用来安装操作系统”的标签。
+
+
+下面我们通过一个一块硬盘来说明它的具体操作：
+
+第一个主分区3G
+剩余分区都给扩展分区
+第一个逻辑卷分区2G
+第二个逻辑源用剩余空间
+
+
+第一个主分区3G
+
+parted -s /dev/sdb mklabel msdos
+parted -s /dev/sdb mkpart primary 0 3G
+剩余空间给扩展分区
+
+parted -s /dev/sdb mkpart entended 3 100%
+在扩展分区上创建第一个逻辑分区
+
+parted -s /dev/sdb mkpart logic 3G 5G
+创建第二个逻辑分区
+
+parted -s /dev/sdb mkpart logic 5G 100%            #100%代表使用剩余的所有空间
+查看分区大小
+
+parted -s /dev/sdb print
+Model: ATA QEMU HARDDISK (scsi)
+Disk /dev/sdb: 8590MB
+Sector size (logical/physical): 512B/512B
+Partition Table: msdos
+
+Number  Start   End     Size    Type      File system  标志
+ 1      512B    3000MB  3000MB  primary
+ 2      3001MB  8590MB  5589MB  extended               lba
+ 5      5000MB  8590MB  3590MB  logical
+
+mkpart primary 0% 100%
+
+
+使用Hyperf插入100万行数据到MongoDB，能行吗
+https://zhuanlan.zhihu.com/p/118599702
+
+
+mkpart primary 0% 100%
+
+Optimizing Web Servers for High Throughput and Low Latency
+https://www.nginx.com/blog/optimizing-web-servers-for-high-throughput-and-low-latency/
+
+查看软中断
+
+watch -d -n 1 'cat /proc/softirqs'
+
+查看中断号
+# cat /proc/interrupts | grep enp7s0
+  40:          0          0          0          0          0          0          0          0          0          0          0          0          0   49337017          0          0          0          0          0        206          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0   PCI-MSI 3670016-edge      enp7s0
+
+查看CPU亲缘性
+
+# cat /proc/irq/40/smp_affinity
+00,00002000
+
+
+apt install itop
+
+Nginx服务器上软中断过高问题如何解决？
+https://blog.csdn.net/lin443514407lin/article/details/72845436
+
+linux CPU SI软中断比较占用率比较大（网络解决方案）
+https://www.geek-share.com/detail/2680936183.html
+
+深入代码详谈irqbalance
+https://blog.csdn.net/whrszzc/article/details/50533866
+
+启用 irqbalance 服务，既可以提升性能，又可以降低能耗。
+irqbalance 用于优化中断分配，它会自动收集系统数据以分析使用模式，并依据系统负载状况将工作状态置于 Performance mode 或 Power-save mode。
+处于 Performance mode 时，irqbalance 会将中断尽可能均匀地分发给各个 CPU core，以充分利用 CPU 多核，提升性能。
+处于 Power-save mode 时，irqbalance 会将中断集中分配给第一个 CPU，以保证其它空闲 CPU 的睡眠时间，降低能耗
+
+Linux性能优化-CPU性能优化思路
+https://blog.csdn.net/hixiaoxiaoniao/article/details/85119650?utm_medium=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.edu_weight&depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.edu_weight
+
+Linux性能优化-上下文切换
+https://blog.csdn.net/hixiaoxiaoniao/article/details/84977592
+
+关于linux系统CPU篇--->上下文切换
+https://www.cnblogs.com/maxwellsky/p/10629753.html
+
+3.Linux中如何查看上下文切换？
+
+vmstat中cs, 表示每秒上下文切换的次数
+
+pidstat(pidstat -w 5),查看每个进程的上下文切换情况，cswch表示每秒自愿上下文切换次数，nvcswch表示每秒非自愿上下文切换的次数
+
+
+
+
+linux下怎么判断网卡速率？
+https://blog.csdn.net/liugongfeng/article/details/50263733
+
+ 一个类似命令mii-tool, 查看连接状态和速率
+# mii-tool enp7s0
+enp7s0: negotiated 100baseTx-FD flow-control, link ok
+
+# ethtool -i enp7s0
+driver: r8169
+version: 2.3LK-NAPI
+firmware-version: rtl8168h-2_0.0.2 02/26/15
+expansion-rom-version:
+bus-info: 0000:07:00.0
+supports-statistics: yes
+supports-test: no
+supports-eeprom-access: no
+supports-register-dump: yes
+supports-priv-flags: no
+
+查看 ulimit 是否生效
+# grep 'open files' /proc/$( cat /var/run/nginx.pid )/limits
+Max open files            100000               100000               files
+
+查看网卡是千兆还是百兆
+# ethtool enp7s0 | grep Speed
+        Speed: 100Mb/s
+# lspci -vvv | grep Ethernet
+07:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller (rev 15)
+        Subsystem: Realtek Semiconductor Co., Ltd. RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller
+
+
+# grep -Ev "^$|#" /etc/nginx/nginx.conf
+user www-data;
+worker_processes auto;
+worker_rlimit_nofile 1000000;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
+events {
+        worker_connections 90000;
+        use epoll;
+}
+http {
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 65;
+        types_hash_max_size 2048;
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+        ssl_prefer_server_ciphers on;
+        access_log off;
+        error_log /var/log/nginx/error.log;
+        gzip on;
+        include /etc/nginx/conf.d/*.conf;
+        include /etc/nginx/sites-enabled/*;
+}
+
+# grep -Ev "^$|#" /etc/nginx/sites-enabled/default
+
+server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+        location /hello {
+            default_type text/html;
+            return 200 'hello world.\n';
+        }
+        root /var/www/html;
+        index index.html index.htm index.nginx-debian.html;
+        server_name _;
+        location / {
+            try_files $uri $uri/ =404;
+        }
+}
+
+基本信息
+
+    - 机器40核64G内存
+    - client和server在同一交换机下
+
+优化过程
+
+    默认 ./wrk -t12 -c400 -d30s http://192.168.1.47/hello
+        Requests/sec:  47604.41
+    use epoll;
+        Requests/sec:  47579.03
+    worker_processes 80; 后续已回滚
+        Requests/sec:  47596.85
+    ulimit -n 100000
+        Requests/sec:  47599.63
+    worker_connections 90000;
+        Requests/sec:  47613.81
+    worker_rlimit_nofile 90000;
+        Requests/sec:  47574.34
+    ulimit -n 90000
+        Requests/sec:  47604.38
+    本机对本机
+        Requests/sec:  120041.18
+    关闭 nginx access log
+        Requests/sec: 434150.34
+    提高线程数 ./wrk -t20 -c400 -d30s http://192.168.1.47/hello
+        Requests/sec: 536025.43
+
+结论
+
+    1、client和server不在同一机器时要考虑链路层线速限制，如网卡，交换机，网线的理论带宽。
+    2、关闭日志可以大幅提高性能，大约提升4倍qps
+    3、加大客户端线程数和并发数可以提高 qps，但 Latency 会提高
+    4、中断、上下文切换、slab 基本无需优化，系统默认配置不是瓶颈。
