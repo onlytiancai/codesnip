@@ -757,7 +757,6 @@ How to set up Spark on Windows?
 https://stackoverflow.com/questions/25481325/how-to-set-up-spark-on-windows
 
 
-Git for windows 中文乱码解决方案
 https://segmentfault.com/a/1190000000578037
 
 git config --global i18n.commitencoding utf-8
@@ -2683,8 +2682,7 @@ http://www.sohu.com/a/223781695_413876
     
     # 用 parted 进行大分区
     parted /dev/vdb
-        mklable
-            gpt
+        mklabel gpt
         print
         mkpart primary 0 -1   # 0表示分区的开始  -1表示分区的结尾  意思是划分整个硬盘空间为主分区        
         
@@ -3473,6 +3471,16 @@ CLASSPATH环境变量。作用是指定类搜索路径，要使用已经编写�
  
  
  ## git
+Git for windows 中文乱码解决方案
+https://segmentfault.com/a/1190000000578037
+
+git config --global i18n.commitencoding utf-8
+git config --global i18n.logoutputencoding utf-8
+export LESSCHARSET=utf-8
+
+
+git diff master origin/dev --stat
+git diff master origin/dev config.py
  
 删除远程分支
 
@@ -4952,7 +4960,7 @@ CFG和PEG都可以描述我们常见的编程语言，但是PEG不需要进行�
 通过 PEG.js 实现一个 JSON Parser
 https://www.codercto.com/a/45502.html
 
-
+QBASIC Programming for Kids by Ted Felix http://tedfelix.com/qbasic/ 这里有一份适合孩子学习的 QBasic 教程
 http://tedfelix.com/qbasic/
 
 VB 的语法
@@ -5199,6 +5207,15 @@ https://baijiahao.baidu.com/s?id=1632228588716085927&wfr=spider&for=pc
 https://www.template.net/business/brochure/product-brochure-template/
 
 # vim
+
+# vimrc
+set nocp nu ts=4 sw=4 sta et hls si
+color desert
+syntax on
+filetype plugin indent on
+
+autocmd FileType html colorscheme default | set fdm=indent nofoldenable
+autocmd BufNewFile,BufRead *.html,*.htm,*.css,*.js set noet ts=2 sw=2
 
 3，屏幕滚动：
 
@@ -6167,12 +6184,38 @@ run
 l
 q
 
-
-
 [3556306.638909] segfault3[17334]: segfault at 5607116686a4 ip 000056071166860d sp 00007ffdd874bd50 error 7 in segfault3[560711668000+1000]
 objdump -d ./segfault3 > segfault3Dump
  grep -n -A 10 -B 10 "80484e0" ./segfault3Dump 
  
+$ dmesg | tail
+[1042578.029167] segfault3[30141]: segfault at 5560947426a4 ip 000055609474260d sp 00007ffcd856e2f0 error 7 in segfault3[556094742000+1000]
+$ python3 -c "print((0x000055609474260d-0x556094742000).to_bytes(4, 'big').hex())"
+0000060d
+$ objdump -d ./segfault3 > segfault3Dump
+$ grep -n -A 10 -B 10 "60d" ./segfault3Dump
+111- 5f1:       48 89 e5                mov    %rsp,%rbp
+112- 5f4:       5d                      pop    %rbp
+113- 5f5:       e9 66 ff ff ff          jmpq   560 <register_tm_clones>
+114-
+115-00000000000005fa <main>:
+116- 5fa:       55                      push   %rbp
+117- 5fb:       48 89 e5                mov    %rsp,%rbp
+118- 5fe:       48 8d 05 9f 00 00 00    lea    0x9f(%rip),%rax        # 6a4 <_IO_stdin_used+0x4>
+119- 605:       48 89 45 f8             mov    %rax,-0x8(%rbp)
+120- 609:       48 8b 45 f8             mov    -0x8(%rbp),%rax
+121: 60d:       c7 00 54 45 53 54       movl   $0x54534554,(%rax)
+122- 613:       c6 40 04 00             movb   $0x0,0x4(%rax)
+123- 617:       90                      nop
+124- 618:       5d                      pop    %rbp
+125- 619:       c3                      retq
+126- 61a:       66 0f 1f 44 00 00       nopw   0x0(%rax,%rax,1)
+127-
+128-0000000000000620 <__libc_csu_init>:
+129- 620:       41 57                   push   %r15
+130- 622:       41 56                   push   %r14
+131- 624:       49 89 d7                mov    %rdx,%r15
+
 
 1、出现段错误时，首先应该想到段错误的定义，从它出发考虑引发错误的原因。
 2、在使用指针时，定义了指针后记得初始化指针，在使用的时候记得判断是否为NULL。
@@ -6204,7 +6247,24 @@ xxxxx.o[2374]: segfault at7f0ed0bfbf70 ip 00007f0edd646fe7 sp 00007f0ed3603978 e
 
 C++段错误就几类，读写错误，这个主要是参数没有控制好，这种错误比较常见，我们经常把NULL指针、未初始化或非法值的指针传递给函数，从而引出此错误；指令地址出错，这类错误主要是由虚函数，回调函数引起，最常出现的是虚函数，由于虚函数保存在类变量中，如果不小心用了非安全函数，就可能把虚数指针覆盖掉，从而影响出现错误。但指令地址出错的情况相对参数出错来讲还是要少很多的，因为用到此功能的还是需要一定的水平的，不容易犯一些低级错误。
 
-catchsegv ./segfault3
+xxxxx.o[2374]: segfault at 7f0ed0bfbf70 ip 00007f0edd646fe7 sp 00007f0ed3603978 error 4 inlibc-2.17.so[7f0edd514000+1b6000]
+
+1、从libc-2.17.so[7f0edd514000+1b6000]可以看出错误发生在libc上，libc在此程序中映射的内存基址为7f0edd514000，这个信息是个坏消息，这个so上的东西太多了；
+
+2、segfault at和error 4这两条信息可以得出是内存读出错，4的意义如下，可以对照参考：
+
+bit2:值为1表示是用户态程序内存访问越界，值为0表示是内核态程序内存访问越界
+bit1: 值为1表示是写操作导致内存访问越界，值为0表示是读操作导致内存访问越界
+bit0: 值为1表示没有足够的权限访问非法地址的内容，值为0表示访问的非法地址根本没有对应的页面，也就是无效地址
+
+4正好为用户态内存读操作访问出界。
+
+3、7f0ed0bfbf70，00007f0edd646fe7，00007f0ed3603978这三个值：第一个值为出错的地址，用处不大；第二个值为发生错误时指令的地址，这个值在有些错误时是错误的，下面会讲一下，第三个值为堆栈指针。
+
+
+C++段错误就几类，读写错误，这个主要是参数没有控制好，这种错误比较常见，我们经常把NULL指针、未初始化或非法值的指针传递给函数，从而引出此错误；指令地址出错，这类错误主要是由虚函数，回调函数引起，最常出现的是虚函数，由于虚函数保存在类变量中，如果不小心用了非安全函数，就可能把虚数指针覆盖掉，从而影响出现错误。但指令地址出错的情况相对参数出错来讲还是要少很多的，因为用到此功能的还是需要一定的水平的，不容易犯一些低级错误。
+
+从上面分析的第二点来看，基本上属于读写错误，但从六七万行代码找出问题，可能性不大，只能缩小范围，我决定从上面提到的三点，找到出错的函数，然后再从代码中找出所有出错函数调用的地方来定位问题。由于错误指出出错的组件为libc，而且基本上是参数出现，所以发现错误的指令地址应该是可信的，我们可以根据指令地址查出是哪个函数。指令地址为：00007f0edd646fe7 ，libc指令的基地址为：7f0edd514000，可以根据这两个值计算一下该指令的相对地址为132FE7，下面我们需要找到相对代码段地址为132FE7的地方为什么函数。
 
 Backtrace:
 ./segfault3(+0x60d)[0x56022e68960d]
@@ -9109,6 +9169,8 @@ ps -eo pid,lstart,etime,cmd | grep nginx
 
 查看CPU最高的进程
 ps -aux --sort=-pcpu|head -10
+top -b -n 1 | head -n20
+ps -eo pid,pcpu,comm | sort -n -k 2 | tail -n 10
 
 linux锁定用户和解锁用户
 https://blog.csdn.net/qq_37699336/article/details/80296670
@@ -10902,3 +10964,2245 @@ azuredatastudio
 
 MS SQL Server GUI Tools
 https://razorsql.com/features/sqlserver_gui_tools.html
+
+apt-get install libcurl3
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/16.04/mssql-server-2019.list)"
+apt-get update
+apt-get install -y mssql-server
+
+
+Ubuntu的软件源格式详解
+https://blog.csdn.net/wykkunkun/article/details/79430187
+
+dpkg -I mssql-server_versionnumber_amd64.deb
+sudo dpkg -i mssql-server_versionnumber_amd64.deb
+
+apt-get -f install --fix-missing ./mssql-server_14.0.3281.6-2_amd64.deb
+/opt/mssql/bin/mssql-conf setup
+
+
+/opt/mssql/lib/mssql-conf/invokesqlservr.sh
+vi /opt/mssql/lib/mssql-conf/mssqlconfhelper.py
+
+
+
+
+python 版本切换
+update-alternatives --list python
+update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
+update-alternatives --install /usr/bin/python python /usr/bin/python3.6 2
+update-alternatives --config python
+
+
+azuredatastudio --user-data-dir ./
+
+很多方法可以分析系统调用。这里有一些（按照开销从大到小排序）：
+
+strace
+perf record
+perf trace
+sysdig
+perf stat
+bcc/eBPF
+ftrace/mcount
+
+
+docker ubunt镜像中文乱码，文件名问号解决
+https://www.cnblogs.com/xqnq2007/p/8124584.html
+
+apt-get install language-pack-zh-hans language-pack-zh-hans-base language-pack-gnome-zh-hans language-pack-gnome-zh-hans-base
+apt-get install `check-language-support -l zh-hans`
+
+另外还有一个LANGUAGE参数，它与LC_MESSAGES相似，但如果该参数一旦设置，则LC_MESSAGES参数就会失效。 LANGUAGE参数可同时设置多种语言信息，如LANGUAGE="zh_CN.GB18030:zh_CN.GB2312:zh_CN"。
+
+LANG，LC_*的默认值，是最低级别的设置，如果LC_*没有设置，则使用该值。类似于 LC_ALL
+
+LC_ALL，它是一个宏，如果该值设置了，则该值会覆盖所有LC_*的设置值。注意，LANG的值不受该宏影响
+
+公理：你需要一个小连接池，和一个充满了等待连接的线程的队列
+
+如果你有10000个并发用户，设置一个10000的连接池基本等于失了智。1000仍然很恐怖。即是100也太多了。你需要一个10来个连接的小连接池，然后让剩下的业务线程都在队列里等待。连接池中的连接数量应该等于你的数据库能够有效同时进行的查询任务数（通常不会高于2*CPU核心数）。
+
+我们经常见到一些小规模的web应用，应付着大约十来个的并发用户，却使用着一个100连接数的连接池。这会对你的数据库造成极其不必要的负担。
+
+请注意
+
+连接池的大小最终与系统特性相关。
+比如一个混合了长事务和短事务的系统，通常是任何连接池都难以进行调优的。最好的办法是创建两个连接池，一个服务于长事务，一个服务于短事务。
+再例如一个系统执行一个任务队列，只允许一定数量的任务同时执行，此时并发任务数应该去适应连接池连接数，而不是反过来。
+
+
+前端领域主管是刚需，中小前端团队Team Leader如何养成？
+https://mp.weixin.qq.com/s/oGGyyJu-SjgA8TGFFVad-w
+
+
+Your feedback will help us improve 
+
+
+Hi Namer
+
+Have suggestions on how we can improve? 
+
+Reply to this email with ways you think we can improve your experience on Namebase. As a thank you, we will credit your account with 10 HNS.
+
+What can we improve? 
+What we are doing well? 
+Improving our product and customer service is really important to us.  
+
+We appreciate your time and feedback. 
+
+Thank you, 
+Namebase Customer Experience Team
+
+https://www.zhihu.com/question/23444414/answer/1001219132?utm_source=weibo
+
+如果你的markov模型输入都是历史股价，那如果第二天政府颁布了新法案禁止X行业发展，你在X行业历史利好基础上做出的判断就白瞎了；如果你的输入是历史股价和政策趋势，那第二天邻国出了个X行业B公司产品弄死人的新闻，你在X行业A公司本国股票的投资又白瞎了；如果你的输入是历史股价、政策趋势和国际新闻（这是很多对冲基金公司做的事情），那第二天某个大新闻网站的官方微博被黑了，发了条假消息，你做的投资组合又白瞎了（真事：Stocks plunge, recover after fake tweet）；如果你的输入是历史股价、政策趋势、国际新闻并自动判断新闻的真假，结果第二天A公司总部地震了，A公司从此一蹶不振，你的投资又白瞎了。能影响股价的factor太多，所有模型不管简单/复杂，都有适用范围和被坑的时候，所以机器学习（或者说统计）这种东西不能不信，但切忌全信。
+
+
+似乎马尔科夫在股票里面一般不是用来做预测的，一般是结合蒙地卡罗方法来做风险对冲的。用马尔科夫做预测比较适合的领域一般是大宗商品，期货，债券这种周期性较强的金融衍生品。
+
+
+为何要选择石家庄外国语师范学校
+
+http://blog.sina.com.cn/s/articlelist_1239751472_0_1.html
+
+1、国办学校河北石家庄外国语师范学校原名石家庄市师范学校，创建于1948年，已有58年的办学历史，为石家庄和周遍县市培养了大批的小学和中学教师。该校是石家庄市教育局直属的国办全日制学校，面向全省招收应届初中毕业生。该校同时还负担着石家庄市中小学校长和骨干教师的培训任务。
+
+2、业绩辉煌1989年因办学成绩显著被国家教委授予“全国中等专业教育先进学校”；自1990年连续十六年被石家庄市委、市政府授予“文明单位”称号 ； 1998年被评为首批石家庄市德育示范学校和德育科研先进单位；1999年被中央教科所评为“全国先进实验学校”；2000年被河北省教育厅命名为“安全文明校园”；2005年被市委宣传部、市教育局命名为石家庄市心理健康教育示范学校。学校从2002年开始对口升学，2002年升学率96%，2003年、2004、2005年升学率达98%以上，四年来考入河北大学、河北师范大学共400余人，我校学生连续四年荣获全省对口师范类高考状元。中央电视台和河北电视台著名节目主持人王玲玲即是我校毕业生。初此之外，我校毕业生很多都已成为各级政府机关、教育行政部门、学校的领导和骨干教师。
+
+3、师资雄厚我校师资力量一流，拥有全国模范教师、全国优秀外语教师和特级教师5人，高级教师36人，石家庄市拔尖人才10名，20%的教师有研究生学历。我校历史上和目前有很多诸如马骏骥、周鸿祥、樊钢民、祝琪等在全国具有一定影响的名师。师资力量在全省同类学校中首屈一指。同时，我校聘有数名美国、英国、澳大利亚、新西兰、加拿大的外教，为学生创造了良好的学习氛围。
+
+4、完善管理我校地处石家庄市西部北方大学园，占地500多亩。学校实施封闭式寄宿制管理，有效的保护了学生的安全，有利于学生安心学习。同时具有完善的学校制度，具有优良的校风。学校同时开展丰富多彩的活动，活跃了学生的业余生活，拓展了学生的视野，提高了学生的全面素质。配有教学楼、食堂、图书馆、体育馆等完备的学习、生活设施。小桥流水、花红草绿、宁静幽雅。
+
+5、优惠政策在校学生享受每月46元的国家生活助学金；品学兼优者每学期享受奖学金；生活困难者学校提供勤工助学岗位。
+
+6、专业优势我校目前已从原有以培养师范人才拓展为综合性院校。有英语、计算机、幼师等目前和将来的具有极强就业优势的热门专业。为了满足部门学生上高中的愿望，我校还开设了特色高中，学生不用参加高中会考，可以集中精力学习高考课程。
+
+
+
+kvm 轻量虚拟机
+https://firecracker-microvm.github.io/
+
+
+图片压缩工具 数码照片压缩大师
+https://pc.qq.com/detail/13/detail_160753.html
+
+
+直接运行 MANIFEST.MF 中指定的 main 方法：
+java -jar mplus-service-jar-with-dependencies.jar
+
+运行指定的 main 方法：
+java -cp mplus-service-jar-with-dependencies.jar com.smbea.dubbo.bin.Console start
+
+
+date("Y-m-d H:i:s")
+
+
+Jupyter Enterprise Gateway
+Papermill
+labextension
+serverextension
+
+
+在股票投资基本分析的诸多工具中，与市盈率、市净率、现金流量折现等指标一样，EPS也是最常见的参考指标之一。
+
+计算每股收益时要注意以下问题。编制合并会计报表的公司，应以合并报表中的数据计算该指标。如果公司发行了不可转换优先股，则计算时要扣除优先股数及其分享的股利，以使每股收益反映普通股的收益状况，已作部分扣除的净利润，通常被称为"盈余"，扣除优先股股利后计算出的每股收益又称为"每股盈余"。有的公司具有复杂的股权结构，除普通股和不可转换优先股以外，还有可转换优先股、可转换债券、购股权证等。可转换债券的持有者，可以通过转换使自己成为普通股股东，从而造成公司普通股总数增加。购股权证持有者，可以按预定价格购买普通股，也会使公司普通股份增加。普通股增加会使每股收益变小，称为"稀释"。计算这种复杂的股权结构的每股收益时，应按照有关部门的规定进行，没有相关规定的，应按国际惯例计算该指标，并说明计算方法和参照依据。
+每股收益，是衡量上市公司盈利能力最重要的财务指标。它反映普通股的获利水平。在分析时，可以进行公司间的比较，以评价该公司相对的盈利能力；可以进行不同时期的比较，了解该公司盈利能力的变化趋势；可以进行经营实绩和盈利预测的比较，掌握该公司的管理能力。
+
+
+是时候联盟Jupyter与PyCharm了，Jupytext就是你需要的
+https://baijiahao.baidu.com/s?id=1632312881652181052&wfr=spider&for=pc
+
+在 GitHub 的一项分析中（Nature，30 OCTOBER 2018）显示，截至 2018 年 9 月，公开的 Jupyter Notebook 已经超过了 250 万份，而 2015 年这一数字仅为 20 万左右。Jupyter Notebook 之所以这么流行，主要还是它的演示和可视化，我们可以查看每一段代码的输出与运行效果。
+
+
+服务器搭建 office web apps 实现线文档预览
+https://blog.csdn.net/jiaqu2177/article/details/81944185
+
+How to convert Word (doc) to PDF in linux?
+https://superuser.com/questions/156189/how-to-convert-word-doc-to-pdf-in-linux
+
+https://askubuntu.com/questions/678125/error-in-function-createsettingsdocument-elements-cxx-when-using-a-libreoffice
+
+
+## doc 转 PDF    
+apt-get install `check-language-support -l zh-hans`
+apt-get install cups-pdf
+apt install libreoffice-writer
+lowriter --headless --convert-to pdf 1.doc
+
+<?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+$file='./1.doc';
+if (!file_exists($file)) {
+    exit('文件不存在');
+}
+
+$info = pathinfo($file);
+$new_file = "{$info['dirname']}/{$info['filename']}.pdf";
+if (!file_exists($new_file)) {
+    $cmd = 'export HOME=/tmp && /usr/bin/lowriter --headless --convert-to pdf --outdir '.escapeshellarg($info['dirname']).' '. escapeshellarg($file) . ' 2>&1';
+    exec($cmd, $output, $return_val);
+    //var_dump($cmd, $return_val, $output);
+}
+header("Content-type:application/pdf");
+readfile($new_file);
+
+
+
+Jupyter Notebook---不需认证，与nginx搭配远程访问及下载
+https://www.cnblogs.com/aguncn/p/11238882.html
+
+
+
+
+linux:有效使用docker logs查看日志
+https://www.cnblogs.com/yangxiayi1987/p/11818130.html
+
+
+docker 暂停某个节点
+docker node update --availability pause vnj4lfipwdhkopmqvznacbl86
+
+
+docker以管理员角色进入jupyter/scipy-notebook镜像的命令
+docker run -it -p 8888:8888 --user root -e GRANT_SUDO=yes -e NB_UID=1000 -e NB_GID=100 jupyter/scipy-notebook
+
+装扮你的Jupyter
+https://segmentfault.com/a/1190000009305646
+
+autocmd BufNewFile,BufRead *.html,*.htm,*.css,*.js set noexpandtab tabstop=2 shiftwidth=2
+autocmd 即“自动命令”，在发生某些事件时自动执行，类似于钩子函数。
+BufNewFile 表示编辑一个不存在的文件时
+BufRead 是读取一个已存在的文件时
+后面是文件名 pattern（用 , 分隔）以及要执行的命令。若要执行多个命令，命令之间可用 | 分隔。
+
+
+vim多标签和多窗口
+https://blog.csdn.net/fuxingdaima/article/details/8658342
+
+标签页
+:tabe <文件名>  在新标签页中打开指定的文件。
+:tabnew <文件名>  在新标签页中编辑新的文件。
+:tabc  关闭当前标签页。
+:tabo  关闭所有的标签页。
+:tabn或gt  移动到下一个标签页。
+:tabp或gT  移动到上一个标签页。
+:tabfirst或:tabr  移动到第一个标签页。
+:tablast  移动到最后一个标签页。
+
+7、文件浏览
+:Ex 开启目录浏览器，可以浏览当前目录下的所有文件，并可以选择
+:Sex 水平分割当前窗口，并在一个窗口中开启目录浏览器
+:ls 显示当前buffer情况
+8、vi与shell切换
+:shell 可以在不关闭vi的情况下切换到shell命令行
+:exit 从shell回到vi
+
+ctags
+2.跳转
+1)用vim打开一个已经建过标签的c文件    
+2)ctrl+] 找到光标所在位置的标签定义的地方
+3)ctrl+t 回到跳转之前的标签处
+
+:ta function_name 搜索
+:ts or :tselect shows the list
+:tn or :tnext goes to the next tag in that list
+:tp or :tprev goes to the previous tag in that list
+:tf or :tfirst goes to the first tag of the list
+:tl or :tlast goes to the last tag of the list 
+
+
+前缀键默认为“\”。使用以下命令，可以将前缀键定义为逗号：
+
+let mapleader=","
+
+
+git clone --depth 1 -b master https://github.com/ctrlpvim/ctrlp.vim.git bundle/ctrlp.vim
+git clone --depth 1 -b master https://github.com/majutsushi/tagbar.git bundle/tagbar
+
+建议废弃taglist(年久失修了), ctrlp+tagbar实际使用效果更好
+如果在写golang的时候要用到tagbar, 需要安装gotags支持
+
+        
+Vim与Python真乃天作之合：打造强大的Python开发环境
+https://segmentfault.com/a/1190000003962806
+
+Vim and Ctags
+https://andrew.stwrt.ca/posts/vim-ctags/
+
+curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+    
+# ~/.vimrc
+
+```
+set nocp nu ts=4 sw=4 et sta hls si acd
+autocmd BufNewFile,BufRead *.html,*.htm,*.css,*.js set noet ts=2 sw=2
+
+call plug#begin()
+Plug 'majutsushi/tagbar'
+Plug 'ctrlpvim/ctrlp.vim'
+Plug 'tacahiroy/ctrlp-funky'
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
+call plug#end()
+
+set tags=tags;
+noremap <F6> :!ctags -R<CR>
+nnoremap <silent> <F9> :TagbarToggle<CR>
+nnoremap <leader>. :CtrlPTag<cr>
+nnoremap <Leader>fu :CtrlPFunky<Cr>
+```
+
+Reload .vimrc and :PlugInstall to install plugins.
+
+
+windows下关闭gvim叮叮叮和闪屏
+
+" 关闭各种按键叮叮声音和闪屏
+set vb t_vb=
+au GuiEnter * set t_vb=
+
+GuiEnter这一行为关闭闪屏，因为关闭声音后，vim会用闪屏提示，多按一次esc也会闪。
+
+在 Vim 命令行模式下使用命令 :mksession [file_name] 可用来创建一个会话文件
+可以在 Vim 命令行模式下使用 :source file_name 来导入指定的会话文件。
+
+vim自带的自动补全功能
+https://blog.csdn.net/li4850729/article/details/7932702
+
+,Vim在查找一个单词时是按照如下的步骤:
+1 在当前文件中进行查找
+2 在其他窗口中进行查找
+3 在其他的已装入的缓冲区中进行查找
+4 在没有装入缓冲区的文件中进行查找
+5 在当前的标记(tag)列表是进行查找
+6 在所有的由当前文件的#include包含进来的文件中进行查找
+当然了我们也可以自定义我们的查找顺序.
+我们在使用自动完成功能时的命令CTRL-P是向后查找匹配的单词,而还有一个命令CTRL-N是向前查找匹配的单词.他们有同样的功能和作用,所不同的只是查找方向上的不同.
+
+Vim速查表-帮你提高N倍效率
+https://www.jianshu.com/p/6aa2e0e39f99
+
+VIM 代码片段插件 ultisnips 使用教程
+https://www.jianshu.com/p/12cdb3364ad1
+
+终于用正确的方式解决nginx 403 错误
+http://aftercode.club/aftercode/nginx/2017/03/23/solve-nginx-403-problem-the-right-way.html
+
+namei -l $PWD/static/jupyter/notebook_main.min.js
+
+当 nginx 使用一个目录作为 root 来使用的时候, 除了需要获得这个目录下所有文件的下的读权限以外, 还需要能够成功的访问到这个路径. 换句话说到达这个目录的每个文件夹, nginx 都要有x权限. 确认是否都有 x 的权限可以使用目录 namei 帮助查找.
+
+## 文件备份
+
+下载安装 freefilesync, 选择源目录和目标目录，同步规则选择“更新”，过滤规则里去掉 .git, .metadata 等，保存为批处理文件，用计划任务定时备份。
+
+
+搭建Jitsi Meet视频会议服务器
+https://blog.csdn.net/qq_32523587/article/details/90111616
+
+
+
+pytorch通过torch.cuda使用GPU加速运算且比较GPU与CPU运算效果以及应用场景
+https://ptorch.com/news/53.html
+
+
+linux cuda10.0使用pip安装pytorch
+https://blog.csdn.net/tiandd12/article/details/102967888
+
+wget https://download.pytorch.org/whl/cu100/torch-1.3.0%2Bcu100-cp36-cp36m-linux_x86_64.whl
+
+wget https://download.pytorch.org/whl/cu100/torchvision-0.4.1%2Bcu100-cp36-cp36m-linux_x86_64.whl
+
+pip3 install 'pillow<7.0.0'
+
+print torch.cuda.is_available()
+
+## centos 6 升级 gcc
+
+gun 国内镜像
+https://mirrors.tuna.tsinghua.edu.cn/gnu/
+
+
+### 升级 glibc++
+
+下载路径：http://ftp.de.debian.org/debian/pool/main/g/
+
+
+    wget http://ftp.de.debian.org/debian/pool/main/g/gcc-8/libstdc++6_8.3.0-6_amd64.deb
+    ar -x libstdc++6_8.3.0-6_amd64.deb
+
+    tar -xf data.tar.xz
+    sudo rm /usr/lib64/libstdc++.so.6
+    sudo cp usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25 /usr/lib64/
+    sudo ln /usr/lib64/libstdc++.so.6.0.25    /usr/lib64/libstdc++.so.6
+    strings /usr/lib64/libstdc++.so.6 | grep GLIBCXX
+
+
+### 升级 glibc
+
+    strings /lib64/libc.so.6 | grep GLIBC_
+    wget http://mirrors.ustc.edu.cn/gnu/libc/glibc-2.18.tar.gz
+    tar xf glibc-2.18.tar.gz
+    cd glibc-2.18
+    mkdir build
+    cd build
+    ../configure  --prefix=/usr --disable-profile --enable-add-ons --with-headers=/usr/include --with-binutils=/usr/bin
+    make
+    sudo make install
+    strings /lib64/libc.so.6 | grep GLIBC_
+
+### 升级 binutils
+
+    ld -v
+    wget https://mirrors.tuna.tsinghua.edu.cn/gnu/binutils/binutils-2.27.tar.gz
+    tar -zxf binutils-2.27.tar.gz
+    cd binutils-2.27
+    ./configure --prefix=/usr
+    make
+    make install
+    /usr/bin/ld -v
+
+### 升级 gcc
+
+为CentOS 6、7升级gcc至4.8、4.9、5.2、6.3、7.3等高版本
+https://www.vpser.net/manage/centos-6-upgrade-gcc.html
+
+CentOS 7虽然已经出了很多年了，但依然会有很多人选择安装CentOS 6，CentOS 6有些依赖包和软件都比较老旧，如今天的主角gcc编译器，CentOS 6的gcc版本为4.4，CentOS 7为4.8。gcc 4.8最主要的一个特性就是全面支持C++11，如果不清楚什么用的也没关系，简单说一些C++11标准的程序都需要gcc 4.8以上版本的gcc编译器编译，如MySQL 8.0版本(8.0.16以上版本是C++14标准，需gcc 5.3以上版本)。
+
+CentOS 6虽然是gcc 4.4的老旧版本，但是也可以升级gcc来安装gcc 4.8，我们今天就不采用编译安装的方法了，gcc安装起来非常费时，我们采用CentOS的一个第三方库SCL(软件选集)，SCL可以在不覆盖原系统软件包的情况下安装新的软件包与老软件包共存并且可以使用scl命令切换，不过也有个缺点就是只支持64位的。
+
+确定当前gcc版本，执行命令：gcc --version
+
+一般如果需要升级gcc至4.8或更高版本，建议直接采用安装SCL源之后安装devtoolset-6（devtoolset-6目前gcc版本为6.3），因为devtoolset-4及之前的版本都已经结束支持，只能通过其他方法安装
+
+    wget https://copr.fedoraproject.org/coprs/rhscl/devtoolset-3/repo/epel-6/rhscl-devtoolset-3-epel-6.repo -O /etc/yum.repos.d/devtoolset-3.repo
+    yum -y install devtoolset-3-gcc devtoolset-3-gcc-c++ devtoolset-3-binutils
+    scl enable devtoolset-3 bash
+
+GitBook 使用教程
+https://www.jianshu.com/p/421cc442f06c
+
+GitBook - 快速打造可留言的博客
+https://blog.csdn.net/weixin_34293141/article/details/91413019
+
+如何将 Vim 剪贴板里面的东西粘贴到 Vim 之外的地方？ - 胖君的回答 - 知乎
+https://www.zhihu.com/question/19863631/answer/442180294
+
+vim --version | grep clipboard
+如果结果里你找到加号开头的+clipboard， 恭喜你，你的vim没问题，是你姿势问题。
+用"+y 代替y将选中的内容复制到系统剪贴板，效果和ctrl-c一致。
+用"+p代替p将剪贴板内容复制到指定位置，也可以用ctrl-v。
+如果找到的是负号开头的-clipboard，说明你的vim不支持系统剪切板，
+
+当sizeof的参数是数组名时，计算的是整个数组的存储大小；当sizeof的参数是指针时，计算的是指针的大小（8字节，64位系统）。而且，可以定义对指针的引用，但却不能用数组名来作为指针引用的右值，可见数组名和指针还是有区别的。同时，将数组名作为实参传入函数时，因为形参是指针，所以在函数体内的其实是通过数组名初始化的指针形参，故不能在函数中通过 sizeof(指针形参)/sizeof(数组元素类型) 来计算数组长度。所以一般将数组名作为形参传入函数时，也会同时传递一个数组长度的参数。
+
+- 配置
+- 入口
+- 模块
+- 层次
+- 常量定义
+- 名次概念
+
+在编译时指定的Redis使用的内存分配器，可以是libc、jemalloc、tcmalloc，默认是jemalloc。jemalloc在64位系统中，将内存空间划分为小、大、巨大三个范围；每个范围内又划分了许多小的内存块单位；存储数据的时候，会选择大小最合适的内存块进行存储。
+jemalloc划分的内存单元如下图所示：
+
+
+知数堂公开课
+https://pan.baidu.com/s/1slWxyjV#list/path=%2F
+
+蓝牙HID无线触摸屏
+https://www.jianshu.com/p/81747aa385c2
+
+Kubernetes Deployment
+http://docs.kubernetes.org.cn/317.html
+
+Kubernetes kubectl 与 Docker 命令关系
+http://docs.kubernetes.org.cn/70.html
+
+Kubernetes 给容器和Pod分配内存资源
+http://docs.kubernetes.org.cn/729.html
+
+kubernetes安装（国内环境）
+https://zhuanlan.zhihu.com/p/46341911
+
+k8s 入门教程和实战
+https://blog.51cto.com/wutengfei/2160771
+
+kubernetes部署NFS持久存储（静态和动态）
+https://www.jianshu.com/p/5e565a8049fc
+
+Kubernetes Python API中文使用说明
+https://blog.csdn.net/wmj2004/article/details/103527860
+
+How to expose a Kubernetes service on a specific Nodeport?
+https://stackoverflow.com/questions/52522570/how-to-expose-a-kubernetes-service-on-a-specific-nodeport
+
+https://www.cnblogs.com/chenjinxinlove/p/10104854.html
+https://www.cnblogs.com/amyzhu/p/8285300.html
+
+k8s-集群里的三种IP（NodeIP、PodIP、ClusterIP）
+https://blog.csdn.net/qq_21187515/article/details/101363521
+
+设置service的nodeport以后外部无法访问对应的端口的问题
+https://blog.51cto.com/11288550/2378289
+
+iptables -P FORWARD ACCEPT
+
+gpushare-scheduler-extender
+https://github.com/AliyunContainerService/gpushare-scheduler-extender
+https://www.cnblogs.com/oolo/p/11672720.html
+https://developer.aliyun.com/article/690623
+
+调度 GPUs
+https://kubernetes.io/zh/docs/tasks/manage-gpus/scheduling-gpus/
+
+在k8s中调用NVIDIA-GPU
+https://www.jianshu.com/p/eae199a4cce0
+
+flask_SQLALchemy之多表查询
+https://www.cnblogs.com/moying-wq/p/10698783.html
+
+金融行业微服务架构解析
+http://www.java2nb.com/article/106.html
+
+
+NAT网关支持SNAT和DNAT功能。
+SNAT可以为VPC内无公网IP的ECS实例提供访问互联网的代理服务。
+DNAT可以将NAT网关上的公网IP映射给ECS实例使用，使ECS实例能够提供互联网服务。
+
+kubectl run nginx --image nginx:1.13
+# 如果集群没开通公网能力(NAT+EIP)，则镜像智能拉取同区域的阿里镜像仓库的镜像
+# 可以是自己上传的私有镜像，也可以是同 regin 其它用户公开的镜像，要使用镜像的专有网络地址
+kubectl run nginx --image registry-vpc.cn-beijing.aliyuncs.com/sigma/nginx:alpine
+kubectl expose pod nginx --port=80 --target-port=80 --name=nginx-svc --type=LoadBalancer
+kubectl get pod -l run=nginx
+kubectl get service nginx-svc
+LB_ENDPOINT=$(kubectl get service nginx-svc -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
+echo $LB_ENDPOINT
+curl $LB_ENDPOINT 
+
+
+压缩搜索出来的文件
+find . -name '*.ipynb' | grep -v tf1.0 | grep -v checkpoints |  perl -p -e 's#^(.*?)$#"\1"#' | xargs tar cvjf notebook.tar.bz2
+sed -r 's/^(.*?)$/"\1"/ig'
+
+查看压缩包
+tar tvf notebook.tar.bz2
+tar tf notebook.tar.bz2
+
+
+tensorflow各个版本的CUDA以及Cudnn版本对应关系
+https://blog.csdn.net/qq_27825451/article/details/89082978
+
+CUDA Toolkit本地安装包时内含特定版本Nvidia显卡驱动的，所以只选择下载CUDA Toolkit就足够了，如果想安装其他版本的显卡驱动就下载相应版本即可。
+
+NVIDIA的显卡驱动器与CUDA并不是一一对应的哦，CUDA本质上只是一个工具包而已，所以我可以在同一个设备上安装很多个不同版本的CUDA工具包
+
+cuDNN是一个SDK，是一个专门用于神经网络的加速包，注意，它跟我们的CUDA没有一一对应的关系，即每一个版本的CUDA可能有好几个版本的cuDNN与之对应，但一般有一个最新版本的cuDNN版本与CUDA对应更好。
+
+
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-10.1/lib64
+    export PATH=$PATH:/usr/local/cuda-10.1/bin
+    export CUDA_HOME=$CUDA_HOME:/usr/local/cuda-10.1
+
+
+Kubernetes - GC的镜像自动清理导致的问题
+https://blog.csdn.net/qingyafan/article/details/89096030
+
+Kubernetes集群随着应用的迭代，会产生很多无用的镜像和容器，因此需要定时清理，分布在每个节点的Kubelet有GC（垃圾收集）的职责，当集群中有断定为垃圾的镜像或容器，那么kubelet会清除掉相关镜像或容器。容器GC间隔为1分钟，镜像GC间隔为5分钟。
+
+Kubernetes中的垃圾回收机制
+https://www.cnblogs.com/openxxs/p/5275051.html
+
+Kubernetes(k8s)存储资源的NFS PersistentVolume类型
+https://blog.csdn.net/qq_41709494/article/details/104360014
+
+iptables -nvL --line-number
+firewall-cmd --list-port
+
+不要让“Clean Code”更难维护，请使用“Rule of Three”
+https://www.infoq.cn/article/qTBDahNgemdI6F4uxiwt
+
+当我们开始重构遗留代码时，通常会将内容提取到较小的方法中。然后再将方法提取到类中。很快，我们可能就能感觉到原来 30 行的方法现在已经分散在不同的类中。
+
+我们应该做的是，创建正确的抽象。 正确的抽象，正确地划分职责。它们阐明了代码的意图。它们可以防止代码重复。
+
+两段代码看起来是一样的，但却代表了不同的概念。不同的抽象。在这种情况下，重复是偶然的。保留重复会更好。
+
+“重复与错误的抽象相比，代价要小的多”  —— Sandi Metz， 所有的小事
+
+
+location /pypi {
+    proxy_pass  http://mirrors.aliyun.com;
+
+    proxy_set_header   Host             "mirrors.aliyun.com";
+    proxy_set_header   X-Real-IP        $remote_addr;
+    proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+}
+
+nginx正向代理配置, proxy_connect 是 https 代理，默认 nginx 没装
+
+    server {
+      listen 8080;
+      resolver 8.8.8.8;
+      resolver_timeout 5s;
+      proxy_connect;
+      proxy_connect_allow 443 563;
+      proxy_connect_connect_timeout 10s;
+      proxy_connect_read_timeout 10s;
+      proxy_connect_send_timeout 10s;
+      location / {
+          proxy_pass $scheme://$host$request_uri;
+          proxy_set_header Host $http_host;
+          proxy_buffers 256 4k;
+          proxy_max_temp_file_size 0;
+          proxy_connect_timeout 30;
+      }
+      access_log /export/home/logs/proxy/access.log main;
+      error_log /export/home/logs/proxy/error.log;
+    }
+
+    kubectl exec mypod -- curl -s -x 172.17.1.1:30003 baidu.com
+    kubectl exec mypod -- curl -sv --connect-timeout 1 baidu.com
+
+# 在 /etc/profile 文件中增加如下三项。
+    export proxy="http://{proxy_server_ip}:8080"
+    export http_proxy=$proxy
+    export https_proxy=$proxy
+
+# 使配置生效
+    shell> source /etc/profile
+
+自动输入密码
+
+    #!/bin/bash
+
+    passwd='123456'
+
+    /usr/bin/expect <<-EOF
+
+    set time 30
+    spawn ssh saneri@192.168.56.103 df -Th
+    expect {
+    "*yes/no" { send "yes\r"; exp_continue }
+    "*password:" { send "$passwd\r" }
+    }
+    expect eof
+    EOF
+
+Glib 数据类型 数组，链表，哈希表
+https://developer.gnome.org/glib/stable/glib-data-types.html
+
+Pythons map, reduce and filter as list comprehensions
+https://martin-thoma.com/python-map-reduce-filter/
+
+
+php实现单点登录实例
+https://zhuanlan.zhihu.com/p/97783052
+
+php-fpm搭建及加固
+https://zhuanlan.zhihu.com/p/111094258
+
+
+A – Z LINUX COMMANDS – OVERVIEW WITH EXAMPLES
+https://www.tecmint.com/linux-commands-cheat-sheet/
+
+CTRL+F5 和F5 两种刷新有什么区别?
+https://zhidao.baidu.com/question/568487385.html
+
+一、刷新原理不同。
+
+F5触发的HTTP请求的请求头中通常包含了If-Modified-Since 或 If-None-Match字段,或者两者兼有；
+
+CTRL+F5触发的HTTP请求的请求头中没有上面的那两个头,却有Pragma: no-cache 或 Cache-Control: no-cache 字段,或者两者兼有。
+
+二、服务端返回不同。
+
+F5刷新服务端返回304 Not Modified；
+
+Ctrl + F5刷新返回HTTP状态码200，原因是Ctrl+F5在发出请求时，会在请求消息头中加入Cache-Control:no-cache，Pragma:no-cache参数。
+
+三、刷新结果不同。
+
+F5刷新按钮只对当前页面进行刷新，只刷新本地缓存；
+
+Ctrl + F5 的行为也是刷新页面，但是会把浏览器中的临时文件夹的文件删除再重新从服务器下载。
+
+比如某网站更新了 style.css 文件，如果单纯按 F5 刷新，那么当前页面还是使用未修改的 style.css 文件内容，如果按 Ctrl + F5 就会重新从服务器下载 style.css 文件，并使用修改后的 style.css 文件。
+
+踩坑记： go 服务内存暴涨
+https://www.v2ex.com/t/666257#reply151
+
+如何使用excel中的规划求解来快速优化
+https://www.jisilu.cn/question/59370
+
+
+鲲鹏计算产业发展白皮书
+https://mp.weixin.qq.com/s/gf_bl9bjkLQYMEmsTRZUpQ
+
+当人民币对美元汇率上升的时候，由于出口货物的收益下降，导致出口量的下降，会导致我国换取的美元减少，而相反的是进口收益增大，所以进口也会增加，导致花掉更多美元。这样，一定时间后，导致我国持有美元总量减少，导致我国对美元的需求增加，所以会导致美元的增值，也就是人民币对美元的汇率下降。同样的道理，如果人民币对美元下降的时候，由于进出口的作用，调节了我国持有美元的总量上升，而导致对美元的需求下降，这样反而会导致人民币的升值。
+
+作者：外贸精英
+链接：https://www.zhihu.com/question/358110678/answer/913763061
+
+净资产收益率与投入资本回报率的区别如下：百
+
+一、表达意思不同
+“roe”意思是：净资产度收益率。
+
+“roic”意思是：投入资本回报率。
+
+二、计算方式不同
+
+roe：roe的计算方式是净利润与平均股东权益的百分比。
+
+roic：roic的计算方式是息前税后问经营利润与投入资本答的比值。
+
+三、作用不同
+
+roe：roe主要是用于衡量公司运用自有资本的效率。
+
+roic：roic主要是用于衡量投出资金的使用效果，用来评估一个企业或其专事业部门历史绩效。
+
+
+roe反应公司为普通股股东创造的收益，
+roic反应的是公司为普通股股东以及债权人创造的收益
+
+
+ROIC高不代表ROE就高，因为二者中ROE的分子包含了非经常性的损益，比如公司出售了一项资产，所得的收益也会归为ROE的分子，而在计算ROIC的时候，非经常性损益是排除的，这样就会造成ROE可能高，但内是ROIC却是下滑的。
+如果公司的利润都是来自主业，那ROE高，ROIC也可能是降低的，因为ROE是净资产的收益速度，在分子不容变的情况下，公司大批举债，就会造成ROIC的分母变大，使得ROIC降低。
+
+一套最核心的投资体系
+https://xueqiu.com/6899105006/127947466
+https://xueqiu.com/6899105006/127947473
+https://xueqiu.com/6899105006/116963176
+
+因为市场长期看必然有效，所以需要估值模型是用来估算长期的安全边际的；但买卖发生在当下，而短期看，市场经常无效，股价短期的上涨和下跌根本不是基本面推动的，而仅仅是人类情绪和资金偏好的变化推动的估值的变化，因为这种无效的存在，所以即便是你精确的通过各种估值模型计算的“安全边际”，也可能被市场打的一文不值
+
+一般的投资者即使足够努力学习、累积经验，也只能成为一个优秀的投资者，但想要成为一个伟大的投资者几乎是不可能的。世界上伟大的投资者是极少数，因为伟大的投资者，他们所具备的价格和价值的发现能力，这并不是能通过后天的学习和累积产生的，发现好价格的能力几乎是天生的，对人性的和对市场的理解是无法复制的
+
+行业研报｜在线教育是个好生意吗？
+https://www.heibandongcha.com/7515.html#
+
+
+管理后台
+https://www.layui.com/admin/std/dist/views/
+https://github.com/artiely/vue-admin
+https://pro.iviewui.com/admin-pro/introduce
+https://adminlte.io/blog/free-admin-panels
+https://gitee.com/zlt2000/microservices-platform
+https://artiely.gitee.io/antd-admin/#/login2
+
+https://gitee.com/zlt2000/microservices-platform
+
+基于SpringBoot2.x、SpringCloud和SpringCloudAlibaba并采用前后端分离的企业级微服务多租户系统架构。并引入组件化的思想实现高内聚低耦合并且高度可配置化，适合学习和企业中使用。真正实现了基于RBAC、jwt和oauth2的无状态统一权限认证的解决方案，面向互联网设计同时适合B端和C端用户，支持CI/CD多环境部署，并提供应用管理方便第三方系统接入；同时还集合各种微服务治理功能和监控功能。模块包括:企业级的认证系统、开发平台、应用监控、慢sql监控、统一日志、单点登录、Redis分布式高速缓存、配置中心、分布式任务调度、接口文档、代码生成等等。
+
+
+前端框架bootstrap和layui的区别有哪些
+https://www.cnblogs.com/huaguo/p/11057282.html
+
+
+JSP 中的 Filter 过滤器和 Listener 监听器
+https://blog.csdn.net/dengliushuai/article/details/61622475
+
+组合
+http://www.myzaker.com/article/592ba0549490cba024000003/
+
+1）格雷厄姆股债平衡
+- 股和债各占一定比例
+- 50：50 股债平衡
+- 80% 债券 + 20% 股票 
+- 75% 股票  +25% 债券
+
+2）全天候策略 
+- 桥水基金全天候策略，就是求稳健收益的一种策略，基于风险均而不是资产均衡来确定投资组合中各资产的权重。
+- 全天候策略通过调整资产的预期风险和收益使得他们更匹配，优秀的金融机构通过创造一个更好的分散组合
+- 这个分散组合将有更好的收益风险比率，通俗的说就是尽量风险最小化利润最大化。
+- 债券基金、股票基金、黄金 ETF 和商品 ETF 各占一定比例
+- 55% 债券 + 30% 股票 + 10% 黄金 ETF + 5% 商品 
+
+3）美林时钟策略：根据不同的经济周期，在主要资产类别股票、债券、商品和货币之间做调整
+- 以均衡配置为基准，各占 25%，市场衰退期，提高债券基金的配置比例，大约为 70%，其他三类各占 10%。
+- 要对经济每个周期拐点有个准确的判断，要综合考虑市场估值、经济基本面、市场风格、监管政策的走向 
+
+4）目标风险型策略
+- 建一个投资策略组合，确保每年的回撤不超过一定比例，在此基础上，追求最大化收益。
+
+5）目标期限性策略
+- 投资组合中配置的权益类资产 = 100 - 当前你的年纪，比如，你现在 25 岁，能配置权益型基金 =75%
+
+6）哑铃式投资策略
+- 市场机会不在此就在彼，风险不在此也就在彼，投资于中间地带资产，既不能有效规避风险也不能获取尽可能高的收益
+- 而投资于两端，无论市场向何种极端演变，整个资产的抗击打能力都很强，无论机会出现在哪一端，资产组合也都能抓住。
+- 关键在于所选择的两类核心资产要有较大的差异性，相关性低，并且能在某一市场风格较为明显的时候，获取较好的收益。
+- 基于市场风格变动情况及交易成本的考量，每三个月调整一次即可。
+
+
+RapidWeaver 8是适用于Mac的最佳网页设计软件，新的插件管理器，可以轻松启用，禁用和管理主题，插件和堆栈。
+https://blog.csdn.net/llhf688/article/details/89516318
+
+管理后台 UI
+https://rapidweavercommunity.com/
+https://preview.dashboard-ui.com/
+
+天天基金数据处理
+https://github.com/weibycn/fund
+
+基金列表
+http://fund.eastmoney.com/js/fundcode_search.js
+基金详情
+http://fund.eastmoney.com/pingzhongdata/519772.js
+基金重仓股
+http://data.eastmoney.com/zlsj/
+
+
+“单位净值”和“累计净值”
+https://baijiahao.baidu.com/s?id=1623976112571815751&wfr=spider&for=pc
+
+基金的单位净值是指每份基金份额的净值，等于基金的总资产减去总负债后的余额再除以基金份额总数。简单来说，单位净值就是每一份基金的价值，也是基金的交易价格。
+
+基金累计净值是在单位净值的基础上加上了基金成立以来累计分红及拆分的金额。所以一旦基金分红或拆分后，累计净值就会大于单位净值。累计净值是反映该基金自成立以来总体收益情况的数据，评估基金业绩时，应该参考基金的累计净值。
+
+一般来说，单位净值和累计净值之间相差的越多，说明这只基金分红的金额也越多。但基金分红次数或金额的多少并非评判基金业绩好坏的标准
+
+
+ptrace理解
+https://www.cnblogs.com/mysky007/p/11047943.html
+
+
+Ptrace 提供了一种父进程可以控制子进程运行，并可以检查和改变它的核心image。它主要用于实现断点调试。一个被跟踪的进程运行中，直到发生一个信号。则进程被中止，并且通知其父进程。在进程中止的状态下，进程的内存空间可以被读写。父进程还可以使子进程继续执行，并选择是否是否忽略引起中止的信号
+
+函数调用过程探究
+https://www.cnblogs.com/bangerlee/archive/2012/05/22/2508772.html
+用objdump只反汇编想要的函数
+https://blog.csdn.net/weixin_34319374/article/details/85966059
+objdump反汇编用法示例
+https://blog.csdn.net/zoomdy/article/details/50563680
+How to use debug version of libc
+https://stackoverflow.com/questions/10000335/how-to-use-debug-version-of-libc
+
+The libraries in /usr/lib/debug are not real libraries. Rather, the contain only debug info, but do not contain .text nor .data sections of the real libc.so.6. You can read about the separate debuginfo files here.
+(gdb) info sharedlibrary
+(gdb) show debug-file-directory
+
+sudo apt-get install libc6-dbg
+
+How to disassemble one single function using objdump?
+https://stackoverflow.com/questions/22769246/how-to-disassemble-one-single-function-using-objdump
+
+从汇编层面看函数调用的实现原理
+https://www.cnblogs.com/abozhang/p/10788396.html
+
+汇编语言--Linux 汇编语言开发指南
+https://zhuanlan.zhihu.com/p/54853591
+
+寄存器
+https://www.jianshu.com/p/57128e477efb
+
+$ cat 019.c
+#include <assert.h>
+
+int myfunc(int i) {
+    i = i + 2;
+    i = i * 2;
+    return i;
+}
+
+int main(void) {
+    assert(myfunc(1) == 6);
+    assert(myfunc(2) == 8);
+    return 0;
+}
+$ gcc -O0 -ggdb3 -std=c99 -Wall -Wextra -pedantic -o main.out 019.c
+$ gdb -batch -ex "disassemble/rs myfunc" main.out
+Dump of assembler code for function myfunc:
+019.c:
+3       int myfunc(int i) {
+   0x000000000000064a <+0>:     55      push   %rbp
+   0x000000000000064b <+1>:     48 89 e5        mov    %rsp,%rbp
+   0x000000000000064e <+4>:     89 7d fc        mov    %edi,-0x4(%rbp)
+
+4           i = i + 2;
+   0x0000000000000651 <+7>:     83 45 fc 02     addl   $0x2,-0x4(%rbp)
+
+5           i = i * 2;
+   0x0000000000000655 <+11>:    d1 65 fc        shll   -0x4(%rbp)
+
+6           return i;
+   0x0000000000000658 <+14>:    8b 45 fc        mov    -0x4(%rbp),%eax
+
+7       }
+   0x000000000000065b <+17>:    5d      pop    %rbp
+   0x000000000000065c <+18>:    c3      retq
+End of assembler dump.
+
+Linux objdump Command Explained for Beginners (7 Examples)
+https://www.howtoforge.com/linux-objdump-command/
+
+objdump -f /bin/ls
+objdump -p /bin/ls
+objdump -h /bin/ls
+objdump -x /bin/ls
+objdump -d /bin/ls
+objdump -g /bin/ls
+objdump -t /bin/ls
+
+libc source
+https://www.gnu.org/software/libc/sources.html
+
+
+汇编寻址方式
+https://www.cnblogs.com/jadeshu/p/10663543.html
+
+# 段错误问题排查
+
+$ cat 018.c
+#include <stdio.h>
+
+int main(int argc, char *argv[])
+{
+    FILE *fp = NULL;
+    fprintf(fp, "%s\n", "hello");
+    fclose(fp);
+    return 0;
+}
+
+$ gcc 018.c
+$ ./a.out
+Segmentation fault (core dumped)
+$ dmesg | tail -n1
+[1105761.999602] a.out[7822]: segfault at c0 ip 00007f93d96cf3cc sp 00007ffcc490e7f0 error 4 in libc-2.27.so[7f93d9674000+1e7000]
+$ python3 -c "print((0x00007f93d96cf3cc-0x7f93d9674000).to_bytes(4, 'big').hex())"
+0005b3cc
+$ ldd a.out
+        linux-vdso.so.1 (0x00007ffe67ffd000)
+        libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f786946f000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007f7869a62000)
+$ objdump -tT /lib/x86_64-linux-gnu/libc.so.6 | grep 5b3
+000000000005b390 g    DF .text  0000000000003235  GLIBC_2.2.5 _IO_vfprintf
+000000000005b390 g    DF .text  0000000000003235  GLIBC_2.2.5 vfprintf
+$ gdb /lib/x86_64-linux-gnu/libc.so.6 -batch -ex 'disassemble/rs _IO_vfprintf' | grep 5b3cc
+
+$ objdump -d /lib/x86_64-linux-gnu/libc.so.6 --start-address=0x5b390 | head -n100 | grep -A5 -B5 5b3cc
+   5b3b6:       48 89 45 c8             mov    %rax,-0x38(%rbp)
+   5b3ba:       31 c0                   xor    %eax,%eax
+   5b3bc:       48 8b 05 a5 fa 38 00    mov    0x38faa5(%rip),%rax        # 3eae68 <h_errlist@@GLIBC_2.2.5+0xdc8>
+   5b3c3:       64 8b 00                mov    %fs:(%rax),%eax
+   5b3c6:       89 85 48 fb ff ff       mov    %eax,-0x4b8(%rbp)
+   5b3cc:       8b 87 c0 00 00 00       mov    0xc0(%rdi),%eax
+   5b3d2:       85 c0                   test   %eax,%eax
+   5b3d4:       0f 85 d6 01 00 00       jne    5b5b0 <_IO_vfprintf@@GLIBC_2.2.5+0x220>
+   5b3da:       c7 87 c0 00 00 00 ff    movl   $0xffffffff,0xc0(%rdi)
+   5b3e1:       ff ff ff
+   5b3e4:       45 8b 3e                mov    (%r14),%r15d
+$ locate libc-2.27.so
+/lib/i386-linux-gnu/libc-2.27.so
+/lib/x86_64-linux-gnu/libc-2.27.so
+/usr/lib/debug/lib/x86_64-linux-gnu/libc-2.27.so
+$ nm /usr/lib/debug/lib/x86_64-linux-gnu/libc-2.27.so | grep _IO_vfprintf
+000000000005b390 t __GI__IO_vfprintf
+000000000005b390 T _IO_vfprintf
+000000000005b390 t _IO_vfprintf_internal
+$ readelf -ed /usr/lib/debug/lib/x86_64-linux-gnu/libc-2.27.so  | grep Entry
+  Entry point address:               0x21cb0
+
+
+Python数据科学手册 https://item.jd.com/12293703.html
+鸟哥的Linux私房菜 基础学习篇 第四版 https://item.jd.com/12443890.html
+浪潮之巅 第四版 吴军博士作品 https://item.jd.com/12626736.html
+阿里云运维架构实践秘籍 https://item.jd.com/12633183.html
+Vue.js 从入门到实战 Web前端开发框架（微课视频版）https://item.jd.com/12832164.html#
+
+T140/T340/T440/T640/R240/R340/R440/R540/R640/R740/R840/R940/M640安装Ubuntu系统的操作步骤
+https://www.dell.com/community/PowerEdge%E6%9C%8D%E5%8A%A1%E5%99%A8/T140-T340-T440-T640-R240-R340-R440-R540-R640-R740-R840-R940/td-p/7445776
+
+What is a data dashboard?
+https://www.klipfolio.com/resources/articles/what-is-data-dashboard
+
+18年6大BI与数据可视化工具的比较分析
+https://baijiahao.baidu.com/s?id=1595001201407735122&wfr=spider&for=pc
+
+API 接口应该如何设计？如何保证安全？如何签名？如何防重？
+https://mp.weixin.qq.com/s/uPqsosR4EIrozqRKzyA0Xg
+
+Token
+
+一般情况下客户端(接口调用方)需要先向服务器端申请一个接口调用的账号，服务器会给出一个appId和一个key, key用于参数签名使用，注意key保存到客户端，需要做一些安全处理，防止泄露。
+
+Token的值一般是UUID，服务端生成Token后需要将token做为key，将一些和token关联的信息作为value保存到缓存服务器中(redis)，当一个请求过来后，服务器就去缓存服务器中查询这个Token是否存在，存在则调用接口，不存在返回接口错误，
+
+常见 DDOS
+
+Pingflood: 该攻击在短时间内向目的主机发送大量ping包，造成网络堵塞或主机资源耗尽。
+Synflood: 该攻击以多个随机的源主机地址向目的主机发送SYN包，而在收到目的主机的SYN ACK后并不回应，这样，目的主机就为这些源主机建立了大量的连接队列，而且由于没有收到ACK一直维护着这
+些队列，造成了资源的大量消耗而不能向正常请求提供服务。
+Smurf：该攻击向一个子网的广播地址发一个带有特定请求（如ICMP回应请求）的包，并且将源地址伪装成想要攻击的主机地址。子网上所有主机都回应广播包请求而向被攻击主机发包，使该主机受到攻击。
+Land-based：攻击者将一个包的源地址和目的地址都设置为目标主机的地址，然后将该包通过IP欺骗的方式发送给被攻击主机，这种包可以造成被攻击主机因试图与自己建立连接而陷入死循环，从而很大程度地降低了系统性能。
+Ping of Death：根据TCP/IP的规范，一个包的长度最大为65536字节。尽管一个包的长度不能超过65536字节，但是一个包分成的多个片段的叠加却能做到。当一个主机收到了长度大于65536字节的包时，就是受到了Ping of Death攻击，该攻击会造成主机的宕机。
+Teardrop：IP数据包在网络传递时，数据包可以分成更小的片段。攻击者可以通过发送两段（或者更多）数据包来实现TearDrop攻击。第一个包的偏移量为0，长度为N，第二个包的偏移量小于N。为了合并这些数据段，TCP/IP堆栈会分配超乎寻常的巨大资源，从而造成系统资源的缺乏甚至机器的重新启动。
+PingSweep：使用ICMP Echo轮询多个主机。
+
+防止参数篡改
+sign: 一般用于参数签名，防止参数被非法篡改，最常见的是修改金额等重要敏感参数，
+sign的值一般是将所有非空参数按照升续排序然后+token+key+timestamp+nonce(随机数)拼接在一起，然后使用某种加密算法进行加密，作为接口中的一个参数sign来传递，也可以将sign放到请求头中。
+
+接口在网络传输过程中如果被黑客挟持，并修改其中的参数值，然后再继续调用接口，虽然参数的值被修改了，但是因为黑客不知道sign是如何计算出来的，不知道sign都有哪些值构成，不知道以怎样的顺序拼接在一起的，最重要的是不知道签名字符串中的key是什么，所以黑客可以篡改参数的值，但没法修改sign的值，当服务器调用接口前会按照sign的规则重新计算出sign的值然后和接口传递的sign参数的值做比较，如果相等表示参数值没有被篡改，如果不等，表示参数被非法篡改了，就不执行接口了。
+
+防止重复提交
+对于一些重要的操作需要防止客户端重复提交的(如非幂等性重要操作)，具体办法是当请求第一次提交时将sign作为key保存到redis，并设置超时时间，超时时间和Timestamp中设置的差值相同。当同一个请求第二次访问时会先检测redis是否存在该sign，如果存在则证明重复提交了，接口就不再继续调用了。
+
+如果sign在缓存服务器中因过期时间到了，而被删除了，此时当这个url再次请求服务器时，因token的过期时间和sign的过期时间一直，sign过期也意味着token过期，那样同样的url再访问服务器会因token错误会被拦截掉，这就是为什么sign和token的过期时间要保持一致的原因。
+
+拒绝重复调用机制确保URL被别人截获了也无法使用（如抓取数据）。对于哪些接口需要防止重复提交可以自定义个注解来标记。
+
+使用流程
+- 接口调用方(客户端)向接口提供方(服务器)申请接口调用账号，申请成功后，接口提供方会给接口调用方一个appId和一个key参数
+- 客户端携带参数appId、timestamp、sign去调用服务器端的API token，其中sign=加密(appId + timestamp + key)
+- 客户端拿着api_token 去访问不需要登录就能访问的接口
+- 当访问用户需要登录的接口时，客户端跳转到登录页面，通过用户名和密码调用登录接口，登录接口会返回一个usertoken, 客户端拿着usertoken 去访问需要登录才能访问的接口
+
+sign 的作用是防止参数被篡改，客户端调用服务端时需要传递sign参数，服务器响应客户端时也可以返回一个sign用于客户度校验返回的值是否被非法篡改了。客户端传的sign和服务器端响应的sign算法可能会不同。
+
+
+《性能之巅》学习心得
+https://www.jianshu.com/p/88dae2476508
+
+云计算下性能优化-读《性能之巅》
+https://www.jianshu.com/p/30f46b1e69ae
+
+https://finance.sina.com.cn/money/fund/fundzmt/2020-05-19/doc-iircuyvi3822357.shtml
+
+竞争格局的判断标准是行业前几名市场份额之间的差距，以及该公司所处的位置。如果差距拉得开，往往意味着行业大局已定，几家头部公司都占据了细分市场相对垄断地位，谁也吃不掉谁的份额，那就没有打价格战的必要，大家的利润就都有保证。
+
+最好的格局是寡头格局，例子是高端酒中的茅台，与其竞争者五粮液(151.130, -0.06, -0.04%)分属酱香和浓香型的老大，且市场份额领先很多，几乎不存在竞争。
+
+其次是双巨头，且定位有一定的差异。比如乳制品中的伊利和蒙牛，伊利的方向更多元化，蒙牛更关注低温奶，白电中的格力与美的，其中美的更多元化，定价更低，形成错位竞争。
+
+特别是伊利和蒙牛，因为牛奶消费者对新鲜的追求，两家时不时会打价格战，但有意思的是，一旦开打，双方好像约好了似的，都主动降低广告费，以减少对利润的影响，这实际上还是竞争格局转好的表现。
+
+竞争格局不好，是指多家公司市场份额接近，产品的同质化程度又很高。
+
+一般而言，竞争格局差的结果有三种，一种是打价格战，导致利润率下降，一种是拼命研发新技术，导致费用高；一种是需要不停地融资，扩大规模，以弥补利润率越来越低的问题。
+
+
+大规模视频CDN架构设计-刘歧
+https://wenku.baidu.com/view/66db6c8d227916888486d793.html
+
+
+Tdrag
+Tdrag属于拖拽类的一款插件，基于jquery而成，兼容1.4以上版本的jquery，兼容浏览器：chrome、firfox、IE7等以上主流浏览器
+http://www.jq22.com/yanshi8362
+
+
+Airtable，不仅仅是强大的在线表格应用，而是一个新物种
+https://www.jianshu.com/p/8cce932fa6a3
+
+码代码，到白头|专访SRS创始作者&阿里云RTC服务器团队负责人杨成立
+https://mp.weixin.qq.com/s/cRFbd7A0bDN4hbKqsFV4bQ
+
+腾讯大数据套件带你玩转大数据
+https://data.qq.com/article?id=2835#body
+
+国内单是表单的话，有麦客、金数据、简道云、等等等…… 麦客便宜实用、金数据资格老、简道云功能强大。 CRM用麦客，企业数据管理用简道云吧。
+
+
+格雷厄姆的50条精彩投资语录
+http://guba.eastmoney.com/news,of000942,816171527.html
+
+
+中国利率体系可分为7类，其中较为重要的种类有货币政策利率、银行间市场利率、交易所利率、存贷款利率和标准化债权利率。其理想的传导途径为：央行执行货币政策形成货币政策利率，传导至银行间市场，再由金融机构传导至交易所利率及标准化债权利率、由银行传导至存贷款利率，最终影响实体经济。
+
+用Python爬取历年基金数据
+https://www.jianshu.com/p/1d67cfbfd9bb
+
+基金大数据分析及基金投资建议（Python与Excel实现）
+https://blog.csdn.net/Hill_L/article/details/99425383
+
+穷学IT（给侄女的一封信） 
+http://gigix.thoughtworkers.org/2018/9/3/why-study-it/
+
+数字化企业的实验基础设施
+http://gigix.thoughtworkers.org/2018/2/27/dps-experimental-infrastructure/
+
+动态代理的前世今生
+http://gigix.thoughtworkers.org/2018/7/27/dynamic-proxy/
+
+Rendering PDF in HTML5 Canvas
+https://www.codediesel.com/javascript/rendering-pdf-in-html5-canvas/
+https://mozilla.github.io/pdf.js/examples/index.html#interactive-examples
+
+PSD 和 网页对比
+1px Chrome Extesnion can help F2E to find the 1px difference between the psd and HTML.
+https://github.com/dainiel/1px
+
+Python 基本功: 11. 初学 Pandas 库
+https://zhuanlan.zhihu.com/p/88632689
+
+Python 金融: 回测过往10年上海各区房产配置
+https://zhuanlan.zhihu.com/p/104108047
+
+Python 金融: 建立A股最优投资组合
+https://zhuanlan.zhihu.com/p/100900447
+
+
+PHP 后台把 PDF 转出图片
+
+在 Web 上预览 PDF，为防止内容被复制或下载，常用方案有使用 swftools 转成 flash，使用 PDF.js 转成 html5 canvas，或者 使用 embed ， iframe 嵌入 PDF 的方式来完成，但各浏览器对  flash，canvas，ifram 嵌入 pdf 会有各种兼容性问题。本方案使用 PHP 实时把 PDF 转换成图片进行显示以实现最大的浏览器兼容性。
+
+
+sudo apt-get install imagemagick php-imagick
+php7.2 -m | grep imagic
+sudo systemctl restart php7.2-fpm
+
+sudo vi /etc/ImageMagick-6/policy.xml
+
+<policy domain="coder" rights="read|write" pattern="PDF" />
+
+sudo systemctl restart php7.2-fpm
+
+<?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+if (isset($_GET['p'])) {
+    $p = intval($_GET['p']);
+    $im = new imagick("ui.pdf[$p]");
+    $im->setImageFormat('jpg');
+    header('Content-Type: image/jpeg');
+    echo $im;
+} else {
+    $im = new imagick("ui.pdf");
+    // 获取总页数较慢，尽量第一次执行后缓存在数据库里
+    $n = $im->getNumberImages();
+    for ($i = 0; $i < $n; $i++) {
+        echo "<img width='100%' src='?p=$i'><br>";
+    }
+}
+
+网页上如何实现禁止复制粘贴以及如何破解
+https://www.cnblogs.com/momo798/p/6797670.html
+防止复制
+-webkit-user-select: none
+
+视频下载
+Dumb downloader that scrapes the web https://you-get.org/
+https://github.com/soimort/you-get
+
+这些波普海报见证了世界“计划生育”的热潮
+http://news.99ys.com/news/2016/0804/10_205128_1.shtml
+
+## 人工智能
+
+线性代数
+
+- 集合
+- 标量、向量、矩阵、张量
+- 描述向量
+    - 范数: 大小度量
+        - L1, L2, L无穷
+    - 内积：两向量关系
+        - 为 0 表示正交
+- 线性空间
+    - 内积空间
+    - 点用向量表示
+    - 正交基
+- 描述空间上点变化
+    - 向量的线性变换
+    - 矩阵描述点变化 Ax = y
+    - 正交基变换
+- 描述矩阵 Ax = λx
+    - 特征值：速度
+    - 特征向量：方向
+    - 特征值分解，奇异值分解
+
+概率论
+
+- 频率学派
+    - 独立可重复实验单个结果出现的频率极限
+    - 古典概率模型的事件概率
+    - 条件概率：两个随机事件的关系
+    - 联合概率：两个随机事件共同发生的概率
+    - 相互独立事件：条件概率等于自身概率
+    - 全概率公式：将复杂事件的概率求解转换为不同情况下简单事件概率求和
+- 贝叶斯学派
+    - 根据全概率公式，求解逆概率
+        - 已知事件结果，推断各种假设发生的可能性
+    - 贝叶斯公式，贝叶斯定理
+        - 先验概率 P(H)：预先设定的假设成立的概率
+        - 似然概率 P(D|H)：假设成立的前提下观测结果的概率
+        - 后验概率 P(H|D)：已知结果的前提下假设成立的概率
+- 概率估计
+    - 频率学派：假设客观存在且不会改变，存在固定的先验分布及参数
+        - 最大似然估计：已知分布类型，寻找未知参数，使训练数据出现的概率最大化
+    - 贝叶斯学派：固定先验分布不存在，参数也是随机数，假设取决于观察结果
+        - 最大后验概率法：根据训练数据和部分已知条件，使未知参数出现的可能性最大化
+- 随机变量：离散，连续
+- 描述随机变量
+    - 概率质量函数
+        - 两点分布：投硬币
+        - 二项分布: 投 n 次硬币
+            - n 很大 p 很小时，可用泊松分布近似
+        - 泊松分布：放射物质在规定时间内的放出的粒子数
+    - 概率密度函数
+        - 均匀分布
+        - 指数分布
+        - 正态分布：μ=0,σ=1时为标准正态分布
+    - 数字特征
+        - 描述自身
+            - 数学期望：可能取值的加权平均
+            - 方差：取值与期望的偏离程度
+        - 描述两个随机变量关系
+            - 协方差：描述线性关系 aX+b
+            - 相关系数：1 正相关，-1 负相关， 0 不相关
+
+# 数理统计
+
+- 目的：对机器学习算法和数据挖掘结果做出解释
+- 定义：根据观察结果研究随机现象，对研究对象做出估计和判断
+- 与概率论区别：
+    - 概率论是已知分布，分析特征和规律
+    - 数理统计是未知分布，通过对数据独立重复的观察，推断真实的分布
+- 概念
+    - 总体：观察对象所有可能取值
+    - 样本：对总体进行多次独立重复观测得到，保证独立同分布
+    - 统计量：关于样本的函数，也是一个随机变量，用于进行统计推断
+        - 样本均值
+        - 样本方差 
+- 统计推断
+    - 参数估计：根据样本估计总体分布及参数
+        - 点估计：已知分布函数，求未知参数，重点是构造统计量
+            - 矩估计：矩表示 k 次方均值，依据是样本矩几乎处处收敛于总体矩
+            - 最大似然估计：既然取到一个样本，就表示取到该样本的概率最大
+                - 确定似然函数，表示样本值出现的概率
+                - 使用微积分求函数最大值
+                - 因样本独立同分布，所以似然函数可以写成若干概率质量函数
+                  相乘，因为取对数后单调性不变，可再简化为对数方程求解
+        - 区间估计：在点估计的基础上提供取值范围和误差界限
+            - 置信区间：除了求出估计量，还要求出一个区间
+                - 多次抽样得到上界和下界两个统计量
+            - 置信水平：区间内包含真实值的可信程度
+                - 对所有置信区间包含真实值的比率进行统计得出
+    - 假设检验
+- 估计量评价
+    - 无偏性：估计量构造不变，多次抽样得到的估计值与真实值偏差均值为 0，
+              即无系统性偏差
+    - 有效性：每次抽样得到的估计值与真实值之间的偏离程度，体现精确性
+    - 一致性：随着样本容量增大，估计值稳定在真实值上
+- 假设检验
+    - 目的：推断学习器的泛化能力，确定结论的精确度
+    - 概念：原假设，备择假设
+    - 依据：全称命题只能被证伪不能被证实
+    - 发生概率小于 1% 的事件称为小概率事件，单次实验认为不会发生
+    - 逻辑：根据实验观测小概率事件来推翻某个假设
+        - 备择假设被推翻，接受原假设
+        - 原假设被推翻，拒绝原假设
+- 泛化性能解释
+    - 偏差：预测值和真实值之间的偏离程度，刻画欠拟合程度
+    - 方差：数据扰动对预测性能的影响，刻画过拟合程度
+    - 噪声：表示能达到的最小误差，刻画任务本身难度
+    - 方差和偏差很难同时优化
+
+# 最优化
+
+- 目的：几乎所有的人工智能问题最后都会归结为一个最优化问题的求解
+- 目标：判定目标函数是否有最大(小)值，并找到令目标函数取到最大(小)值的参数
+- 目标函数，评价函数：要实现最大化或最小化的函数，最小化可以用 -f(x) 表示
+- 局部最小值：当输入参数较多，解空间较大时，一般只能求出局部最小值
+- 优化分类：
+    - 无约束优化：自变量 x 取值无限制
+    - 约束优化：自变量 x 限制在特定集合内
+        - 引入拉格朗日乘子，把 n 个变量，k 个条件的约束优化问题转换成有
+          n + k 个变量的无约束优化问题
+- 求解无约束优化问题
+    - 线性搜索法
+        - 梯度下降：沿目标函数值下降最快的方向寻找最小值
+            - 梯度：参数为向量时，梯度是垂直于曲面等高线，指向高度增加方向的向量，
+                    和目标函数导数的方向相反，多元函数沿其负梯度方向下降最快。
+            - 步长：逐渐变小，防止跳过最小值
+            - 训练模式：
+                - 批处理模式：每次迭代遍历所有样本，将每个样本梯度求和，运算量大。
+                - 随机梯度下降法：每次迭代随机选取一个样本，训练规模较大时，性能更好。
+        - 牛顿法：使用二阶导数包含的曲率信息，可知道导数长期为负的方向，具备全局视角。
+            - 一阶导数：描述目标函数如何随输入变化而变化
+            - 二阶导数：描述一阶导数如何随输入变化而变化
+            - 曲率：影响目标函数下降速度，为正表示目标函数会比梯度下降法的预期下降更慢
+            - 梯度下降法只能利用目标函数局部信息，可能会陷入盲目搜索中，使用二阶导数能
+              获取更优的收敛性，收敛速度更快
+            - 牛顿法：目标函数被泰勒展开，写成二阶近似形式，再令其导数为0，得到的向量
+                      表示的就是下降最快的方向。
+    - 置信域方法: 先确定步长，划定一个区域，在区域内寻找下降最快的方向
+        - 确定半径 s
+        - 以当前点为中心，s 为半径的封闭球形区域作为置信域
+        - 在置信域内寻找目标函数二阶近似模型的最优点
+        - 最优点和当前点之间距离记作备选位移
+        - 如果在备选位移上目标函数的二次近似产生了充分的下降，则移动当前点到最优点，继续迭代
+        - 如果下降不够理想，则说明 s 太大，需要缩小 s 计算新位移，直到满足中止条件
+    - 启发式方法：核心思想是 优胜劣汰
+        - 遗传算法：模拟生物进化规律
+        - 模拟退化算法：模拟固体结晶过程
+        - 蚁群算法：模拟低等动物产生的集群智能
+        - 神经网络算法：模拟大脑中神经元竞争和协作
+
+# 选基 Check List
+
+- 基金成立是否超过5年
+- 基金经理管理经验（非从业经验）是否超过5年
+- 对基金经理的投资风格，偏好，思路，策略，重点是否了解
+- 基金属于什么风格：(价值，平衡，成长) * (小盘，中盘，大盘)
+- 基金持有人结构如何
+- 基金目前仓位如何，权益，固收，现金
+- 基金经理变动历史了解，历史正收益是否为当前经理所获得
+- 夏普率是否为正
+- 历史回撤率是否在合理范围
+- 换手率是否在合理范围
+- 规模是否适中
+- 重仓股比重是否合适
+- 重仓股是否稳定
+- 基金经理投资风格是否稳定
+- 是否是五星基金
+- 是否得过金牛奖
+- 基金当前是否在低位
+- 重仓股基本面是否良好
+- 牛市是否跑赢指数
+- 熊市回撤是否低于指数
+- 是否看过基金经理路演
+- 基金公司近三年是否有过暴雷或丑闻
+- 是否看过关于基金的三篇分析文章
+- 是否看过关于基金经理的三篇分析文章
+- 基金近3年，近5年业绩是否在前 1/4
+- 基金每个自然年度是否没有暴涨暴跌
+- 基金最近 3 年最大回撤是否能够承受
+- 基金百分比排名走势是否没有经常垫底
+
+# 选股 Check List
+
+- 所处行业发展前景如何，是否有长期上涨空间
+- 所处行业竞争格局如何，是否有龙头
+- 当前 PE 的历史百分位如何
+- 当前 PE 的同行百分位如何 
+- 公司是否有充裕的现金流
+- 公司近年毛利率是否稳定
+- 公司近年净利率是否持续增长
+- 公司管理团队了解，股权结构了解
+- 管理人员最近持股变化
+- 公司历史股价下跌原因分析
+- 是否看过最近的该公司深度研报
+- 公司目前持仓结构如何，机构和散户持仓比
+- 股票流通性如何，换手率多少
+- 当前股价是否未处于高位
+- 最近成交量变化了解
+
+
+安装 tomcat
+
+tar xf /var/www/html/common/apache-tomcat-8.5.34.tar.gz -C /usr/local/
+cd /usr/local
+mv apache-tomcat-8.5.34/ tomcat
+cd bin/
+./startup.sh
+cd ..
+tail -f logs/catalina.out
+cp /var/www/html/common/mysql-connector-java-5.1.26-bin.jar /usr/local/tomcat/lib/
+
+GRANT SELECT ON *.* TO 'readonly'@'localhost' IDENTIFIED BY 'readonly';
+flush privileges;
+
+
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.io.*,java.util.*,java.sql.*"%>
+<%@ page import="javax.servlet.http.*,javax.servlet.*" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/sql" prefix="sql"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>我的 Java Web 程序</title>
+    </head>
+    <body>
+        <h1>我的 Java Web 程序</h1>
+        <sql:setDataSource var="mysql" driver="com.mysql.jdbc.Driver"
+            url="jdbc:mysql://localhost:3306/mysql?useUnicode=true&characterEncoding=utf-8"
+            user="readonly"  password="readonly"/>
+        <sql:query dataSource="${mysql}" var="result">
+        SELECT * from user limit 10;
+        </sql:query>
+        <table border="1" >
+            <tr>
+                <th>Host</th>
+                <th>User</th>
+                <th>Update At</th>
+            </tr>
+            <c:forEach var="row" items="${result.rows}">
+            <tr>
+                <td><c:out value="${row.host}"/></td>
+                <td><c:out value="${row.user}"/></td>
+                <td><c:out value="${row.password_last_changed}"/></td>
+            </tr>
+            </c:forEach>
+        </table>
+    </body>
+</html>
+
+纯css3虚幻背景动画特效
+https://www.17sucai.com/preview/1232113/2018-06-04/st/demo.html
+
+国内镜像
+https://mirrors.cloud.tencent.com/
+
+ubuntu 镜像
+https://mirrors.cloud.tencent.com/ubuntu-cdimage/
+
+
+Ubuntu更换apt源之arm版
+https://blog.csdn.net/zong596568821xp/article/details/90604966
+
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal main multiverse restricted universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-security main multiverse restricted universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-updates main multiverse restricted universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-backports main multiverse restricted universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal main multiverse restricted universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-security main multiverse restricted universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-updates main multiverse restricted universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-backports main multiverse restricted universe
+
+arm ubuntu
+apt-get install -y mysql-server php7.4-fpm php7.4-mysql php7.4-gd php7.4-curl php7.4-intl php7.4-mbstring php7.4-xml php7.4-zip php-redis
+
+Ubuntu 20.04换阿里源
+https://www.cnblogs.com/sundahua/p/12824855.html
+
+2 搞清楚ubuntu的代号，比如：
+
+4.10 Warty Warthog(长疣的疣猪)
+5.04 Hoary Hedgehog(灰白的刺猬)
+5.10 Breezy Badger(活泼的獾)
+
+6.06(LTS) Dapper Drake(整洁的公鸭)
+6.10 Edgy Eft(急躁的水蜥)
+7.04 Feisty Fawn(坏脾气的小鹿)
+7.10 Gutsy Gibbon(勇敢的长臂猿)
+
+8.04(LTS) Hardy Heron(耐寒的苍鹭)
+8.10 Intrepid Ibex (勇敢的野山羊)
+9.04 Jaunty Jackalope(得意洋洋的怀俄明野兔)
+9.10 Karmic Koala(幸运的考拉)
+
+10.04(LTS) Lucid Lynx(清醒的猞猁)
+10.10 Oneiric Ocelot(梦幻的豹猫)
+11.04 Natty Narwhal(敏捷的独角鲸)
+11.10 Oneiric Ocelot（有梦的虎猫）
+
+12.04(LTS) Precise Pangolin(精准的穿山甲)
+12.10 Quantal Quetzal(量子的绿咬鹃)
+13.04 Raring Ringtail(铆足了劲的猫熊)
+13.10 Saucy Salamander(活泼的蝾螈)
+
+14.04(LTS) Trusty Tahr (可靠的塔尔羊)(LTS)
+14.10 Utopic Unicorn(乌托邦独角兽)
+15.04 Vivid Vervet (活泼的小猴)
+15.10 Wily Werewolf (狡猾的狼人)
+
+16.04(LTS) Xenial Xerus (好客的非洲地松鼠)
+16.10 Yakkety Yak（牦牛）
+17.04 Zesty Zapus(开心的跳鼠)
+17.10 Artful Aardvark(机灵的土豚)
+
+18.04(LTS) Bionic Beaver（仿生海狸）
+18.10 Cosmic Cuttlefish（宇宙墨鱼）
+19.04 Disco Dingo（舞动的灵犬）
+19.10 Eoan Ermine（白貂）
+20.04(LTS) Focal Fossa（专注的马达加斯加长尾狸猫）
+
+lsb_release -a
+
+
+Linux 磁盘管理之 LVM 详解与实战上
+https://blog.csdn.net/qq_36148847/article/details/79794852
+
+
+Linux使用 lvresize扩展或缩减LV大小 （二）
+https://blog.csdn.net/qq_22805577/article/details/80496957
+
+
+root@arm-server:/etc/apt# lvdisplay | grep -E 'Path|Size'
+  LV Path                /dev/4/4
+  LV Size                32.74 TiB
+  LV Path                /dev/ubuntu-vg/ubuntu-lv
+  LV Size                4.00 GiB
+root@arm-server:/etc/apt# lvresize -L +300G /dev/ubuntu-vg/ubuntu-lv
+  Size of logical volume ubuntu-vg/ubuntu-lv changed from 4.00 GiB (1024 extents) to 304.00 GiB (77824 extents).
+  Logical volume ubuntu-vg/ubuntu-lv successfully resized.
+root@arm-server:/etc/apt# resize2fs /dev/ubuntu-vg/ubuntu-lv
+resize2fs 1.45.5 (07-Jan-2020)
+Filesystem at /dev/ubuntu-vg/ubuntu-lv is mounted on /; on-line resizing required
+old_desc_blocks = 1, new_desc_blocks = 38
+The filesystem on /dev/ubuntu-vg/ubuntu-lv is now 79691776 (4k) blocks long.
+
+root@arm-server:/etc/apt# df -h /
+Filesystem                         Size  Used Avail Use% Mounted on
+/dev/mapper/ubuntu--vg-ubuntu--lv  300G  3.6G  284G   2% /
+Linux使用 lvresize扩展或缩减LV大小 （二）
+https://blog.csdn.net/qq_22805577/article/details/80496957
+
+
+root@arm-server:/etc/apt# lvdisplay | grep -E 'Path|Size'
+  LV Path                /dev/4/4
+  LV Size                32.74 TiB
+  LV Path                /dev/ubuntu-vg/ubuntu-lv
+  LV Size                4.00 GiB
+root@arm-server:/etc/apt# lvresize -L +300G /dev/ubuntu-vg/ubuntu-lv
+  Size of logical volume ubuntu-vg/ubuntu-lv changed from 4.00 GiB (1024 extents) to 304.00 GiB (77824 extents).
+  Logical volume ubuntu-vg/ubuntu-lv successfully resized.
+root@arm-server:/etc/apt# resize2fs /dev/ubuntu-vg/ubuntu-lv
+resize2fs 1.45.5 (07-Jan-2020)
+Filesystem at /dev/ubuntu-vg/ubuntu-lv is mounted on /; on-line resizing required
+old_desc_blocks = 1, new_desc_blocks = 38
+The filesystem on /dev/ubuntu-vg/ubuntu-lv is now 79691776 (4k) blocks long.
+
+root@arm-server:/etc/apt# df -h /
+Filesystem                         Size  Used Avail Use% Mounted on
+/dev/mapper/ubuntu--vg-ubuntu--lv  300G  3.6G  284G   2% /
+
+
+pip --default-timeout=100 install -U pip
+
+
+apt  install libfreetype6  libfreetype-dev
+
+apt  install libxml2-dev libxml2 libxslt1-dev libxslt1.1
+
+apt-get install libgl1-mesa-glx libegl1-mesa libxrandr2 libxrandr2 libxss1 libxcursor1 libxcomposite1 libasound2 libxi6 libxtst6
+
+sudo apt-get install python-scipy
+
+sudo apt-get install gcc gfortran python-dev libopenblas-dev liblapack-dev cython
+
+
+
+Does Python SciPy need BLAS?
+https://stackoverflow.com/questions/7496547/does-python-scipy-need-blas
+
+sudo apt-get install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose
+
+https://docs.scipy.org/doc/scipy-1.1.0/reference/building/index.html
+
+
+https://github.com/lhelontra/tensorflow-on-arm
+
+
+apt-get install libpython3-all-dev:armhf
+
+
+鲲鹏软件栈
+https://www.huaweicloud.com/kunpeng/software.html
+
+jupyter notebook --allow-root --ip 0.0.0.0 books/
+
+
+Python机器学习笔记：sklearn库的学习
+https://www.cnblogs.com/wj-1314/p/10179741.html
+
+
+docker pull tensorflow/tensorflow:2.1.1-jupyter
+docker run -it --rm -p 8888:8888 tensorflow/tensorflow:2.1.1-jupyter
+
+curl -sL https://bootstrap.pypa.io/get-pip.py | python3 -
+
+curl -L https://github.com/lherman-cs/tensorflow-aarch64/releases/download/r1.4/tensorflow-1.4.0rc0-cp35-cp35m-linux_aarch64.whl > /tmp/tensorflow-1.4.0rc0-cp35-cp35m-linux_aarch64.whl
+python3 -m pip install /tmp/tensorflow-1.4.0rc0-cp35-cp35m-linux_aarch64.whl
+
+
+风险控制笔记，适用于互联网企业
+https://github.com/WalterInSH/risk-management-note
+
+
+https://askubuntu.com/questions/473037/how-to-permanently-disable-sleep-suspend
+sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
+
+
+线性近似和二阶近似
+https://www.cnblogs.com/bigmonkey/p/7509083.html
+
+线性近似求解的是近似值，其几何意义是在基点的切线近似于原函数的曲线。
+二阶近似的几何意义是最接近原函数的抛物线，它比线性近似更为精确。
+
+睿远成长价值还要持有吗？
+https://zhuanlan.zhihu.com/p/128650068?from_voters_page=true
+闲聊两句+如何转移投资外的风险
+https://zhuanlan.zhihu.com/p/145004861
+【基金经理】谢治宇
+https://mp.weixin.qq.com/s?__biz=MzA5MDQxODY5MQ==&mid=2247488488&idx=1&sn=14220e33ace85951ed08e5644ceefd98&chksm=900aa884a77d21922cd86bb7f74c86349e856b9b04e8fd0424ac593e6f4546dfe5bc935373c9&scene=21#wechat_redirect
+
+
+联想云桌面
+https://saas.ecloud.10086.cn/Store/TSDetail/1403?cityname=%E5%85%A8%E5%9B%BD#usehelp
+
+
+519736,163402,163406,007119,161005,519712,206018,000948
+
+聚宽量化
+https://www.joinquant.com/help/api/help?name=OTCfund#%E8%8E%B7%E5%8F%96%E5%85%AC%E5%8B%9F%E5%9F%BA%E9%87%91%E4%B8%BB%E4%BD%93%E4%BF%A1%E6%81%AF
+
+from jqdatasdk import finance
+code='519736'
+finance.run_query(query(finance.FUND_NET_VALUE.day,finance.FUND_NET_VALUE.net_value).filter(finance.FUND_NET_VALUE.code==code).order_by(finance.FUND_NET_VALUE.day.desc()).limit(10))
+
+如何使用Python进行投资收益和风险分析
+https://www.cnblogs.com/dreamboy/p/11320814.html
+
+使用python爬取新浪财经等网站中的股票交易数据。数据包括了交易日期、开盘价、最高价、最低价、收盘价、调整后的收盘价以及成交量。其中调整后的收盘价最为重要，它对股票分割、股息和其他公司行为进行了标准化，能真实地反映股票随时间的回报。
+将爬取的数据进行清洗，得到结构化的数据，并存储到MySQL中。 
+使用pandas的.pct_change()方法来计算收益率。绘制股票历史每日收益随时间变化的图。
+使用numpy包中的mean()函数计算股票历史收益的均值（日平均收益）。
+根据日平均收益计算平均年化收益。
+使用matplotlib绘图包中的hist()函数绘制收益直方图，了解收益分布情况及收益中的异常值。
+使用numpy包中的std()函数计算收益的方差，并转为年化方差。投资回报中较高的标准差意味着较高的风险。
+用scipy.stats提供的skew()函数计算收益分布的偏度。在金融领域，人们更倾向于正的偏度，因为这意味着高盈利的概率更大。
+使用scipy.stats提供的 kurtosis() 函数计算收益分布的超值峰度。大部分金融收益都具有正的超值峰度。
+使用scipy.stats提供的shapiro()函数判断收益分布的正态性。
+
+股票分析之——收益率（附完整代码和讲解）
+https://zhuanlan.zhihu.com/p/91948053
+
+
+Git如何永久删除文件(包括历史记录)（转载）
+https://blog.csdn.net/bodybo/article/details/80655781
+
+git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch path-to-your-remove-file' --prune-empty --tag-name-filter cat -- --all
+
+git push origin master --force
+
+rm -rf .git/refs/original/
+git reflog expire --expire=now
+git gc --prune=now
+
+# arm tensorflow
+add-apt-repository ppa:deadsnakes/ppa
+apt-get update
+apt-get install python3.7
+curl -sL https://bootstrap.pypa.io/get-pip.py | python3.7
+pip3.7 --timeout 100 install -U numpy
+pip3.7 --timeout 100 install -U scipy
+apt install libhdf5-dev
+# https://github.com/lhelontra/tensorflow-on-arm/releases
+wget https://github.com/lhelontra/tensorflow-on-arm/releases/download/v2.2.0/tensorflow-2.2.0-cp37-none-linux_aarch64.whl
+pip3.7 --timeout 100 install tensorflow-2.2.0-cp37-none-linux_aarch64.whl
+
+pip3.7 --timeout 100 install matplotlib
+pip3.7 uninstall pillow
+pip install pillow==4.0.0
+
+
+github：
+
+人脸联合语音身份认证：https://github.com/tsstss123/faceUnionVoiceRecognition
+
+身份证识别简易版：https://github.com/novioleo/simplest_idcard_recognizition
+
+文本检测ctpn：https://github.com/eragonruan/text-detection-ctp
+
+
+使用Python提取身份证上的信息
+https://zhuanlan.zhihu.com/p/37423187
+https://zhuanlan.zhihu.com/p/37442305
+
+
+apt install tesseract-ocr
+pip3 install pytesseract opencv-python Scikit-Image dlib
+
+2.从清华的镜像
+	`https://pypi.tuna.tsinghua.edu.cn/simple/opencv-python/ `
+	中下载其他版本的库，因为根据安装的python 版本下载相应的镜像文件
+	比如 python 3.5.4 64bit
+	我下载的是
+	opencv_python-3.1.0.0-cp35-cp35m-win_amd64.whl
+
+shape_predictor_5_face_landmarks.dat以及shape_predictor_68_face_landmarks.dat资源分享
+https://blog.csdn.net/Viadimir/article/details/105035660    
+
+tesseract 安装及使用
+https://blog.csdn.net/showgea/article/details/82656515
+
+Failed loading language 'chi_sim'
+https://www.jianshu.com/p/5265b2480938
+https://links.jianshu.com/go?to=https%3A%2F%2Fgithub.com%2Ftesseract-ocr%2Ftessdata
+
+
+cd /usr/share/tesseract-ocr/4.00/tessdata/
+wget https://github.com/tesseract-ocr/tessdata/raw/master/chi_sim.traineddata
+
+文本检测之OpenCV实现
+https://zhuanlan.zhihu.com/p/120780518
+
+How to use OpenCV to process image so that the text become sharp and clear?
+https://stackoverflow.com/questions/17874149/how-to-use-opencv-to-process-image-so-that-the-text-become-sharp-and-clear
+
+Python下opencv使用笔记（十）（图像频域滤波与傅里叶变换）
+https://blog.csdn.net/on2way/article/details/46981825
+
+过滤 style 标签
+style="[^"]+"
+
+
+Install Eclipse IDE on Ubuntu 19.04/18.04/16.04
+https://computingforgeeks.com/install-latest-eclipse-ide-on-ubuntu/
+
+RISV-V未来将面临怎样的挑战？
+https://blog.csdn.net/cf2suds8x8f0v/article/details/88386622
+
+https://forum.manjaro.org/t/eclipse-for-aarch64/147579
+https://www.eclipse.org/lists/platform-dev/msg01893.html
+
+
+Hadoop _ 疑难杂症 解决1 - WARN util.NativeCodeLoader: Unable to load native-hadoop library for your plat
+https://blog.csdn.net/u010003835/article/details/81127984
+
+Hadoop for arm64
+https://github.com/owlab-exp/hadoop-arm64/blob/master/README.md
+
+auxService:mapreduce_shuffle does not exist on hive
+https://stackoverflow.com/questions/30921838/auxservicemapreduce-shuffle-does-not-exist-on-hive
+
+
+http://mvnrepository.com/artifact/mysql/mysql-connector-java
+
+
+Linux挂载移动硬盘
+https://www.cnblogs.com/weiyiming007/p/8522056.html
+
+yum -y install ntfs-3g
+mount -t ntfs /dev/sdb1 /mydata/data
+
+
+http://www.microsoft.com/china/windows/internet-explorer/
+
+左右等高
+
+.wrap {
+    position: relative;
+}
+
+.wrap .left {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 200px;
+    background-color: aliceblue;
+}
+
+.wrap .right {
+    background-color: aqua;
+    margin-left: 200px;
+    width: 100%;
+
+    min-height:100px;
+    height:auto !important; /*兼容FF,IE7也支持 !important标签*/
+    height:100px; /*兼容ie6*/
+    overflow:visible;
+}
+
+
+CSS代码(四)：float元素的垂直居中
+
+https://blog.csdn.net/yiifaa/article/details/74905464
+
+
+深入浅出vertical-align和line-height
+https://blog.csdn.net/woyuanliulian/article/details/80929799
+
+
+解决input宽度设置成100%与padding的冲突
+https://www.cnblogs.com/screw/p/5219259.html
+
+首页模版
+https://www.huduntech.com/
+
+
+作者回复: 这是从贝叶斯角度出发的。假定参数本身已经服从正态/拉普拉斯分布，那么在高斯噪声之下，用参数的似然概率乘以先验就可以得到后验。对后验概率取对数得到的结果和正则化的损失函数形式一致，所以对后验概率的最大化就是对正则化损失函数的最小化。
+这相当于先假定参数符合特定条件，在此基础上再来计算最优参数。
+
+
+有了训练数据集，先验概率 P(Y) 和似然概率 P(X|Y) 就可以视为已知条件，用来求解后验概率 P(Y|X)。对于给定的输入 x，朴素贝叶斯分类器利用贝叶斯定理求解后验概率，并将后验概率最大的类作为输出。
+
+
+OA+ ERP + PLM + PDM+WMS + MES + SCADA + PLC
+
+
+1、2-3年及以上软件开发经验；    
+2、精通PHP开发语言和Mysql数据库，至少熟练目前市面上一款主流的PHP开发框架如Thinkphp，ci， YII等；    
+3、熟练HTML5, ajax，jquery等Web前端技术    
+3、具备优秀的面向对象的分析与设计能力，以及大型数据库的设计能力；    
+4、了解编程开发技术，具备较强的质量管理意识；     
+5、有良好的团队合作能力，独立分析与解决问题的能力。    
+6、工作踏实认真，对移动WEB开发行业充满热情，有不断提升自己的学习意识；     
+7、有高并发和网络编程开发经验者优先 ； 
+
+
+在线 ER图
+https://drawerd.com/
+
+
+TCP限流技术
+https://blog.csdn.net/qq_40910541/article/details/88761208
+
+
+ksoftirqd进程耗尽单核100%si处理软中断导致性能瓶颈
+https://www.jianshu.com/p/f0ed38a79041
+
+第6点：修改设备中断方式。通过修改设置中断/proc/irq/${网卡中断号}/smp_affinity：
+测试服务器CPU为四核，理论上网卡的smp_affinity值为1、2、4、8分别对应cpu0、cpu1、cpu2、cpu3。
+结果：
+1、网卡的smp_affinity默认值为8，测试过程中软中断全部由cpu3处理。正确
+2、设置smp_affinity = 1，测试过程中软中断全部由cpu0处理。正确
+3、设置smp_affinity = 2，测试过程中软中断全部由cpu1处理。正确
+4、设置smp_affinity = 4，测试过程中软中断全部由cpu2处理。正确
+5、设置smp_affinity = 5，测试过程中软中断全部由cpu0处理，预期应该分配给cpu0和cpu2处理。无效
+6、设置smp_affinity = f，测试过程中软中断全部由cpu0处理，预期应该分配给cpu0、cpu1、cpu2和cpu2处理。无效
+即：修改smp_affinity的功能只针对单核有效。
+第7点：使用多网卡负载均衡。此方案可行！使用两张网卡绑定一个IP地址，性能就提升了一倍，效果非常明显。原因就是两张网卡各用一个CPU核，相比用单核而言，性能自然提升一倍。
+
+
+Receive many UDP packets & ksoftirqd load
+https://serverfault.com/questions/638014/receive-many-udp-packets-ksoftirqd-load
+
+The card is Intel E10G42BT X520-T2 10Gigabit Ethernet Card. The workload I'm testing right now is 64B UDP packets generated by netperf. CPU is E5-2650 v2 @ 2.60GHz, 16 cores
+
+I thought ksoftirq tries to handle interrupts. When I look at /proc/interrupts, the numbers do not increase a lot (10 per core per second) but ksoftireq uses 100% of a core when the server tries to receive 600kpps. Does ksoftirq also handles DMA received packets? I have enabled IOAT DMA. Does ksoftirq is called per network packets? I have set interruptthrottling as 16000,16000 for my 10G NIC (ixgbe driver).
+
+iptables processing runs almost all of the network stack in softirq context. Do you have a lot of rules or modules with a heavy workload like conntrack loaded?
+
+
+Linux之TCPIP内核参数优化
+https://www.cnblogs.com/wuchanming/p/4028341.html
+
+关于网卡特性TSO、UFO、GSO、LRO、GRO
+https://blog.csdn.net/notbaron/article/details/79837821
+
+TSO(TCP Segmentation Offload)，是利用网卡对TCP数据包分片，减轻CPU负荷的一种技术，也有人叫 LSO (Large segment offload) ，TSO是针对TCP的，UFO是针对UDP的。如果硬件支持 TSO功能，同时也需要硬件支持的TCP校验计算和分散/聚集 (Scatter Gather) 功能。如果网卡支持TSO/GSO，可以把最多64K大小的TCP payload直接往下传给协议栈，此时IP层也不会进行segmentation，网卡会生成TCP/IP包头和帧头，这样可以offload很多协议栈上的内存操作，节省CPU资源，当然如果都是小包，那么功能基本就没啥用了。
+
+GSO(Generic Segmentation Offload)，GSO是TSO的增强 ，GSO不只针对TCP，对任意协议。比TSO更通用，推迟数据分片直至发送到网卡驱动之前，此时会检查网卡是否支持分片功能（如TSO、UFO）,如果支持直接发送到网卡，如果不支持就进行分片后再发往网卡。
+
+LRO(Large Receive Offload)，通过将接收到的多个TCP数据聚合成一个大的数据包，然后传递给网络协议栈处理，以减少上层协议栈处理 开销，提高系统接收TCP数据包的能力。
+
+GRO(Generic Receive Offload)，跟LRO类似，克服了LRO的一些缺点，更通用。后续的驱动都使用GRO的接口，而不是LRO。
+
+中国Pyhon量化的启蒙人与开拓者
+http://www.topquant.vip/
+
+
+Linux 下修改socket接收缓冲区
+https://blog.csdn.net/u012707739/article/details/78288367
+
+在进行socket编程有时候可能需要修改下socket的接收缓冲区大小，这里可以使用 setsockopt 函数，但是如果需要修改的缓冲区很大（比如500MB），则还需要修改系统内核的TCP/IP参数，不然接收缓冲区大小会收到内核参数的限制，所以需要改两个地方。下面以把socket接收缓冲区修改为500MB说明一下要作的修改。
+
+###1、修改内核TCP/IP参数
+
+在终端用sysctl命令修改socket最大缓冲区限制：
+
+sudo sysctl -w net.core.rmem_max=524288000
+
+###2、在代码中用setsockopt函数修改SO_RCVBUF选项
+
+int recvbuff = 500*1024*1024;
+if(setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (const char*)&recvbuff, sizeof(int)) == -1)
+	printf("setsocket error\n");
+else
+	printf("setsocket success\n");
+
+以上两点，只改第1点，一个socket只会预留63个报文的接收缓冲；只改第2点，缓冲区大小会受到rmem_max的限制，如果需要的缓冲区很大的话，必须两点都改。    
+
+
+linux 查看SOCKET使用情况
+https://blog.csdn.net/zeweig/article/details/51760624
+
+
+# cat /proc/net/sockstat
+sockets: used 141
+TCP: inuse 93 orphan 0 tw 13 alloc 94 mem 19
+UDP: inuse 0 mem 0
+UDPLITE: inuse 0
+RAW: inuse 0
+FRAG: inuse 0 memory 0
+
+说明：
+sockets: used：已使用的所有协议套接字总量
+TCP: inuse：正在使用（正在侦听）的TCP套接字数量。其值≤ netstat –lnt | grep ^tcp | wc –l
+TCP: orphan：无主（不属于任何进程）的TCP连接数（无用、待销毁的TCP socket数）
+TCP: tw：等待关闭的TCP连接数。其值等于netstat –ant | grep TIME_WAIT | wc –l
+TCP：alloc(allocated)：已分配（已建立、已申请到sk_buff）的TCP套接字数量。其值等于netstat –ant | grep ^tcp | wc –l
+TCP：mem：套接字缓冲区使用量（单位不详。用scp实测，速度在4803.9kB/s时：其值=11，netstat –ant 中相应的22端口的Recv-Q＝0，Send-Q≈400）
+UDP：inuse：正在使用的UDP套接字数量
+RAW：
+FRAG：使用的IP段数量
+
+
+5G User Plane Function (UPF) - Performance with ASTRI
+https://builders.intel.com/docs/networkbuilders/5g-user-plane-function-upf-performance-with-astri-solution-brief.pdf
+
+
+UDP Socket接收缓冲区与netstat Recv-Q
+https://blog.csdn.net/test1280/article/details/79749210
+
+我们通常使用netstat查看网络的诸多状态，其中包含Send-Q与Recv-Q。
+
+我们知道：
+
+每一个Socket对象在系统中都被映射为一个Socket文件；
+每一个Socket对象在系统中都关联有两个内核缓冲区：一个接收缓冲区（读缓冲区），一个发送缓冲区（写缓冲区）；
+
+Send-Q：指代的是内核中Socket对应的发送缓冲区尚未发送完毕的字节数；
+Recv-Q：指代的是内核中Socket对应的接收缓冲区尚未被用户收走（read）而滞留在接收缓冲区的字节数；
+
+通常来说，setsockopt可以设置的缓冲区是系统设置的Socket最大缓冲区数值大小的一半。
+
+[udpdriver@eb6347 0329]$ cat /proc/sys/net/core/rmem_max
+131071
+系统内核设置的这个接收缓冲区大小值，就是udp socket默认的最大接收缓冲区值的一半。
+
+实际一个udp socket的接收缓冲区最大为：131071*2=262142.
+
+如果你够仔细，你会发现，Recv-Q的最大值，就是我们的udp内核接收缓冲区的实际值。
+无论发包多快，多大，在Recv-Q永远不会超过getsockopt得出的实际的udp socket内核接收缓冲区的max值。
+
+到此我们明白： getsockopt获取的接收缓冲区的大小，等价于在netstat中Recv-Q中可滞留在接收缓冲区数据的最大值。
+
+如果数据加入不到Recv-Q（内核读缓冲区）中，那内核就将其丢弃（特指udp）。 此时，我们应该考虑的是提高服务器的性能，而不是扩大接收缓冲区的大小。
+
+无论何时，应当保证你的消耗速率（从内核中将读缓冲区的数据读到用户态缓冲区）大于你的生产速率（内核收到来自网络的数据包，将其从网卡中写入内核的写缓冲区的速率）。
+
+接收缓冲区有堆积是一定有问题的，增大缓冲区并不能解决问题，要从服务器角度考虑，优化、增强其处理性能，快快地将接收缓冲区滞留的待读数据处理完毕。
+
+压力测试模拟程序（C实现）
+https://blog.csdn.net/test1280/article/details/79733708
+
+
+TCP/IP：连接服务器失败（错误原因：Connection refused）
+https://blog.csdn.net/test1280/article/details/80642847
+
+UDP数据包接收逻辑的优化修改以及对性能的影响
+https://blog.csdn.net/test1280/article/details/79779835
+
+UDP：Socket缓冲区大小修改与系统设置
+https://blog.csdn.net/test1280/article/details/79776938
+
+
+Linux：在非本机IP地址监听
+https://blog.csdn.net/test1280/article/details/106677327
+
+
+sklearn的一般流程，以鸢尾花分类为例
+https://blog.csdn.net/ycarry2017/article/details/85053217
+
+
+Python数据可视化实战——iris数据集可视化
+https://blog.csdn.net/weixin_39506322/article/details/82960476
+
+
+坡县生存指北V1.0
+https://cmgs.me/life/life-in-singapore
+
+
+用canvas实现对图片的处理 使用fileAPI
+https://blog.csdn.net/oliverpeng1521314/article/details/70820912
+
+
+canvas转换成file类型
+https://blog.csdn.net/Small_Pang/article/details/103661417
+
+
+html5 canvas 画板
+https://blog.csdn.net/zxlstudio/article/details/27996261
+
+【apache】Apache Rewrite url重定向功能的简单配置
+https://www.cnblogs.com/opensmarty/p/10875627.html
+
+微信支付的软件架构究竟有多牛逼...
+https://xie.infoq.cn/article/086068c020f124d49cdde5b6f
+
+
+FFT(快速傅里叶) c语言版
+https://blog.csdn.net/tuwenqi2013/article/details/71772841
+
+
+译体验｜Drift：2019 会话式营销体验报告
+https://zhuanlan.zhihu.com/p/89527284
+
+
+vue+websocket+express+mongodb实战项目（实时聊天）
+https://blog.csdn.net/blueblueskyhua/article/details/73250992
+https://blog.csdn.net/blueblueskyhua/article/details/70807847
+
+## 英语
+
+
+Web Animations API Now Supported in All Evergreen Browsers
+https://www.infoq.com/news/2020/06/web-animations-evergreen-browser/
+
+
+Microsoft Releases gRPC-Web for .NET
+https://www.infoq.com/news/2020/06/microsoft-releases-grpc-web-net/
+
+2nd Generation JavaScript Frameworks & Libraries: beyond Angular, React, and Vue!
+https://www.infoq.com/news/2020/06/second-generation-js-frameworks
+
+How does a TCP Reset Attack work?
+https://robertheaton.com/2020/04/27/how-does-a-tcp-reset-attack-work/
+
+
+50道CSS基础面试题（附答案）
+https://blog.csdn.net/weixin_34242509/article/details/88899834
+
+Visual studio code 扩展 ssh 连接失败：The "path" argument must be of type string. Received type undefined
+https://blog.csdn.net/mostone/article/details/103023476
+
+按 F1，输入 Remote-SSH: Settings，找到 Remote.SSH: Path，注意，不是 Remote.SSH: Config File。使用 Git 包内的 ssh 程序：C:\Program Files\Git\usr\bin\ssh.exe
+
+穷佐罗的Linux书
+https://zorrozou.github.io/
+
+
+Nginx配置SSL自签名证书
+https://www.cnblogs.com/thunderLL/p/9068254.html
+
+生成RSA密钥(过程需要设置一个密码,记住这个密码)
+$ openssl genrsa -des3 -out domain.key 1024
+
+拷贝一个不需要输入密码的密钥文件
+$ openssl rsa -in domain.key -out domain_nopass.key
+
+生成一个证书请求
+$ openssl req -new -key domain.key -out domain.csr
+这里会提示输入国家,地区组织,email等信息.最重要的一个是"common name",需要与网站域名相同.
+
+Enter pass phrase for domain.key:							# 之前设置的密码
+-----
+Country Name (2 letter code) [XX]:CN    					# 国家
+State or Province Name (full name) []:Jilin   				# 地区或省份
+Locality Name (eg, city) [Default City]:Changchun			# 地区局部名
+Organization Name (eg, company) [Default Company Ltd]:Python # 机构名称
+Organizational Unit Name (eg, section) []:Python			# 组织单位名称
+Common Name (eg, your name or your server's hostname) []:domain.com # 网站域名
+Email Address []:123@domain.com								# 邮箱
+A challenge password []:									# 私钥保护密码,可直接回车
+An optional company name []:								# 一个可选公司名称,可直接回车
+输入完这些就会生成一个domain.csr文件,提交给ssl提供商的时候就是这个csr文件.当然这里并没有向任何证书提供商申请,而是自己签发证书.
+
+使用上面的密钥和CSR对证书签名
+$ openssl x509 -req -days 365 -in domain.csr -signkey domain.key -out domain.crt
+
+
+我们知道硬盘的第一个扇区也就是第0扇区是用来存放主引导记录(MBR)的，因此也称MBR扇区。一个扇区是512字节，因此MBR的大小也是512字 节，其具体数据结构是：446个字节的引导代码、64个字节的分区表及2个字节的签名值"55AA"。由于MBR的分区表只有64个字节，这决定了它只能 存储4个分区记录。这就是为什么一块硬盘最多只能有4个“主分区"的原因。记住，“主分区”就是指记录在主引导记录MBR分区表中的分区，除此之外主分区 并无特别之处，但是过去的一些老操作系统往往不能安装在主分区之外的分区上，所以，主分区也贴上“专门用来安装操作系统”的标签。
+
+
+下面我们通过一个一块硬盘来说明它的具体操作：
+
+第一个主分区3G
+剩余分区都给扩展分区
+第一个逻辑卷分区2G
+第二个逻辑源用剩余空间
+
+
+第一个主分区3G
+
+parted -s /dev/sdb mklabel msdos
+parted -s /dev/sdb mkpart primary 0 3G
+剩余空间给扩展分区
+
+parted -s /dev/sdb mkpart entended 3 100%
+在扩展分区上创建第一个逻辑分区
+
+parted -s /dev/sdb mkpart logic 3G 5G
+创建第二个逻辑分区
+
+parted -s /dev/sdb mkpart logic 5G 100%            #100%代表使用剩余的所有空间
+查看分区大小
+
+parted -s /dev/sdb print
+Model: ATA QEMU HARDDISK (scsi)
+Disk /dev/sdb: 8590MB
+Sector size (logical/physical): 512B/512B
+Partition Table: msdos
+
+Number  Start   End     Size    Type      File system  标志
+ 1      512B    3000MB  3000MB  primary
+ 2      3001MB  8590MB  5589MB  extended               lba
+ 5      5000MB  8590MB  3590MB  logical
+
+mkpart primary 0% 100%
+
+
+使用Hyperf插入100万行数据到MongoDB，能行吗
+https://zhuanlan.zhihu.com/p/118599702
+
+
+mkpart primary 0% 100%
+
+Optimizing Web Servers for High Throughput and Low Latency
+https://www.nginx.com/blog/optimizing-web-servers-for-high-throughput-and-low-latency/
+
+查看软中断
+
+watch -d -n 1 'cat /proc/softirqs'
+
+查看中断号
+# cat /proc/interrupts | grep enp7s0
+  40:          0          0          0          0          0          0          0          0          0          0          0          0          0   49337017          0          0          0          0          0        206          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0   PCI-MSI 3670016-edge      enp7s0
+
+查看CPU亲缘性
+
+# cat /proc/irq/40/smp_affinity
+00,00002000
+
+
+apt install itop
+
+Nginx服务器上软中断过高问题如何解决？
+https://blog.csdn.net/lin443514407lin/article/details/72845436
+
+linux CPU SI软中断比较占用率比较大（网络解决方案）
+https://www.geek-share.com/detail/2680936183.html
+
+深入代码详谈irqbalance
+https://blog.csdn.net/whrszzc/article/details/50533866
+
+启用 irqbalance 服务，既可以提升性能，又可以降低能耗。
+irqbalance 用于优化中断分配，它会自动收集系统数据以分析使用模式，并依据系统负载状况将工作状态置于 Performance mode 或 Power-save mode。
+处于 Performance mode 时，irqbalance 会将中断尽可能均匀地分发给各个 CPU core，以充分利用 CPU 多核，提升性能。
+处于 Power-save mode 时，irqbalance 会将中断集中分配给第一个 CPU，以保证其它空闲 CPU 的睡眠时间，降低能耗
+
+Linux性能优化-CPU性能优化思路
+https://blog.csdn.net/hixiaoxiaoniao/article/details/85119650?utm_medium=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.edu_weight&depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.edu_weight
+
+Linux性能优化-上下文切换
+https://blog.csdn.net/hixiaoxiaoniao/article/details/84977592
+
+关于linux系统CPU篇--->上下文切换
+https://www.cnblogs.com/maxwellsky/p/10629753.html
+
+3.Linux中如何查看上下文切换？
+
+vmstat中cs, 表示每秒上下文切换的次数
+
+pidstat(pidstat -w 5),查看每个进程的上下文切换情况，cswch表示每秒自愿上下文切换次数，nvcswch表示每秒非自愿上下文切换的次数
+
+
+
+
+linux下怎么判断网卡速率？
+https://blog.csdn.net/liugongfeng/article/details/50263733
+
+ 一个类似命令mii-tool, 查看连接状态和速率
+# mii-tool enp7s0
+enp7s0: negotiated 100baseTx-FD flow-control, link ok
+
+# ethtool -i enp7s0
+driver: r8169
+version: 2.3LK-NAPI
+firmware-version: rtl8168h-2_0.0.2 02/26/15
+expansion-rom-version:
+bus-info: 0000:07:00.0
+supports-statistics: yes
+supports-test: no
+supports-eeprom-access: no
+supports-register-dump: yes
+supports-priv-flags: no
+
+查看 ulimit 是否生效
+# grep 'open files' /proc/$( cat /var/run/nginx.pid )/limits
+Max open files            100000               100000               files
+
+查看网卡是千兆还是百兆
+# ethtool enp7s0 | grep Speed
+        Speed: 100Mb/s
+# lspci -vvv | grep Ethernet
+07:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller (rev 15)
+        Subsystem: Realtek Semiconductor Co., Ltd. RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller
+
+
+# grep -Ev "^$|#" /etc/nginx/nginx.conf
+user www-data;
+worker_processes auto;
+worker_rlimit_nofile 1000000;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
+events {
+        worker_connections 90000;
+        use epoll;
+}
+http {
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 65;
+        types_hash_max_size 2048;
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+        ssl_prefer_server_ciphers on;
+        access_log off;
+        error_log /var/log/nginx/error.log;
+        gzip on;
+        include /etc/nginx/conf.d/*.conf;
+        include /etc/nginx/sites-enabled/*;
+}
+
+# grep -Ev "^$|#" /etc/nginx/sites-enabled/default
+
+server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+        location /hello {
+            default_type text/html;
+            return 200 'hello world.\n';
+        }
+        root /var/www/html;
+        index index.html index.htm index.nginx-debian.html;
+        server_name _;
+        location / {
+            try_files $uri $uri/ =404;
+        }
+}
+
+基本信息
+
+    - 机器40核64G内存
+    - client和server在同一交换机下
+
+优化过程
+
+    默认 ./wrk -t12 -c400 -d30s http://192.168.1.47/hello
+        Requests/sec:  47604.41
+    use epoll;
+        Requests/sec:  47579.03
+    worker_processes 80; 后续已回滚
+        Requests/sec:  47596.85
+    ulimit -n 100000
+        Requests/sec:  47599.63
+    worker_connections 90000;
+        Requests/sec:  47613.81
+    worker_rlimit_nofile 90000;
+        Requests/sec:  47574.34
+    ulimit -n 90000
+        Requests/sec:  47604.38
+    本机对本机
+        Requests/sec:  120041.18
+    关闭 nginx access log
+        Requests/sec: 434150.34
+    提高线程数 ./wrk -t20 -c400 -d30s http://192.168.1.47/hello
+        Requests/sec: 536025.43
+
+结论
+
+    1、client和server不在同一机器时要考虑链路层线速限制，如网卡，交换机，网线的理论带宽。
+    2、关闭日志可以大幅提高性能，大约提升4倍qps
+    3、加大客户端线程数和并发数可以提高 qps，但 Latency 会提高
+    4、中断、上下文切换、slab 基本无需优化，系统默认配置不是瓶颈。

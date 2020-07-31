@@ -7,6 +7,7 @@ const widgets = [
     require('./datatable'),
     require('./barchart'),
     require('./scatterchart'),
+    require('./kmeans'),
 ];
 
 const widgetMap = widgets.reduce((pre, cur) => { pre[cur.type] = cur; return pre; }, {});

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="renderer" content="webkit">	
+    <title>艾氪森网站首页</title>
+    <style>
+        body {
+            /* 去掉边框和填充，防止整体有白边 */
+            margin: 0;
+            padding: 0;
+            background-color: #F0F0F0;
+            /* 设置全局字体 */
+            font: 14px 'Microsoft Yahei', Arial, Helvetica, sans-serif;
+        }
+
+        /* 顶部小蓝条 */
+        .topbar {
+            height: 3px;
+            background-color: blue;
+        }
+
+        /* 居中容器 */
+        .container {
+            width: 1080px;
+            /* 块元素水平居中 */
+            margin: 0 auto;
+        }
+
+        /* begin header */
+        .header {
+            background-color: #1878CE;
+        }
+
+        /* header 居中容器 */
+        .header .container {
+            /* 设置高度*/
+            height: 120px;
+
+            /* 设置行高，是内部的行元素垂直居中  */
+            line-height: 120px;
+
+            /* 触发 BFC，防止内部浮动元素塌陷 */
+            overflow: hidden;
+
+            /* 承当内部绝对定位元素的父容器 */
+            position: relative;
+        }
+
+        /* 左侧 logo 容器，可放多个浮动图片 */
+        .header .imgs {
+            float: left;
+        }
+
+        .header img {
+            /* 垂直居中，需要父容器设置行高，只有行元素支持 */
+            vertical-align: middle;
+
+            /* 多个图片间增加水平间隔 */
+            margin-right: 20px;
+        }
+
+        /* 右侧搜索条容器 */
+        .header .box {
+            /* 针对父容器做绝对定位 */
+            position: absolute;
+
+            /* 靠父容器右侧 */
+            right: 0;
+
+            /* 设置本容器高度 */
+            height: 30px;
+
+            /* 在父容器垂直居中，负 margin 为本身高度的一般  */
+            top: 50%;
+            margin-top: -15px;
+        }
+
+        /* 搜索条分左右两个浮动 span 做容器，以让左右紧挨在一起 */
+        .header .box span {
+            float: left;
+            /* 高度为父容器高度， 浮动元素高度会塌陷为 0  */
+            height: 100%;
+            /* 每个 span 作为 input 绝对定位的容器 */
+            position: relative;
+        }
+
+        /*  span 内的 输入框绝对定位，顶部对齐，高度和容器相同 */
+        .header .box input {
+            border: 0 none;
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 100%;
+
+            /* 让光标垂直居中，默认 IE 7 下光标在顶部闪烁，这里不能使用百分比 */
+            line-height: 30px;
+        }
+
+        /* 输入框容器，设定宽，子元素宽度 100% 继承容器宽度 */
+        .header .box .span1 {
+            width: 150px;
+        }
+
+        /* 按钮容器，设置宽，子元素宽度 100%  继承容器宽度*/
+        .header .box .span2 {
+            width: 50px;
+        }
+
+        .header .box .input {
+            /* 防止输入框多出 1 像素 */
+            padding: 0;
+        }
+
+        /* 导航条 */
+        .nav {
+            background-color: blueviolet;
+        }
+
+        .nav ul {
+            /* 去掉序号和边距 */
+            list-style: none;
+            padding: 0;
+
+            /* 防止浮动子元素塌陷 */
+            overflow: hidden;
+        }
+
+        /* 子元素浮动，实现水平扩展，高宽由子元素撑开 */
+        .nav ul li {
+            float: left;
+        }
+
+        .nav ul a {
+            /* 行元素变为块元素并设置高宽 */
+            display: block;
+            width: 100px;
+            height: 50px;
+            line-height: 50px;
+
+            /* 设置字号，颜色，对齐，去掉下划线 */
+            color: #fff;
+            text-align: center;
+            font-size: 18px;
+            text-decoration: none;
+        }
+
+        /* 设置激活状态和 hover 状态 */
+        .nav ul a:hover,
+        .nav ul .active {
+            background: #fff;
+            color: #000;
+        }
+
+        /* 面包屑 */
+        .breadcrumb {
+            /* 去掉默认的边距，填充和序号 */
+            margin: 0;
+            padding: 0;
+            list-style: none;
+
+            /* 防止浮动子元素塌陷 */
+            overflow: hidden;
+        }
+
+        .breadcrumb li {
+            /* 子元素浮动 */
+            float: left;
+
+            /* 设置高，默认塌陷，宽度由内容自动撑开 */
+            line-height: 30px;
+            height: 30px;
+
+            /* 防止挤在一起 */
+            margin-right: 5px;
+        }
+
+        .breadcrumb li a {
+            /* 去掉默认下划线 */
+            text-decoration: none;
+        }
+
+        /* 主体区域，实现左右等高布局 */
+        .wrap {
+            /* 作为绝对定位子元素的容器 */
+            position: relative;
+        }
+
+        /* 左侧绝对布局，脱离文档流，高度通过 top bottom 自适应父容器，宽度固定 */
+        .wrap .left {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 200px;
+
+            /* 装饰属性 */
+            background-color: #F7F7F7;
+            border: 1px solid #D8D8D8;
+        }
+
+        /* 右侧默认文档流 */
+        .wrap .right {
+
+            /* 左侧填充 left 的宽度加间距，防止内容被遮住 */
+            /* 顶部填充 1 像素是防止内部 margin 溢出到容器外侧 */
+            padding: 1px 20px 20px 220px;
+
+            /* 宽度自适应，（content+margin+padding+border）为父元素的宽度，不需要设置和模型和 100% 宽度 */
+            width: auto;
+
+            /* 设置最小高度，当没内容时，不会塌陷，后三行为兼容旧浏览器 */
+            min-height: 500px;
+            height: auto !important;
+            height: 500px;
+            overflow: visible;
+
+            /* 装饰类属性 */
+            background-color: #fff;
+        }
+
+        /* 主题内容设置 */
+        .wrap .right p {
+            line-height: 2em;
+            font-size: 16px;
+            text-indent: 2em;
+        }
+
+        /* 左侧垂直菜单 */
+        .wrap .left ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .wrap .left li a {
+            /* 布局相关 */
+            display: block;
+            height: 50px;
+            line-height: 50px;
+
+            /* 装是相关 */
+            color: #000;
+            text-decoration: none;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* hover 效果 */
+        .wrap .left li a:hover {
+            background: #fff;
+        }
+
+        /* 底部 footer  */
+        .footer {
+            background-color: #3D3C42;
+            color: #7E8C99;
+            text-align: center;
+
+            padding: 20px;
+            height: 50px;
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <!--[if lt IE 9]>
+        <script>function close_ie_tips() {var div = document.getElementById('ie_tips');div.parentNode.removeChild(div);}</script>
+        <div id="ie_tips" style="text-align: center;position: absolute; left:0; top:0;background-color:#f9f947;line-height: 25px;width: 100%;height: 25px;text-indent: 2em; overflow: hidden; font-size: 12px; ">您正在使用老版本 Internet Explorer ,在本页面的显示效果可能有差异或导致部分页面无法正常使用,建议您升级到 <a href="http://www.microsoft.com/china/windows/internet-explorer/" target="_blank">Internet Explorer 9</a>或以上浏览器。<span onclick="close_ie_tips()" style="margin-right: 20px; float: right; font-size:18px;color:#919191;cursor: pointer;">×</span></div>
+    <![endif]-->
+
+    <div class="topbar"></div>
+    <div class="header">
+        <div class="container">
+            <div class="imgs">
+                <img src="https://news.fudan.edu.cn/_upload/site/00/03/3/logo.png" alt="">
+            </div>
+            <div class="box">
+                <span class="span1">
+                    <input type="text" class="input">
+                </span>
+                <span class="span2">
+                    <input type="button" value="搜索" class="button">
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav">
+        <ul class="container">
+            <li>
+                <a class="active" href="">首页</a>
+            </li>
+            <li>
+                <a href="">基本情况</a>
+            </li>
+            <li>
+                <a href="">师资队伍</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <ol class="breadcrumb">
+            <li>当前位置：</li>
+            <li>
+                <a href="">首页</a>
+            </li>
+            <li>></li>
+            <li>师资队伍</li>
+        </ol>
+
+        <div class="wrap">
+            <div class="left">
+                <ul>
+                    <li>
+                        <a href="">教改项目</a>
+                    </li>
+                    <li>
+                        <a href="">精品课程</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="right">
+                <h1>疫情下，留美学子应当这样做好自我管理</h1>
+                <p>近日，复旦大学承办的“教育部留美学子线上健康咨询和诊疗服务平台”系列讲座第二场——“新冠疫情下的自我管理：个人防护和心理管理”在复旦大学上海医学院治道楼和汉堂开讲。复旦大学附属中山医院感染病科主任胡必杰教授和心理医学科主任季建林教授分别从医学防护和心理调节的角度为在海外的广大留学生们提供了防疫抗疫应对建议。本场讲座由复旦大学附属中山医院副院长仓静主持。
+                </p>
+                <p>仓静在讲座开场之前简要介绍了平台成立的背景，回顾了5月29日平台启动仪式上由张文宏教授主讲的首场讲座及其引起的热烈反响，以及中山医院在此次防疫战疫中所作出的积极贡献。</p>
+                <p>近日，复旦大学承办的“教育部留美学子线上健康咨询和诊疗服务平台”系列讲座第二场——“新冠疫情下的自我管理：个人防护和心理管理”在复旦大学上海医学院治道楼和汉堂开讲。复旦大学附属中山医院感染病科主任胡必杰教授和心理医学科主任季建林教授分别从医学防护和心理调节的角度为在海外的广大留学生们提供了防疫抗疫应对建议。本场讲座由复旦大学附属中山医院副院长仓静主持。
+                </p>
+                <p>仓静在讲座开场之前简要介绍了平台成立的背景，回顾了5月29日平台启动仪式上由张文宏教授主讲的首场讲座及其引起的热烈反响，以及中山医院在此次防疫战疫中所作出的积极贡献。</p>
+                <p>近日，复旦大学承办的“教育部留美学子线上健康咨询和诊疗服务平台”系列讲座第二场——“新冠疫情下的自我管理：个人防护和心理管理”在复旦大学上海医学院治道楼和汉堂开讲。复旦大学附属中山医院感染病科主任胡必杰教授和心理医学科主任季建林教授分别从医学防护和心理调节的角度为在海外的广大留学生们提供了防疫抗疫应对建议。本场讲座由复旦大学附属中山医院副院长仓静主持。
+                </p>
+                <p>仓静在讲座开场之前简要介绍了平台成立的背景，回顾了5月29日平台启动仪式上由张文宏教授主讲的首场讲座及其引起的热烈反响，以及中山医院在此次防疫战疫中所作出的积极贡献。</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="container">&copy; 2020 All rights reserved.</div>
+    </div>
+</body>
+
+</html>

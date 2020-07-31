@@ -47,6 +47,7 @@ Node.prototype.dblclick = function () {
     }
 
     const {dataset, fields, classes, classLabels } = ret;
+    console.log(111, classes, classLabels);
     $('#detail-box').html('<div class="chart-tools"></div><div id="main" style="width:100%;height:500px"></div>');
     this.vue = new AppClass({ data: {
         dataset: dataset,

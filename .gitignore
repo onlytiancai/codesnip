@@ -1,9 +1,3 @@
-*.o
-*.pyc
-*.log
-*.out
-*.swp
-node/mydb/
 *.ipynb
 *.o
 *.pyc
