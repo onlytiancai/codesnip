@@ -757,6 +757,12 @@ How to set up Spark on Windows?
 https://stackoverflow.com/questions/25481325/how-to-set-up-spark-on-windows
 
 
+https://segmentfault.com/a/1190000000578037
+
+git config --global i18n.commitencoding utf-8
+git config --global i18n.logoutputencoding utf-8
+export LESSCHARSET=utf-8
+
 Best way to find if an item is in a JavaScript array? [duplicate]
 https://stackoverflow.com/questions/143847/best-way-to-find-if-an-item-is-in-a-javascript-array
 后台管理UI的选择
@@ -6202,6 +6208,10 @@ run
 l
 q
 
+[3556306.638909] segfault3[17334]: segfault at 5607116686a4 ip 000056071166860d sp 00007ffdd874bd50 error 7 in segfault3[560711668000+1000]
+objdump -d ./segfault3 > segfault3Dump
+ grep -n -A 10 -B 10 "80484e0" ./segfault3Dump 
+ 
 $ dmesg | tail
 [1042578.029167] segfault3[30141]: segfault at 5560947426a4 ip 000055609474260d sp 00007ffcd856e2f0 error 7 in segfault3[556094742000+1000]
 $ python3 -c "print((0x000055609474260d-0x556094742000).to_bytes(4, 'big').hex())"
@@ -6256,6 +6266,11 @@ nginx[31752]: segfault at 0 ip 000000000047c0d5 sp 00007fff688cab40 error 4 in n
 一次segfault错误的排查过程
 https://blog.csdn.net/zhaohaijie600/article/details/45246569
 
+xxxxx.o[2374]: segfault at7f0ed0bfbf70 ip 00007f0edd646fe7 sp 00007f0ed3603978 error 4 inlibc-2.17.so[7f0edd514000+1b6000]
+7f0ed0bfbf70，00007f0edd646fe7，00007f0ed3603978这三个值：第一个值为出错的地址，用处不大；第二个值为发生错误时指令的地址，这个值在有些错误时是错误的，下面会讲一下，第三个值为堆栈指针。
+
+C++段错误就几类，读写错误，这个主要是参数没有控制好，这种错误比较常见，我们经常把NULL指针、未初始化或非法值的指针传递给函数，从而引出此错误；指令地址出错，这类错误主要是由虚函数，回调函数引起，最常出现的是虚函数，由于虚函数保存在类变量中，如果不小心用了非安全函数，就可能把虚数指针覆盖掉，从而影响出现错误。但指令地址出错的情况相对参数出错来讲还是要少很多的，因为用到此功能的还是需要一定的水平的，不容易犯一些低级错误。
+
 xxxxx.o[2374]: segfault at 7f0ed0bfbf70 ip 00007f0edd646fe7 sp 00007f0ed3603978 error 4 inlibc-2.17.so[7f0edd514000+1b6000]
 
 1、从libc-2.17.so[7f0edd514000+1b6000]可以看出错误发生在libc上，libc在此程序中映射的内存基址为7f0edd514000，这个信息是个坏消息，这个so上的东西太多了；
@@ -6274,8 +6289,6 @@ bit0: 值为1表示没有足够的权限访问非法地址的内容，值为0表
 C++段错误就几类，读写错误，这个主要是参数没有控制好，这种错误比较常见，我们经常把NULL指针、未初始化或非法值的指针传递给函数，从而引出此错误；指令地址出错，这类错误主要是由虚函数，回调函数引起，最常出现的是虚函数，由于虚函数保存在类变量中，如果不小心用了非安全函数，就可能把虚数指针覆盖掉，从而影响出现错误。但指令地址出错的情况相对参数出错来讲还是要少很多的，因为用到此功能的还是需要一定的水平的，不容易犯一些低级错误。
 
 从上面分析的第二点来看，基本上属于读写错误，但从六七万行代码找出问题，可能性不大，只能缩小范围，我决定从上面提到的三点，找到出错的函数，然后再从代码中找出所有出错函数调用的地方来定位问题。由于错误指出出错的组件为libc，而且基本上是参数出现，所以发现错误的指令地址应该是可信的，我们可以根据指令地址查出是哪个函数。指令地址为：00007f0edd646fe7 ，libc指令的基地址为：7f0edd514000，可以根据这两个值计算一下该指令的相对地址为132FE7，下面我们需要找到相对代码段地址为132FE7的地方为什么函数。
-
-catchsegv ./segfault3
 
 Backtrace:
 ./segfault3(+0x60d)[0x56022e68960d]
