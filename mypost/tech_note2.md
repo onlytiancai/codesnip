@@ -5211,6 +5211,30 @@ filetype plugin indent on
 autocmd FileType html colorscheme default | set fdm=indent nofoldenable
 autocmd BufNewFile,BufRead *.html,*.htm,*.css,*.js set noet ts=2 sw=2
 
+--
+set nocp nu ts=4 sw=4 et sta hls si
+autocmd BufNewFile,BufRead *.html,*.htm,*.css,*.js set noet ts=2 sw=2
+
+call plug#begin()
+Plug 'majutsushi/tagbar'
+Plug 'ctrlpvim/ctrlp.vim'
+Plug 'tacahiroy/ctrlp-funky'
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
+call plug#end()
+
+set tags=tags;
+noremap <F6> :!ctags -R<CR>
+nnoremap <silent> <F9> :TagbarToggle<CR>
+nnoremap <leader>. :CtrlPTag<cr>
+nnoremap <Leader>fu :CtrlPFunky<Cr>
+
+colorscheme darkblue
+
+set noeb
+set vb t_vb=
+
+
 3，屏幕滚动：
 
 按键 操作描述
@@ -12352,6 +12376,8 @@ https://mirrors.cloud.tencent.com/ubuntu-cdimage/
 Ubuntu更换apt源之arm版
 https://blog.csdn.net/zong596568821xp/article/details/90604966
 
+arm64
+ubuntu20.04
 deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal main multiverse restricted universe
 deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-security main multiverse restricted universe
 deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-updates main multiverse restricted universe
@@ -12360,6 +12386,17 @@ deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal main multiverse 
 deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-security main multiverse restricted universe
 deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-updates main multiverse restricted universe
 deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ focal-backports main multiverse restricted universe
+
+ubuntu18.04
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ bionic main multiverse restricted universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ bionic-security main multiverse restricted universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ bionic-updates main multiverse restricted universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ bionic-backports main multiverse restricted universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ bionic main multiverse restricted universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ bionic-security main multiverse restricted universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ bionic-updates main multiverse restricted universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ bionic-backports main multiverse restricted universe
+
 
 arm ubuntu
 apt-get install -y mysql-server php7.4-fpm php7.4-mysql php7.4-gd php7.4-curl php7.4-intl php7.4-mbstring php7.4-xml php7.4-zip php-redis
@@ -12512,8 +12549,22 @@ python3 -m pip install /tmp/tensorflow-1.4.0rc0-cp35-cp35m-linux_aarch64.whl
 https://github.com/WalterInSH/risk-management-note
 
 
-https://askubuntu.com/questions/473037/how-to-permanently-disable-sleep-suspend
+禁止休眠
+[Linux Tips] Disable Suspend And Hibernation
+https://www.ostechnix.com/linux-tips-disable-suspend-and-hibernation/
+
+systemctl status sleep.target suspend.target hibernate.target hybrid-sleep.target
+sudo systemctl restart systemd-logind.service
 sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
+
+sudo nano /etc/systemd/logind.conf
+[Login]
+HandleLidSwitch=ignore
+HandleLidSwitchDocked=ignore
+
+
+man logind.conf
+
 
 
 线性近似和二阶近似
@@ -13193,3 +13244,488 @@ server {
     2、关闭日志可以大幅提高性能，大约提升4倍qps
     3、加大客户端线程数和并发数可以提高 qps，但 Latency 会提高
     4、中断、上下文切换、slab 基本无需优化，系统默认配置不是瓶颈。
+
+
+多队列网卡简介
+https://blog.csdn.net/turkeyzhou/article/details/7528182
+
+网卡多队列技术与RSS功能介绍
+https://blog.csdn.net/baidu_24553027/article/details/54927724
+
+Linux 内核中断内幕
+https://www.ibm.com/developerworks/cn/linux/l-cn-linuxkernelint/
+
+[转]再转载一篇关于SMP IRQ affinity的好文章(包含RPS/RFS)
+https://www.cnblogs.com/Bozh/archive/2013/03/21/2973769.html
+
+[原]tornado 源码分析系列目录
+https://www.cnblogs.com/Bozh/archive/2012/07/22/2603976.html
+
+[原] KVM 虚拟化原理探究 —— 目录
+https://www.cnblogs.com/Bozh/p/5788431.html
+Choosing Colormaps in Matplotlib
+https://matplotlib.org/3.2.2/tutorials/colors/colormaps.html
+
+
+MySQL 千万 级数据量根据（索引）优化 查询 速度
+https://www.cnblogs.com/phpdragon/p/8231533.html
+
+相同点：
+
+1.都是B+树的底层实现。
+2.WHERE条件都符合索引最左匹配原则。
+
+不同点：
+
+1.MyISAM的存储文件有三个，frm、MYD、MYI 文件；InnoDB的存储文件就两个，frm、ibd文件。总文件大小InnoDB引擎占用空间更小。
+2.InnoDB的存储文件本身就是索引构成，建立新索引的时间比MyISAM快。
+3.MyISAM比InnoDB查询速度快，插入速度也快。
+4.主键区间查询，InnoDB查询更快。字符串区间查询，MyISAM相对更快。
+5.有A、AB、ABC索引的情况下，A OR B 查询，InnoDB查询性能比MyISAM慢。不建议使用OR 条件进行查询。
+6.InnoDB表没有命中到 A、B、C 索引最左原则时，BC组合查询命中了索引，但还是完全扫描，比全表扫描快些。MyISAM是全表扫描。
+
+ALTER TABLE `test_user` ADD INDEX index_name(username) ;
+ALTER TABLE test_user_innodb ENGINE=InnoDB;
+
+配置40核64G内存SSD硬盘。
+
+# 创建 test 表，只有一个 int 列，为加快插入速度，引擎用 myisam，且不加索引
+CREATE TABLE `test` (
+  `id` int(11) NOT NULL
+) ENGINE=myisam;
+
+# 插入 1 亿条数据
+DROP PROCEDURE if exists test_while_001;
+
+delimiter $$
+CREATE PROCEDURE test_while_001(in max int)
+BEGIN
+    DECLARE i INT DEFAULT 1;
+    WHILE i < max DO
+
+        INSERT INTO `test` VALUES(i);
+        SET i=i+1;
+
+        if MOD(i, 1000) = 0 then
+            select i;
+        end if;
+    END WHILE;
+end
+$$
+DELIMITER ;
+
+call test_while_001(100000000);
+insert into test values(100000000);
+
+# 查看表的数据
+show table status from test LIKE 'test'\G
+
+# 增加索引并查看
+ALTER TABLE test ADD PRIMARY KEY(id);
+show index from test\G
+
+# 测试随机查询速度
+set @var=round(RAND() * 100000000);select id from test where id > @var limit 10;
+
+# 切换到 innodb ，重新测试
+ALTER TABLE test ENGINE=InnoDB;
+set @var=round(RAND() * 100000000);select id from test where id > @var limit 10;
+
+create procedure myproc()
+begin
+    declare num int;
+    set num=1;
+    while num <= 100000000 do
+        insert into test_user(username,email,password) values(CONCAT('username_',num), CONCAT(num ,'@qq.com'), MD5(num));
+        set num=num+1;
+          if MOD(num, 10000) = 0 then
+           select num;
+         end if;
+
+    end while;
+end
+
+ALTER TABLE test_user ADD  KEY idx_username(username);
+show indexes from test_user;
+
+select
+table_schema as '数据库',
+table_name as '表名',
+table_rows as '记录数',
+truncate(data_length/1024/1024, 2) as '数据容量(MB)',
+truncate(index_length/1024/1024, 2) as '索引容量(MB)'
+from information_schema.tables
+where table_schema='test'
+order by data_length desc, index_length desc;
+
+
+set @var=round(RAND() * 100000000);select SQL_NO_CACHE * from test_user where username > concat('username_', @var) limit 10;
+
+iostat -d -x  --human 1 sda
+
+
+【mysql】基于mysql数据库的分布式锁
+https://blog.csdn.net/lovexiaotaozi/article/details/83819916
+
+集群环境下如何防止定时任务重复执行？
+https://blog.csdn.net/iteye_11495/article/details/82649022
+
+
+OUTPUT Clause in MySQL
+https://stackoverflow.com/questions/5817414/output-clause-in-mysql
+
+    sql server
+        UPDATE       employee
+        SET          empage = 10
+        OUTPUT       INSERTED.empid
+        WHERE        (empage < 10)
+
+    mysql 
+        START TRANSACTION;
+
+        SELECT * FROM table WHERE id = 1 FOR UPDATE; -- lock rows
+        -- Or call this select to insert and lock rows
+        -- INSERT INTO table_output SELECT * FROM table WHERE id = 1 FOR UPDATE;
+
+        -- Make modifications
+        UPDATE table SET column1 = '111' WHERE id = 1;
+
+        COMMIT;
+
+分布式事务：Saga模式
+https://www.jianshu.com/p/e4b662407c66
+
+
+https://nginxproxymanager.com/
+Expose your services easily and securely
+
+
+利用WebSocket和EventSource实现服务端推送
+https://www.jianshu.com/p/958eba34a5da
+
+nodejs中安装webpack的简单使用
+https://www.cnblogs.com/sylvia-Camellia/p/9970718.html
+
+用 NodeJs 来启动 webpack
+https://www.jianshu.com/p/0878e893c8f8
+
+千万级WebSocket消息推送服务技术分析
+https://blog.csdn.net/Wing_93/article/details/81587809
+
+
+Netty单机百万连接及优化
+https://blog.csdn.net/Wing_93/article/details/81676314
+
+
+paymaent https://gitee.com/helei112g/payment
+
+Payment 的目的是简化大家在对接主流第三方时需要频繁去阅读第三方文档，还经常遇到各种问题。Payment 将所有第三方的接口进行了合理的建模分类，对大家提供统一的接入入口，大家只需要关注自身业务并且支付系统设计上。目前已经集成：支付宝、微信、招商绝大部分功能。
+
+我们应该有一套怎样的Scratch 3.0与Python教学系统？
+https://www.wecoding.com.cn/workbench/
+
+
+redis 主从、哨兵(sentinel)和集群(cluster)简介和区别
+http://www.chenxm.cc/article/74.html
+
+主从复制的作用
+
+- 数据冗余：主从复制实现了数据的热备份，是持久化之外的一种数据冗余方式。
+- 故障恢复：当主节点出现问题时，可以由从节点提供服务，实现快速的故障恢复；实际上是一种服务的冗余。
+- 负载均衡：在主从复制的基础上，配合读写分离，可以由主节点提供写服务，由从节点提供读服务（即写Redis数据时应用连接主节点，读Redis数据时应用连接从节点），分担服务器负载；尤其是在写少读多的场景下，通过多个从节点分担读负载，可以大大提高Redis服务器的并发量。
+- 读写分离：可以用于实现读写分离，主库写、从库读，读写分离不仅可以提高服务器的负载能力，同时可根据需求的变化，改变从库的数量；
+- 高可用基石：除了上述作用以外，主从复制还是哨兵和集群能够实施的基础，因此说主从复制是Redis高可用的基础。
+
+Redis哨兵(Sentinel) 顾名思义Sentinel充当了Redis主从实例的守卫者，是构成Redis高可用的一个重要组成部分，其主要作用如下：
+
+- 集群监控，负责监控redis master和slave进程是否正常工作
+- 消息通知，如果某个redis实例有故障，那么哨兵负责发送消息作为报警通知给管理员
+- 故障转移，如果master node挂掉了，会自动转移到slave node上
+- 配置中心，如果故障转移发生了，通知client客户端新的master地址
+
+华为NE5000E-NE80E-NE40E产品介绍
+https://wenku.baidu.com/view/4353d949767f5acfa1c7cd48.html
+
+Dell EMC SC7020
+http://detail.zol.com.cn/nas_networkstorage/index1231392.shtml
+
+[译]针对 Redis on Flash 优化RocksDB
+https://zhuanlan.zhihu.com/p/55660106
+
+我所理解的分布式系统
+http://www.ideawu.net/blog/archives/1128.html
+
+常见的伪分布式
+无分区(争议)
+只有多副本算不算分布式?
+无协作
+全世界独立运行的 MySQL 组成了一个分布式关系数据库集群吗?
+有人说 World Wide Web 是一个分布式系统
+客户端自己分布式就是伪分布式
+DBA 部署了2个独立的 Redis, 宣称是分布式 Redis 集群, 但要求业务部门自己把数据写到不同的实例…
+DBA 部署了4个独立的 Redis, 除了要求业务部门自己拆分数据, 还要求业务部门自己写两个副本…
+真分布式和伪分布式之间有模糊地带
+
+
+react-redux实践
+https://www.jianshu.com/p/b872ec0f3f5c
+
+<!--pages/home/index.tsx-->
+import React, { Component } from 'react';
+import './index.css'
+import { incrementAction, reduceAction } from '../reducers/calculate';
+import { connect } from 'react-redux';
+
+<!--定义Home的属性-->
+interface Props {
+    num: number,
+    increment: ()=>any,
+    decrement: ()=>any,
+}
+
+<!--从全局state中拿数据设置到Home的props-->
+const mapStateToProps = (state: any) => {
+    return {
+      num: state.calculate.num
+    };
+  };
+
+const mapDispatchToProps = (dispatch: any) => ({
+    increment: () => dispatch(incrementAction),
+    decrement: () => dispatch(reduceAction)
+});
+
+<!--组件链接到redux的store-->
+@(connect( mapStateToProps, mapDispatchToProps, ) as any)
+export default class Home extends Component<Props, any> {
+    render() {
+        return <div className='container'>
+            <p onClick={this.props.increment}>click to increment num</p>
+            <p onClick={this.props.decrement}>click to decrement num</p>
+            <p>{this.props.num}</p>
+        </div>
+    }
+}
+
+
+c++11:基于STL实现字符串分割更简单 wstring,string split
+https://blog.csdn.net/10km/article/details/80193880?utm_source=blogxgwz1
+
+
+跟简七学理财完整版视频教程
+http://www.xg51.net/video-down.asp?id=646
+
+How to create an OS from scratch! 操作系统
+https://github.com/cfenollosa/os-tutorial
+Let's Build a Simple Database 数据库
+Writing a sqlite clone from scratch in C
+https://github.com/cstack/db_tutorial
+
+
+Behaviour Driven Development for Ruby.  Making TDD Productive and Fun.
+http://rspec.info/
+
+Teaching 在线教学平台
+https://github.com/open-scratch/teaching
+
+
+http://www.liyblog.top/p/22.html
+
+1.更高效的利用系统资源
+
+docker对系统资源的利用率更高，无论是应用执行速度，内存损耗或者文件存储速度，都要比传统虚拟机技术更高效。因此，相比虚拟机技术，一个相同配置的主机往往可以运行更多数量的应用。
+
+2.更快速的启动时间
+
+传统的虚拟机技术启动应用服务往往需要数分钟，而docker容器应用，由于直接运行于宿主内核，无需启动完整的操作系统，因此可以做到秒级，甚至毫秒级的启动时间，大大的节约了开发测试，部署的时间。
+
+3.一致的运行环境
+
+开发过程中常见的一个问题是环境一致问题，由于开发环境，测试环境，生产环境不一致，导致有些bug并未在开发过程中发现。而docker的镜像提供了除内核外完整的运行时环境，确保环境一致性，从而不会在出现“这段代码在我机器上没问题”这类问题。
+
+4.持续支付和部署
+
+对开发和运维人员来说，最希望就是一次创建和部署，可以在任意的地方运行。（定制应用镜像来实现集成、持续支付、部署。开发人员可以通过dockerfile来进行镜像构建，并结合持续集成系统进行集成测试，而运维人员则可以直接在生产环境中快速部署该镜像，甚至结合持续部署系统进行自动部署）。而且使用dockerfile使镜像构建透明化，不仅仅开发团队可以理解应用运行环境，也方便运维团队理解应用运行所需条件，帮助更好的生产环境中部署该镜像。
+
+5.更轻松的迁移
+
+由于docker确保了执行环境的一致性，使得应用的迁移更加的容易。docker可以在很多平台上运行，无论是物理机、虚拟机、公有云、私有云、甚至是笔记本、其运行结果是一致的。因此用户可以很轻易的将在一个平台上运行的应用，迁移到另一个平台上，而不用担心运行环境的变化导致应用无法正常运行的情况。
+
+6.更轻松的维护和拓展
+
+docker使用的分层存储以及镜像的技术，使得应用重复部分的复用更为容易，也使得应用的维护更新更加简单，基于基础镜像进一步扩展镜像也变得十分简单。此外，docker团队同各个开源项目团队一起维护了一大批高质量的官网镜像，既可以直接在生产环境使用，又可以作为基础进一步定制，大大的降低了应用服务的镜像制作成本。
+
+链接：https://www.jianshu.com/p/3de740409bcc
+
+http://www.news1.ldu.edu.cn/info/1131/46304.htm
+https://www.ytu.edu.cn/xxyw/7351.jhtml
+http://www.ytvc.edu.cn/info/1026/2987.htm
+
+少儿编程
+
+http://official.bellcode.com/business
+https://www.wecoding.com.cn/workbench/
+
+在线代码测试
+https://c.runoob.com/compile/12
+
+推荐看：纪录片《富豪谷底求翻身》，
+讲述了一位亿万富翁来到一个完全陌生的城市，
+用100美元在90天内打造一家估值百万美元的公司的故事。
+
+下面是转载自知乎的一篇从《富豪谷底求翻身》纪录片中总结的金句和创业经验，与大家共勉。
+
+1、到任何地方先搞清楚生活成本，设立目标赚到生活开支
+2、看清楚自己身边现有的资源什么能够赚钱3、宣传、推广，广告、就像钓鱼，在水里撒的线越多鱼儿就越有机会上钩
+4、时间就是金钱，每花一分钟心力营生就少一分钟经营事业
+5、认清自己的优势与弱点，有很多赚钱的工作、买卖，但是你不具备条件
+6、尽快脱离生存模式，最佳的是选择是有工作做，有东西卖
+7、毕生信奉的买卖原则就是先找到买家，其他的水到渠成
+8、找到买家再按照需求出售
+9、找到商机就是热销产品与垃圾产品的区别
+10、别人眼中的垃圾就是你眼中的宝
+11、很多时候大家扔掉的东西都很值钱
+12、任何时候都要想着置换
+13、人一惊慌就容易太早放弃，错失很多机会14、拿着产品去地推或者去销售不能见人就问，这样会违反先找买家原则
+15、生存的压力越来越大，但是想要前进就得坚持，不然我永远别想翻身
+16、不要做无用功
+17、努力创业活出自我，活出美国梦
+18、创业不是为了证明什么，只是用对了方法，会给很多人带来正面的影响
+19、口袋里的钱越少，心里就会越慌，但是信心必须有
+20、时时刻刻要展示出你的自信
+21、不管别人怎么说你，对你有什么看法
+22、经营人脉，这是个非常重要的事情，说三遍
+23、人最需要的就是一个转机，持续不断的建立人脉，以及能够获利的产品
+24、不要瞧不起任何一笔小钱
+25、天下没有卑微的工作，不论什么工作努力去做都能建立自信，实现自我价值，这份自信又会帮助你迈向下个阶段
+26、有钱后不能享受，节俭，积累原始资本，有钱就应该做事
+27、时刻留意商机，任何一个节日背后的商机，任何一个大事件背后的商机，任何一个当地活动带来的商机，这个商机就是热销商品的商机
+28、在找商品的时候先了解当地的人，以及风俗习惯
+29、你想要销售的产品找当地的人一起合作，能够发挥更好的效果
+30、投资入门守则买低卖高
+31、谈一笔五亿美元的信贷贷款和谈一笔五美元的买卖没有区别，关键是察言观色，说服他们需要你卖的东西
+32、善用群众心理，羊群效应
+33、如果一直在求生状态是没办法创业的
+34、成功创业的诀窍是选择市场上需要的商品组织团队，分析需求加一满足
+35、充分利用当地资源，创业服务中心
+36、前期不能做重资产的产业，投入大，需要大量本金
+37、当地正在起飞的行业是什么？
+38、选择两个行业进行分析对比
+39、快速积累财富的最快的方式资产重组翻新再出售，比如说房地产
+40、分享五大创业秘籍，（1）以正确的态度打开一天，一天的头脑要保持清醒，纵观大局，有清净的空间才能做事（2）先做最困难的事儿（3）必准时赴约，永远不要迟到，第一印象很重要（4）找一位导师，从他们的错误中学习经验（5）不要投机取巧，否则导致劣质产品创业之前，你要确定搞明白这一行，要搞懂你在做什么
+41、最重要的经营原则就是人力资本，能成功是因为身边围绕的都是比自己聪明的人
+42、寻找志同道合不需要工资需要梦想的合伙人
+43、灌输信心，团队要是不相信你，什么也做不成
+44、企业成功的秘诀，部分在于确定团队相信你的愿景
+45、年纪越大越保守，因为你不想重新来过46、为专业付费，为无知买单
+47、遇到致命打击，振作起来，重新想办法解决
+48、做好变通的准备，不是每笔生意都能照着计划走，好的生意人永远都准备好应付突来的变化和失败，经营和创业也是如此
+49、别让人看到紧张，你要保持冷静，保持住底线
+50、资产翻新再转卖这一点市场永远存在低买高卖
+51、没有钱就从低到高开始弄
+52、成功经营企业的一个要点就是找到各行业的专家
+53、永远不嫌晚
+54、尽责做好调查，你有绝妙灵感，不代表符合市场需求
+55、投资之前一定做好市场企业调查
+56、开一家能代表当地的店，有共鸣够真实57、重点在于让团队相信有共同的目标
+58、让他们愿意投入心力
+59、想要企业快速升值必须打造出自己的产品品牌行销全国
+
+
+react-redux实现监听多个输入框值，新增数据。一整套代码https://blog.csdn.net/qq_37815596/article/details/84137271
+
+mapStateToProps，mapDispatchToProps的使用详解
+https://blog.csdn.net/suwu150/article/details/79415085
+
+回文检测，只考虑数字和字母
+var input = 'A man, a plan, a canal: Panama';
+var output1 = input.toLocaleLowerCase().replace(/[^a-zA-Z0-9]/ig, '')
+var output2 = output1.split('').reverse().join('');
+console.log(output1==output2);
+
+react-redux不推荐我们在组件内部修改数据，数据存储在redux中，查数据通过mapStateToProps，修改数据通过mapDispatchToProps，像纯函数、纯组件那样，我们只要维护好props，那么我们写出来的组件就是纯组件，可维护性好。
+
+
+npm install babel-plugin-transform-runtime --save-dev
+npm install --save axios
+
+React/Redux应用使用Async/Await
+https://blog.csdn.net/sinat_17775997/article/details/73526610
+
+react-redux的mapStateToProps可取到state值但不会注入props
+https://www.cnblogs.com/soyxiaobi/p/9467298.html
+
+
+coding python online pyonline
+http://keu1d4.coding-pages.com/stuff/pyonline/editor.html
+
+Access State inside of mapDispatchToProps method
+https://stackoverflow.com/questions/35836290/access-state-inside-of-mapdispatchtoprops-method
+
+简单登录注册例子实现redux功能
+https://blog.csdn.net/Angular_/article/details/104395559
+
+axios
+https://www.jianshu.com/p/f959366fadb8
+
+
+募投管退
+IT 桔子
+
+Crunchbase通过机器学习为个性化体验筹集了3000万美元
+https://shuo.chuangyetv.com/chuangtou/20191101/110118783.html
+
+邮箱验证
+
+协议基础：SMTP：使用Telnet学习SMTP协议
+https://blog.csdn.net/liumiaocn/article/details/81131420
+
+https://www.serviceobjects.com/products/email-validation/email-verification-service?zut=godad04
+https://documentation.mailgun.com/en/latest/api-email-validation.html
+https://www.accuwebhosting.com/blog/top-10-bulk-email-list-verification-validation-services-compared/
+
+
+https://pypi.org/project/py3-validate-email/
+
+
+echo -n "onlytiancai" |base64
+
+telnet smtp.163.com 25
+HELO liumiao
+AUTH LOGIN
+111=
+222==
+MAIL FROM:<aaa@163.com>
+RCPT TO:<bbb@163.com>
+RCPT TO:<ccc@qq.com>
+QUIT
+
+
+没有销售人员的情况下，SaaS 公司如何将 ARR 做到 1 亿美元？
+https://baijiahao.baidu.com/s?id=1588098880132642451&wfr=spider&for=pc
+
+
+CPU 温度
+http://geekswithblogs.net/cicorias/archive/2006/11/22/97855.aspx
+
+
+IMDB电影集数据分析
+https://zhuanlan.zhihu.com/p/53031593?utm_source=wechat_session
+https://datasets.imdbws.com/
+
+
+Ways to Install Microsoft Office
+There are several different ways to install Microsoft Office on Linux:
+
+https://www.howtogeek.com/171565/how-to-install-microsoft-office-on-linux/
+linux 下安装 office
+
+Wine: Wine is a Windows compatibility layer that allows you to run Windows programs on Linux. It’s not perfect, but it’s optimized enough to run popular programs like Microsoft Office well. Wine will work better with older versions of Office, so the older your version of Office, the more likely it is to work without any trouble. Wine is completely free, although you may have to do some tweaking yourself.
+CrossOver: CrossOver is a paid product that uses code from the free version of Wine. While it costs money, CrossOver does more of the work for you. They test their code to ensure that popular programs like Microsoft Office run well and ensure upgrades won’t break them. CrossOver also provides support — so if Office doesn’t run well, you have someone to contact who will help you.
+Virtual Machine: You could also install Microsoft Windows in a virtual machine using a program like VirtualBox or VMware and install Microsoft Office inside it. With Seamless Mode or Unity Mode, you could even have the Office windows appear on your Linux desktop. This method provides the best compatibility, but it’s also the heaviest — you have to run a full version of Windows in the background. You’ll need a copy of Windows, such as an old Windows XP disc you have lying around, to install in the virtual machine.
+
+Wine （“Wine Is Not an Emulator” 的缩写）是一个能够在多种 POSIX-compliant 操作系统（诸如 Linux，Mac OSX 及 BSD 等）上运行 Windows 应用的兼容层。另外英语单词wine是葡萄酒的意思。
+
+统信UOS
+https://www.chinauos.com/home
+
