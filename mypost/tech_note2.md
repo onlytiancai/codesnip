@@ -13742,3 +13742,47 @@ Wine （“Wine Is Not an Emulator” 的缩写）是一个能够在多种 POSIX
 统信UOS
 https://www.chinauos.com/home
 
+docker stats --no-stream  --format 'table {{.ID}}\t{{.CPUPerc}}\t{{.MemUsage}}'
+
+
+use mysql;
+set password for root@localhost = password('password');
+update mysql.user set authentication_string=password('password') where user='root' and Host = 'localhost';
+alter user 'root'@'localhost' identified by 'password';
+grant all privileges on *.* to 'root'@'localhost' identified by 'password';
+flush privileges;
+
+use mysql;
+update user set plugin="mysql_native_password";
+flush privileges;
+
+如果您安装5.7并且没有为root用户提供密码，它将使用auth_socket插件。该插件不关心，也不需要密码。它只检查用户是否使用UNIX套接字进行连接，然后比较用户名。
+
+如果我们要配置密码，我们需要在同一命令中同时更改插件并设置密码。首先更改插件然后设置密码将不起作用，它将再次回退到auth_socket。
+
+因此，正确的方法是运行以下命令：
+
+
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';
+
+
+PHP 实现并发-进程控制 PCNTL
+https://www.cnblogs.com/kika/p/10851531.html
+
+Jmeter性能测试利器
+https://www.cnblogs.com/crisimple/p/12901598.html
+
+第四篇：JMeter 性能测试基本过程及示例
+https://www.cnblogs.com/pwj2lgx/p/10283864.html
+
+MySQL: return updated rows
+https://stackoverflow.com/questions/11477121/mysql-return-updated-rows
+
+delimiter |
+create procedure upd_select(IN group INT, IN time INT)
+begin
+    UPDATE table SET time = 0 WHERE group_id = @group and time > @time;
+    SELECT * FROM table WHERE group_id = @group and time > @time;
+end;
+|
+delimiter ;
