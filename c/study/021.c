@@ -3,8 +3,8 @@
 
 int main(int argc, char *argv[])
 {
-    int arr[][2] = {40, 3, 30, 2}; 
-    int target = 100;
+    int arr[][2] = {4,7,5,5,4,3,2,2}; 
+    int target = 70;
     int kinds = sizeof(arr)/sizeof(int)/2; 
 
     int i, j;
@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
         for (j = 0;  j< arr[i][0]; j++) {
             if (target < arr[i][1]) break;
             target -= arr[i][1];
-            //printf("debug: %d %d %d\n", target, arr[i][1], j);
+            printf("debug: %d %d %d\n", target, arr[i][1], j);
             if (target < arr[i][1]) break;
         }
     }

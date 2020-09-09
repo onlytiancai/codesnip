@@ -13786,3 +13786,251 @@ begin
 end;
 |
 delimiter ;
+
+
+#include <stdio.h>
+#include <windows.h>
+int argc;
+char FILENAME[]="myoutfile";
+
+int main()
+{
+    FILE *fd;
+    long diff;
+    char bufchar[100];
+
+    char *buf1=malloc(20);
+    char *buf2=malloc(20);
+
+    diff=(long)buf2-(long)buf1;
+    strcpy(buf2, FILENAME);
+
+    printf("信息显示---\n");
+    printf("buf1存储地址：%p:\n", buf1);
+    printf("buf2存储地址：%p,存储内容为文件名：%s\n",buf2,buf2);
+    printf("两地址间距离为：%d个字节\n",diff);
+    printf("显示信息结束---\n")
+
+    if (argc<2)
+    {
+        printf("请输入要写入的文件%s的字符串\n", buf2);
+        gets(bufchar);
+        strcpy(buf1, bufchar);
+    }
+    else
+    {
+        printf("XXXXXXXXXXXXXXXXXXXXXXXXX");
+    }
+
+    printf("信息显示---\n");
+    printf("buf1存储内容：%s:\n", buf1);
+    printf("buf2存储内容：%s:\n", buf2);
+    printf("显示信息结束---\n")
+
+    printf("将 %s \n 写入文件%s中\n",buf1, buf2);
+
+    fd=fopen(buf2, "a");
+    if (fd==NULL){
+        fprintf(stderr, "%s,打开错误\n",buf2);
+        exit(1);
+    }
+    fprintf(fd, "%s \n", buf1);
+    fclose(fd);
+
+    getchar();
+}
+
+
+如果一台XP打开远程桌面连接,你从其它的PC上用mstsc命令登录.登录当需要关机时显示“注销”和“断开”
+
+    一.在桌面上单击一下,然后用Alt+F4键,
+
+    二.使用命令:
+
+    使用命令方式,进入CLI(command Line interface),在运行命令前,请正确保存你现在所做的信息.使用:
+
+    shutdown -s -f -t 0(关闭)
+
+    shutdown -r -f -t 0(重启)
+
+    相关内容：远程桌面相关介绍：
+
+mysql 编辑距离levenshtein函数
+https://blog.csdn.net/diquren/article/details/50562907
+https://lucidar.me/en/web-dev/levenshtein-distance-in-mysql/
+https://coderwall.com/p/coznrw/levenshtein-distance-using-mysql
+
+DELIMITER $$
+CREATE FUNCTION levenshtein( s1 VARCHAR(255), s2 VARCHAR(255) )
+  RETURNS INT
+  DETERMINISTIC
+  BEGIN
+    DECLARE s1_len, s2_len, i, j, c, c_temp, cost INT;
+    DECLARE s1_char CHAR;
+    -- max strlen=255
+    DECLARE cv0, cv1 VARBINARY(256);
+    SET s1_len = CHAR_LENGTH(s1), s2_len = CHAR_LENGTH(s2), cv1 = 0x00, j = 1, i = 1, c = 0;
+    IF s1 = s2 THEN
+      RETURN 0;
+    ELSEIF s1_len = 0 THEN
+      RETURN s2_len;
+    ELSEIF s2_len = 0 THEN
+      RETURN s1_len;
+    ELSE
+      WHILE j <= s2_len DO
+        SET cv1 = CONCAT(cv1, UNHEX(HEX(j))), j = j + 1;
+      END WHILE;
+      WHILE i <= s1_len DO
+        SET s1_char = SUBSTRING(s1, i, 1), c = i, cv0 = UNHEX(HEX(i)), j = 1;
+        WHILE j <= s2_len DO
+          SET c = c + 1;
+          IF s1_char = SUBSTRING(s2, j, 1) THEN
+            SET cost = 0; ELSE SET cost = 1;
+          END IF;
+          SET c_temp = CONV(HEX(SUBSTRING(cv1, j, 1)), 16, 10) + cost;
+          IF c > c_temp THEN SET c = c_temp; END IF;
+            SET c_temp = CONV(HEX(SUBSTRING(cv1, j+1, 1)), 16, 10) + 1;
+            IF c > c_temp THEN
+              SET c = c_temp;
+            END IF;
+            SET cv0 = CONCAT(cv0, UNHEX(HEX(c))), j = j + 1;
+        END WHILE;
+        SET cv1 = cv0, i = i + 1;
+      END WHILE;
+    END IF;
+    RETURN c;
+  END$$
+
+
+CREATE FUNCTION levenshtein_ratio( s1 VARCHAR(255), s2 VARCHAR(255) )
+  RETURNS INT
+  DETERMINISTIC
+  BEGIN
+    DECLARE s1_len, s2_len, max_len INT;
+    SET s1_len = LENGTH(s1), s2_len = LENGTH(s2);
+    IF s1_len > s2_len THEN
+      SET max_len = s1_len;
+    ELSE
+      SET max_len = s2_len;
+    END IF;
+    RETURN ROUND((1 - LEVENSHTEIN(s1, s2) / max_len) * 100);
+  END$$
+
+DELIMITER ;
+
+#######
+
+select levenshtein('butt', 'but') ;
+select levenshtein_ratio('butt', 'but') ;
+
+
+How to fix “Incorrect string value” errors?
+https://stackoverflow.com/questions/1168036/how-to-fix-incorrect-string-value-errors
+
+SET NAMES 'utf8';
+SET CHARACTER SET utf8;
+
+SELECT
+  `tables`.`TABLE_NAME`,
+  `collations`.`character_set_name`
+FROM
+  `information_schema`.`TABLES` AS `tables`,
+  `information_schema`.`COLLATION_CHARACTER_SET_APPLICABILITY` AS `collations`
+WHERE
+  `tables`.`table_schema` = DATABASE()
+  AND `collations`.`collation_name` = `tables`.`table_collation`
+;
+
+mysql> show variables like '%colla%';
+mysql> show variables like '%charac%';
+
+Convert output of MySQL query to utf8
+https://stackoverflow.com/questions/16051369/convert-output-of-mysql-query-to-utf8
+SELECT column1, CONVERT(column2 USING utf8)
+FROM my_table
+WHERE my_condition;
+
+SELECT column1, CAST(CONVERT(column2 USING utf8) AS binary)
+FROM my_table
+WHERE my_condition;
+
+SELECT CONVERT(CAST(column as BINARY) USING utf8) as column FROM table 
+
+女诗经，男楚辞，取名大全
+https://www.xingyunba.com/quming/article_35706.html
+
+
+Damn Vulnerable Web App (DVWA) is a PHP/MySQL web application that is damn vulnerable. Its main goals are to be an aid for security professionals to test their skills and tools in a legal environment, help web developers better understand the processes of securing web applications and aid teachers/students to teach/learn web application security in a class room environment.
+http://www.dvwa.co.uk/
+https://github.com/digininja/DVWA
+
+前端上报
+sentry使用实践
+https://www.jianshu.com/p/66e00077fac3
+
+爆破字典
+https://gitee.com/molok/Blasting_dictionary
+
+
+MS08_067漏洞渗透攻击实践
+https://www.cnblogs.com/yayaer/p/6685527.html
+
+5why
+https://www.the5choices.com/resources/blog/your-healthy-brain/
+
+
+## 面试题目
+
+语言基础
+框架基础
+工作流程
+网络基础
+代码设计
+Linux 基础
+
+- 如何在所有php文件里查找某个关键字
+
+问题处理
+
+- 操作系统, nginx, tomcat, php, mysql 日志分别在什么路径？
+- 如何查看本机监听了哪些端口
+- 如何查看某进程是否启动？
+- 如何分析 nginx 日志里是否有人在刷接口？
+- 如何查看 mysql 慢查询？
+- 如何查看 php ， tomcat 慢日志？
+
+运维相关
+
+- 如何防止日志把磁盘写满？
+- 如何优雅重启 nginx, tomcat, php? 
+- 服务器，mysql, php, tomcat 都有哪些常用监控指标，如何监控？
+- 服务发布失败，如何快速回滚？
+- 如何实现灰度发布？
+- 如何应对用户CC攻击？ 
+
+安全
+- 如何防范 CSRF 攻击
+- 如何防范 XSS 注入攻击
+- 如何防范 SQL 注入攻击
+- 如何更改 SSH 默认端口，如何使用密钥登录
+- mysql 如何设置 ip 白名单
+
+性能
+数据库
+
+- 如何查看 SQL 语句的执行计划？
+
+架构
+
+- 负载均衡有几种方式，各适用于什么场景？
+- session 如何在多机器间共享，如何解决锁的问题。 
+
+CSS
+
+- position 有几种方式，各有什么不同
+- 如何实现左边固定宽度，右边自适应宽度的左右布局
+
+JS
+
+- 如何验证 url，email 网址 
+- 如何跨域请求
