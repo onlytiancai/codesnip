@@ -14007,6 +14007,7 @@ Linux 基础
 - 服务发布失败，如何快速回滚？
 - 如何实现灰度发布？
 - 如何应对用户CC攻击？ 
+- 如何把静态文件发布到CDN
 
 安全
 - 如何防范 CSRF 攻击
@@ -14034,3 +14035,50 @@ JS
 
 - 如何验证 url，email 网址 
 - 如何跨域请求
+- 版本问题
+
+# links
+
+Linux Job Control: &, disown, and nohup
+https://www.baeldung.com/linux/job-control-disown-nohup
+
+We know that SIGHUP is used to signal that a terminal hangup has occurred. Let’s understand what happens when we kill the terminal process:
+
+We close the terminal. The terminal sends a SIGHUP signal to its sub-processes.
+The shell process receives the SIGHUP signal. After that, it sends a SIGHUP signal to its sub-processes.
+As a sub-process of the shell, our background job process receives a SIGHUP signal.
+
+
+Can I nohup/screen an already-started process?
+https://serverfault.com/questions/24425/can-i-nohup-screen-an-already-started-process
+
+How can I disown a running process and associate it to a new screen shell?
+https://unix.stackexchange.com/questions/4034/how-can-i-disown-a-running-process-and-associate-it-to-a-new-screen-shell
+
+However this only tells the shell not to send a SIGHUP signal to the program when the shell exits. The program will retain any connection it has with the terminal, usually as standard input, output and error streams. There is no way to reattach those to another terminal. (Screen works by emulating a terminal for each window, so the programs are attached to the screen window.)
+
+It is possible to reattach the filedescriptors to a different file by attaching the program in a debugger (i.e. using ptrace) and making it call open, dup and close. There are a few tools that do this; this is a tricky process, and sometimes they will crash the process instead. The possibilities include (links collected from answers to How can I disown a running process and associate it to a new screen shell? and Can I nohup/screen an already-started process?):
+
+当你要在终端里运行一个长时间运行的命令时，可以使用 nohup 在终端关闭后继续保持运行
+如果你执行时忘了使用 nohup，那么可以用 disown -h 让进程在终端关闭后继续保持运行
+上面两种情况适用于你的命令是后台运行，且不关心 stdout, stderr，或者已经被重定向
+
+如果你打开了一个长时间运行的前台应用，需要查看 stdout，如打开 mysql console, top 等，
+则上面两种方式都不会起作用，这时候 reptyr 可以满足需求，该命令使用 ptrace 技术把描述符
+移动到新的文件，达到让一组进程移动到新的(伪)终端下的效果，具体使用如下，亲测可用
+
+apt-get install reptyr
+echo 0 > /proc/sys/kernel/yama/ptrace_scope
+
+- Start a long running process, e.g. top
+- Background the process with CTRL-Z
+- Resume the process in the background: bg
+- Display your running background jobs with jobs -l, this should look like this:
+    - [1]+ 4711 Stopped (signal) top
+    - (The -l in jobs -l makes sure you'll get the PID)
+- Disown the jobs from the current parent with disown top. After that, 
+  jobs will not show the job any more, but ps -a will.
+- Start your terminal multiplexer of choice, e.g. tmux, screen
+- Reattach to the backgrounded process: reptyr 4711
+- Detach your terminal multiplexer (e.g. CTRL-A D) and close ssh
+- Reconnect ssh, attach to your multiplexer (e.g. tmux attach, screen -r), rejoice!
