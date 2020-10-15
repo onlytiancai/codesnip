@@ -14082,3 +14082,47 @@ echo 0 > /proc/sys/kernel/yama/ptrace_scope
 - Reattach to the backgrounded process: reptyr 4711
 - Detach your terminal multiplexer (e.g. CTRL-A D) and close ssh
 - Reconnect ssh, attach to your multiplexer (e.g. tmux attach, screen -r), rejoice!
+
+
+密码破解之王：Ophcrack彩虹表(Rainbow Tables)原理详解
+https://blog.csdn.net/javaalpha/article/details/8555593
+
+
+彩虹表（ Table）是一种破解哈希算法的技术，是一款跨平台密码破解器，主要可以破解MD5、HASH等多种密码。它的性能非常让人震惊，在一台普通PC上辅以NVidia CUDA技术，对于NTLM算法可以达到最高每秒103,820,000,000次明文尝试（超过一千亿次），对于广泛使用的MD5也接近一千亿次。更神奇的是，彩虹表技术并非针对某种哈希算法的漏洞进行攻击，而是类似暴力破解，对于任何哈希算法都有效。
+
+How can I convert spaces to tabs in Vim or Linux?
+
+    :set ts=4
+    :set noet
+    :%retab!
+
+洗牌的2017，教育 SaaS 产品的机会在哪里？
+https://36kr.com/p/1721695305729
+
+
+How to Block IPs from Countries using Iptables Geoip Addons
+https://linoxide.com/linux-how-to/block-ips-countries-geoip-addons/
+
+GeoIP based filtering with iptables
+https://daenney.github.io/2017/01/07/geoip-filtering-iptables.html
+
+
+GUI for iptables?
+https://askubuntu.com/questions/111/gui-for-iptables
+sudo apt-get install firestarter
+
+
+nginx phase handler的原理和选择
+https://www.cnblogs.com/zhchoutai/p/6805935.html
+
+NGX_HTTP_POST_READ_PHASE	读取请求内容阶段
+NGX_HTTP_SERVER_REWRITE_PHASE	Server请求地址重写阶段
+NGX_HTTP_FIND_CONFIG_PHASE	配置查找阶段
+NGX_HTTP_REWRITE_PHASE	Location请求地址重写阶段
+NGX_HTTP_POST_REWRITE_PHASE	请求地址重写提交阶段
+NGX_HTTP_PREACCESS_PHASE	訪问权限检查准备阶段
+NGX_HTTP_ACCESS_PHASE	訪问权限检查阶段
+NGX_HTTP_POST_ACCESS_PHASE	訪问权限检查提交阶段
+NGX_HTTP_TRY_FILES_PHASE	配置项try_files处理阶段
+NGX_HTTP_CONTENT_PHASE	内容产生阶段
+NGX_HTTP_LOG_PHASE	日志模块处理阶段
