@@ -1,0 +1,25 @@
+" curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+"     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+" PlugInstall
+set nocp nu ts=4 sw=4 et sta hls si noeb vb t_vb=
+autocmd BufNewFile,BufRead *.html,*.htm,*.css,*.js set noet ts=2 sw=2
+colorscheme darkblue
+
+call plug#begin()
+Plug 'preservim/nerdtree'
+Plug 'majutsushi/tagbar'
+Plug 'ctrlpvim/ctrlp.vim'
+Plug 'tacahiroy/ctrlp-funky'
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
+call plug#end()
+
+set tags=tags;
+set tags+=/usr/include/tags
+
+noremap <F6> :!ctags -R<CR>
+map <F8> :w <CR> :!gcc % -o %<.o && ./%<.o <CR>
+nnoremap <silent> <F9> :TagbarToggle<CR>
+map <F10> :NERDTreeToggle<CR>
+nnoremap <leader>. :CtrlPTag<cr>
+nnoremap <Leader>fu :CtrlPFunky<Cr>
