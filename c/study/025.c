@@ -1,3 +1,5 @@
+// 给你一个字符串 s 和一个字符规律 p，
+// 请你来实现一个支持 '.' 和 '*' 的正则表达式匹配。
 #include <stdio.h>
 
 typedef int bool;
@@ -10,21 +12,14 @@ bool isMatch(char * s, char * p) {
     char c;
     while(c=*p++) {
         if (star = *p == '*')p++;
-        // printf("debug: %c %d \n", c, star); 
-
-        if (!star) { // a, .
+        if (!star) {
             if (*s++ != c && c != '.') return false;
         } else {
-            if (c != '.'){
-                while(*s++ == c) ;
-                s--;
-            } else {
-                while(*s++ != *p) ;
-                s--;
-            }
+            if (c != '.') while(*s++ == c) ;
+            else while(*s++ != *p) ;
+            s--;
         }
     }
-    // printf("debug1:%c %d\n", *s, *s=='\0');
     return *s == '\0';
 }
 
