@@ -14126,3 +14126,112 @@ NGX_HTTP_POST_ACCESS_PHASE	訪问权限检查提交阶段
 NGX_HTTP_TRY_FILES_PHASE	配置项try_files处理阶段
 NGX_HTTP_CONTENT_PHASE	内容产生阶段
 NGX_HTTP_LOG_PHASE	日志模块处理阶段
+
+
+HACKER'S DELIGHT[算法心得]笔记
+https://www.cnblogs.com/Five100Miles/p/8458380.html
+
+2.1 操作最右侧的位元
+x & (x - 1) 将最右侧置位的比特位置零, 该表达式可用来判断x是否为2的幂.
+x | (x + 1) 将最右侧置零的比特位置位.
+x & (x + 1) 将最右位起始的连续的1比特位置零, 如果最右位非1则不变, 该表达式可用来判断x是否为2^n - 1.
+x | (x - 1) 将最右位起始的连续的0比特位置位, 如果最右位非0则不变.
+~x & (x + 1) 将最右侧置零的比特位置位, 并将其余位置零.
+~x | (x - 1) 将最右侧置位的比特位置零, 并将其余位置位.
+~x & (x - 1) 将最右位起始的连续的0比特位置位, 并将其余位置零.
+~x | (x + 1) 将最右位起始的连续的1比特位置零, 并将其余位置位.
+x & (-x) 保留最右侧位置的比特位, 并将其余位置零.
+x ^ (x - 1) 将最右侧置位的比特位及其右侧所有置零的比特位置位, 并将左侧的比特位置零.
+x ^ (x + 1) 将最右侧置零的比特位及其右侧所有置位的比特位置位, 并将左侧的比特位置零.
+德摩根定律的推论
+~(x & y) = ~x | ~y
+~(x | y) = ~x & ~y
+~(x + y) = ~x - y (特例y = 1时有~(x + 1) = ~x - 1)
+~(x - y) = ~x + y (特例y = 1时有~(x - 1) = ~x + 1)
+~(x - y) = ~x + y (特例x = 0时有~(0 - y) = y - 1)
+
+
+电子围绕原子核转动，它的动力是怎么来的？能量是如何产生的？
+https://www.sohu.com/a/285914832_479097
+
+我们知道牛顿第一定律，任何不受外力的物体，只有可能处于静止或者迅速直线运动状态。电子也不例外。
+
+很显然电子在原子核外不是静止的，那么理论上电子应该要么被原子核吸引过去，和原子核碰撞，要么就应该越过原子核飞走啊。为什么会在原子核周围随机运动？
+
+这是因为，真空实际上时刻都存在一种叫做真空涨落的现象。 也就是说，真空中并不是什么都没有，而是在非常短的时间内，会生成电子和反电子对，这个电子与反电子对又会立即湮灭，形成能量。这个过程非常短，所以宏观看上去什么都没发生过。
+
+那么，当把一个原子核放在真空中时，带正电的原子核会吸收光子，对周周围的真空激发，形成了大量的正电子，负电子对。这些正负电子对又会迅速生成光子。存在与原子核周围的这些正负电子对和光子，就是静电场。
+
+当一个电子进入这片区域时(原子捕获电子)，电子会和正电子湮灭形成新的光子。而这个时候，原本平衡的正负电子对，就多出来了一个电子。这个电子又会和别的正电子湮灭。这个过程会在原子核周围不断重复。
+
+这就是电子为什么如鬼魅一般在原子核周围随机运动的原因。
+
+《正面管教》读书笔记——非常棒的教育书籍
+https://weibo.com/p/230418930f35430102wptw
+
+Top 5 Free or Affordable SQL Reporting and Dashboard Tools
+https://www.holistics.io/blog/top-5-free-or-affordable-sql-reporting-and-dashboard-tools/
+
+Your startup needs analytics! From Product, Marketing to Finance, Sales... analytics helps you build your startups on better decisions.
+
+Most of the time, you will just know when your startup needs a Reporting and Dashboard tool for business intelligence (BI). However, choosing a cost-effective BI solution is challenging, as a lot of powerful BI tools out there are not startup friendly. $1000+ analytics platforms wouldn't make any sense for your startup at the early stages.
+
+
+AddressSanitizer使用介绍
+https://www.bynav.com/cn/resource/bywork/healthy-work/70.html?id=35
+
+AddressSanitizer主要包括两部分：插桩(Instrumentation)和动态运行库(Run-time library)。插桩主要是针对在llvm编译器级别对访问内存的操作(store，load，alloca等)，将它们进行处理。动态运行库主要提供一些运行时的复杂的功能(比如poison/unpoison shadow memory)以及将malloc,free等系统调用函数hook住。该算法的思路是：如果想防住Buffer Overflow漏洞，只需要在每块内存区域右端（或两端，能防overflow和underflow）加一块区域（RedZone），使RedZone的区域的影子内存（Shadow Memory)设置为不可写即可。
+
+
+乔布斯时代的苹果官网是什么样的？
+https://www.zhihu.com/question/29309140/answer/43973850
+
+
+sudo wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
+tar -xzf ta-lib-0.4.0-src.tar.gz （or sudo tar -xzf ta-lib-0.4.0-src.tar.gz）
+cd ta-lib/
+sudo ./configure (if gcc is missing, install it by doing “apt-get install build-essential”)
+sudo make
+sudo make install
+pip install https://github.com/mrjbq7/ta-lib/archive/TA_Lib-0.4.8.zip
+# pip install https://github.com/mrjbq7/ta-lib/zipball/master   #上式不成功用这个
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
+
+https://wkhtmltopdf.org/downloads.html
+
+利用隐马尔可夫模型预测股票价格（附代码）
+https://zhuanlan.zhihu.com/p/51418002
+
+2018年重磅专题系列之九：基于隐马尔科夫模型的选股策略研究
+http://finance.sina.com.cn/stock/stockzmt/2018-09-07/doc-ihiixzkm5797817.shtml
+
+Spring JdbcTemplate详解
+https://www.cnblogs.com/xuwenjin/p/8822354.html
+
+
+量化“不确定性”的三个常用指标
+https://www.sohu.com/a/320488382_738537
+
+以下三个指标均为可用来直接比较的无量纲指标
+
+一、平均绝对误差百分率（MAPE，Mean Absolute PercentageError）。
+二、变异系数（C.V，Coefficient of Variance）
+三、跟踪信号（TS，Tracking Signal）。
+
+MAPE侧重于评估需求预测的准确度，C.V侧重于需求的稳定性，TS侧重于需求的无偏性。
+
+预测其实是一个不断纠偏的过程。所以，要更全面、合理反馈不确定情况及需求预测水平，以便更好的纠偏，就需要三个指标配合使用，得出更全面更客观的结果，从而更好的将未来的“不确定”变为“相对的确定”，从而更好的应对未来。
+
+
+揭开在线协作的神秘面纱 - OT算法
+https://zhuanlan.zhihu.com/p/74562370
+
+协同编辑--OT算法之外的世界
+https://zhuanlan.zhihu.com/p/40398032
+
+实现一个多人协作在线文档有哪些技术难点？
+https://www.zhihu.com/question/274573543
+
+另类解读获客、营收与增长 - 蔚来、理想、小鹏 2020 Q3 财报对比
+https://longbridge.global/topics/584606
