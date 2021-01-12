@@ -14354,3 +14354,106 @@ http://www.caishiv.com/insight/detail?id=16267
 
 我们之前所研究得出的一些投资异象，包括小市值的异象、低贝塔的异象，会随着外资进入逐渐消失。
 
+smart beta 是什么？为什么最近如此受追捧？
+https://www.zhihu.com/question/34726812?sort=created
+
+在这个模型中，Fama和French提出，美国历史上的股票回报，很大程度上可以用三个因子(Factor)来解释。这三个因子是：股票市场总体回报(beta)，小股票超额回报(Small minus Big)，以及价值超额回报（High minus Low)。
+
+查看 nat 
+    iptables -t nat --list
+    cat /etc/network/if-pre-up.d/iptable
+        #!/bin/bash
+        iptables -I FORWARD -m state -d 192.168.122.0/24 --state NEW,RELATED,ESTABLISHED -j ACCEPT
+        iptables -t nat -I PREROUTING -p tcp -s 192.168.2.101/24 --dport 80:40000 -j DNAT --to-destination 192.168.122.23:80-40000
+    cat /etc/network/if-pre-up.d/iptable > /etc/rc.local
+
+
+how to use a like with a join in sql?
+https://stackoverflow.com/questions/1386166/how-to-use-a-like-with-a-join-in-sql
+
+    SELECT *
+      FROM TABLE a
+      JOIN TABLE b ON INSTR(b.column, a.column) > 0
+
+    SELECT *
+    FROM TABLE a
+      JOIN TABLE b ON b.column LIKE '%'+ a.column +'%'
+
+    SELECT *
+      FROM TABLE a
+      JOIN TABLE b ON b.column LIKE CONCAT('%', a.column ,'%')
+
+    SELECT *
+      FROM (SELECT UPPER(a.column) 'ua'
+             TABLE a) a
+      JOIN (SELECT UPPER(b.column) 'ub'
+             TABLE b) b ON INSTR(b.ub, a.ua) > 0
+
+    SELECT *
+      FROM TABLE a,
+           TABLE b
+     WHERE INSTR(b.column, a.column) > 0
+
+
+股票指数的宏观择时
+https://www.joinquant.com/view/community/detail/b97286ceab87c24e8590bf837ccc396c?type=1
+
+使用Pandas Dataframe运行OLS回归
+https://www.itranslater.com/qa/details/2325785944240161792
+
+利用Python进行数据分析笔记－pandas建模(statsmodels篇)
+https://blog.csdn.net/wuzlun/article/details/80305111
+
+Python时间序列数据分析--以示例说明
+https://www.cnblogs.com/bradleon/p/6832867.html
+
+用Patsy公式进行数据转换
+https://jingyan.baidu.com/article/ed2a5d1fbaec5e09f6be171c.html
+
+
+预测GDP应用：Numpy 线性回归+Matplotlib 作图
+https://blog.csdn.net/Gg_ning/article/details/108535314
+
+从零开始学量化（五）：用Python做回归
+https://cloud.tencent.com/developer/article/1460925
+
+PB-ROE提供了一种投资的框架，这种框架是说，股票的PB和ROE之间存在近似的线性关系，ROE越高，PB越高，因此如果同时根据PB、ROE值来投资，很难选到同时满足PB最小、ROE最大的股票。但可以根据他们的线性关系进行选择，回归直线上的点可以视为合理的PB、ROE组合水平，这样位于回归线下方的股票都是PB被低估的，未来有很大的上升修复空间，而位于回归线上方的股票都是当前PB被高估的，未来会下降，因此投资可以选择位于回归线下方的股票。使用这种方法最重要的点是回归必须是靠谱的，比如ROE应该是稳定的，确保未来可持续，比如应想办法消除行业间的差异等等。
+
+
+statsmodels中做回归有很多模块都能实现，sml.ols的优点是可以写成公式型的回归，类似R中做回归的过程，比如PB和ROE的回归可以用公式表示为'pb~roe'，多个自变量之间用加号连接。sml.ols一般包括formula和data两个输入，formula是回归的公式，data为使用的数据。此外，还有missing这个参数，对于回归数据包含缺失值时很好用，比如设置missing = 'drop'表示回归时删除包含缺失值的样本。代码如下
+
+
+import statsmodels.formula.api as sml
+model = sml.ols(formula='pb_lf~roe_ttm2',data = datas1)
+result=model.fit()
+
+result.params # 回归系数
+result.rsquared # R方
+result.resid # 残差
+result.fittedvalues # 拟合值
+
+
+使用 python 做线性回归，scipy，statsmodels，sklearn
+https://blog.csdn.net/robert_chen1988/article/details/103551261
+
+
+Difference between statsmodel OLS and scikit linear regression
+https://stats.stackexchange.com/questions/146804/difference-between-statsmodel-ols-and-scikit-linear-regression
+
+
+Detecting mouse and keyboard input with .NET
+http://joelabrahamsson.com/detecting-mouse-and-keyboard-input-with-net/
+https://stackoverflow.com/questions/1363167/how-can-i-get-the-child-windows-of-a-window-given-its-hwnd
+https://stackoverflow.com/questions/7740379/c-sharp-how-to-use-wm-gettext-getwindowtext-api-window-title
+https://stackoverflow.com/questions/7497024/how-to-detect-mouse-clicks
+https://jingyan.baidu.com/article/1612d5007730dfe20e1eee30.html
+https://stackoverflow.com/questions/44990335/is-there-any-way-to-global-hook-the-mouse-actions-like-im-hooking-the-keyboard
+https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-setwindowshookexa?redirectedfrom=MSDN
+https://stackoverflow.com/questions/13476021/how-to-know-when-the-foreground-window-has-changed
+https://stackoverflow.com/questions/7458807/why-must-setwindowshookex-be-used-with-a-windows-message-queue#7460728
+
+The low-level hooks, WH_KEYBOARD_LL and WH_MOUSE_LL are different from all the other hooks. They don't require a DLL to be injected into the target process. Instead, Windows calls your hook callback directly, inside your own process. To make that work, a message loop is required. There is no other mechanism for Windows to make callbacks on your main thread, the callback can only occur when you've called Get/PeekMessage() so that Windows is in control.
+
+A global hook like WH_KEYBOARD is very different. It requires a DLL and the callback occurs within the process that processes the keyboard message. You need some kind of inter-process communication to let your own program be aware of this. Named pipes are the usual choice. Which otherwise of course requires that this injected process pumps a message loop. It wouldn't get keyboard messages otherwise.
+
+Favor a low-level hook, they are much easier to get going. But do pump or it won't work. And beware of timeouts, if you're not responsive enough then Windows will kill your hook without notice.
