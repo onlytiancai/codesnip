@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>PDF</title>
+		<link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet">
+		<script src="https://cdn.bootcdn.net/ajax/libs/pdf.js/2.4.456/pdf.min.js"></script>
+		<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+		<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
+	</head>
+
+	<body oncontextmenu="return false;">
+		<div>
+
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Canvas</a></li>
+    <li role="presentation"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">SWF</a></li>
+    <li role="presentation"><a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">PDF</a></li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="home">
+
+			<p>
+			<a href="javascript:prev_page()">上一页</a>
+			<a href="javascript:next_page()">下一页</a>
+			</p>
+			<canvas id="the-canvas">
+			</canvas>
+			<script charset="utf-8">
+				var mypdf = null, current_page = 0;
+				function next_page() {
+					if (!mypdf) return;
+					if (current_page >= mypdf.numPages) return;
+					mypdf.getPage(++current_page).then(render);
+				}
+				function prev_page() {
+					if (!mypdf) return;
+					if (current_page <= 1) return;
+					mypdf.getPage(--current_page).then(render);
+				}
+
+				function render(page) {
+					var desiredWidth = 1024;
+					var viewport = page.getViewport({ scale: 1, });
+					var scale = desiredWidth / viewport.width;
+					viewport = page.getViewport({ scale: scale, });
+
+					var canvas = document.getElementById('the-canvas');
+					var context = canvas.getContext('2d');
+					canvas.height = viewport.height;
+					canvas.width = viewport.width;
+
+					var renderContext = {
+						canvasContext: context,
+						viewport: viewport
+					};
+					page.render(renderContext);
+				}
+
+				var loadingTask = pdfjsLib.getDocument('ui.pdf');
+				loadingTask.promise.then(function(pdf) {
+					mypdf = pdf;
+					next_page();
+				});
+			</script>
+		
+		</div>
+    <div role="tabpanel" class="tab-pane" id="profile">
+			
+			<embed src="ui.swf" width="90%" height="800">
+		</div>
+    <div role="tabpanel" class="tab-pane" id="messages">
+		
+			<embed src="ui.pdf#toolbar=0&navpanes=0&scrollbar=0" width="90%" height="800">
+		</div>
+  </div>
+
+</div>
+
+
+	</body>
+</html>
