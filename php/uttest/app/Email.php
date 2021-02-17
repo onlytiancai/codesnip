@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1)
+declare(strict_types=1);
 
 namespace App;
 
@@ -27,7 +27,7 @@ final class Email
     {
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new \InvalidArgumentException(
-                springf(
+                sprintf(
                     '"%s" is not valid email address',
                     $email
                 )
