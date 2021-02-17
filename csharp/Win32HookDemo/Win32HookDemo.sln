@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Win32HookDemo", "Win32HookDemo\Win32HookDemo.csproj", "{1ECB602D-3C1A-4B70-92B5-A27C4C376E6C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1ECB602D-3C1A-4B70-92B5-A27C4C376E6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1ECB602D-3C1A-4B70-92B5-A27C4C376E6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1ECB602D-3C1A-4B70-92B5-A27C4C376E6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1ECB602D-3C1A-4B70-92B5-A27C4C376E6C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3E6244E1-347C-4F7A-A411-B338FE400F32}
+	EndGlobalSection
+EndGlobal
