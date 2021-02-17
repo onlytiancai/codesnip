@@ -1,0 +1,19 @@
+{
+    "name": "wawa/uttest",
+    "authors": [
+        {
+            "name": "onlytiancai",
+            "email": "onlytiancai@gmail.com"
+        }
+    ],
+    "require": {},
+    "repositories": {
+        "packagist": {
+            "type": "composer",
+            "url": "https://mirrors.aliyun.com/composer/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    }
+}
