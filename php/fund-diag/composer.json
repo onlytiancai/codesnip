@@ -1,5 +1,6 @@
 {
     "require": {
-        "wruczek/php-file-cache": "^0.0.5"
+        "wruczek/php-file-cache": "^0.0.5",
+        "guzzlehttp/guzzle": "^7.2"
     }
 }
