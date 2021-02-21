@@ -1,0 +1,5 @@
+{
+    "require": {
+        "wruczek/php-file-cache": "^0.0.5"
+    }
+}
