@@ -18,14 +18,26 @@
     <div class="container">
       <div class="row">
         <div class="col-md-12">
-            <h2>Hello World</h2>
+            <h2>基金组合分析</h2>
             <div class="control-group">
                 <select id="sel-funds" class="demo-default" placeholder="请输入基金，可多选..." multiple="multiple">
                     <option value="">请输入基金，可多选...</option>
                 </select>
             </div>
             <button type="button" class="btn btn-default" id="check">分析</button>
+            <p style="padding: 15px;margin-top:15px" class="bg-info">数据取自基金上季度的前 10 大重仓股，分析结果是个股在组合中的总权重</p>
             <div id="main" style="height:400px;"></div>
+            <table id="table" class="table hidden">
+                  <thead>
+                    <tr>
+                      <th width="20">#</th>
+                      <th width="100">名称</th>
+                      <th>仓位</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+            </table>
         </div>
       </div>
     </div>
@@ -100,8 +112,9 @@
             }]
         };
 
-        // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
+
+
       }
 
       var sel = $('#sel-funds')[0].selectize;
@@ -120,29 +133,30 @@
               positionMap[name] = (positionMap[name] || 0) + percent;
             });
           });
+
           var positions = Object.entries(positionMap).sort(function(x,y){
             return y[1]-x[1];
-          }).slice(0,20);
-          console.log(positions);
-          showPosition(positions.map(function(x){
+          });
+
+          var positions20 = positions.slice(0, 20);
+          showPosition(positions20.map(function(x){
             return x[0];
-          }), positions.map(function(x){
+          }), positions20.map(function(x){
             return x[1]/ajaxs.length; 
           }));
+
+          $('#table').removeClass('hidden');
+          $('#table tbody').empty();
+          positions.forEach(function(x, i){
+            $('#table tbody').append('<tr> <th scope="row">'+i+'</th><td>'+x[0]+'</td> <td>'+x[1].toFixed(2)+'%</td> </tr>');
+          });
         });
 	  });
     });
     </script>
 
-
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.0.2/dist/echarts.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js"></script>
-    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
-    <script type="text/javascript">
-        // 基于准备好的dom，初始化echarts实例
-    </script>
-
   </body>
 </html>
