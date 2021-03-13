@@ -14451,9 +14451,250 @@ https://stackoverflow.com/questions/44990335/is-there-any-way-to-global-hook-the
 https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-setwindowshookexa?redirectedfrom=MSDN
 https://stackoverflow.com/questions/13476021/how-to-know-when-the-foreground-window-has-changed
 https://stackoverflow.com/questions/7458807/why-must-setwindowshookex-be-used-with-a-windows-message-queue#7460728
+https://social.msdn.microsoft.com/forums/en-US/bfc75b57-df16-48c6-92af-ea0a34f540ae/how-to-get-the-handle-of-a-window-that-i-click
+
+https://stackoverflow.com/questions/352236/reading-from-a-text-field-in-another-applications-window
+https://github.com/westoncampbell/SpyPlusPlus
+https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getmenustringa
+https://blog.csdn.net/bcbobo21cn/article/details/106340762
+https://blog.csdn.net/xpzhang/article/details/1493724
+https://www.cnblogs.com/wangjixianyun/archive/2013/01/21/2869299.html
+https://blog.csdn.net/stf1065716904/article/details/74199422
+https://stackoverflow.com/questions/7282482/windows-net-reading-text-under-mouse-cursor
 
 The low-level hooks, WH_KEYBOARD_LL and WH_MOUSE_LL are different from all the other hooks. They don't require a DLL to be injected into the target process. Instead, Windows calls your hook callback directly, inside your own process. To make that work, a message loop is required. There is no other mechanism for Windows to make callbacks on your main thread, the callback can only occur when you've called Get/PeekMessage() so that Windows is in control.
 
 A global hook like WH_KEYBOARD is very different. It requires a DLL and the callback occurs within the process that processes the keyboard message. You need some kind of inter-process communication to let your own program be aware of this. Named pipes are the usual choice. Which otherwise of course requires that this injected process pumps a message loop. It wouldn't get keyboard messages otherwise.
 
 Favor a low-level hook, they are much easier to get going. But do pump or it won't work. And beware of timeouts, if you're not responsive enough then Windows will kill your hook without notice.
+
+
+testcookie-nginx-module is a simple robot mitigation module using cookie based challenge/response technique.
+http://kyprizel.github.io/testcookie-nginx-module/
+这个防止爬虫的nginx模块看起来不错，比官方的 limit_conn_zone 和limit_req_zone 感觉靠谱
+
+
+autoit
+AutoIt3相关——基本使用篇
+https://www.cnblogs.com/ftxy/p/11844039.html
+https://www.jb51.net/shouce/autoit/
+https://www.autoitscript.com/forum/topic/144176-solved-how-to-click-a-menu-item/
+
+
+步进电机、伺服电机、舵机的原理和区别？
+https://blog.csdn.net/gtkknd/article/details/79489442
+
+
+kvm web
+https://linuxhint.com/libvirt_python/
+
+实战课程发布 —— 《L07 Laravel TDD 测试入门》
+https://learnku.com/laravel/t/47634
+
+总共 160+ 个测试，测试话题包含：
+
+数据库测试
+测试表单验证
+测试文件上传
+测试邮件发送
+测试远程 API 调用
+测试「异常」抛出
+模拟登录用户
+contract 测试
+测试命令行
+Dusk 测试 （浏览器测试，模拟用户行为，包含 JS 测试）
+
+涉及了 Web 应用常见的测试层级，包括：
+
+单元测试
+集成测试
+浏览器测试（黑盒测试）
+
+https://www.doctorxiong.club/api/#api-Fund-getFundPosition 基金API，免费的
+
+Understanding the GitHub flow
+https://guides.github.com/introduction/flow/
+
+Git 在团队中的最佳实践--如何正确使用Git Flow
+https://www.cnblogs.com/cnblogsfans/p/5075073.html
+
+Git 工作流程
+http://www.ruanyifeng.com/blog/2015/12/git-workflow.html
+
+
+【基金知识科普】认识与判断基金的相关性
+https://zhuanlan.zhihu.com/p/155778814
+
+市场上真正有效的分散投资，需要考虑以下几点：
+
+第一， 分散投资品种，比如股票、债券、黄金。
+第二， 资本市场，比如A股、港股、美股。
+第三， 同一资本市场内，不同类别股票的相关性，比如沪深300、创业板指等等。
+
+雪球大V组合“基金相关性”差别如此之大！看看有哪些大V注重分散配置！
+https://xueqiu.com/8687456694/165261496
+
+1、资产的相关性是投资组合理论的核心：相关性越低，投资组合的市场表现就越好。
+2、分散投资于几种不相关的资产可以降低风险，并通过“定期调平（卖出涨幅好的，买入表现差的）”获得增加收益。
+3、真实的资产总是“不完全相关”！大多数都集中在0.3~0.8之间，这就是真实世界的投资组合情况。几乎没有绝对的完全正相关或者完全负相关。
+4、资产之间的相关性不是固定的，而是随着时间大幅波动。
+5、有效分散化的投资组合并不能消除风险。在现实中几乎不可能找到3种以上相互无关的资产，因此，通过分散化只能降低1/4~1/3的风险。
+6、在债券中，加入不高于25%的股票时，风险略微降低，年化收益率明显提升！
+
+基金组合再平衡策略实践
+http://fund.eastmoney.com/a/1593,20121203261782471.html
+
+到了年底，投资者有必要关注基金组合的再平衡。在基金投资中，两种倾向都是有问题的：一种是频繁的申购赎回；另外一种是在买入后就不对基金组合进行管理。资产配置是影响投资回报的一个重要的因素，随着时间的推移，组合中的基金表现不一，组合很可能偏离最初的目标资产配置，呈现出与投资者目标和偏好不同的风险收益特征。再平衡是重要的风险缓解工具，其目标是缩小资产配置的风险，而不是追求组合回报的最大化。
+
+研究表明，对于大多数的充分分散化的股票基金和债券基金的组合，以季度进行查核，并且在偏离度达到8%时进行再平衡，是较优的策略，会在风险控制和成本之间取得较好的平衡。在把这一策略应用到实际中时，再平衡的成本是很难量化的，但是必须给予重视。采用如下的策略可以降低再平衡的成本：通过补充新的资金来进行再平衡，而不是卖出表现好的基金，买入表现不佳的基金，直接把新增资金补充到权重低的基金中，重新达到目标资产配置的平衡。
+
+
+累积型的收益曲线最终会明显胜过回撤型的。也就是说你跟着牛熊周期大起大落最终很可能得不偿失，因为大起之后资产规模也大了，再大落，那是加倍地落；而稳稳的收益反而难能可贵，持续地增长，复利结果相当惊人
+
+当我们构建一个投资组合，想要兼顾收益率和波动率，事实上是极度困难甚至不可行的，二者有天然的矛盾，在我看来并无法真正调解，只能去权衡折中。年轻时多承担一些波动来换取收益，年长后减少些收益预期来降低波动。大致只能如此
+
+https://www.sohu.com/a/142554349_116674
+简单的一句话总结就是
+牛市：不再平衡更好
+熊市：再平衡更好
+
+也就说明短期内，资产的动量属性非常明显。而长期来看，资产价格将出现均值回归，涨得厉害的资产较易出现回调，而跌得厉害的资产也相对更容易出现反弹。
+写在最后
+
+至此，我们做了三个维度的再平衡研究。我们基本可以确定
+
+再平衡比不再平衡综合表现更好
+1. 保证长期回报及风险预期和目标更吻合
+2. 保证组合分散风险的功效能够得到最大发挥
+
+再平衡频率可以按时间或者按权重偏离百分比触发
+
+1. 历史数据显示，中长期的再平衡频率比每个月再平衡的表现更好
+2. 如果按偏离百分比触发再平衡，30%是一个可取的触发点
+
+在其他设定一定的情况，再平衡幅度对于组合长期表现的影响不大
+
+趣编程软件下载
+https://www.shinelab.cn/download
+
+SICP
+https://book.douban.com/subject/1148282/
+
+了解数学史的人，应该知道整个数学史，就是一个不断抽象的历史。古希腊人将字母引入计算，使数学不再只是算术，而且具有表达抽象规则的能力。近代数学对函数和微积分的探求中，用 f(x) 替代了多项式表达式，函数更一般了，然后 n 维空间、复分析、映射、泛函，抽象代数、群论，等等等等，直到集合论，摧毁了数学的基石，使数学界再次陷入沉思。
+
+构造程序的方法也是抽象。从最简单的元素开始，基本元素(自演算表达式，包括数字，字符串和布尔值），然后定义基本过程（基本运算符，四则运算和布尔运算），进一步，自定义标识符（如同代数），再自定义过程（函数），再将过程作为值参与运算（高阶过程）。一步步的抽象，形成了整个程序的结构。而我们编程，无非就是从现实世界抽象出模型，再将模型不断的提炼抽象，属性、方法、类、继承、层次、框架。
+
+如果要问现代数学最重要的概念是什么，那毫无疑问就是函数了，或者更确切地说，是映射。泛函这个词，或许对非数学系的同学来说有些陌生，但如果写成英语 functional, 看起来就眼熟多了。狭隘一点地说，泛函就是以函数为参数，返回值是数值的一类函数。看到这里相信不少同学都发现了，这就是在很多语言中被称为高阶函数（high-order function）的那个东西。泛函在数学中是如此普遍的概念，现代数学几乎无处不会用到。数学家们很自然地在集合上添加运算，构造空间；从一个空间映射到另一个空间，创造泛函。对泛函做变换，构造泛函的泛函。等等。
+
+为什么我要在这里提到数学和泛函？因为在我看来， lisp 是一门以表达数学为己任的语言。正如 SICP 中希望表达的一种观点：语言会影响思维。如果数学推理过程中最频繁应用到的泛函，在计算机语言中却没有对应的表达，换言之数学思维不能很自然地表述为计算机语言的话，那么计算机对于数学研究的意义就显得很可疑了
+
+第一章讨论程序设计的最基本原则：原语（primitive expressions）、组合（means of composition）和抽象（means of abstraction），以及如何利用这些基本原则化解复杂度。重点是过程抽象和高阶过程（high-order procedures）。本章的例题十分精彩，抽象和组合的过程十分清晰。有关递归和迭代的讨论也非常耐读。
+
+第二章讨论数据抽象，即利用基本数据构造复杂结构。Scheme里的基本构造能力只有cons，但由此可以组合出所有实用的结构。图像语言、符号运算、集合表示、哈夫曼编码和复数系统都是经典实用的例子。顺带还介绍了data-directed方法，与面向对象中的封装有异曲同工之妙。
+
+即使没有太多时间，我觉得前两章也值得值得细读。尤其是例子。
+
+第三章主要讨论了状态（local state）和环境（environment model），可变数据结构（mutable data），以及状态和时间的交互（concurrency和laziness）。前两章用到语言是Scheme的一个没有副作用的子集，从这一章开始涉及解释器的核心机制，尤其是状态的管理，及其优缺点。
+
+第四章用Scheme实现了一个简单的Scheme解释器。重点是讨论语言的解释过程，以及如何针对问题（领域）创造和修改语言，从中可见DSL（Domain Specific Language）的思想。后三节各自讨论一个工程中不常见但高效解决特定问题的语言变种及其实现。
+
+第五章介绍将Scheme编译为现实中的寄存器机器模型（register machine）。重点不是编译技巧（Scheme压根不需要文法分析），而是基本构造（条件、过程，等等）对应于寄存器模型的实现。略带讨论了最简单的垃圾回收。
+
+后三章较深，最好略有一点语言、编译和体系结构的基础，或者多些耐心。
+
+
+公募“四大天王”的思维共性（朱少醒、张坤、谢治宇、萧楠）
+https://weibo.com/ttarticle/p/show?id=2309404580959944048809&sudaref=passport.weibo.com
+
+量化投资大神西蒙斯2019最新分享：量化策略、数学、职业与交易
+https://futures.hexun.com/2019-07-11/197821001.html
+
+
+PHPMD简介
+https://blog.csdn.net/wu15010861923/article/details/89158240
+
+https://github.com/mi-schi/phpmd-extension
+https://www.kancloud.cn/bajiao/phpmd/128478
+
+vueblog项目文档：https://juejin.cn/post/5ecfca676fb9a04793456fb8
+
+vueblog项目视频：https://www.bilibili.com/video/BV1PQ4y1P7hZ
+
+vueblog代码仓库：https://github.com/MarkerHub/vueblog
+
+Spring Boot之 Controller 接收参数和返回数据总结(包括上传、下载文件)
+https://www.cnblogs.com/dand/p/10178500.html
+
+git squash 的使用
+https://www.cnblogs.com/hzglearn/p/13042282.html
+
+一，如果是尚未推送到远端，全部在本地分支上，这时候大胆的使用git 命令行开始操作 1.git rebase -i HEAD~3 合并本地的几个commitHEAD~后面跟几个数字即可
+
+git merge的参数--squash的用处
+http://www.voidcn.com/article/p-vjynnngk-bcg.html
+
+4.git merge --squash abc
+5.git commit -m添加message
+
+Git 使用规范流程
+http://www.ruanyifeng.com/blog/2015/08/git-use-process.html?bsh_bid=701658724
+
+量化平台代码中，XSHG 和 XSHE代码的含义
+https://zhuanlan.zhihu.com/p/260369082
+
+### pandas
+
+    code = 161005
+
+    # 股票持仓
+    # 股票持仓
+    types = ('第一季度','第二季度','第三季度','第四季度')
+    q=query(finance.FUND_PORTFOLIO_STOCK) \
+        .filter(finance.FUND_PORTFOLIO_STOCK.code==code) \
+        .filter(finance.FUND_PORTFOLIO_STOCK.rank<=10) \
+        .filter(finance.FUND_PORTFOLIO_STOCK.report_type.in_(types)) \
+        .order_by(finance.FUND_PORTFOLIO_STOCK.pub_date.desc()).limit(2000)
+    df=finance.run_query(q)
+    df
+
+
+
+    from jqdata import finance
+    # 净值
+    q=query(finance.FUND_NET_VALUE).filter(finance.FUND_NET_VALUE.code=="161005").order_by(finance.FUND_NET_VALUE.day.desc()).limit(10)
+    df=finance.run_query(q)
+    df
+
+    # 获取行业
+    get_industry(security=['002475.XSHE','002142.XSHE'], date="2018-06-01")
+
+    # 转换代码
+    normalize_code(['000651','600887'])
+
+    # 面积图
+    df2 = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
+    df2.a.plot.area() # 单个列
+    df2.plot.area()
+    df2
+
+    df2.plot.area(figsize=(12,5),title=fund_name)
+
+
+    save.to_csv('b.txt',index=False,sep=',')
+
+Unstacking a multi-index with duplicates
+https://stackoverflow.com/questions/62174893/unstacking-a-multi-index-with-duplicates
+
+df = df.groupby(["Date", "ID"],sort=False)['Value'].sum().unstack()
+
+pandas: groupby and unstack to create feature vector for classification
+https://stackoverflow.com/questions/24444251/pandas-groupby-and-unstack-to-create-feature-vector-for-classification
+
+PHPMD(PHP Mess Detector)规则集
+https://www.kancloud.cn/bajiao/phpmd/128478
+
+超详细！4小时开发一个SpringBoot+vue前后端分离博客项目！！
+https://juejin.cn/post/6844903823966732302#heading-19
+
+SICP Python 描述 中文版
+https://wizardforcel.gitbooks.io/sicp-py/content/
