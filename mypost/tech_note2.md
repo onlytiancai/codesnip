@@ -14698,3 +14698,197 @@ https://juejin.cn/post/6844903823966732302#heading-19
 
 SICP Python 描述 中文版
 https://wizardforcel.gitbooks.io/sicp-py/content/
+
+SQLAlchemy Filter based on a function of an a field of a table
+https://stackoverflow.com/questions/25596899/sqlalchemy-filter-based-on-a-function-of-an-a-field-of-a-table
+
+# PostgreSQL
+from sqlalchemy.sql import extract
+session.query(MyTable).filter(extract('dow', MyTable.my_date) == 1)
+
+# MySQL
+from sqlalchemy import func
+session.query(MyTable).filter(func.dayofweek(MyTable.my_date) == 2)
+
+python seaborn heatmap可视化相关性矩阵
+https://blog.csdn.net/sjtulgl/article/details/92796547
+
+import pandas as pd
+import numpy as np
+import seaborn as sns
+df = pd.DataFrame(np.random.randn(50).reshape(10,5))
+corr = df.corr()
+sns.heatmap(corr, cmap='Blues', annot=True)
+
+
+mask = np.zeros_like(corr)
+mask[np.tril_indices_from(mask)] = True
+sns.heatmap(corr, cmap='Blues', annot=True, mask=mask.T)
+
+pandas-数据的合并与拼接
+https://www.cnblogs.com/keye/p/10791705.html
+
+a = pd.Series([1.1,2.2,3.3],index=['i1','i2','i3'])
+b = pd.Series([4.4,5.5,6.6],index=['i2','i3','i4'])
+print(a)
+print(b)
+pd.concat([a,b])
+pd.concat([a,b],axis=1)
+
+
+常见基本回测指标（年化收益率，夏普率，最大回撤，β值，α值）的实现
+https://www.jianshu.com/p/cc59b41e751f
+https://my.oschina.net/u/4586457/blog/4403144
+https://mp.weixin.qq.com/s?__biz=MzUyMDk1MDY2MQ==&mid=2247483991&idx=1&sn=7e2a54011706fd88ff7cef2007f840d8&chksm=f9e3c4bdce944daba8cdd20fa7ca26704381779159f2aa25e66a2d1f527590e29c906df9a697#rd
+https://zhuanlan.zhihu.com/p/100185719
+https://blog.csdn.net/weixin_30950887/article/details/95788442
+
+Python进阶量化交易场外篇3——最大回撤评价策略风险
+https://www.cnblogs.com/xyou/p/10338259.html
+
+    #expanding()计算资金曲线当前的滚动最高值
+    stock_df['max_total'] = stock_df['total'].expanding().max()
+    #计算资金曲线在滚动最高值之后所回撤的百分比
+    stock_df['per_total'] = stock_df['total']/stock_df['max_total']
+    min_point_total = stock_df.sort_values(by=['per_total']).iloc[[0], stock_df.columns.get_loc('per_total')]
+    print(min_point_total)
+    max_point_total = stock_df[stock_df.index <= min_point_total.index[0]].sort_values\
+    (by=['total'],ascending=False).iloc[[0],stock_df.columns.get_loc('total')]
+    print("最大资金回撤%5.2f%%从%s开始至%s结束"%((1-min_point_total.values),\
+    max_point_total.index[0],min_point_total.index[0]))
+
+
+Pandas进阶之窗口函数rolling()和expanding()
+https://www.jianshu.com/p/b8c795345e93?from=timeline
+
+事实上，当rolling()函数的参数window=len(df)时，实现的效果与expanding()函数是一样的。
+
+# 判断expanding()的求和结果，与cumsum()结果，相同
+result1 = df.expanding(min_periods=1).sum()
+result2 = df.cumsum()
+np.allclose(result1, result2)
+True
+
+教你用 Python 进阶量化交易
+https://www.imooc.com/read/13
+
+深入理解量化交易的本质
+掌握 Pandas、NumPy 等基础工具
+如何实现常用的金融交易技术指标
+如何实现常用的量化交易策略
+如何制作自己的量化交易工具
+
+
+mysql新增参数未传异常_难道发现了mysql的bug?show table status 命令不起作用了
+https://blog.csdn.net/weixin_39915721/article/details/111687950
+
+ ANALYZE TABLE test show table status where name  = 'test'
+ set session information_schema_stats_expiry = 0;
+
+DecisionTreeClassifier 能够实现多类别的分类。输入两个向量：向量X，大小为[n_samples,n_features]，用于记录训练样本；向量Y，大小为[n_samples]，用于存储训练样本的类标签。
+
+    from sklearn import tree
+    X = [[0, 0], [1, 1]]
+    Y = [0, 1]
+    clf = tree.DecisionTreeClassifier()
+    clf = clf.fit(X, Y)
+
+    clf.predict([[2., 2.]])
+    clf.predict_proba([[2., 2.]])       #计算属于每个类的概率
+
+去掉异常值
+
+    df_zscore=df.copy() #复制一个用来存储Z-score得分的数据框
+    cols=df.columns
+    for col in cols:
+        df_col=df[col]
+        z_score=(df_col - df_col.mean()) / df_col.std() #计算每列的Z-score得分
+        df_zscore[col] = z_score.abs() > 2.2 #判断Z-score得分是否大于2.2,如果是则为True,否则为False
+    df = df[df_zscore['pmi']==False]
+    df.plot(figsize=(16,6))
+
+决策树
+Python36：MachineLearning-DecisionTreeClassifier
+http://blog.sina.com.cn/s/blog_77f476ef0102xhm8.html
+
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.metrics import accuracy_score
+    import pandas as pd
+    import numpy as np
+
+    # Read the data.csv
+    data = np.asarray(pd.read_csv('data.csv', header=None))
+    # Assign the features to the variable x, and the labels to the variable y. 
+    x = data[:,0:2]
+    y = data[:,2]
+
+    # TODO: Create the decision tree model and assign it to the variable model.
+    model = DecisionTreeClassifier(max_depth=5,min_samples_leaf=5,min_samples_split=10)
+
+    # TODO: Fit the model.
+    model.fit(x,y)
+        
+    # TODO: Make predictions. Store them in the variable y_pred.
+    y_pred = model.predict(x)
+
+    # TODO: Calculate the accuracy and assign it to the variable acc.
+    acc = accuracy_score(y, y_pred)
+
+Python36：MachineLearning-DecisionTreeClassifier
+
+数据可视化-混淆矩阵(confusion matrix)
+https://www.jianshu.com/p/7b4a5d922c4c
+
+在基于深度学习的分类识别领域中，经常采用统计学中的混淆矩阵（confusion matrix）来评价分类器的性能。
+
+它是一种特定的二维矩阵：
+
+列代表预测的类别；行代表实际的类别。
+对角线上的值表示预测正确的数量/比例；非对角线元素是预测错误的部分。
+混淆矩阵的对角线值越高越好，表明许多正确的预测。
+
+特别是在各分类数据的数量不平衡的情况下，混淆矩阵可以直观的显示分类模型对应各个类别的准确率。
+
+金融评测指标empyrical库详解Sortino、calmar、omega、sharpe、annual_return、max_drawdown
+https://blog.csdn.net/The_Time_Runner/article/details/99569365
+
+评价一下Proxmox VE与ESXi的优劣？
+https://www.zhihu.com/question/377225514
+proxmox貌似是家小公司整的，国外很多项目都从esxi迁移到proxmox,评价都不错。
+
+dump all mysql tables into separate files automagically?
+https://stackoverflow.com/questions/3669121/dump-all-mysql-tables-into-separate-files-automagically
+
+    # Optional variables for a backup script
+    MYSQL_USER="root"
+    MYSQL_PASS="something"
+    BACKUP_DIR=/srv/backup/$(date +%Y-%m-%dT%H_%M_%S);
+    test -d "$BACKUP_DIR" || mkdir -p "$BACKUP_DIR"
+    # Get the database list, exclude information_schema
+    for db in $(mysql -B -s -u $MYSQL_USER --password=$MYSQL_PASS -e 'show databases' | grep -v information_schema)
+    do
+      # dump each database in a separate file
+      mysqldump -u $MYSQL_USER --password=$MYSQL_PASS "$db" | gzip > "$BACKUP_DIR/$db.sql.gz"
+    done
+    
+Just add --routines and --triggers to capture procedures and triggers.
+
+for I in $(mysql -u [username] -p[mypassword] -h [Hostname/IP] -e 'show databases' -s --skip-column-names); do mysqldump -u [username] -p[mypassword] -h [Hostname/IP] $I | gzip > "/home/user/$I.sql.gz"; done
+
+cnpm install webpack@3.3.0 -g
+cnpm install webpack@3.3.0 --save-dev
+cnpm install css-loader@0.28.0 style-loader@0.16.1
+webpack runoob1.js bundle.js
+cnpm install webpack-dev-server -g
+webpack-dev-server --progress --colors
+
+https://www.runoob.com/w3cnote/webpack-tutorial.html
+
+kvm php
+https://libvirt.org/php.html
+
+git clone https://gitlab.com/libvirt/libvirt-php.git
+apt install php7.2-cli
+apt install php7.2-dev
+./autobuild.sh
+
