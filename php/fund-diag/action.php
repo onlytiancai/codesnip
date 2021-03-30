@@ -7,7 +7,7 @@ require_once __DIR__ . "/vendor/autoload.php";
 class Action 
 {
     private $api_url = 'https://api.doctorxiong.club';
-    const CACHE_TTL = 10*60*60;
+    const CACHE_TTL = 30*24*60*60;
     private $allow_actions = ['searchFund', 'getPosition'];
 
     function __construct()
@@ -44,7 +44,7 @@ class Action
     function getAllFund()
     {
         $data = $this->cache->refreshIfExpired("all-fund", function () {
-            $response = $this->http_client->get("{$this->api_url}/v1/fund/all");
+            $response = $this->http_client->get("{$this->api_url}/v1/fund/all", ['timeout' => 20]);
             return (string)$response->getBody();
         }, self::CACHE_TTL);   
         $data = json_decode($data, true);
