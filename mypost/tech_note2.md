@@ -14852,9 +14852,6 @@ https://www.jianshu.com/p/7b4a5d922c4c
 金融评测指标empyrical库详解Sortino、calmar、omega、sharpe、annual_return、max_drawdown
 https://blog.csdn.net/The_Time_Runner/article/details/99569365
 
-评价一下Proxmox VE与ESXi的优劣？
-https://www.zhihu.com/question/377225514
-proxmox貌似是家小公司整的，国外很多项目都从esxi迁移到proxmox,评价都不错。
 
 dump all mysql tables into separate files automagically?
 https://stackoverflow.com/questions/3669121/dump-all-mysql-tables-into-separate-files-automagically
@@ -14892,3 +14889,153 @@ apt install php7.2-cli
 apt install php7.2-dev
 ./autobuild.sh
 
+https://developer.ibm.com/languages/python/articles/os-python-kvm-scripting1/
+pip3 --default-timeout=600 install lxml -i https://pypi.tuna.tsinghua.edu.cn/simple
+sudo apt-get install python3-libxml2
+
+使用libvirt的xml配置文件创建虚拟机
+https://blog.csdn.net/yuanfang_way/article/details/79136502
+
+kvm支持的镜像很多，常用的是原始镜像(*.img)，还有支持动态大小扩张的qocw2格式（首选）。
+更优的选择是系统盘如C盘用img格式，数据盘用qcow2格式以减少服务器磁盘闲置空间。
+本文仅记录如何用ubuntu.iso制作系统镜像ubuntu.qcow2并创建启动虚拟机
+
+群晖 rsync
+
+rsync -e "/usr/bin/ssh" -avzlP xxx@192.168.1.xxx::开发工具/操作系统/xp.iso .
+
+通过 VNC 远程连接到 linux 通过 virtual machine manager 安装 xp
+
+- 分配 2个CPU，2G内存
+- 光盘选择 xp.iso
+- Boot Options 选择光驱第 1，并打上 enable bootmenu 的勾
+- Display VNC的 Type 选择 VNC Server,否则使用不了鼠标和键盘, address 选择 all interfaces
+
+# netstat -tnpl | grep 5903
+tcp        0      0 127.0.0.1:5903          0.0.0.0:*               LISTEN      13877/qemu-system-x
+iptables -t nat -A PREROUTING -d 192.168.1.40 -p tcp --dport 5903 -j DNAT --to 127.0.0.1
+
+# grep vnc_li /etc/libvirt/qemu.conf
+#vnc_listen = "0.0.0.0"
+
+
+iptables -L -n
+
+端口转发
+sysctl net.ipv4.ip_forward
+echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+sysctl -p
+//设置 DNAT
+iptables -t nat -A PREROUTING -p tcp –dport [本地端口号] -j DNAT –to-destination [目标IP:目标端口号]
+//设置SNAT
+iptables -t nat -A POSTROUTING -p tcp -d [目标IP] –dport [目标端口号] -j SNAT –to-source [本地服务器IP]
+
+用iptable完成端口映射
+问：一局域网192.168.1.0/24，有web和ftp服务器192.168.1.10、192.168.1.11,网关linux，内网eth0，IP为192.168.1.1，外网eth1，IP为a.b.c.d，怎样作NAT能使内外网都能访问公司的服务器？ 
+答：# web 
+# 用DNAT作端口映射 
+iptables -t nat -A PREROUTING -d a.b.c.d -p tcp --dport 80 -j DNAT --to 192.168.1.10 
+# 用SNAT作源地址转换（关键），以使回应包能正确返回 
+iptables -t nat -A POSTROUTING -d 192.168.1.10 -p tcp --dport 80 -j SNAT --to 192.168.1.1 
+# 一些人经常忘了打开FORWARD链的相关端口，特此增加 
+iptables -A FORWARD -o eth0 -d 192.168.1.10 -p tcp --dport 80 -j ACCEPT 
+iptables -A FORWARD -i eth0 -s 192.168.1.10 -p tcp --sport 80 -m --state ESTABLISHED -j ACCEPT 
+
+原文链接：https://blog.csdn.net/jamesdodo/article/details/81741483
+
+KVM虚拟化笔记（七）------kvm虚拟机VNC的配置
+https://blog.51cto.com/liqingbiao/1741103
+
+LINUX用iptable完成端口映射
+https://blog.csdn.net/jamesdodo/article/details/81741483
+
+iptables -t nat -L -n --line-numbers
+iptables  -L -n
+iptables -t nat  -D PREROUTING  1
+
+iptables管理NAT表
+https://blog.csdn.net/qq_36294875/article/details/80105936
+
+删除iptables nat 规则
+删除一条nat 规则
+
+iptables -t nat  -D POSTROUTING  1
+
+让openstack 虚拟机上网的规则
+
+iptables -t nat -A POSTROUTING -s 172.28.101.111/255.255.255.0 -o ens33 -j MASQUERADE
+
+开启路由转发
+
+echo "1" > /proc/sys/net/ipv4/ip_forward
+
+https://blog.csdn.net/ypbsyy/article/details/80774565
+
+apt install python3-websockify
+
+通过noVNC和websockify连接到QEMU/KVM
+https://my.oschina.net/u/2336787/blog/1797709
+
+libvirt 问题解决记录集
+https://blog.csdn.net/chenyulancn/article/details/13005487
+
+KVM虚拟机克隆和快照使用方法
+https://blog.csdn.net/weixin_41843699/article/details/100189189
+
+
+exsi 能支持
+linux的kvm支持内存压缩，但对性能有影响 了解一下ksm
+
+虚拟机
+私有云架构：
+
+iaas 选用openstack加kvm
+paas 选用 k8s 加 docker
+saas 提供架构即服务
+cmp 目前选用 redhat的manageIQ
+
+评价一下Proxmox VE与ESXi的优劣？
+https://www.zhihu.com/question/377225514
+proxmox貌似是家小公司整的，国外很多项目都从esxi迁移到proxmox,评价都不错。
+
+sudo virsh vncdisplay xp
+
+kvm+vnc安装windowsXP
+https://my.oschina.net/innovation/blog/168431
+
+# The loopback network interface
+    auto lo
+    iface lo inet loopback
+
+    # The primary network interface
+    auto eth0
+    iface eth0 inet manual
+
+    auto br0
+    iface br0 inet static
+        address 192.168.18.99
+        netmask 255.255.255.0
+        network 192.168.18.0
+        broadcast 192.168.18.255
+        gateway 192.168.18.1
+        dns-nameservers 192.168.18.184
+
+        bridge_ports eth0
+        bridge_stp off
+        bridge_maxwait 5
+        bridge_fd 0
+
+/etc/init.d/networking restart
+
+qemu-img create -f raw xpde1.img 10G
+qemu-system-x86_64 -m 512 -drive file=/root/xpde1.img,cocaltime -cdrom /root/WindowsXPsp2de.iso -boot d -nographic --vnc 0.0.0.0:0
+
+vnc的鼠标焦点有偏移，无法正常控制。在 Windows XP 虚拟机下，在控制面板内打开“鼠标”属性，去掉“指针选项”页面内“提高指针精确度”前面的勾.问题解决。
+
+tail -f  /var/log/libvirt/qemu/xp.log
+
+KVM Virtualization: Start VNC Remote Access For Guest Operating Systems
+https://www.cyberciti.biz/faq/linux-kvm-vnc-for-guest-machine/
+
+vncconnect 192.168.1.40:5903
+vncconnect: unable to open display ""
