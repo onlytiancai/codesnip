@@ -15039,3 +15039,160 @@ https://www.cyberciti.biz/faq/linux-kvm-vnc-for-guest-machine/
 
 vncconnect 192.168.1.40:5903
 vncconnect: unable to open display ""
+
+
+----------
+tail -f ~/.vnc/ubuntu-server-03\:1.log  /var/log/libvirt/qemu/xp.log
+# virsh domifaddr xp
+ Name       MAC address          Protocol     Address
+-------------------------------------------------------------------------------
+ vnet2      52:54:00:e9:d2:e8    ipv4         192.168.122.97/24
+
+# nc -v -w1 192.168.122.97 3389
+Connection to 192.168.122.97 3389 port [tcp/*] succeeded!
+
+/etc/libvirt/qemu/networks
+
+echo 1 >/proc/sys/net/ipv4/ip_forward
+sysctl -p
+
+iptables -t nat -A POSTROUTING -o br0 -j MASQUERADE
+iptables -t nat -L -n --line-numbers
+
+iptables -t nat -A PREROUTING -i br0 -d 192.168.1.40 -p tcp -m tcp --dport 3389 -j DNAT --to-destination 192.168.122.97:3389
+iptables -t nat -A POSTROUTING -o br0 -s 192.168.122.0/255.255.255.0 -d 192.168.122.97 -p tcp -m tcp --dport 3389 -j SNAT --to-source 192.168.122.1
+iptables -t filter -A INPUT -p tcp -m state --state NEW -m tcp --dport 3389 -j ACCEPT
+
+iptables -t nat  -D PREROUTING  1
+
+Linux中KVM桥接的配置
+https://www.cnblogs.com/heyongboke/p/10337447.html
+brctl  show
+
+KVM使用NAT联网并为VM配置iptables端口转发，kvmiptables
+https://www.cnblogs.com/dwj192/p/8862199.html
+
+现在我们还以上述VM为例，目前该KVM的公网IP为192.168.1.102，VM的IP为192.168.122.173，现在我要求通过访问KVM的8022端口访问VM的22端口。
+
+要想达到上述功能，我们需要在KVM服务器上设置如下IPtables规则：
+iptables -t nat -A PREROUTING -d 192.168.1.102 -p tcp -m tcp --dport 8022 -j DNAT --to-destination 192.168.122.173:22
+iptables -t nat -A POSTROUTING -s 192.168.122.0/255.255.255.0 -d 192.168.122.173 -p tcp -m tcp --dport 22 -j SNAT --to-source 192.168.122.1
+
+qemu-kvm NAT方式联网另一种方法使用iptables的方法
+https://my.oschina.net/u/138210/blog/186963
+
+在 Ubuntu 服务器上创建网桥
+https://linux.cn/article-7605-1.html
+
+# cat /etc/netplan/01-netcfg.yaml
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    enp9s0:
+      dhcp4: no
+      dhcp6: no
+  bridges:
+    br0:
+      interfaces: [enp9s0]
+      dhcp4: no
+      addresses: [192.168.1.40/24]
+      gateway4: 192.168.1.1
+      nameservers:
+        addresses: [8.8.8.8,8.8.4.4]
+
+# ip r
+default via 192.168.1.1 dev br0 proto static
+192.168.1.0/24 dev br0 proto kernel scope link src 192.168.1.40
+192.168.122.0/24 dev virbr0 proto kernel scope link src 192.168.122.1 linkdown
+
+#不创建虚拟磁盘，一次性创建KVM虚拟机（默认为qcow2磁盘格式，网络为桥接模式，在此前最好安装virt-manager）：
+virt-install  --virt-type kvm --name CentOS-7-x86_64 --ram 2048 \
+ -vcpus=1 -s 20 -c /vm/iso/CentOS-7-x86_64-DVD-1511.iso --hvm  \
+  --os-type=linux -f /vm/CentOS-7-x86_64-tmp.img --graphics vnc,listen=0.0.0.0 \
+  --noautoconsole
+
+Iptables 之NAT端口转发设置
+https://www.cnblogs.com/kevingrace/p/5865792.html
+
+透明网桥调用iptables修改数据包无效
+https://blog.csdn.net/weixin_45504433/article/details/104396043
+
+问题
+使用命令iptables -t mangle -A POSTROUTING -o bridge0 -j TTL --ttl-set 50
+ttl没有变换
+
+解决办法：
+启动bridge-nf：
+modprobe br_netfilter
+
+编辑文件vim /etc/sysctl.conf 添加：
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.bridge.bridge-nf-call-arptables = 1
+
+进行该配置后，执行命令
+/sbin/sysctl -p
+
+原因
+网桥在数据链路层工作，数据会直接经过网桥转发，iptables需要开启bridge-nf
+centos默认不开启 bridge-nf
+
+KVM下虚拟机网卡桥接配置
+https://blog.csdn.net/u011414200/article/details/47310827
+
+virsh domifaddr xp
+
+https://github.com/Mikej81/WebRDP
+webrdp
+npm install node-gyp -g
+npm install -g node-pre-gyp
+npm config set user 0
+npm config set unsafe-perm true
+npm install jimp
+HTTP_PROXY=http://proxy:8080 npm install
+
+
+kvm快照功能
+https://blog.csdn.net/lipei1220/article/details/8474034
+
+
+创建快照
+qemu-img snapshot -c s1 disk.qcow2
+
+查看镜像信息
+qemu-img info win7.qcow2
+
+列出所有快照
+qemu-img snapshot  -l  disk.qcow2
+
+恢复快照
+qemu-img snapshot -a s1 disk.qcow2
+
+删除快照
+qemu-img snapshot -d s1 disk.qcow2
+
+
+virsh snapshot-create testsnp snp.xml
+KVM虚拟机克隆和快照使用方法
+https://blog.csdn.net/weixin_41843699/article/details/100189189
+
+1） 一台KVM虚拟机由两部分组成：虚拟机配置文件和镜像img
+[root@xuegod110 ~]# ll /var/lib/libvirt/images/xuegod110.img #镜像
+-rw------- 1 root root 1565196288 Sep 1 20:19 /var/lib/libvirt/images/xuegod110.img
+[root@xuegod110 ~]# ll /etc/libvirt/qemu/xuegod110.xml 配置文件
+-rw------- 1 root root 4645 Sep 1 20:19 /etc/libvirt/qemu/xuegod110.xml
+
+virsh list --all
+virt-clone -o win7 -n win7-copy -f /data/vmdata/win7-copy.img
+virsh start win7-copy
+virsh list
+virsh domifaddr win7-copy
+
+virsh destroy win7-copy
+virsh undefine win7-copy
+rm /data/vmdata/win7-copy.qcow2
+
+node-rdpjs https://github.com/t-system/node-rdpjs.git
+mstsc.js: https://github.com/citronneur/mstsc.js
+"node-rdpjs": "../node-rdpjs"
