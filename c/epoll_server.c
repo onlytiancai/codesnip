@@ -3,6 +3,7 @@
  * echo hell world | nc -w1 127.0.0.1 8888
  * sudo tcpdump -n -i lo port 8888
  * curl -v -m1 127.0.0.1:8888
+ * ab -c 2 -n 10 http://127.0.0.1:8888/
  * */
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +17,7 @@
 #include <errno.h>
 
 #define MAXEVENTS 64
+static char* response = "HTTP/1.1 200 OK\r\nServer: nginx\r\nDate: Thu, 20 May 2021 04:16:43 GMT\r\nContent-Type: application/octet-stream\r\nContent-Length: 9\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\n\r\n127.0.0.1";
 
 static int
 make_socket_non_blocking (int sfd)
@@ -188,8 +190,10 @@ main (int argc, char *argv[])
                             NI_NUMERICHOST | NI_NUMERICSERV);
                     if (s == 0)
                     {
-                        printf("Accepted connection on descriptor %d "
+                        /*
+                         printf("Accepted connection on descriptor %d "
                                 "(host=%s, port=%s)\n", infd, hbuf, sbuf);
+                        */
                     }
 
                     /* Make the incoming socket non-blocking and add it to the
@@ -218,45 +222,49 @@ main (int argc, char *argv[])
                    data. */
                 int done = 0;
 
-                while (1)
-                {
+                while (1) {
                     ssize_t count;
                     char buf[512];
 
                     count = read (events[i].data.fd, buf, sizeof buf);
-                    if (count == -1)
-                    {
+                    if (count == -1) {
                         /* If errno == EAGAIN, that means we have read all
                            data. So go back to the main loop. */
-                        if (errno != EAGAIN)
-                        {
+                        if (errno != EAGAIN) {
                             perror ("read");
                             done = 1;
                         }
                         break;
                     }
-                    else if (count == 0)
-                    {
+                    else if (count == 0) {
                         /* End of file. The remote has closed the
                            connection. */
                         done = 1;
                         break;
                     }
 
-                    /* Write the buffer to standard output */
-                    s = write (1, buf, count);
-                    if (s == -1)
-                    {
-                        perror ("write");
+                    /* send response */
+                    s = write (events[i].data.fd, response, strlen(response));
+                    // printf ("send response:%d %ld\n",s, strlen(response));
+                    if (s == -1) {
+                        perror ("response");
                         abort ();
+                    } else if (s == strlen(response)) {
+                        // 一次性发送完毕
+                        close (events[i].data.fd);
+                        break;
+                    } else {
+                        //TODO: 未发送完毕 
                     }
+
                 }
 
                 if (done)
                 {
+                    /*
                     printf ("Closed connection on descriptor %d\n",
                             events[i].data.fd);
-
+                    */
                     /* Closing the descriptor will make epoll remove it
                        from the set of descriptors which are monitored. */
                     close (events[i].data.fd);

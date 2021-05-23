@@ -1,0 +1,13 @@
+ubuntu@VM-54-197-ubuntu:~/src/codesnip/c$ strace  -c ./a.out 8888
+^Cstrace: Process 1093773 detached
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 30.61    0.148255           7     20003         1 epoll_wait
+ 20.93    0.101360           5     20002     10001 accept
+ 14.16    0.068574           6     10007           close
+ 13.52    0.065491           6     10000           write
+  7.60    0.036829           1     20004           fcntl
+  7.34    0.035573           3     10004           read
+  5.84    0.028310           2     10002           epoll_ctl
+  0.00    0.000000           0         4           fstat
+
