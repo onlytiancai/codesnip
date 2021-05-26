@@ -2,37 +2,44 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include<pthread.h>  
+#include <time.h>
 
-pthread_mutex_t lock;
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 const int N = 10;
-int *g_list;
+int has_data = 0, use_list = 1, data_len = 0, *g_list, *list1, *list2;
 
 void* thread1(void *data)  {
-    int list[N], i;
+    int i, n, *p;
     while(1) {
-        for (i = 0; i < N; ++i) {
-            list[i] = rand();
-        }
-
         pthread_mutex_lock(&lock); 
-        g_list = list;
+        p = g_list;
         pthread_mutex_unlock(&lock);  
         
-        sleep(5);
+        n = rand() % N + 1;
+        for (i = 0; i < n; ++i) { p[i] = rand(); }
+
+        pthread_mutex_lock(&lock); 
+        has_data = 1; data_len = n;
+        pthread_cond_signal (&cond);
+        pthread_mutex_unlock(&lock);  
+        sleep(1);
     }
 }
 
 void* thread2(void *data) {
-    int list[N], i, *p;
+    int i, n, *p;
 
     while(1) {
         pthread_mutex_lock(&lock); 
-        p = g_list;
-        g_list = list;
+        while (!has_data) pthread_cond_wait (&cond, &lock);
+        p = g_list; n = data_len; data_len = 0; has_data = 0;
+        if (use_list == 1) { g_list = list2; use_list = 2;}
+        else {g_list = list1; use_list = 1;}
         pthread_mutex_unlock(&lock);  
 
         printf("========\n");
-        for (i = 0; i < N; ++i) {
+        for (i = 0; i < n; ++i) {
             printf("%d\n", p[i]);     
         } 
         
@@ -43,8 +50,13 @@ void* thread2(void *data) {
 int main()
 {
     pthread_t ptid1,ptid2; 
-    int list[N];
-    g_list = list;
+    int l1[N], l2[N];
+
+    time_t t;
+    srand((unsigned) time(&t));
+
+    list1 = l1; list2 = l2;
+    g_list = list1; use_list = 1;
 
     pthread_mutex_init(&lock,NULL);
     pthread_create(&ptid1, NULL, thread1, "thread1:increase");
