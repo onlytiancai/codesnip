@@ -13,8 +13,6 @@
 
 #define MAXEVENTS 64
 const int N = 10;
-int has_data = 0, use_list = 1, data_len = 0, *g_list, *list1, *list2;
-int epfd = -1;
 
 static char* response = "HTTP/1.1 200 OK\r\nServer: nginx\r\nDate: Thu, 20 May 2021 04:16:43 GMT\r\nContent-Type: application/octet-stream\r\nContent-Length: 9\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\n\r\n127.0.0.1";
 
@@ -104,32 +102,86 @@ static void handle_error(char* file, int line) {
 
 void* thread2(void *data) {
     struct ThreadData *td = (struct ThreadData*)data;
-    int i, n, *p, nfds;
+    int i, n, *p, nfds, socket_fd, s;
     const int MAX_EVENTS_SIZE = 1; 
-    struct epoll_event events[MAX_EVENTS_SIZE];
+    struct epoll_event events[MAX_EVENTS_SIZE], event;
     uint64_t result;
 
     while(1) {
-        nfds = epoll_wait(epfd, events, MAX_EVENTS_SIZE, 5000);
+        nfds = epoll_wait(td->epfd, events, MAX_EVENTS_SIZE, -1);
         for (i = 0; i < nfds; i++) {
-            if (events[i].events & EPOLLIN) {
-                read(events[i].data.fd, &result, sizeof(uint64_t));
+            if (td->efd == events[i].data.fd) {
+                // event fd
+                if (events[i].events & EPOLLIN) {
+                    read(events[i].data.fd, &result, sizeof(uint64_t));
+                    pthread_mutex_lock(&td->lock); 
+                    for (i = 0; i < td->queue_len; ++i) {
+                        socket_fd = td->fd_queue[i];
+                        event.data.fd = socket_fd;
+                        event.events = EPOLLIN | EPOLLET;
+                        s = epoll_ctl (td->epfd, EPOLL_CTL_ADD, socket_fd, &event);
+                    }
+                    td->queue_len = 0;
+                    pthread_mutex_unlock(&td->lock);  
 
-                pthread_mutex_lock(&td->lock); 
-                p = g_list; n = data_len; data_len = 0; has_data = 0;
-                if (use_list == 1) { g_list = list2; use_list = 2; }
-                else { g_list = list1; use_list = 1; }
-                pthread_mutex_unlock(&td->lock);  
-
+                } else {
+                    handle_error(__FILE__, __LINE__);
+                }
             } else {
-                handle_error(__FILE__, __LINE__);
+                // socket fd
+                int done = 0;
+
+                while (1) {
+                    ssize_t count;
+                    char buf[512];
+
+                    count = read (events[i].data.fd, buf, sizeof buf);
+                    if (count == -1) {
+                        /* If errno == EAGAIN, that means we have read all
+                           data. So go back to the main loop. */
+                        if (errno != EAGAIN) {
+                            perror ("read");
+                            done = 1;
+                        }
+                        break;
+                    }
+                    else if (count == 0) {
+                        /* End of file. The remote has closed the
+                           connection. */
+                        done = 1;
+                        break;
+                    }
+
+                    /* send response */
+                    s = write (events[i].data.fd, response, strlen(response));
+                    // printf ("send response:%d %ld\n",s, strlen(response));
+                    if (s == -1) {
+                        perror ("response");
+                        abort ();
+                    } else if (s == strlen(response)) {
+                        // 一次性发送完毕
+                        close (events[i].data.fd);
+                        break;
+                    } else {
+                        //TODO: 未发送完毕 
+                    }
+
+                }
+
+                if (done)
+                {
+                    /*
+                       printf ("Closed connection on descriptor %d\n",
+                       events[i].data.fd);
+                       */
+                    /* Closing the descriptor will make epoll remove it
+                       from the set of descriptors which are monitored. */
+                    close (events[i].data.fd);
+                }
+
             }
         }
         
-        printf("========use_list:%d, n:%d, nfds:%d\n", use_list, n, nfds);
-        for (i = 0; i < n; ++i) {
-            printf("%d\n", p[i]);     
-        } 
     }
 }
 
@@ -137,9 +189,9 @@ int main()
 {
     int sfd, s, i;
     const char *port = "8888";
-    int l1[N], l2[N];
     struct epoll_event event;
     struct epoll_event *events;
+    int epfd = -1;
 
     time_t t;
     srand((unsigned) time(&t));
@@ -148,8 +200,6 @@ int main()
     if (epfd == -1) handle_error(__FILE__, __LINE__);
 
     int ret;
-    list1 = l1; list2 = l2;
-    g_list = list1; use_list = 1;
 
     sfd = create_and_bind(port);
     if (sfd == -1) handle_error(__FILE__, __LINE__);
@@ -172,13 +222,13 @@ int main()
         td = tds[i];
         temp_efd = eventfd(0, EFD_NONBLOCK);
         if (temp_efd == -1) handle_error(__FILE__, __LINE__);
+
         temp_epfd = epoll_create1(EPOLL_CLOEXEC);
         if (temp_epfd == -1) handle_error(__FILE__, __LINE__);
-
-        pthread_mutex_init(&tds[i].lock,NULL);
-        td.efd = temp_epfd;
-        td.epfd = temp_efd;
+        td.efd = temp_efd;
+        td.epfd = temp_epfd;
         td.queue_len = 0;
+        pthread_mutex_init(&td.lock, NULL);
 
         temp_event.data.fd = td.efd;
         temp_event.events = EPOLLIN | EPOLLET;
@@ -273,8 +323,6 @@ int main()
             }
         }
     }
-
-
 
 
     for (i = 0; i < THREAD_COUNT; ++i) {
