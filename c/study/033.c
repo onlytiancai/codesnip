@@ -10,9 +10,11 @@
 #include<pthread.h>  
 #include <sys/eventfd.h>
 #include <sys/epoll.h>
+#include <sys/types.h>
+#include <sys/syscall.h>
 
-#define MAXEVENTS 64
 const int N = 10;
+const int MAX_EVENTS_SIZE = 10; 
 
 static char* response = "HTTP/1.1 200 OK\r\nServer: nginx\r\nDate: Thu, 20 May 2021 04:16:43 GMT\r\nContent-Type: application/octet-stream\r\nContent-Length: 9\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\n\r\n127.0.0.1";
 
@@ -78,6 +80,7 @@ create_and_bind (const char *port)
         if (s == 0)
         {
             /* We managed to bind successfully! */
+            printf("bind port success:%s\n", port);
             break;
         }
 
@@ -103,17 +106,19 @@ static void handle_error(char* file, int line) {
 void* thread2(void *data) {
     struct ThreadData *td = (struct ThreadData*)data;
     int i, n, *p, nfds, socket_fd, s;
-    const int MAX_EVENTS_SIZE = 1; 
     struct epoll_event events[MAX_EVENTS_SIZE], event;
     uint64_t result;
+    printf("worker thread start:%ld %p\n", syscall(__NR_gettid), &td->lock);
 
     while(1) {
         nfds = epoll_wait(td->epfd, events, MAX_EVENTS_SIZE, -1);
+        printf("worker thread epoll wait:%ld %d\n", syscall(__NR_gettid), nfds);
         for (i = 0; i < nfds; i++) {
             if (td->efd == events[i].data.fd) {
                 // event fd
                 if (events[i].events & EPOLLIN) {
                     read(events[i].data.fd, &result, sizeof(uint64_t));
+                    printf("work thread lock:%ld %p\n", syscall(__NR_gettid), &td->lock);
                     pthread_mutex_lock(&td->lock); 
                     for (i = 0; i < td->queue_len; ++i) {
                         socket_fd = td->fd_queue[i];
@@ -123,11 +128,13 @@ void* thread2(void *data) {
                     }
                     td->queue_len = 0;
                     pthread_mutex_unlock(&td->lock);  
+                    printf("work thread unlock:%ld %p\n", syscall(__NR_gettid), &td->lock);
 
                 } else {
                     handle_error(__FILE__, __LINE__);
                 }
             } else {
+                printf("worker no efd%ld\n", syscall(__NR_gettid));
                 // socket fd
                 int done = 0;
 
@@ -189,15 +196,9 @@ int main()
 {
     int sfd, s, i;
     const char *port = "8888";
-    struct epoll_event event;
-    struct epoll_event *events;
-    int epfd = -1;
 
     time_t t;
     srand((unsigned) time(&t));
-
-    epfd = epoll_create1(EPOLL_CLOEXEC);
-    if (epfd == -1) handle_error(__FILE__, __LINE__);
 
     int ret;
 
@@ -210,43 +211,49 @@ int main()
     s = listen (sfd, SOMAXCONN);
     if (s == -1) handle_error(__FILE__, __LINE__);
 
-    event.data.fd = sfd;
-    event.events = EPOLLIN | EPOLLET;
-    s = epoll_ctl (epfd, EPOLL_CTL_ADD, sfd, &event);
-    if (s == -1) handle_error(__FILE__, __LINE__);
-
-    struct ThreadData tds[THREAD_COUNT], td;
+    struct ThreadData tds[THREAD_COUNT], *p_td;
     int temp_epfd, temp_efd;
     struct epoll_event temp_event;
     for (i = 0; i < THREAD_COUNT; ++i) {
-        td = tds[i];
+        p_td = &tds[i];
         temp_efd = eventfd(0, EFD_NONBLOCK);
         if (temp_efd == -1) handle_error(__FILE__, __LINE__);
 
         temp_epfd = epoll_create1(EPOLL_CLOEXEC);
         if (temp_epfd == -1) handle_error(__FILE__, __LINE__);
-        td.efd = temp_efd;
-        td.epfd = temp_epfd;
-        td.queue_len = 0;
-        pthread_mutex_init(&td.lock, NULL);
 
-        temp_event.data.fd = td.efd;
-        temp_event.events = EPOLLIN | EPOLLET;
-        s = epoll_ctl(td.epfd, EPOLL_CTL_ADD, td.efd, &event);
+        p_td->efd = temp_efd;
+        p_td->epfd = temp_epfd;
+        p_td->queue_len = 0;
+        s = pthread_mutex_init(&p_td->lock, NULL);
+        printf("mutex init %d %d %p\n", i, s, &p_td->lock);
         if (s == -1) handle_error(__FILE__, __LINE__);
 
-        pthread_create(&td.ptid, NULL, thread2, &td);
+        temp_event.data.fd = p_td->efd;
+        temp_event.events = EPOLLIN | EPOLLET;
+        s = epoll_ctl(p_td->epfd, EPOLL_CTL_ADD, p_td->efd, &temp_event);
+        if (s == -1) handle_error(__FILE__, __LINE__);
+
+        pthread_create(&p_td->ptid, NULL, thread2, p_td);
     }
 
-    /* Buffer where events are returned */
-    events = calloc (MAXEVENTS, sizeof event);
     uint64_t count = 1;
+
+    int epfd = epoll_create1(0);
+    if (epfd == -1) handle_error(__FILE__, __LINE__);
+
+    struct epoll_event events[MAX_EVENTS_SIZE], event;
+    event.data.fd = sfd;
+    event.events = EPOLLIN | EPOLLET;
+    s = epoll_ctl(epfd, EPOLL_CTL_ADD, sfd, &event);
+    if (s == -1) handle_error(__FILE__, __LINE__);
 
     while (1)
     {
         int n, i;
 
-        n = epoll_wait(epfd, events, MAXEVENTS, -1);
+        n = epoll_wait(epfd, events, MAX_EVENTS_SIZE, -1);
+        printf("main thread epoll wait:%ld %d\n", syscall(__NR_gettid), n);
         for (i = 0; i < n; i++)
         {
             if ((events[i].events & EPOLLERR) ||
@@ -305,15 +312,18 @@ int main()
                     if (s == -1)
                         abort ();
 
-                    n = rand() % THREAD_COUNT + 1;
-                    struct ThreadData td = tds[n];
+                    n = rand() % THREAD_COUNT;
+                    struct ThreadData *p_td = &tds[n];
+                    printf("random thread %d %p\n", n, &p_td->lock);
 
-                    pthread_mutex_lock(&td.lock); 
-                    if (td.queue_len >= FD_QUEUE_MAX) handle_error(__FILE__, __LINE__);
-                    td.fd_queue[td.queue_len] = infd;
-                    td.queue_len++; 
-                    ret = write(td.efd, &count, sizeof(uint64_t));
-                    pthread_mutex_unlock(&td.lock);  
+                    pthread_mutex_lock(&p_td->lock); 
+                    printf("111\n");
+                    if (p_td->queue_len >= FD_QUEUE_MAX) handle_error(__FILE__, __LINE__);
+                    p_td->fd_queue[p_td->queue_len] = infd;
+                    p_td->queue_len++; 
+                    ret = write(p_td->efd, &count, sizeof(uint64_t));
+                    printf("222\n");
+                    pthread_mutex_unlock(&p_td->lock);  
                 }
                 continue;
             }
@@ -326,11 +336,11 @@ int main()
 
 
     for (i = 0; i < THREAD_COUNT; ++i) {
-        pthread_join(tds[i].ptid, NULL);
-        pthread_mutex_destroy(&tds[i].lock);
+        struct ThreadData *p_td = &tds[i];
+        pthread_join(p_td->ptid, NULL);
+        pthread_mutex_destroy(&p_td->lock);
     }
 
-    free (events);
     close (sfd);
     return EXIT_SUCCESS;
 }
