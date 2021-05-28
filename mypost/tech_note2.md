@@ -15196,3 +15196,437 @@ rm /data/vmdata/win7-copy.qcow2
 node-rdpjs https://github.com/t-system/node-rdpjs.git
 mstsc.js: https://github.com/citronneur/mstsc.js
 "node-rdpjs": "../node-rdpjs"
+
+http://www.practicepython.org/
+https://codewizardshq.com/python-for-kids/
+http://www.mprat.org/projects/meet/2013/09/22/meet-fellowship.html
+
+The goal of a modern education is to nurture a person to adulthood, someone who is capable of solving the tough problems of tomorrow. However, in schools we are taught to memorize and regurgitate. Most students don’t come close to an exploratory, iterative, problem solving education. I want to tell you why programming is the best way to fill those gaps. No matter how old you are, programming practice is for you.
+
+For the average person, programming is the gateway to automation. For engineers, programming is one of many tools of the trade. For data scientists, programming is THE tool. Working at your own pace on small problems, with repetitions approximately weekly, you will train yourself in the art of problem solving and expand your confidence in solving ever larger problems. In your own ventures, in your own disciplines, in your own lives, you can make a difference.
+
+In today’s world, the ability to code continues to grow in importance. Coding is no longer the sole domain of computer scientists and programmers, but rather a useful skill to have in any career.
+
+Kids with an eye to their future know that learning to code is important, but figuring out which one to learn can be an intimidating task. Some languages are easier to learn, while others have a wider application. But one language sits right in the sweet spot.
+
+With a balance of being both easy to learn and widely used in the real world, we suggest learning Python for kids.
+
+维斯特洛大陆地理分析
+https://site.douban.com/123299/widget/notes/4488367/note/165503953/
+如何评价《冰与火之歌》维斯特洛大陆各大家族的地缘环境？
+https://www.zhihu.com/question/318519272/answer/646442367
+
+野性的呼唤
+https://www.ygdy8.com/html/gndy/dyzz/20200401/59875.html
+
+刷完这70道力扣，你就可以走出新手村啦(文字版)
+https://mp.weixin.qq.com/s/u5QxViit-mfIrcvUVimR7w
+
+考察数据结构——第一部分:数据结构简介[译]
+https://www.cnblogs.com/wayfarer/archive/2004/04/08/5526.html
+https://www.cnblogs.com/wayfarer/archive/2004/04/12/5852.html
+https://www.cnblogs.com/wayfarer/archive/2004/07/16/24703.html
+
+Python for Kids: Best Resources to Learn Python Programming
+https://codewizardshq.com/python-for-kids/
+
+Python is a powerful yet beginner-friendly coding language for kids to learn programming.
+https://codewizardshq.com/python-classes-for-kids/
+
+Resources for Learning Python and Programming
+http://www.practicepython.org/resources-for-learners/
+
+白茶饼的正确泡法，一般有6个冲泡步骤！
+https://m.puercn.com/show-428-184782.html
+
+量子力学 第八章：自旋
+http://staff.ustc.edu.cn/~xiaozg/QM2019/qm08.pdf
+
+Error in MySQL when setting default value for DATE or DATETIME
+https://stackoverflow.com/questions/36374335/error-in-mysql-when-setting-default-value-for-date-or-datetime
+Error in MySQL when setting default value for DATE or DATETIME
+
+《JavaScript 模式》读书笔记
+https://github.com/JChehe/blog/blob/master/posts/%E3%80%8AJavaScript%E6%A8%A1%E5%BC%8F%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.md
+
+再次阅读《精通CSS-高级Web标准解决方案（第二版）》
+https://github.com/JChehe/blog/blob/master/posts/%E5%86%8D%E6%AC%A1%E9%98%85%E8%AF%BB%E3%80%8A%E7%B2%BE%E9%80%9ACSS-%E9%AB%98%E7%BA%A7Web%E6%A0%87%E5%87%86%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%88%E7%AC%AC%E4%BA%8C%E7%89%88%EF%BC%89%E3%80%8B.md
+
+
+·编辑教你看MTF曲线：
+1. 任何线条都是越高越好，下降的趋势越慢越好。
+2. 粗线的位置越高，说明该镜头的反差和对比越高。
+3. 细线的位置越高，说明该镜头的锐利度越高。
+4. 黑线的位置越高，证明该镜头在全开光圈时表现越好。
+5. 蓝线的位置越高，证明该镜头在光圈收缩到8的时候表现越好。
+6. 蓝线如果和黑线很接近，说明这支镜头表现很出色，只有比较少的镜头有这种表现。
+7. 如果蓝线的位置都比较低，说明这支镜头相当差劲。
+8. 0.6以下一般画面就很糟糕了，0.6-0.8画面还可以，0.8-0.9可以算良，0.9以上算非常优秀了，只有优秀镜头在适合的状态下才可能达到，但是具体的情况还是要看各位自己判断了。
+9. 实线和虚线越接近，表示这支镜头的焦外成像越柔和自然，反之，差得越远，焦外成像就越差，差太多就会斑斑驳驳一块一块的很难看。
+
+一般来说，光圈是按挡来区分的。完整的F值为F1.0，F1.4，F2，F2.8，F4，F5.6，F8，F11，F16，F22，F32，F44，F64，这些叫做整挡光圈。相邻的整挡光圈之间，通光量相差一倍。例如1.4是2的两倍，2是2.8的两倍，所以1.4是2.8的四倍，他们的通光量构成了一个等比数列：2的n次方。
+
+至于快门，也是按挡来区分的。4、2、1、1/2、1/4、1/8、1/15、1/30、1/60 1/125 1/250、1/500、1/1000、1/2000、1/4000 、1/8000是整挡快门速度。相邻的整挡快门速度，通光量也相差一倍，他们也类似一个2的等比数列。
+
+
+-------------
+Material Design Lite简介
+https://www.cnblogs.com/jasonnode/p/4747469.html
+
+
+https://blocklycodelabs.dev/codelabs/getting-started/index.html?index=..%2F..index#3
+
+
+更新浏览器
+https://browser-update.org/
+
+
+ssdb
+https://gitee.com/mirrors/Badger
+
+抓包
+https://github.com/mitmproxy/mitmproxy/
+
+数据库建模
+https://gitee.com/robergroup/pdman
+
+https://curl.trillworks.com/#python  这里有个工具挺好，可以直接把浏览器里复制的curl命令转换成 python requests的代码，省的自己翻译了，另外还能转换成go,java,php等代码
+
+Ubuntu——grub rescue 主引导修复
+https://blog.csdn.net/jscese/article/details/36865449
+
+ls (hd0,msdos1)/
+ fsck -t ext3 /dev/vda1
+
+Is there a way to get the stacktraces for all threads in c#, like java.lang.Thread.getAllStackTraces()?
+https://stackoverflow.com/questions/2057781/is-there-a-way-to-get-the-stacktraces-for-all-threads-in-c-like-java-lang-thre
+
+So I actually just had to figure out how to do this
+-- haven't used this solution extensively in production yet,
+but theres a relatively new library called ClrMd.
+
+I have a script that runs from a cron job every night.
+Recently, it has started totally freezing up after several minutes into the script, and I can't figure out why.
+If this was Java, I could simply run kill -3 PID and it would print a thread dump in stdout.
+Is there any equivalent in PHP, where I could get a dump of the current stack trace (and ideally memory info) on a running PHP script?
+
+https://stackoverflow.com/questions/14261821/get-a-stack-trace-of-a-running-or-hung-php-script
+
+I would like to propose alternative approach avoiding the use of php debug symbols. In some cases installing debug symbols are more troublesome, i.e. when we run httpd inside non-root docker container. This approach requires xdebug extension to be installed (which are already installed in, for example, Openshift-based PHP containers)
+
+First, download this gdb script : dumpstack.gdbscript, and save it in /tmp/dumpstack.gdbscript.
+
+Second, invoke gdb like this (substitute $pid with the php process id):
+
+gdb --batch --readnever --pid=$pid --command=/tmp/dumpstack.gdbscript 2>/dev/null
+
+
+$ sudo apt-get install gdb php-xdebug
+
+$ php -m | grep xdebug
+xdebug
+$ systemctl restart php7.4-fpm
+$ vi /tmp/dumpstack.gdbscript
+    set $xstack = ((long**)&xdebug_globals)[2]
+    if ($xstack !=0) && ($xstack[0]!=0)
+        set $pcurrent = (long*)$xstack[0]
+        while $pcurrent
+            set $xptr = (long*)$pcurrent[0]
+            set $xptr_s = (char**)$xptr
+            set $xptr_i = (int*)$xptr
+            set $filename = $xptr_s[4]
+            set $funcname = $xptr_s[1]
+            set $linenum = $xptr_i[10]
+            if ($funcname!=0)
+                printf "%s@%s:%d\\n", $funcname, $filename, $linenum
+            else
+                printf "global@%s:%d\\n", $filename, $linenum
+            end
+            set $pnext = (long*)$pcurrent[2]
+            set $pcurrent = $pnext
+        end
+    else
+        printf "no stack"
+    end
+
+# gdb --batch --readnever --pid=4135294 --command=/tmp/dumpstack.gdbscript
+
+#!/bin/bash
+for pid in `ps -C httpd | awk '{print $1}'`; do gdb --batch --readnever --pid=$pid --command=/tmp/dumpstack.gdbscript 2>/dev/null; done
+
+
+https://stackoverflow.com/questions/2212635/best-way-to-manage-long-running-php-script/35113852#35113852
+
+  94     char *string = emalloc(ARGS_MAX_LEN);
+  95     smart_string tmp = {0};
+  96     int real_len = 0;
+  97     int stop = 0;
+  98     memset(string, 0x00, ARGS_MAX_LEN);
+  99     arg_len = smart_string_len(frame->function) + 1;
+ 100     string = strncat(string, smart_string_str(frame->function), real_len - 1);
+
+In function ‘strncat’,
+    inlined from ‘convert_args_to_string’ at /home/ubuntu/src/Molten/molten_intercept.c:100:14:
+/usr/include/x86_64-linux-gnu/bits/string_fortified.h:136:10: warning: ‘__builtin_strncat’ specified bound 18446744073709551615 exceeds maximum object size 9223372036854775807 [-Wstringop-overflow=]
+  136 |   return __builtin___strncat_chk (__dest, __src, __len, __bos (__dest));
+
+上面的代码第 100 行有个 warning，应该怎么修复一下呀？
+
+
+ascii 顺序图
+ZipKin原理学习--ZipKin入门介绍
+https://blog.csdn.net/qq924862077/article/details/80285536
+
+
+Python 里最好用的Web框架居然不是Django和Flask，居然是它？？？
+https://juejin.cn/post/6944598601674784775
+
+深入理解 Python 异步编程
+https://blog.csdn.net/catwan/article/details/84975893
+
+
+Birdseye - 极其强大的 Python 调试工具
+https://blog.csdn.net/cqcre/article/details/116452938
+
+-------------
+phpt文件说明,php官方自动测试方法,run-test.php命令用法
+https://blog.csdn.net/samxx8/article/details/48749597
+
+php run-tests.php tests/bug_dup_sampled.phpt
+
+
+Nginx的CGI、FastCGI和PATHINFO
+https://moneyslow.com/nginx%e7%9a%84cgi%e3%80%81fastcgi%e5%92%8cpathinfo.html
+
+fastcgi_param：这个指令配置了fastcgi的一些参数，传递给php-fpm，这个指令是3段式，第一段fastcgi_param指令名称，第二段传递给php-fpm的参数的名称，第三段传递给php-fpm参数的值，也就是说fastcgi_param配置了一系列的key-value类型的值；对PHP来说fastcgi_param指令产生的key-value键值对最后都（未确认，暂时这么理解吧~）转换成了超全局数组变量$_SERVER的键值对，上述示例中fastcgi_param SCRIPT_FILENAME /scripts$fastcgi_script_name就配置了一个SCRIPT_FILENAME的fastcgi参数，转换成PHP中的变量就是$_SERVER['SCRIPT_FILENAME'] ，PHP参考手册中对$_SERVER['SCRIPT_FILENAME']的说明是：“当前执行脚本的绝对路径”。对nginx来说，将请求正确的交给php-fpm来执行正确的php脚本就是由fastcgi_param指令配置的SCRIPT_FILENAME来决定的，所以nginx能默契的与php-fpm协作，fastcgi_param指令正确的配置了SCRIPT_FILENAME值是关键。
+
+
+fastcgi_split_path_info指令，将URI匹配成PHP脚本的URI和pathinfo两个变量，即$fastcgi_script_name 和$fastcgi_path_info
+
+    fastcgi_split_path_info ^(.+\.php)(.*)$;
+
+PHP中要能读取到pathinfo这个变量就要通过fastcgi_param指令将fastcgi_split_path_info指令匹配到的pathinfo部分赋值给PATH_INFO，
+这样PHP中$_SERVER['PATH_INFO']才会存在值
+
+    fastcgi_param PATH_INFO $fastcgi_path_info;
+
+在将这个请求的URI匹配完毕后，检查这个绝对地址的PHP脚本文件是否存在
+如果这个PHP脚本文件不存在就不用交给php-fpm来执行了
+否者页面将出现由php-fpm返回的:`File not found.`的提示
+此处直接返回404错误
+你也可以rewrite 到新地址去，然后break;
+
+    if (!-e $document_root$fastcgi_script_name) {
+        return 404;
+    }
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+
+https://serverfault.com/questions/929245/php-fpm-status-page-request-uri-always-index-php
+
+Real-time PHP-FPM Status
+https://gist.github.com/Jiab77/a9428050ab9bb3f17c5e33343da94fd8
+
+
+https://bugs.php.net/bug.php?id=55208
+
+【采坑】docker 部署pmm与mysql监控
+https://blog.csdn.net/qq_33633013/article/details/82762163
+http://www.voidcn.com/article/p-dclksuvp-bpd.html
+
+#版本可自选
+snap install docker
+
+docker create -v /opt/prometheus/data -v /opt/consul-data -v /var/lib/mysql -v /var/lib/grafana --name pmm-data percona/pmm-server:1.14.1 /bin/true
+docker ps -a
+docker run -d -p 81:80  --volumes-from pmm-data --name pmm-server --restart always percona/pmm-server
+vi /etc/nginx/sites-available/pmm
+    server {
+        listen 80;
+        server_name pmm.xxx.com;
+        allow 122.5.23.146;
+        deny all;
+        location / {
+            proxy_pass http://127.0.0.1:81;
+        }
+    }
+ln -s /etc/nginx/sites-available/pmm /etc/nginx/sites-enabled/pmm
+
+docker exec -it pmm-server bash
+
+    vi /etc/grafana/grafana.ini
+        [auth.anonymous]
+        # enable anonymous access
+        enabled = true
+    exit
+
+docker restart pmm-server
+
+
+wget https://downloads.percona.com/downloads/pmm2/2.16.0/binary/tarball/pmm2-client-2.16.0.tar.gz
+tar -zxvf pmm2-client-2.16.0.tar.gz
+cd pmm2-client-2.16.0
+./install_tarball
+/usr/local/percona/pmm2/bin/pmm-admin --version
+export PATH=/usr/local/percona/pmm2/bin:$PATH
+nohup pmm-agent run --server-password=admin --server-username=admin --server-address=127.0.0.1:81 > agent.log &
+
+
+https://www.percona.com/blog/2020/01/15/changing-the-default-admin-password-in-docker-based-deployment-of-pmm2/
+docker exec -t pmm-server bash -c  'ln -s /srv/grafana /usr/share/grafana/data; grafana-cli --homepath /usr/share/grafana admin reset-admin-password newpass'
+
+
+Project Based Tutorials in C
+https://github.com/rby90/Project-Based-Tutorials-in-C
+
+A list of practical projects that anyone can solve in any programming language (See solutions). These projects are divided in multiple categories, and each category has its own folder.
+https://github.com/karan/Projects
+
+Beej's Guide to Network Programming
+https://beej.us/guide/bgnet/html//index.html
+
+=========
+Rust Runtime 与 ABI
+https://zhuanlan.zhihu.com/p/370897059
+
+epoll() Tutorial – epoll() In 3 Easy Steps!
+https://www.suchprogramming.com/epoll-in-3-easy-steps/
+
+Beej's Guide to Network Programming
+https://beej.us/guide/bgnet/html//index.html#acceptman
+
+How to code an epoll based sockets client in C
+https://stackoverflow.com/questions/51777259/how-to-code-an-epoll-based-sockets-client-in-c
+
+When you are dealing with 100K peers there are lot more things to deal with than just the epoll interface. For example, connection failures, retries, partial reads, slow peers, HTTP parsing errors, etc.
+
+There are many different ways it could be designed. Typically I would start with one "connection" thread for connecting to peers, and a pool of "read" threads for reading data from sockets.
+
+Have an IPC like pipes to pass connected socket fd from "connection" to "read" thread. I am sure when you start on it there will be much more scenarios to handle like this. All the best!!
+
+最值得阅读学习的 10 个 C 语言开源项目代码
+https://blog.csdn.net/dellme99/article/details/52152341
+
+错误处理(Error-Handling)：为何、何时、如何(rev#2)
+https://blog.csdn.net/pongba/article/details/1815742
+
+
+exception vs error code
+http://matrix207.github.io/2016/01/17/exception-vs-error-code/
+
+Detect c/c++ memory overflow
+http://matrix207.github.io/2016/01/03/detect-cc-memory-overflow/
+
+memory program and debug
+http://matrix207.github.io/2015/11/25/memory-program-and-debug/
+
+linux memory
+http://matrix207.github.io/2015/10/24/linux-memory/
+
+GNU Linux program
+http://matrix207.github.io/2014/06/28/gnu-linux-program/
+
+exception
+
+network exception, such as connection timeout, receive/send failure
+connect refused
+use exist IP, but port is not listened, then the connect operation will return error connect refused
+hook connect function
+iptables, iptables -t filter -p tcp -A OUTPUT -d DEST_IP --dport DEST_PORT -j REJECT --reject-with tcp-reset
+connect timeout
+read timeout
+write timeout
+disconnect when read/write
+connect slowly
+package dirty
+memory exception, such as not enough memory, allocation failure
+allocate fail
+hook malloc function
+disk exception, such as disk crash, not enough space
+program exception
+
+
+27 Best Linux Tutorial Books That You Need To Download Now
+https://www.ubuntupit.com/best-linux-tutorial-books-need-download-now/
+
+https://blog.csdn.net/pongba/article/details/1815742
+错误处理(Error-Handling)：为何、何时、如何
+
+什么错误呢？
+调用方违反被调用函数的precondition、
+或一个函数无法维持其理应维持的invariants、
+或一个函数无法满足它所调用的其它函数的precondition、
+或一个函数无法保证其退出时的postcondition；
+以上所有情况都属于错误。
+
+编程bug不是错误。属于同一个人维护的代码，或者同一个小组维护的代码，如果里面出现bug，使得一个函数的precondition得不到满足，那么不应该视为错误。
+而应该用assert来对付。因为编程bug发生时，你不会希望栈回滚，而是希望程序在assert失败点上直接中断，调用调试程序，查看中断点的程序状态，从而解决代码中的bug
+
+关于这一点，需要尤其注意的是，它的前提是：必须要是同一个人或小组维护的代码。同一个小组内可以保证查看到源代码，进行debug。
+如果调用方和被调用方不属于同一负责人，则不能满足precondition的话就应该抛出异常。总之记住一个精神：assert是用来辅助debug的
+
+例如文件找不到（通常意味着一个错误）、配置文件语法错误、将一个值赋给一个总应该是正值的变量、文件存在但由于访问限制而不能打开，或打开不能写、网络传输错误、网络中断、数据库连接错误、参数无效等。
+
+异常与错误代码的本质区别之一——异常会自动往上层栈传播：一旦异常被抛出，执行流就立即中止，取而代之的是自动的stack-unwinding操作，直到找到一个适当的catch子句。
+相较之下，使用error-code的话，要将下层调用发生的错误传播到上层去，就必须手动检查每个调用边界，任何错误，都必须手动转发（返回）给上层，稍有遗漏，就会带着错误的状态继续往下执行，从而在下游不知道离了多远的地方最终引爆程序。
+
+http://matrix207.github.io/2013/08/06/linux-protocol-stack/
+Linux protocol stack
+网络协议栈0：从一个例子开始
+http://matrix207.github.io/2013/07/30/networkstack-important-structure/
+http://matrix207.github.io/2013/07/29/networkstack-internet-protocol-suite/
+http://matrix207.github.io/2013/05/28/linux-kernel-linked-list-explained/
+http://matrix207.github.io/2013/05/07/do-you-really-master-c-language/
+http://matrix207.github.io/2013/01/23/my-book-list/
+http://matrix207.github.io/2013/01/05/linux-common-command/
+http://matrix207.github.io/2012/09/26/vim/
+
+mysql2sqlite.sh
+https://gist.github.com/esperlu/943776
+
+
+https://stackoverflow.com/questions/10586003/try-catch-statements-in-c
+
+C itself doesn't support exceptions but you can simulate them to a degree with setjmp and longjmp calls.
+
+static jmp_buf s_jumpBuffer;
+
+void Example() {
+  if (setjmp(s_jumpBuffer)) {
+    // The longjmp was executed and returned control here
+    printf("Exception happened here\n");
+  } else {
+    // Normal code execution starts here
+    Test();
+  }
+}
+
+void Test() {
+  // Rough equivalent of `throw`
+  longjmp(s_jumpBuffer, 42);
+}
+
+http://groups.di.unipi.it/~nids/docs/longjump_try_trow_catch.html
+
+
+You use goto in C for similar error handling situations.
+That is the closest equivalent of exceptions you can get in C.
+
+
+https://stackoverflow.com/questions/368385/implementing-raii-in-pure-c
+
+#include <stdio.h>
+
+void scoped(int * pvariable) {
+    printf("variable (%d) goes out of scope\n", *pvariable);
+}
+
+int main(void) {
+    printf("before scope\n");
+    {
+        int watched __attribute__((cleanup (scoped)));
+        watched = 42;
+    }
+    printf("after scope\n");
+}
+
+https://github.com/psevon/exceptions-and-raii-in-c
