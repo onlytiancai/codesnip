@@ -4,6 +4,8 @@
 #include <errno.h>
 #include <time.h>
 #include <unistd.h>
+#define _GNU_SOURCE
+#define __USE_GNU
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <netdb.h>
@@ -108,19 +110,19 @@ void* thread2(void *data) {
     int i, n, *p, nfds, socket_fd, s, j;
     struct epoll_event events[MAX_EVENTS_SIZE], event;
     uint64_t result;
-    printf("worker[%ld]: thread start, lock=%p\n", syscall(__NR_gettid), &td->lock);
+    //printf("worker[%ld]: thread start, lock=%p\n", syscall(__NR_gettid), &td->lock);
 
     while(1) {
         nfds = epoll_wait(td->epfd, events, MAX_EVENTS_SIZE, -1);
-        printf("worker[%ld]: epoll wait, nfds=%d\n", syscall(__NR_gettid), nfds);
+        //printf("worker[%ld]: epoll wait, nfds=%d\n", syscall(__NR_gettid), nfds);
         for (i = 0; i < nfds; i++) {
-            printf("worker[%ld]: foreach fd, fd=%d is_event_fd=%d\n", syscall(__NR_gettid), events[i].data.fd, events[i].data.fd == td->efd);
+            //printf("worker[%ld]: foreach fd, fd=%d is_event_fd=%d\n", syscall(__NR_gettid), events[i].data.fd, events[i].data.fd == td->efd);
             if (td->efd == events[i].data.fd) {
                 // event fd
                 if (events[i].events & EPOLLIN) {
                     read(events[i].data.fd, &result, sizeof(uint64_t));
                     pthread_mutex_lock(&td->lock); 
-                    printf("worker[%ld]: thread lock, fd=%d, lock=%p queue_len=%d\n", syscall(__NR_gettid), events[i].data.fd, &td->lock, td->queue_len);
+                    //printf("worker[%ld]: thread lock, fd=%d, lock=%p queue_len=%d\n", syscall(__NR_gettid), events[i].data.fd, &td->lock, td->queue_len);
                     for (j = 0; j < td->queue_len; ++j) {
                         socket_fd = td->fd_queue[j];
                         event.data.fd = socket_fd;
@@ -129,7 +131,7 @@ void* thread2(void *data) {
                     }
                     td->queue_len = 0;
                     pthread_mutex_unlock(&td->lock);  
-                    printf("worker[%ld]: thread unlock, fd=%d, lock=%p\n", syscall(__NR_gettid), events[i].data.fd, &td->lock);
+                    //printf("worker[%ld]: thread unlock, fd=%d, lock=%p\n", syscall(__NR_gettid), events[i].data.fd, &td->lock);
 
                 } else {
                     handle_error(__FILE__, __LINE__);
@@ -143,7 +145,7 @@ void* thread2(void *data) {
                     char buf[512];
 
                     count = read(events[i].data.fd, buf, sizeof buf);
-                    printf("worker[%ld]: read request, fd=%d, read bytes=%ld\n", syscall(__NR_gettid), events[i].data.fd, count);
+                    //printf("worker[%ld]: read request, fd=%d, read bytes=%ld\n", syscall(__NR_gettid), events[i].data.fd, count);
                     if (count == -1) {
                         /* If errno == EAGAIN, that means we have read all
                            data. So go back to the main loop. */
@@ -162,13 +164,13 @@ void* thread2(void *data) {
 
                     /* send response */
                     s = write (events[i].data.fd, response, strlen(response));
-                    printf ("worker[%ld]: send response, fd=%d, send bytes=%d, resp len=%ld\n", syscall(__NR_gettid), events[i].data.fd, s, strlen(response));
+                    //printf ("worker[%ld]: send response, fd=%d, send bytes=%d, resp len=%ld\n", syscall(__NR_gettid), events[i].data.fd, s, strlen(response));
                     if (s == -1) {
                         perror ("response");
                         abort ();
                     } else if (s == strlen(response)) {
                         // 一次性发送完毕
-                        printf("worker[%ld]: close fd, fd=%d\n", syscall(__NR_gettid), events[i].data.fd); 
+                        //printf("worker[%ld]: close fd, fd=%d\n", syscall(__NR_gettid), events[i].data.fd); 
                         close (events[i].data.fd);
                         break;
                     } else {
@@ -181,7 +183,7 @@ void* thread2(void *data) {
                 if (done)
                 {
 
-                    printf("worker[%ld]: close fd 2, fd=%d\n", syscall(__NR_gettid), events[i].data.fd); 
+                    //printf("worker[%ld]: close fd 2, fd=%d\n", syscall(__NR_gettid), events[i].data.fd); 
                     /* Closing the descriptor will make epoll remove it
                        from the set of descriptors which are monitored. */
                     close (events[i].data.fd);
@@ -227,7 +229,7 @@ int main()
         p_td->epfd = temp_epfd;
         p_td->queue_len = 0;
         s = pthread_mutex_init(&p_td->lock, NULL);
-        printf("mutex init %d %d %p\n", i, s, &p_td->lock);
+        //printf("mutex init %d %d %p\n", i, s, &p_td->lock);
         if (s == -1) handle_error(__FILE__, __LINE__);
 
         temp_event.data.fd = p_td->efd;
@@ -254,10 +256,10 @@ int main()
         int nfds, i;
 
         nfds = epoll_wait(epfd, events, MAX_EVENTS_SIZE, -1);
-        printf("main: epoll wait nfds=%d\n", nfds);
+        //printf("main: epoll wait nfds=%d\n", nfds);
         for (i = 0; i < nfds; i++)
         {
-            printf("main: poll: fd=%d is_listen_fd=%d\n", events[i].data.fd, events[i].data.fd == sfd);
+            //printf("main: poll: fd=%d is_listen_fd=%d\n", events[i].data.fd, events[i].data.fd == sfd);
             if (sfd == events[i].data.fd)
             {
                 /* We have a notification on the listening socket, which
@@ -270,7 +272,7 @@ int main()
                     char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
 
                     in_len = sizeof in_addr;
-                    infd = accept (sfd, &in_addr, &in_len);
+                    infd = accept4(sfd, &in_addr, &in_len, SOCK_NONBLOCK);
                     if (infd == -1)
                     {
                         if ((errno == EAGAIN) ||
@@ -287,6 +289,7 @@ int main()
                         }
                     }
 
+                    /*
                     s = getnameinfo (&in_addr, in_len,
                             hbuf, sizeof hbuf,
                             sbuf, sizeof sbuf,
@@ -297,17 +300,15 @@ int main()
                                 "(host=%s, port=%s)\n", infd, hbuf, sbuf);
                     }
 
-                    /* Make the incoming socket non-blocking and add it to the
-                       list of fds to monitor. */
                     s = make_socket_non_blocking (infd);
                     if (s == -1)
                         abort ();
-
+                    */
                     int n = rand() % THREAD_COUNT;
                     struct ThreadData *p_td = &tds[n];
 
                     pthread_mutex_lock(&p_td->lock); 
-                    printf("main: random thread, index=%d, lock=%p, queue_len=%d\n", n, &p_td->lock, p_td->queue_len);
+                    //printf("main: random thread, index=%d, lock=%p, queue_len=%d\n", n, &p_td->lock, p_td->queue_len);
                     if (p_td->queue_len >= FD_QUEUE_MAX) handle_error(__FILE__, __LINE__);
                     p_td->fd_queue[p_td->queue_len] = infd;
                     p_td->queue_len++; 
@@ -318,7 +319,7 @@ int main()
             }
             else
             {
-                printf("main: no epid wait:%d nfds=%d sfd=%d\n", events[i].data.fd, nfds, sfd);
+                //printf("main: no epid wait:%d nfds=%d sfd=%d\n", events[i].data.fd, nfds, sfd);
                 handle_error(__FILE__, __LINE__);
             }
         }

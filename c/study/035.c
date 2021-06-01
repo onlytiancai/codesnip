@@ -18,7 +18,7 @@ const int MAX_EVENTS_SIZE = 10;
 
 static char* response = "HTTP/1.1 200 OK\r\nServer: nginx\r\nDate: Thu, 20 May 2021 04:16:43 GMT\r\nContent-Type: application/octet-stream\r\nContent-Length: 9\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\n\r\n127.0.0.1";
 
-const int THREAD_COUNT = 2;
+const int THREAD_COUNT = 20;
 #define FD_QUEUE_MAX 10
 struct ThreadData {
     pthread_mutex_t lock;
@@ -75,7 +75,8 @@ create_and_bind (const char *port)
         sfd = socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
         if (sfd == -1)
             continue;
-
+        int optval = 1;
+        setsockopt(lfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
         s = bind (sfd, rp->ai_addr, rp->ai_addrlen);
         if (s == 0)
         {
@@ -167,6 +168,7 @@ void* thread2(void *data) {
                         abort ();
                     } else if (s == strlen(response)) {
                         // 一次性发送完毕
+                        //printf("close fd %d\n", events[i].data.fd); 
                         close (events[i].data.fd);
                         break;
                     } else {
@@ -250,24 +252,14 @@ int main()
 
     while (1)
     {
-        int n, i;
+        int nfds, i;
 
-        n = epoll_wait(epfd, events, MAX_EVENTS_SIZE, -1);
-        //printf("main thread epoll wait:%ld %d\n", syscall(__NR_gettid), n);
-        for (i = 0; i < n; i++)
+        nfds = epoll_wait(epfd, events, MAX_EVENTS_SIZE, -1);
+        //printf("main thread epoll wait:%ld %d\n", syscall(__NR_gettid), nfds);
+        for (i = 0; i < nfds; i++)
         {
-            if ((events[i].events & EPOLLERR) ||
-                    (events[i].events & EPOLLHUP) ||
-                    (!(events[i].events & EPOLLIN)))
-            {
-                /* An error has occured on this fd, or the socket is not
-                   ready for reading (why were we notified then?) */
-                fprintf (stderr, "epoll error\n");
-                close (events[i].data.fd);
-                continue;
-            }
 
-            else if (sfd == events[i].data.fd)
+            if (sfd == events[i].data.fd)
             {
                 /* We have a notification on the listening socket, which
                    means one or more incoming connections. */
@@ -312,21 +304,24 @@ int main()
                     if (s == -1)
                         abort ();
 
-                    n = rand() % THREAD_COUNT;
+                    int n = rand() % THREAD_COUNT;
                     struct ThreadData *p_td = &tds[n];
                     //printf("random thread %d %p\n", n, &p_td->lock);
 
                     pthread_mutex_lock(&p_td->lock); 
+                    //printf("111\n");
                     if (p_td->queue_len >= FD_QUEUE_MAX) handle_error(__FILE__, __LINE__);
                     p_td->fd_queue[p_td->queue_len] = infd;
                     p_td->queue_len++; 
                     ret = write(p_td->efd, &count, sizeof(uint64_t));
+                    //printf("222\n");
                     pthread_mutex_unlock(&p_td->lock);  
                 }
                 continue;
             }
             else
             {
+                //printf("no epid wait:%d nfds=%d sfd=%d\n", events[i].data.fd, nfds, sfd);
                 handle_error(__FILE__, __LINE__);
             }
         }
