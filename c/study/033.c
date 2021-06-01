@@ -18,8 +18,8 @@ const int MAX_EVENTS_SIZE = 10;
 
 static char* response = "HTTP/1.1 200 OK\r\nServer: nginx\r\nDate: Thu, 20 May 2021 04:16:43 GMT\r\nContent-Type: application/octet-stream\r\nContent-Length: 9\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\n\r\n127.0.0.1";
 
-const int THREAD_COUNT = 10;
-#define FD_QUEUE_MAX 10
+const int THREAD_COUNT = 20;
+#define FD_QUEUE_MAX 100
 struct ThreadData {
     pthread_mutex_t lock;
     pthread_t ptid; 
@@ -105,36 +105,36 @@ static void handle_error(char* file, int line) {
 
 void* thread2(void *data) {
     struct ThreadData *td = (struct ThreadData*)data;
-    int i, n, *p, nfds, socket_fd, s;
+    int i, n, *p, nfds, socket_fd, s, j;
     struct epoll_event events[MAX_EVENTS_SIZE], event;
     uint64_t result;
-    printf("worker thread start:%ld %p\n", syscall(__NR_gettid), &td->lock);
+    printf("worker[%ld]: thread start, lock=%p\n", syscall(__NR_gettid), &td->lock);
 
     while(1) {
         nfds = epoll_wait(td->epfd, events, MAX_EVENTS_SIZE, -1);
-        printf("worker thread epoll wait:%ld %d\n", syscall(__NR_gettid), nfds);
+        printf("worker[%ld]: epoll wait, nfds=%d\n", syscall(__NR_gettid), nfds);
         for (i = 0; i < nfds; i++) {
+            printf("worker[%ld]: foreach fd, fd=%d is_event_fd=%d\n", syscall(__NR_gettid), events[i].data.fd, events[i].data.fd == td->efd);
             if (td->efd == events[i].data.fd) {
                 // event fd
                 if (events[i].events & EPOLLIN) {
                     read(events[i].data.fd, &result, sizeof(uint64_t));
-                    printf("work thread lock:%ld %p\n", syscall(__NR_gettid), &td->lock);
                     pthread_mutex_lock(&td->lock); 
-                    for (i = 0; i < td->queue_len; ++i) {
-                        socket_fd = td->fd_queue[i];
+                    printf("worker[%ld]: thread lock, fd=%d, lock=%p queue_len=%d\n", syscall(__NR_gettid), events[i].data.fd, &td->lock, td->queue_len);
+                    for (j = 0; j < td->queue_len; ++j) {
+                        socket_fd = td->fd_queue[j];
                         event.data.fd = socket_fd;
                         event.events = EPOLLIN | EPOLLET;
                         s = epoll_ctl (td->epfd, EPOLL_CTL_ADD, socket_fd, &event);
                     }
                     td->queue_len = 0;
                     pthread_mutex_unlock(&td->lock);  
-                    printf("work thread unlock:%ld %p\n", syscall(__NR_gettid), &td->lock);
+                    printf("worker[%ld]: thread unlock, fd=%d, lock=%p\n", syscall(__NR_gettid), events[i].data.fd, &td->lock);
 
                 } else {
                     handle_error(__FILE__, __LINE__);
                 }
             } else {
-                printf("worker no efd%ld\n", syscall(__NR_gettid));
                 // socket fd
                 int done = 0;
 
@@ -142,13 +142,13 @@ void* thread2(void *data) {
                     ssize_t count;
                     char buf[512];
 
-                    count = read (events[i].data.fd, buf, sizeof buf);
+                    count = read(events[i].data.fd, buf, sizeof buf);
+                    printf("worker[%ld]: read request, fd=%d, read bytes=%ld\n", syscall(__NR_gettid), events[i].data.fd, count);
                     if (count == -1) {
                         /* If errno == EAGAIN, that means we have read all
                            data. So go back to the main loop. */
                         if (errno != EAGAIN) {
-                            perror ("read");
-                            done = 1;
+                            handle_error(__FILE__, __LINE__);
                         }
                         break;
                     }
@@ -158,19 +158,21 @@ void* thread2(void *data) {
                         done = 1;
                         break;
                     }
+                    
 
                     /* send response */
                     s = write (events[i].data.fd, response, strlen(response));
-                    // printf ("send response:%d %ld\n",s, strlen(response));
+                    printf ("worker[%ld]: send response, fd=%d, send bytes=%d, resp len=%ld\n", syscall(__NR_gettid), events[i].data.fd, s, strlen(response));
                     if (s == -1) {
                         perror ("response");
                         abort ();
                     } else if (s == strlen(response)) {
                         // 一次性发送完毕
-                        printf("close fd %d\n", events[i].data.fd); 
+                        printf("worker[%ld]: close fd, fd=%d\n", syscall(__NR_gettid), events[i].data.fd); 
                         close (events[i].data.fd);
                         break;
                     } else {
+                        handle_error(__FILE__, __LINE__);
                         //TODO: 未发送完毕 
                     }
 
@@ -178,10 +180,8 @@ void* thread2(void *data) {
 
                 if (done)
                 {
-                    /*
-                       printf ("Closed connection on descriptor %d\n",
-                       events[i].data.fd);
-                       */
+
+                    printf("worker[%ld]: close fd 2, fd=%d\n", syscall(__NR_gettid), events[i].data.fd); 
                     /* Closing the descriptor will make epoll remove it
                        from the set of descriptors which are monitored. */
                     close (events[i].data.fd);
@@ -254,10 +254,10 @@ int main()
         int nfds, i;
 
         nfds = epoll_wait(epfd, events, MAX_EVENTS_SIZE, -1);
-        printf("main thread epoll wait:%ld %d\n", syscall(__NR_gettid), nfds);
+        printf("main: epoll wait nfds=%d\n", nfds);
         for (i = 0; i < nfds; i++)
         {
-
+            printf("main: poll: fd=%d is_listen_fd=%d\n", events[i].data.fd, events[i].data.fd == sfd);
             if (sfd == events[i].data.fd)
             {
                 /* We have a notification on the listening socket, which
@@ -293,7 +293,7 @@ int main()
                             NI_NUMERICHOST | NI_NUMERICSERV);
                     if (s == 0)
                     {
-                         printf("Accepted connection on descriptor %d "
+                         printf("main: Accepted connection on descriptor %d "
                                 "(host=%s, port=%s)\n", infd, hbuf, sbuf);
                     }
 
@@ -305,22 +305,20 @@ int main()
 
                     int n = rand() % THREAD_COUNT;
                     struct ThreadData *p_td = &tds[n];
-                    printf("random thread %d %p\n", n, &p_td->lock);
 
                     pthread_mutex_lock(&p_td->lock); 
-                    printf("111\n");
+                    printf("main: random thread, index=%d, lock=%p, queue_len=%d\n", n, &p_td->lock, p_td->queue_len);
                     if (p_td->queue_len >= FD_QUEUE_MAX) handle_error(__FILE__, __LINE__);
                     p_td->fd_queue[p_td->queue_len] = infd;
                     p_td->queue_len++; 
                     ret = write(p_td->efd, &count, sizeof(uint64_t));
-                    printf("222\n");
                     pthread_mutex_unlock(&p_td->lock);  
                 }
                 continue;
             }
             else
             {
-                printf("no epid wait:%d nfds=%d sfd=%d\n", events[i].data.fd, nfds, sfd);
+                printf("main: no epid wait:%d nfds=%d sfd=%d\n", events[i].data.fd, nfds, sfd);
                 handle_error(__FILE__, __LINE__);
             }
         }
