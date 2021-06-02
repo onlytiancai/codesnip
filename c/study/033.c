@@ -335,3 +335,36 @@ int main()
     close (sfd);
     return EXIT_SUCCESS;
 }
+/*
+- 性能优化
+    - accept4 代替 accept，一步到位生成非阻塞 socket
+    - 分散软中断，防止打满一个 CPU，模拟多队列网卡
+    - 多线程 accept，防止 accept 太快打满一个 CPU
+    - 防止 epoll 过快，使用sleep+epoll轮询，减少一些系统调用
+    - 部分线程同步用原子操作代替mutex，节省一些 futex 系统调用
+    - 数据流分析，逃逸分析，分支预测
+    - CPU Cache 友好: 数据布局紧凑合理，减少 false sharding
+    - 减少上下文切换:
+    - 减少中断: 
+    - 数据对齐:
+    - 尽量使用 move 语义，变量交换，CAS 代替比较重的锁
+    - 大页，减少 TLB miss
+- 工具
+    - strace -c
+    - ltrace 
+    - vmstat 看软终端和上下文切换
+    - netstat 看收发队列，accept backlog
+    - tcpdump stat 看 tcp 发包统计
+    - perftop
+    - perf
+    - gperf
+    - pidstat
+    - mpstat
+    - sar 查看 pps
+- 错误码处理
+    - 是否记录日志
+    - 是否可重试
+    - 是否可忽略
+    - 是否关闭进程
+    - 是否关闭连接
+ **/
