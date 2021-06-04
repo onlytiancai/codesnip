@@ -20,7 +20,7 @@ const int MAX_EVENTS_SIZE = 10;
 
 static char* response = "HTTP/1.1 200 OK\r\nServer: nginx\r\nDate: Thu, 20 May 2021 04:16:43 GMT\r\nContent-Type: application/octet-stream\r\nContent-Length: 9\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\n\r\n127.0.0.1";
 
-const int THREAD_COUNT = 20;
+const int THREAD_COUNT = 30;
 #define FD_QUEUE_MAX 100
 struct ThreadData {
     pthread_mutex_t lock;
@@ -30,27 +30,8 @@ struct ThreadData {
     int fd_queue[FD_QUEUE_MAX];
     int queue_len;
 };
-static int make_socket_non_blocking (int sfd)
-{
-    int flags, s;
 
-    flags = fcntl (sfd, F_GETFL, 0);
-    if (flags == -1)
-    {
-        perror ("fcntl");
-        return -1;
-    }
-
-    flags |= O_NONBLOCK;
-    s = fcntl (sfd, F_SETFL, flags);
-    if (s == -1)
-    {
-        perror ("fcntl");
-        return -1;
-    }
-
-    return 0;
-}
+int guard(int n, char * err) { if (n == -1) { perror(err); exit(1); } return n; }
 
 
 static int
@@ -72,11 +53,17 @@ create_and_bind (const char *port)
         return -1;
     }
 
+    int val =1;
     for (rp = result; rp != NULL; rp = rp->ai_next)
     {
         sfd = socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
         if (sfd == -1)
             continue;
+   
+        if (setsockopt(sfd, SOL_SOCKET, SO_REUSEPORT, &val, sizeof(val))<0) {
+            perror("setsockopt()");
+            return -1;
+        }
 
         s = bind (sfd, rp->ai_addr, rp->ai_addrlen);
         if (s == 0)
@@ -96,6 +83,12 @@ create_and_bind (const char *port)
     }
 
     freeaddrinfo (result);
+
+    s = fcntl(sfd, F_SETFL, fcntl(sfd, F_GETFL, 0) | O_NONBLOCK);
+    if (s== -1){
+        perror("calling fcntl");
+        return -1;
+    }
 
     return sfd;
 }
@@ -207,9 +200,6 @@ int main()
 
     sfd = create_and_bind(port);
     if (sfd == -1) handle_error(__FILE__, __LINE__);
-
-    s = make_socket_non_blocking (sfd);
-    if (s == -1) handle_error(__FILE__, __LINE__);
 
     s = listen (sfd, SOMAXCONN);
     if (s == -1) handle_error(__FILE__, __LINE__);
@@ -349,6 +339,11 @@ int main()
     - 数据对齐:
     - 尽量使用 move 语义，变量交换，CAS 代替比较重的锁
     - 大页，减少 TLB miss
+    - gcc 优化
+    - keepalive
+    - 客户端主动关闭
+    - 去掉 mutex
+    - listen backlog
 - 工具
     - strace -c
     - ltrace 
@@ -367,4 +362,26 @@ int main()
     - 是否可忽略
     - 是否关闭进程
     - 是否关闭连接
- **/
+- 监控指标
+    - sys cpu, user cpu
+    - 全局内存：used, cache, buffer
+    - 进程内存：VSZ, RSS, VIRT, RES, SWAP, SHR
+    - 软中断，硬中断
+    - 上下文切换
+    - TCP 各状态的连接数
+    - 网络 pps, rx, tx
+    - tcp socket send q, recv q
+    - accept socket queue
+    - 关键系统调用：epoll_wait, read, write, close
+    - 关键函数调用：malloc, free
+    - 每秒 cpu cache miss
+    - 每秒 tlb miss
+    - 每秒 CPU 指令数
+
+gcc 033.c -lpthread
+
+wrk -t12 -c400 -d30s http://127.0.0.1:8888/
+sar -n DEV 1 | grep -E '(IFACE|lo)'
+watch -n1 -d "netstat -nat | awk '{print \$6}' | sort | uniq -c | sort -r"
+ss | awk '{print $2}' | sort | uniq -c | sort -r
+**/
