@@ -18,17 +18,14 @@
 const int N = 10;
 const int MAX_EVENTS_SIZE = 10; 
 
-static char* response = "HTTP/1.1 200 OK\r\nServer: nginx\r\nDate: Thu, 20 May 2021 04:16:43 GMT\r\nContent-Type: application/octet-stream\r\nContent-Length: 9\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\n\r\n127.0.0.1";
+static char* response = "HTTP/1.1 200 OK\r\nServer: nginx\r\nDate: Thu, 20 May 2021 04:16:43 GMT\r\nContent-Type: application/octet-stream\r\nContent-Length: 10\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\n\r\n127.0.0.1\n";
 
 const int THREAD_COUNT = 30;
 #define FD_QUEUE_MAX 100
 struct ThreadData {
-    pthread_mutex_t lock;
     pthread_t ptid; 
-    int efd;
+    int sfd;
     int epfd;
-    int fd_queue[FD_QUEUE_MAX];
-    int queue_len;
 };
 
 int guard(int n, char * err) { if (n == -1) { perror(err); exit(1); } return n; }
@@ -102,33 +99,44 @@ void* thread2(void *data) {
     struct ThreadData *td = (struct ThreadData*)data;
     int i, n, *p, nfds, socket_fd, s, j;
     struct epoll_event events[MAX_EVENTS_SIZE], event;
-    uint64_t result;
     //printf("worker[%ld]: thread start, lock=%p\n", syscall(__NR_gettid), &td->lock);
+    
+    event.data.fd = td->sfd;
+    event.events = EPOLLIN | EPOLLET;
+    guard(epoll_ctl(td->epfd, EPOLL_CTL_ADD, td->sfd, &event), "epoll_ctl error");
 
     while(1) {
         nfds = epoll_wait(td->epfd, events, MAX_EVENTS_SIZE, -1);
         //printf("worker[%ld]: epoll wait, nfds=%d\n", syscall(__NR_gettid), nfds);
         for (i = 0; i < nfds; i++) {
             //printf("worker[%ld]: foreach fd, fd=%d is_event_fd=%d\n", syscall(__NR_gettid), events[i].data.fd, events[i].data.fd == td->efd);
-            if (td->efd == events[i].data.fd) {
-                // event fd
-                if (events[i].events & EPOLLIN) {
-                    read(events[i].data.fd, &result, sizeof(uint64_t));
-                    pthread_mutex_lock(&td->lock); 
-                    //printf("worker[%ld]: thread lock, fd=%d, lock=%p queue_len=%d\n", syscall(__NR_gettid), events[i].data.fd, &td->lock, td->queue_len);
-                    for (j = 0; j < td->queue_len; ++j) {
-                        socket_fd = td->fd_queue[j];
-                        event.data.fd = socket_fd;
-                        event.events = EPOLLIN | EPOLLET;
-                        s = epoll_ctl (td->epfd, EPOLL_CTL_ADD, socket_fd, &event);
-                    }
-                    td->queue_len = 0;
-                    pthread_mutex_unlock(&td->lock);  
-                    //printf("worker[%ld]: thread unlock, fd=%d, lock=%p\n", syscall(__NR_gettid), events[i].data.fd, &td->lock);
+            if (td->sfd == events[i].data.fd) {
 
-                } else {
-                    handle_error(__FILE__, __LINE__);
+                if (!events[i].events & EPOLLIN) handle_error(__FILE__, __LINE__);
+                
+                /* We have a notification on the listening socket, which
+                   means one or more incoming connections. */
+                while (1)
+                {
+                    struct sockaddr in_addr;
+                    socklen_t in_len;
+                    int infd;
+
+                    in_len = sizeof in_addr;
+                    infd = accept4(td->sfd, &in_addr, &in_len, SOCK_NONBLOCK);
+                    if (infd == -1)
+                    {
+                        /* We have processed all incoming connections. */
+                        if (errno == EAGAIN || errno == EWOULDBLOCK)
+                            break;
+                        else
+                            handle_error(__FILE__, __LINE__);
+                    }
+                    event.data.fd = infd;
+                    event.events = EPOLLIN | EPOLLET;
+                    guard(epoll_ctl(td->epfd, EPOLL_CTL_ADD, infd, &event), "epoll_ctl error");
                 }
+
             } else {
                 // socket fd
                 int done = 0;
@@ -190,198 +198,32 @@ void* thread2(void *data) {
 
 int main()
 {
-    int sfd, s, i;
+    int sfd, s, i, epfd;
     const char *port = "8888";
-
     time_t t;
+    struct ThreadData tds[THREAD_COUNT], *p_td;
+    struct epoll_event event;
+
     srand((unsigned) time(&t));
 
-    int ret;
-
-    sfd = create_and_bind(port);
-    if (sfd == -1) handle_error(__FILE__, __LINE__);
-
-    s = listen (sfd, SOMAXCONN);
-    if (s == -1) handle_error(__FILE__, __LINE__);
-
-    struct ThreadData tds[THREAD_COUNT], *p_td;
-    int temp_epfd, temp_efd;
-    struct epoll_event temp_event;
     for (i = 0; i < THREAD_COUNT; ++i) {
         p_td = &tds[i];
-        temp_efd = eventfd(0, EFD_NONBLOCK);
-        if (temp_efd == -1) handle_error(__FILE__, __LINE__);
 
-        temp_epfd = epoll_create1(EPOLL_CLOEXEC);
-        if (temp_epfd == -1) handle_error(__FILE__, __LINE__);
+        sfd = guard(create_and_bind(port), "create and bind error");
+        guard(listen (sfd, SOMAXCONN), "lisetn error");
+        p_td->sfd = sfd;
 
-        p_td->efd = temp_efd;
-        p_td->epfd = temp_epfd;
-        p_td->queue_len = 0;
-        s = pthread_mutex_init(&p_td->lock, NULL);
-        //printf("mutex init %d %d %p\n", i, s, &p_td->lock);
-        if (s == -1) handle_error(__FILE__, __LINE__);
-
-        temp_event.data.fd = p_td->efd;
-        temp_event.events = EPOLLIN | EPOLLET;
-        s = epoll_ctl(p_td->epfd, EPOLL_CTL_ADD, p_td->efd, &temp_event);
-        if (s == -1) handle_error(__FILE__, __LINE__);
+        epfd = guard(epoll_create1(EPOLL_CLOEXEC), "epoll_create error");
+        p_td->epfd = epfd;
 
         pthread_create(&p_td->ptid, NULL, thread2, p_td);
     }
 
-    uint64_t count = 1;
-
-    int epfd = epoll_create1(0);
-    if (epfd == -1) handle_error(__FILE__, __LINE__);
-
-    struct epoll_event events[MAX_EVENTS_SIZE], event;
-    event.data.fd = sfd;
-    event.events = EPOLLIN | EPOLLET;
-    s = epoll_ctl(epfd, EPOLL_CTL_ADD, sfd, &event);
-    if (s == -1) handle_error(__FILE__, __LINE__);
-
-    while (1)
-    {
-        int nfds, i;
-
-        nfds = epoll_wait(epfd, events, MAX_EVENTS_SIZE, -1);
-        //printf("main: epoll wait nfds=%d\n", nfds);
-        for (i = 0; i < nfds; i++)
-        {
-            //printf("main: poll: fd=%d is_listen_fd=%d\n", events[i].data.fd, events[i].data.fd == sfd);
-            if (sfd == events[i].data.fd)
-            {
-                /* We have a notification on the listening socket, which
-                   means one or more incoming connections. */
-                while (1)
-                {
-                    struct sockaddr in_addr;
-                    socklen_t in_len;
-                    int infd;
-                    char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
-
-                    in_len = sizeof in_addr;
-                    infd = accept4(sfd, &in_addr, &in_len, SOCK_NONBLOCK);
-                    if (infd == -1)
-                    {
-                        if ((errno == EAGAIN) ||
-                                (errno == EWOULDBLOCK))
-                        {
-                            /* We have processed all incoming
-                               connections. */
-                            break;
-                        }
-                        else
-                        {
-                            perror ("accept");
-                            break;
-                        }
-                    }
-
-                    /*
-                    s = getnameinfo (&in_addr, in_len,
-                            hbuf, sizeof hbuf,
-                            sbuf, sizeof sbuf,
-                            NI_NUMERICHOST | NI_NUMERICSERV);
-                    if (s == 0)
-                    {
-                         printf("main: Accepted connection on descriptor %d "
-                                "(host=%s, port=%s)\n", infd, hbuf, sbuf);
-                    }
-
-                    s = make_socket_non_blocking (infd);
-                    if (s == -1)
-                        abort ();
-                    */
-                    int n = rand() % THREAD_COUNT;
-                    struct ThreadData *p_td = &tds[n];
-
-                    pthread_mutex_lock(&p_td->lock); 
-                    //printf("main: random thread, index=%d, lock=%p, queue_len=%d\n", n, &p_td->lock, p_td->queue_len);
-                    if (p_td->queue_len >= FD_QUEUE_MAX) handle_error(__FILE__, __LINE__);
-                    p_td->fd_queue[p_td->queue_len] = infd;
-                    p_td->queue_len++; 
-                    ret = write(p_td->efd, &count, sizeof(uint64_t));
-                    pthread_mutex_unlock(&p_td->lock);  
-                }
-                continue;
-            }
-            else
-            {
-                //printf("main: no epid wait:%d nfds=%d sfd=%d\n", events[i].data.fd, nfds, sfd);
-                handle_error(__FILE__, __LINE__);
-            }
-        }
-    }
-
-
     for (i = 0; i < THREAD_COUNT; ++i) {
         struct ThreadData *p_td = &tds[i];
         pthread_join(p_td->ptid, NULL);
-        pthread_mutex_destroy(&p_td->lock);
+        close (p_td->sfd);
     }
 
-    close (sfd);
     return EXIT_SUCCESS;
 }
-/*
-- 性能优化
-    - accept4 代替 accept，一步到位生成非阻塞 socket
-    - 分散软中断，防止打满一个 CPU，模拟多队列网卡
-    - 多线程 accept，防止 accept 太快打满一个 CPU
-    - 防止 epoll 过快，使用sleep+epoll轮询，减少一些系统调用
-    - 部分线程同步用原子操作代替mutex，节省一些 futex 系统调用
-    - 数据流分析，逃逸分析，分支预测
-    - CPU Cache 友好: 数据布局紧凑合理，减少 false sharding
-    - 减少上下文切换:
-    - 减少中断: 
-    - 数据对齐:
-    - 尽量使用 move 语义，变量交换，CAS 代替比较重的锁
-    - 大页，减少 TLB miss
-    - gcc 优化
-    - keepalive
-    - 客户端主动关闭
-    - 去掉 mutex
-    - listen backlog
-- 工具
-    - strace -c
-    - ltrace 
-    - vmstat 看软终端和上下文切换
-    - netstat 看收发队列，accept backlog
-    - tcpdump stat 看 tcp 发包统计
-    - perftop
-    - perf
-    - gperf
-    - pidstat
-    - mpstat
-    - sar 查看 pps
-- 错误码处理
-    - 是否记录日志
-    - 是否可重试
-    - 是否可忽略
-    - 是否关闭进程
-    - 是否关闭连接
-- 监控指标
-    - sys cpu, user cpu
-    - 全局内存：used, cache, buffer
-    - 进程内存：VSZ, RSS, VIRT, RES, SWAP, SHR
-    - 软中断，硬中断
-    - 上下文切换
-    - TCP 各状态的连接数
-    - 网络 pps, rx, tx
-    - tcp socket send q, recv q
-    - accept socket queue
-    - 关键系统调用：epoll_wait, read, write, close
-    - 关键函数调用：malloc, free
-    - 每秒 cpu cache miss
-    - 每秒 tlb miss
-    - 每秒 CPU 指令数
-
-gcc 033.c -lpthread
-
-wrk -t12 -c400 -d30s http://127.0.0.1:8888/
-sar -n DEV 1 | grep -E '(IFACE|lo)'
-watch -n1 -d "netstat -nat | awk '{print \$6}' | sort | uniq -c | sort -r"
-ss | awk '{print $2}' | sort | uniq -c | sort -r
-**/

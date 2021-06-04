@@ -1,0 +1,58 @@
+- 性能优化
+    - accept4 代替 accept，一步到位生成非阻塞 socket
+    - 分散软中断，防止打满一个 CPU，模拟多队列网卡
+    - 多线程 accept，防止 accept 太快打满一个 CPU
+    - 防止 epoll 过快，使用sleep+epoll轮询，减少一些系统调用
+    - 部分线程同步用原子操作代替mutex，节省一些 futex 系统调用
+    - 数据流分析，逃逸分析，分支预测
+    - CPU Cache 友好: 数据布局紧凑合理，减少 false sharding
+    - 减少上下文切换:
+    - 减少中断: 
+    - 数据对齐:
+    - 尽量使用 move 语义，变量交换，CAS 代替比较重的锁
+    - 大页，减少 TLB miss
+    - gcc 优化
+    - keepalive
+    - 客户端主动关闭
+    - 去掉 mutex
+    - listen backlog
+- 工具
+    - strace -c
+    - ltrace 
+    - vmstat 看软终端和上下文切换
+    - netstat 看收发队列，accept backlog
+    - tcpdump stat 看 tcp 发包统计
+    - perftop
+    - perf
+    - gperf
+    - pidstat
+    - mpstat
+    - sar 查看 pps
+- 错误码处理
+    - 是否记录日志
+    - 是否可重试
+    - 是否可忽略
+    - 是否关闭进程
+    - 是否关闭连接
+- 监控指标
+    - sys cpu, user cpu
+    - 全局内存：used, cache, buffer
+    - 进程内存：VSZ, RSS, VIRT, RES, SWAP, SHR
+    - 软中断，硬中断
+    - 上下文切换
+    - TCP 各状态的连接数
+    - 网络 pps, rx, tx
+    - tcp socket send q, recv q
+    - accept socket queue
+    - 关键系统调用：epoll_wait, read, write, close
+    - 关键函数调用：malloc, free
+    - 每秒 cpu cache miss
+    - 每秒 tlb miss
+    - 每秒 CPU 指令数
+
+gcc 033.c -lpthread
+
+wrk -t12 -c400 -d30s http://127.0.0.1:8888/
+sar -n DEV 1 | grep -E '(IFACE|lo)'
+watch -n1 -d "netstat -nat | awk '{print \$6}' | sort | uniq -c | sort -r"
+ss | awk '{print $2}' | sort | uniq -c | sort -r
