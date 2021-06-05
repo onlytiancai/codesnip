@@ -15630,3 +15630,187 @@ int main(void) {
 }
 
 https://github.com/psevon/exceptions-and-raii-in-c
+
+
+===========
+
+https://registry.hub.docker.com/r/fanningert/aria2-with-webui/#!
+
+
+$ grep Accepted debug.log | wc -l
+100
+$ grep "worker.* foreach fd, fd=.* is_event_fd=1" debug.log | wc -l
+98
+y$ grep "read request" debug.log | wc -l
+91
+$ grep "send response" debug.log | wc -l
+91
+
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 91.67  369.301806         922    400550         1 epoll_wait
+  2.59   10.414138          30    344167           write
+  2.36    9.520573          28    334801           read
+  1.76    7.077349          41    172224           close
+  0.82    3.285501          19    172238           epoll_ctl
+  0.68    2.738281          10    272250    100033 accept4
+  0.13    0.507177          45     11378       658 futex
+  0.00    0.000350          18        20           eventfd2
+  0.00    0.000338          12        29           mmap
+  0.00    0.000308          15        21           set_robust_list
+
+
+format="%-10s %-10s %-10s %-10s %-10s %-10s %-10s\n";
+i=0;
+while true;do
+    time=`date +%H:%m:%S`
+    if (( $i%20 == 0 ))
+    then
+        printf "$format" "time" "SYN-SENT" "ESTAB" "FIN-WAIT-1" "CLOSE-WAIT" "LAST-ACK" "UNCONN";
+    fi
+    ss | awk -v format="$format" -v time="$time" '{a[$2]+=1} END {printf format, time, a["SYN-SENT"]?a["SYN-SENT"]:0, a["ESTAB"]?a["ESTAB"]:0,a["FIN-WAIT-1"]?a["FIN-WAIT-1"]:0, a["CLOSE-WAIT"]?a["CLOSE-WAIT"]:0,a["LAST-ACK"]?a["LAST-ACK"]:0, a["UNCONN"]?a["UNCONN"]:0}'
+    let i+=1;
+    sleep 1;
+done
+
+
+https://stackoverflow.com/questions/19075671/how-do-i-use-shell-variables-in-an-awk-script
+
+Linux Perf 性能分析工具及火焰图浅析
+https://zhuanlan.zhihu.com/p/54276509
+
+https://blog.csdn.net/FreeeLinux/article/details/84207787
+
+perf record -e cpu-clock -g -p 27620
+perf report
+git clone https://github.com/brendangregg/FlameGraph.git
+
+perf script -i perf.data &> perf.unfold
+./src/FlameGraph/stackcollapse-perf.pl perf.unfold &> perf.folded
+./src/FlameGraph/flamegraph.pl perf.folded > perf.svg
+cp perf.svg /var/www/html/temp/
+
+Y轴表示调用栈，X轴越宽，就表示它被抽到的次数多，即执行的时间长。注意，x 轴不代表时间，而是所有的调用栈合并后，按字母顺序排列的。
+
+所以，一般我们只需要看有没有出现 “平顶”，如果有，那么这个函数可能有性能问题。
+
+
+前端高级进阶：在生产环境中使你的 npm i 速度提升 50%
+https://blog.csdn.net/weixin_40906515/article/details/105525383
+
+JEECG前端编译错误对应方法：vue-cli-service not found
+https://www.it610.com/article/1290697203416899584.htm
+
+Java应用Top命令RES内存占用高分析
+https://www.jianshu.com/p/479a715d461e
+
+ps aux命令执行结果的几个列的信息的含义
+
+USER    进程所属用户
+PID     进程ID
+%CPU    进程占用CPU百分比
+%MEM    进程占用内存百分比
+VSZ     虚拟内存占用大小 单位：kb（killobytes）
+RSS     实际内存占用大小 单位：kb（killobytes）
+TTY     终端类型
+STAT    进程状态
+START   进程启动时刻
+TIME    进程运行时长,进程已经消耗的CPU时间
+COMMAND 启动进程的命令的名称和参数
+
+top 命令 VSZ,RSS,TTY,STAT, VIRT,RES,SHR,DATA的含义
+
+VIRT：virtual memory usage 虚拟内存
+1、进程“需要的”虚拟内存大小，包括进程使用的库、代码、数据等
+2、假如进程申请100m的内存，但实际只使用了10m，那么它会增长100m，而不是实际的使用量
+
+RES：resident memory usage 常驻内存
+1、进程当前使用的内存大小，但不包括swap out
+2、包含其他进程的共享
+3、如果申请100m的内存，实际使用10m，它只增长10m，与VIRT相反
+4、关于库占用内存的情况，它只统计加载的库文件所占内存大小
+
+SHR：shared memory 共享内存
+1、除了自身进程的共享内存，也包括其他进程的共享内存
+2、虽然进程只使用了几个共享库的函数，但它包含了整个共享库的大小
+3、计算某个进程所占的物理内存大小公式：RES – SHR
+4、swap out后，它将会降下来
+
+DATA
+1、数据占用的内存。如果top没有显示，按f键可以显示出来。
+2、真正的该程序要求的数据空间，是真正在运行中要使用的。
+
+===
+
+https://stackoverflow.com/questions/52176692/high-performance-tcp-socket-programming-in-net-c-sharp
+
+int guard(int n, char * err) { if (n == -1) { perror(err); exit(1); } return n; }
+
+perf record -e cpu-clock -g -p 27620
+perf report
+git clone https://github.com/brendangregg/FlameGraph.git
+
+
+perf script -i perf.data &> perf.unfold
+./src/FlameGraph/stackcollapse-perf.pl perf.unfold > perf.folded
+./src/FlameGraph/flamegraph.pl perf.folded > perf.svg
+cp perf.svg /var/www/html/temp/
+
+Linux Perf 性能分析工具及火焰图浅析
+https://zhuanlan.zhihu.com/p/54276509
+
+
+strace -c -f nginx -g "daemon off;"
+wrk -t12 -c400 -d30s --latency http://127.0.0.1/hello
+strace -c -f ./a.out
+wrk -t12 -c400 -d10s --latency http://127.0.0.1:8888/
+
+a.out
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 91.37  171.721306        1965     87403           epoll_wait
+  3.59    6.741046     3370523         2         1 futex
+  1.68    3.158862          32    100134     46823 accept4
+  1.23    2.314857          44     53061           write
+  0.92    1.728574          32     53376           close
+  0.76    1.419530          27     53315           read
+  0.45    0.846271          16     53341           epoll_ctl
+  0.00    0.000907          10        91           socket
+  0.00    0.000812           9        90           recvmsg
+  0.00    0.000629           7        90           getsockname
+  0.00    0.000577           6        91         1 connect
+  0.00    0.000496          17        30           sendto
+  0.00    0.000479          15        31           set_robust_list
+  0.00    0.000448           7        60           bind
+
+
+nginx
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 28.78    1.506930          23     64586           writev
+ 25.60    1.340117          20     66053           close
+ 12.54    0.656532           7     95389         4 epoll_wait
+ 10.85    0.568001           9     64586           write
+  9.72    0.508964           7     74459      9565 accept4
+  6.45    0.337838           5     64896           recvfrom
+  5.71    0.299180           5     65254           epoll_ctl
+  0.08    0.004332           6       780           sendmsg
+  0.05    0.002745          69        40           clone
+  0.04    0.001989           5       434       181 openat
+  0.03    0.001341           2       852        66 recvmsg
+  0.02    0.001250           4       324           mmap
+  0.02    0.001008           6       178           mprotect
+  0.01    0.000678           8        80           socketpair
+  0.01    0.000611           5       128           ioctl
+  0.01    0.000564           5       124           fcntl
+  0.01    0.000491           3       150           read
+  0.01    0.000485           2       248           fstat
+
+https://stackoverflow.com/questions/28098563/errno-after-accept-in-linux-socket-programming
+
+Is level triggered or edge triggered more performant?
+https://stackoverflow.com/questions/13848143/is-level-triggered-or-edge-triggered-more-performant
+
+池的概念和EPOLLONESHOT事件（读Linux高性能服务器）
+https://blog.51cto.com/lingdandan/1836326
