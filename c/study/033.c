@@ -106,7 +106,8 @@ void* thread2(void *data) {
     guard(epoll_ctl(td->epfd, EPOLL_CTL_ADD, td->sfd, &event), "epoll_ctl error");
 
     while(1) {
-        nfds = epoll_wait(td->epfd, events, MAX_EVENTS_SIZE, -1);
+        usleep(1000);
+        nfds = epoll_wait(td->epfd, events, MAX_EVENTS_SIZE, 0);
         //printf("worker[%ld]: epoll wait, nfds=%d\n", syscall(__NR_gettid), nfds);
         for (i = 0; i < nfds; i++) {
             //printf("worker[%ld]: foreach fd, fd=%d is_event_fd=%d\n", syscall(__NR_gettid), events[i].data.fd, events[i].data.fd == td->efd);
