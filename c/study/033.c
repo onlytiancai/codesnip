@@ -102,7 +102,7 @@ void* thread2(void *data) {
     //printf("worker[%ld]: thread start, lock=%p\n", syscall(__NR_gettid), &td->lock);
     
     event.data.fd = td->sfd;
-    event.events = EPOLLIN;
+    event.events = EPOLLIN | EPOLLET;
     guard(epoll_ctl(td->epfd, EPOLL_CTL_ADD, td->sfd, &event), "epoll_ctl error");
 
     while(1) {
@@ -111,11 +111,31 @@ void* thread2(void *data) {
         for (i = 0; i < nfds; i++) {
             //printf("worker[%ld]: foreach fd, fd=%d is_event_fd=%d\n", syscall(__NR_gettid), events[i].data.fd, events[i].data.fd == td->efd);
             if (td->sfd == events[i].data.fd) {
+
                 if (!events[i].events & EPOLLIN) handle_error(__FILE__, __LINE__);
-                int infd = guard(accept4(td->sfd, NULL, NULL, SOCK_NONBLOCK), "accept4 error");
-                event.data.fd = infd;
-                event.events = EPOLLIN | EPOLLET;
-                guard(epoll_ctl(td->epfd, EPOLL_CTL_ADD, infd, &event), "epoll_ctl error");
+                
+                /* We have a notification on the listening socket, which
+                   means one or more incoming connections. */
+                while (1)
+                {
+                    struct sockaddr in_addr;
+                    socklen_t in_len;
+                    int infd;
+
+                    in_len = sizeof in_addr;
+                    infd = accept4(td->sfd, &in_addr, &in_len, SOCK_NONBLOCK);
+                    if (infd == -1)
+                    {
+                        /* We have processed all incoming connections. */
+                        if (errno == EAGAIN || errno == EWOULDBLOCK)
+                            break;
+                        else
+                            handle_error(__FILE__, __LINE__);
+                    }
+                    event.data.fd = infd;
+                    event.events = EPOLLIN | EPOLLET;
+                    guard(epoll_ctl(td->epfd, EPOLL_CTL_ADD, infd, &event), "epoll_ctl error");
+                }
 
             } else {
                 // socket fd
