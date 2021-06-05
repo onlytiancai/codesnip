@@ -16,7 +16,7 @@
 #include <sys/syscall.h>
 
 const int N = 10;
-const int MAX_EVENTS_SIZE = 10; 
+const int MAX_EVENTS_SIZE = 1024; 
 
 static char* response = "HTTP/1.1 200 OK\r\nServer: nginx\r\nDate: Thu, 20 May 2021 04:16:43 GMT\r\nContent-Type: application/octet-stream\r\nContent-Length: 10\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\n\r\n127.0.0.1\n";
 
@@ -102,7 +102,7 @@ void* thread2(void *data) {
     //printf("worker[%ld]: thread start, lock=%p\n", syscall(__NR_gettid), &td->lock);
     
     event.data.fd = td->sfd;
-    event.events = EPOLLIN | EPOLLET;
+    event.events = EPOLLIN;
     guard(epoll_ctl(td->epfd, EPOLL_CTL_ADD, td->sfd, &event), "epoll_ctl error");
 
     while(1) {
@@ -111,31 +111,11 @@ void* thread2(void *data) {
         for (i = 0; i < nfds; i++) {
             //printf("worker[%ld]: foreach fd, fd=%d is_event_fd=%d\n", syscall(__NR_gettid), events[i].data.fd, events[i].data.fd == td->efd);
             if (td->sfd == events[i].data.fd) {
-
                 if (!events[i].events & EPOLLIN) handle_error(__FILE__, __LINE__);
-                
-                /* We have a notification on the listening socket, which
-                   means one or more incoming connections. */
-                while (1)
-                {
-                    struct sockaddr in_addr;
-                    socklen_t in_len;
-                    int infd;
-
-                    in_len = sizeof in_addr;
-                    infd = accept4(td->sfd, &in_addr, &in_len, SOCK_NONBLOCK);
-                    if (infd == -1)
-                    {
-                        /* We have processed all incoming connections. */
-                        if (errno == EAGAIN || errno == EWOULDBLOCK)
-                            break;
-                        else
-                            handle_error(__FILE__, __LINE__);
-                    }
-                    event.data.fd = infd;
-                    event.events = EPOLLIN | EPOLLET;
-                    guard(epoll_ctl(td->epfd, EPOLL_CTL_ADD, infd, &event), "epoll_ctl error");
-                }
+                int infd = guard(accept4(td->sfd, NULL, NULL, SOCK_NONBLOCK), "accept4 error");
+                event.data.fd = infd;
+                event.events = EPOLLIN | EPOLLET;
+                guard(epoll_ctl(td->epfd, EPOLL_CTL_ADD, infd, &event), "epoll_ctl error");
 
             } else {
                 // socket fd
