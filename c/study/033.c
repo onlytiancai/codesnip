@@ -14,6 +14,7 @@
 #include <sys/epoll.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
+#include <sys/sysinfo.h>
 
 #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 
@@ -62,13 +63,13 @@
 /* 通过掩码，交换某个位，1变0，0变1，并返还新的值 */
 #define AO_BIT_XCHG(ptr, mask)      AO_XOR_F((ptr), (mask))
 
-static int counter_accept = 0, counter_epoll_wait = 0, counter_read = 0, counter_write = 0, counter_close = 0;
+static int counter_bind = 0, counter_accept = 0, counter_epoll_wait = 0, counter_read = 0, counter_write = 0, counter_close = 0;
 const int N = 10;
 const int MAX_EVENTS_SIZE = 1024; 
 
-static char* response = "HTTP/1.1 200 OK\r\nServer: nginx\r\nDate: Thu, 20 May 2021 04:16:43 GMT\r\nContent-Type: application/octet-stream\r\nContent-Length: 10\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\n\r\n127.0.0.1\n";
+static char* response = "HTTP/1.1 200 OK\r\nServer: wawa-server\r\nDate: Thu, 20 May 2021 04:16:43 GMT\r\nContent-Length: 10\r\nConnection: keep-alive\r\nContent-Type: text/html;charset=utf-8\r\n\r\n127.0.0.1\n";
 
-const int THREAD_COUNT = 30;
+static int thread_count = 0;
 #define FD_QUEUE_MAX 100
 struct ThreadData {
     pthread_t ptid; 
@@ -114,7 +115,7 @@ create_and_bind (const char *port)
         if (s == 0)
         {
             /* We managed to bind successfully! */
-            printf("bind port success:%s\n", port);
+            AO_INC(&counter_bind);
             break;
         }
 
@@ -201,15 +202,15 @@ void* thread2(void *data) {
                     if (count == -1) {
                         /* If errno == EAGAIN, that means we have read all
                            data. So go back to the main loop. */
-                        if (errno != EAGAIN) {
+                        if (errno != EAGAIN && errno != ECONNRESET) {
                             handle_error(__FILE__, __LINE__);
                         }
                         break;
                     }
                     else if (count == 0) {
-                        /* End of file. The remote has closed the
-                           connection. */
-                        done = 1;
+                        /* End of file. The remote has closed the connection. */
+                        close (events[i].data.fd);
+                        AO_INC(&counter_close);
                         break;
                     }
                     
@@ -219,31 +220,16 @@ void* thread2(void *data) {
                     AO_INC(&counter_write);
                     //printf ("worker[%ld]: send response, fd=%d, send bytes=%d, resp len=%ld\n", syscall(__NR_gettid), events[i].data.fd, s, strlen(response));
                     if (s == -1) {
-                        perror ("response");
-                        abort ();
+                        handle_error(__FILE__, __LINE__);
                     } else if (s == strlen(response)) {
                         // 一次性发送完毕
                         //printf("worker[%ld]: close fd, fd=%d\n", syscall(__NR_gettid), events[i].data.fd); 
-                        close (events[i].data.fd);
-                        AO_INC(&counter_close);
-                        break;
                     } else {
                         handle_error(__FILE__, __LINE__);
                         //TODO: 未发送完毕 
                     }
 
                 }
-
-                if (done)
-                {
-
-                    //printf("worker[%ld]: close fd 2, fd=%d\n", syscall(__NR_gettid), events[i].data.fd); 
-                    /* Closing the descriptor will make epoll remove it
-                       from the set of descriptors which are monitored. */
-                    close (events[i].data.fd);
-                    AO_INC(&counter_close);
-                }
-
             }
         }
         
@@ -255,12 +241,15 @@ int main()
     int sfd, s, i, epfd;
     const char *port = "8888";
     time_t t;
-    struct ThreadData tds[THREAD_COUNT], *p_td;
     struct epoll_event event;
+
+    thread_count = get_nprocs()-10;
+    printf("thread_count=%d, port=%s.\n", thread_count, port);
+    struct ThreadData tds[thread_count], *p_td;
 
     srand((unsigned) time(&t));
 
-    for (i = 0; i < THREAD_COUNT; ++i) {
+    for (i = 0; i < thread_count; ++i) {
         p_td = &tds[i];
 
         sfd = guard(create_and_bind(port), "create and bind error");
@@ -287,12 +276,12 @@ int main()
             new_c_write = AO_GET(&counter_write),
             new_c_close = AO_GET(&counter_close);
         if (i % 10 == 0) {
-            printf("%-20s%-20s%-20s%-20s%-20s%-20s\n","time", "accept", "epoll_wait", "read", "write", "close");
+            printf("%-10s%-8s%-20s%-20s%-20s%-20s%-20s\n","time", "bind", "accept", "epoll_wait", "read", "write", "close");
         }
 
         strncpy(time_buff, ctime(&timep)+11, 8);
 
-        printf("%-20s", time_buff);
+        printf("%-10s%-8d", time_buff, AO_GET(&counter_bind));
         sprintf(buf, "%d(%d)", new_c_accept, (new_c_accept - c_accept));
         printf("%-20s", buf);
         sprintf(buf, "%d(%d)", new_c_epoll_wait, (new_c_epoll_wait - c_epoll_wait));
@@ -314,7 +303,7 @@ int main()
         sleep(1);
     }
 
-    for (i = 0; i < THREAD_COUNT; ++i) {
+    for (i = 0; i < thread_count; ++i) {
         struct ThreadData *p_td = &tds[i];
         pthread_join(p_td->ptid, NULL);
         close (p_td->sfd);
