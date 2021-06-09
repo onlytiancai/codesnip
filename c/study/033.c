@@ -67,7 +67,9 @@ static int counter_bind = 0, counter_accept = 0, counter_epoll_wait = 0, counter
 const int N = 10;
 const int MAX_EVENTS_SIZE = 1024; 
 
+const int MAX_RSP_LEN = 20;
 static char* response = "HTTP/1.1 200 OK\r\nServer: wawa-server\r\nDate: Thu, 20 May 2021 04:16:43 GMT\r\nContent-Length: 10\r\nConnection: keep-alive\r\nContent-Type: text/html;charset=utf-8\r\n\r\n127.0.0.1\n";
+static char *response_arr;
 
 static int thread_count = 0;
 #define FD_QUEUE_MAX 100
@@ -79,6 +81,29 @@ struct ThreadData {
 
 int guard(int n, char * err) { if (n == -1) { perror(err); exit(1); } return n; }
 
+int parse_req(char *str, int start, int end) {
+    int c = -1, s = 0, i = 0, count = 0;
+    char buf[1024], *p = buf;
+    for (i=start; i < end;i++) {
+        c = str[i];
+        if (c == EOF) break;
+        *p++ = c;
+
+        if (s == 0 && c == '\r') s = 1; 
+        else if (s == 1 && c == '\n') s = 2; 
+        else if (s == 2 && c == '\r') s = 3; 
+        else if (s == 3 && c == '\n') s = 4; 
+        else s = 0; 
+        
+        if (s==4) {
+            *(p-4) = '\0';
+            //printf("===\n%s\n", buf);
+            p = buf;
+            count++;
+        }
+    }
+    return count;
+}
 
 static int
 create_and_bind (const char *port)
@@ -146,7 +171,7 @@ static void handle_error(char* file, int line) {
 
 void* thread2(void *data) {
     struct ThreadData *td = (struct ThreadData*)data;
-    int i, n, *p, nfds, socket_fd, s, j;
+    int i, n, *p, nfds, socket_fd, s, j, k;
     struct epoll_event events[MAX_EVENTS_SIZE], event;
     //printf("worker[%ld]: thread start, lock=%p\n", syscall(__NR_gettid), &td->lock);
     
@@ -194,7 +219,7 @@ void* thread2(void *data) {
 
                 while (1) {
                     ssize_t count;
-                    char buf[512];
+                    char buf[1024];
 
                     count = read(events[i].data.fd, buf, sizeof buf);
                     AO_INC(&counter_read);
@@ -214,14 +239,20 @@ void* thread2(void *data) {
                         break;
                     }
                     
+                    int req_count = parse_req(buf, 0, count);
+                    if (req_count > MAX_RSP_LEN) {
+                        handle_error(__FILE__, __LINE__);
+                    }
+                    
+                    //printf("parse_req count:%d\n", req_count);
 
                     /* send response */
-                    s = write (events[i].data.fd, response, strlen(response));
+                    s = write (events[i].data.fd, response_arr, strlen(response)*req_count);
                     AO_INC(&counter_write);
                     //printf ("worker[%ld]: send response, fd=%d, send bytes=%d, resp len=%ld\n", syscall(__NR_gettid), events[i].data.fd, s, strlen(response));
                     if (s == -1) {
                         handle_error(__FILE__, __LINE__);
-                    } else if (s == strlen(response)) {
+                    } else if (s == strlen(response)*req_count) {
                         // 一次性发送完毕
                         //printf("worker[%ld]: close fd, fd=%d\n", syscall(__NR_gettid), events[i].data.fd); 
                     } else {
@@ -243,7 +274,13 @@ int main()
     time_t t;
     struct epoll_event event;
 
-    thread_count = get_nprocs()-10;
+    response_arr = (char*)malloc(strlen(response)*MAX_RSP_LEN+1);
+    response_arr[strlen(response)*MAX_RSP_LEN] = '\0';
+    for (i = 0; i < MAX_RSP_LEN; i++) {
+        strncpy(response_arr+i*strlen(response), response, strlen(response)); 
+    }
+
+    thread_count = get_nprocs()-5;
     printf("thread_count=%d, port=%s.\n", thread_count, port);
     struct ThreadData tds[thread_count], *p_td;
 
@@ -309,5 +346,6 @@ int main()
         close (p_td->sfd);
     }
 
+    free(response_arr);
     return EXIT_SUCCESS;
 }

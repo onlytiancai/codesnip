@@ -51,8 +51,11 @@
     - 每秒 CPU 指令数
 
 gcc 033.c -lpthread
+ulimit -n 10240
 
 wrk -t12 -c400 -d30s http://127.0.0.1:8888/
+wrk -t30 -c1000 -d30s --latency http://127.0.0.1:8888/
 sar -n DEV 1 | grep -E '(IFACE|lo)'
 watch -n1 -d "netstat -nat | awk '{print \$6}' | sort | uniq -c | sort -r"
 ss | awk '{print $2}' | sort | uniq -c | sort -r
+echo -ne 'GET / HTTP/1.1\r\nHost: 127.0.0.1:8888\r\nUser-Agent: curl/7.58.0\r\nAccept: */*\r\n\r\nGET / HTTP/1.1\r\nHost: 127.0.0.1:8888\r\nUser-Agent: curl/7.58.0\r\nAccept: */*\r\n\r\n' | nc -w1 127.0.0.1 8888
