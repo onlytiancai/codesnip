@@ -14,13 +14,62 @@
 #include <sys/epoll.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
+#include <sys/sysinfo.h>
 
+#define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+
+#if (GCC_VERSION >= 40100)
+/* 内存访问栅 */
+  #define barrier()             	(__sync_synchronize())
+/* 原子获取 */
+  #define AO_GET(ptr)       		({ __typeof__(*(ptr)) volatile *_val = (ptr); barrier(); (*_val); })
+/*原子设置，如果原值和新值不一样则设置*/
+  #define AO_SET(ptr, value)        ((void)__sync_lock_test_and_set((ptr), (value)))
+/* 原子交换，如果被设置，则返回旧值，否则返回设置值 */
+  #define AO_SWAP(ptr, value)       ((__typeof__(*(ptr)))__sync_lock_test_and_set((ptr), (value)))
+/* 原子比较交换，如果当前值等于旧值，则新值被设置，返回旧值，否则返回新值*/
+  #define AO_CAS(ptr, comp, value)  ((__typeof__(*(ptr)))__sync_val_compare_and_swap((ptr), (comp), (value)))
+/* 原子比较交换，如果当前值等于旧指，则新值被设置，返回真值，否则返回假 */
+  #define AO_CASB(ptr, comp, value) (__sync_bool_compare_and_swap((ptr), (comp), (value)) != 0 ? true : false)
+/* 原子清零 */
+  #define AO_CLEAR(ptr)             ((void)__sync_lock_release((ptr)))
+/* 通过值与旧值进行算术与位操作，返回新值 */
+  #define AO_ADD_F(ptr, value)      ((__typeof__(*(ptr)))__sync_add_and_fetch((ptr), (value)))
+  #define AO_SUB_F(ptr, value)      ((__typeof__(*(ptr)))__sync_sub_and_fetch((ptr), (value)))
+  #define AO_OR_F(ptr, value)       ((__typeof__(*(ptr)))__sync_or_and_fetch((ptr), (value)))
+  #define AO_AND_F(ptr, value)      ((__typeof__(*(ptr)))__sync_and_and_fetch((ptr), (value)))
+  #define AO_XOR_F(ptr, value)      ((__typeof__(*(ptr)))__sync_xor_and_fetch((ptr), (value)))
+/* 通过值与旧值进行算术与位操作，返回旧值 */
+  #define AO_F_ADD(ptr, value)      ((__typeof__(*(ptr)))__sync_fetch_and_add((ptr), (value)))
+  #define AO_F_SUB(ptr, value)      ((__typeof__(*(ptr)))__sync_fetch_and_sub((ptr), (value)))
+  #define AO_F_OR(ptr, value)       ((__typeof__(*(ptr)))__sync_fetch_and_or((ptr), (value)))
+  #define AO_F_AND(ptr, value)      ((__typeof__(*(ptr)))__sync_fetch_and_and((ptr), (value)))
+  #define AO_F_XOR(ptr, value)      ((__typeof__(*(ptr)))__sync_fetch_and_xor((ptr), (value)))
+#else
+  #error "can not supported atomic operation by gcc(v4.0.0+) buildin function."
+#endif	/* if (GCC_VERSION >= 40100) */
+/* 忽略返回值，算术和位操作 */
+#define AO_INC(ptr)                 ((void)AO_ADD_F((ptr), 1))
+#define AO_DEC(ptr)                 ((void)AO_SUB_F((ptr), 1))
+#define AO_ADD(ptr, val)            ((void)AO_ADD_F((ptr), (val)))
+#define AO_SUB(ptr, val)            ((void)AO_SUB_F((ptr), (val)))
+#define AO_OR(ptr, val)			 ((void)AO_OR_F((ptr), (val)))
+#define AO_AND(ptr, val)			((void)AO_AND_F((ptr), (val)))
+#define AO_XOR(ptr, val)			((void)AO_XOR_F((ptr), (val)))
+/* 通过掩码，设置某个位为1，并返还新的值 */
+#define AO_BIT_ON(ptr, mask)        AO_OR_F((ptr), (mask))
+/* 通过掩码，设置某个位为0，并返还新的值 */
+#define AO_BIT_OFF(ptr, mask)       AO_AND_F((ptr), ~(mask))
+/* 通过掩码，交换某个位，1变0，0变1，并返还新的值 */
+#define AO_BIT_XCHG(ptr, mask)      AO_XOR_F((ptr), (mask))
+
+static int counter_bind = 0, counter_accept = 0, counter_epoll_wait = 0, counter_read = 0, counter_write = 0, counter_close = 0;
 const int N = 10;
 const int MAX_EVENTS_SIZE = 1024; 
 
-static char* response = "HTTP/1.1 200 OK\r\nServer: nginx\r\nDate: Thu, 20 May 2021 04:16:43 GMT\r\nContent-Type: application/octet-stream\r\nContent-Length: 10\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\n\r\n127.0.0.1\n";
+static char* response = "HTTP/1.1 200 OK\r\nServer: wawa-server\r\nDate: Thu, 20 May 2021 04:16:43 GMT\r\nContent-Length: 10\r\nConnection: keep-alive\r\nContent-Type: text/html;charset=utf-8\r\n\r\n127.0.0.1\n";
 
-const int THREAD_COUNT = 30;
+static int thread_count = 0;
 #define FD_QUEUE_MAX 100
 struct ThreadData {
     pthread_t ptid; 
@@ -66,7 +115,7 @@ create_and_bind (const char *port)
         if (s == 0)
         {
             /* We managed to bind successfully! */
-            printf("bind port success:%s\n", port);
+            AO_INC(&counter_bind);
             break;
         }
 
@@ -106,8 +155,8 @@ void* thread2(void *data) {
     guard(epoll_ctl(td->epfd, EPOLL_CTL_ADD, td->sfd, &event), "epoll_ctl error");
 
     while(1) {
-        usleep(1000);
-        nfds = epoll_wait(td->epfd, events, MAX_EVENTS_SIZE, 0);
+        nfds = epoll_wait(td->epfd, events, MAX_EVENTS_SIZE, -1);
+        AO_INC(&counter_epoll_wait);
         //printf("worker[%ld]: epoll wait, nfds=%d\n", syscall(__NR_gettid), nfds);
         for (i = 0; i < nfds; i++) {
             //printf("worker[%ld]: foreach fd, fd=%d is_event_fd=%d\n", syscall(__NR_gettid), events[i].data.fd, events[i].data.fd == td->efd);
@@ -125,6 +174,7 @@ void* thread2(void *data) {
 
                     in_len = sizeof in_addr;
                     infd = accept4(td->sfd, &in_addr, &in_len, SOCK_NONBLOCK);
+                    AO_INC(&counter_accept);
                     if (infd == -1)
                     {
                         /* We have processed all incoming connections. */
@@ -147,50 +197,39 @@ void* thread2(void *data) {
                     char buf[512];
 
                     count = read(events[i].data.fd, buf, sizeof buf);
+                    AO_INC(&counter_read);
                     //printf("worker[%ld]: read request, fd=%d, read bytes=%ld\n", syscall(__NR_gettid), events[i].data.fd, count);
                     if (count == -1) {
                         /* If errno == EAGAIN, that means we have read all
                            data. So go back to the main loop. */
-                        if (errno != EAGAIN) {
+                        if (errno != EAGAIN && errno != ECONNRESET) {
                             handle_error(__FILE__, __LINE__);
                         }
                         break;
                     }
                     else if (count == 0) {
-                        /* End of file. The remote has closed the
-                           connection. */
-                        done = 1;
+                        /* End of file. The remote has closed the connection. */
+                        close (events[i].data.fd);
+                        AO_INC(&counter_close);
                         break;
                     }
                     
 
                     /* send response */
                     s = write (events[i].data.fd, response, strlen(response));
+                    AO_INC(&counter_write);
                     //printf ("worker[%ld]: send response, fd=%d, send bytes=%d, resp len=%ld\n", syscall(__NR_gettid), events[i].data.fd, s, strlen(response));
                     if (s == -1) {
-                        perror ("response");
-                        abort ();
+                        handle_error(__FILE__, __LINE__);
                     } else if (s == strlen(response)) {
                         // 一次性发送完毕
                         //printf("worker[%ld]: close fd, fd=%d\n", syscall(__NR_gettid), events[i].data.fd); 
-                        close (events[i].data.fd);
-                        break;
                     } else {
                         handle_error(__FILE__, __LINE__);
                         //TODO: 未发送完毕 
                     }
 
                 }
-
-                if (done)
-                {
-
-                    //printf("worker[%ld]: close fd 2, fd=%d\n", syscall(__NR_gettid), events[i].data.fd); 
-                    /* Closing the descriptor will make epoll remove it
-                       from the set of descriptors which are monitored. */
-                    close (events[i].data.fd);
-                }
-
             }
         }
         
@@ -202,12 +241,15 @@ int main()
     int sfd, s, i, epfd;
     const char *port = "8888";
     time_t t;
-    struct ThreadData tds[THREAD_COUNT], *p_td;
     struct epoll_event event;
+
+    thread_count = get_nprocs()-10;
+    printf("thread_count=%d, port=%s.\n", thread_count, port);
+    struct ThreadData tds[thread_count], *p_td;
 
     srand((unsigned) time(&t));
 
-    for (i = 0; i < THREAD_COUNT; ++i) {
+    for (i = 0; i < thread_count; ++i) {
         p_td = &tds[i];
 
         sfd = guard(create_and_bind(port), "create and bind error");
@@ -219,8 +261,49 @@ int main()
 
         pthread_create(&p_td->ptid, NULL, thread2, p_td);
     }
+    
+    int c_accept = 0, c_epoll_wait = 0, c_read = 0, c_write = 0, c_close = 0;
+    i = 0;
+    char buf[20];
+    char time_buff[20];
+    time_t timep;
+    memset(time_buff, 0, 20);
+    while(1) {
+        time (&timep);
+        int new_c_accept = AO_GET(&counter_accept),
+            new_c_epoll_wait = AO_GET(&counter_epoll_wait),
+            new_c_read = AO_GET(&counter_read),
+            new_c_write = AO_GET(&counter_write),
+            new_c_close = AO_GET(&counter_close);
+        if (i % 10 == 0) {
+            printf("%-10s%-8s%-20s%-20s%-20s%-20s%-20s\n","time", "bind", "accept", "epoll_wait", "read", "write", "close");
+        }
 
-    for (i = 0; i < THREAD_COUNT; ++i) {
+        strncpy(time_buff, ctime(&timep)+11, 8);
+
+        printf("%-10s%-8d", time_buff, AO_GET(&counter_bind));
+        sprintf(buf, "%d(%d)", new_c_accept, (new_c_accept - c_accept));
+        printf("%-20s", buf);
+        sprintf(buf, "%d(%d)", new_c_epoll_wait, (new_c_epoll_wait - c_epoll_wait));
+        printf("%-20s", buf);
+        sprintf(buf, "%d(%d)", new_c_write, (new_c_write - c_write));
+        printf("%-20s", buf);
+        sprintf(buf, "%d(%d)", new_c_read, (new_c_read - c_read));
+        printf("%-20s", buf);
+        sprintf(buf, "%d(%d)", new_c_close, (new_c_close - c_close));
+        printf("%-20s", buf);
+        printf("\n");
+
+        c_accept = new_c_accept;
+        c_epoll_wait = new_c_epoll_wait;
+        c_read = new_c_read;
+        c_write = new_c_write;
+        c_close = new_c_close;
+        i++;
+        sleep(1);
+    }
+
+    for (i = 0; i < thread_count; ++i) {
         struct ThreadData *p_td = &tds[i];
         pthread_join(p_td->ptid, NULL);
         close (p_td->sfd);
