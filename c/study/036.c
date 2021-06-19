@@ -7,11 +7,25 @@
 static char line[MAX];
 static int pos;
 
-static struct Token {
-    char type;
-    char *str_value;
-    int int_value;
-} current_token;
+
+struct Token {
+    enum TokenType {
+        TYPE_ID,      /* Identifier */
+        TYPE_NUM,     /* number     */
+        TYPE_GE,      /* =          */
+        TYPE_PLUS,    /* +          */
+        TYPE_MINUS,   /* -          */
+        TYPE_STAR,    /* *          */
+        TYPE_SLASH    /* /          */
+    } type;
+    union data{
+        int n;
+        char c;
+        char *s;
+    } data; 
+};
+
+static struct Token current_token;
 
 void back(){
     pos--;
@@ -55,16 +69,16 @@ struct Token *token(){
     while ((c = next_ch()) == ' ') ;
 
     if (isalpha(c)) {
-        current_token.type = 'a'; 
+        current_token.type = TYPE_ID; 
         back();
-        current_token.str_value = parse_str(); 
+        current_token.data.s= parse_str(); 
         return &current_token;
     }
 
     if (isdigit(c)) {
-        current_token.type = 'd'; 
+        current_token.type = TYPE_NUM; 
         back();
-        current_token.int_value = parse_int(); 
+        current_token.data.n= parse_int(); 
         return &current_token;
     }
 
@@ -73,14 +87,21 @@ struct Token *token(){
 
 int tokens(){
     struct Token *t;
-    pos = 0;
     while(t=token()){
-        printf("%c %s %d\n", t->type, t->str_value, t->int_value);
+        switch (t->type) {
+            case TYPE_ID:
+                printf("%d %s\n", t->type, t->data.s);
+                break;
+            case TYPE_NUM:
+                printf("%d %d\n", t->type, t->data.n);
+                break;
+            default:
+                printf("%d \n", t->type);
+        }
     }
 }
 
-int main()
-{
+void repl() {
     while (1) {
         fgets(line, MAX, stdin);
         line[strcspn(line, "\n")] = 0;
@@ -90,5 +111,17 @@ int main()
 
         tokens();
     }
+}
+
+void test_tokens(){
+    char *s = "abc 111";
+    strncpy(line, s, strlen(s)+1);
+    pos = 0;
+    tokens();
+}
+
+int main()
+{
+    test_tokens();
     return 0;
 }
