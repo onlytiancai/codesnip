@@ -134,6 +134,7 @@ struct ASTNode *ASTNode_new() {
 
 struct ASTNode *match_token(enum TokenType type) {
     struct Token *t = token(); 
+    if (t == NULL) return NULL;
     if (t->type != type) return NULL; 
 
     struct ASTNode * ret = ASTNode_new();
@@ -144,25 +145,21 @@ struct ASTNode *match_token(enum TokenType type) {
 
 struct ASTNode *match_exp() {
     struct Token *t; 
-    struct ASTNode * ret = ASTNode_new(), *node;
+    struct ASTNode * ret = ASTNode_new(), *left, *mid, *right;
 
-    if ((node = match_token(TYPE_NUM)) == NULL) {
+    if ((left = match_token(TYPE_NUM)) == NULL) {
         back_token();
         return NULL;
     }
-    ret->left = node;
 
-    if ((node = match_token(TYPE_PLUS)) == NULL) {
-        fprintf(stderr, "expect exp\n");
-        exit(EXIT_FAILURE);
-    }
-    ret->token = node->token;
-    
-    if ((node = match_token(TYPE_NUM)) == NULL) {
+    if ((mid = match_token(TYPE_PLUS)) == NULL) {
         back_token();
-        return NULL;
+        return left;
     }
-    ret->right = node;
+
+    ret->token = mid->token;
+    ret->left = left;
+    ret->right = match_exp();
 
     return ret;
 }
@@ -207,7 +204,7 @@ void print_node(struct ASTNode *node, int level) {
 
 void test_match() {
     printf("## test match\n");
-    char *s = "a = 3 + 4";
+    char *s = "a = 3 + 4 + 5";
     strncpy(line, s, strlen(s)+1);
     char_index = 0;
     printf("%s\n", s);
