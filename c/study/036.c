@@ -9,21 +9,19 @@ static int pos;
 
 
 struct Token {
-    enum TokenType {
-        TYPE_ID,      /* Identifier */
-        TYPE_NUM,     /* number     */
-        TYPE_GE,      /* =          */
-        TYPE_PLUS,    /* +          */
-        TYPE_MINUS,   /* -          */
-        TYPE_STAR,    /* *          */
-        TYPE_SLASH    /* /          */
-    } type;
-    union data{
-        int n;
-        char c;
-        char *s;
-    } data; 
+    enum TokenType {TYPE_ID, TYPE_NUM, TYPE_GE, TYPE_PLUS, TYPE_MINUS, TYPE_STAR, TYPE_SLASH } type;
+    union data{ int n; char c; char *s; } data; 
 };
+const char* typeNames[] = {"id", "num", "ge", "plus", "minus", "star", "slash"};
+void print_token_id(struct Token *t) { printf("type=%s data=%s\n", typeNames[t->type], t->data.s); }
+void print_token_num(struct Token *t) { printf("type=%s data=%d\n", typeNames[t->type], t->data.n); }           
+void print_token_other(struct Token *t) { printf("type=%s ", typeNames[t->type]); }           
+
+static void (* const pf[])(struct Token *t) = {
+    print_token_id, print_token_num, print_token_other, print_token_other,
+    print_token_other, print_token_other, print_token_other
+};
+void print_token(struct Token *t){ pf[t->type](t); }
 
 static struct Token current_token;
 
@@ -85,19 +83,12 @@ struct Token *token(){
     return NULL;
 }
 
+
+
 int tokens(){
     struct Token *t;
     while(t=token()){
-        switch (t->type) {
-            case TYPE_ID:
-                printf("%d %s\n", t->type, t->data.s);
-                break;
-            case TYPE_NUM:
-                printf("%d %d\n", t->type, t->data.n);
-                break;
-            default:
-                printf("%d \n", t->type);
-        }
+        print_token(t);
     }
 }
 
