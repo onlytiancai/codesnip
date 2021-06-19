@@ -107,7 +107,9 @@ void repl() {
 }
 
 void test_tokens(){
+    printf("## test tokens\n");
     char *s = "a = 3 + 4 * 2";
+    printf("%s\n", s);
     strncpy(line, s, strlen(s)+1);
     char_index = 0;
     tokens();
@@ -142,10 +144,26 @@ struct ASTNode *match_token(enum TokenType type) {
 
 struct ASTNode *match_exp() {
     struct Token *t; 
-    struct ASTNode * ret = ASTNode_new();
+    struct ASTNode * ret = ASTNode_new(), *node;
 
-    t = token(); // TODO
-    ret->token = t;
+    if ((node = match_token(TYPE_NUM)) == NULL) {
+        back_token();
+        return NULL;
+    }
+    ret->left = node;
+
+    if ((node = match_token(TYPE_PLUS)) == NULL) {
+        fprintf(stderr, "expect exp\n");
+        exit(EXIT_FAILURE);
+    }
+    ret->token = node->token;
+    
+    if ((node = match_token(TYPE_NUM)) == NULL) {
+        back_token();
+        return NULL;
+    }
+    ret->right = node;
+
     return ret;
 }
 
@@ -188,9 +206,11 @@ void print_node(struct ASTNode *node, int level) {
 }
 
 void test_match() {
-    char *s = "a = 3";
+    printf("## test match\n");
+    char *s = "a = 3 + 4";
     strncpy(line, s, strlen(s)+1);
     char_index = 0;
+    printf("%s\n", s);
     print_node(match_declare(), 0);
 }
 
