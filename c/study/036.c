@@ -10,12 +10,12 @@ static int pos;
 
 struct Token {
     enum TokenType {TYPE_ID, TYPE_NUM, TYPE_GE, TYPE_PLUS, TYPE_MINUS, TYPE_STAR, TYPE_SLASH } type;
-    union data{ int n; char c; char *s; } data; 
+    union data{ int n; char c;} data; 
 };
 const char* typeNames[] = {"id", "num", "ge", "plus", "minus", "star", "slash"};
-void print_token_id(struct Token *t) { printf("type=%s data=%s\n", typeNames[t->type], t->data.s); }
+void print_token_id(struct Token *t) { printf("type=%s data=%c\n", typeNames[t->type], t->data.c); }
 void print_token_num(struct Token *t) { printf("type=%s data=%d\n", typeNames[t->type], t->data.n); }           
-void print_token_other(struct Token *t) { printf("type=%s ", typeNames[t->type]); }           
+void print_token_other(struct Token *t) { printf("type=%s \n", typeNames[t->type]); }           
 
 static void (* const pf[])(struct Token *t) = {
     print_token_id, print_token_num, print_token_other, print_token_other,
@@ -23,64 +23,36 @@ static void (* const pf[])(struct Token *t) = {
 };
 void print_token(struct Token *t){ pf[t->type](t); }
 
-static struct Token current_token;
 
-void back(){
-    pos--;
-}
-
-char next_ch(){
-    return pos >= MAX ? '\0': line[pos++];
-}
-
-char *parse_str() {
-    static char buf[MAX];
-    char *p = buf, c;
-    while (c = next_ch()) {
-        if (isalpha(c) || isdigit(c)) {
-            *p++ = c;
-        } else {
-            break;
-        }
-    }
-    *p = '\0';
-    return buf;
-}
-
-
-int parse_int() {
-    static char buf[MAX];
-    char *p = buf, c;
-    while (c = next_ch()) {
-        if (isdigit(c)) {
-            *p++ = c;
-        } else {
-            break;
-        }
-    }
-    *p = '\0';
-    return atoi(buf);
-}
+void back(){ pos--; }
+char next(){ return pos >= MAX ? '\0': line[pos++]; }
 
 struct Token *token(){
+    static struct Token token;
     char c;
-    while ((c = next_ch()) == ' ') ;
+    while ((c = next()) == ' ') ;
 
     if (isalpha(c)) {
-        current_token.type = TYPE_ID; 
-        back();
-        current_token.data.s= parse_str(); 
-        return &current_token;
+        token.type = TYPE_ID; 
+        token.data.c = c; 
+        return &token;
     }
 
     if (isdigit(c)) {
-        current_token.type = TYPE_NUM; 
-        back();
-        current_token.data.n= parse_int(); 
-        return &current_token;
+        token.type = TYPE_NUM; 
+        token.data.n = c - '0'; 
+        return &token;
     }
 
-    return NULL;
+    if (c == '=') {
+        token.type = TYPE_GE; 
+        return &token;
+    }
+
+    if (c == '\0') return NULL; 
+
+    fprintf(stderr, "unknow char %c\n", c);
+    exit(EXIT_FAILURE);
 }
 
 
@@ -105,7 +77,7 @@ void repl() {
 }
 
 void test_tokens(){
-    char *s = "abc 111";
+    char *s = "a = 3";
     strncpy(line, s, strlen(s)+1);
     pos = 0;
     tokens();
