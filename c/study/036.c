@@ -132,31 +132,28 @@ struct ASTNode *ASTNode_new() {
     return &node_list[node_index++];
 }
 
-struct ASTNode *match_token(enum TokenType type) {
-    struct Token *t = token(); 
-    if (t == NULL) return NULL;
-    if (t->type != type) return NULL; 
-
-    struct ASTNode * ret = ASTNode_new();
-    ret->token = t;
-    return ret;
-}
-
 
 struct ASTNode *match_exp() {
     struct Token *t; 
-    struct ASTNode * ret = ASTNode_new(), *left, *mid, *right;
+    struct ASTNode *ret, *left, *mid, *right;
 
-    if ((left = match_token(TYPE_NUM)) == NULL) {
+    t = token();
+    if (! (t != NULL && t->type == TYPE_NUM)) {
         back_token();
         return NULL;
     }
+    left = ASTNode_new();
+    left->token = t;
 
-    if ((mid = match_token(TYPE_PLUS)) == NULL) {
+    t = token();
+    if (! (t != NULL && (t->type == TYPE_PLUS || t->type == TYPE_STAR))) {
         back_token();
         return left;
     }
+    mid = ASTNode_new();
+    mid->token = t;
 
+    ret = ASTNode_new();
     ret->token = mid->token;
     ret->left = left;
     ret->right = match_exp();
@@ -167,20 +164,25 @@ struct ASTNode *match_exp() {
 // a = 1 + 2
 struct ASTNode *match_declare() {
     struct ASTNode *ret = ASTNode_new(), *node;
+    struct Token *t; 
 
-    if ((node = match_token(TYPE_ID)) == NULL) {
+    t = token();
+    if (! (t != NULL && t->type == TYPE_ID) ) {
         back_token();
         return NULL;
     }
 
+    node = ASTNode_new();
+    node->token = t;
     ret->left = node;
 
-    if ((node = match_token(TYPE_EQ)) == NULL) {
+    t = token();
+    if (! (t != NULL && t->type == TYPE_EQ) ) {
         back_token();
         fprintf(stderr, "expect =\n");
         exit(EXIT_FAILURE);
     }
-    ret->token = node->token;
+    ret->token = t;
 
     if ((node = match_exp()) == NULL) {
         fprintf(stderr, "expect exp\n");
@@ -204,7 +206,7 @@ void print_node(struct ASTNode *node, int level) {
 
 void test_match() {
     printf("## test match\n");
-    char *s = "a = 3 + 4 + 5";
+    char *s = "a = 3 + 4 * 5";
     strncpy(line, s, strlen(s)+1);
     char_index = 0;
     printf("%s\n", s);
