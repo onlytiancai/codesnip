@@ -42,9 +42,10 @@ struct Token *Token_new() {
 void back_token() {token_index--;};
 struct Token *next_token() {
     if (token_index >= token_alloc_index) {
-        fprintf(stderr, "next token overflow\n");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
+    //printf("000 ");
+    //print_token(&token_list[token_index]);
     return &token_list[token_index++];
 }
 
@@ -89,7 +90,6 @@ struct Token *token(){
 int tokens(){
     struct Token *t;
     while(t=token()){
-        print_token(t);
     }
 }
 
@@ -104,15 +104,6 @@ void repl() {
 
         tokens();
     }
-}
-
-void test_tokens(){
-    printf("## test tokens\n");
-    char *s = "a = 3 + 4 * 2";
-    printf("%s\n", s);
-    strncpy(line, s, strlen(s)+1);
-    char_index = 0;
-    tokens();
 }
 
 
@@ -131,68 +122,6 @@ struct ASTNode *ASTNode_new() {
     }
     return &node_list[node_index++];
 }
-
-
-struct ASTNode *match_exp() {
-    struct Token *t; 
-    struct ASTNode *ret, *left, *mid, *right;
-
-    t = token();
-    if (! (t != NULL && t->type == TYPE_NUM)) {
-        back_token();
-        return NULL;
-    }
-    left = ASTNode_new();
-    left->token = t;
-
-    t = token();
-    if (! (t != NULL && (t->type == TYPE_PLUS || t->type == TYPE_STAR))) {
-        back_token();
-        return left;
-    }
-    mid = ASTNode_new();
-    mid->token = t;
-
-    ret = ASTNode_new();
-    ret->token = mid->token;
-    ret->left = left;
-    ret->right = match_exp();
-
-    return ret;
-}
-
-// a = 1 + 2
-struct ASTNode *match_declare() {
-    struct ASTNode *ret = ASTNode_new(), *node;
-    struct Token *t; 
-
-    t = token();
-    if (! (t != NULL && t->type == TYPE_ID) ) {
-        back_token();
-        return NULL;
-    }
-
-    node = ASTNode_new();
-    node->token = t;
-    ret->left = node;
-
-    t = token();
-    if (! (t != NULL && t->type == TYPE_EQ) ) {
-        back_token();
-        fprintf(stderr, "expect =\n");
-        exit(EXIT_FAILURE);
-    }
-    ret->token = t;
-
-    if ((node = match_exp()) == NULL) {
-        fprintf(stderr, "expect exp\n");
-        exit(EXIT_FAILURE);
-    }
-    ret->right = node;
-
-    return ret;
-}
-
 void print_node(struct ASTNode *node, int level) {
     if (node == NULL) return;
     int i = 0;
@@ -203,13 +132,148 @@ void print_node(struct ASTNode *node, int level) {
     print_node(node->left, level+1);
     print_node(node->right, level+1);
 }
+// pri -> Id | Literal | (exp)
+struct ASTNode *match_pri() {
+    struct Token *t; 
+    struct ASTNode *ret;
+    t = next_token();
+    if (t != NULL && t->type == TYPE_ID || t->type == TYPE_NUM) {
+        ret = ASTNode_new();
+        ret->token = t;
+        return ret;
+    }
+
+    back_token();
+    return NULL;
+}
+
+// mul -> pri | mul * pri 
+// mul -> pri (* pri)*
+struct ASTNode *match_mul() {
+    struct Token *t; 
+    struct ASTNode *ret, *left, *right;
+
+    if ( (left = match_pri() ) == NULL) return NULL;
+
+    ret = left;
+    while (1) {
+        t = next_token();
+        if (t == NULL || t->type != TYPE_STAR) {
+            back_token();
+            break;
+        } 
+        ret = ASTNode_new();
+        ret->token = t;
+
+        right = match_pri();
+        if (right == NULL) {
+            fprintf(stderr, "expect pri\n");
+            exit(EXIT_FAILURE);
+        }
+        ret->left = left;
+        ret->right = right;
+        left = ret;
+    }
+
+    return ret;
+
+}
+// add -> mul | add + mul 
+// add -> mul add'
+// add' -> + mul add' | ε
+// add -> mul (+ mul)* 
+struct ASTNode *match_add() {
+    struct Token *t; 
+    struct ASTNode *ret, *left, *right;
+
+    if ( (left = match_mul() ) == NULL) return NULL;
+    ret = left;
+    while (1) {
+        t = next_token();
+
+        if (t == NULL || t->type != TYPE_PLUS) {
+            back_token();
+            break;
+        } 
+
+        ret = ASTNode_new();
+        ret->token = t;
+
+        right = match_mul();
+        if (right == NULL) {
+            fprintf(stderr, "expect mul\n");
+            exit(EXIT_FAILURE);
+        }
+        ret->left = left;
+        ret->right = right;
+        left = ret;
+    }
+
+    return ret;
+}
+
+
+struct ASTNode *match_exp() {
+    return match_add();
+}
+
+// declare -> id = exp
+struct ASTNode *match_declare() {
+    struct ASTNode *ret, *left, *right;;
+    struct Token *t; 
+
+    t = next_token();
+    if (! (t != NULL && t->type == TYPE_ID) ) {
+        back_token();
+        return NULL;
+    }
+
+    left = ASTNode_new();
+    left->token = t;
+
+    t = next_token();
+    if (! (t != NULL && t->type == TYPE_EQ) ) {
+        fprintf(stderr, "expect =\n");
+        exit(EXIT_FAILURE);
+    }
+    ret = ASTNode_new();
+    ret->token = t;
+
+    if ((right = match_exp()) == NULL) {
+        fprintf(stderr, "expect exp\n");
+        exit(EXIT_FAILURE);
+    }
+
+    ret->left = left;
+    ret->right = right;
+
+    return ret;
+}
+
+void test_tokens(){
+    printf("## test tokens\n");
+    char *s = "a = 3 + 4 * 2";
+    printf("%s\n", s);
+    strncpy(line, s, strlen(s)+1);
+    char_index = 0;
+    tokens();
+
+    struct Token *t;
+    while(t=next_token()){
+        print_token(t);
+    }
+}
+
 
 void test_match() {
     printf("## test match\n");
-    char *s = "a = 3 + 4 * 5";
+    char *s = "a = 3 * 2 + 4 * 5 * 6 + 3 + 7";
     strncpy(line, s, strlen(s)+1);
-    char_index = 0;
     printf("%s\n", s);
+    char_index = 0;
+    token_alloc_index = 0;
+    token_index = 0;
+    tokens();
     print_node(match_declare(), 0);
 }
 
