@@ -41,7 +41,7 @@ struct Token *Token_new() {
 
 void back_token() {token_index--;};
 struct Token *next_token() {
-    if (token_index >= token_alloc_index) {
+    if (token_index >= token_alloc_index-1) {
         return NULL;
     }
     //printf("000 ");
@@ -252,7 +252,7 @@ struct ASTNode *match_declare() {
 
 void test_tokens(){
     printf("## test tokens\n");
-    char *s = "a = 3 + 4 * 2";
+    char *s = "a = 321 + b * 777";
     printf("%s\n", s);
     strncpy(line, s, strlen(s)+1);
     char_index = 0;
