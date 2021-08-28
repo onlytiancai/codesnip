@@ -11,7 +11,6 @@ class Node(object):
             self.r = Node(r) 
 
 def read_tree(input):
-    print(input)
     l_nodes = {}
     r_nodes = {}
     root = None
@@ -32,11 +31,25 @@ def read_tree(input):
 
     return root
 
-def depth_first(tree):
+def pre_order_recursion(tree):
     ret = []
-    ret.append(tree.value)
-    if tree.l is not None:
-        ret.extend(depth_first(tree.l))
-    if tree.r is not None:
-        ret.extend(depth_first(tree.r))
+    if tree is not None:
+        ret.append(tree.value)
+        ret.extend(pre_order_recursion(tree.l))
+        ret.extend(pre_order_recursion(tree.r))
+    return ret
+
+def pre_order_non_recursion(tree):
+    ret = []
+    stack = []
+    node = tree
+    while node is not None or len(stack) > 0:
+        if node is not None:
+            ret.append(node.value)
+            stack.append(node)
+            node = node.l
+        else:
+            node = stack.pop()
+            node = node.r
+
     return ret

@@ -12,9 +12,14 @@ class MainTest(unittest.TestCase):
         self.assertTrue(tree is not None)
         return tree
 
-    def test_depth_first(self):
+    def test_pre_order_recursion(self):
         tree = self._read_tree()
-        output = depth_first(tree)
+        output = pre_order_recursion(tree)
+        self.assertEqual([5, 3, 2, 4, 7, 6, 8], output)
+
+    def test_pre_order_non_recursion(self):
+        tree = self._read_tree()
+        output = pre_order_non_recursion(tree)
         self.assertEqual([5, 3, 2, 4, 7, 6, 8], output)
 
 if __name__ == '__main__':
