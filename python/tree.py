@@ -1,16 +1,42 @@
+import pprint
+
 class Node(object):
-    def __init__(self, n, l, r):
-        self.n = int(n)
-        self.l = int(l)
-        self.r = int(r)
+    l = None
+    r = None
+    def __init__(self, v, l=None, r=None):
+        self.value = int(v)
+        if l is not None:
+            self.l = Node(l) 
+        if r is not None:
+            self.r = Node(r) 
 
 def read_tree(input):
+    print(input)
+    l_nodes = {}
+    r_nodes = {}
+    root = None
     for line in input.splitlines():
-        n, l, r = line.strip().split() 
-        return Node(n, l, r)
+        v, l, r = line.strip().split() 
+        node = Node(v, l, r)
+        if not root:
+            root = node
 
-def print_tree(tree):
-    node = tree
-    ret = [] 
-    ret.extend([node.l, node.n, node.r])
+        if v in l_nodes:
+            l_nodes[v].l = node
+
+        if v in r_nodes:
+            r_nodes[v].r = node
+
+        l_nodes[l] = node
+        r_nodes[r] = node
+
+    return root
+
+def depth_first(tree):
+    ret = []
+    ret.append(tree.value)
+    if tree.l is not None:
+        ret.extend(depth_first(tree.l))
+    if tree.r is not None:
+        ret.extend(depth_first(tree.r))
     return ret
