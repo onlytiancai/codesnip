@@ -3,6 +3,11 @@ import textwrap
 from tree import *
 
 class MainTest(unittest.TestCase):
+    '''
+       5
+     3   7
+    2 4 6 8
+    '''
     def _read_tree(self):
         txt = textwrap.dedent('''\
         5 3 7
@@ -17,10 +22,30 @@ class MainTest(unittest.TestCase):
         output = pre_order_recursion(tree)
         self.assertEqual([5, 3, 2, 4, 7, 6, 8], output)
 
+    def test_in_order_recursion(self):
+        tree = self._read_tree()
+        output = in_order_recursion(tree)
+        self.assertEqual([2, 3, 4, 5, 6, 7, 8], output)
+
+    def test_post_order_recursion(self):
+        tree = self._read_tree()
+        output = post_order_recursion(tree)
+        self.assertEqual([2, 3, 4, 6, 7, 8, 5], output)
+
+    def test_breadth_first(self):
+        tree = self._read_tree()
+        output = breadth_first(tree)
+        self.assertEqual([5, 3, 7, 2, 4, 6, 8], output)
+
     def test_pre_order_non_recursion(self):
         tree = self._read_tree()
         output = pre_order_non_recursion(tree)
         self.assertEqual([5, 3, 2, 4, 7, 6, 8], output)
+
+    def test_in_order_non_recursion(self):
+        tree = self._read_tree()
+        output = in_order_non_recursion(tree)
+        self.assertEqual([2, 3, 4, 5, 6, 7, 8], output)
 
 if __name__ == '__main__':
     unittest.main()

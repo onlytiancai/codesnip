@@ -39,6 +39,34 @@ def pre_order_recursion(tree):
         ret.extend(pre_order_recursion(tree.r))
     return ret
 
+def in_order_recursion(tree):
+    ret = []
+    if tree is not None:
+        ret.extend(in_order_recursion(tree.l))
+        ret.append(tree.value)
+        ret.extend(in_order_recursion(tree.r))
+    return ret
+
+def post_order_recursion(tree):
+    ret = []
+    if tree is not None:
+        ret.extend(in_order_recursion(tree.l))
+        ret.extend(in_order_recursion(tree.r))
+        ret.append(tree.value)
+    return ret
+
+def breadth_first(tree):
+    ret = [] 
+    queue = [tree]
+    while len(queue) > 0:
+        node = queue.pop()
+        ret.append(node.value)
+        if node.l is not None:
+            queue.insert(0, node.l)
+        if node.r is not None:
+            queue.insert(0, node.r)
+    return ret;
+
 def pre_order_non_recursion(tree):
     ret = []
     stack = []
@@ -53,3 +81,21 @@ def pre_order_non_recursion(tree):
             node = node.r
 
     return ret
+
+def in_order_non_recursion(tree):
+    ret = []
+    stack = []
+    node = tree
+    while node is not None or len(stack) > 0:
+        if node is not None:
+            stack.append(node)
+            node = node.l
+        else:
+            node = stack.pop()
+            ret.append(node.value)
+            node = node.r
+
+    return ret
+
+
+
