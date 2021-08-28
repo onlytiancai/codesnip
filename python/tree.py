@@ -67,6 +67,18 @@ def breadth_first(tree):
             queue.insert(0, node.r)
     return ret;
 
+def depth_first(tree):
+    ret = [] 
+    stack = [tree]
+    while len(stack) > 0:
+        node = stack.pop()
+        ret.append(node.value)
+        if node.r is not None:
+            stack.append(node.r)
+        if node.l is not None:
+            stack.append(node.l)
+    return ret;
+
 def pre_order_non_recursion(tree):
     ret = []
     stack = []
