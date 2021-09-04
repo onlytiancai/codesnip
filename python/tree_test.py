@@ -65,6 +65,20 @@ class MainTest(unittest.TestCase):
         output = breadth_first(tree)
         self.assertEqual([2, 1, 3], output)
 
+    def test_rotate_right_with_move_left_child(self):
+        tree = read_tree(textwrap.dedent('''\
+        5 3 6 
+        3 2 4
+        2 1 -''')) 
+        self.assertTrue(tree is not None)
+        
+        output = breadth_first(tree)
+        self.assertEqual([5, 3, 6, 2, 4, 1], output)
+
+        tree = rotate_right(tree)
+        output = breadth_first(tree)
+        self.assertEqual([3, 2, 5, 1, 4, 6], output)
+
     def test_rotate_left(self):
         tree = read_tree(textwrap.dedent('''\
         1 - 2 
@@ -77,6 +91,21 @@ class MainTest(unittest.TestCase):
         tree = rotate_left(tree)
         output = breadth_first(tree)
         self.assertEqual([2, 1, 3], output)
+
+    def test_str_tree(self):
+        tree = self._read_tree()
+        s = str(tree)
+        self.assertEqual(textwrap.dedent('''\
+        5
+        |--3
+           |--2
+           |--4
+        |--7
+           |--6
+           |--8
+        '''), s)
+        
+
 
 if __name__ == '__main__':
     unittest.main()

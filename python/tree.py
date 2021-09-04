@@ -16,6 +16,19 @@ class Node(object):
         if r is not None and r != '-':
             self.r = Node(r) 
 
+    def __str__(self, level=0):
+        ret = ''
+        if level > 0:
+            if level > 1:
+                ret += '   ' * (level - 1)
+            ret += '|--'
+        ret += repr(self.value)+"\n"
+        if self.l is not None:
+            ret += self.l.__str__(level+1)
+        if self.r is not None:
+            ret += self.r.__str__(level+1)
+        return ret
+
 def read_tree(input):
     l_nodes = {}
     r_nodes = {}
