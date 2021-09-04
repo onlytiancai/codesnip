@@ -1,3 +1,9 @@
+'''
+数据结构（一）-- 平衡树
+https://www.cnblogs.com/Benjious/p/10336145.html
+硬核图解面试最怕的红黑树【建议反复摩擦】
+https://blog.csdn.net/qq_35190492/article/details/109503539
+'''
 import pprint
 
 class Node(object):
@@ -5,9 +11,9 @@ class Node(object):
     r = None
     def __init__(self, v, l=None, r=None):
         self.value = int(v)
-        if l is not None:
+        if l is not None and l != '-':
             self.l = Node(l) 
-        if r is not None:
+        if r is not None and r != '-':
             self.r = Node(r) 
 
 def read_tree(input):
@@ -109,5 +115,14 @@ def in_order_non_recursion(tree):
 
     return ret
 
+def rotate_right(node):
+    y = node.l 
+    node.l = y.r
+    y.r = node
+    return y
 
-
+def rotate_left(node):
+    y = node.r 
+    node.r = y.l
+    y.l = node
+    return y

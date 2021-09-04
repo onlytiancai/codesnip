@@ -52,5 +52,31 @@ class MainTest(unittest.TestCase):
         output = in_order_non_recursion(tree)
         self.assertEqual([2, 3, 4, 5, 6, 7, 8], output)
 
+    def test_rotate_right(self):
+        tree = read_tree(textwrap.dedent('''\
+        3 2 - 
+        2 1 -''')) 
+        self.assertTrue(tree is not None)
+        
+        output = breadth_first(tree)
+        self.assertEqual([3, 2, 1], output)
+
+        tree = rotate_right(tree)
+        output = breadth_first(tree)
+        self.assertEqual([2, 1, 3], output)
+
+    def test_rotate_left(self):
+        tree = read_tree(textwrap.dedent('''\
+        1 - 2 
+        2 - 3''')) 
+        self.assertTrue(tree is not None)
+        
+        output = breadth_first(tree)
+        self.assertEqual([1, 2, 3], output)
+
+        tree = rotate_left(tree)
+        output = breadth_first(tree)
+        self.assertEqual([2, 1, 3], output)
+
 if __name__ == '__main__':
     unittest.main()
