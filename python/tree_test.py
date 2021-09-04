@@ -200,5 +200,13 @@ class MainTest(unittest.TestCase):
         tree = put_value(tree, 5.5)
         self.assertEqual([2, 1, 4, 0, 3, 5.5, 5, 6], breadth_first(tree))
 
+        # ll
+        tree = put_value(tree, -1)
+        self.assertEqual([2, 0, 4, -1, 1, 3, 5.5, 5, 6], breadth_first(tree))
+        
+        # lr
+        tree = put_value(tree, -2)
+        tree = put_value(tree, -1.5)
+        self.assertEqual([2, 0, 4, -1.5, 1, 3, 5.5, -2, -1, 5, 6], breadth_first(tree))
 if __name__ == '__main__':
     unittest.main()
