@@ -96,13 +96,13 @@ class MainTest(unittest.TestCase):
         tree = self._read_tree()
         s = str(tree)
         self.assertEqual(textwrap.dedent('''\
-        5
-        |--3
-           |--2
-           |--4
-        |--7
-           |--6
-           |--8
+        5.0
+        |--3.0
+           |--2.0
+           |--4.0
+        |--7.0
+           |--6.0
+           |--8.0
         '''), s)
 
     def test_tree_height(self):
@@ -124,7 +124,7 @@ class MainTest(unittest.TestCase):
         self.assertEqual(0, blance_factor(tree.l.r))
         self.assertEqual(0, blance_factor(tree.l.l.l))
 
-    def test_is_ll_rr_lr_rl(self):
+    def test_lose_bance_type(self):
         tree = read_tree(textwrap.dedent('''\
         1 2 -
         2 3 -
@@ -149,11 +149,56 @@ class MainTest(unittest.TestCase):
         ''')) 
         self.assertEqual('rl', lose_blance_type(tree))
 
+    def test_re_blance_ll(self):
+        tree = read_tree(textwrap.dedent('''\
+        3 2 -
+        2 1 -
+        ''')) 
+        tree = re_blance(tree)
+        self.assertEqual([2, 1, 3], breadth_first(tree))
 
+    def test_re_blance_lr(self):
+        tree = read_tree(textwrap.dedent('''\
+        3 1 -
+        1 - 2
+        ''')) 
+        tree = re_blance(tree)
+        self.assertEqual([2, 1, 3], breadth_first(tree))
 
+    def test_re_blance_rr(self):
+        tree = read_tree(textwrap.dedent('''\
+        1 - 2 
+        2 - 3 
+        ''')) 
+        tree = re_blance(tree)
+        self.assertEqual([2, 1, 3], breadth_first(tree))
 
-        
+    def test_re_blance_rl(self):
+        tree = read_tree(textwrap.dedent('''\
+        1 - 3 
+        3 2 - 
+        ''')) 
+        tree = re_blance(tree)
+        self.assertEqual([2, 1, 3], breadth_first(tree))
 
+    def test_put_value(self):
+        tree = read_tree(textwrap.dedent('''\
+        2 1 3
+        ''')) 
+        tree = put_value(tree, 0)
+        self.assertEqual([2, 1, 3, 0], breadth_first(tree))
+
+        tree = put_value(tree, 4)
+        self.assertEqual([2, 1, 3, 0, 4], breadth_first(tree))
+
+        # rr
+        tree = put_value(tree, 5)
+        self.assertEqual([2, 1, 4, 0, 3, 5], breadth_first(tree))
+
+        # rl 
+        tree = put_value(tree, 6)
+        tree = put_value(tree, 5.5)
+        self.assertEqual([2, 1, 4, 0, 3, 5.5, 5, 6], breadth_first(tree))
 
 if __name__ == '__main__':
     unittest.main()

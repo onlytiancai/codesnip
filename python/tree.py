@@ -10,7 +10,7 @@ class Node(object):
     l = None
     r = None
     def __init__(self, v, l=None, r=None):
-        self.value = int(v)
+        self.value = float(v)
         if l is not None and l != '-':
             self.l = Node(l) 
         if r is not None and r != '-':
@@ -161,4 +161,34 @@ def lose_blance_type(tree):
         return 'rr'
     if blance_factor(tree) < -1 and blance_factor(tree.r) > 0:
         return 'rl'
-    raise Exception('opps')
+    return '' 
+
+def re_blance(tree):
+    if lose_blance_type(tree) == 'll':
+        return rotate_right(tree)
+
+    if lose_blance_type(tree) == 'lr':
+        tree.l = rotate_left(tree.l)
+        return rotate_right(tree)
+
+    if lose_blance_type(tree) == 'rr':
+        return rotate_left(tree)
+
+    if lose_blance_type(tree) == 'rl':
+        tree.r = rotate_right(tree.r)
+        return rotate_left(tree)
+
+    return tree
+
+def put_value(tree, value):
+    if tree is None:
+        return Node(value)
+
+    if value  < tree.value:
+        tree.l = put_value(tree.l, value)
+    elif value > tree.value:
+        tree.r = put_value(tree.r, value)
+    else:
+        tree.value = value
+
+    return re_blance(tree)
