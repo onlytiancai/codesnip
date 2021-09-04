@@ -139,3 +139,26 @@ def rotate_left(node):
     node.r = y.l
     y.l = node
     return y
+
+def tree_height(tree):
+    if tree is None:
+        return 0
+    l_height = 0 if tree.l is None else tree_height(tree.l) 
+    r_height = 0 if tree.r is None else tree_height(tree.r) 
+    return max(l_height, r_height) + 1
+
+def blance_factor(tree):
+    if tree is None:
+        return 0
+    return tree_height(tree.l) - tree_height(tree.r)
+
+def lose_blance_type(tree):
+    if blance_factor(tree) > 1 and blance_factor(tree.l) > 0:
+        return 'll'
+    if blance_factor(tree) > 1 and blance_factor(tree.l) < 0:
+        return 'lr'
+    if blance_factor(tree) < -1 and blance_factor(tree.r) < 0:
+        return 'rr'
+    if blance_factor(tree) < -1 and blance_factor(tree.r) > 0:
+        return 'rl'
+    raise Exception('opps')

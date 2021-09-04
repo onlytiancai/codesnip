@@ -104,6 +104,54 @@ class MainTest(unittest.TestCase):
            |--6
            |--8
         '''), s)
+
+    def test_tree_height(self):
+        tree = self._read_tree()
+        self.assertEqual(3, tree_height(tree))
+        self.assertEqual(2, tree_height(tree.l))
+        self.assertEqual(1, tree_height(tree.l.l))
+        self.assertEqual(0, tree_height(tree.l.l.l))
+
+    def test_balance_factor(self):
+        tree = read_tree(textwrap.dedent('''\
+        5 3 6 
+        3 2 4
+        2 1 -''')) 
+        self.assertEqual(2, blance_factor(tree))
+        self.assertEqual(0, blance_factor(tree.r))
+        self.assertEqual(1, blance_factor(tree.l))
+        self.assertEqual(1, blance_factor(tree.l.l))
+        self.assertEqual(0, blance_factor(tree.l.r))
+        self.assertEqual(0, blance_factor(tree.l.l.l))
+
+    def test_is_ll_rr_lr_rl(self):
+        tree = read_tree(textwrap.dedent('''\
+        1 2 -
+        2 3 -
+        ''')) 
+        self.assertEqual('ll', lose_blance_type(tree))
+
+        tree = read_tree(textwrap.dedent('''\
+        3 1 -
+        1 - 2 
+        ''')) 
+        self.assertEqual('lr', lose_blance_type(tree))
+
+        tree = read_tree(textwrap.dedent('''\
+        1 - 2
+        2 - 3 
+        ''')) 
+        self.assertEqual('rr', lose_blance_type(tree))
+
+        tree = read_tree(textwrap.dedent('''\
+        1 - 2
+        2 3 - 
+        ''')) 
+        self.assertEqual('rl', lose_blance_type(tree))
+
+
+
+
         
 
 
