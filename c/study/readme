@@ -53,6 +53,7 @@
 gcc 033.c -lpthread
 ulimit -n 10240
 
+wrk -t30 -c1000 -d30s --latency -s pipeline.lua http://127.0.0.1:8888/ -- 20
 wrk -t12 -c400 -d30s http://127.0.0.1:8888/
 wrk -t30 -c1000 -d30s --latency http://127.0.0.1:8888/
 sar -n DEV 1 | grep -E '(IFACE|lo)'

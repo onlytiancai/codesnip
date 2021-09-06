@@ -15814,3 +15814,107 @@ https://stackoverflow.com/questions/13848143/is-level-triggered-or-edge-triggere
 
 池的概念和EPOLLONESHOT事件（读Linux高性能服务器）
 https://blog.51cto.com/lingdandan/1836326
+
+Ｃ语言实现原子锁(一)
+https://www.jianshu.com/p/f845d80603d0
+
+感性认识JWT
+https://www.cnblogs.com/lgj8/p/12065944.html
+
+php error log
+
+vi /etc/php/7.2/fpm/php.ini
+
+    log_errors = On
+    error_log = /var/log/php7.2.error.log
+
+vi /etc/php/7.2/fpm/pool.d/www.conf
+
+    catch_workers_output = yes
+    php_admin_value[error_log] = /var/log/fpm-php.www.log
+    php_admin_flag[log_errors] = on
+
+php-fpm7.2 -t
+systemctl restart php7.2-fpm.service
+systemctl status php7.2-fpm.service
+
+touch /var/log/fpm-php.www.log
+chown www-data:www-data /var/log/fpm-php.www.log
+touch /var/log/php7.2.error.log
+chown www-data:www-data /var/log/php7.2.error.log
+
+php code
+    error_reporting(1);
+    ini_set('display_errors', 0);
+
+编译原理：LL, LR 文法浅析
+https://zhuanlan.zhihu.com/p/94424139
+
+Clean mocking in your PHPUnit tests using Prophecy and Given-When-Then approach
+https://medium.com/owl-it-development/clean-mocking-in-your-phpunit-tests-using-prophecy-and-given-when-then-approach-e870b224a068
+
+统计分析 运营统计
+metabase
+
+
+Python可视化matplotlib&seborn14-热图heatmap
+https://zhuanlan.zhihu.com/p/165426873
+
+热力图
+
+抠图
+https://www.fococlipping.com/
+
+How to set center color in heatmap
+https://stackoverflow.com/questions/56536419/how-to-set-center-color-in-heatmap
+
+
+淘宝最开始成立的时候，是单体应用；随着业务规模的发展，系统首先对硬件进行升级这种Scale Up的方式；但是很快发现这种方式遇到了各种各样的问题，所以在2008年开始引入了微服务的解决方案；SOA的解决方案是分布式的，对于稳定性，可观测性等方面，需要引入熔断、隔离、全链路监控等高可用方案；接下来面临的问题是怎么在机房、IDC层面来让业务达到99.99%以上可用的SLA，这时候就有了同城双机房、异地多活等解决方案。而随着云技术的不断发展，阿里巴巴拥抱和引导云原生技术的发展，积极拥抱云原生技术，以K8s为基础，积极开展云原生技术的升级。
+
+https://blog.csdn.net/qq_40586164/article/details/105102587
+红黑树为什么能达到半平衡（最深的叶子节点的深度不会大于两倍的最短叶子节点的深度）？
+因为红色节点不能与红色节点相连，且所有路径的黑色节点个数相同，因此最长路径是红黑交替节点路径，所以最短路径必然是只包含黑色节点的路径，于是从根节点到叶子节点的的最长路径不会超过最短路径的两倍。
+
+红黑树相比AVL的优点：
+
+如果插入一个node引起了树的不平衡，AVL和RB-Tree都是最多只需要2次旋转操作，即两者都是O(1)；但是在删除node引起树的不平衡时，最坏情况下，AVL需要维护从被删node到root这条路径上所有node的平衡性，因此需要旋转的量级O(logN)，而RB-Tree最多只需3次旋转，只需要O(1)的复杂度。
+
+其次，AVL的结构相较RB-Tree来说更为平衡，在插入和删除node更容易引起Tree的unbalance，因此在大量数据需要插入或者删除时，AVL需要rebalance的频率会更高。因此，RB-Tree在需要大量插入和删除node的场景下，效率更高。自然，由于AVL高度平衡，因此AVL的search效率更高。
+
+map的实现只是折衷了两者在search、insert以及delete下的效率。总体来说，RB-tree的统计性能是高于AVL的。
+
+
+Maximizing PHP 7 Performance with NGINX, Part 1: Web Serving and Caching
+https://www.nginx.com/blog/maximizing-php-7-performance-with-nginx-part-i-web-serving-and-caching/
+https://tideways.com/profiler/blog/5-ways-to-increase-php-performance
+https://bobcares.com/blog/php-fpm-tuning-high-load/
+https://tonyteaches.tech/fastcgi-cache-with-nginx/
+
+
+Proper indentation for Python multiline strings
+https://stackoverflow.com/questions/2504411/proper-indentation-for-python-multiline-strings
+
+    log_message = textwrap.dedent("""\
+            Prepare to frobnicate:
+            Here it comes...
+                Any moment now.
+            And: Frobnicate!""")
+
+二叉树遍历（前序、中序、后序、层次、深度优先、广度优先遍历）
+https://www.cnblogs.com/llguanli/p/7363657.html
+
+对于二叉树，有深度遍历和广度遍历，深度遍历有前序、中序以及后序三种遍历方法，广度遍历即我们寻常所说的层次遍历。
+
+docker exec -it lduoj /bin/bash
+https://blog.csdn.net/bytxl/article/details/40920165
+
+
+数据结构（一）-- 平衡树
+https://www.cnblogs.com/Benjious/p/10336145.html
+硬核图解面试最怕的红黑树【建议反复摩擦】
+https://blog.csdn.net/qq_35190492/article/details/109503539
+
+线性查找(性能低)→二分查找(查快，插删需移动大量元素)→BST（查快，插删无需大量移动，但可能退化为链表）→AVL（查快，不退化为链表，但平衡要求很严，删插会导致频繁调整）→RBT（删插的综合性能更好。删插少则用AVL，删插多则用RBT）
+
+MySQL数据备份与恢复之Percona XtraBackup
+https://blog.csdn.net/sinat_29214327/article/details/81517233

@@ -67,7 +67,7 @@ static int counter_bind = 0, counter_accept = 0, counter_epoll_wait = 0, counter
 const int N = 10;
 const int MAX_EVENTS_SIZE = 1024; 
 
-const int MAX_RSP_LEN = 20;
+const int MAX_RSP_LEN = 300;
 static char* response = "HTTP/1.1 200 OK\r\nServer: wawa-server\r\nDate: Thu, 20 May 2021 04:16:43 GMT\r\nContent-Length: 10\r\nConnection: keep-alive\r\nContent-Type: text/html;charset=utf-8\r\n\r\n127.0.0.1\n";
 static char *response_arr;
 
@@ -219,7 +219,7 @@ void* thread2(void *data) {
 
                 while (1) {
                     ssize_t count;
-                    char buf[1024];
+                    char buf[40000];
 
                     count = read(events[i].data.fd, buf, sizeof buf);
                     AO_INC(&counter_read);
@@ -239,10 +239,7 @@ void* thread2(void *data) {
                         break;
                     }
                     
-                    int req_count = parse_req(buf, 0, count);
-                    if (req_count > MAX_RSP_LEN) {
-                        handle_error(__FILE__, __LINE__);
-                    }
+                    int req_count = MAX_RSP_LEN;
                     
                     //printf("parse_req count:%d\n", req_count);
 
