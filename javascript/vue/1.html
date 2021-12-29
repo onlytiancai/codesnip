@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo</title>
+    <script src="https://unpkg.com/vue@next"></script>
+</head>
+
+<body>
+    <div id="todo-list-app">
+        <div>
+            <todo-input @add="addTodo($event)"></todo-input>
+        </div>
+        TODO:
+        <ol>
+            <todo-item v-for="item in filter('TODO')" v-bind:todo="item" v-bind:key="item.id"></todo-item>
+        </ol>
+        DOING:
+        <ol>
+            <todo-item v-for="item in filter('DOING')" v-bind:todo="item" v-bind:key="item.id"></todo-item>
+        </ol>
+        DONE:
+        <ol>
+            <todo-item v-for="item in filter('DONE')" v-bind:todo="item" v-bind:key="item.id"></todo-item>
+        </ol>
+    </div>
+    <script>
+        const TodoInput = {
+            data() {
+                return {
+                    message: ''
+                }
+            },
+            template: `
+                <div id="input">
+                    <input v-model="message" placeholder="edit me" />
+                    <p>Message is: {{ message }}</p>
+                    <button @click="add">Add</button>
+                </div>`,
+            emits: ['add',],
+            methods: {
+                add() {
+                    this.$emit('add', { message: this.message })
+                }
+            }
+        }
+        const TaskState = {
+            TODO: 0,
+            DOING: 1,
+            DONE: 2,
+        }
+
+        const reverseMapping = o => Object.keys(o).reduce((r, k) =>
+            Object.assign(r, { [o[k]]: (r[o[k]] || []).concat(k) }), {})
+
+        const stateMap = reverseMapping(TaskState);
+
+        function getRndInteger(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        const TodoList = {
+            data() {
+                return {
+                    groceryList: [
+                        { id: 0, text: 'Vegetables', state: TaskState.TODO, },
+                        { id: 1, text: 'Cheese', state: TaskState.DOING },
+                        { id: 2, text: 'Whatever else humans are supposed to eat', state: TaskState.DONE }
+                    ]
+                }
+            },
+            methods: {
+                filter(state) {
+                    return this.groceryList.filter(item => item.state === TaskState[state])
+                },
+                addTodo(item) {
+                    this.groceryList.push({ id: getRndInteger(3, 100), text: item.message, state: getRndInteger(0, 2) })
+                },
+            }
+        }
+
+        const app = Vue.createApp(TodoList)
+
+        app.component('todo-item', {
+            props: ['todo'],
+            template: `<li>{{showState(todo.state)}} : {{ todo.text }}</li>`,
+            methods: {
+                showState(state) {
+                    return stateMap[state][0]
+                }
+            }
+        })
+
+        app.component('todo-input', TodoInput)
+
+        app.mount('#todo-list-app')
+    </script>
+</body>
+
+</html>
