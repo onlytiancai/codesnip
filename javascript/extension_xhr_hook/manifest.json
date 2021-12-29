@@ -1,0 +1,37 @@
+{
+  "name": "XHR Hook Test",
+  "description": "XHR Hook Test",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://*.linkedin.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.linkedin.com/*"
+      ],
+      "run_at": "document_start",
+      "js": [
+        "inject.js"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "injected.js"
+      ],
+      "matches": [
+        "https://*.linkedin.com/*"
+      ],
+      "use_dynamic_url": true
+    }
+  ]
+}
