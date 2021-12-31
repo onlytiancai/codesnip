@@ -6,18 +6,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Awesome Todo List</title>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ant-design-vue@2.2.8/dist/antd.min.css">
-
-    <script src="https://kit.fontawesome.com/65fafe76d4.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.26/dist/vue.global.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/ant-design-vue@2.2.8/dist/antd.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
+    <script src="https://unpkg.com/vue@next"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF"
+        crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -28,7 +25,6 @@
         </nav>
 
         <div id="todo-list-app" class="pt-3">
-
             <div>
                 <todo-input @add="addTodo($event)"></todo-input>
             </div>
@@ -87,23 +83,16 @@
                 </div>
 
                 <div class="col-1">
-                    <a-dropdown>
-                        <a class="ant-dropdown-link" @click.prevent><i class="fas fa-chevron-down"></i></a>
-                        <template #overlay>
-                            <a-menu>
-                                <a-menu-item>
-                                    <a href="javascript:;" @click="setState('TODO')">TODO</a>
-                                </a-menu-item>
-                                <a-menu-item>
-                                    <a href="javascript:;"  @click="setState('DOING')">DOING</a>
-                                </a-menu-item>
-                                <a-menu-item>
-                                    <a href="javascript:;"  @click="setState('DONE')">DONE</a>
-                                </a-menu-item>
-                            </a-menu>
-                        </template>
-                    </a-dropdown>
-
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle float-right btn-sm" type="button"
+                            data-toggle="dropdown">
+                        </button>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#" @click="setState('TODO')">TODO</a>
+                            <a class="dropdown-item" href="#" @click="setState('DOING')">DOING</a>
+                            <a class="dropdown-item" href="#" @click="setState('DONE')">DONE</a>
+                        </div>
+                    </div>
                 </div>
         </li>
     </template>
@@ -200,8 +189,6 @@
 
         // Entry Point
         const app = Vue.createApp(TodoList)
-        app.config.productionTip = false;
-        app.use(antd);
         app.component('todo-item', TodoItem)
         app.component('todo-input', TodoInput)
         app.mount('#todo-list-app')
