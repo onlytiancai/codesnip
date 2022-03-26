@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue Compontent Test</title>
+</head>
+
+<body>
+    <script src="https://unpkg.com/vue@next"></script>
+
+    <div id="counter">
+        Counter: {{ counter }}
+    </div>
+
+    <script>
+        const Counter = {
+            data() {
+                return {
+                    counter: 0
+                }
+            },
+            mounted() {
+                setInterval(() => {
+                    this.counter++
+                }, 1000)
+            }
+        }
+
+        Vue.createApp(Counter).mount('#counter')
+
+
+    </script>
+    <div id="bind-attribute">
+        <span v-bind:title="message">
+            鼠标悬停几秒钟查看此处动态绑定的提示信息！
+        </span>
+    </div>
+    <script>
+        const AttributeBinding = {
+            data() {
+                return {
+                    message: 'You loaded this page on ' + new Date().toLocaleString()
+                }
+            }
+        }
+
+        Vue.createApp(AttributeBinding).mount('#bind-attribute')
+    </script>
+    <div id="event-handling">
+        <p>{{ message }}</p>
+        <button v-on:click="reverseMessage">反转 Message</button>
+    </div>
+    <script>
+        const EventHandling = {
+            data() {
+                return {
+                    message: 'Hello Vue.js!'
+                }
+            },
+            methods: {
+                reverseMessage() {
+                    this.message = this.message
+                        .split('')
+                        .reverse()
+                        .join('')
+                }
+            }
+        }
+
+        Vue.createApp(EventHandling).mount('#event-handling')
+    </script>
+
+    <div id="two-way-binding">
+        <p>{{ message }}</p>
+        <input v-model="message" />
+    </div>
+    <script>
+        const TwoWayBinding = {
+            data() {
+                return {
+                    message: 'Hello Vue!'
+                }
+            }
+        }
+
+        Vue.createApp(TwoWayBinding).mount('#two-way-binding')
+    </script>
+    <div id="conditional-rendering">
+        <span v-if="seen">现在你看到我了</span>
+    </div>
+    <script>
+        const ConditionalRendering = {
+            data() {
+                return {
+                    seen: true
+                }
+            }
+        }
+
+        Vue.createApp(ConditionalRendering).mount('#conditional-rendering')
+    </script>
+
+    <div id="list-rendering">
+        <ol>
+            <li v-for="todo in todos">
+                {{ todo.text }}
+            </li>
+        </ol>
+    </div>
+
+    <script>
+        const ListRendering = {
+            data() {
+                return {
+                    todos: [
+                        { text: 'Learn JavaScript' },
+                        { text: 'Learn Vue' },
+                        { text: 'Build something awesome' }
+                    ]
+                }
+            }
+        }
+
+        Vue.createApp(ListRendering).mount('#list-rendering')
+    </script>
+    <div id="todo-list-app">
+        <ol>
+            <!--
+        现在我们为每个 todo-item 提供 todo 对象
+        todo 对象是变量，即其内容可以是动态的。
+        我们也需要为每个组件提供一个“key”，稍后再
+        作详细解释。
+      -->
+            <todo-item v-for="item in groceryList" v-bind:todo="item" v-bind:key="item.id"></todo-item>
+        </ol>
+    </div>
+    <script>
+        const TodoList = {
+            data() {
+                return {
+                    groceryList: [
+                        { id: 0, text: 'Vegetables' },
+                        { id: 1, text: 'Cheese' },
+                        { id: 2, text: 'Whatever else humans are supposed to eat' }
+                    ]
+                }
+            }
+        }
+
+        const app = Vue.createApp(TodoList)
+
+        app.component('todo-item', {
+            props: ['todo'],
+            template: `<li>{{ todo.text }}</li>`
+        })
+
+        app.mount('#todo-list-app')
+    </script>
+</body>
+
+</html>

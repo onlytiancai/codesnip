@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Awesome Todo List</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ant-design-vue@2.2.8/dist/antd.min.css">
+
+    <script src="https://kit.fontawesome.com/65fafe76d4.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.26/dist/vue.global.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/ant-design-vue@2.2.8/dist/antd.min.js"></script>
+</head>
+
+<body>
+
+    <div class="container">
+        <nav class="navbar navbar-light bg-light">
+            <span class="navbar-brand mb-0 h1">My Awesome Todo List</span>
+        </nav>
+
+        <div id="todo-list-app" class="pt-3">
+
+            <div>
+                <todo-input @add="addTodo($event)"></todo-input>
+            </div>
+
+            <div class="row">
+                <div class="col-sm">
+                    <div class="card">
+                        <div class="card-header">
+                            TODO
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <todo-item class="list-group-item" v-for="item in filter('TODO')" v-bind:todo="item"
+                                v-bind:key="item.id">
+                            </todo-item>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-sm">
+                    <div class="card">
+                        <div class="card-header">
+                            DOING
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <todo-item class="list-group-item" v-for="item in filter('DOING')" v-bind:todo="item"
+                                v-bind:key="item.id">
+                            </todo-item>
+                        </ul>
+                    </div>
+
+                </div>
+                <div class="col-sm">
+                    <div class="card">
+                        <div class="card-header">
+                            DONE
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <todo-item class="list-group-item" v-for="item in filter('DONE')" v-bind:todo="item"
+                                v-bind:key="item.id">
+                            </todo-item>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <template id="tpl-todo-item">
+        <li>
+            <div class="row">
+                <div class="col">
+                    <div class="form-check">
+                        <label class="form-check-label">
+                            <input type="checkbox" class="form-check-input" v-model="checked">{{ todo.text }}
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col-1">
+                    <a-dropdown>
+                        <a class="ant-dropdown-link" @click.prevent><i class="fas fa-chevron-down"></i></a>
+                        <template #overlay>
+                            <a-menu>
+                                <a-menu-item>
+                                    <a href="javascript:;" @click="setState('TODO')">TODO</a>
+                                </a-menu-item>
+                                <a-menu-item>
+                                    <a href="javascript:;"  @click="setState('DOING')">DOING</a>
+                                </a-menu-item>
+                                <a-menu-item>
+                                    <a href="javascript:;"  @click="setState('DONE')">DONE</a>
+                                </a-menu-item>
+                            </a-menu>
+                        </template>
+                    </a-dropdown>
+
+                </div>
+        </li>
+    </template>
+
+    <template id="tpl-todo-input">
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="input-group mb-3">
+                    <input autofocus v-model="message" type="text" class="form-control"
+                        placeholder="Something to do ...">
+                    <div class="input-group-append">
+                        <button @click="add" class="btn btn-outline-secondary" type="button">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script>
+
+        // ### Utils
+        // 生成一个范围的随机数，左右都包含
+        const getRndInteger = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
+        // 反转一个 map 的 key 和 value
+        const reverseMapping = o => Object.keys(o).reduce((r, k) => Object.assign(r, { [o[k]]: (r[o[k]] || []).concat(k) }), {})
+
+        // ### Data
+        // 任务状态
+        const TaskState = { TODO: 0, DOING: 1, DONE: 2, }
+        // 任务状态字典，用于根据状态值获取状态名
+        const stateMap = reverseMapping(TaskState);
+
+        // ### Components
+        // 输入框组件
+        const TodoInput = {
+            data() {
+                return {
+                    message: ''
+                }
+            },
+            template: document.getElementById('tpl-todo-input').innerHTML,
+            emits: ['add',],
+            methods: {
+                add() {
+                    if (!this.message) return
+                    this.$emit('add', { message: this.message })
+                    this.message = ''
+                }
+            }
+        }
+
+        // 任务条目组件
+        const TodoItem = {
+            props: ['todo'],
+            template: document.getElementById('tpl-todo-item').innerHTML,
+            computed: {
+                checked: {
+                    get() {
+                        return this.todo.state === TaskState.DONE
+                    },
+                    set(checked) {
+                        this.todo.state = checked ? TaskState.DONE : TaskState.TODO
+                    }
+                },
+            },
+            methods: {
+                setState(state) {
+                    return this.todo.state = TaskState[state]
+                },
+
+            }
+        }
+
+        // 任务列表组件
+        const TodoList = {
+            data() {
+                return {
+                    todoList: [
+                        { id: 0, text: '吃饭', state: TaskState.TODO, },
+                        { id: 1, text: '睡觉', state: TaskState.DOING },
+                        { id: 2, text: '打豆豆', state: TaskState.DONE }
+                    ]
+                }
+            },
+            methods: {
+                filter(state) {
+                    return this.todoList.filter(item => item.state === TaskState[state])
+                },
+                addTodo(item) {
+                    this.todoList.push({ id: getRndInteger(3, 100000), text: item.message, state: TaskState.TODO })
+                },
+            }
+        }
+
+        // Entry Point
+        const app = Vue.createApp(TodoList)
+        app.config.productionTip = false;
+        app.use(antd);
+        app.component('todo-item', TodoItem)
+        app.component('todo-input', TodoInput)
+        app.mount('#todo-list-app')
+    </script>
+</body>
+
+</html>
