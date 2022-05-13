@@ -1,4 +1,6 @@
-exports.add = function(a, b)
+var markdown = require( "markdown" ).markdown;
+
+exports.tohtml = function(text)
 {
-    return a + b;
+    return markdown.toHTML( text );
 }

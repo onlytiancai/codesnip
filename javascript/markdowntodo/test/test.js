@@ -1,10 +1,9 @@
-add = require('../index').add
+tohtml = require('../index').tohtml
 var assert  = require("assert");
 
 
-// 当2个参数均为整数时
-it("should return 3", function()
+it("test", function()
 {
-    var sum = add(1, 2);
-    assert.equal(sum, 3);
+    var ret = tohtml("Hello *World*!");
+    assert.equal(ret, '<p>Hello <em>World</em>!</p>');
 });
