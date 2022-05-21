@@ -8819,7 +8819,7 @@ ReplaceGoogleCDN-master
 - chrome 收藏夹
 - putty 配置
 - git key
-- 我的文档，图片
+- 我的文档，图片，桌面
 
 
 
@@ -15918,3 +15918,552 @@ https://blog.csdn.net/qq_35190492/article/details/109503539
 
 MySQL数据备份与恢复之Percona XtraBackup
 https://blog.csdn.net/sinat_29214327/article/details/81517233
+
+Percona-xtrabackup 使用详解与原理
+https://blog.csdn.net/weixin_33906657/article/details/86018845
+
+### 本地 MySQL 0 停机迁移上云
+
+1. 用 innobackupex 做全量备份，此时不影响源库读写
+2. 从 xtrabackup_binlog_info 文件中记录 binlog 文件及偏移量
+3. 把全量备份上传到 s3，aws s3 sync . s3://mysql-backup
+4. 新建 RDS 从 s3 恢复数据，选择自动创建服务器角色，存储要是源库的 1.5 倍，因为全备里有未生效的redo log
+5. 在源库里创建用户，赋予从库复制权限，设置安全组允许 RDS 访问源库 3306，在 RDS 上调用 rds_set_external_master 和 rds_start_replication 存储过程从源数据库做增量复制，参数使用第 2 步得到的信息
+6. show slave status 确认 rds 同步到最新数据
+7. 在新的 rds 上创建 mysql 用户，赋予权限，开放安全组 
+8. 把源库设置为只读 FLUSH TABLES WITH READ LOCK; SET GLOBAL read_only = ON; 确保源库没有任何写入
+9. 修改数据库连接字符串指向到 rds
+10. 业务做回归测试，确认新数据已写入到 rds
+
+备注
+1. 整个迁移过程，只有第 8 步到第 9 步会短暂影响业务的写操作，此时业务会报错，但不会丢数据或写入脏数据。
+2. 如果迁移失败，需要让业务进入维护模式，停止一切读写，然后从 rds 里下载最新的binlog，根据第9步的时间点得到偏移量，用工具提取新库上的操作在源库上执行，最后把业务连接字符串指向源库做回滚。
+
+【解读】TCP粘包拆包
+https://www.cnblogs.com/651434092qq/p/11067528.html
+
+粘包、拆包发生原因主要有这3种：滑动窗口、MSS/MTU限制、Nagle算法
+MSS: 是Maximum Segement Size缩写，表示TCP报文中data部分的最大长度，是TCP协议在OSI五层网络模型中，传输层对一次可以发送的最大数据的限制。
+MTU: 最大传输单元是Maxitum Transmission Unit的简写，是OSI五层网络模型中，链路层(datalink layer)对一次可以发送的最大数据的限制。
+
+传输层会在DATA前面加上TCP Header,构成一个完整的TCP报文。
+当数据到达网络层(network layer)时，网络层会在TCP报文的基础上再添加一个IP Header，也就是将自己的网络地址加入到报文中。
+到数据链路层时，还会加上Datalink Header和CRC。
+当到达物理层时，会将SMAC(Source Machine，数据发送方的MAC地址)，DMAC(Destination Machine，数据接受方的MAC地址 )和Type域加入。
+
+MTU是以太网传输数据方面的限制，每个以太网帧都有最小的大小64bytes最大不能超过1518bytes。刨去以太网帧的帧头 （DMAC目的MAC地址48bit=6Bytes +SMAC源MAC地址48bit=6Bytes+Type域2bytes）14Bytes和帧尾 CRC校验部分4Bytes（这个部分有时候大家也把它叫做FCS），那么剩下承载上层协议的地方也 就是Data域最大就只能有1500Bytes，这个值我们就把它称之为MTU。
+
+由于MTU限制了一次最多可以发送1500个字节，而TCP协议在发送DATA时，还会加上额外的TCP Header和Ip Header，因此刨去这两个部分，就是TCP协议一次可以 发送的实际应用数据的最大大小，也就是MSS。
+
+      MSS长度 = MTU长度 - IP Header - TCP Header
+
+TCP Header的长度是20字节，IPv4中IP Header长度是20字节，IPV6中IP Header长度是40字节，因此：在IPV4中，以太网MSS可以达到1460byte；在IPV6中，以太网MSS可以达到1440byte。
+
+默认情况下，与外部通信的网卡的MTU大小是1500个字节。而本地回环地址的MTU大小为65535，这是因为本地测试时数据不需要走网卡，所以不受到1500 的限制。
+
+https://www.cnblogs.com/lifan3a/articles/6649970.html
+不同的协议层对数据包有不同的称谓，在传输层叫做段（segment），在网络层叫做数据报（datagram），在链路层叫做帧（frame）。
+
+集线器（Hub）是工作在物理层的网络设备，用于双绞线的连接和信号中继（将已衰减的信号再次放大使之传得更远）。
+
+交换机是工作在链路层的网络设备，可以在不同的链路层网络之间转发数据帧（比如十兆以太网和百兆以太网之间、以太网和令牌环网之间），由于不同链路层的帧格式不同，交换机要将进来的数据包拆掉链路层首部重新封装之后再转发。
+
+路由器是工作在第三层的网络设备，同时兼有交换机的功能，可以在不同的链路层接口之间转发数据包，因此路由器需要将进来的数据包拆掉网络层和链路层两层首部并重新封装。
+
+
+redis-shake数据同步&迁移工具
+https://developer.aliyun.com/article/691794
+
+redis-shake是我们基于redis-port基础上进行改进的一款产品。它支持解析、恢复、备份、同步四个功能。
+
+vert.x guide 译（一）
+https://my.oschina.net/u/2277632/blog/1576370
+同步sync：支持源redis和目的redis的数据同步，支持全量和增量数据的迁移，支持从云下到阿里云云上的同步，也支持云下到云下不同环境的同步，支持单节点、主从版、集群版之间的互相同步。需要注意的是，如果源端是集群版，可以启动一个RedisShake，从不同的db结点进行拉取，同时源端不能开启move slot功能；对于目的端，如果是集群版，写入可以是1个或者多个db结点。
+
+https://blog.csdn.net/wwd0501/article/details/108874950
+在一个开发团队里，架构师很重要，他决定了软件结构，这个结构决定了软件未来的可读性、可扩展性和可演进性。
+通常来说架构师设计领域模型，开发人员基于这个领域模型进行开发。“领域模型”是个潮流名词，如果拉回到 10 几年前，这个模型我们叫“数据字典”，说白了，领域模型就是数据库设计。
+
+在聊到 DDD 的时候，我经常会做一个假设：假设你的机器内存无限大，永远不宕机，在这个前提下，我们是不需要持久化数据的，也就是我们可以不需要数据库，那么你将会怎么设计你的软件？这就是我们说的 Persistence Ignorance：持久化无关设计。
+
+
+DDD 中的那些模式 — CQRS
+https://zhuanlan.zhihu.com/p/115685384
+DDD（领域驱动设计）总结
+https://blog.csdn.net/woshihyykk/article/details/108538608
+一种领域驱动设计（DDD）方法在Laravel Framework中的实践
+https://blog.csdn.net/u011323949/article/details/107617701
+
+阿里盒马领域驱动设计实践
+https://www.infoq.cn/article/alibaba-freshhema-ddd-practice
+
+DDD（领域驱动设计）总结
+https://www.cnblogs.com/firstdream/p/8669611.html
+
+设计领域模型的一般步骤：
+
+       1.   根据需求建立一个初步的领域模型，识别出一些明显的领域概念以及它们的关联，关联可以暂时没有方向但需要有（1：1，1：n，m：n）这些关系；可以用文字精确的没有歧义的描述出每个领域概念的涵义以及包含的主要信息；
+
+       2.   分析主要的软件应用程序功能，识别出主要的应用层的类；这样有助于及早发现哪些是应用层的职责，哪些是领域层的职责；
+
+       3.   进一步分析领域模型，识别出哪些是实体，哪些是值对象，哪些是领域服务；
+
+       4.   分析关联，通过对业务的更深入分析以及各种软件设计原则及性能方面的权衡，明确关联的方向或者去掉一些不需要的关联；
+
+       5.   找出聚合边界及聚合根，这是一件很有难度的事情；因为你在分析的过程中往往会碰到很多模棱两可的难以清晰判断的选择问题，所以，需要我们平时一些分析经验的积累才能找出正确的聚合根；
+
+       6.   为聚合根配备仓储，一般情况下是为一个聚合分配一个仓储，此时只要设计好仓储的接口即可；
+
+       7.   走查场景，确定我们设计的领域模型能够有效地解决业务需求；
+
+       8.   考虑如何创建领域实体或值对象，是通过工厂还是直接通过构造函数；
+
+       9.   停下来重构模型。寻找模型中觉得有些疑问或者是蹩脚的地方，比如思考一些对象应该通过关联导航得到还是应该从仓储获取？聚合设计的是否正确？考虑模型的性能怎样，等等；
+
+         领域建模是一个不断重构，持续完善模型的过程，大家会在讨论中将变化的部分反映到模型中，从而是模型不断细化并朝正确的方向走。
+
+
+蛙蛙牌基金组合策略 v1.0 版本
+1. 基金所在公司投研能力要强，有完善的投研体系
+2. 基金总数在 10 只左右，不能太多，也不能太少
+3. 每只基金近 5 年年化收益要求在 15% 以上
+4. 等权重持仓，每季度对偏离度超过 30% 的进行再平衡
+5. 全行业选股基金和行业主题基金比例 7:3 
+6. 高集中度低换手和低集中度高换手风格比例 7:3
+7. A 股基金和港美股基金比例 7:3
+8. 精选个股风格和行业轮动风格比例 7:3
+9. 除了 10 只权益类基金，再加债基，股债比例 8:2，每半年再平衡
+10. 多次踩雷个股个债的基金定期去掉
+
+Redis的雪崩，击穿，穿透，三者其实都差不多，但是又有一些区别，一般避免以上情况发生我们从三个时间段去分析下：
+事前：Redis 高可用，主从+哨兵，Redis cluster，避免全盘崩溃。
+事中：本地 ehcache 缓存 + Hystrix 限流+降级，避免MySQL 被打死。
+事后：Redis 持久化 RDB+AOF，一旦重启，自动从磁盘上加载数据，快速恢复缓存数据。
+
+市场宽度
+https://www.jianshu.com/p/4e89bf3b5fdb
+1. 破线 收盘价 > SMA20
+2. 拐头 满足 1 的条件下，今 SMA20 > 昨 SMA20
+3. 交叉 满足 2 的条件下，SMA20 > SMA60
+4. 排列 满足 3 的条件下，SMA60 > SMA120
+5. 乖离 满足 4 的条件下，乖离率大于阈值，我都用的是 0.3
+
+1.账面市值比(BM)=股东权益/公司市值.
+2.股东权益(净资产)=资产总额-负债总额 (每股净资产x流通股数)
+3.公司市值=流通股数x每股股价
+4.账面市值比(BM)=股东权益/公司市值=(每股净资产x流通股数)/(流通股数x每股股价)=每股净资产/每股股价=B/P=市净率的倒数
+
+链接：https://www.zhihu.com/question/23906290/answer/123700275
+
+- 资产配置模型
+    - Vanguard Portfolio Allocation Models:纯人工
+    - MPT(modern portfolio theory), Markowitz & MVO: 均值方差 
+        - 参数估计
+            - Use sample estimates for model inputs
+            - APT 多因子模型
+            - Bootstrapping
+            - 贝叶斯估计
+        - extension:
+            - Mean-Var Modeling
+            - Mean-SemiDev Modeling
+            - MC Sampling
+            - Stablizing techniques(Random Matrix Theory)
+            - Black-Litterman
+- 选基模型
+    - CAPM (Capital Asset Pricing Model): 
+        - Jensen's Alpha Model:
+        - Treynor-Mazuy Model(TM):
+        - Henriksson and Merton Model(HM):
+        - Chang and Lewellen Model(CL):
+    - APT
+        - Fama and French 三因子，四因子
+    - GII(Goetzmon, Ingersoll, Ivkovic)
+    - 晨星公募模型
+
+
+Python爬取B站视频，只需一个B站视频地址，即可任意下载
+https://blog.csdn.net/m0_48405781/article/details/111394783
+
+
+期权投资策略都有哪些？
+https://zhuanlan.zhihu.com/p/269524178
+
+判断大涨买认购，震荡下跌卖认购(小幅下跌)，震荡上涨卖认沽(小幅上涨)，判断暴跌买虚值，突破整理买期权。
+
+一、纯方向策略　　
+
+如果上证 50ETF 期权上涨，买平值认购合约+卖平值认沽合约(卖出目的防止时间价值衰减)；
+如果上证 50ETF 期货下跌，买平值认沽合约+卖平值认购合约。
+这种策略就需要你对方向的判断准确，如果对于趋势判断不准确，就很有可能导致你的亏损。
+
+二、波动率策略　　
+
+这种策略适合一些方向感不强，但是懂波动率的一些投资者，这种策略需要投资者持有一段时间。
+上证 50ETF 期货窄幅震荡(1%-5%)：同时卖出平值认购认沽合约(挣时间价值钱，时间价值为600的合约;时间价值为900，大盘波动6%才亏本)。
+上证 50ETF 宽幅波动(》6%)：同时买进虚值认沽认购合约(挣波动钱)。
+
+三、单向交易策略　　
+
+这种投资策略也可以叫做彩票策略，时间价值在200以内，杠杆倍数比较大)买平值或者虚值合约，杠杆倍数比较大，一旦有行情，弄对一波，就会赚的盆满钵满!
+
+四、买卖方策略
+
+1.买方策略：持有的时间越短，越有利。(买方要精准下手)。
+做买方是选择时间价格低的 (80-200) 合适，做卖方是选择时间价值高的(500以上的)比较合适;
+买保险一方，希望缴较低的保险费，获得价值比较高的保单;
+相反保险公司希望收更高保险费，就这个简单道理。
+
+2.卖方策略：持有的时间越长，越有利。(卖方要耐心持有)。
+期权的卖方特点：挣钱的概率大于买方，但是最大盈利是一定的， 一张合约一天最大亏损为 1 万份。
+50ETF基金涨跌10%幅度约为 2900 左右!(假设50ETF净值2.9元)
+
+什么是雪球期权Snowball
+https://zhuanlan.zhihu.com/p/101513058?from_voters_page=true
+https://zhuanlan.zhihu.com/p/148696523
+
+3小时快学期权（前两个小时）
+https://zhuanlan.zhihu.com/p/385140601
+
+
+Python之CVXOPT模块
+https://www.jianshu.com/p/df447c3e4efe
+Python中支持Convex Optimization（凸规划）
+
+删除最后一行
+truncate -s -"$(tail -n1 foo.csv | wc -c)" foo.csv
+sed -i '$ d' foo.txt
+
+
+MongoDB的集群模式--Sharding(分片)
+https://www.cnblogs.com/sz-wenbin/p/11022563.html
+
+csv 解析
+http://lorance.freeshell.org/csv/
+
+RSS is the Resident Set Size and is used to show how much memory is allocated to that process and is in RAM. It does not include memory that is swapped out. It does include memory from shared libraries as long as the pages from those libraries are actually in memory. It does include all stack and heap memory.
+
+VSZ is the Virtual Memory Size. It includes all memory that the process can access, including memory that is swapped out, memory that is allocated, but not used, and memory that is from shared libraries.
+
+So if process A has a 500K binary and is linked to 2500K of shared libraries, has 200K of stack/heap allocations of which 100K is actually in memory (rest is swapped or unused), and it has only actually loaded 1000K of the shared libraries and 400K of its own binary then:
+
+RSS: 400K + 1000K + 100K = 1500K
+VSZ: 500K + 2500K + 200K = 3200K
+
+
+Flink详细介绍(一)
+https://blog.csdn.net/weixin_44240370/article/details/102594925
+
+pmap anon 内存泄露
+https://blog.csdn.net/chuizhao9644/article/details/100818527
+
+map -d 3050
+
+输出：00007fc72fa99000   10660 rw--- 0000000000000000 000:00000   [ anon ]
+
+查找方法：
+
+1. strace -tt -T -p 3050
+     只看系统调用看不出来问题
+
+2. 添加日志，这是个漫长任务
+
+3. 回退版本，确定初步范围.
+
+4. valgrind检测， refer: http://blog.csdn.net/sduliulun/article/details/7732906
+    gcc -Wall -g -o test test.c
+    valgrind --tool=memcheck --leak-check=full --track-origins=yes  ./test
+   valgrind --tool=memcheck --leak-check=full --show-reachable=yes --track-origins=yes --show-leak-kinds=all --trace-children=yes   --log-file=/tmp/meng.log ./test
+
+ 
+
+valgrind安装
+refer : http://blog.csdn.net/yangzhiloveyou/article/details/7935078
+1. wget ftp://sourceware.org/pub/valgrind/valgrind-3.13.0.tar.bz2
+2. tar -jxvf valgrind-3.13.0.tar.bz2
+3. cd valgrind-3.13.0
+4. ./autogen.sh && ./configure && make && sudo make install
+
+
+一、jdk工具之jps（JVM Process Status Tools）命令使用
+
+二、jdk命令之javah命令(C Header and Stub File Generator)
+
+三、jdk工具之jstack(Java Stack Trace)
+
+四、jdk工具之jstat命令(Java Virtual Machine Statistics Monitoring Tool)
+
+四、jdk工具之jstat命令2(Java Virtual Machine Statistics Monitoring Tool)详解
+
+五、jdk工具之jmap（java memory map）、 mat之四--结合mat对内存泄露的分析
+
+六、jdk工具之jinfo命令(Java Configuration Info)
+
+七、jdk工具之jconsole命令(Java Monitoring and Management Console)
+
+八、jdk工具之JvisualVM、JvisualVM之二--Java程序性能分析工具Java VisualVM
+
+九、jdk工具之jhat命令(Java Heap Analyse Tool)
+
+十、jdk工具之Jdb命令(The Java Debugger)
+
+十一、jdk命令之Jstatd命令(Java Statistics Monitoring Daemon)
+
+十一、jdk命令之Jstatd命令(Java Statistics Monitoring Daemon)
+
+十二、jdk工具之jcmd介绍（堆转储、堆分析、获取系统信息、查看堆外内存）
+
+十三、jdk命令之Java内存之本地内存分析神器：NMT 和 pmap
+https://www.cnblogs.com/duanxz/p/6115722.html
+
+Mysql压缩解决方案<一>
+https://www.jianshu.com/p/d7cc90218222?from=timeline
+
+查看内存条数
+dmidecode|grep -P -A5 "Memory\s+Device"|grep Size|grep -v Range
+
+创业团队容器化办公环境
+https://startups.mytrade.fun/#/
+
+关于docker pull使用网络代理的配置
+https://www.feiyiblog.com/2021/01/13/%E5%85%B3%E4%BA%8Edocker-pull%E4%BD%BF%E7%94%A8%E7%BD%91%E7%BB%9C%E4%BB%A3%E7%90%86%E9%97%AE%E9%A2%98/
+
+MySQL中地理位置数据扩展geometry的使用心得
+https://www.cnblogs.com/hargen/p/9671087.html
+
+ssh 使用socks代理
+rsync -avuz -e 'ssh -p 22 -o "ProxyCommand=nc -x 127.0.0.1:1080 %h %p"' root@hostname:/remote_dir /local_dir
+ssh -o ProxyCommand='nc -x 127.0.0.1:1080 %h %p' username@server
+
+1、发生了什么事情？
+    体育考试考的不好。
+2、你现在觉得怎么样了？
+    我觉得很不好，不应该考这么低。
+3、你有什么想法？
+    我觉得刚开始不应该跑的太快了。
+4、那你觉得有什么办法？
+    我觉得刚开始应该跑的慢一些，这样后面也有里起跑到终点。
+5、这些方法的后果会怎样？
+    就是刚开始跑比较枯燥，没意思，但最后能跑到终点。
+6、你决定怎么做？
+    我决定每天这样匀速跑试试效果。
+7、你希望我做什么？
+    我希望你能每天陪我跑。
+
+如何在RAID系统安装中安装GRUB？
+https://qastack.cn/ubuntu/43036/how-do-i-install-grub-on-a-raid-system-installation
+https://help.ubuntu.com/community/Installation/SoftwareRAID
+
+拉格朗日插值公式
+https://www.cnblogs.com/cjyyb/p/9392388.html
+https://www.renrendoc.com/paper/101648390.html
+
+加速scp传输速度
+https://www.cnblogs.com/conanwang/p/5896203.html
+
+https://ci.apache.org/projects/flink/flink-docs-release-1.10/getting-started/tutorials/local_setup.html
+
+Sync. emails using imap java
+https://stackoverflow.com/questions/28689099/javamail-reading-recent-unread-mails-using-imap
+https://javaee.github.io/javamail/docs/api/com/sun/mail/imap/package-summary.html
+https://stackoverflow.com/questions/23802924/sync-emails-using-imap-java
+
+历史波动率求取为什么要取对数？
+https://www.zhihu.com/question/23174619
+
+首先题主你要明白，所谓的“波动率” Volatility 是指价格涨跌幅的标准差，而不是价格本身的标准差。
+
+“价格的对数的差值”其实就是连续复利计算方法下的涨跌幅。所以要计算“价格的对数的差值”的标准差。
+
+准确的说，因为现代金融理论的假设是对数正态分布，所以取完对数之后是正态分布，才能用样本去估计总体。
+
+其实我们对金融资产最常用的两个统计量期望和方差（标准差）表示的是收益率的期望和方差（标准差），而并非价格的期望和方差（标准差）。
+
+需要知道一个叫对数收益的概念，就是先取对数再做差。 现在求的波动率其实就是试图去求对数收益的波动率，这样能反映价格变动百分比（就是收益）的波动为什么说是“试图”，因为如果时间间隔有点大，这么做是会有些许误差的，这个误差到daily就蛮小了，如果是分级秒级则个视为0 （其实就是exp{x}泰勒展开到几项的关系）
+
+
+Web3．0时代的幼儿园教师培养与培训——以香港大学教育学院基于魔灯（Moodle）2.0平台构建PBL 2课程模式为例
+https://www.docin.com/p-1262582055.html
+
+通过这个平台开展创客教育，好用！| 工具推荐
+https://www.docin.com/p-1262582055.html
+
+
+https://download.moodle.org/releases/latest/
+
+
+Leetcode刷题顺序，看这一篇就够了
+https://zhuanlan.zhihu.com/p/161036474
+写了个自动批改小孩作业的代码
+https://mp.weixin.qq.com/s/cJgNWpjMz04nIsVahH9yKw
+
+
+
+要想使用hashcat,这个号称世界上最快的软件,必须使用office2john.py先对office加密文档进行hash转换
+
+office2john.py 1.xls
+1.xls:$oldoffice$0*15c3156626f2519d19faf82e4b9c536a*74dec186e119e9b2e0265042508459e7*e7aa9b395d4e17d935075789444c5e04:::
+
+hashcat -h | grep -i office
+./hashcat64 -a 0 -m 9700 '$oldoffice$0*15c3156626f2519d19faf82e4b9c536a*74dec186e119e9b2e0265042508459e7*e7aa9b395d4e17d935075789444c5e04' password.dict
+
+Office97-03(MD5+RC4,oldoffice$0,oldoffice$1): -m 9700
+Office97-03($0/$1, MD5 + RC4, collider #1): -m 9710
+Office97-03($0/$1, MD5 + RC4, collider #2): -m 9720
+Office97-03($3/$4, SHA1 + RC4): -m 9800
+Office97-03($3, SHA1 + RC4, collider #1): -m 9810
+Office97-03($3, SHA1 + RC4, collider #2): -m 9820
+Office2007: -m 9400
+Office2010: -m 9500
+Office2013: -m 9600
+
+?l                代表小写字母
+?u              代表大写字母
+?d              代表数字
+?s              代表特殊字符
+?a              代表大小写字母、数字以及特殊字符  
+?b               0x00-0xff 
+
+hashcat -a 3 -m 0 --force e10adc3949ba59abbe56e057f20f883e ?d?d?d?d?d?d
+
+hashcat详细使用教程
+https://blog.csdn.net/smli_ng/article/details/106111493
+
+$ ./hashcat.exe -D 1 -a 3 -m 0 e3ceb5881a0a1fdaad01296d7554868d ?d?d?d?d?d?d --show
+e3ceb5881a0a1fdaad01296d7554868d:222222
+
+https://www.onlinehashcrack.com/tools-office-hash-extractor.php
+
+创建你的第一个Scratch3.0 Extension
+http://wwj718.github.io/post/%E5%B0%91%E5%84%BF%E7%BC%96%E7%A8%8B/create-first-scratch3-extension/ 				
+
+https://mirror.tuna.tsinghua.edu.cn/help/anaconda/
+
+UNA 还提供了 Anaconda 仓库与第三方源（conda-forge、msys2、pytorch等，查看完整列表）的镜像，各系统都可以通过修改用户目录下的 .condarc 文件。Windows 用户无法直接创建名为 .condarc 的文件，可先执行 conda config --set show_channel_urls yes 生成该文件之后再修改。
+
+channels:
+  - defaults
+show_channel_urls: true
+default_channels:
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2
+custom_channels:
+  conda-forge: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  msys2: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  bioconda: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  menpo: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  pytorch-lts: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  simpleitk: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+
+运行 conda clean -i 清除索引缓存，保证用的是镜像站提供的索引。
+
+运行 conda create -n myenv numpy 测试一下吧。
+conda install pytorch-cpu torchvision-cpu -c pytorch
+
+conda install pytorch
+conda install pytorch=1.4.0
+
+Electron+Python界面开发（通过zerorpc）
+https://zhuanlan.zhihu.com/p/37999476
+
+MPW：多项目晶圆(Multi Project Wafer，简称MPW)就是将多个使用相同工艺的集成电路设计放在同一晶圆片上流片，制造完成后，每个设计可以得到数十片芯片样品，这一数量对于原型（Prototype）设计阶段的实验、测试已经足够。而该次制造费用就由所有参加MPW的项目按照芯片面积分摊，成本仅为单独进行原型制造成本的5%-10%，极大地降低了产品开发风险、培养集成电路设计人才的门槛和中小集成电路设计企业在起步时的门槛。
+
+
+IP：芯片行业中所说的IP，一般也称为IP核。IP核是指芯片中具有独立功能的电路模块的成熟设计。该电路模块设计可以应用在包含该电路模块的其他芯片设计项目中，从而减少设计工作量，缩短设计周期，提高芯片设计的成功率。
+
+conda search pytorch
+conda install pytorch=1.6.0
+conda install torchvision=0.7.0 cpuonly -cpytorch
+CUDA_VISIBLE_DEVICES=-1
+conda install pytorch torchvision cpuonly -c pytorch
+conda install pytorch torchvision -c soumith
+
+@functools.lru_cache(128)
+def get_model(model_name):
+https://stackoverflow.com/questions/47218313/use-functools-lru-cache-without-specifying-maxsize-parameter
+
+rembg -o 2.jpg 1.jpg
+
+Google Drive can't scan this file for viruses.
+
+u2net.pth (168M) is too large for Google to scan for viruses. Would you still like to download this file?
+
+wget 'https://docs.google.com/uc?export=download&id=1ao1ovG1Qtx4b7EoskHXmi2E9rp5CHLcZ' -O u2net.pth
+
+树莓派刷机
+https://www.balena.io/etcher/
+https://retropie.org.uk/download/
+
+数据库设计数据库建模ER图
+https://dbdiagram.io/home
+dbdiagram.io是一个快速上手的数据库设计器，可帮助您使用其自己的特定于域的语言（DSL：Domain-specific language）绘制数据库图。
+它们的定义语言非常简单，使用键盘即可轻松进行编辑/复制
+专注于绘制数据库关系图
+在线保存和共享图表
+专为开发人员，DBA，数据分析师而设计
+UI简洁，并包含有漂亮的图表。
+
+用update-rc.d命令添加开机执行脚本
+
+创建要开机自动执行的脚本：/home/test/blog/startBlog.sh，并给予可执行权限：chmod +x /home/test/blog/startBlog.sh。
+
+在/etc/init.d目录下创建链接文件到前面的脚本： ln -s /home/test/blog/startBlog.sh /etc/init.d/startBlog。
+
+进入/etc/init.d目录，用 update-rc.d 命令将连接文件 startBlog 添加到启动脚本中去：update-rc.d startBlog defaults 99。
+其中的99表示启动顺序，取值范围是0-99。序号越大的越晚执行。
+
+移除启动的脚本：update-rc.d -f startBlog remove。
+-f选项表示强制执行。
+
+Ubuntu18.04命令行连接WiFi
+https://www.cnblogs.com/milton/p/10133850.html
+
+查看是否已经正确安装无线网卡
+
+    iwconfig
+
+启动无线网卡, 如果网卡是wlan0
+
+    # 方式1
+    ifconfig wlan0 up
+    # 或者方式2
+    ip link set wlan0 up
+
+扫描可用的WiFi
+
+    # 不加less可能会产生太多输出
+    iw dev wlan0 scan |less
+    # 或者
+    iwlist wlan0 scanning
+
+# 建立配置文件
+
+    wpa_passphrase ESSID PWD > xxx.conf
+
+# 使用配置文件连接
+
+    wpa_supplicant -B -i wlan0 -Dwext -c ./xxx.conf
+
+# 查看连接结果
+
+    iwconfig wlan0
+
+# 设置为dhcp client, 获取IP
+
+    dhclient wlan0
+
+新建开机自启动脚本
+
+    sudo vi /etc/init.d/mywifi
+
+        #!/bin/sh
+        wpa_supplicant -B -i wlan0 -Dwext -c /home/ubuntu/wifi_pwd.conf
+        dhclient wlan0
+
+    chmod +x /etc/init.d/mywifi
+    sudo systemctl enable mywifi
+
+WebAssembly，简称Wasm。官方的定义是：一个可移植、体积小、加载快并且兼容Web的全新格式。
+
+准确来说，Wasm是一种为基于堆栈的虚拟机设计的二进制指令格式。Wasm被设计为用类似C/C++/Rust等高级语言的平台目标，从而可以在Web上部署客户端和服务器应用程序。
