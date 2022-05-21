@@ -7,3 +7,5 @@
 *.swp
 node/mydb/
 *.d
+*.jar
+*.class

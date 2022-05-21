@@ -1,3 +1,7 @@
+'''
+coverage3 run --source . tree_test.py -v
+coverage3 report -m
+'''
 import unittest
 import textwrap
 from tree import *
@@ -123,6 +127,7 @@ class MainTest(unittest.TestCase):
         self.assertEqual(1, blance_factor(tree.l.l))
         self.assertEqual(0, blance_factor(tree.l.r))
         self.assertEqual(0, blance_factor(tree.l.l.l))
+        self.assertEqual(0, blance_factor(None))
 
     def test_lose_bance_type(self):
         tree = read_tree(textwrap.dedent('''\
@@ -206,6 +211,10 @@ class MainTest(unittest.TestCase):
         
         # lr
         tree = put_value(tree, -2)
+        tree = put_value(tree, -1.5)
+        self.assertEqual([2, 0, 4, -1.5, 1, 3, 5.5, -2, -1, 5, 6], breadth_first(tree))
+
+        # update
         tree = put_value(tree, -1.5)
         self.assertEqual([2, 0, 4, -1.5, 1, 3, 5.5, -2, -1, 5, 6], breadth_first(tree))
 if __name__ == '__main__':
