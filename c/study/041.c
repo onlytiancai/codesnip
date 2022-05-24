@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <assert.h>
 #define N 10000
 
 int cmpfunc (const void * a, const void * b)
@@ -12,21 +13,12 @@ void random_fill(int* arr, int n)
 {
     srand((unsigned)time(NULL));
     for (int i = 0; i < n; ++i) {
-        arr[i] = rand() % N;
+        arr[i] = rand() % (N * 2);
     }
 }
 
-void mysort(int* arr, int n)
-{
-    int i, j, t;
-    for (i = 0; i < n; ++i) {
-        for (j = i;  j > 0 && arr[j-1] > arr[j]; j--) {
-            t = arr[j-1]; arr[j-1] = arr[j]; arr[j] = t;
-        } 
-    } 
-}
 
-int array_eq(int* arr1, int* arr2, int n)
+int array_equal(int* arr1, int* arr2, int n)
 {
     for (int i = 0; i < n; ++i) {
        if (arr1[i] != arr2[i]) return 0;
@@ -49,6 +41,32 @@ void array_print(char* msg, int* arr, int n)
     }
 }
 
+void mysort(int* arr, int n)
+{
+    int i, j, t;
+    for (i = 0; i < n; ++i) {
+        for (j = i;  j > 0 && arr[j-1] > arr[j]; j--) {
+            t = arr[j-1]; arr[j-1] = arr[j]; arr[j] = t;
+        } 
+    } 
+}
+
+void mysort2(int* arr, int l, int u)
+{
+    if (l >= u) return;
+    int m = l, i, t;
+    for (i = l+1; i <= u; ++i) {
+        if (arr[i] < arr[l]) {
+            t = arr[++m]; arr[m] = arr[i]; arr[i] = t;
+        }
+    }
+
+    t = arr[l]; arr[l] = arr[m]; arr[m] = t;
+
+    mysort2(arr, l, m-1);
+    mysort2(arr, m+1, u);
+}
+
 int main(int argc, char *argv[])
 {
     clock_t start, end;
@@ -67,8 +85,18 @@ int main(int argc, char *argv[])
     end = clock();
     printf("mysort time cost=%fms\n",(double)(end-start)/CLOCKS_PER_SEC*1000);
 
-    printf("arr1 == arr2: %d\n", array_eq(arr1, arr2, N));
-    printf("arr1 == arr3: %d\n", array_eq(arr1, arr3, N));
+    start = clock();
+    mysort2(arr3, 0, N-1);
+    end = clock();
+    printf("mysort time cost=%fms\n",(double)(end-start)/CLOCKS_PER_SEC*1000);
+
+
+    //array_print("arr1", arr1, N);
+    //array_print("arr2", arr2, N);
+    //array_print("arr3", arr3, N);
+
+    assert(array_equal(arr1, arr2, N));
+    assert(array_equal(arr1, arr3, N));
 
     return 0;
 }
