@@ -4,27 +4,8 @@
 #include <assert.h>
 #define N 10000
 
-int cmpfunc (const void * a, const void * b)
-{
-   return ( *(int*)a - *(int*)b );
-}
-
-void random_fill(int* arr, int n)
-{
-    srand((unsigned)time(NULL));
-    for (int i = 0; i < n; ++i) {
-        arr[i] = rand() % (N * 2);
-    }
-}
 
 
-int array_equal(int* arr1, int* arr2, int n)
-{
-    for (int i = 0; i < n; ++i) {
-       if (arr1[i] != arr2[i]) return 0;
-    }
-    return 1;
-}
 
 void array_copy(int* arr1, int* arr2, int n)
 {
@@ -67,8 +48,23 @@ void mysort2(int* arr, int l, int u)
     mysort2(arr, m+1, u);
 }
 
-int main(int argc, char *argv[])
-{
+int cmpfunc (const void * a, const void * b) {
+   return ( *(int*)a - *(int*)b );
+}
+
+void random_fill(int* arr, int n) {
+    srand((unsigned)time(NULL));
+    for (int i = 0; i < n; ++i) { arr[i] = rand() % (N * 2); }
+}
+
+int array_equal(int* arr1, int* arr2, int n) {
+    for (int i = 0; i < n; ++i) {
+       if (arr1[i] != arr2[i]) return 0;
+    }
+    return 1;
+}
+
+int main(int argc, char *argv[]) {
     clock_t start, end;
     int arr1[N], arr2[N], arr3[N];
     random_fill(arr1, N);
@@ -88,12 +84,7 @@ int main(int argc, char *argv[])
     start = clock();
     mysort2(arr3, 0, N-1);
     end = clock();
-    printf("mysort time cost=%fms\n",(double)(end-start)/CLOCKS_PER_SEC*1000);
-
-
-    //array_print("arr1", arr1, N);
-    //array_print("arr2", arr2, N);
-    //array_print("arr3", arr3, N);
+    printf("mysort2 time cost=%fms\n",(double)(end-start)/CLOCKS_PER_SEC*1000);
 
     assert(array_equal(arr1, arr2, N));
     assert(array_equal(arr1, arr3, N));
