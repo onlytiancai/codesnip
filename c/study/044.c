@@ -74,7 +74,43 @@ static void df_add_row(struct DataFrame *df, int m, float*row)
     df->data[df->N++] = new_row;
 }
 
-int main(int argc, char *argv[])
+static void df_load_csv(struct DataFrame *df, char* file)
+{
+    FILE* fp;
+    char line[255];
+    char seps[] = ",\t";
+    char *token;
+    int arr_len = 0;
+    float *arr = NULL;
+
+    fp = fopen(file, "r");
+    if (fp == NULL) {
+        perror("open file error");
+        exit(EXIT_FAILURE);
+    }
+
+    while(fgets(line, sizeof(line), fp)) {
+        line[strlen(line) - 1] = '\0';
+        arr_len = 0;
+        printf("debug:getline:%s\n", line);
+        token = strtok(line, seps );
+        while(token != NULL) {
+            arr = realloc(arr, sizeof(float) * ++arr_len);
+            if (arr == NULL) {
+                perror("realloc, error");
+                exit(EXIT_FAILURE);
+            }
+            arr[arr_len-1] = atof(token);
+            token = strtok(NULL, seps);
+        }    
+        df_add_row(df, arr_len, arr);
+    }
+    
+    free(arr);
+    fclose(fp);
+}
+
+void test_1()
 {
     srand((unsigned int)time(NULL));
     struct DataFrame df;
@@ -84,7 +120,20 @@ int main(int argc, char *argv[])
     df_add_row(&df, 3, (float[]){float_rand(), float_rand(), float_rand()});
     df_add_row(&df, 3, (float[]){float_rand(), float_rand(), float_rand()});
 
+    printf("2行2列是:%f\n", df.data[1][1]);
+
     df_print(&df);
     df_free(&df);
+
+}
+
+int main(int argc, char *argv[])
+{
+    struct DataFrame df;
+    df_init(&df);
+    df_load_csv(&df, "045.txt");
+    df_print(&df);
+    df_free(&df);
+
     return 0;
 }
