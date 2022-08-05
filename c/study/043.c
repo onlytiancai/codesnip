@@ -1,15 +1,10 @@
 #include <stdio.h>
 #include <math.h>
-
 // 目标函数 f
 float f(float x, float n) { return x*x-n; }
-
 // 目标函数的导数 f' 
 float fd(float x) { return 2*x; }
-
-int main(int argc, char *argv[])
-{
-
+int main(int argc, char *argv[]) {
     float y = 2;
     // built-in function
     printf("built-in function: %f\n", sqrt(y)); 
@@ -20,14 +15,9 @@ int main(int argc, char *argv[])
     do {
         x = (l+r)/y;
         printf("debug binary search: %d %f %f\n", i, x, fabs(x*x - y));
-        if (x*x > y) {
-            r = x;
-        } else {
-            l = x;
-        } 
-
+        if (x*x > y) { r = x; }
+        else { l = x; } 
     } while(fabs(x*x - y) > 0.0001 && ++i < 100); 
-
     printf("binary search: %f\n", x); 
 
     // Newton Iteration 
@@ -35,7 +25,7 @@ int main(int argc, char *argv[])
     float x1 = y;
     i = 0; // 防止不能收敛
     do {
-        printf("debug newtion iter: %d %f %f\n", i, x0, x1);
+        printf("debug newton iter: %d %f %f\n", i, x0, x1);
         // x0 初始化为一个随机的点，后续为新的 x1 点 
         x0 = x1; 
         // x1 为 f 函数在 x0 的切线(导数)与 x 轴的交叉点
@@ -46,7 +36,6 @@ int main(int argc, char *argv[])
         x1 = x0 - f(x0, y) / fd(x0);
     // 当 x0 和 x1 足够接近时表示已经收敛，结束迭代
     } while (fabs(x0-x1) > 0.0001 && ++i < 100);
-
     printf("newton iter: %f\n", x1); 
 
     return 0;
