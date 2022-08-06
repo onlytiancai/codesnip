@@ -3,6 +3,34 @@
 #include <string.h>
 #include <time.h>
 
+static struct sort_item {
+    float data;
+    int index;
+};
+
+static int cmpfunc (const void *a, const void *b)
+{
+   return (((struct sort_item*)a)->data - ((struct sort_item*)b)->data);
+}
+
+static int *argsort(int n, float *arr, int *ret)
+{
+    struct sort_item *items = (struct sort_item*)malloc(n*sizeof(struct sort_item));
+    if (items == NULL) {
+        perror("realloc, error");
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < n; ++i) {
+        items[i].data = arr[i];
+        items[i].index= i;
+    }
+    qsort(items, n, sizeof(struct sort_item), cmpfunc);
+    for (int i = 0; i < n; ++i) {
+        ret[i] = items[i].index;
+    }
+    free(items);
+}
+
 float float_rand()
 {
     float min = 0, max = 10;
@@ -74,7 +102,7 @@ static void df_add_row(struct DataFrame *df, int m, float*row)
     df->data[df->N++] = new_row;
 }
 
-static void df_load_csv(struct DataFrame *df, char* file)
+static void df_load_csv(struct DataFrame *df, const char* file)
 {
     FILE* fp;
     char line[255];
@@ -131,7 +159,7 @@ int main(int argc, char *argv[])
 {
     struct DataFrame df;
     df_init(&df);
-    df_load_csv(&df, "045.txt");
+    df_load_csv(&df, "iris_test.csv");
     df_print(&df);
     df_free(&df);
 
