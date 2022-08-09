@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#define MAX 100
+#define MAX 1000000
 
 static struct Node {
     int v,p,n;
@@ -57,7 +57,16 @@ void insert(struct Node **rt, int val) {
     }
 }
 
-void function_name()
+int query(struct Node *p, int val) {
+    int rank = -1;
+    while (p != NULL)
+        if (p->v == val) return p->p;
+        else if (p->v > val) p = p->l;
+        else p = p->r;
+    return rank;
+}
+
+void test01()
 {
     struct Node *root = new_node(2);
     root->l = new_node(1);
@@ -74,13 +83,66 @@ void function_name()
 
 }
 
+int cmpfunc (const void * a, const void * b)
+{
+   return ( *(int*)a - *(int*)b );
+}
+
+int binarySearch(int arr[], int l, int r, int x)
+{
+    while (l <= r) {
+        int m = l + (r - l) / 2;
+        if (arr[m] == x)
+            return m;
+        if (arr[m] < x)
+            l = m + 1;
+        else
+            r = m - 1;
+    }
+    return -1;
+}
+
 int main(int argc, char *argv[]) {
     srand((unsigned int)time(NULL));
+    clock_t start, end;
+    int x, ret, *ret2 = NULL;
+    double time_cost;
+
+    int arr[MAX];
+    start = clock(); 
+    for (int i = 0; i < MAX; ++i) arr[i] = rand() % (MAX*2);
+    time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
+    printf("build array time cost:%f ms\n", time_cost);
+    printf("array length=%d\n", MAX);
 
     struct Node *root = NULL;
-    for (int i = 0; i < 100; ++i) {
-        insert(&root, i);
-    }
-    print_tree(root, 0);
+    start = clock(); 
+    for (int i = 0; i < MAX; ++i) insert(&root, arr[i]);
+    time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
+    printf("build tree time cost:%f ms\n", time_cost);
+
+    x = rand() % (MAX*2); 
+
+    start = clock(); 
+    ret = -1; for (int i = 0; i < MAX; ++i) if (arr[i] == x) {ret = i;break;};
+    time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
+    printf("array search: %d %d, time cost=%f ms\n", x, ret, time_cost);
+
+    start = clock(); 
+    ret = query(root, x);
+    time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
+    printf("tree search: %d %d, time cost=%f ms\n", x, ret, time_cost);
+
+    start = clock(); 
+    qsort(arr, MAX, sizeof(int), cmpfunc);
+    time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
+    printf("qsort: time cost=%f ms\n", time_cost);
+
+    start = clock(); 
+    ret2 = (int*)bsearch(&x, arr, MAX, sizeof(int), cmpfunc);
+    time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
+    printf("bsearch:%d %d time cost=%f ms\n", x, ret2 == NULL ? -1 : *ret2, time_cost);
+
     return 0;
 }
+
