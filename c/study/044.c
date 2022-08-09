@@ -221,17 +221,8 @@ void test_1()
 
 }
 
-int main(int argc, char *argv[])
+void test_knn(struct DataFrame df_train, struct DataFrame df_test)
 {
-    struct DataFrame df_train;
-    df_init(&df_train);
-    df_load_csv(&df_train, "iris_training.csv");
-    df_print(&df_train);
-
-    struct DataFrame df_test;
-    df_init(&df_test);
-    df_load_csv(&df_test, "iris_test.csv");
-
     int ret;
     int k = 10;                       // 距离最近的 k 个数据，KNN 中的 k
     int p = 3;                        // 目标分类的个数
@@ -242,16 +233,36 @@ int main(int argc, char *argv[])
         for (int j = 0;  j < df_test.M - 1; j++) {
             test_features[j] = df_test.data[i][j];
         }
-
         test_target = df_test.data[i][df_test.M-1];
+
         int ret = knn_classify(&df_train, test_features, k, p);
-        printf("预测分类：%d, 实际分类：%d\n", ret, test_target);
+        //printf("预测分类：%d, 实际分类：%d\n", ret, test_target);
 
         total_count += 1;
         if (ret == test_target) ok_count += 1;
     }
-    printf("测试%d个数据，正确%d个，准确率：%.2f%%\n", 
-            total_count, ok_count, (float)ok_count/total_count*100);
+    //printf("测试%d个数据，正确%d个，准确率：%.2f%%\n", total_count, ok_count, (float)ok_count/total_count*100);
+
+}
+int main(int argc, char *argv[])
+{
+    struct DataFrame df_train;
+    df_init(&df_train);
+    df_load_csv(&df_train, "iris_training.csv");
+
+    struct DataFrame df_test;
+    df_init(&df_test);
+    df_load_csv(&df_test, "iris_test.csv");
+
+
+    clock_t start, end;
+    start = clock();
+    int n = 1000;
+    for (int i = 0; i < n; ++i) {
+        test_knn(df_train, df_test);
+    }
+    end = clock();
+    printf("knn test %d: time cost=%fms\n",n, (double)(end-start)/CLOCKS_PER_SEC*1000);
 
     df_free(&df_train);
     df_free(&df_test);
