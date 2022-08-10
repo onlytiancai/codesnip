@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+#include <limits.h>
 #define MAX 1000000
 
 static struct Node {
@@ -102,8 +104,8 @@ int binarySearch(int arr[], int l, int r, int x)
     return -1;
 }
 
-int main(int argc, char *argv[]) {
-    srand((unsigned int)time(NULL));
+void test02()
+{
     clock_t start, end;
     int x, ret, *ret2 = NULL;
     double time_cost;
@@ -142,6 +144,54 @@ int main(int argc, char *argv[]) {
     ret2 = (int*)bsearch(&x, arr, MAX, sizeof(int), cmpfunc);
     time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
     printf("bsearch:%d %d time cost=%f ms\n", x, ret2 == NULL ? -1 : *ret2, time_cost);
+
+}
+
+void read_csv(char* file, struct Node **root, int limit)
+{
+    FILE *fp;
+    char line[128]; 
+
+    fp = fopen(file, "r");
+    if(fp == NULL) {
+        perror("fopen error");
+        exit(-1);
+    }
+
+    char *s = NULL;
+    int i = 0, key, pos;
+    char *str, *token;
+    if (limit == -1) limit = INT_MAX;
+    while (fgets(line, 128, fp) !=NULL && ++i < limit) {
+        s = strchr(line, '\n');
+        if (s) {
+            *s = '\0';
+        }
+
+        pos =  (int)(ftell(fp)-strlen(line)-1);
+        str = line;
+        token = strtok(str, ",");
+        if (token != NULL) {
+            key = atoi(token);
+            insert(root, key);
+        }
+    }
+
+    fclose(fp);
+}
+
+int main(int argc, char *argv[]) {
+    srand((unsigned int)time(NULL));
+
+    struct Node *root = NULL;
+    clock_t start, end;
+    double time_cost;
+
+    start = clock(); 
+    read_csv("/data/test_data.csv", &root, -1);
+    time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
+    printf("build tree time cost:%f ms\n", time_cost);
+    // print_tree(root, 0);
 
     return 0;
 }
