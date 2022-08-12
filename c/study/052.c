@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
     FILE *fp;
     char line[128]; 
 
-    fp = fopen("/data/test_data.csv", "r");
+    fp = fopen("test_data.csv", "r");
     if(fp == NULL) {
         perror("fopen error");
         return(-1);

@@ -3,85 +3,125 @@
 #include <time.h>
 #include <string.h>
 #include <limits.h>
-#define MAX 1000000
 
-static struct Node {
-    int v,p,n;
-    struct Node *l, *r;
-} nodes[MAX];
+#define DEFAULT_SIZE 10000
+
+struct Node {
+    // val, priority,count,pos
+    int v,p,n,pos;
+    int l, r;
+};
+
+static struct Node *nodes;
 
 static int cur_idx = 0;
+static int max_idx = DEFAULT_SIZE;
+static void nodes_init() { 
+    nodes = (struct Node *)malloc(DEFAULT_SIZE*sizeof(struct Node)); 
+}
 
-static struct Node *new_node(int v) { 
+static void nodes_extend() { 
+    nodes = (struct Node *)realloc(nodes, (cur_idx+DEFAULT_SIZE)*sizeof(struct Node)); 
+    max_idx = cur_idx+DEFAULT_SIZE;
+    if (nodes == NULL) {
+        perror("realloc, error");
+        exit(EXIT_FAILURE);
+    }
+}
+
+
+
+int new_node(int v, int pos) { 
+    if (cur_idx >= max_idx) {
+        nodes_extend();
+    }
     int cur = cur_idx;
     nodes[cur].v = v;
-    nodes[cur].l = NULL;
-    nodes[cur].r = NULL;
+    nodes[cur].l = -1;
+    nodes[cur].r = -1;
     nodes[cur].n = 1;
+    nodes[cur].pos = pos;
     nodes[cur].p = rand();
     cur_idx++;
-    return &nodes[cur];
+    return cur;
 }
 
-void print_tree(struct Node *node, int indent)
+void print_tree(int inode, int indent)
 {
+    if (inode == -1) return;
+    struct Node node = nodes[inode];
     printf("|");
     for (int i = 0; i < indent; ++i) printf("--|");
-    if (node != NULL) printf("%d\n", node->v);
-    if (node->l != NULL) print_tree(node->l, indent+1);
-    if (node->r != NULL) print_tree(node->r, indent+1);
+    printf("%d\n", node.v);
+    if (node.l != -1) print_tree(node.l, indent+1);
+    if (node.r != -1) print_tree(node.r, indent+1);
 }
 
 
-void right_rotate(struct Node **a) {
-    struct Node *b = (*a)->l;
-    (*a)->l = b->r, b->r = *a, *a = b;
+void right_rotate(int *ia) {
+    struct Node *a = &nodes[*ia];
+    int ib = a->l;
+    struct Node *b = &nodes[ib];
+    a->l = b->r, b->r = *ia, *ia = ib;
 }
 
-void left_rotate(struct Node **a) {
-    struct Node *b = (*a)->r;
-    (*a)->r = b->l, b->l = *a, *a = b;
+void left_rotate(int *ia) {
+    struct Node *a = &nodes[*ia];
+    int ib = a->r;
+    struct Node *b = &nodes[ib];
+    a->r = b->l, b->l = *ia, *ia = ib;
 }
 
-void insert(struct Node **rt, int val) {
-    if (*rt == NULL) {*rt = new_node(val); return;}
-    if ((*rt)->v == val) (*rt)->n++; // 已经有这个点了
-    else if ((*rt)->v > val) {
+void insert(int *irt, int val, int pos) {
+    if (*irt == -1) {
+        *irt = new_node(val, pos);
+    }
+    struct Node *rt = &nodes[*irt];
+    if (rt->v == val) rt->n++; // 已经有这个点了
+    else if (rt->v > val) {
         // 如果这个节点的值大了就跑到左子树
-        insert(&((*rt)->l), val);
+        insert(&(rt->l), val, pos);
         // 因为只更改了左子树，只用判断自己和左子树的优先级
-        if ((*rt)->p < (*rt)->l->p) right_rotate(rt);
+        if (rt->p < nodes[rt->l].p) right_rotate(irt);
     }
     else {
         // 如果这个节点的值小了就跑到右子树
-        insert(&((*rt)->r), val);
-        if ((*rt)->p < (*rt)->r->p) left_rotate(rt);
+        insert(&(rt->r), val, pos);
+        if (rt->p < nodes[rt->r].p) left_rotate(irt);
     }
 }
 
-int query(struct Node *p, int val) {
-    int rank = -1;
-    while (p != NULL)
-        if (p->v == val) return p->p;
-        else if (p->v > val) p = p->l;
-        else p = p->r;
-    return rank;
+int query(int ip, int val) {
+    int pos = -1;
+    struct Node *p;
+    while (ip != -1) {
+        p = &nodes[ip];
+        if (p->v == val) return p->pos;
+        else if (p->v > val) ip = p->l;
+        else ip = p->r;
+    }
+    return pos;
 }
 
 void test01()
 {
-    struct Node *root = new_node(2);
-    root->l = new_node(1);
-    root->r = new_node(6);
-    root->r->l = new_node(4);
-    root->r->r = new_node(9);
-    print_tree(root, 0);
+    int iroot = new_node(2, -1);
+    struct Node *root = &nodes[iroot];
+    struct Node *p;
+    root->l = new_node(1, -1);
+    root->r = new_node(6, -1);
+    p = &nodes[root->r];
+    p->l = new_node(4, -1);
+    p->r = new_node(9, -1);
+    print_tree(iroot, 0);
+    printf("----\n");
 
-    right_rotate(&root);
-    print_tree(root, 0);
+    right_rotate(&iroot);
+    print_tree(iroot, 0);
+    printf("----\n");
 
-    left_rotate(&root);
-    print_tree(root, 0);
+    left_rotate(&iroot);
+    print_tree(iroot, 0);
 
 }
 
@@ -110,44 +150,44 @@ void test02()
     int x, ret, *ret2 = NULL;
     double time_cost;
 
-    int arr[MAX];
+    int arr[DEFAULT_SIZE];
     start = clock(); 
-    for (int i = 0; i < MAX; ++i) arr[i] = rand() % (MAX*2);
+    for (int i = 0; i < DEFAULT_SIZE; ++i) arr[i] = rand() % (DEFAULT_SIZE*2);
     time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
     printf("build array time cost:%f ms\n", time_cost);
-    printf("array length=%d\n", MAX);
+    printf("array length=%d\n", DEFAULT_SIZE);
 
-    struct Node *root = NULL;
+    int iroot = -1;
     start = clock(); 
-    for (int i = 0; i < MAX; ++i) insert(&root, arr[i]);
+    for (int i = 0; i < DEFAULT_SIZE; ++i) insert(&iroot, arr[i], i);
     time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
     printf("build tree time cost:%f ms\n", time_cost);
 
-    x = rand() % (MAX*2); 
+    x = rand() % (DEFAULT_SIZE*2); 
 
     start = clock(); 
-    ret = -1; for (int i = 0; i < MAX; ++i) if (arr[i] == x) {ret = i;break;};
+    ret = -1; for (int i = 0; i < DEFAULT_SIZE; ++i) if (arr[i] == x) {ret = i;break;};
     time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
     printf("array search: %d %d, time cost=%f ms\n", x, ret, time_cost);
 
     start = clock(); 
-    ret = query(root, x);
+    ret = query(iroot, x);
     time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
     printf("tree search: %d %d, time cost=%f ms\n", x, ret, time_cost);
 
     start = clock(); 
-    qsort(arr, MAX, sizeof(int), cmpfunc);
+    qsort(arr, DEFAULT_SIZE, sizeof(int), cmpfunc);
     time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
     printf("qsort: time cost=%f ms\n", time_cost);
 
     start = clock(); 
-    ret2 = (int*)bsearch(&x, arr, MAX, sizeof(int), cmpfunc);
+    ret2 = (int*)bsearch(&x, arr, DEFAULT_SIZE, sizeof(int), cmpfunc);
     time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
     printf("bsearch:%d %d time cost=%f ms\n", x, ret2 == NULL ? -1 : *ret2, time_cost);
 
 }
 
-void read_csv(char* file, struct Node **root, int limit)
+void read_csv(char* file, int *iroot, int limit)
 {
     FILE *fp;
     char line[128]; 
@@ -173,26 +213,31 @@ void read_csv(char* file, struct Node **root, int limit)
         token = strtok(str, ",");
         if (token != NULL) {
             key = atoi(token);
-            insert(root, key);
+            insert(iroot, key, pos);
         }
     }
 
     fclose(fp);
 }
 
-int main(int argc, char *argv[]) {
-    srand((unsigned int)time(NULL));
-
-    struct Node *root = NULL;
+void test03()
+{
+    int iroot = -1;
     clock_t start, end;
     double time_cost;
 
     start = clock(); 
-    read_csv("/data/test_data.csv", &root, -1);
+    read_csv("test_data.csv", &iroot, -1);
     time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
     printf("build tree time cost:%f ms\n", time_cost);
-    // print_tree(root, 0);
+    //print_tree(root, 0);
 
+}
+
+int main(int argc, char *argv[]) {
+    srand((unsigned int)time(NULL));
+    nodes_init();
+    test02();
     return 0;
 }
 
