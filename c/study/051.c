@@ -1,10 +1,14 @@
+// gcc -fsanitize=address -fno-omit-frame-pointer -O1 -g 051.c -o use-after-free
+// https://zhuanlan.zhihu.com/p/375122996
+// \time -f 'time cost=%es' grep -E '^781972,' test_data.csv 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
 #include <limits.h>
 
-#define DEFAULT_SIZE 10000
+#define DEFAULT_SIZE 100000
 
 struct Node {
     // val, priority,count,pos
@@ -21,7 +25,20 @@ static void nodes_init() {
 }
 
 static void nodes_extend() { 
-    nodes = (struct Node *)realloc(nodes, (cur_idx+DEFAULT_SIZE)*sizeof(struct Node)); 
+    struct Node n;
+    for (int i = 0; i < cur_idx; ++i) {
+        n = nodes[i];
+    }
+    printf("nodes extend %d %d %p\n", cur_idx, (cur_idx+DEFAULT_SIZE), nodes);
+    struct Node *newnodes = malloc((cur_idx+DEFAULT_SIZE)*sizeof(struct Node)); 
+    memcpy(newnodes, nodes, cur_idx*sizeof(struct Node));
+    // free(nodes);
+    nodes = newnodes;
+    for (int i = 0; i < cur_idx; ++i) {
+        n = nodes[i];
+        //printf("444: i=%d v=%d p=%d n=%d pos=%d l=%d r=%d\n", i, n.v, n.p, n.n,n.pos,n.l,n.r);
+    }
+
     max_idx = cur_idx+DEFAULT_SIZE;
     if (nodes == NULL) {
         perror("realloc, error");
@@ -36,12 +53,13 @@ int new_node(int v, int pos) {
         nodes_extend();
     }
     int cur = cur_idx;
-    nodes[cur].v = v;
-    nodes[cur].l = -1;
-    nodes[cur].r = -1;
-    nodes[cur].n = 1;
-    nodes[cur].pos = pos;
-    nodes[cur].p = rand();
+    struct Node *p = &nodes[cur];
+    p->v = v;
+    p->l  = -1;
+    p->r = -1;
+    p->n = 1;
+    p->pos = pos;
+    p->p = rand();
     cur_idx++;
     return cur;
 }
@@ -59,6 +77,9 @@ void print_tree(int inode, int indent)
 
 
 void right_rotate(int *ia) {
+    //Tree b = a->lson;
+    //a->lson = b->rson, b->rson = a, a = b;
+
     struct Node *a = &nodes[*ia];
     int ib = a->l;
     struct Node *b = &nodes[ib];
@@ -73,20 +94,33 @@ void left_rotate(int *ia) {
 }
 
 void insert(int *irt, int val, int pos) {
+    struct Node *old_nodes = nodes;
+    int new_inode;
     if (*irt == -1) {
-        *irt = new_node(val, pos);
+        new_inode = new_node(val, pos);
+        if (old_nodes == nodes) {
+            *irt = new_inode;
+        } else {
+            // 计算新的指针位置
+            uintptr_t diff = (uintptr_t)irt-(uintptr_t)old_nodes;
+            int *new_irt = (int*)((uintptr_t)nodes+diff); 
+            *new_irt = new_inode;
+            irt = new_irt;
+        }
     }
     struct Node *rt = &nodes[*irt];
     if (rt->v == val) rt->n++; // 已经有这个点了
     else if (rt->v > val) {
         // 如果这个节点的值大了就跑到左子树
         insert(&(rt->l), val, pos);
+        rt = &nodes[*irt]; // 内存可能被迁移，要重新指向指针
         // 因为只更改了左子树，只用判断自己和左子树的优先级
         if (rt->p < nodes[rt->l].p) right_rotate(irt);
     }
     else {
         // 如果这个节点的值小了就跑到右子树
         insert(&(rt->r), val, pos);
+        rt = &nodes[*irt]; // 内存可能被迁移，要重新指向指针
         if (rt->p < nodes[rt->r].p) left_rotate(irt);
     }
 }
@@ -187,7 +221,7 @@ void test02()
 
 }
 
-void read_csv(char* file, int *iroot, int limit)
+int read_csv(char* file, int *iroot, int limit)
 {
     FILE *fp;
     char line[128]; 
@@ -216,8 +250,8 @@ void read_csv(char* file, int *iroot, int limit)
             insert(iroot, key, pos);
         }
     }
-
     fclose(fp);
+    return i;
 }
 
 void test03()
@@ -225,19 +259,55 @@ void test03()
     int iroot = -1;
     clock_t start, end;
     double time_cost;
+    int x, ret, total;
+    FILE *fp;
 
-    start = clock(); 
-    read_csv("test_data.csv", &iroot, -1);
-    time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
-    printf("build tree time cost:%f ms\n", time_cost);
-    //print_tree(root, 0);
 
+    char line[100], *s;
+    printf("Welcome to Wawa Database.\ninput 'buld index' to build index.\ninput n to query a random data.\ninput q to exit:\n");
+    printf("> ");
+    while(NULL != fgets(line, 100, stdin)){
+        s = strchr(line, '\n');
+        if (s) {
+            *s = '\0';
+        }
+
+        if (strcmp(line, "q") == 0) break;
+        if (strcmp(line, "build index") == 0) {
+            start = clock(); 
+            total = read_csv("test_data.csv", &iroot, -1);
+            time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
+            printf("build tree done, total: %d, time cost:%f ms\n", total, time_cost);
+            printf("> ");
+            continue;
+        } 
+
+        x = rand() % (total*2); 
+        start = clock(); 
+        ret = query(iroot, x);
+        time_cost = (double)(clock()-start)/CLOCKS_PER_SEC*1000;
+        if (ret!=-1) {
+            fp = fopen("test_data.csv", "r");
+            if(fp == NULL) {
+                perror("fopen error");
+                exit(-1);
+            }
+            fseek( fp, ret, SEEK_SET);
+
+           if (fgets(line, 100, fp) !=NULL) {
+               printf("%s", line);
+           }
+            fclose(fp);
+        }
+        printf("tree search: %d %d, time cost=%f ms\n", x, ret, time_cost);
+        printf("> ");
+    }
 }
 
 int main(int argc, char *argv[]) {
     srand((unsigned int)time(NULL));
     nodes_init();
-    test02();
+    test03();
     return 0;
 }
 
