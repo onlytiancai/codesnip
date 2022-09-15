@@ -260,6 +260,9 @@ Run it.
 	/tmp/test.php[13]:undefined
 	[Inferior 1 (process 3291225) detached]
 
+Dump call stack of all php-fpm processes in one line.
+
+    for pid in `ps -ef | grep 'php-fpm: pool www'| grep -v grep | awk '{print $2}'`;do sudo gdb --batch -p $pid -x phpbt.gdbscript;done;
 
 Links:
 - https://stackoverflow.com/questions/14261821/get-a-stack-trace-of-a-running-or-hung-php-script
