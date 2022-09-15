@@ -274,3 +274,4 @@ Links:
 - https://stackoverflow.com/questions/12618331/displaying-struct-values-in-gdb
 - https://github.com/php/php-src/blob/2a5dccd4beedb72c24fe95817e0687d7155be2ce/Zend/zend_compile.h
 - https://stackoverflow.com/questions/10748501/what-are-the-best-ways-to-automate-a-gdb-debugging-session
+- https://bugs.php.net/bugs-generating-backtrace.php
