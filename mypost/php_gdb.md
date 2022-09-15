@@ -31,6 +31,10 @@ View PHP version.
         with Zend OPcache v8.1.7, Copyright (c), by Zend Technologies
         with Xdebug v3.1.2, Copyright (c) 2002-2021, by Derick Rethans
 
+Install XDebug module, otherwise gdb won't see the debug symbols for PHP.
+
+    apt-get install php8.1-xdebug
+
 Run the script.
 
     $ php8.1 test.php
@@ -201,7 +205,7 @@ Quit the debug session.
 	Quit anyway? (y or n) y
 	Detaching from program: /usr/bin/php8.1, process 3291225
 
-Automate everything
+Automate everything. Note the `bt` is required, otherwise we will not get `executor_globals`.
 
 	$ vi phpbt.gdbscript
 	bt
