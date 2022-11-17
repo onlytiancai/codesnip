@@ -14,13 +14,6 @@ MAX_CONSUMERS = 10
 data_list_lock = threading.RLock()
 consumer_data_list = [0 for i in range(MAX_CONSUMERS)]
 
-@atexit.register
-def goodbye():
-    data_list_lock.acquire()
-    print('consumer data is:%s' % consumer_data_list)
-    print('min consumer data is:%s' % min(consumer_data_list))
-    data_list_lock.release()
-
 class BoundedBlockingQueue(object):
     def __init__(self, capacity: int):
         self.pushing = threading.Semaphore(capacity)
@@ -42,10 +35,21 @@ class BoundedBlockingQueue(object):
 
 q = BoundedBlockingQueue(100)
 
+def info_thread(args):
+    while True:
+        data_list_lock.acquire()
+        temp = consumer_data_list[:]
+        data_list_lock.release()
+
+        logging.info("queue size: %d", q.size())
+        logging.info('consumer data is:%s', consumer_data_list)
+        logging.info('min consumer data is:%s', min(consumer_data_list))
+        time.sleep(1)
+
+
 def producer_thread(args):
     logging.info("Thread producer: starting")
     for i in range(100000):
-        logging.info("Thread producer: put %d", i)
         q.enqueue(i)
 
 def consumer_thread(args):
@@ -56,14 +60,20 @@ def consumer_thread(args):
         consumer_data_list[consumer_id] = data
         data_list_lock.release()
         time.sleep(random.uniform(0.5,2))
-        logging.info("Thread consumer[%d]: %d", consumer_id, data)
 
 if __name__ == '__main__':
     producer = threading.Thread(target=producer_thread, args=(None,))
     consumers = [threading.Thread(target=consumer_thread, args=(i,)) for i in range(MAX_CONSUMERS)]
+    info_t = threading.Thread(target=info_thread, args=(None,))
+
+    producer.setDaemon(True)
     producer.start()
     for t in consumers:
+        t.setDaemon(True)
         t.start()
+    info_t.start()
+
     producer.join()
     for t in consumers:
         t.join()
+    info_t.start()
