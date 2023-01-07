@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>002</title>
+    <style type="text/css" media="screen">
+      body { margin: 0; padding: 0} 
+      .container{
+        display: flex;
+      }
+      .left{
+        background-color: aqua;
+        width: 10%;
+        height: 1800px;
+      }
+      .center{
+        height: 1800px;
+        flex: 1;
+        background: #f296ff;
+      }
+      .right{
+        height: 1800px;
+        background-color: #6ee28d;
+        width: 10%;
+      }
+      .bg {
+        height: 300px;
+        background: url(bg.jpg) no-repeat;
+        background-size:cover;
+        background-position:center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="left"></div>
+      <div class="center">
+        <div class="bg"></div>
+      </div>
+      <div class="right"></div>
+    </div>
+  </body>
+</html>
