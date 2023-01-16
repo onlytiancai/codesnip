@@ -5,20 +5,36 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Awesome Todo List</title>
 </head>
 
 <body>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-
+    <h1>Awesome Todo List</h1>
     <div id="app">
         <textarea style="width: 100%;" cols="30" rows="10" v-model="message"></textarea>
+        <p>分组：<select v-model="groupTag">
+                <option :value="group" v-for="group in groupNames">
+                    {{ group }}
+                </option>
+            </select>
+        </p>
+        <p>过滤：
+            <template v-for="(group, i) in groupNames">
+                <select v-model="selectedTags[i]" v-if="group != groupTag" >
+                    <option value="all">All</option>
+                    <option :value="tag" v-for="tag in tagGroups[group]">
+                        {{ tag }}
+                    </option>
+                </select>
+            </template>
+        </p>
         <div id="parent" style="display:flex; flex-direction: row;">
-            <div style="flex:1; " v-for="tag in parsedData.tags">
+            <div style="flex:1; " v-for="tag in tagGroups[groupTag]">
                 <h2>{{tag}}</h2>
                 <ul>
                     <template v-for="item in parsedData.data">
-                        <li v-if="item.tags.includes(tag)">{{item.text}}</li>
+                        <li v-if="filterData(item.tags, tag)">{{item.text}}-{{item.tags}}</li>
                     </template>
                 </ul>
             </div>
@@ -29,18 +45,41 @@
         import { parse } from './sum.js'
         const { createApp } = Vue
 
+        const tagGroups = {
+            state: ['todo', 'doing', 'done'],
+            priority: ['p1', 'p2', 'p3'],
+            assignTo: ['alice', 'bob']
+        }
         createApp({
+
             data() {
                 return {
-                    message: '[todo]111\n'
-                        + '[doing]222\n'
-                        + '[done]333\n'
-                        + '[done]444\n'
+                    groupTag: 'state',
+                    tagGroups: tagGroups,
+                    selectedTags: Object.keys(tagGroups).map(x => 'all'),
+                    message: '[todo][p1][alice]吃饭\n'
+                        + '[doing][p2][bob]睡觉\n'
+                        + '[done][p3][bob]打豆豆\n'
+                        + '[done][p3][alice]上山打老虎\n'
+                }
+            },
+            methods: {
+                filterData(tags, tag) {
+                    let result = tags.includes(tag)
+                    for (const selectedTag of this.selectedTags) {
+                        if (selectedTag != 'all') {
+                            result = result && tags.includes(selectedTag)
+                        }
+                    }
+                    return result;
                 }
             },
             computed: {
                 parsedData() {
                     return parse(this.message);
+                },
+                groupNames() {
+                    return Object.keys(this.tagGroups)
                 }
             }
         }).mount('#app')
