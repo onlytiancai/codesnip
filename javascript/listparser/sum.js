@@ -1,4 +1,4 @@
-function parse(text) {
+export function parse(text) {
     if (!text) return { tags: [], data: [] }
     var tags = new Set(), data = []
     var lines = text.split('\n').map(x => x.trim()).filter(x => x.length > 0)
@@ -20,4 +20,3 @@ function parse(text) {
         data: data
     }
 }
-module.exports = parse;

@@ -1,4 +1,4 @@
-const parse = require('./sum');
+import {parse} from './sum.js'
 
 test('empty', () => {
     expect(parse('')).toEqual({

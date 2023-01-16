@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <div id="app">
+        <textarea style="width: 100%;" cols="30" rows="10" v-model="message"></textarea>
+        <div id="parent" style="display:flex; flex-direction: row;">
+            <div style="flex:1; " v-for="tag in parsedData.tags">
+                <h2>{{tag}}</h2>
+                <ul>
+                    <template v-for="item in parsedData.data">
+                        <li v-if="item.tags.includes(tag)">{{item.text}}</li>
+                    </template>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { parse } from './sum.js'
+        const { createApp } = Vue
+
+        createApp({
+            data() {
+                return {
+                    message: '[todo]111\n'
+                        + '[doing]222\n'
+                        + '[done]333\n'
+                        + '[done]444\n'
+                }
+            },
+            computed: {
+                parsedData() {
+                    return parse(this.message);
+                }
+            }
+        }).mount('#app')
+    </script>
+
+</body>
+
+</html>
