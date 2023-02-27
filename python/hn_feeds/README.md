@@ -11,3 +11,7 @@ database:
       KEY `ix_feeds_published` (`published`),
       UNIQUE KEY `uq_feeds_feed_id` (`feed_id`)
     )
+
+crontab
+
+    0 * * * * cd /home/ubuntu/src/codesnip/python/hn_feeds && /usr/bin/python3 cron.py >/dev/null 2>&1 &
