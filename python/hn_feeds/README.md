@@ -15,3 +15,28 @@ database:
 crontab
 
     0 * * * * cd /home/ubuntu/src/codesnip/python/hn_feeds && /usr/bin/python3 cron.py >/dev/null 2>&1 &
+
+sqlite
+
+    sudo apt install sqlite3
+    sqlite3 hn.db
+
+        .mode column
+        .mode table
+
+        CREATE TABLE `feeds` (
+          `id` INTEGER PRIMARY KEY,
+          `feed_id` INTEGER NOT NULL DEFAULT '0',
+          `author` text NOT NULL DEFAULT '',
+          `title` text NOT NULL DEFAULT '',
+          `summary` text NOT NULL DEFAULT '',
+          `published` text
+        )
+
+        pragma table_info(feeds);
+
+        CREATE INDEX idx_feeds_published ON feeds (published);
+        CREATE UNIQUE INDEX idx_feeds_feed_id ON feeds (feed_id);
+        PRAGMA index_list('feeds');
+        .q
+

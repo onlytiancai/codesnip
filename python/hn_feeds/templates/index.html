@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Hack News</title>
+  </head>
+  <body>
+    <h1>Hacker News cn</h1>
+    {% for row in rows %}
+    <h2>{{row.title}}</h2>
+    <div>{{row.summary|safe}}</div>
+    {% endfor %}
+    {% if page_info['has_prev'] %}
+    <a href="{{ url_for('index', page=page_info['page']-1) }}">上一页</a>
+    {% endif %}
+    {% if page_info['has_next'] %}
+    <a href="{{ url_for('index', page=page_info['page']+1) }}">下一页</a>
+    {% endif %}
+    当前页：{{page_info['page']}}, 总共页数：{{page_info['pages']}}
+  </body>
+</html>
