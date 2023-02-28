@@ -1,10 +1,11 @@
 import os
-import pymysql
+import sqlite3
 import logging
 import config
 import feedparser
+from datetime import datetime
+from time import mktime
 
-conn = pymysql.connect(db='hn', cursorclass=pymysql.cursors.DictCursor, **config.conn)
 feed_url = 'https://hnrss.org/newest'
 
 logging.basicConfig(level=logging.DEBUG,
@@ -15,24 +16,32 @@ logging.basicConfig(level=logging.DEBUG,
                     )
 
 
-with conn.cursor() as cursor:
-    feeds = feedparser.parse(feed_url)
-    for feed in feeds.entries:
-        feed.feed_id = feed.id.split('=')[-1]
-        logging.debug('fetch feed:%s', feed.id)
-        try:
-            sql = 'select id from feeds where feed_id=%s'
-            cursor.execute(sql, feed.feed_id)
-            row = cursor.fetchone()
-            if not row:
-                sql = 'insert into feeds values(null, %s,%s,%s,%s,%s)'
-                affected = cursor.execute(sql, (feed.feed_id, feed.author[:32], 
-                                                feed.title[:512], feed.summary[:1024],
-                                                feed.published_parsed))
-                conn.commit()
-                logging.debug('insert feed:%s %s', feed.feed_id, affected)
-            else:
-                logging.debug('ignore feed:%s', feed.feed_id)
-        except Exception as ex:
-            error = getattr(ex, 'message', repr(ex))
-            logging.error('insert feed error:%s %s', feed.feed_id, error)
+feeds = feedparser.parse(feed_url)
+
+conn = sqlite3.connect('hn.db')
+cursor = conn.cursor()
+for feed in feeds.entries:
+    try:
+        feed.feed_id = int(feed.id.split('=')[-1])
+        published = datetime.fromtimestamp(mktime(feed.published_parsed))
+        logging.debug('fetch feed:%s', feed.feed_id)
+
+        sql = 'select id from feeds where feed_id=?'
+        cursor.execute(sql, (feed.feed_id, ))
+        row = cursor.fetchone()
+        if not row:
+            sql = 'insert into feeds(feed_id,author,title,summary,published) values(?, ?, ?, ?, ?)'
+            cursor.execute(sql, (feed.feed_id, feed.author[:32], 
+                                 feed.title[:512], feed.summary[:1024],
+                                 published.strftime('%Y-%m-%d %H:%M:%S')))
+            affected = cursor.rowcount
+            conn.commit()
+            logging.debug('insert feed:%s %s', feed.feed_id, affected)
+        else:
+            logging.debug('ignore feed:%s', feed.feed_id)
+    except Exception as ex:
+        error = getattr(ex, 'message', repr(ex))
+        logging.error('insert feed error:%s %s', feed.feed_id, error)
+        raise
+
+conn.close()
