@@ -1,5 +1,6 @@
 # gunicorn -w2 test:my_web_app --bind localhost:8080 --worker-class aiohttp.GunicornWebWorker
 # ab -n 1000 -c 4 http://127.0.0.1:8080/
+# https://y.tsutsumi.io/2017/09/23/aiohttp-vs-multithreaded-flask-for-high-io-applications/
 
 from aiohttp import web
 import aiohttp
