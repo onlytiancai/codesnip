@@ -40,3 +40,24 @@ sqlite
         PRAGMA index_list('feeds');
         .q
 
+run
+
+    gunicorn -b 127.0.0.1:5001 -w 4 'app:app'
+
+nginx
+
+    server {
+        listen 80;
+        server_name  hn.ihuhao.com;
+
+        access_log  /var/log/nginx/hn.access.log main;
+        error_log /var/log/nginx/hn.error.log;
+        location / {
+            proxy_pass   http://127.0.0.1:5001;
+            proxy_set_header    Host             $host;
+            proxy_set_header    X-Real-IP        $remote_addr;
+            proxy_set_header    X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+
+    }
+

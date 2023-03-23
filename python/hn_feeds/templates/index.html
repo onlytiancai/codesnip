@@ -3,20 +3,59 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>Hack News</title>
+    <title>My Hacker News</title>
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <script src="/static/avataaars.js"></script>
   </head>
   <body>
-    <h1>Hacker News cn</h1>
-    {% for row in rows %}
-    <h2>{{row.title}}</h2>
-    <div>{{row.summary|safe}}</div>
-    {% endfor %}
-    {% if page_info['has_prev'] %}
-    <a href="{{ url_for('index', page=page_info['page']-1) }}">上一页</a>
-    {% endif %}
-    {% if page_info['has_next'] %}
-    <a href="{{ url_for('index', page=page_info['page']+1) }}">下一页</a>
-    {% endif %}
-    当前页：{{page_info['page']}}, 总共页数：{{page_info['pages']}}
+    <div class="container">
+      <h1><a href="/">My Hacker News</a></h1>
+      {% for row in rows %}
+
+      <div class="media">
+        <div class="media-left">
+          <a href="#" id="face{{loop.index0}}">
+          </a>
+        </div>
+        <div class="media-body">
+          <h4 class="media-heading">{{row.title}}</h4>
+          {{row.summary|safe}}
+          <p class="text-right">{{row['author']}} at {{row['published']}}</p>
+        </div>
+      </div>
+
+      {% endfor %}
+
+      <p class="text-center">当前页：{{page_info['page']}} | 总页数：{{page_info['pages']}}</p>
+
+      <nav aria-label="...">
+        <ul class="pager">
+          {% if page_info['has_prev'] %}
+          <li class="previous"><a href="{{ url_for('index', page=page_info['page']-1) }}"></span>上一页</a></li>
+          {% endif %}
+          {% if page_info['has_next'] %}
+          <li class="next"><a href="{{ url_for('index', page=page_info['page']+1) }}">下一页</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+
+    </div>
+    <script>
+      Array.prototype.random = function () {
+        return this[Math.floor((Math.random()*this.length))];
+      }
+      for (var i = 0; i < {{rows|length}}; i++) {
+        var svg = Avataaars.create({
+          width: "64",
+          height: "64",
+          skin: 'tanned, yellow, pale, light, brown, darkBrown, black'.split(', ').random(),
+          hairColor: 'auburn, black, blonde, blondeGolden, brown, brownDark, pastelPink, platinum, red, silverGray'.split(', ').random(),
+          top: 'dreads01, dreads02, frizzle, shaggyMullet , shaggy, shortCurly, shortFlat, shortRound, sides, shortWaved, theCaesarAndSidePart, theCaesar, bigHair, bob, bun, curly, curvy, dreads, frida, froAndBand, fro, longButNotTooLong, miaWallace, shavedSides, straightAndStrand, straight01, straight02, eyepatch, turban, hijab, hat, winterHat01, winterHat02, winterHat03, winterHat04'.split(', ').random(),
+          clothing: 'blazerAndShirt, blazerAndSweater, collarAndSweater, graphicShirt, hoodie, overall, shirtCrewNeck, shirtScoopNeck, shirtVNeck'.split(', ').random(),
+        });
+        document.getElementById('face'+i).innerHTML = svg;
+      }
+    </script>
   </body>
 </html>
