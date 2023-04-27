@@ -5,6 +5,7 @@ import config
 import feedparser
 from datetime import datetime
 from time import mktime
+import craw
 
 feed_url = 'https://hnrss.org/newest'
 
@@ -30,10 +31,14 @@ for feed in feeds.entries:
         cursor.execute(sql, (feed.feed_id, ))
         row = cursor.fetchone()
         if not row:
-            sql = 'insert into feeds(feed_id,author,title,summary,published) values(?, ?, ?, ?, ?)'
+            url, main_content, summary_cn = craw.get_summary(feed.summary[:1024])
+
+            sql = 'insert into feeds(feed_id,author,title,summary,published, url,main_content,summary_cn) values(?, ?, ?, ?, ?, ?, ?, ?)'
             cursor.execute(sql, (feed.feed_id, feed.author[:32], 
                                  feed.title[:512], feed.summary[:1024],
-                                 published.strftime('%Y-%m-%d %H:%M:%S')))
+                                 published.strftime('%Y-%m-%d %H:%M:%S'),
+                                 url, main_content, summary_cn
+                                 ))
             affected = cursor.rowcount
             conn.commit()
             logging.debug('insert feed:%s %s', feed.feed_id, affected)
@@ -42,6 +47,5 @@ for feed in feeds.entries:
     except Exception as ex:
         error = getattr(ex, 'message', repr(ex))
         logging.error('insert feed error:%s %s', feed.feed_id, error)
-        raise
 
 conn.close()

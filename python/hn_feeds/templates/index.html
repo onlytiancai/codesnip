@@ -19,8 +19,12 @@
           </a>
         </div>
         <div class="media-body">
-          <h4 class="media-heading">{{row.title}}</h4>
-          {{row.summary|safe}}
+          <h4 class="media-heading"><a target="_blank" href="{{row.url}}">{{row.title}}</a></h4>
+          {% if row.summary_cn%}
+          {{row.summary_cn|safe}} 
+          {% else %}
+          暂无摘要，请访问原文。
+          {% endif %} 
           <p class="text-right">{{row['author']}} at {{row['published']}}</p>
         </div>
       </div>
