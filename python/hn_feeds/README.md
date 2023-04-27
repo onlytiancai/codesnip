@@ -33,12 +33,15 @@ sqlite
           `published` text
         )
 
+        .tables
         pragma table_info(feeds);
 
         CREATE INDEX idx_feeds_published ON feeds (published);
         CREATE UNIQUE INDEX idx_feeds_feed_id ON feeds (feed_id);
         PRAGMA index_list('feeds');
         .q
+
+        alter table feeds add column main_content text;
 
 run
 
