@@ -10,7 +10,8 @@ from pprint import pprint
 import json
 import time
 from tldextract import extract
-
+from cyac import AC
+import base64
 
 
 logging.getLogger("requests").setLevel(logging.WARNING)
@@ -18,13 +19,24 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 reg = re.compile(r'article url.*<a\s+href="([^"]+)"', re.IGNORECASE)
 fake_ua = fake_useragent.UserAgent()
 goose = FatGoose()
+keywords = set()
+for line in open('pub_banned_words.txt'):
+    keyword = base64.b64decode(line).decode('utf-8').strip()
+    keywords.add(keyword)
+keywords = list(keywords)
+ac_keywords = AC.build(keywords)
 
+def match_with_ac(description):
+    results = set()
+    for id, start, end in ac_keywords.match(description.lower()):
+        results.add(keywords[id])
+    return results
 
 def summary_openai(text, trycount=1):
     url = 'http://127.0.0.1:3000/v1/chat/completions'
     headers = {'Content-Type':'application/json', 'Authorization': 'Bearer '+ config.OPENAI_API_KEY}
 
-    message = '请将如下英文返回300个单词的英文摘要，并将摘要翻译成中文\n'
+    message = '请将如下英文返回300字的中文摘要。\n'
     message += text[:20480]
 
     data = json.dumps({'model':'gpt-3.5-turbo', "messages": [{"role": "user", "content": message}]})
@@ -72,6 +84,8 @@ def get_summary(text):
     summary = summary_openai(main_content)
     if not summary:
         return url, main_content, ''
+    if match_with_ac(summary):
+        return url, 'xxx', ''
     return url, main_content, summary
 
 if __name__ == '__main__':
