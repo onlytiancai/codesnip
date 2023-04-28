@@ -12,6 +12,7 @@ import time
 from tldextract import extract
 from cyac import AC
 import base64
+from urllib import parse
 
 
 logging.getLogger("requests").setLevel(logging.WARNING)
@@ -30,6 +31,8 @@ def match_with_ac(description):
     results = set()
     for id, start, end in ac_keywords.match(description.lower()):
         results.add(keywords[id])
+    if results:
+        logging.info('badword:%s', results)
     return results
 
 def summary_openai(text, trycount=1):
@@ -61,13 +64,23 @@ def summary_openai(text, trycount=1):
 
     return r['choices'][0]['message']['content'].strip()
 
+proxy_host = config.proxy_host
 def get_main_content(url):
     tsd, td, tsu = extract(url)
     domain = td + '.' + tsu
-    if domain in ['youtube.com']:
+    if domain in ['youtube.com', 'twitter.com']:
        return None 
+
+    parse_res=parse.urlparse(url)
+    new_url = parse.urlunparse(('http', proxy_host, parse_res.path, parse_res.params, parse_res.query, parse_res.fragment))
+    print(new_url)
+
     try:
-        resp = requests.get(url, headers={'User-Agent': fake_ua.random}, verify=False, timeout=10)
+        resp = requests.get(new_url, headers={
+            'User-Agent': fake_ua.random, 
+            'x-scheme': parse_res.scheme,
+            'Host': parse_res.netloc,
+            }, verify=False, timeout=10)
         news = goose.extract(url=url, raw_html=resp.text)
         return news.cleaned_text
     except Exception as ex:

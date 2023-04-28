@@ -64,3 +64,38 @@ nginx
 
     }
 
+proxy
+
+    curl -v http://6.6.6.6:3001/comply-or-withdraw -H 'Host: the.webm.ink' -H 'x-scheme: https'
+
+    server {
+
+        listen 3001;
+        server_name _;
+
+        proxy_connect_timeout 20s;
+        proxy_read_timeout 20s;
+
+        access_log /var/log/nginx/hn_proxy.access.log;
+        error_log /var/log/nginx/hn_proxy.error.log;
+        allow 140.143.188.251;
+        allow 101.42.30.36;
+        deny all;
+
+        location / {
+            resolver 127.0.0.53;
+            proxy_pass $http_x_scheme://$http_host/;
+            proxy_ssl_server_name on;
+            proxy_intercept_errors on;
+            error_page 301 302 307 = @handle_redirects;
+
+            proxy_set_header User-Agent $http_user_agent;
+        }
+
+        location @handle_redirects {
+            resolver 127.0.0.53;
+            set $saved_redirect_location '$upstream_http_location';
+            proxy_pass $saved_redirect_location;
+            proxy_set_header User-Agent $http_user_agent;
+        }
+    }

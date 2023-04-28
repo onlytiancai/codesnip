@@ -4,8 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <title>My Hacker News</title>
-    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <link href="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/bootstrap/4.5.3/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
     <script src="/static/avataaars.js"></script>
   </head>
   <body>
@@ -21,7 +20,7 @@
         <div class="media-body">
           <h4 class="media-heading"><a target="_blank" href="{{row.url}}">{{row.title}}</a></h4>
           {% if row.summary_cn%}
-          {{row.summary_cn|safe}} 
+          {{row.summary_cn|replace("\n","<br>")|safe}} 
           {% else %}
           暂无摘要，请访问原文。
           {% endif %} 
@@ -34,15 +33,16 @@
       <p class="text-center">当前页：{{page_info['page']}} | 总页数：{{page_info['pages']}}</p>
 
       <nav aria-label="...">
-        <ul class="pager">
+        <ul class="pagination">
           {% if page_info['has_prev'] %}
-          <li class="previous"><a href="{{ url_for('index', page=page_info['page']-1) }}"></span>上一页</a></li>
+          <li class="page-item"><a class="page-link" href="{{ url_for('index', page=page_info['page']-1) }}"></span>上一页</a></li>
           {% endif %}
           {% if page_info['has_next'] %}
-          <li class="next"><a href="{{ url_for('index', page=page_info['page']+1) }}">下一页</a></li>
+          <li class="page-item"><a class="page-link" href="{{ url_for('index', page=page_info['page']+1) }}">下一页</a></li>
           {% endif %}
         </ul>
       </nav>
+
 
     </div>
     <script>
