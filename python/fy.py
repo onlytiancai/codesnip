@@ -1,3 +1,7 @@
+# A translate tool in your command line, inspired by https://www.rubydoc.info/gems/fy/1.0.1
+# alias f='python3 /home/ubuntu/src/codesnip/python/fy.py'
+# api http://fanyi.youdao.com/openapi?path=data-mode
+
 import json
 import sys
 from urllib.parse import quote
