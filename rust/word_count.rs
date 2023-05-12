@@ -1,9 +1,11 @@
+use std::env;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 fn main() {
-    let f = File::open(file!()).unwrap();
+    let file_name = env::args().nth(1).unwrap_or_else(|| file!().to_string());
+    let f = File::open(file_name).unwrap();
     let reader = BufReader::new(f);
 
     let mut map = HashMap::new();
