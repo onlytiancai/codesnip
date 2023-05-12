@@ -11,9 +11,7 @@ fn main() {
     let mut map = HashMap::new();
     for line in reader.lines() {
         for word in line.unwrap().split_whitespace() {
-            let opt_word: Option<&str> = Option::from(word);
-            let word_str = String::from(opt_word.unwrap_or_default());
-            *map.entry(word_str).or_insert(0) += 1;
+            *map.entry(String::from(word)).or_insert(0) += 1;
         }
     }
 
