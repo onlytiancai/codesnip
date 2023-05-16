@@ -13,6 +13,7 @@ struct Pair(i32, f32);
 
 // 带有两个字段的结构体
 #[derive(Debug)]
+#[derive(Copy, Clone)]
 struct Point {
     x: f32,
     y: f32,
@@ -35,9 +36,9 @@ fn rect_area(rec: &Rectangle) -> f32 {
     (x2-x1)*(y2-y1)
 }
 
-fn square(p: &Point, l: f32) -> Rectangle {
+fn square(p: Point, l: f32) -> Rectangle {
    Rectangle {
-       top_left: Point {x: p.x, y: p.y},
+       top_left: p,
        bottom_right: Point {x:p.x + l, y: p.y + l}
    } 
 }
@@ -93,6 +94,6 @@ fn main() {
     let area = rect_area(&rec);
     println!("rec: {:?}, area={}", rec, area);
 
-    let s = square(&Point {x: 3.0, y: 4.0}, 2.0);
+    let s = square(Point {x: 3.0, y: 4.0}, 2.0);
     println!("square: {:?}, square area={}", s, rect_area(&s));
 }
