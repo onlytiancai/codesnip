@@ -34,6 +34,13 @@ fn rect_area(rec: &Rectangle) -> f32 {
     } = rec;
     (x2-x1)*(y2-y1)
 }
+
+fn square(p: &Point, l: f32) -> Rectangle {
+   Rectangle {
+       top_left: Point {x: p.x, y: p.y},
+       bottom_right: Point {x:p.x + l, y: p.y + l}
+   } 
+}
 fn main() {
     // 使用简单的写法初始化字段，并创建结构体
     let name = String::from("Peter");
@@ -85,4 +92,7 @@ fn main() {
     };
     let area = rect_area(&rec);
     println!("rec: {:?}, area={}", rec, area);
+
+    let s = square(&Point {x: 3.0, y: 4.0}, 2.0);
+    println!("square: {:?}, square area={}", s, rect_area(&s));
 }
