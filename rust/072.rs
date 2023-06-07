@@ -1,3 +1,4 @@
+// 这是一个简单的宏，名为 `say_hello`。
 macro_rules! say_hello {
     // `()` 表示此宏不接受任何参数。
     () => (
