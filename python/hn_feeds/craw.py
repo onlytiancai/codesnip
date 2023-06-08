@@ -36,6 +36,7 @@ def match_with_ac(description):
     return results
 
 def summary_openai(text, trycount=1):
+    return None
     url = 'http://127.0.0.1:3000/v1/chat/completions'
     headers = {'Content-Type':'application/json', 'Authorization': 'Bearer '+ config.OPENAI_API_KEY}
 
