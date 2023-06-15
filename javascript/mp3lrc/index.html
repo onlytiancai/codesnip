@@ -47,9 +47,9 @@
         }
 
         .container {
-            height: 420px;
-            /* border: 1px solid white; */
+            height: 450px;
             overflow: hidden;
+            margin-top: 10px;
         }
 
         .container ul {
@@ -61,10 +61,13 @@
             color: #666;
             height: 60px;
             line-height: 30px;
+            cursor: pointer;
         }
 
+        .container li:hover {
+            color: lightblue;
+        }
         .container li.active {
-            /* transform: scale(1.3); */
             color: #fff;
         }
     </style>
@@ -104,6 +107,9 @@
                 for (let i = 0; i < lyrics.length; i++) {
                     let li = document.createElement("li");
                     li.innerHTML = lyrics[i].text.replace('|', '<br>');
+                    li.addEventListener('click', ()=>{
+                        doms.player.currentTime = lyrics[i].time;
+                    });
                     frag.appendChild(li);
                 }
                 doms.ul.appendChild(frag);
@@ -129,6 +135,7 @@
                 if (offset > maxOffset) {
                     offset = maxOffset;
                 };
+                offset += 10; // 防止最后一行显示不全
                 // 滚动
                 doms.ul.style.transform = `translateY(-${offset}px)`;
                 // 清除之前的active
