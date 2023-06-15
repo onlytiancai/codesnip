@@ -14,7 +14,7 @@
         html {
             font-family: sans-serif;
             font-size: 16px;
-            color: #33444d;
+            color: #efefef;
         }
 
         body {
@@ -25,6 +25,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            background-color: black;            
         }
 
         .lyric {
@@ -40,6 +41,32 @@
             width: 100%;
             max-width: 300px;
         }
+
+        ul {
+            list-style: none;
+        }
+
+        .container {
+            height: 420px;
+            /* border: 1px solid white; */
+            overflow: hidden;
+        }
+
+        .container ul {
+            transition: all 0.6s;
+            text-align: center;
+        }
+
+        .container li {
+            color: #666;
+            height: 60px;
+            line-height: 30px;
+        }
+
+        .container li.active {
+            /* transform: scale(1.3); */
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -47,18 +74,23 @@
     <h2>新概念英语 2-001</h2>
     <h3>Private Conversation</h3>
     <audio class="player" controls></audio>
-    <div class="lyric"></div>
+    <div class="container">
+        <ul class="wordList">
+        </ul>
+    </div>
     <script>
         !async function main() {
             "use strict";
             const BASE_URL = "http://media.ihuhao.com/%E6%96%B0%E6%A6%82%E5%BF%B5%E8%8B%B1%E8%AF%AD/2/";
 
-            const dom = {
+            const doms = {
                 lyric: document.querySelector(".lyric"),
-                player: document.querySelector(".player")
+                player: document.querySelector(".player"),
+                ul: document.querySelector("ul"),
+                container: document.querySelector(".container")
             };
 
-            dom.player.src = BASE_URL + "01－A Private Conversation.mp3";
+            doms.player.src = BASE_URL + "01－A Private Conversation.mp3";
 
             // load lrc file
             const res = await fetch("01－A Private Conversation.lrc");
@@ -66,16 +98,54 @@
 
             const lyrics = parseLyric(lrc);
 
-            dom.player.ontimeupdate = () => {
-                const time = dom.player.currentTime;
+            // 创建歌词列表
+            function createElements() {
+                let frag = document.createDocumentFragment(); // 文档片段
+                for (let i = 0; i < lyrics.length; i++) {
+                    let li = document.createElement("li");
+                    li.innerHTML = lyrics[i].text.replace('|', '<br>');
+                    frag.appendChild(li);
+                }
+                doms.ul.appendChild(frag);
+            }
+            createElements();
+
+            // 获取显示窗口的可视高度
+            let containerHeight = doms.container.clientHeight;
+            // 获取歌词列表的可视高度
+            let liHeight = doms.ul.children[0].clientHeight;
+            // 设置最大最小偏移量，防止显示效果不佳
+            let minOffset = 0;
+            let maxOffset = doms.ul.clientHeight - containerHeight;
+            // 控制歌词滚动移动的函数
+            function setOffset() {      
+                const time = doms.player.currentTime;
                 const index = syncLyric(lyrics, time);
-
-                if (index == null) return;
-
-                dom.lyric.innerHTML = lyrics[index].text.replace('|','<br>');
+                // 计算滚动距离
+                let offset = liHeight * index - containerHeight / 2 + liHeight / 2;
+                if (offset < minOffset) {
+                    offset = minOffset;
+                };
+                if (offset > maxOffset) {
+                    offset = maxOffset;
+                };
+                // 滚动
+                doms.ul.style.transform = `translateY(-${offset}px)`;
+                // 清除之前的active
+                let li = doms.ul.querySelector(".active")
+                if (li) {
+                    li.classList.remove("active");
+                }
+                // 为当前所唱到的歌词添加active
+                li = doms.ul.children[index];
+                if (li) {
+                    li.classList.add("active");
+                }
             };
-
+            // 当audio的播放时间更新时，触发该事件
+            doms.player.addEventListener("timeupdate", setOffset);
         }();
+
 
         // lrc (String) - lrc file text
         function parseLyric(lrc) {
