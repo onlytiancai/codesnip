@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英语阅读</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            font-family: sans-serif;
+            font-size: 16px;
+            color: #33444d;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .lyric {
+            font-size: 1.5rem;
+            font-weight: bolder;
+            line-height: 1.5;
+            text-align: center;
+            max-width: 300px;
+            margin-top: 40px;
+        }
+
+        .player {
+            width: 100%;
+            max-width: 300px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>新概念英语 2-001</h2>
+    <h3>Private Conversation</h3>
+    <audio class="player" controls></audio>
+    <div class="lyric"></div>
+    <script>
+        !async function main() {
+            "use strict";
+            const BASE_URL = "http://media.ihuhao.com/%E6%96%B0%E6%A6%82%E5%BF%B5%E8%8B%B1%E8%AF%AD/2/";
+
+            const dom = {
+                lyric: document.querySelector(".lyric"),
+                player: document.querySelector(".player")
+            };
+
+            dom.player.src = BASE_URL + "01－A Private Conversation.mp3";
+
+            // load lrc file
+            const res = await fetch("01－A Private Conversation.lrc");
+            const lrc = await res.text();
+
+            const lyrics = parseLyric(lrc);
+
+            dom.player.ontimeupdate = () => {
+                const time = dom.player.currentTime;
+                const index = syncLyric(lyrics, time);
+
+                if (index == null) return;
+
+                dom.lyric.innerHTML = lyrics[index].text.replace('|','<br>');
+            };
+
+        }();
+
+        // lrc (String) - lrc file text
+        function parseLyric(lrc) {
+            // will match "[00:00.00] ooooh yeah!"
+            // note: i use named capturing group
+            const regex = /^\[(?<time>\d{2}:\d{2}(.\d{2})?)\](?<text>.*)/;
+
+            // split lrc string to individual lines
+            const lines = lrc.split("\n");
+
+            const output = [];
+
+            lines.forEach(line => {
+                const matches = line.match(regex);
+
+                // if doesn't match, return.
+                if (matches == null) return;
+
+                const { time, text } = matches.groups;
+
+                output.push({
+                    time: parseTime(time),
+                    text: text.trim()
+                });
+
+            });
+
+            // parse formated time
+            // "03:24.73" => 204.73 (total time in seconds)
+            function parseTime(time) {
+                const minsec = time.split(":");
+
+                const min = parseInt(minsec[0]) * 60;
+                const sec = parseFloat(minsec[1]);
+
+                return min + sec;
+            }
+
+            return output;
+        }
+
+        // lyrics (Array) - output from parseLyric function
+        // time (Number) - current time from audio player
+        function syncLyric(lyrics, time) {
+            const scores = [];
+
+            lyrics.forEach(lyric => {
+                // get the gap or distance or we call it score
+                const score = time - lyric.time;
+
+                // we don't want a negative score
+                if (score >= 0) scores.push(score);
+            });
+
+            if (scores.length == 0) return null;
+
+            // get the smallest value from scores
+            const closest = Math.min(...scores);
+
+            // return the index of closest lyric
+            return scores.indexOf(closest);
+            //https://dev.to/mcanam/javascript-lyric-synchronizer-4i15
+        }
+    </script>
+</body>
+
+</html>
