@@ -13,7 +13,6 @@
 
         html {
             font-family: sans-serif;
-            font-size: 16px;
             color: #efefef;
         }
 
@@ -21,41 +20,51 @@
             width: 100vw;
             height: 100vh;
             margin: 0;
-            padding: 40px;
+            padding: 0;
+            background-color: black;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            background-color: black;
         }
 
-        .lyric {
-            font-size: 1.5rem;
-            font-weight: bolder;
-            line-height: 1.5;
-            text-align: center;
-            max-width: 300px;
-            margin-top: 40px;
+        header,
+        footer {
+            background-color: #fff;
+            color: #000;
+            height: 10vh;
+            line-height: 10vh;
+            padding-left: 10px;      
+            display: flex;
+            font-size: 16px;
+        }
+
+        footer .buttons {
+            width: 50px;
+        }
+        footer .buttons select {
+            border-radius: 0;
+        }
+
+        footer .player-container {
+            flex: 1;
+            padding: 0 10px;
         }
 
         .player {
+            height: 20px;
             width: 100%;
-            max-width: 300px;
-        }
-
-        ul {
-            list-style: none;
+            vertical-align: middle;
         }
 
         .container {
-            height: 450px;
+            flex: 1;
             overflow: hidden;
-            margin-top: 10px;
+            
         }
 
         .container ul {
+            list-style: none;
             transition: all 0.6s;
             text-align: center;
-            margin: 0;
             padding: 0;
         }
 
@@ -65,7 +74,6 @@
         }
 
         .container li p {
-            height: 30px;
             line-height: 30px;
             margin: 0;
         }
@@ -85,20 +93,33 @@
 </head>
 
 <body>
-    <h3>新概念英语 2-001Private Conversation</h3>
-    <p><label>显示中文翻译：<input type="checkbox" id="chk_show_cn"></label></p>
-    <audio class="player" controls></audio>
+    <header>新概念英语 2-001</header>
+
     <div class="container">
         <ul class="wordList">
         </ul>
     </div>
+    
+    <footer>
+        <div class="buttons">
+            <select id="sel_subtitle">
+                <option value="en">英文</option>
+                <option value="cn">中文</option>
+                <option value="en_cn">中英</option>
+            </select>
+        </div>
+        <div class="player-container">
+            <audio class="player" controls></audio>
+
+        </div>
+
+    </footer>
     <script>
         !async function main() {
             "use strict";
             const BASE_URL = "http://media.ihuhao.com/%E6%96%B0%E6%A6%82%E5%BF%B5%E8%8B%B1%E8%AF%AD/2/";
 
             const doms = {
-                lyric: document.querySelector(".lyric"),
                 player: document.querySelector(".player"),
                 ul: document.querySelector("ul"),
                 container: document.querySelector(".container")
@@ -138,12 +159,23 @@
             // 设置最大最小偏移量，防止显示效果不佳
             let minOffset = 0;
             let maxOffset = doms.ul.clientHeight - containerHeight + 10;
-            document.getElementById('chk_show_cn').addEventListener('change', (e) => {
-                let arr = doms.ul.querySelectorAll(".li_cn");
-                const show_cn = e.target.checked;
-                for (let i = 0; i < arr.length; i++) {
-                    const li = arr[i];
-                    li.style.display = show_cn ? 'block' : 'none';
+            document.getElementById('sel_subtitle').addEventListener('change', (e) => {
+                switch (e.target.value) {
+                    case 'en':
+                        doms.ul.querySelectorAll(".li_cn").forEach((li) => { li.style.display = 'none'; });
+                        doms.ul.querySelectorAll(".li_en").forEach((li) => { li.style.display = 'block'; });
+                        break;
+                    case 'cn':
+                        doms.ul.querySelectorAll(".li_cn").forEach((li) => { li.style.display = 'block'; });
+                        doms.ul.querySelectorAll(".li_en").forEach((li) => { li.style.display = 'none'; });
+
+                        break;
+                    case 'en_cn':
+                        doms.ul.querySelectorAll(".li_cn").forEach((li) => { li.style.display = 'block'; });
+                        doms.ul.querySelectorAll(".li_en").forEach((li) => { li.style.display = 'block'; });
+                        break;
+                    default:
+                        break;
                 }
                 liHeight = doms.ul.children[0].clientHeight;
                 maxOffset = doms.ul.clientHeight - containerHeight + 10;
@@ -154,7 +186,9 @@
                 const time = doms.player.currentTime;
                 const index = syncLyric(lyrics, time);
                 // 计算滚动距离
-                let offset = liHeight * index - containerHeight / 2 + liHeight / 2;
+                const list = document.querySelectorAll('.container ul li')
+                const offsetTop = index != null ? list[index].offsetTop : 0;
+                let offset = offsetTop - containerHeight / 2 + 40;
                 if (offset < minOffset) {
                     offset = minOffset;
                 };
