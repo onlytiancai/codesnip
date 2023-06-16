@@ -10,3 +10,8 @@ authors = ["onlytiancai"]
 clap = "2.27.1" # 来自 crates.io
 rand = { git = "https://github.com/rust-lang-nursery/rand" } # 来自网上的仓库
 bar = { path = "../bar" } # 来自本地文件系统的路径
+
+# 这里省略了标准的 crate 数据
+[dev-dependencies]
+pretty_assertions = "1"
+

@@ -2,3 +2,4 @@ a.out
 *.rlib
 executable
 foo/target
+bar/target
