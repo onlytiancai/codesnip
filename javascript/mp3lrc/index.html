@@ -25,7 +25,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: black;            
+            background-color: black;
         }
 
         .lyric {
@@ -59,14 +59,22 @@
 
         .container li {
             color: #666;
-            height: 60px;
-            line-height: 30px;
             cursor: pointer;
+        }
+
+        .container li p {
+            height: 30px;
+            line-height: 30px;
+        }
+
+        .container li p.li_cn {
+            display: none;
         }
 
         .container li:hover {
             color: lightblue;
         }
+
         .container li.active {
             color: #fff;
         }
@@ -74,8 +82,8 @@
 </head>
 
 <body>
-    <h2>新概念英语 2-001</h2>
-    <h3>Private Conversation</h3>
+    <h3>新概念英语 2-001Private Conversation</h3>
+    <p><label>显示中文翻译：<input type="checkbox" id="chk_show_cn"></label></p>
     <audio class="player" controls></audio>
     <div class="container">
         <ul class="wordList">
@@ -98,16 +106,29 @@
             // load lrc file
             const res = await fetch("01－A Private Conversation.lrc");
             const lrc = await res.text();
-
             const lyrics = parseLyric(lrc);
+            const res_cn = await fetch("01－A Private Conversation_cn.lrc");
+            const lrc_cn = await res_cn.text();
+            const lyrics_cn = parseLyric(lrc_cn);
 
+            document.getElementById('chk_show_cn').addEventListener('change', (e) => {
+                let arr = doms.ul.querySelectorAll(".li_cn");
+                const show_cn = e.target.checked;
+                for (let i = 0; i < arr.length; i++) {
+                    const li = arr[i];
+                    li.style.display = show_cn ? 'block' : 'none';
+                }
+            });
             // 创建歌词列表
             function createElements() {
+                doms.ul.removeChild
                 let frag = document.createDocumentFragment(); // 文档片段
                 for (let i = 0; i < lyrics.length; i++) {
                     let li = document.createElement("li");
-                    li.innerHTML = lyrics[i].text.replace('|', '<br>');
-                    li.addEventListener('click', ()=>{
+
+                    li.innerHTML = '<p class="li_en">' + lyrics[i].text + '</p>';
+                    li.innerHTML += '<p class="li_cn">' + lyrics_cn[i].text + '</p>';
+                    li.addEventListener('click', () => {
                         doms.player.currentTime = lyrics[i].time;
                     });
                     frag.appendChild(li);
@@ -124,7 +145,7 @@
             let minOffset = 0;
             let maxOffset = doms.ul.clientHeight - containerHeight;
             // 控制歌词滚动移动的函数
-            function setOffset() {      
+            function setOffset() {
                 const time = doms.player.currentTime;
                 const index = syncLyric(lyrics, time);
                 // 计算滚动距离
