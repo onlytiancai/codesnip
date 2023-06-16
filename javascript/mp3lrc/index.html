@@ -55,6 +55,8 @@
         .container ul {
             transition: all 0.6s;
             text-align: center;
+            margin: 0;
+            padding: 0;
         }
 
         .container li {
@@ -65,6 +67,7 @@
         .container li p {
             height: 30px;
             line-height: 30px;
+            margin: 0;
         }
 
         .container li p.li_cn {
@@ -110,15 +113,6 @@
             const res_cn = await fetch("01－A Private Conversation_cn.lrc");
             const lrc_cn = await res_cn.text();
             const lyrics_cn = parseLyric(lrc_cn);
-
-            document.getElementById('chk_show_cn').addEventListener('change', (e) => {
-                let arr = doms.ul.querySelectorAll(".li_cn");
-                const show_cn = e.target.checked;
-                for (let i = 0; i < arr.length; i++) {
-                    const li = arr[i];
-                    li.style.display = show_cn ? 'block' : 'none';
-                }
-            });
             // 创建歌词列表
             function createElements() {
                 doms.ul.removeChild
@@ -143,7 +137,18 @@
             let liHeight = doms.ul.children[0].clientHeight;
             // 设置最大最小偏移量，防止显示效果不佳
             let minOffset = 0;
-            let maxOffset = doms.ul.clientHeight - containerHeight;
+            let maxOffset = doms.ul.clientHeight - containerHeight + 10;
+            document.getElementById('chk_show_cn').addEventListener('change', (e) => {
+                let arr = doms.ul.querySelectorAll(".li_cn");
+                const show_cn = e.target.checked;
+                for (let i = 0; i < arr.length; i++) {
+                    const li = arr[i];
+                    li.style.display = show_cn ? 'block' : 'none';
+                }
+                liHeight = doms.ul.children[0].clientHeight;
+                maxOffset = doms.ul.clientHeight - containerHeight + 10;
+            });
+
             // 控制歌词滚动移动的函数
             function setOffset() {
                 const time = doms.player.currentTime;
@@ -156,7 +161,6 @@
                 if (offset > maxOffset) {
                     offset = maxOffset;
                 };
-                offset += 10; // 防止最后一行显示不全
                 // 滚动
                 doms.ul.style.transform = `translateY(-${offset}px)`;
                 // 清除之前的active
