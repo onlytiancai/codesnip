@@ -1,4 +1,3 @@
-*.ipynb
 *.o
 *.pyc
 *.swp
@@ -7,3 +6,6 @@
 *.swp
 node/mydb/
 *.d
+*.jar
+*.class
+node_modules

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>My Hacker News</title>
+    <link href="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/bootstrap/4.5.3/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
+    <script src="/static/avataaars.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1><a href="/">My Hacker News</a></h1>
+      {% for row in rows %}
+
+      <div class="media">
+        <div class="media-left">
+          <a href="#" id="face{{loop.index0}}">
+          </a>
+        </div>
+        <div class="media-body">
+          <h4 class="media-heading"><a target="_blank" href="{{row.url}}">{{row.title}}</a></h4>
+          {% if row.summary_cn%}
+          {{row.summary_cn|replace("\n","<br>")|safe}} 
+          {% else %}
+          暂无摘要，请访问原文。
+          {% endif %} 
+          <p class="text-right">{{row['author']}} at {{row['published']}}</p>
+        </div>
+      </div>
+
+      {% endfor %}
+
+      <p class="text-center">当前页：{{page_info['page']}} | 总页数：{{page_info['pages']}}</p>
+
+      <nav aria-label="...">
+        <ul class="pagination">
+          {% if page_info['has_prev'] %}
+          <li class="page-item"><a class="page-link" href="{{ url_for('index', page=page_info['page']-1) }}"></span>上一页</a></li>
+          {% endif %}
+          {% if page_info['has_next'] %}
+          <li class="page-item"><a class="page-link" href="{{ url_for('index', page=page_info['page']+1) }}">下一页</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+
+
+    </div>
+    <script>
+      Array.prototype.random = function () {
+        return this[Math.floor((Math.random()*this.length))];
+      }
+      for (var i = 0; i < {{rows|length}}; i++) {
+        var svg = Avataaars.create({
+          width: "64",
+          height: "64",
+          skin: 'tanned, yellow, pale, light, brown, darkBrown, black'.split(', ').random(),
+          hairColor: 'auburn, black, blonde, blondeGolden, brown, brownDark, pastelPink, platinum, red, silverGray'.split(', ').random(),
+          top: 'dreads01, dreads02, frizzle, shaggyMullet , shaggy, shortCurly, shortFlat, shortRound, sides, shortWaved, theCaesarAndSidePart, theCaesar, bigHair, bob, bun, curly, curvy, dreads, frida, froAndBand, fro, longButNotTooLong, miaWallace, shavedSides, straightAndStrand, straight01, straight02, eyepatch, turban, hijab, hat, winterHat01, winterHat02, winterHat03, winterHat04'.split(', ').random(),
+          clothing: 'blazerAndShirt, blazerAndSweater, collarAndSweater, graphicShirt, hoodie, overall, shirtCrewNeck, shirtScoopNeck, shirtVNeck'.split(', ').random(),
+        });
+        document.getElementById('face'+i).innerHTML = svg;
+      }
+    </script>
+  </body>
+</html>

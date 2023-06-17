@@ -31,3 +31,10 @@
     gcc -o testlist.o test_list.c list.o
     ./testlist.o
 
+单元测试框架: 055.c
+
+    cmocka
+
+调试内存泄漏
+
+    gcc -fsanitize=address -fno-omit-frame-pointer -O1 -g 051.c -o use-after-free

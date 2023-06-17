@@ -8819,7 +8819,7 @@ ReplaceGoogleCDN-master
 - chrome 收藏夹
 - putty 配置
 - git key
-- 我的文档，图片
+- 我的文档，图片，桌面
 
 
 
@@ -14354,3 +14354,2116 @@ http://www.caishiv.com/insight/detail?id=16267
 
 我们之前所研究得出的一些投资异象，包括小市值的异象、低贝塔的异象，会随着外资进入逐渐消失。
 
+smart beta 是什么？为什么最近如此受追捧？
+https://www.zhihu.com/question/34726812?sort=created
+
+在这个模型中，Fama和French提出，美国历史上的股票回报，很大程度上可以用三个因子(Factor)来解释。这三个因子是：股票市场总体回报(beta)，小股票超额回报(Small minus Big)，以及价值超额回报（High minus Low)。
+
+查看 nat 
+    iptables -t nat --list
+    cat /etc/network/if-pre-up.d/iptable
+        #!/bin/bash
+        iptables -I FORWARD -m state -d 192.168.122.0/24 --state NEW,RELATED,ESTABLISHED -j ACCEPT
+        iptables -t nat -I PREROUTING -p tcp -s 192.168.2.101/24 --dport 80:40000 -j DNAT --to-destination 192.168.122.23:80-40000
+    cat /etc/network/if-pre-up.d/iptable > /etc/rc.local
+
+
+how to use a like with a join in sql?
+https://stackoverflow.com/questions/1386166/how-to-use-a-like-with-a-join-in-sql
+
+    SELECT *
+      FROM TABLE a
+      JOIN TABLE b ON INSTR(b.column, a.column) > 0
+
+    SELECT *
+    FROM TABLE a
+      JOIN TABLE b ON b.column LIKE '%'+ a.column +'%'
+
+    SELECT *
+      FROM TABLE a
+      JOIN TABLE b ON b.column LIKE CONCAT('%', a.column ,'%')
+
+    SELECT *
+      FROM (SELECT UPPER(a.column) 'ua'
+             TABLE a) a
+      JOIN (SELECT UPPER(b.column) 'ub'
+             TABLE b) b ON INSTR(b.ub, a.ua) > 0
+
+    SELECT *
+      FROM TABLE a,
+           TABLE b
+     WHERE INSTR(b.column, a.column) > 0
+
+
+股票指数的宏观择时
+https://www.joinquant.com/view/community/detail/b97286ceab87c24e8590bf837ccc396c?type=1
+
+使用Pandas Dataframe运行OLS回归
+https://www.itranslater.com/qa/details/2325785944240161792
+
+利用Python进行数据分析笔记－pandas建模(statsmodels篇)
+https://blog.csdn.net/wuzlun/article/details/80305111
+
+Python时间序列数据分析--以示例说明
+https://www.cnblogs.com/bradleon/p/6832867.html
+
+用Patsy公式进行数据转换
+https://jingyan.baidu.com/article/ed2a5d1fbaec5e09f6be171c.html
+
+
+预测GDP应用：Numpy 线性回归+Matplotlib 作图
+https://blog.csdn.net/Gg_ning/article/details/108535314
+
+从零开始学量化（五）：用Python做回归
+https://cloud.tencent.com/developer/article/1460925
+
+PB-ROE提供了一种投资的框架，这种框架是说，股票的PB和ROE之间存在近似的线性关系，ROE越高，PB越高，因此如果同时根据PB、ROE值来投资，很难选到同时满足PB最小、ROE最大的股票。但可以根据他们的线性关系进行选择，回归直线上的点可以视为合理的PB、ROE组合水平，这样位于回归线下方的股票都是PB被低估的，未来有很大的上升修复空间，而位于回归线上方的股票都是当前PB被高估的，未来会下降，因此投资可以选择位于回归线下方的股票。使用这种方法最重要的点是回归必须是靠谱的，比如ROE应该是稳定的，确保未来可持续，比如应想办法消除行业间的差异等等。
+
+
+statsmodels中做回归有很多模块都能实现，sml.ols的优点是可以写成公式型的回归，类似R中做回归的过程，比如PB和ROE的回归可以用公式表示为'pb~roe'，多个自变量之间用加号连接。sml.ols一般包括formula和data两个输入，formula是回归的公式，data为使用的数据。此外，还有missing这个参数，对于回归数据包含缺失值时很好用，比如设置missing = 'drop'表示回归时删除包含缺失值的样本。代码如下
+
+
+import statsmodels.formula.api as sml
+model = sml.ols(formula='pb_lf~roe_ttm2',data = datas1)
+result=model.fit()
+
+result.params # 回归系数
+result.rsquared # R方
+result.resid # 残差
+result.fittedvalues # 拟合值
+
+
+使用 python 做线性回归，scipy，statsmodels，sklearn
+https://blog.csdn.net/robert_chen1988/article/details/103551261
+
+
+Difference between statsmodel OLS and scikit linear regression
+https://stats.stackexchange.com/questions/146804/difference-between-statsmodel-ols-and-scikit-linear-regression
+
+
+Detecting mouse and keyboard input with .NET
+http://joelabrahamsson.com/detecting-mouse-and-keyboard-input-with-net/
+https://stackoverflow.com/questions/1363167/how-can-i-get-the-child-windows-of-a-window-given-its-hwnd
+https://stackoverflow.com/questions/7740379/c-sharp-how-to-use-wm-gettext-getwindowtext-api-window-title
+https://stackoverflow.com/questions/7497024/how-to-detect-mouse-clicks
+https://jingyan.baidu.com/article/1612d5007730dfe20e1eee30.html
+https://stackoverflow.com/questions/44990335/is-there-any-way-to-global-hook-the-mouse-actions-like-im-hooking-the-keyboard
+https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-setwindowshookexa?redirectedfrom=MSDN
+https://stackoverflow.com/questions/13476021/how-to-know-when-the-foreground-window-has-changed
+https://stackoverflow.com/questions/7458807/why-must-setwindowshookex-be-used-with-a-windows-message-queue#7460728
+https://social.msdn.microsoft.com/forums/en-US/bfc75b57-df16-48c6-92af-ea0a34f540ae/how-to-get-the-handle-of-a-window-that-i-click
+
+https://stackoverflow.com/questions/352236/reading-from-a-text-field-in-another-applications-window
+https://github.com/westoncampbell/SpyPlusPlus
+https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getmenustringa
+https://blog.csdn.net/bcbobo21cn/article/details/106340762
+https://blog.csdn.net/xpzhang/article/details/1493724
+https://www.cnblogs.com/wangjixianyun/archive/2013/01/21/2869299.html
+https://blog.csdn.net/stf1065716904/article/details/74199422
+https://stackoverflow.com/questions/7282482/windows-net-reading-text-under-mouse-cursor
+
+The low-level hooks, WH_KEYBOARD_LL and WH_MOUSE_LL are different from all the other hooks. They don't require a DLL to be injected into the target process. Instead, Windows calls your hook callback directly, inside your own process. To make that work, a message loop is required. There is no other mechanism for Windows to make callbacks on your main thread, the callback can only occur when you've called Get/PeekMessage() so that Windows is in control.
+
+A global hook like WH_KEYBOARD is very different. It requires a DLL and the callback occurs within the process that processes the keyboard message. You need some kind of inter-process communication to let your own program be aware of this. Named pipes are the usual choice. Which otherwise of course requires that this injected process pumps a message loop. It wouldn't get keyboard messages otherwise.
+
+Favor a low-level hook, they are much easier to get going. But do pump or it won't work. And beware of timeouts, if you're not responsive enough then Windows will kill your hook without notice.
+
+
+testcookie-nginx-module is a simple robot mitigation module using cookie based challenge/response technique.
+http://kyprizel.github.io/testcookie-nginx-module/
+这个防止爬虫的nginx模块看起来不错，比官方的 limit_conn_zone 和limit_req_zone 感觉靠谱
+
+
+autoit
+AutoIt3相关——基本使用篇
+https://www.cnblogs.com/ftxy/p/11844039.html
+https://www.jb51.net/shouce/autoit/
+https://www.autoitscript.com/forum/topic/144176-solved-how-to-click-a-menu-item/
+
+
+步进电机、伺服电机、舵机的原理和区别？
+https://blog.csdn.net/gtkknd/article/details/79489442
+
+
+kvm web
+https://linuxhint.com/libvirt_python/
+
+实战课程发布 —— 《L07 Laravel TDD 测试入门》
+https://learnku.com/laravel/t/47634
+
+总共 160+ 个测试，测试话题包含：
+
+数据库测试
+测试表单验证
+测试文件上传
+测试邮件发送
+测试远程 API 调用
+测试「异常」抛出
+模拟登录用户
+contract 测试
+测试命令行
+Dusk 测试 （浏览器测试，模拟用户行为，包含 JS 测试）
+
+涉及了 Web 应用常见的测试层级，包括：
+
+单元测试
+集成测试
+浏览器测试（黑盒测试）
+
+https://www.doctorxiong.club/api/#api-Fund-getFundPosition 基金API，免费的
+
+Understanding the GitHub flow
+https://guides.github.com/introduction/flow/
+
+Git 在团队中的最佳实践--如何正确使用Git Flow
+https://www.cnblogs.com/cnblogsfans/p/5075073.html
+
+Git 工作流程
+http://www.ruanyifeng.com/blog/2015/12/git-workflow.html
+
+
+【基金知识科普】认识与判断基金的相关性
+https://zhuanlan.zhihu.com/p/155778814
+
+市场上真正有效的分散投资，需要考虑以下几点：
+
+第一， 分散投资品种，比如股票、债券、黄金。
+第二， 资本市场，比如A股、港股、美股。
+第三， 同一资本市场内，不同类别股票的相关性，比如沪深300、创业板指等等。
+
+雪球大V组合“基金相关性”差别如此之大！看看有哪些大V注重分散配置！
+https://xueqiu.com/8687456694/165261496
+
+1、资产的相关性是投资组合理论的核心：相关性越低，投资组合的市场表现就越好。
+2、分散投资于几种不相关的资产可以降低风险，并通过“定期调平（卖出涨幅好的，买入表现差的）”获得增加收益。
+3、真实的资产总是“不完全相关”！大多数都集中在0.3~0.8之间，这就是真实世界的投资组合情况。几乎没有绝对的完全正相关或者完全负相关。
+4、资产之间的相关性不是固定的，而是随着时间大幅波动。
+5、有效分散化的投资组合并不能消除风险。在现实中几乎不可能找到3种以上相互无关的资产，因此，通过分散化只能降低1/4~1/3的风险。
+6、在债券中，加入不高于25%的股票时，风险略微降低，年化收益率明显提升！
+
+基金组合再平衡策略实践
+http://fund.eastmoney.com/a/1593,20121203261782471.html
+
+到了年底，投资者有必要关注基金组合的再平衡。在基金投资中，两种倾向都是有问题的：一种是频繁的申购赎回；另外一种是在买入后就不对基金组合进行管理。资产配置是影响投资回报的一个重要的因素，随着时间的推移，组合中的基金表现不一，组合很可能偏离最初的目标资产配置，呈现出与投资者目标和偏好不同的风险收益特征。再平衡是重要的风险缓解工具，其目标是缩小资产配置的风险，而不是追求组合回报的最大化。
+
+研究表明，对于大多数的充分分散化的股票基金和债券基金的组合，以季度进行查核，并且在偏离度达到8%时进行再平衡，是较优的策略，会在风险控制和成本之间取得较好的平衡。在把这一策略应用到实际中时，再平衡的成本是很难量化的，但是必须给予重视。采用如下的策略可以降低再平衡的成本：通过补充新的资金来进行再平衡，而不是卖出表现好的基金，买入表现不佳的基金，直接把新增资金补充到权重低的基金中，重新达到目标资产配置的平衡。
+
+
+累积型的收益曲线最终会明显胜过回撤型的。也就是说你跟着牛熊周期大起大落最终很可能得不偿失，因为大起之后资产规模也大了，再大落，那是加倍地落；而稳稳的收益反而难能可贵，持续地增长，复利结果相当惊人
+
+当我们构建一个投资组合，想要兼顾收益率和波动率，事实上是极度困难甚至不可行的，二者有天然的矛盾，在我看来并无法真正调解，只能去权衡折中。年轻时多承担一些波动来换取收益，年长后减少些收益预期来降低波动。大致只能如此
+
+https://www.sohu.com/a/142554349_116674
+简单的一句话总结就是
+牛市：不再平衡更好
+熊市：再平衡更好
+
+也就说明短期内，资产的动量属性非常明显。而长期来看，资产价格将出现均值回归，涨得厉害的资产较易出现回调，而跌得厉害的资产也相对更容易出现反弹。
+写在最后
+
+至此，我们做了三个维度的再平衡研究。我们基本可以确定
+
+再平衡比不再平衡综合表现更好
+1. 保证长期回报及风险预期和目标更吻合
+2. 保证组合分散风险的功效能够得到最大发挥
+
+再平衡频率可以按时间或者按权重偏离百分比触发
+
+1. 历史数据显示，中长期的再平衡频率比每个月再平衡的表现更好
+2. 如果按偏离百分比触发再平衡，30%是一个可取的触发点
+
+在其他设定一定的情况，再平衡幅度对于组合长期表现的影响不大
+
+趣编程软件下载
+https://www.shinelab.cn/download
+
+SICP
+https://book.douban.com/subject/1148282/
+
+了解数学史的人，应该知道整个数学史，就是一个不断抽象的历史。古希腊人将字母引入计算，使数学不再只是算术，而且具有表达抽象规则的能力。近代数学对函数和微积分的探求中，用 f(x) 替代了多项式表达式，函数更一般了，然后 n 维空间、复分析、映射、泛函，抽象代数、群论，等等等等，直到集合论，摧毁了数学的基石，使数学界再次陷入沉思。
+
+构造程序的方法也是抽象。从最简单的元素开始，基本元素(自演算表达式，包括数字，字符串和布尔值），然后定义基本过程（基本运算符，四则运算和布尔运算），进一步，自定义标识符（如同代数），再自定义过程（函数），再将过程作为值参与运算（高阶过程）。一步步的抽象，形成了整个程序的结构。而我们编程，无非就是从现实世界抽象出模型，再将模型不断的提炼抽象，属性、方法、类、继承、层次、框架。
+
+如果要问现代数学最重要的概念是什么，那毫无疑问就是函数了，或者更确切地说，是映射。泛函这个词，或许对非数学系的同学来说有些陌生，但如果写成英语 functional, 看起来就眼熟多了。狭隘一点地说，泛函就是以函数为参数，返回值是数值的一类函数。看到这里相信不少同学都发现了，这就是在很多语言中被称为高阶函数（high-order function）的那个东西。泛函在数学中是如此普遍的概念，现代数学几乎无处不会用到。数学家们很自然地在集合上添加运算，构造空间；从一个空间映射到另一个空间，创造泛函。对泛函做变换，构造泛函的泛函。等等。
+
+为什么我要在这里提到数学和泛函？因为在我看来， lisp 是一门以表达数学为己任的语言。正如 SICP 中希望表达的一种观点：语言会影响思维。如果数学推理过程中最频繁应用到的泛函，在计算机语言中却没有对应的表达，换言之数学思维不能很自然地表述为计算机语言的话，那么计算机对于数学研究的意义就显得很可疑了
+
+第一章讨论程序设计的最基本原则：原语（primitive expressions）、组合（means of composition）和抽象（means of abstraction），以及如何利用这些基本原则化解复杂度。重点是过程抽象和高阶过程（high-order procedures）。本章的例题十分精彩，抽象和组合的过程十分清晰。有关递归和迭代的讨论也非常耐读。
+
+第二章讨论数据抽象，即利用基本数据构造复杂结构。Scheme里的基本构造能力只有cons，但由此可以组合出所有实用的结构。图像语言、符号运算、集合表示、哈夫曼编码和复数系统都是经典实用的例子。顺带还介绍了data-directed方法，与面向对象中的封装有异曲同工之妙。
+
+即使没有太多时间，我觉得前两章也值得值得细读。尤其是例子。
+
+第三章主要讨论了状态（local state）和环境（environment model），可变数据结构（mutable data），以及状态和时间的交互（concurrency和laziness）。前两章用到语言是Scheme的一个没有副作用的子集，从这一章开始涉及解释器的核心机制，尤其是状态的管理，及其优缺点。
+
+第四章用Scheme实现了一个简单的Scheme解释器。重点是讨论语言的解释过程，以及如何针对问题（领域）创造和修改语言，从中可见DSL（Domain Specific Language）的思想。后三节各自讨论一个工程中不常见但高效解决特定问题的语言变种及其实现。
+
+第五章介绍将Scheme编译为现实中的寄存器机器模型（register machine）。重点不是编译技巧（Scheme压根不需要文法分析），而是基本构造（条件、过程，等等）对应于寄存器模型的实现。略带讨论了最简单的垃圾回收。
+
+后三章较深，最好略有一点语言、编译和体系结构的基础，或者多些耐心。
+
+
+公募“四大天王”的思维共性（朱少醒、张坤、谢治宇、萧楠）
+https://weibo.com/ttarticle/p/show?id=2309404580959944048809&sudaref=passport.weibo.com
+
+量化投资大神西蒙斯2019最新分享：量化策略、数学、职业与交易
+https://futures.hexun.com/2019-07-11/197821001.html
+
+
+PHPMD简介
+https://blog.csdn.net/wu15010861923/article/details/89158240
+
+https://github.com/mi-schi/phpmd-extension
+https://www.kancloud.cn/bajiao/phpmd/128478
+
+vueblog项目文档：https://juejin.cn/post/5ecfca676fb9a04793456fb8
+
+vueblog项目视频：https://www.bilibili.com/video/BV1PQ4y1P7hZ
+
+vueblog代码仓库：https://github.com/MarkerHub/vueblog
+
+Spring Boot之 Controller 接收参数和返回数据总结(包括上传、下载文件)
+https://www.cnblogs.com/dand/p/10178500.html
+
+git squash 的使用
+https://www.cnblogs.com/hzglearn/p/13042282.html
+
+一，如果是尚未推送到远端，全部在本地分支上，这时候大胆的使用git 命令行开始操作 1.git rebase -i HEAD~3 合并本地的几个commitHEAD~后面跟几个数字即可
+
+git merge的参数--squash的用处
+http://www.voidcn.com/article/p-vjynnngk-bcg.html
+
+4.git merge --squash abc
+5.git commit -m添加message
+
+Git 使用规范流程
+http://www.ruanyifeng.com/blog/2015/08/git-use-process.html?bsh_bid=701658724
+
+量化平台代码中，XSHG 和 XSHE代码的含义
+https://zhuanlan.zhihu.com/p/260369082
+
+### pandas
+
+    code = 161005
+
+    # 股票持仓
+    # 股票持仓
+    types = ('第一季度','第二季度','第三季度','第四季度')
+    q=query(finance.FUND_PORTFOLIO_STOCK) \
+        .filter(finance.FUND_PORTFOLIO_STOCK.code==code) \
+        .filter(finance.FUND_PORTFOLIO_STOCK.rank<=10) \
+        .filter(finance.FUND_PORTFOLIO_STOCK.report_type.in_(types)) \
+        .order_by(finance.FUND_PORTFOLIO_STOCK.pub_date.desc()).limit(2000)
+    df=finance.run_query(q)
+    df
+
+
+
+    from jqdata import finance
+    # 净值
+    q=query(finance.FUND_NET_VALUE).filter(finance.FUND_NET_VALUE.code=="161005").order_by(finance.FUND_NET_VALUE.day.desc()).limit(10)
+    df=finance.run_query(q)
+    df
+
+    # 获取行业
+    get_industry(security=['002475.XSHE','002142.XSHE'], date="2018-06-01")
+
+    # 转换代码
+    normalize_code(['000651','600887'])
+
+    # 面积图
+    df2 = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
+    df2.a.plot.area() # 单个列
+    df2.plot.area()
+    df2
+
+    df2.plot.area(figsize=(12,5),title=fund_name)
+
+
+    save.to_csv('b.txt',index=False,sep=',')
+
+Unstacking a multi-index with duplicates
+https://stackoverflow.com/questions/62174893/unstacking-a-multi-index-with-duplicates
+
+df = df.groupby(["Date", "ID"],sort=False)['Value'].sum().unstack()
+
+pandas: groupby and unstack to create feature vector for classification
+https://stackoverflow.com/questions/24444251/pandas-groupby-and-unstack-to-create-feature-vector-for-classification
+
+PHPMD(PHP Mess Detector)规则集
+https://www.kancloud.cn/bajiao/phpmd/128478
+
+超详细！4小时开发一个SpringBoot+vue前后端分离博客项目！！
+https://juejin.cn/post/6844903823966732302#heading-19
+
+SICP Python 描述 中文版
+https://wizardforcel.gitbooks.io/sicp-py/content/
+
+SQLAlchemy Filter based on a function of an a field of a table
+https://stackoverflow.com/questions/25596899/sqlalchemy-filter-based-on-a-function-of-an-a-field-of-a-table
+
+# PostgreSQL
+from sqlalchemy.sql import extract
+session.query(MyTable).filter(extract('dow', MyTable.my_date) == 1)
+
+# MySQL
+from sqlalchemy import func
+session.query(MyTable).filter(func.dayofweek(MyTable.my_date) == 2)
+
+python seaborn heatmap可视化相关性矩阵
+https://blog.csdn.net/sjtulgl/article/details/92796547
+
+import pandas as pd
+import numpy as np
+import seaborn as sns
+df = pd.DataFrame(np.random.randn(50).reshape(10,5))
+corr = df.corr()
+sns.heatmap(corr, cmap='Blues', annot=True)
+
+
+mask = np.zeros_like(corr)
+mask[np.tril_indices_from(mask)] = True
+sns.heatmap(corr, cmap='Blues', annot=True, mask=mask.T)
+
+pandas-数据的合并与拼接
+https://www.cnblogs.com/keye/p/10791705.html
+
+a = pd.Series([1.1,2.2,3.3],index=['i1','i2','i3'])
+b = pd.Series([4.4,5.5,6.6],index=['i2','i3','i4'])
+print(a)
+print(b)
+pd.concat([a,b])
+pd.concat([a,b],axis=1)
+
+
+常见基本回测指标（年化收益率，夏普率，最大回撤，β值，α值）的实现
+https://www.jianshu.com/p/cc59b41e751f
+https://my.oschina.net/u/4586457/blog/4403144
+https://mp.weixin.qq.com/s?__biz=MzUyMDk1MDY2MQ==&mid=2247483991&idx=1&sn=7e2a54011706fd88ff7cef2007f840d8&chksm=f9e3c4bdce944daba8cdd20fa7ca26704381779159f2aa25e66a2d1f527590e29c906df9a697#rd
+https://zhuanlan.zhihu.com/p/100185719
+https://blog.csdn.net/weixin_30950887/article/details/95788442
+
+Python进阶量化交易场外篇3——最大回撤评价策略风险
+https://www.cnblogs.com/xyou/p/10338259.html
+
+    #expanding()计算资金曲线当前的滚动最高值
+    stock_df['max_total'] = stock_df['total'].expanding().max()
+    #计算资金曲线在滚动最高值之后所回撤的百分比
+    stock_df['per_total'] = stock_df['total']/stock_df['max_total']
+    min_point_total = stock_df.sort_values(by=['per_total']).iloc[[0], stock_df.columns.get_loc('per_total')]
+    print(min_point_total)
+    max_point_total = stock_df[stock_df.index <= min_point_total.index[0]].sort_values\
+    (by=['total'],ascending=False).iloc[[0],stock_df.columns.get_loc('total')]
+    print("最大资金回撤%5.2f%%从%s开始至%s结束"%((1-min_point_total.values),\
+    max_point_total.index[0],min_point_total.index[0]))
+
+
+Pandas进阶之窗口函数rolling()和expanding()
+https://www.jianshu.com/p/b8c795345e93?from=timeline
+
+事实上，当rolling()函数的参数window=len(df)时，实现的效果与expanding()函数是一样的。
+
+# 判断expanding()的求和结果，与cumsum()结果，相同
+result1 = df.expanding(min_periods=1).sum()
+result2 = df.cumsum()
+np.allclose(result1, result2)
+True
+
+教你用 Python 进阶量化交易
+https://www.imooc.com/read/13
+
+深入理解量化交易的本质
+掌握 Pandas、NumPy 等基础工具
+如何实现常用的金融交易技术指标
+如何实现常用的量化交易策略
+如何制作自己的量化交易工具
+
+
+mysql新增参数未传异常_难道发现了mysql的bug?show table status 命令不起作用了
+https://blog.csdn.net/weixin_39915721/article/details/111687950
+
+ ANALYZE TABLE test show table status where name  = 'test'
+ set session information_schema_stats_expiry = 0;
+
+DecisionTreeClassifier 能够实现多类别的分类。输入两个向量：向量X，大小为[n_samples,n_features]，用于记录训练样本；向量Y，大小为[n_samples]，用于存储训练样本的类标签。
+
+    from sklearn import tree
+    X = [[0, 0], [1, 1]]
+    Y = [0, 1]
+    clf = tree.DecisionTreeClassifier()
+    clf = clf.fit(X, Y)
+
+    clf.predict([[2., 2.]])
+    clf.predict_proba([[2., 2.]])       #计算属于每个类的概率
+
+去掉异常值
+
+    df_zscore=df.copy() #复制一个用来存储Z-score得分的数据框
+    cols=df.columns
+    for col in cols:
+        df_col=df[col]
+        z_score=(df_col - df_col.mean()) / df_col.std() #计算每列的Z-score得分
+        df_zscore[col] = z_score.abs() > 2.2 #判断Z-score得分是否大于2.2,如果是则为True,否则为False
+    df = df[df_zscore['pmi']==False]
+    df.plot(figsize=(16,6))
+
+决策树
+Python36：MachineLearning-DecisionTreeClassifier
+http://blog.sina.com.cn/s/blog_77f476ef0102xhm8.html
+
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.metrics import accuracy_score
+    import pandas as pd
+    import numpy as np
+
+    # Read the data.csv
+    data = np.asarray(pd.read_csv('data.csv', header=None))
+    # Assign the features to the variable x, and the labels to the variable y. 
+    x = data[:,0:2]
+    y = data[:,2]
+
+    # TODO: Create the decision tree model and assign it to the variable model.
+    model = DecisionTreeClassifier(max_depth=5,min_samples_leaf=5,min_samples_split=10)
+
+    # TODO: Fit the model.
+    model.fit(x,y)
+        
+    # TODO: Make predictions. Store them in the variable y_pred.
+    y_pred = model.predict(x)
+
+    # TODO: Calculate the accuracy and assign it to the variable acc.
+    acc = accuracy_score(y, y_pred)
+
+Python36：MachineLearning-DecisionTreeClassifier
+
+数据可视化-混淆矩阵(confusion matrix)
+https://www.jianshu.com/p/7b4a5d922c4c
+
+在基于深度学习的分类识别领域中，经常采用统计学中的混淆矩阵（confusion matrix）来评价分类器的性能。
+
+它是一种特定的二维矩阵：
+
+列代表预测的类别；行代表实际的类别。
+对角线上的值表示预测正确的数量/比例；非对角线元素是预测错误的部分。
+混淆矩阵的对角线值越高越好，表明许多正确的预测。
+
+特别是在各分类数据的数量不平衡的情况下，混淆矩阵可以直观的显示分类模型对应各个类别的准确率。
+
+金融评测指标empyrical库详解Sortino、calmar、omega、sharpe、annual_return、max_drawdown
+https://blog.csdn.net/The_Time_Runner/article/details/99569365
+
+
+dump all mysql tables into separate files automagically?
+https://stackoverflow.com/questions/3669121/dump-all-mysql-tables-into-separate-files-automagically
+
+    # Optional variables for a backup script
+    MYSQL_USER="root"
+    MYSQL_PASS="something"
+    BACKUP_DIR=/srv/backup/$(date +%Y-%m-%dT%H_%M_%S);
+    test -d "$BACKUP_DIR" || mkdir -p "$BACKUP_DIR"
+    # Get the database list, exclude information_schema
+    for db in $(mysql -B -s -u $MYSQL_USER --password=$MYSQL_PASS -e 'show databases' | grep -v information_schema)
+    do
+      # dump each database in a separate file
+      mysqldump -u $MYSQL_USER --password=$MYSQL_PASS "$db" | gzip > "$BACKUP_DIR/$db.sql.gz"
+    done
+    
+Just add --routines and --triggers to capture procedures and triggers.
+
+for I in $(mysql -u [username] -p[mypassword] -h [Hostname/IP] -e 'show databases' -s --skip-column-names); do mysqldump -u [username] -p[mypassword] -h [Hostname/IP] $I | gzip > "/home/user/$I.sql.gz"; done
+
+cnpm install webpack@3.3.0 -g
+cnpm install webpack@3.3.0 --save-dev
+cnpm install css-loader@0.28.0 style-loader@0.16.1
+webpack runoob1.js bundle.js
+cnpm install webpack-dev-server -g
+webpack-dev-server --progress --colors
+
+https://www.runoob.com/w3cnote/webpack-tutorial.html
+
+kvm php
+https://libvirt.org/php.html
+
+git clone https://gitlab.com/libvirt/libvirt-php.git
+apt install php7.2-cli
+apt install php7.2-dev
+./autobuild.sh
+
+https://developer.ibm.com/languages/python/articles/os-python-kvm-scripting1/
+pip3 --default-timeout=600 install lxml -i https://pypi.tuna.tsinghua.edu.cn/simple
+sudo apt-get install python3-libxml2
+
+使用libvirt的xml配置文件创建虚拟机
+https://blog.csdn.net/yuanfang_way/article/details/79136502
+
+kvm支持的镜像很多，常用的是原始镜像(*.img)，还有支持动态大小扩张的qocw2格式（首选）。
+更优的选择是系统盘如C盘用img格式，数据盘用qcow2格式以减少服务器磁盘闲置空间。
+本文仅记录如何用ubuntu.iso制作系统镜像ubuntu.qcow2并创建启动虚拟机
+
+群晖 rsync
+
+rsync -e "/usr/bin/ssh" -avzlP xxx@192.168.1.xxx::开发工具/操作系统/xp.iso .
+
+通过 VNC 远程连接到 linux 通过 virtual machine manager 安装 xp
+
+- 分配 2个CPU，2G内存
+- 光盘选择 xp.iso
+- Boot Options 选择光驱第 1，并打上 enable bootmenu 的勾
+- Display VNC的 Type 选择 VNC Server,否则使用不了鼠标和键盘, address 选择 all interfaces
+
+# netstat -tnpl | grep 5903
+tcp        0      0 127.0.0.1:5903          0.0.0.0:*               LISTEN      13877/qemu-system-x
+iptables -t nat -A PREROUTING -d 192.168.1.40 -p tcp --dport 5903 -j DNAT --to 127.0.0.1
+
+# grep vnc_li /etc/libvirt/qemu.conf
+#vnc_listen = "0.0.0.0"
+
+
+iptables -L -n
+
+端口转发
+sysctl net.ipv4.ip_forward
+echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+sysctl -p
+//设置 DNAT
+iptables -t nat -A PREROUTING -p tcp –dport [本地端口号] -j DNAT –to-destination [目标IP:目标端口号]
+//设置SNAT
+iptables -t nat -A POSTROUTING -p tcp -d [目标IP] –dport [目标端口号] -j SNAT –to-source [本地服务器IP]
+
+用iptable完成端口映射
+问：一局域网192.168.1.0/24，有web和ftp服务器192.168.1.10、192.168.1.11,网关linux，内网eth0，IP为192.168.1.1，外网eth1，IP为a.b.c.d，怎样作NAT能使内外网都能访问公司的服务器？ 
+答：# web 
+# 用DNAT作端口映射 
+iptables -t nat -A PREROUTING -d a.b.c.d -p tcp --dport 80 -j DNAT --to 192.168.1.10 
+# 用SNAT作源地址转换（关键），以使回应包能正确返回 
+iptables -t nat -A POSTROUTING -d 192.168.1.10 -p tcp --dport 80 -j SNAT --to 192.168.1.1 
+# 一些人经常忘了打开FORWARD链的相关端口，特此增加 
+iptables -A FORWARD -o eth0 -d 192.168.1.10 -p tcp --dport 80 -j ACCEPT 
+iptables -A FORWARD -i eth0 -s 192.168.1.10 -p tcp --sport 80 -m --state ESTABLISHED -j ACCEPT 
+
+原文链接：https://blog.csdn.net/jamesdodo/article/details/81741483
+
+KVM虚拟化笔记（七）------kvm虚拟机VNC的配置
+https://blog.51cto.com/liqingbiao/1741103
+
+LINUX用iptable完成端口映射
+https://blog.csdn.net/jamesdodo/article/details/81741483
+
+iptables -t nat -L -n --line-numbers
+iptables  -L -n
+iptables -t nat  -D PREROUTING  1
+
+iptables管理NAT表
+https://blog.csdn.net/qq_36294875/article/details/80105936
+
+删除iptables nat 规则
+删除一条nat 规则
+
+iptables -t nat  -D POSTROUTING  1
+
+让openstack 虚拟机上网的规则
+
+iptables -t nat -A POSTROUTING -s 172.28.101.111/255.255.255.0 -o ens33 -j MASQUERADE
+
+开启路由转发
+
+echo "1" > /proc/sys/net/ipv4/ip_forward
+
+https://blog.csdn.net/ypbsyy/article/details/80774565
+
+apt install python3-websockify
+
+通过noVNC和websockify连接到QEMU/KVM
+https://my.oschina.net/u/2336787/blog/1797709
+
+libvirt 问题解决记录集
+https://blog.csdn.net/chenyulancn/article/details/13005487
+
+KVM虚拟机克隆和快照使用方法
+https://blog.csdn.net/weixin_41843699/article/details/100189189
+
+
+exsi 能支持
+linux的kvm支持内存压缩，但对性能有影响 了解一下ksm
+
+虚拟机
+私有云架构：
+
+iaas 选用openstack加kvm
+paas 选用 k8s 加 docker
+saas 提供架构即服务
+cmp 目前选用 redhat的manageIQ
+
+评价一下Proxmox VE与ESXi的优劣？
+https://www.zhihu.com/question/377225514
+proxmox貌似是家小公司整的，国外很多项目都从esxi迁移到proxmox,评价都不错。
+
+sudo virsh vncdisplay xp
+
+kvm+vnc安装windowsXP
+https://my.oschina.net/innovation/blog/168431
+
+# The loopback network interface
+    auto lo
+    iface lo inet loopback
+
+    # The primary network interface
+    auto eth0
+    iface eth0 inet manual
+
+    auto br0
+    iface br0 inet static
+        address 192.168.18.99
+        netmask 255.255.255.0
+        network 192.168.18.0
+        broadcast 192.168.18.255
+        gateway 192.168.18.1
+        dns-nameservers 192.168.18.184
+
+        bridge_ports eth0
+        bridge_stp off
+        bridge_maxwait 5
+        bridge_fd 0
+
+/etc/init.d/networking restart
+
+qemu-img create -f raw xpde1.img 10G
+qemu-system-x86_64 -m 512 -drive file=/root/xpde1.img,cocaltime -cdrom /root/WindowsXPsp2de.iso -boot d -nographic --vnc 0.0.0.0:0
+
+vnc的鼠标焦点有偏移，无法正常控制。在 Windows XP 虚拟机下，在控制面板内打开“鼠标”属性，去掉“指针选项”页面内“提高指针精确度”前面的勾.问题解决。
+
+tail -f  /var/log/libvirt/qemu/xp.log
+
+KVM Virtualization: Start VNC Remote Access For Guest Operating Systems
+https://www.cyberciti.biz/faq/linux-kvm-vnc-for-guest-machine/
+
+vncconnect 192.168.1.40:5903
+vncconnect: unable to open display ""
+
+
+----------
+tail -f ~/.vnc/ubuntu-server-03\:1.log  /var/log/libvirt/qemu/xp.log
+# virsh domifaddr xp
+ Name       MAC address          Protocol     Address
+-------------------------------------------------------------------------------
+ vnet2      52:54:00:e9:d2:e8    ipv4         192.168.122.97/24
+
+# nc -v -w1 192.168.122.97 3389
+Connection to 192.168.122.97 3389 port [tcp/*] succeeded!
+
+/etc/libvirt/qemu/networks
+
+echo 1 >/proc/sys/net/ipv4/ip_forward
+sysctl -p
+
+iptables -t nat -A POSTROUTING -o br0 -j MASQUERADE
+iptables -t nat -L -n --line-numbers
+
+iptables -t nat -A PREROUTING -i br0 -d 192.168.1.40 -p tcp -m tcp --dport 3389 -j DNAT --to-destination 192.168.122.97:3389
+iptables -t nat -A POSTROUTING -o br0 -s 192.168.122.0/255.255.255.0 -d 192.168.122.97 -p tcp -m tcp --dport 3389 -j SNAT --to-source 192.168.122.1
+iptables -t filter -A INPUT -p tcp -m state --state NEW -m tcp --dport 3389 -j ACCEPT
+
+iptables -t nat  -D PREROUTING  1
+
+Linux中KVM桥接的配置
+https://www.cnblogs.com/heyongboke/p/10337447.html
+brctl  show
+
+KVM使用NAT联网并为VM配置iptables端口转发，kvmiptables
+https://www.cnblogs.com/dwj192/p/8862199.html
+
+现在我们还以上述VM为例，目前该KVM的公网IP为192.168.1.102，VM的IP为192.168.122.173，现在我要求通过访问KVM的8022端口访问VM的22端口。
+
+要想达到上述功能，我们需要在KVM服务器上设置如下IPtables规则：
+iptables -t nat -A PREROUTING -d 192.168.1.102 -p tcp -m tcp --dport 8022 -j DNAT --to-destination 192.168.122.173:22
+iptables -t nat -A POSTROUTING -s 192.168.122.0/255.255.255.0 -d 192.168.122.173 -p tcp -m tcp --dport 22 -j SNAT --to-source 192.168.122.1
+
+qemu-kvm NAT方式联网另一种方法使用iptables的方法
+https://my.oschina.net/u/138210/blog/186963
+
+在 Ubuntu 服务器上创建网桥
+https://linux.cn/article-7605-1.html
+
+# cat /etc/netplan/01-netcfg.yaml
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    enp9s0:
+      dhcp4: no
+      dhcp6: no
+  bridges:
+    br0:
+      interfaces: [enp9s0]
+      dhcp4: no
+      addresses: [192.168.1.40/24]
+      gateway4: 192.168.1.1
+      nameservers:
+        addresses: [8.8.8.8,8.8.4.4]
+
+# ip r
+default via 192.168.1.1 dev br0 proto static
+192.168.1.0/24 dev br0 proto kernel scope link src 192.168.1.40
+192.168.122.0/24 dev virbr0 proto kernel scope link src 192.168.122.1 linkdown
+
+#不创建虚拟磁盘，一次性创建KVM虚拟机（默认为qcow2磁盘格式，网络为桥接模式，在此前最好安装virt-manager）：
+virt-install  --virt-type kvm --name CentOS-7-x86_64 --ram 2048 \
+ -vcpus=1 -s 20 -c /vm/iso/CentOS-7-x86_64-DVD-1511.iso --hvm  \
+  --os-type=linux -f /vm/CentOS-7-x86_64-tmp.img --graphics vnc,listen=0.0.0.0 \
+  --noautoconsole
+
+Iptables 之NAT端口转发设置
+https://www.cnblogs.com/kevingrace/p/5865792.html
+
+透明网桥调用iptables修改数据包无效
+https://blog.csdn.net/weixin_45504433/article/details/104396043
+
+问题
+使用命令iptables -t mangle -A POSTROUTING -o bridge0 -j TTL --ttl-set 50
+ttl没有变换
+
+解决办法：
+启动bridge-nf：
+modprobe br_netfilter
+
+编辑文件vim /etc/sysctl.conf 添加：
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.bridge.bridge-nf-call-arptables = 1
+
+进行该配置后，执行命令
+/sbin/sysctl -p
+
+原因
+网桥在数据链路层工作，数据会直接经过网桥转发，iptables需要开启bridge-nf
+centos默认不开启 bridge-nf
+
+KVM下虚拟机网卡桥接配置
+https://blog.csdn.net/u011414200/article/details/47310827
+
+virsh domifaddr xp
+
+https://github.com/Mikej81/WebRDP
+webrdp
+npm install node-gyp -g
+npm install -g node-pre-gyp
+npm config set user 0
+npm config set unsafe-perm true
+npm install jimp
+HTTP_PROXY=http://proxy:8080 npm install
+
+
+kvm快照功能
+https://blog.csdn.net/lipei1220/article/details/8474034
+
+
+创建快照
+qemu-img snapshot -c s1 disk.qcow2
+
+查看镜像信息
+qemu-img info win7.qcow2
+
+列出所有快照
+qemu-img snapshot  -l  disk.qcow2
+
+恢复快照
+qemu-img snapshot -a s1 disk.qcow2
+
+删除快照
+qemu-img snapshot -d s1 disk.qcow2
+
+
+virsh snapshot-create testsnp snp.xml
+KVM虚拟机克隆和快照使用方法
+https://blog.csdn.net/weixin_41843699/article/details/100189189
+
+1） 一台KVM虚拟机由两部分组成：虚拟机配置文件和镜像img
+[root@xuegod110 ~]# ll /var/lib/libvirt/images/xuegod110.img #镜像
+-rw------- 1 root root 1565196288 Sep 1 20:19 /var/lib/libvirt/images/xuegod110.img
+[root@xuegod110 ~]# ll /etc/libvirt/qemu/xuegod110.xml 配置文件
+-rw------- 1 root root 4645 Sep 1 20:19 /etc/libvirt/qemu/xuegod110.xml
+
+virsh list --all
+virt-clone -o win7 -n win7-copy -f /data/vmdata/win7-copy.img
+virsh start win7-copy
+virsh list
+virsh domifaddr win7-copy
+
+virsh destroy win7-copy
+virsh undefine win7-copy
+rm /data/vmdata/win7-copy.qcow2
+
+node-rdpjs https://github.com/t-system/node-rdpjs.git
+mstsc.js: https://github.com/citronneur/mstsc.js
+"node-rdpjs": "../node-rdpjs"
+
+http://www.practicepython.org/
+https://codewizardshq.com/python-for-kids/
+http://www.mprat.org/projects/meet/2013/09/22/meet-fellowship.html
+
+The goal of a modern education is to nurture a person to adulthood, someone who is capable of solving the tough problems of tomorrow. However, in schools we are taught to memorize and regurgitate. Most students don’t come close to an exploratory, iterative, problem solving education. I want to tell you why programming is the best way to fill those gaps. No matter how old you are, programming practice is for you.
+
+For the average person, programming is the gateway to automation. For engineers, programming is one of many tools of the trade. For data scientists, programming is THE tool. Working at your own pace on small problems, with repetitions approximately weekly, you will train yourself in the art of problem solving and expand your confidence in solving ever larger problems. In your own ventures, in your own disciplines, in your own lives, you can make a difference.
+
+In today’s world, the ability to code continues to grow in importance. Coding is no longer the sole domain of computer scientists and programmers, but rather a useful skill to have in any career.
+
+Kids with an eye to their future know that learning to code is important, but figuring out which one to learn can be an intimidating task. Some languages are easier to learn, while others have a wider application. But one language sits right in the sweet spot.
+
+With a balance of being both easy to learn and widely used in the real world, we suggest learning Python for kids.
+
+维斯特洛大陆地理分析
+https://site.douban.com/123299/widget/notes/4488367/note/165503953/
+如何评价《冰与火之歌》维斯特洛大陆各大家族的地缘环境？
+https://www.zhihu.com/question/318519272/answer/646442367
+
+野性的呼唤
+https://www.ygdy8.com/html/gndy/dyzz/20200401/59875.html
+
+刷完这70道力扣，你就可以走出新手村啦(文字版)
+https://mp.weixin.qq.com/s/u5QxViit-mfIrcvUVimR7w
+
+考察数据结构——第一部分:数据结构简介[译]
+https://www.cnblogs.com/wayfarer/archive/2004/04/08/5526.html
+https://www.cnblogs.com/wayfarer/archive/2004/04/12/5852.html
+https://www.cnblogs.com/wayfarer/archive/2004/07/16/24703.html
+
+Python for Kids: Best Resources to Learn Python Programming
+https://codewizardshq.com/python-for-kids/
+
+Python is a powerful yet beginner-friendly coding language for kids to learn programming.
+https://codewizardshq.com/python-classes-for-kids/
+
+Resources for Learning Python and Programming
+http://www.practicepython.org/resources-for-learners/
+
+白茶饼的正确泡法，一般有6个冲泡步骤！
+https://m.puercn.com/show-428-184782.html
+
+量子力学 第八章：自旋
+http://staff.ustc.edu.cn/~xiaozg/QM2019/qm08.pdf
+
+Error in MySQL when setting default value for DATE or DATETIME
+https://stackoverflow.com/questions/36374335/error-in-mysql-when-setting-default-value-for-date-or-datetime
+Error in MySQL when setting default value for DATE or DATETIME
+
+《JavaScript 模式》读书笔记
+https://github.com/JChehe/blog/blob/master/posts/%E3%80%8AJavaScript%E6%A8%A1%E5%BC%8F%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.md
+
+再次阅读《精通CSS-高级Web标准解决方案（第二版）》
+https://github.com/JChehe/blog/blob/master/posts/%E5%86%8D%E6%AC%A1%E9%98%85%E8%AF%BB%E3%80%8A%E7%B2%BE%E9%80%9ACSS-%E9%AB%98%E7%BA%A7Web%E6%A0%87%E5%87%86%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%88%E7%AC%AC%E4%BA%8C%E7%89%88%EF%BC%89%E3%80%8B.md
+
+
+·编辑教你看MTF曲线：
+1. 任何线条都是越高越好，下降的趋势越慢越好。
+2. 粗线的位置越高，说明该镜头的反差和对比越高。
+3. 细线的位置越高，说明该镜头的锐利度越高。
+4. 黑线的位置越高，证明该镜头在全开光圈时表现越好。
+5. 蓝线的位置越高，证明该镜头在光圈收缩到8的时候表现越好。
+6. 蓝线如果和黑线很接近，说明这支镜头表现很出色，只有比较少的镜头有这种表现。
+7. 如果蓝线的位置都比较低，说明这支镜头相当差劲。
+8. 0.6以下一般画面就很糟糕了，0.6-0.8画面还可以，0.8-0.9可以算良，0.9以上算非常优秀了，只有优秀镜头在适合的状态下才可能达到，但是具体的情况还是要看各位自己判断了。
+9. 实线和虚线越接近，表示这支镜头的焦外成像越柔和自然，反之，差得越远，焦外成像就越差，差太多就会斑斑驳驳一块一块的很难看。
+
+一般来说，光圈是按挡来区分的。完整的F值为F1.0，F1.4，F2，F2.8，F4，F5.6，F8，F11，F16，F22，F32，F44，F64，这些叫做整挡光圈。相邻的整挡光圈之间，通光量相差一倍。例如1.4是2的两倍，2是2.8的两倍，所以1.4是2.8的四倍，他们的通光量构成了一个等比数列：2的n次方。
+
+至于快门，也是按挡来区分的。4、2、1、1/2、1/4、1/8、1/15、1/30、1/60 1/125 1/250、1/500、1/1000、1/2000、1/4000 、1/8000是整挡快门速度。相邻的整挡快门速度，通光量也相差一倍，他们也类似一个2的等比数列。
+
+
+-------------
+Material Design Lite简介
+https://www.cnblogs.com/jasonnode/p/4747469.html
+
+
+https://blocklycodelabs.dev/codelabs/getting-started/index.html?index=..%2F..index#3
+
+
+更新浏览器
+https://browser-update.org/
+
+
+ssdb
+https://gitee.com/mirrors/Badger
+
+抓包
+https://github.com/mitmproxy/mitmproxy/
+
+数据库建模
+https://gitee.com/robergroup/pdman
+
+https://curl.trillworks.com/#python  这里有个工具挺好，可以直接把浏览器里复制的curl命令转换成 python requests的代码，省的自己翻译了，另外还能转换成go,java,php等代码
+
+Ubuntu——grub rescue 主引导修复
+https://blog.csdn.net/jscese/article/details/36865449
+
+ls (hd0,msdos1)/
+ fsck -t ext3 /dev/vda1
+
+Is there a way to get the stacktraces for all threads in c#, like java.lang.Thread.getAllStackTraces()?
+https://stackoverflow.com/questions/2057781/is-there-a-way-to-get-the-stacktraces-for-all-threads-in-c-like-java-lang-thre
+
+So I actually just had to figure out how to do this
+-- haven't used this solution extensively in production yet,
+but theres a relatively new library called ClrMd.
+
+I have a script that runs from a cron job every night.
+Recently, it has started totally freezing up after several minutes into the script, and I can't figure out why.
+If this was Java, I could simply run kill -3 PID and it would print a thread dump in stdout.
+Is there any equivalent in PHP, where I could get a dump of the current stack trace (and ideally memory info) on a running PHP script?
+
+https://stackoverflow.com/questions/14261821/get-a-stack-trace-of-a-running-or-hung-php-script
+
+I would like to propose alternative approach avoiding the use of php debug symbols. In some cases installing debug symbols are more troublesome, i.e. when we run httpd inside non-root docker container. This approach requires xdebug extension to be installed (which are already installed in, for example, Openshift-based PHP containers)
+
+First, download this gdb script : dumpstack.gdbscript, and save it in /tmp/dumpstack.gdbscript.
+
+Second, invoke gdb like this (substitute $pid with the php process id):
+
+gdb --batch --readnever --pid=$pid --command=/tmp/dumpstack.gdbscript 2>/dev/null
+
+
+$ sudo apt-get install gdb php-xdebug
+
+$ php -m | grep xdebug
+xdebug
+$ systemctl restart php7.4-fpm
+$ vi /tmp/dumpstack.gdbscript
+    set $xstack = ((long**)&xdebug_globals)[2]
+    if ($xstack !=0) && ($xstack[0]!=0)
+        set $pcurrent = (long*)$xstack[0]
+        while $pcurrent
+            set $xptr = (long*)$pcurrent[0]
+            set $xptr_s = (char**)$xptr
+            set $xptr_i = (int*)$xptr
+            set $filename = $xptr_s[4]
+            set $funcname = $xptr_s[1]
+            set $linenum = $xptr_i[10]
+            if ($funcname!=0)
+                printf "%s@%s:%d\\n", $funcname, $filename, $linenum
+            else
+                printf "global@%s:%d\\n", $filename, $linenum
+            end
+            set $pnext = (long*)$pcurrent[2]
+            set $pcurrent = $pnext
+        end
+    else
+        printf "no stack"
+    end
+
+# gdb --batch --readnever --pid=4135294 --command=/tmp/dumpstack.gdbscript
+
+#!/bin/bash
+for pid in `ps -C httpd | awk '{print $1}'`; do gdb --batch --readnever --pid=$pid --command=/tmp/dumpstack.gdbscript 2>/dev/null; done
+
+
+https://stackoverflow.com/questions/2212635/best-way-to-manage-long-running-php-script/35113852#35113852
+
+  94     char *string = emalloc(ARGS_MAX_LEN);
+  95     smart_string tmp = {0};
+  96     int real_len = 0;
+  97     int stop = 0;
+  98     memset(string, 0x00, ARGS_MAX_LEN);
+  99     arg_len = smart_string_len(frame->function) + 1;
+ 100     string = strncat(string, smart_string_str(frame->function), real_len - 1);
+
+In function ‘strncat’,
+    inlined from ‘convert_args_to_string’ at /home/ubuntu/src/Molten/molten_intercept.c:100:14:
+/usr/include/x86_64-linux-gnu/bits/string_fortified.h:136:10: warning: ‘__builtin_strncat’ specified bound 18446744073709551615 exceeds maximum object size 9223372036854775807 [-Wstringop-overflow=]
+  136 |   return __builtin___strncat_chk (__dest, __src, __len, __bos (__dest));
+
+上面的代码第 100 行有个 warning，应该怎么修复一下呀？
+
+
+ascii 顺序图
+ZipKin原理学习--ZipKin入门介绍
+https://blog.csdn.net/qq924862077/article/details/80285536
+
+
+Python 里最好用的Web框架居然不是Django和Flask，居然是它？？？
+https://juejin.cn/post/6944598601674784775
+
+深入理解 Python 异步编程
+https://blog.csdn.net/catwan/article/details/84975893
+
+
+Birdseye - 极其强大的 Python 调试工具
+https://blog.csdn.net/cqcre/article/details/116452938
+
+-------------
+phpt文件说明,php官方自动测试方法,run-test.php命令用法
+https://blog.csdn.net/samxx8/article/details/48749597
+
+php run-tests.php tests/bug_dup_sampled.phpt
+
+
+Nginx的CGI、FastCGI和PATHINFO
+https://moneyslow.com/nginx%e7%9a%84cgi%e3%80%81fastcgi%e5%92%8cpathinfo.html
+
+fastcgi_param：这个指令配置了fastcgi的一些参数，传递给php-fpm，这个指令是3段式，第一段fastcgi_param指令名称，第二段传递给php-fpm的参数的名称，第三段传递给php-fpm参数的值，也就是说fastcgi_param配置了一系列的key-value类型的值；对PHP来说fastcgi_param指令产生的key-value键值对最后都（未确认，暂时这么理解吧~）转换成了超全局数组变量$_SERVER的键值对，上述示例中fastcgi_param SCRIPT_FILENAME /scripts$fastcgi_script_name就配置了一个SCRIPT_FILENAME的fastcgi参数，转换成PHP中的变量就是$_SERVER['SCRIPT_FILENAME'] ，PHP参考手册中对$_SERVER['SCRIPT_FILENAME']的说明是：“当前执行脚本的绝对路径”。对nginx来说，将请求正确的交给php-fpm来执行正确的php脚本就是由fastcgi_param指令配置的SCRIPT_FILENAME来决定的，所以nginx能默契的与php-fpm协作，fastcgi_param指令正确的配置了SCRIPT_FILENAME值是关键。
+
+
+fastcgi_split_path_info指令，将URI匹配成PHP脚本的URI和pathinfo两个变量，即$fastcgi_script_name 和$fastcgi_path_info
+
+    fastcgi_split_path_info ^(.+\.php)(.*)$;
+
+PHP中要能读取到pathinfo这个变量就要通过fastcgi_param指令将fastcgi_split_path_info指令匹配到的pathinfo部分赋值给PATH_INFO，
+这样PHP中$_SERVER['PATH_INFO']才会存在值
+
+    fastcgi_param PATH_INFO $fastcgi_path_info;
+
+在将这个请求的URI匹配完毕后，检查这个绝对地址的PHP脚本文件是否存在
+如果这个PHP脚本文件不存在就不用交给php-fpm来执行了
+否者页面将出现由php-fpm返回的:`File not found.`的提示
+此处直接返回404错误
+你也可以rewrite 到新地址去，然后break;
+
+    if (!-e $document_root$fastcgi_script_name) {
+        return 404;
+    }
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+
+https://serverfault.com/questions/929245/php-fpm-status-page-request-uri-always-index-php
+
+Real-time PHP-FPM Status
+https://gist.github.com/Jiab77/a9428050ab9bb3f17c5e33343da94fd8
+
+
+https://bugs.php.net/bug.php?id=55208
+
+【采坑】docker 部署pmm与mysql监控
+https://blog.csdn.net/qq_33633013/article/details/82762163
+http://www.voidcn.com/article/p-dclksuvp-bpd.html
+
+#版本可自选
+snap install docker
+
+docker create -v /opt/prometheus/data -v /opt/consul-data -v /var/lib/mysql -v /var/lib/grafana --name pmm-data percona/pmm-server:1.14.1 /bin/true
+docker ps -a
+docker run -d -p 81:80  --volumes-from pmm-data --name pmm-server --restart always percona/pmm-server
+vi /etc/nginx/sites-available/pmm
+    server {
+        listen 80;
+        server_name pmm.xxx.com;
+        allow 122.5.23.146;
+        deny all;
+        location / {
+            proxy_pass http://127.0.0.1:81;
+        }
+    }
+ln -s /etc/nginx/sites-available/pmm /etc/nginx/sites-enabled/pmm
+
+docker exec -it pmm-server bash
+
+    vi /etc/grafana/grafana.ini
+        [auth.anonymous]
+        # enable anonymous access
+        enabled = true
+    exit
+
+docker restart pmm-server
+
+
+wget https://downloads.percona.com/downloads/pmm2/2.16.0/binary/tarball/pmm2-client-2.16.0.tar.gz
+tar -zxvf pmm2-client-2.16.0.tar.gz
+cd pmm2-client-2.16.0
+./install_tarball
+/usr/local/percona/pmm2/bin/pmm-admin --version
+export PATH=/usr/local/percona/pmm2/bin:$PATH
+nohup pmm-agent run --server-password=admin --server-username=admin --server-address=127.0.0.1:81 > agent.log &
+
+
+https://www.percona.com/blog/2020/01/15/changing-the-default-admin-password-in-docker-based-deployment-of-pmm2/
+docker exec -t pmm-server bash -c  'ln -s /srv/grafana /usr/share/grafana/data; grafana-cli --homepath /usr/share/grafana admin reset-admin-password newpass'
+
+
+Project Based Tutorials in C
+https://github.com/rby90/Project-Based-Tutorials-in-C
+
+A list of practical projects that anyone can solve in any programming language (See solutions). These projects are divided in multiple categories, and each category has its own folder.
+https://github.com/karan/Projects
+
+Beej's Guide to Network Programming
+https://beej.us/guide/bgnet/html//index.html
+
+=========
+Rust Runtime 与 ABI
+https://zhuanlan.zhihu.com/p/370897059
+
+epoll() Tutorial – epoll() In 3 Easy Steps!
+https://www.suchprogramming.com/epoll-in-3-easy-steps/
+
+Beej's Guide to Network Programming
+https://beej.us/guide/bgnet/html//index.html#acceptman
+
+How to code an epoll based sockets client in C
+https://stackoverflow.com/questions/51777259/how-to-code-an-epoll-based-sockets-client-in-c
+
+When you are dealing with 100K peers there are lot more things to deal with than just the epoll interface. For example, connection failures, retries, partial reads, slow peers, HTTP parsing errors, etc.
+
+There are many different ways it could be designed. Typically I would start with one "connection" thread for connecting to peers, and a pool of "read" threads for reading data from sockets.
+
+Have an IPC like pipes to pass connected socket fd from "connection" to "read" thread. I am sure when you start on it there will be much more scenarios to handle like this. All the best!!
+
+最值得阅读学习的 10 个 C 语言开源项目代码
+https://blog.csdn.net/dellme99/article/details/52152341
+
+错误处理(Error-Handling)：为何、何时、如何(rev#2)
+https://blog.csdn.net/pongba/article/details/1815742
+
+
+exception vs error code
+http://matrix207.github.io/2016/01/17/exception-vs-error-code/
+
+Detect c/c++ memory overflow
+http://matrix207.github.io/2016/01/03/detect-cc-memory-overflow/
+
+memory program and debug
+http://matrix207.github.io/2015/11/25/memory-program-and-debug/
+
+linux memory
+http://matrix207.github.io/2015/10/24/linux-memory/
+
+GNU Linux program
+http://matrix207.github.io/2014/06/28/gnu-linux-program/
+
+exception
+
+network exception, such as connection timeout, receive/send failure
+connect refused
+use exist IP, but port is not listened, then the connect operation will return error connect refused
+hook connect function
+iptables, iptables -t filter -p tcp -A OUTPUT -d DEST_IP --dport DEST_PORT -j REJECT --reject-with tcp-reset
+connect timeout
+read timeout
+write timeout
+disconnect when read/write
+connect slowly
+package dirty
+memory exception, such as not enough memory, allocation failure
+allocate fail
+hook malloc function
+disk exception, such as disk crash, not enough space
+program exception
+
+
+27 Best Linux Tutorial Books That You Need To Download Now
+https://www.ubuntupit.com/best-linux-tutorial-books-need-download-now/
+
+https://blog.csdn.net/pongba/article/details/1815742
+错误处理(Error-Handling)：为何、何时、如何
+
+什么错误呢？
+调用方违反被调用函数的precondition、
+或一个函数无法维持其理应维持的invariants、
+或一个函数无法满足它所调用的其它函数的precondition、
+或一个函数无法保证其退出时的postcondition；
+以上所有情况都属于错误。
+
+编程bug不是错误。属于同一个人维护的代码，或者同一个小组维护的代码，如果里面出现bug，使得一个函数的precondition得不到满足，那么不应该视为错误。
+而应该用assert来对付。因为编程bug发生时，你不会希望栈回滚，而是希望程序在assert失败点上直接中断，调用调试程序，查看中断点的程序状态，从而解决代码中的bug
+
+关于这一点，需要尤其注意的是，它的前提是：必须要是同一个人或小组维护的代码。同一个小组内可以保证查看到源代码，进行debug。
+如果调用方和被调用方不属于同一负责人，则不能满足precondition的话就应该抛出异常。总之记住一个精神：assert是用来辅助debug的
+
+例如文件找不到（通常意味着一个错误）、配置文件语法错误、将一个值赋给一个总应该是正值的变量、文件存在但由于访问限制而不能打开，或打开不能写、网络传输错误、网络中断、数据库连接错误、参数无效等。
+
+异常与错误代码的本质区别之一——异常会自动往上层栈传播：一旦异常被抛出，执行流就立即中止，取而代之的是自动的stack-unwinding操作，直到找到一个适当的catch子句。
+相较之下，使用error-code的话，要将下层调用发生的错误传播到上层去，就必须手动检查每个调用边界，任何错误，都必须手动转发（返回）给上层，稍有遗漏，就会带着错误的状态继续往下执行，从而在下游不知道离了多远的地方最终引爆程序。
+
+http://matrix207.github.io/2013/08/06/linux-protocol-stack/
+Linux protocol stack
+网络协议栈0：从一个例子开始
+http://matrix207.github.io/2013/07/30/networkstack-important-structure/
+http://matrix207.github.io/2013/07/29/networkstack-internet-protocol-suite/
+http://matrix207.github.io/2013/05/28/linux-kernel-linked-list-explained/
+http://matrix207.github.io/2013/05/07/do-you-really-master-c-language/
+http://matrix207.github.io/2013/01/23/my-book-list/
+http://matrix207.github.io/2013/01/05/linux-common-command/
+http://matrix207.github.io/2012/09/26/vim/
+
+mysql2sqlite.sh
+https://gist.github.com/esperlu/943776
+
+
+https://stackoverflow.com/questions/10586003/try-catch-statements-in-c
+
+C itself doesn't support exceptions but you can simulate them to a degree with setjmp and longjmp calls.
+
+static jmp_buf s_jumpBuffer;
+
+void Example() {
+  if (setjmp(s_jumpBuffer)) {
+    // The longjmp was executed and returned control here
+    printf("Exception happened here\n");
+  } else {
+    // Normal code execution starts here
+    Test();
+  }
+}
+
+void Test() {
+  // Rough equivalent of `throw`
+  longjmp(s_jumpBuffer, 42);
+}
+
+http://groups.di.unipi.it/~nids/docs/longjump_try_trow_catch.html
+
+
+You use goto in C for similar error handling situations.
+That is the closest equivalent of exceptions you can get in C.
+
+
+https://stackoverflow.com/questions/368385/implementing-raii-in-pure-c
+
+#include <stdio.h>
+
+void scoped(int * pvariable) {
+    printf("variable (%d) goes out of scope\n", *pvariable);
+}
+
+int main(void) {
+    printf("before scope\n");
+    {
+        int watched __attribute__((cleanup (scoped)));
+        watched = 42;
+    }
+    printf("after scope\n");
+}
+
+https://github.com/psevon/exceptions-and-raii-in-c
+
+
+===========
+
+https://registry.hub.docker.com/r/fanningert/aria2-with-webui/#!
+
+
+$ grep Accepted debug.log | wc -l
+100
+$ grep "worker.* foreach fd, fd=.* is_event_fd=1" debug.log | wc -l
+98
+y$ grep "read request" debug.log | wc -l
+91
+$ grep "send response" debug.log | wc -l
+91
+
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 91.67  369.301806         922    400550         1 epoll_wait
+  2.59   10.414138          30    344167           write
+  2.36    9.520573          28    334801           read
+  1.76    7.077349          41    172224           close
+  0.82    3.285501          19    172238           epoll_ctl
+  0.68    2.738281          10    272250    100033 accept4
+  0.13    0.507177          45     11378       658 futex
+  0.00    0.000350          18        20           eventfd2
+  0.00    0.000338          12        29           mmap
+  0.00    0.000308          15        21           set_robust_list
+
+
+format="%-10s %-10s %-10s %-10s %-10s %-10s %-10s\n";
+i=0;
+while true;do
+    time=`date +%H:%m:%S`
+    if (( $i%20 == 0 ))
+    then
+        printf "$format" "time" "SYN-SENT" "ESTAB" "FIN-WAIT-1" "CLOSE-WAIT" "LAST-ACK" "UNCONN";
+    fi
+    ss | awk -v format="$format" -v time="$time" '{a[$2]+=1} END {printf format, time, a["SYN-SENT"]?a["SYN-SENT"]:0, a["ESTAB"]?a["ESTAB"]:0,a["FIN-WAIT-1"]?a["FIN-WAIT-1"]:0, a["CLOSE-WAIT"]?a["CLOSE-WAIT"]:0,a["LAST-ACK"]?a["LAST-ACK"]:0, a["UNCONN"]?a["UNCONN"]:0}'
+    let i+=1;
+    sleep 1;
+done
+
+
+https://stackoverflow.com/questions/19075671/how-do-i-use-shell-variables-in-an-awk-script
+
+Linux Perf 性能分析工具及火焰图浅析
+https://zhuanlan.zhihu.com/p/54276509
+
+https://blog.csdn.net/FreeeLinux/article/details/84207787
+
+perf record -e cpu-clock -g -p 27620
+perf report
+git clone https://github.com/brendangregg/FlameGraph.git
+
+perf script -i perf.data &> perf.unfold
+./src/FlameGraph/stackcollapse-perf.pl perf.unfold &> perf.folded
+./src/FlameGraph/flamegraph.pl perf.folded > perf.svg
+cp perf.svg /var/www/html/temp/
+
+Y轴表示调用栈，X轴越宽，就表示它被抽到的次数多，即执行的时间长。注意，x 轴不代表时间，而是所有的调用栈合并后，按字母顺序排列的。
+
+所以，一般我们只需要看有没有出现 “平顶”，如果有，那么这个函数可能有性能问题。
+
+
+前端高级进阶：在生产环境中使你的 npm i 速度提升 50%
+https://blog.csdn.net/weixin_40906515/article/details/105525383
+
+JEECG前端编译错误对应方法：vue-cli-service not found
+https://www.it610.com/article/1290697203416899584.htm
+
+Java应用Top命令RES内存占用高分析
+https://www.jianshu.com/p/479a715d461e
+
+ps aux命令执行结果的几个列的信息的含义
+
+USER    进程所属用户
+PID     进程ID
+%CPU    进程占用CPU百分比
+%MEM    进程占用内存百分比
+VSZ     虚拟内存占用大小 单位：kb（killobytes）
+RSS     实际内存占用大小 单位：kb（killobytes）
+TTY     终端类型
+STAT    进程状态
+START   进程启动时刻
+TIME    进程运行时长,进程已经消耗的CPU时间
+COMMAND 启动进程的命令的名称和参数
+
+top 命令 VSZ,RSS,TTY,STAT, VIRT,RES,SHR,DATA的含义
+
+VIRT：virtual memory usage 虚拟内存
+1、进程“需要的”虚拟内存大小，包括进程使用的库、代码、数据等
+2、假如进程申请100m的内存，但实际只使用了10m，那么它会增长100m，而不是实际的使用量
+
+RES：resident memory usage 常驻内存
+1、进程当前使用的内存大小，但不包括swap out
+2、包含其他进程的共享
+3、如果申请100m的内存，实际使用10m，它只增长10m，与VIRT相反
+4、关于库占用内存的情况，它只统计加载的库文件所占内存大小
+
+SHR：shared memory 共享内存
+1、除了自身进程的共享内存，也包括其他进程的共享内存
+2、虽然进程只使用了几个共享库的函数，但它包含了整个共享库的大小
+3、计算某个进程所占的物理内存大小公式：RES – SHR
+4、swap out后，它将会降下来
+
+DATA
+1、数据占用的内存。如果top没有显示，按f键可以显示出来。
+2、真正的该程序要求的数据空间，是真正在运行中要使用的。
+
+===
+
+https://stackoverflow.com/questions/52176692/high-performance-tcp-socket-programming-in-net-c-sharp
+
+int guard(int n, char * err) { if (n == -1) { perror(err); exit(1); } return n; }
+
+perf record -e cpu-clock -g -p 27620
+perf report
+git clone https://github.com/brendangregg/FlameGraph.git
+
+
+perf script -i perf.data &> perf.unfold
+./src/FlameGraph/stackcollapse-perf.pl perf.unfold > perf.folded
+./src/FlameGraph/flamegraph.pl perf.folded > perf.svg
+cp perf.svg /var/www/html/temp/
+
+Linux Perf 性能分析工具及火焰图浅析
+https://zhuanlan.zhihu.com/p/54276509
+
+
+strace -c -f nginx -g "daemon off;"
+wrk -t12 -c400 -d30s --latency http://127.0.0.1/hello
+strace -c -f ./a.out
+wrk -t12 -c400 -d10s --latency http://127.0.0.1:8888/
+
+a.out
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 91.37  171.721306        1965     87403           epoll_wait
+  3.59    6.741046     3370523         2         1 futex
+  1.68    3.158862          32    100134     46823 accept4
+  1.23    2.314857          44     53061           write
+  0.92    1.728574          32     53376           close
+  0.76    1.419530          27     53315           read
+  0.45    0.846271          16     53341           epoll_ctl
+  0.00    0.000907          10        91           socket
+  0.00    0.000812           9        90           recvmsg
+  0.00    0.000629           7        90           getsockname
+  0.00    0.000577           6        91         1 connect
+  0.00    0.000496          17        30           sendto
+  0.00    0.000479          15        31           set_robust_list
+  0.00    0.000448           7        60           bind
+
+
+nginx
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 28.78    1.506930          23     64586           writev
+ 25.60    1.340117          20     66053           close
+ 12.54    0.656532           7     95389         4 epoll_wait
+ 10.85    0.568001           9     64586           write
+  9.72    0.508964           7     74459      9565 accept4
+  6.45    0.337838           5     64896           recvfrom
+  5.71    0.299180           5     65254           epoll_ctl
+  0.08    0.004332           6       780           sendmsg
+  0.05    0.002745          69        40           clone
+  0.04    0.001989           5       434       181 openat
+  0.03    0.001341           2       852        66 recvmsg
+  0.02    0.001250           4       324           mmap
+  0.02    0.001008           6       178           mprotect
+  0.01    0.000678           8        80           socketpair
+  0.01    0.000611           5       128           ioctl
+  0.01    0.000564           5       124           fcntl
+  0.01    0.000491           3       150           read
+  0.01    0.000485           2       248           fstat
+
+https://stackoverflow.com/questions/28098563/errno-after-accept-in-linux-socket-programming
+
+Is level triggered or edge triggered more performant?
+https://stackoverflow.com/questions/13848143/is-level-triggered-or-edge-triggered-more-performant
+
+池的概念和EPOLLONESHOT事件（读Linux高性能服务器）
+https://blog.51cto.com/lingdandan/1836326
+
+Ｃ语言实现原子锁(一)
+https://www.jianshu.com/p/f845d80603d0
+
+感性认识JWT
+https://www.cnblogs.com/lgj8/p/12065944.html
+
+php error log
+
+vi /etc/php/7.2/fpm/php.ini
+
+    log_errors = On
+    error_log = /var/log/php7.2.error.log
+
+vi /etc/php/7.2/fpm/pool.d/www.conf
+
+    catch_workers_output = yes
+    php_admin_value[error_log] = /var/log/fpm-php.www.log
+    php_admin_flag[log_errors] = on
+
+php-fpm7.2 -t
+systemctl restart php7.2-fpm.service
+systemctl status php7.2-fpm.service
+
+touch /var/log/fpm-php.www.log
+chown www-data:www-data /var/log/fpm-php.www.log
+touch /var/log/php7.2.error.log
+chown www-data:www-data /var/log/php7.2.error.log
+
+php code
+    error_reporting(1);
+    ini_set('display_errors', 0);
+
+编译原理：LL, LR 文法浅析
+https://zhuanlan.zhihu.com/p/94424139
+
+Clean mocking in your PHPUnit tests using Prophecy and Given-When-Then approach
+https://medium.com/owl-it-development/clean-mocking-in-your-phpunit-tests-using-prophecy-and-given-when-then-approach-e870b224a068
+
+统计分析 运营统计
+metabase
+
+
+Python可视化matplotlib&seborn14-热图heatmap
+https://zhuanlan.zhihu.com/p/165426873
+
+热力图
+
+抠图
+https://www.fococlipping.com/
+
+How to set center color in heatmap
+https://stackoverflow.com/questions/56536419/how-to-set-center-color-in-heatmap
+
+
+淘宝最开始成立的时候，是单体应用；随着业务规模的发展，系统首先对硬件进行升级这种Scale Up的方式；但是很快发现这种方式遇到了各种各样的问题，所以在2008年开始引入了微服务的解决方案；SOA的解决方案是分布式的，对于稳定性，可观测性等方面，需要引入熔断、隔离、全链路监控等高可用方案；接下来面临的问题是怎么在机房、IDC层面来让业务达到99.99%以上可用的SLA，这时候就有了同城双机房、异地多活等解决方案。而随着云技术的不断发展，阿里巴巴拥抱和引导云原生技术的发展，积极拥抱云原生技术，以K8s为基础，积极开展云原生技术的升级。
+
+https://blog.csdn.net/qq_40586164/article/details/105102587
+红黑树为什么能达到半平衡（最深的叶子节点的深度不会大于两倍的最短叶子节点的深度）？
+因为红色节点不能与红色节点相连，且所有路径的黑色节点个数相同，因此最长路径是红黑交替节点路径，所以最短路径必然是只包含黑色节点的路径，于是从根节点到叶子节点的的最长路径不会超过最短路径的两倍。
+
+红黑树相比AVL的优点：
+
+如果插入一个node引起了树的不平衡，AVL和RB-Tree都是最多只需要2次旋转操作，即两者都是O(1)；但是在删除node引起树的不平衡时，最坏情况下，AVL需要维护从被删node到root这条路径上所有node的平衡性，因此需要旋转的量级O(logN)，而RB-Tree最多只需3次旋转，只需要O(1)的复杂度。
+
+其次，AVL的结构相较RB-Tree来说更为平衡，在插入和删除node更容易引起Tree的unbalance，因此在大量数据需要插入或者删除时，AVL需要rebalance的频率会更高。因此，RB-Tree在需要大量插入和删除node的场景下，效率更高。自然，由于AVL高度平衡，因此AVL的search效率更高。
+
+map的实现只是折衷了两者在search、insert以及delete下的效率。总体来说，RB-tree的统计性能是高于AVL的。
+
+
+Maximizing PHP 7 Performance with NGINX, Part 1: Web Serving and Caching
+https://www.nginx.com/blog/maximizing-php-7-performance-with-nginx-part-i-web-serving-and-caching/
+https://tideways.com/profiler/blog/5-ways-to-increase-php-performance
+https://bobcares.com/blog/php-fpm-tuning-high-load/
+https://tonyteaches.tech/fastcgi-cache-with-nginx/
+
+
+Proper indentation for Python multiline strings
+https://stackoverflow.com/questions/2504411/proper-indentation-for-python-multiline-strings
+
+    log_message = textwrap.dedent("""\
+            Prepare to frobnicate:
+            Here it comes...
+                Any moment now.
+            And: Frobnicate!""")
+
+二叉树遍历（前序、中序、后序、层次、深度优先、广度优先遍历）
+https://www.cnblogs.com/llguanli/p/7363657.html
+
+对于二叉树，有深度遍历和广度遍历，深度遍历有前序、中序以及后序三种遍历方法，广度遍历即我们寻常所说的层次遍历。
+
+docker exec -it lduoj /bin/bash
+https://blog.csdn.net/bytxl/article/details/40920165
+
+
+数据结构（一）-- 平衡树
+https://www.cnblogs.com/Benjious/p/10336145.html
+硬核图解面试最怕的红黑树【建议反复摩擦】
+https://blog.csdn.net/qq_35190492/article/details/109503539
+
+线性查找(性能低)→二分查找(查快，插删需移动大量元素)→BST（查快，插删无需大量移动，但可能退化为链表）→AVL（查快，不退化为链表，但平衡要求很严，删插会导致频繁调整）→RBT（删插的综合性能更好。删插少则用AVL，删插多则用RBT）
+
+MySQL数据备份与恢复之Percona XtraBackup
+https://blog.csdn.net/sinat_29214327/article/details/81517233
+
+Percona-xtrabackup 使用详解与原理
+https://blog.csdn.net/weixin_33906657/article/details/86018845
+
+### 本地 MySQL 0 停机迁移上云
+
+1. 用 innobackupex 做全量备份，此时不影响源库读写
+2. 从 xtrabackup_binlog_info 文件中记录 binlog 文件及偏移量
+3. 把全量备份上传到 s3，aws s3 sync . s3://mysql-backup
+4. 新建 RDS 从 s3 恢复数据，选择自动创建服务器角色，存储要是源库的 1.5 倍，因为全备里有未生效的redo log
+5. 在源库里创建用户，赋予从库复制权限，设置安全组允许 RDS 访问源库 3306，在 RDS 上调用 rds_set_external_master 和 rds_start_replication 存储过程从源数据库做增量复制，参数使用第 2 步得到的信息
+6. show slave status 确认 rds 同步到最新数据
+7. 在新的 rds 上创建 mysql 用户，赋予权限，开放安全组 
+8. 把源库设置为只读 FLUSH TABLES WITH READ LOCK; SET GLOBAL read_only = ON; 确保源库没有任何写入
+9. 修改数据库连接字符串指向到 rds
+10. 业务做回归测试，确认新数据已写入到 rds
+
+备注
+1. 整个迁移过程，只有第 8 步到第 9 步会短暂影响业务的写操作，此时业务会报错，但不会丢数据或写入脏数据。
+2. 如果迁移失败，需要让业务进入维护模式，停止一切读写，然后从 rds 里下载最新的binlog，根据第9步的时间点得到偏移量，用工具提取新库上的操作在源库上执行，最后把业务连接字符串指向源库做回滚。
+
+【解读】TCP粘包拆包
+https://www.cnblogs.com/651434092qq/p/11067528.html
+
+粘包、拆包发生原因主要有这3种：滑动窗口、MSS/MTU限制、Nagle算法
+MSS: 是Maximum Segement Size缩写，表示TCP报文中data部分的最大长度，是TCP协议在OSI五层网络模型中，传输层对一次可以发送的最大数据的限制。
+MTU: 最大传输单元是Maxitum Transmission Unit的简写，是OSI五层网络模型中，链路层(datalink layer)对一次可以发送的最大数据的限制。
+
+传输层会在DATA前面加上TCP Header,构成一个完整的TCP报文。
+当数据到达网络层(network layer)时，网络层会在TCP报文的基础上再添加一个IP Header，也就是将自己的网络地址加入到报文中。
+到数据链路层时，还会加上Datalink Header和CRC。
+当到达物理层时，会将SMAC(Source Machine，数据发送方的MAC地址)，DMAC(Destination Machine，数据接受方的MAC地址 )和Type域加入。
+
+MTU是以太网传输数据方面的限制，每个以太网帧都有最小的大小64bytes最大不能超过1518bytes。刨去以太网帧的帧头 （DMAC目的MAC地址48bit=6Bytes +SMAC源MAC地址48bit=6Bytes+Type域2bytes）14Bytes和帧尾 CRC校验部分4Bytes（这个部分有时候大家也把它叫做FCS），那么剩下承载上层协议的地方也 就是Data域最大就只能有1500Bytes，这个值我们就把它称之为MTU。
+
+由于MTU限制了一次最多可以发送1500个字节，而TCP协议在发送DATA时，还会加上额外的TCP Header和Ip Header，因此刨去这两个部分，就是TCP协议一次可以 发送的实际应用数据的最大大小，也就是MSS。
+
+      MSS长度 = MTU长度 - IP Header - TCP Header
+
+TCP Header的长度是20字节，IPv4中IP Header长度是20字节，IPV6中IP Header长度是40字节，因此：在IPV4中，以太网MSS可以达到1460byte；在IPV6中，以太网MSS可以达到1440byte。
+
+默认情况下，与外部通信的网卡的MTU大小是1500个字节。而本地回环地址的MTU大小为65535，这是因为本地测试时数据不需要走网卡，所以不受到1500 的限制。
+
+https://www.cnblogs.com/lifan3a/articles/6649970.html
+不同的协议层对数据包有不同的称谓，在传输层叫做段（segment），在网络层叫做数据报（datagram），在链路层叫做帧（frame）。
+
+集线器（Hub）是工作在物理层的网络设备，用于双绞线的连接和信号中继（将已衰减的信号再次放大使之传得更远）。
+
+交换机是工作在链路层的网络设备，可以在不同的链路层网络之间转发数据帧（比如十兆以太网和百兆以太网之间、以太网和令牌环网之间），由于不同链路层的帧格式不同，交换机要将进来的数据包拆掉链路层首部重新封装之后再转发。
+
+路由器是工作在第三层的网络设备，同时兼有交换机的功能，可以在不同的链路层接口之间转发数据包，因此路由器需要将进来的数据包拆掉网络层和链路层两层首部并重新封装。
+
+
+redis-shake数据同步&迁移工具
+https://developer.aliyun.com/article/691794
+
+redis-shake是我们基于redis-port基础上进行改进的一款产品。它支持解析、恢复、备份、同步四个功能。
+
+vert.x guide 译（一）
+https://my.oschina.net/u/2277632/blog/1576370
+同步sync：支持源redis和目的redis的数据同步，支持全量和增量数据的迁移，支持从云下到阿里云云上的同步，也支持云下到云下不同环境的同步，支持单节点、主从版、集群版之间的互相同步。需要注意的是，如果源端是集群版，可以启动一个RedisShake，从不同的db结点进行拉取，同时源端不能开启move slot功能；对于目的端，如果是集群版，写入可以是1个或者多个db结点。
+
+https://blog.csdn.net/wwd0501/article/details/108874950
+在一个开发团队里，架构师很重要，他决定了软件结构，这个结构决定了软件未来的可读性、可扩展性和可演进性。
+通常来说架构师设计领域模型，开发人员基于这个领域模型进行开发。“领域模型”是个潮流名词，如果拉回到 10 几年前，这个模型我们叫“数据字典”，说白了，领域模型就是数据库设计。
+
+在聊到 DDD 的时候，我经常会做一个假设：假设你的机器内存无限大，永远不宕机，在这个前提下，我们是不需要持久化数据的，也就是我们可以不需要数据库，那么你将会怎么设计你的软件？这就是我们说的 Persistence Ignorance：持久化无关设计。
+
+
+DDD 中的那些模式 — CQRS
+https://zhuanlan.zhihu.com/p/115685384
+DDD（领域驱动设计）总结
+https://blog.csdn.net/woshihyykk/article/details/108538608
+一种领域驱动设计（DDD）方法在Laravel Framework中的实践
+https://blog.csdn.net/u011323949/article/details/107617701
+
+阿里盒马领域驱动设计实践
+https://www.infoq.cn/article/alibaba-freshhema-ddd-practice
+
+DDD（领域驱动设计）总结
+https://www.cnblogs.com/firstdream/p/8669611.html
+
+设计领域模型的一般步骤：
+
+       1.   根据需求建立一个初步的领域模型，识别出一些明显的领域概念以及它们的关联，关联可以暂时没有方向但需要有（1：1，1：n，m：n）这些关系；可以用文字精确的没有歧义的描述出每个领域概念的涵义以及包含的主要信息；
+
+       2.   分析主要的软件应用程序功能，识别出主要的应用层的类；这样有助于及早发现哪些是应用层的职责，哪些是领域层的职责；
+
+       3.   进一步分析领域模型，识别出哪些是实体，哪些是值对象，哪些是领域服务；
+
+       4.   分析关联，通过对业务的更深入分析以及各种软件设计原则及性能方面的权衡，明确关联的方向或者去掉一些不需要的关联；
+
+       5.   找出聚合边界及聚合根，这是一件很有难度的事情；因为你在分析的过程中往往会碰到很多模棱两可的难以清晰判断的选择问题，所以，需要我们平时一些分析经验的积累才能找出正确的聚合根；
+
+       6.   为聚合根配备仓储，一般情况下是为一个聚合分配一个仓储，此时只要设计好仓储的接口即可；
+
+       7.   走查场景，确定我们设计的领域模型能够有效地解决业务需求；
+
+       8.   考虑如何创建领域实体或值对象，是通过工厂还是直接通过构造函数；
+
+       9.   停下来重构模型。寻找模型中觉得有些疑问或者是蹩脚的地方，比如思考一些对象应该通过关联导航得到还是应该从仓储获取？聚合设计的是否正确？考虑模型的性能怎样，等等；
+
+         领域建模是一个不断重构，持续完善模型的过程，大家会在讨论中将变化的部分反映到模型中，从而是模型不断细化并朝正确的方向走。
+
+
+蛙蛙牌基金组合策略 v1.0 版本
+1. 基金所在公司投研能力要强，有完善的投研体系
+2. 基金总数在 10 只左右，不能太多，也不能太少
+3. 每只基金近 5 年年化收益要求在 15% 以上
+4. 等权重持仓，每季度对偏离度超过 30% 的进行再平衡
+5. 全行业选股基金和行业主题基金比例 7:3 
+6. 高集中度低换手和低集中度高换手风格比例 7:3
+7. A 股基金和港美股基金比例 7:3
+8. 精选个股风格和行业轮动风格比例 7:3
+9. 除了 10 只权益类基金，再加债基，股债比例 8:2，每半年再平衡
+10. 多次踩雷个股个债的基金定期去掉
+
+Redis的雪崩，击穿，穿透，三者其实都差不多，但是又有一些区别，一般避免以上情况发生我们从三个时间段去分析下：
+事前：Redis 高可用，主从+哨兵，Redis cluster，避免全盘崩溃。
+事中：本地 ehcache 缓存 + Hystrix 限流+降级，避免MySQL 被打死。
+事后：Redis 持久化 RDB+AOF，一旦重启，自动从磁盘上加载数据，快速恢复缓存数据。
+
+市场宽度
+https://www.jianshu.com/p/4e89bf3b5fdb
+1. 破线 收盘价 > SMA20
+2. 拐头 满足 1 的条件下，今 SMA20 > 昨 SMA20
+3. 交叉 满足 2 的条件下，SMA20 > SMA60
+4. 排列 满足 3 的条件下，SMA60 > SMA120
+5. 乖离 满足 4 的条件下，乖离率大于阈值，我都用的是 0.3
+
+1.账面市值比(BM)=股东权益/公司市值.
+2.股东权益(净资产)=资产总额-负债总额 (每股净资产x流通股数)
+3.公司市值=流通股数x每股股价
+4.账面市值比(BM)=股东权益/公司市值=(每股净资产x流通股数)/(流通股数x每股股价)=每股净资产/每股股价=B/P=市净率的倒数
+
+链接：https://www.zhihu.com/question/23906290/answer/123700275
+
+- 资产配置模型
+    - Vanguard Portfolio Allocation Models:纯人工
+    - MPT(modern portfolio theory), Markowitz & MVO: 均值方差 
+        - 参数估计
+            - Use sample estimates for model inputs
+            - APT 多因子模型
+            - Bootstrapping
+            - 贝叶斯估计
+        - extension:
+            - Mean-Var Modeling
+            - Mean-SemiDev Modeling
+            - MC Sampling
+            - Stablizing techniques(Random Matrix Theory)
+            - Black-Litterman
+- 选基模型
+    - CAPM (Capital Asset Pricing Model): 
+        - Jensen's Alpha Model:
+        - Treynor-Mazuy Model(TM):
+        - Henriksson and Merton Model(HM):
+        - Chang and Lewellen Model(CL):
+    - APT
+        - Fama and French 三因子，四因子
+    - GII(Goetzmon, Ingersoll, Ivkovic)
+    - 晨星公募模型
+
+
+Python爬取B站视频，只需一个B站视频地址，即可任意下载
+https://blog.csdn.net/m0_48405781/article/details/111394783
+
+
+期权投资策略都有哪些？
+https://zhuanlan.zhihu.com/p/269524178
+
+判断大涨买认购，震荡下跌卖认购(小幅下跌)，震荡上涨卖认沽(小幅上涨)，判断暴跌买虚值，突破整理买期权。
+
+一、纯方向策略　　
+
+如果上证 50ETF 期权上涨，买平值认购合约+卖平值认沽合约(卖出目的防止时间价值衰减)；
+如果上证 50ETF 期货下跌，买平值认沽合约+卖平值认购合约。
+这种策略就需要你对方向的判断准确，如果对于趋势判断不准确，就很有可能导致你的亏损。
+
+二、波动率策略　　
+
+这种策略适合一些方向感不强，但是懂波动率的一些投资者，这种策略需要投资者持有一段时间。
+上证 50ETF 期货窄幅震荡(1%-5%)：同时卖出平值认购认沽合约(挣时间价值钱，时间价值为600的合约;时间价值为900，大盘波动6%才亏本)。
+上证 50ETF 宽幅波动(》6%)：同时买进虚值认沽认购合约(挣波动钱)。
+
+三、单向交易策略　　
+
+这种投资策略也可以叫做彩票策略，时间价值在200以内，杠杆倍数比较大)买平值或者虚值合约，杠杆倍数比较大，一旦有行情，弄对一波，就会赚的盆满钵满!
+
+四、买卖方策略
+
+1.买方策略：持有的时间越短，越有利。(买方要精准下手)。
+做买方是选择时间价格低的 (80-200) 合适，做卖方是选择时间价值高的(500以上的)比较合适;
+买保险一方，希望缴较低的保险费，获得价值比较高的保单;
+相反保险公司希望收更高保险费，就这个简单道理。
+
+2.卖方策略：持有的时间越长，越有利。(卖方要耐心持有)。
+期权的卖方特点：挣钱的概率大于买方，但是最大盈利是一定的， 一张合约一天最大亏损为 1 万份。
+50ETF基金涨跌10%幅度约为 2900 左右!(假设50ETF净值2.9元)
+
+什么是雪球期权Snowball
+https://zhuanlan.zhihu.com/p/101513058?from_voters_page=true
+https://zhuanlan.zhihu.com/p/148696523
+
+3小时快学期权（前两个小时）
+https://zhuanlan.zhihu.com/p/385140601
+
+
+Python之CVXOPT模块
+https://www.jianshu.com/p/df447c3e4efe
+Python中支持Convex Optimization（凸规划）
+
+删除最后一行
+truncate -s -"$(tail -n1 foo.csv | wc -c)" foo.csv
+sed -i '$ d' foo.txt
+
+
+MongoDB的集群模式--Sharding(分片)
+https://www.cnblogs.com/sz-wenbin/p/11022563.html
+
+csv 解析
+http://lorance.freeshell.org/csv/
+
+RSS is the Resident Set Size and is used to show how much memory is allocated to that process and is in RAM. It does not include memory that is swapped out. It does include memory from shared libraries as long as the pages from those libraries are actually in memory. It does include all stack and heap memory.
+
+VSZ is the Virtual Memory Size. It includes all memory that the process can access, including memory that is swapped out, memory that is allocated, but not used, and memory that is from shared libraries.
+
+So if process A has a 500K binary and is linked to 2500K of shared libraries, has 200K of stack/heap allocations of which 100K is actually in memory (rest is swapped or unused), and it has only actually loaded 1000K of the shared libraries and 400K of its own binary then:
+
+RSS: 400K + 1000K + 100K = 1500K
+VSZ: 500K + 2500K + 200K = 3200K
+
+
+Flink详细介绍(一)
+https://blog.csdn.net/weixin_44240370/article/details/102594925
+
+pmap anon 内存泄露
+https://blog.csdn.net/chuizhao9644/article/details/100818527
+
+map -d 3050
+
+输出：00007fc72fa99000   10660 rw--- 0000000000000000 000:00000   [ anon ]
+
+查找方法：
+
+1. strace -tt -T -p 3050
+     只看系统调用看不出来问题
+
+2. 添加日志，这是个漫长任务
+
+3. 回退版本，确定初步范围.
+
+4. valgrind检测， refer: http://blog.csdn.net/sduliulun/article/details/7732906
+    gcc -Wall -g -o test test.c
+    valgrind --tool=memcheck --leak-check=full --track-origins=yes  ./test
+   valgrind --tool=memcheck --leak-check=full --show-reachable=yes --track-origins=yes --show-leak-kinds=all --trace-children=yes   --log-file=/tmp/meng.log ./test
+
+ 
+
+valgrind安装
+refer : http://blog.csdn.net/yangzhiloveyou/article/details/7935078
+1. wget ftp://sourceware.org/pub/valgrind/valgrind-3.13.0.tar.bz2
+2. tar -jxvf valgrind-3.13.0.tar.bz2
+3. cd valgrind-3.13.0
+4. ./autogen.sh && ./configure && make && sudo make install
+
+
+一、jdk工具之jps（JVM Process Status Tools）命令使用
+
+二、jdk命令之javah命令(C Header and Stub File Generator)
+
+三、jdk工具之jstack(Java Stack Trace)
+
+四、jdk工具之jstat命令(Java Virtual Machine Statistics Monitoring Tool)
+
+四、jdk工具之jstat命令2(Java Virtual Machine Statistics Monitoring Tool)详解
+
+五、jdk工具之jmap（java memory map）、 mat之四--结合mat对内存泄露的分析
+
+六、jdk工具之jinfo命令(Java Configuration Info)
+
+七、jdk工具之jconsole命令(Java Monitoring and Management Console)
+
+八、jdk工具之JvisualVM、JvisualVM之二--Java程序性能分析工具Java VisualVM
+
+九、jdk工具之jhat命令(Java Heap Analyse Tool)
+
+十、jdk工具之Jdb命令(The Java Debugger)
+
+十一、jdk命令之Jstatd命令(Java Statistics Monitoring Daemon)
+
+十一、jdk命令之Jstatd命令(Java Statistics Monitoring Daemon)
+
+十二、jdk工具之jcmd介绍（堆转储、堆分析、获取系统信息、查看堆外内存）
+
+十三、jdk命令之Java内存之本地内存分析神器：NMT 和 pmap
+https://www.cnblogs.com/duanxz/p/6115722.html
+
+Mysql压缩解决方案<一>
+https://www.jianshu.com/p/d7cc90218222?from=timeline
+
+查看内存条数
+dmidecode|grep -P -A5 "Memory\s+Device"|grep Size|grep -v Range
+
+创业团队容器化办公环境
+https://startups.mytrade.fun/#/
+
+关于docker pull使用网络代理的配置
+https://www.feiyiblog.com/2021/01/13/%E5%85%B3%E4%BA%8Edocker-pull%E4%BD%BF%E7%94%A8%E7%BD%91%E7%BB%9C%E4%BB%A3%E7%90%86%E9%97%AE%E9%A2%98/
+
+MySQL中地理位置数据扩展geometry的使用心得
+https://www.cnblogs.com/hargen/p/9671087.html
+
+ssh 使用socks代理
+rsync -avuz -e 'ssh -p 22 -o "ProxyCommand=nc -x 127.0.0.1:1080 %h %p"' root@hostname:/remote_dir /local_dir
+ssh -o ProxyCommand='nc -x 127.0.0.1:1080 %h %p' username@server
+
+1、发生了什么事情？
+    体育考试考的不好。
+2、你现在觉得怎么样了？
+    我觉得很不好，不应该考这么低。
+3、你有什么想法？
+    我觉得刚开始不应该跑的太快了。
+4、那你觉得有什么办法？
+    我觉得刚开始应该跑的慢一些，这样后面也有里起跑到终点。
+5、这些方法的后果会怎样？
+    就是刚开始跑比较枯燥，没意思，但最后能跑到终点。
+6、你决定怎么做？
+    我决定每天这样匀速跑试试效果。
+7、你希望我做什么？
+    我希望你能每天陪我跑。
+
+如何在RAID系统安装中安装GRUB？
+https://qastack.cn/ubuntu/43036/how-do-i-install-grub-on-a-raid-system-installation
+https://help.ubuntu.com/community/Installation/SoftwareRAID
+
+拉格朗日插值公式
+https://www.cnblogs.com/cjyyb/p/9392388.html
+https://www.renrendoc.com/paper/101648390.html
+
+加速scp传输速度
+https://www.cnblogs.com/conanwang/p/5896203.html
+
+https://ci.apache.org/projects/flink/flink-docs-release-1.10/getting-started/tutorials/local_setup.html
+
+Sync. emails using imap java
+https://stackoverflow.com/questions/28689099/javamail-reading-recent-unread-mails-using-imap
+https://javaee.github.io/javamail/docs/api/com/sun/mail/imap/package-summary.html
+https://stackoverflow.com/questions/23802924/sync-emails-using-imap-java
+
+历史波动率求取为什么要取对数？
+https://www.zhihu.com/question/23174619
+
+首先题主你要明白，所谓的“波动率” Volatility 是指价格涨跌幅的标准差，而不是价格本身的标准差。
+
+“价格的对数的差值”其实就是连续复利计算方法下的涨跌幅。所以要计算“价格的对数的差值”的标准差。
+
+准确的说，因为现代金融理论的假设是对数正态分布，所以取完对数之后是正态分布，才能用样本去估计总体。
+
+其实我们对金融资产最常用的两个统计量期望和方差（标准差）表示的是收益率的期望和方差（标准差），而并非价格的期望和方差（标准差）。
+
+需要知道一个叫对数收益的概念，就是先取对数再做差。 现在求的波动率其实就是试图去求对数收益的波动率，这样能反映价格变动百分比（就是收益）的波动为什么说是“试图”，因为如果时间间隔有点大，这么做是会有些许误差的，这个误差到daily就蛮小了，如果是分级秒级则个视为0 （其实就是exp{x}泰勒展开到几项的关系）
+
+
+Web3．0时代的幼儿园教师培养与培训——以香港大学教育学院基于魔灯（Moodle）2.0平台构建PBL 2课程模式为例
+https://www.docin.com/p-1262582055.html
+
+通过这个平台开展创客教育，好用！| 工具推荐
+https://www.docin.com/p-1262582055.html
+
+
+https://download.moodle.org/releases/latest/
+
+
+Leetcode刷题顺序，看这一篇就够了
+https://zhuanlan.zhihu.com/p/161036474
+写了个自动批改小孩作业的代码
+https://mp.weixin.qq.com/s/cJgNWpjMz04nIsVahH9yKw
+
+
+
+要想使用hashcat,这个号称世界上最快的软件,必须使用office2john.py先对office加密文档进行hash转换
+
+office2john.py 1.xls
+1.xls:$oldoffice$0*15c3156626f2519d19faf82e4b9c536a*74dec186e119e9b2e0265042508459e7*e7aa9b395d4e17d935075789444c5e04:::
+
+hashcat -h | grep -i office
+./hashcat64 -a 0 -m 9700 '$oldoffice$0*15c3156626f2519d19faf82e4b9c536a*74dec186e119e9b2e0265042508459e7*e7aa9b395d4e17d935075789444c5e04' password.dict
+
+Office97-03(MD5+RC4,oldoffice$0,oldoffice$1): -m 9700
+Office97-03($0/$1, MD5 + RC4, collider #1): -m 9710
+Office97-03($0/$1, MD5 + RC4, collider #2): -m 9720
+Office97-03($3/$4, SHA1 + RC4): -m 9800
+Office97-03($3, SHA1 + RC4, collider #1): -m 9810
+Office97-03($3, SHA1 + RC4, collider #2): -m 9820
+Office2007: -m 9400
+Office2010: -m 9500
+Office2013: -m 9600
+
+?l                代表小写字母
+?u              代表大写字母
+?d              代表数字
+?s              代表特殊字符
+?a              代表大小写字母、数字以及特殊字符  
+?b               0x00-0xff 
+
+hashcat -a 3 -m 0 --force e10adc3949ba59abbe56e057f20f883e ?d?d?d?d?d?d
+
+hashcat详细使用教程
+https://blog.csdn.net/smli_ng/article/details/106111493
+
+$ ./hashcat.exe -D 1 -a 3 -m 0 e3ceb5881a0a1fdaad01296d7554868d ?d?d?d?d?d?d --show
+e3ceb5881a0a1fdaad01296d7554868d:222222
+
+https://www.onlinehashcrack.com/tools-office-hash-extractor.php
+
+创建你的第一个Scratch3.0 Extension
+http://wwj718.github.io/post/%E5%B0%91%E5%84%BF%E7%BC%96%E7%A8%8B/create-first-scratch3-extension/ 				
+
+https://mirror.tuna.tsinghua.edu.cn/help/anaconda/
+
+UNA 还提供了 Anaconda 仓库与第三方源（conda-forge、msys2、pytorch等，查看完整列表）的镜像，各系统都可以通过修改用户目录下的 .condarc 文件。Windows 用户无法直接创建名为 .condarc 的文件，可先执行 conda config --set show_channel_urls yes 生成该文件之后再修改。
+
+channels:
+  - defaults
+show_channel_urls: true
+default_channels:
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2
+custom_channels:
+  conda-forge: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  msys2: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  bioconda: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  menpo: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  pytorch-lts: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  simpleitk: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+
+运行 conda clean -i 清除索引缓存，保证用的是镜像站提供的索引。
+
+运行 conda create -n myenv numpy 测试一下吧。
+conda install pytorch-cpu torchvision-cpu -c pytorch
+
+conda install pytorch
+conda install pytorch=1.4.0
+
+Electron+Python界面开发（通过zerorpc）
+https://zhuanlan.zhihu.com/p/37999476
+
+MPW：多项目晶圆(Multi Project Wafer，简称MPW)就是将多个使用相同工艺的集成电路设计放在同一晶圆片上流片，制造完成后，每个设计可以得到数十片芯片样品，这一数量对于原型（Prototype）设计阶段的实验、测试已经足够。而该次制造费用就由所有参加MPW的项目按照芯片面积分摊，成本仅为单独进行原型制造成本的5%-10%，极大地降低了产品开发风险、培养集成电路设计人才的门槛和中小集成电路设计企业在起步时的门槛。
+
+
+IP：芯片行业中所说的IP，一般也称为IP核。IP核是指芯片中具有独立功能的电路模块的成熟设计。该电路模块设计可以应用在包含该电路模块的其他芯片设计项目中，从而减少设计工作量，缩短设计周期，提高芯片设计的成功率。
+
+conda search pytorch
+conda install pytorch=1.6.0
+conda install torchvision=0.7.0 cpuonly -cpytorch
+CUDA_VISIBLE_DEVICES=-1
+conda install pytorch torchvision cpuonly -c pytorch
+conda install pytorch torchvision -c soumith
+
+@functools.lru_cache(128)
+def get_model(model_name):
+https://stackoverflow.com/questions/47218313/use-functools-lru-cache-without-specifying-maxsize-parameter
+
+rembg -o 2.jpg 1.jpg
+
+Google Drive can't scan this file for viruses.
+
+u2net.pth (168M) is too large for Google to scan for viruses. Would you still like to download this file?
+
+wget 'https://docs.google.com/uc?export=download&id=1ao1ovG1Qtx4b7EoskHXmi2E9rp5CHLcZ' -O u2net.pth
+
+树莓派刷机
+https://www.balena.io/etcher/
+https://retropie.org.uk/download/
+
+数据库设计数据库建模ER图
+https://dbdiagram.io/home
+dbdiagram.io是一个快速上手的数据库设计器，可帮助您使用其自己的特定于域的语言（DSL：Domain-specific language）绘制数据库图。
+它们的定义语言非常简单，使用键盘即可轻松进行编辑/复制
+专注于绘制数据库关系图
+在线保存和共享图表
+专为开发人员，DBA，数据分析师而设计
+UI简洁，并包含有漂亮的图表。
+
+用update-rc.d命令添加开机执行脚本
+
+创建要开机自动执行的脚本：/home/test/blog/startBlog.sh，并给予可执行权限：chmod +x /home/test/blog/startBlog.sh。
+
+在/etc/init.d目录下创建链接文件到前面的脚本： ln -s /home/test/blog/startBlog.sh /etc/init.d/startBlog。
+
+进入/etc/init.d目录，用 update-rc.d 命令将连接文件 startBlog 添加到启动脚本中去：update-rc.d startBlog defaults 99。
+其中的99表示启动顺序，取值范围是0-99。序号越大的越晚执行。
+
+移除启动的脚本：update-rc.d -f startBlog remove。
+-f选项表示强制执行。
+
+Ubuntu18.04命令行连接WiFi
+https://www.cnblogs.com/milton/p/10133850.html
+
+查看是否已经正确安装无线网卡
+
+    iwconfig
+
+启动无线网卡, 如果网卡是wlan0
+
+    # 方式1
+    ifconfig wlan0 up
+    # 或者方式2
+    ip link set wlan0 up
+
+扫描可用的WiFi
+
+    # 不加less可能会产生太多输出
+    iw dev wlan0 scan |less
+    # 或者
+    iwlist wlan0 scanning
+
+# 建立配置文件
+
+    wpa_passphrase ESSID PWD > xxx.conf
+
+# 使用配置文件连接
+
+    wpa_supplicant -B -i wlan0 -Dwext -c ./xxx.conf
+
+# 查看连接结果
+
+    iwconfig wlan0
+
+# 设置为dhcp client, 获取IP
+
+    dhclient wlan0
+
+新建开机自启动脚本
+
+    sudo vi /etc/init.d/mywifi
+
+        #!/bin/sh
+        wpa_supplicant -B -i wlan0 -Dwext -c /home/ubuntu/wifi_pwd.conf
+        dhclient wlan0
+
+    chmod +x /etc/init.d/mywifi
+    sudo systemctl enable mywifi
+
+WebAssembly，简称Wasm。官方的定义是：一个可移植、体积小、加载快并且兼容Web的全新格式。
+
+准确来说，Wasm是一种为基于堆栈的虚拟机设计的二进制指令格式。Wasm被设计为用类似C/C++/Rust等高级语言的平台目标，从而可以在Web上部署客户端和服务器应用程序。

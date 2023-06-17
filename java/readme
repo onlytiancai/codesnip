@@ -1,0 +1,6 @@
+ 2968  13/01/22 09:05:07 ccat HelloWorld.java
+ 2969  13/01/22 09:05:16 javac HelloWorld.java
+ 2970  13/01/22 09:05:32 strace -c java HelloWorld.class
+ 2972  13/01/22 09:05:43 ccat HelloWorld.c
+ 2973  13/01/22 09:05:52 gcc HelloWorld.c -o HelloWorld.o
+ 2974  13/01/22 09:06:03 strace -c ./HelloWorld.o

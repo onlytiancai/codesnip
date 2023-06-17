@@ -1,0 +1,1073 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta name="viewport"
+        content="width=device-width; initial-scale=1.0; maximum-scale=1.0; minimum-scale=1.0; user-scalable=0;" />
+    <title>Merry Christmas!</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica;
+            color: white;
+        }
+
+        ::selection {
+            background: rgba(255, 255, 0, 0.5);
+        }
+
+
+        .window {
+            width: 340px;
+            height: 340px;
+            background: #a0d5d3;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border-radius: 50%;
+            margin-top: -60px;
+            -webkit-transform: translate(-50%, -50%);
+            -moz-transform: translate(-50%, -50%);
+            -ms-transform: translate(-50%, -50%);
+            -o-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+            border: 10px solid #f8e7dc;
+            overflow: hidden;
+        }
+
+        .santa {
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            -webkit-transform: translateX(-50%);
+            -moz-transform: translateX(-50%);
+            -ms-transform: translateX(-50%);
+            -o-transform: translateX(-50%);
+            transform: translateX(-50%);
+        }
+
+        .santa .body {
+            width: 190px;
+            height: 210px;
+            background: #de2f32;
+            position: relative;
+            border-radius: 50%;
+            top: 0;
+            -webkit-animation: bodyLaugh 4s linear infinite;
+            -moz-animation: bodyLaugh 4s linear infinite;
+            -ms-animation: bodyLaugh 4s linear infinite;
+            -o-animation: bodyLaugh 4s linear infinite;
+            animation: bodyLaugh 4s linear infinite;
+            -webkit-transform: translateY(50%);
+            -moz-transform: translateY(50%);
+            -ms-transform: translateY(50%);
+            -o-transform: translateY(50%);
+            transform: translateY(50%);
+        }
+
+        .santa .body:before {
+            content: " ";
+            width: 7px;
+            height: 7px;
+            background: #f7be10;
+            border-radius: 50%;
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            -webkit-transform: translate(-50%, -50%);
+            -moz-transform: translate(-50%, -50%);
+            -ms-transform: translate(-50%, -50%);
+            -o-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+            box-shadow: 0px -18px 0px #f7be10, 0px 18px 0px #f7be10;
+        }
+
+        .santa .head {
+            z-index: 2;
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            -webkit-animation: headLaugh 4s linear infinite;
+            -moz-animation: headLaugh 4s linear infinite;
+            -ms-animation: headLaugh 4s linear infinite;
+            -o-animation: headLaugh 4s linear infinite;
+            animation: headLaugh 4s linear infinite;
+            -webkit-transform: translateX(-50%);
+            -moz-transform: translateX(-50%);
+            -ms-transform: translateX(-50%);
+            -o-transform: translateX(-50%);
+            transform: translateX(-50%);
+        }
+
+        .santa .head .face {
+            width: 120px;
+            height: 130px;
+            background: #edcab0;
+            background: radial-gradient(#edcab0, #e9a982);
+            border-radius: 50%;
+            border: 3px solid #f8e7dc;
+        }
+
+        .santa .head .face .redhat .whitepart {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            -webkit-transform: translateX(-50%);
+            -moz-transform: translateX(-50%);
+            -ms-transform: translateX(-50%);
+            -o-transform: translateX(-50%);
+            transform: translateX(-50%);
+            width: 90%;
+            height: 32px;
+            background: #f8e7dc;
+            border-radius: 50px;
+            z-index: 4;
+            box-shadow: 0px 6px 0px -4px rgba(0, 0, 0, 0.1);
+        }
+
+        .santa .head .face .redhat .redpart {
+            width: 120px;
+            height: 120px;
+            background: #de2f32;
+            position: absolute;
+            top: -50px;
+            left: 15px;
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        .santa .head .face .redhat .redpart:before {
+            content: " ";
+            width: 95px;
+            height: 95px;
+            position: absolute;
+            left: 0;
+            top: 12px;
+            border-radius: 50%;
+            box-shadow: inset -8px -1px 0px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        .santa .head .face .redhat .redpart:after {
+            content: " ";
+            position: absolute;
+            right: 0;
+            top: 60px;
+            background: #de2f32;
+            width: 20px;
+            height: 50px;
+        }
+
+        .santa .head .face .redhat .hatball {
+            width: 38px;
+            height: 38px;
+            background: #f8e7dc;
+            border-radius: 50%;
+            z-index: 5;
+            position: absolute;
+            right: -20px;
+            top: 40px;
+            box-shadow: 0px 6px 0px -4px rgba(0, 0, 0, 0.1);
+        }
+
+        .santa .head .face .eyes {
+            position: absolute;
+            left: 50%;
+            -webkit-transform: translateX(-50%);
+            -moz-transform: translateX(-50%);
+            -ms-transform: translateX(-50%);
+            -o-transform: translateX(-50%);
+            transform: translateX(-50%);
+            top: 57px;
+        }
+
+        .santa .head .face .eyes:before,
+        .santa .head .face .eyes:after {
+            content: " ";
+            position: absolute;
+            width: 15px;
+            height: 9px;
+            top: 0;
+            border: 5px solid #a8744f;
+            border-width: 0;
+            border-top-width: 5px;
+            border-radius: 50%;
+        }
+
+        .santa .head .face .eyes:before {
+            left: -28px;
+        }
+
+        .santa .head .face .eyes:after {
+            right: -28px;
+        }
+
+        .santa .head .face .beard {
+            width: 55px;
+            height: 55px;
+            background: #f8e7dc;
+            border-radius: 50%;
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            -webkit-animation: beardLaugh 4s linear infinite;
+            -moz-animation: beardLaugh 4s linear infinite;
+            -ms-animation: beardLaugh 4s linear infinite;
+            -o-animation: beardLaugh 4s linear infinite;
+            animation: beardLaugh 4s linear infinite;
+            -webkit-transform: translateX(-50%);
+            -moz-transform: translateX(-50%);
+            -ms-transform: translateX(-50%);
+            -o-transform: translateX(-50%);
+            transform: translateX(-50%);
+        }
+
+        .santa .head .face .beard:before,
+        .santa .head .face .beard:after {
+            content: " ";
+            width: 80px;
+            height: 80px;
+            background: #f8e7dc;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 15px;
+        }
+
+        .santa .head .face .beard:before {
+            left: -40px;
+        }
+
+        .santa .head .face .beard:after {
+            right: -40px;
+        }
+
+        .santa .head .face .beard .nouse {
+            width: 25px;
+            height: 20px;
+            border-radius: 50%;
+            background: #edcab0;
+            position: absolute;
+            z-index: 3;
+            box-shadow: inset -3px -3px 0px #e9a982;
+            left: 50%;
+            -webkit-transform: translateX(-50%);
+            -moz-transform: translateX(-50%);
+            -ms-transform: translateX(-50%);
+            -o-transform: translateX(-50%);
+            transform: translateX(-50%);
+            top: -42px;
+        }
+
+        .santa .head .face .beard .mouth {
+            background: #a8744f;
+            z-index: 3;
+            position: absolute;
+            width: 15px;
+            height: 5px;
+            border-bottom-right-radius: 80px 50px;
+            border-bottom-left-radius: 80px 50px;
+            left: 50%;
+            top: 0;
+            -webkit-animation: mouthLaugh 4s linear infinite;
+            -moz-animation: mouthLaugh 4s linear infinite;
+            -ms-animation: mouthLaugh 4s linear infinite;
+            -o-animation: mouthLaugh 4s linear infinite;
+            animation: mouthLaugh 4s linear infinite;
+            -webkit-transform: translateX(-50%);
+            -moz-transform: translateX(-50%);
+            -ms-transform: translateX(-50%);
+            -o-transform: translateX(-50%);
+            transform: translateX(-50%);
+        }
+
+        .santa .head .ears:before,
+        .santa .head .ears:after {
+            content: " ";
+            width: 20px;
+            height: 30px;
+            border-radius: 50%;
+            background: radial-gradient(#e9a982, #edcab0);
+            position: absolute;
+            top: 50%;
+            z-index: -1;
+        }
+
+        .santa .head .ears:before {
+            left: -8px;
+            -webkit-transform: rotate(-10deg);
+            -moz-transform: rotate(-10deg);
+            -ms-transform: rotate(-10deg);
+            -o-transform: rotate(-10deg);
+            transform: rotate(-10deg);
+        }
+
+        .santa .head .ears:after {
+            right: -8px;
+            -webkit-transform: rotate(10deg);
+            -moz-transform: rotate(10deg);
+            -ms-transform: rotate(10deg);
+            -o-transform: rotate(10deg);
+            transform: rotate(10deg);
+        }
+
+        @font-face {
+            font-family: 'Mountains of Christmas';
+            font-style: normal;
+            src: local("Mountains of Christmas"), local("MountainsofChristmas-Regular"), url(https://fonts.gstatic.com/s/mountainsofchristmas/v8/dVGBFPwd6G44IWDbQtPewylJhLDHyIrT3I5b5eGTHmw.woff2) format("woff2");
+        }
+
+        .message {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin-top: 80px;
+            -webkit-transform: translateX(-50%);
+            -moz-transform: translateX(-50%);
+            -ms-transform: translateX(-50%);
+            -o-transform: translateX(-50%);
+            transform: translateX(-50%);
+            color: #f8e7dc;
+            font-family: 'Mountains of Christmas';
+        }
+
+        .message h1 {
+            font-style: normal;
+            font-size: 75px;
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+
+        .message h2 {
+            margin: 0;
+            font-size: 20px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .message h2 a {
+            color: #f7be10;
+            opacity: 0.8;
+        }
+
+        .message h2 a:hover {
+            opacity: 1;
+        }
+
+        @-webkit-keyframes bodyLaugh {
+            0% {
+                top: 0px;
+            }
+
+            2% {
+                top: -3px;
+            }
+
+            4% {
+                top: 0px;
+            }
+
+            8% {
+                top: -3px;
+            }
+
+            10% {
+                top: 0px;
+            }
+
+            12% {
+                top: -3px;
+            }
+
+            14% {
+                top: 0px;
+            }
+
+            18% {
+                top: -3px;
+            }
+
+            20% {
+                top: 0px;
+            }
+
+            22% {
+                top: -3px;
+            }
+
+            24% {
+                top: 0px;
+            }
+
+            28% {
+                top: -3px;
+            }
+
+            30% {
+                top: 0px;
+            }
+
+            100% {
+                top: 0px;
+            }
+        }
+
+        @-moz-keyframes bodyLaugh {
+            0% {
+                top: 0px;
+            }
+
+            2% {
+                top: -3px;
+            }
+
+            4% {
+                top: 0px;
+            }
+
+            8% {
+                top: -3px;
+            }
+
+            10% {
+                top: 0px;
+            }
+
+            12% {
+                top: -3px;
+            }
+
+            14% {
+                top: 0px;
+            }
+
+            18% {
+                top: -3px;
+            }
+
+            20% {
+                top: 0px;
+            }
+
+            22% {
+                top: -3px;
+            }
+
+            24% {
+                top: 0px;
+            }
+
+            28% {
+                top: -3px;
+            }
+
+            30% {
+                top: 0px;
+            }
+
+            100% {
+                top: 0px;
+            }
+        }
+
+        @-ms-keyframes bodyLaugh {
+            0% {
+                top: 0px;
+            }
+
+            2% {
+                top: -3px;
+            }
+
+            4% {
+                top: 0px;
+            }
+
+            8% {
+                top: -3px;
+            }
+
+            10% {
+                top: 0px;
+            }
+
+            12% {
+                top: -3px;
+            }
+
+            14% {
+                top: 0px;
+            }
+
+            18% {
+                top: -3px;
+            }
+
+            20% {
+                top: 0px;
+            }
+
+            22% {
+                top: -3px;
+            }
+
+            24% {
+                top: 0px;
+            }
+
+            28% {
+                top: -3px;
+            }
+
+            30% {
+                top: 0px;
+            }
+
+            100% {
+                top: 0px;
+            }
+        }
+
+        @keyframes bodyLaugh {
+            0% {
+                top: 0px;
+            }
+
+            2% {
+                top: -3px;
+            }
+
+            4% {
+                top: 0px;
+            }
+
+            8% {
+                top: -3px;
+            }
+
+            10% {
+                top: 0px;
+            }
+
+            12% {
+                top: -3px;
+            }
+
+            14% {
+                top: 0px;
+            }
+
+            18% {
+                top: -3px;
+            }
+
+            20% {
+                top: 0px;
+            }
+
+            22% {
+                top: -3px;
+            }
+
+            24% {
+                top: 0px;
+            }
+
+            28% {
+                top: -3px;
+            }
+
+            30% {
+                top: 0px;
+            }
+
+            100% {
+                top: 0px;
+            }
+        }
+
+        @-webkit-keyframes beardLaugh {
+            0% {
+                bottom: -28px;
+            }
+
+            2% {
+                bottom: -30px;
+            }
+
+            4% {
+                bottom: -28px;
+            }
+
+            8% {
+                bottom: -30px;
+            }
+
+            10% {
+                bottom: -28px;
+            }
+
+            12% {
+                bottom: -30px;
+            }
+
+            14% {
+                bottom: -28px;
+            }
+
+            18% {
+                bottom: -30px;
+            }
+
+            20% {
+                bottom: -28px;
+            }
+
+            22% {
+                bottom: -30px;
+            }
+
+            24% {
+                bottom: -28px;
+            }
+
+            28% {
+                bottom: -30px;
+            }
+
+            30% {
+                bottom: -28px;
+            }
+
+            100% {
+                bottom: -28px;
+            }
+        }
+
+        @-moz-keyframes beardLaugh {
+            0% {
+                bottom: -28px;
+            }
+
+            2% {
+                bottom: -30px;
+            }
+
+            4% {
+                bottom: -28px;
+            }
+
+            8% {
+                bottom: -30px;
+            }
+
+            10% {
+                bottom: -28px;
+            }
+
+            12% {
+                bottom: -30px;
+            }
+
+            14% {
+                bottom: -28px;
+            }
+
+            18% {
+                bottom: -30px;
+            }
+
+            20% {
+                bottom: -28px;
+            }
+
+            22% {
+                bottom: -30px;
+            }
+
+            24% {
+                bottom: -28px;
+            }
+
+            28% {
+                bottom: -30px;
+            }
+
+            30% {
+                bottom: -28px;
+            }
+
+            100% {
+                bottom: -28px;
+            }
+        }
+
+        @-ms-keyframes beardLaugh {
+            0% {
+                bottom: -28px;
+            }
+
+            2% {
+                bottom: -30px;
+            }
+
+            4% {
+                bottom: -28px;
+            }
+
+            8% {
+                bottom: -30px;
+            }
+
+            10% {
+                bottom: -28px;
+            }
+
+            12% {
+                bottom: -30px;
+            }
+
+            14% {
+                bottom: -28px;
+            }
+
+            18% {
+                bottom: -30px;
+            }
+
+            20% {
+                bottom: -28px;
+            }
+
+            22% {
+                bottom: -30px;
+            }
+
+            24% {
+                bottom: -28px;
+            }
+
+            28% {
+                bottom: -30px;
+            }
+
+            30% {
+                bottom: -28px;
+            }
+
+            100% {
+                bottom: -28px;
+            }
+        }
+
+        @keyframes beardLaugh {
+            0% {
+                bottom: -28px;
+            }
+
+            2% {
+                bottom: -30px;
+            }
+
+            4% {
+                bottom: -28px;
+            }
+
+            8% {
+                bottom: -30px;
+            }
+
+            10% {
+                bottom: -28px;
+            }
+
+            12% {
+                bottom: -30px;
+            }
+
+            14% {
+                bottom: -28px;
+            }
+
+            18% {
+                bottom: -30px;
+            }
+
+            20% {
+                bottom: -28px;
+            }
+
+            22% {
+                bottom: -30px;
+            }
+
+            24% {
+                bottom: -28px;
+            }
+
+            28% {
+                bottom: -30px;
+            }
+
+            30% {
+                bottom: -28px;
+            }
+
+            100% {
+                bottom: -28px;
+            }
+        }
+
+        @-webkit-keyframes headLaugh {
+            0% {
+                bottom: 83px;
+            }
+
+            45% {
+                bottom: 83px;
+            }
+
+            50% {
+                bottom: 90px;
+            }
+
+            92% {
+                bottom: 90px;
+            }
+
+            98% {
+                bottom: 83px;
+            }
+
+            100% {
+                bottom: 83px;
+            }
+        }
+
+        @-moz-keyframes headLaugh {
+            0% {
+                bottom: 83px;
+            }
+
+            45% {
+                bottom: 83px;
+            }
+
+            50% {
+                bottom: 90px;
+            }
+
+            92% {
+                bottom: 90px;
+            }
+
+            98% {
+                bottom: 83px;
+            }
+
+            100% {
+                bottom: 83px;
+            }
+        }
+
+        @-ms-keyframes headLaugh {
+            0% {
+                bottom: 83px;
+            }
+
+            45% {
+                bottom: 83px;
+            }
+
+            50% {
+                bottom: 90px;
+            }
+
+            92% {
+                bottom: 90px;
+            }
+
+            98% {
+                bottom: 83px;
+            }
+
+            100% {
+                bottom: 83px;
+            }
+        }
+
+        @keyframes headLaugh {
+            0% {
+                bottom: 83px;
+            }
+
+            45% {
+                bottom: 83px;
+            }
+
+            50% {
+                bottom: 90px;
+            }
+
+            92% {
+                bottom: 90px;
+            }
+
+            98% {
+                bottom: 83px;
+            }
+
+            100% {
+                bottom: 83px;
+            }
+        }
+
+        @-webkit-keyframes mouthLaugh {
+            0% {
+                width: 20px;
+            }
+
+            45% {
+                width: 20px;
+            }
+
+            50% {
+                width: 15px;
+            }
+
+            92% {
+                width: 15px;
+            }
+
+            98% {
+                width: 20px;
+            }
+
+            100% {
+                width: 20px;
+            }
+        }
+
+        @-moz-keyframes mouthLaugh {
+            0% {
+                width: 20px;
+            }
+
+            45% {
+                width: 20px;
+            }
+
+            50% {
+                width: 15px;
+            }
+
+            92% {
+                width: 15px;
+            }
+
+            98% {
+                width: 20px;
+            }
+
+            100% {
+                width: 20px;
+            }
+        }
+
+        @-ms-keyframes mouthLaugh {
+            0% {
+                width: 20px;
+            }
+
+            45% {
+                width: 20px;
+            }
+
+            50% {
+                width: 15px;
+            }
+
+            92% {
+                width: 15px;
+            }
+
+            98% {
+                width: 20px;
+            }
+
+            100% {
+                width: 20px;
+            }
+        }
+
+        @keyframes mouthLaugh {
+            0% {
+                width: 20px;
+            }
+
+            45% {
+                width: 20px;
+            }
+
+            50% {
+                width: 15px;
+            }
+
+            92% {
+                width: 15px;
+            }
+
+            98% {
+                width: 20px;
+            }
+
+            100% {
+                width: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="window">
+        <div class="santa">
+            <div class="head">
+                <div class="face">
+                    <div class="redhat">
+                        <div class="whitepart"></div>
+                        <div class="redpart"></div>
+                        <div class="hatball"></div>
+                    </div>
+                    <div class="eyes"></div>
+                    <div class="beard">
+                        <div class="nouse"></div>
+                        <div class="mouth"></div>
+                    </div>
+                </div>
+                <div class="ears"></div>
+            </div>
+            <div class="body"></div>
+        </div>
+    </div>
+    <div class="message">
+        <h1>Merry Christmas! </h1>
+        <h2>From Hao.</h2>
+    </div>
+    <canvas></canvas>
+    <script>
+        var c = document.getElementsByTagName('canvas')[0];
+        var b = document.body;
+        var a = c.getContext('2d');
+    </script>
+    <script>
+        D = b.style, f = window; D.margin = 0; D.overflow = "hidden"; i = f.innerWidth, j = f.innerHeight; c.width = i; c.height = j; k = Math, l = k.random, n = k.sin, p = k.floor, q = 20, r = [], s = k.PI; function t(d) { d.b = d.x = (l() * i - i * .5) * q; d.c = d.y = (l() * j - j * .2) * q; d.a = q; d.d = l() } for (var v = 0, w; v < 300; v++) { w = {}; t(w); r.push(w) } setInterval(function () { a.fillStyle = "rgba(64,64,64,.8)"; a.fillRect(0, 0, i, j); for (var d = 0; d < 300; d++) { var b = r[d], o = n(s) * 32 - 16, u = b.x / b.a, e = u + i / 2 - o, g = o = b.y / b.a, m = l() * 360, x = b.a > q - 5 ? (q - b.a) / 5 : 1, h = q - b.a - 4; a.fillStyle = "hsla(" + p(m) + ",50%,95%," + x + ")"; a.beginPath(); if (b.a < q - 6) { a.save(); a.translate(e, g); a.rotate(b.d * (d % 2 ? 1 : -1) * (d % 3 / 2 + .1)); g = 0; e = h / (d % 4 + 2); for (m = h / (d % 3 + 1); g < 6; g++) { a.lineTo(-e, m); a.lineTo(0, h); a.lineTo(e, m); a.lineTo(0, 0); a.rotate(k.PI / 3) } a.fill(); if (d % 2 == 0) { g = 0; for (e = h / (d % 5 + 1); g < 6; g++) { a.beginPath(); a.moveTo(0, h); a.lineTo(-e, h - e); a.lineTo(0, h - e); a.lineTo(e, h - e); a.fill(); a.rotate(k.PI / 3) } } a.restore() } else { a.arc(e, g, 1 / b.a * 5 + 1, 0, k.PI * 2, true); a.fill() } b.b = u; b.c = o; b.a -= .15; b.d += l() / 5; if (b.a < .15 || b.b < -i / 2 || b.b > i / 2 || b.c > j) t(b); s += k.PI / 2 } }, 25);
+    </script>
+    <div style="position: absolute; bottom: 0; right: 0;">
+        <a style="color: #fff;" href="http://www.kevs3d.co.uk/dev/snowfield/">js</a>,
+        <a style="color: #fff;" href="https://css-art.com/pure-css-merry-christmas/">css</a>,
+        <a style="color: #fff;" href="https://free-loops.com/6192-jingle-bells.html">mp3</a>
+    </div>
+    <audio id="mp3" src="Jingle Bells.mp3" autoplay loop></audio>
+    <script>
+        document.body.onclick = function () { document.getElementById('mp3').play(); }
+    </script>
+</body>
+
+</html>
