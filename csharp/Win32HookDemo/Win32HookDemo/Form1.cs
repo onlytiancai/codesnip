@@ -11,10 +11,11 @@ namespace Win32HookDemo
     public partial class Form1 : Form
     {
         private delegate void InvokeCallback(string msg);
+        KeyboardHook kh;
         public Form1()
         {
             InitializeComponent();
-            KeyboardHook kh = new KeyboardHook(true);
+            kh = new KeyboardHook(true);
             kh.KeyDown += Kh_KeyDown;
 
             MouseHook.Setup();
@@ -23,8 +24,8 @@ namespace Win32HookDemo
 
         private void MouseHook_LeftMouseDown(int controlId, string title)
         {
-            if (title.Length > 10) title = title.Substring(0, 10);
-            appendText(string.Format("Left Mouse down:{0} {1}", controlId, title));
+            if (title.Length > 100) title = title.Substring(0, 100);
+            appendText(string.Format("Left Mouse down:{0}", title));
         }
 
         private void Kh_KeyDown(Keys key, bool Shift, bool Ctrl, bool Alt)
@@ -48,6 +49,11 @@ namespace Win32HookDemo
         private void Form1_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void toolStripSplitButton1_ButtonClick(object sender, EventArgs e)
+        {
+            textBox1.Text = "";
         }
     }
 }
