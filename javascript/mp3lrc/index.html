@@ -28,8 +28,8 @@
 
         header,
         footer {
-            background-color: #fff;
-            color: #000;
+            background-color: #333;
+            color: #fff;
             height: 10vh;
             line-height: 10vh;
             padding-left: 10px;      
@@ -145,6 +145,7 @@
                     li.innerHTML += '<p class="li_cn">' + lyrics_cn[i].text + '</p>';
                     li.addEventListener('click', () => {
                         doms.player.currentTime = lyrics[i].time;
+                        doms.player.play()
                     });
                     frag.appendChild(li);
                 }

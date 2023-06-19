@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蛙蛙英语</title>
+</head>
+<body>
+    <script>
+        !async function main() {
+            const url = 'http://media.ihuhao.com/%E6%96%B0%E6%A6%82%E5%BF%B5%E8%8B%B1%E8%AF%AD/NCE1-%E8%8B%B1%E9%9F%B3-%28MP3%2BLRC%29/list.json';
+            const res = await fetch(url);
+            const list = await res.json();
+            console.log(list);
+        }();
+    </script>
+</body>
+</html>
