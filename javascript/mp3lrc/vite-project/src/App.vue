@@ -3,20 +3,20 @@ import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
-  <HelloWorld msg="Vite + Vue" />
+  <h1>新概念</h1> 
+  <div class="page-bd">
+    <router-view></router-view>
+  </div>
+  <div class="weui-footer">
+    <p class="weui-footer__links">
+      <a href="javascript:" class="weui-footer__link weui-wa-hotarea">蛙蛙科技</a>
+    </p>
+    <p class="weui-footer__text">Copyright &copy; 2008-2022 蛙蛙科技</p>
+  </div>
 </template>
 
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+h1 {
+  padding: 15px;
 }
 </style>

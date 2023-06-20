@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "vue": "^3.2.47",
+    "vue-router": "4",
     "weui": "^2.5.16",
     "weui.js": "^1.2.18"
   },
