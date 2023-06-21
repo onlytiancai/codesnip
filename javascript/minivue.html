@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minu Vue</title>
+</head>
+
+<body>
+    <script>
+        let createApp = function (options) {
+            let dom = null
+            let keys = Object.keys(options.data())
+            console.log('keys', keys)
+            let callbacks = {};
+            keys.forEach(key => callbacks[key] = [])
+            console.log(callbacks)
+
+
+            function reactive(obj) {
+                return new Proxy(obj, {
+                    get(target, key) {
+                        console.log('reactive get', key)
+                        return target[key]
+                    },
+                    set(target, key, value) {
+                        target[key] = value
+                        console.log('reactive set', key, value)
+                        if (callbacks[key] != undefined) {
+                            for (const callback of callbacks[key]) {
+                                callback()
+                            }
+                        }
+                    }
+                })
+            }
+
+            let data = reactive(options.data())
+
+            const tplReg = /\{\{\s*(\w+)\s*\}\}/g
+            let render = function (ele, tpl) {
+                let html = tpl.replace(tplReg, function (str, key) {
+                    console.log('render tpl', str, key)
+                    return data[key];
+                }).trim()
+                console.log('html', tpl, html)
+                return html;
+            }
+
+            let update = function () {
+                for (let i = 0; i < dom.children.length; i++) {
+                    const ele = dom.children[i];
+                    for (let j = 0; j < ele.attributes.length; j++) {
+                        const att = ele.attributes[j];
+                        console.log('parse att', att.name, att.value)
+                        if (att.name.startsWith('@')) {
+                            const eventName = att.name.substring(1)
+                            ele.addEventListener(eventName, function () {                                
+                                let code = att.value;
+                                keys.forEach(key => code = code.replace(key, 'data.'+key))
+                                console.log('triger event', eventName, code)
+                                eval(code)
+                            })
+                        }
+                    }
+                    let tpl = ele.innerText;
+                    if (ele.childElementCount == 0 && tpl.match(tplReg)) {
+                        ele.innerText.replace(tplReg, function (str, key) {
+                            console.log('parse tpl', str, key)
+                            if (callbacks[key] != undefined) {
+                                callbacks[key].push(function () {
+                                    ele.innerText = render(ele, tpl);
+                                });
+                            }
+                        })
+                    }
+                    ele.innerText = render(ele, ele.innerText)
+                }
+
+
+            }
+            return {
+                mount(selector) {
+                    console.log('mount', selector)
+                    dom = document.querySelector(selector)
+                    update()
+                }
+            }
+        }
+    </script>
+    <div id="app">
+        <button @click="count++">
+            Count is: {{ count }}
+        </button>
+        <button @click="count++">
+            Count2 is: {{ count }}
+        </button>
+    </div>
+    <script>
+        createApp({
+            data() {
+                return {
+                    count: 0
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+
+</html>
