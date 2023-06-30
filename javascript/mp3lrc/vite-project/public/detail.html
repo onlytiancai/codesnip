@@ -32,7 +32,7 @@
             color: #fff;
             height: 10vh;
             line-height: 10vh;
-            padding-left: 10px;      
+            padding-left: 10px;
             display: flex;
             font-size: 16px;
         }
@@ -40,6 +40,7 @@
         footer .buttons {
             width: 50px;
         }
+
         footer .buttons select {
             border-radius: 0;
         }
@@ -58,7 +59,7 @@
         .container {
             flex: 1;
             overflow: hidden;
-            
+
         }
 
         .container ul {
@@ -93,13 +94,13 @@
 </head>
 
 <body>
-    <header>新概念英语 2-001</header>
+    <header>新概念英语</header>
 
     <div class="container">
         <ul class="wordList">
         </ul>
     </div>
-    
+
     <footer>
         <div class="buttons">
             <select id="sel_subtitle">
@@ -115,9 +116,23 @@
 
     </footer>
     <script>
+        function getQueryVariable(variable) {
+            var query = window.location.search.substring(1);
+            var vars = query.split("&");
+            for (var i = 0; i < vars.length; i++) {
+                var pair = vars[i].split("=");
+                if (pair[0] == variable) { return pair[1]; }
+            }
+            return (false);
+        }
+
         !async function main() {
             "use strict";
-            const BASE_URL = "http://media.ihuhao.com/%E6%96%B0%E6%A6%82%E5%BF%B5%E8%8B%B1%E8%AF%AD/2/";
+            let name = getQueryVariable('name')
+            let book = getQueryVariable('book')    
+            console.log(book, name)
+            document.querySelector('header').innerText = decodeURIComponent(name)
+            const BASE_URL = "http://media.ihuhao.com/%E6%96%B0%E6%A6%82%E5%BF%B5%E8%8B%B1%E8%AF%AD/"+book+"/";
 
             const doms = {
                 player: document.querySelector(".player"),
@@ -125,13 +140,13 @@
                 container: document.querySelector(".container")
             };
 
-            doms.player.src = BASE_URL + "01－A Private Conversation.mp3";
+            doms.player.src = BASE_URL + name + '.mp3';
 
             // load lrc file
-            const res = await fetch("01－A Private Conversation.lrc");
+            const res = await fetch( BASE_URL + name + ".lrc");
             const lrc = await res.text();
             const lyrics = parseLyric(lrc);
-            const res_cn = await fetch("01－A Private Conversation_cn.lrc");
+            const res_cn = await fetch(BASE_URL + name + "_cn.lrc");
             const lrc_cn = await res_cn.text();
             const lyrics_cn = parseLyric(lrc_cn);
             // 创建歌词列表

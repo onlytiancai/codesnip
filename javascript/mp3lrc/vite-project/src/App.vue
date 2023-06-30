@@ -3,7 +3,6 @@
 </script>
 
 <template>
-  <h1>新概念</h1> 
   <div class="page-bd">
     <router-view></router-view>
   </div>
