@@ -21,7 +21,7 @@ const $weui = proxy.$weui;
 let list = ref([]);
 
 onMounted(async () => {
-  const url = 'list.json';
+  const url = 'http://media.ihuhao.com/%E6%96%B0%E6%A6%82%E5%BF%B5%E8%8B%B1%E8%AF%AD/NCE2-%E8%8B%B1%E9%9F%B3-%28MP3%2BLRC%29/list.json';
   try {
     const res = await fetch(url);
     list.value = await res.json();
@@ -42,7 +42,7 @@ onMounted(async () => {
           <a @click="to(item.mp3)" class="weui-cell weui-cell_active weui-cell_access weui-cell_example"
             href="javascript:void(0)" v-for="item in list">
             <div class="weui-cell__bd weui-cell_primary">
-              <p><span class="no">{{ item.mp3.slice(0, 3) }}</span>{{ item.mp3.slice(8).slice(0, -4) }}</p>
+              <p><span class="no">{{ item.mp3.slice(0, 2) }}</span>{{ item.mp3.slice(3).slice(0, -4) }}</p>
             </div>
             <div class="weui-cell__ft"></div>
           </a>

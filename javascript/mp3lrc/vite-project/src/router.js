@@ -1,10 +1,10 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
-import HelloWorld from './components/HelloWorld.vue'
+import List from './components/List.vue'
 import Detail from './components/Detail.vue'
 
 const routes = [
-    { path: '/', component: HelloWorld },
+    { path: '/', component: List },
     { name:'detail', path: '/detail', component: Detail },
 ]
 console.log(routes)
