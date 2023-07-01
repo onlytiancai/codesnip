@@ -32,12 +32,12 @@ const getTitle = function(item) {
 
 <template>
   <div class="weui-panel">
-    <div class="weui-panel__hd">{{$route.query.title}}</div>
+    <div class="weui-panel__hd"><a class="weui-link weui-wa-hotarea" href="#">返回</a> {{$route.query.title}}</div>
     <div class="weui-panel__bd">
       <div class="weui-media-box weui-media-box_small-appmsg">
         <div class="weui-cells">
           <a class="weui-cell weui-cell_active weui-cell_access weui-cell_example"
-            :href="'/detail.html?book='+encodeURIComponent(book)+'&name=' + encodeURIComponent(item.mp3.slice(0, -4)) " 
+            :href="'detail.html?book='+encodeURIComponent(book)+'&name=' + encodeURIComponent(item.mp3.slice(0, -4)) " 
             v-for="item in list">
             <div class="weui-cell__bd weui-cell_primary">
               <p><span class="no">{{ getNo(item) }}</span>{{ getTitle(item) }}</p>
