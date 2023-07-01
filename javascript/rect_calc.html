@@ -54,6 +54,7 @@
             return intersectionRect;
         }
 
+        // 求多个矩形共同相交的小矩形
         function getCommonIntersection(rectList) {
             // 初始化相交矩形为第一个矩形
             var intersection = {};
@@ -95,6 +96,7 @@
             });
         }
 
+        // 求数组 arr 里长度为 m 的排列，不要求顺序
         function getCombinations(arr, m) {
             const combinations = [];
 
@@ -127,18 +129,23 @@
             let inters = recs.map(rec =>getIntersection(rec, a) )
             inters.forEach(console.log)
 
+            // 计算相交小矩形总的面积
             let totalArea = 0;
             inters.forEach(x => totalArea += (x.width * x.height))
             console.log(111, totalArea)
 
             for (let i = 2; i <= inters.length; i++) {
+                // 分别取两两组合，三三组合，四四组合
                 let list = getCombinations(inters, i);
                 console.log(222, i, list)
+
                 list.forEach(x => {
+                    // 组合里多个矩形共同相交的小矩形
                     const commInter = getCommonIntersection(x)
                     if (commInter) {
                         const area = commInter.width * commInter.height
                         if (area) console.log(333, x, area)
+                        // 如果组合里有偶数个矩形则减去这个面积，否则加上
                         if (i % 2 == 0) totalArea -= area
                         else totalArea += area
                     }
