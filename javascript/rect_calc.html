@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rect</title>
+</head>
+
+<body>
+    <script>
+        // 创建Canvas元素
+        const canvas = document.createElement('canvas');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        document.body.appendChild(canvas);
+
+        // 获取Canvas绘图上下文
+        const ctx = canvas.getContext('2d');
+
+        // 定义矩形数组
+        const rectangles = [
+            { x: 50, y: 50, width: 200, height: 200, color: 'rgba(255, 0, 0, 0.5)', zIndex: 1 },
+            { x: 200, y: 200, width: 150, height: 150, color: 'rgba(0, 255, 0, 0.5)', zIndex: 2 },
+            { x: 250, y: 250, width: 200, height: 200, color: 'rgba(0, 0, 255, 0.5)', zIndex: 3 },
+            { x: 150, y: 180, width: 120, height: 200, color: 'rgba(0, 0, 255, 0.5)', zIndex: 3 },
+            { x: 320, y: 150, width: 150, height: 200, color: 'rgba(0, 0, 255, 0.5)', zIndex: 3 },
+            { x: 100, y: 130, width: 280, height: 110, color: 'rgba(0, 0, 255, 0.5)', zIndex: 3 }, // 未完全覆盖
+            { x: 100, y: 130, width: 280, height: 120, color: 'rgba(0, 0, 255, 0.5)', zIndex: 3 }, // 取消本行注释完全覆盖
+        ];
+
+        function getIntersection(rectA, rectB) {
+            // 计算相交矩形的左上角坐标
+            var x = Math.max(rectA.x, rectB.x);
+            var y = Math.max(rectA.y, rectB.y);
+
+            // 计算相交矩形的宽度和高度
+            var width = Math.min(rectA.x + rectA.width, rectB.x + rectB.width) - x;
+            var height = Math.min(rectA.y + rectA.height, rectB.y + rectB.height) - y;
+
+            // 如果宽度或高度小于等于0，则表示两个矩形不相交
+            if (width <= 0 || height <= 0) {
+                return null;
+            }
+
+            // 构造相交矩形对象
+            var intersectionRect = {
+                x: x,
+                y: y,
+                width: width,
+                height: height
+            };
+            return intersectionRect;
+        }
+
+        // 求多个矩形共同相交的小矩形
+        function getCommonIntersection(rectList) {
+            // 初始化相交矩形为第一个矩形
+            var intersection = {};
+            Object.assign(intersection, rectList[0])
+
+            // 遍历矩形列表，求所有矩形的相交部分
+            for (var i = 1; i < rectList.length; i++) {
+                var rect = rectList[i];
+
+                // 计算相交矩形的左上角坐标
+                var x = Math.max(intersection.x, rect.x);
+                var y = Math.max(intersection.y, rect.y);
+
+                // 计算相交矩形的右下角坐标
+                var right = Math.min(intersection.x + intersection.width, rect.x + rect.width);
+                var bottom = Math.min(intersection.y + intersection.height, rect.y + rect.height);
+
+                // 更新相交矩形的宽度和高度
+                intersection.width = Math.max(right - x, 0);
+                intersection.height = Math.max(bottom - y, 0);
+            }
+
+            return intersection;
+        }
+
+
+        // 绘制矩形
+        function drawRectangles() {
+            // 首先按照层级（zIndex）对矩形进行排序，确保绘制顺序
+            rectangles.sort((a, b) => a.zIndex - b.zIndex);
+
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 遍历矩形数组，绘制每个矩形
+            rectangles.forEach(rectangle => {
+                ctx.fillStyle = rectangle.color;
+                ctx.fillRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+            });
+        }
+
+        // 求数组 arr 里长度为 m 的排列，不要求顺序
+        function getCombinations(arr, m) {
+            const combinations = [];
+
+            function generateCombinations(currentCombination, start) {
+                if (currentCombination.length === m) {
+                    combinations.push(currentCombination);
+                    return;
+                }
+
+                for (let i = start; i < arr.length; i++) {
+                    generateCombinations([...currentCombination, arr[i]], i + 1);
+                }
+            }
+
+            generateCombinations([], 0);
+            return combinations;
+        }
+
+
+        // 调用绘制函数
+        drawRectangles();
+
+        // 计算矩形a是否被其他矩形完全遮挡
+        function isFullyCovered(a) {
+            // 找出比自己层级高的矩形列表
+            const recs = rectangles.filter(rec => rec !== a && rec.zIndex >= a.zIndex)
+            recs.forEach(console.log)
+
+            // 找出相交的小矩形列表
+            let inters = recs.map(rec =>getIntersection(rec, a) )
+            inters.forEach(console.log)
+
+            // 计算相交小矩形总的面积
+            let totalArea = 0;
+            inters.forEach(x => totalArea += (x.width * x.height))
+            console.log(111, totalArea)
+
+            for (let i = 2; i <= inters.length; i++) {
+                // 分别取两两组合，三三组合，四四组合
+                let list = getCombinations(inters, i);
+                console.log(222, i, list)
+
+                list.forEach(x => {
+                    // 组合里多个矩形共同相交的小矩形
+                    const commInter = getCommonIntersection(x)
+                    if (commInter) {
+                        const area = commInter.width * commInter.height
+                        if (area) console.log(333, x, area)
+                        // 如果组合里有偶数个矩形则减去这个面积，否则加上
+                        if (i % 2 == 0) totalArea -= area
+                        else totalArea += area
+                    }
+                })
+            }
+            console.log(a.width * a.height, totalArea)
+            return totalArea == a.width * a.height
+        }
+        console.log(isFullyCovered(rectangles[1]) ? '完全覆盖' : '未完全覆盖')
+    </script>
+</body>
+
+</html>
