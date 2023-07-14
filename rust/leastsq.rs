@@ -1,20 +1,30 @@
+trait Transpose {
+    #[allow(non_snake_case)]
+    fn T(&self) -> Vec<Vec<f64>>;
+}
+type Matrix = Vec<Vec<f64>>;
+
+
 // 数乘
-fn scalar_multiply(matrix: &Vec<Vec<f64>>, scalar: f64) -> Vec<Vec<f64>> {
+fn scalar_multiply(matrix: &Matrix, scalar: f64) -> Matrix {
     matrix.iter().map(|row| row.iter().map(|&x| x * scalar).collect()).collect()
 }
 
 // 转置
-fn transpose(matrix: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
-    let rows = matrix.len();
-    let cols = matrix[0].len();
-    let mut transposed = vec![vec![0.0; rows]; cols];
-    for i in 0..rows {
-        for j in 0..cols {
-            transposed[j][i] = matrix[i][j];
+impl Transpose for Matrix { 
+    fn T(&self) -> Vec<Vec<f64>> {
+        let rows = self.len();
+        let cols = self[0].len();
+        let mut transposed = vec![vec![0.0; rows]; cols];
+        for i in 0..rows {
+            for j in 0..cols {
+                transposed[j][i] = self[i][j];
+            }
         }
+        transposed
     }
-    transposed
 }
+
 
 fn inv(matrix: Vec<Vec<f64>>) -> Option<Vec<Vec<f64>>> {
     let n = matrix.len();
@@ -90,13 +100,13 @@ fn main() {
         vec![2.0],
         vec![3.0],
     ];
-
     let y = scalar_multiply(&x, 2.54);
     println!("X:{:?}", x);
     println!("Y:{:?}", y);
-    println!("X.T: {:?}", transpose(&x));
-    println!("dot(X.T,X): {:?}", dot(transpose(&x),x.clone()));
-    println!("inv(dot(X.T,X)): {:?}", inv(dot(transpose(&x.clone()),x.clone())));
+    println!("X.T: {:?}", x.T());
+    println!("dot(X.T,X): {:?}", dot(x.T(),x.clone()));
+    println!("inv(dot(X.T,X)): {:?}", inv(dot(x.T(),x.clone())));
+    /*
 
     // theta = dot(dot(inv(dot(X.T,X)),X.T),Y)
     match inv(dot(transpose(&x), x.clone())){
@@ -106,4 +116,5 @@ fn main() {
         },
         None => println!("inv is none"),
     }
+    */
 }
