@@ -1,39 +1,60 @@
-trait Transpose {
-    #[allow(non_snake_case)]
-    fn T(&self) -> Vec<Vec<f64>>;
-}
-type Matrix = Vec<Vec<f64>>;
+use std::ops;
 
+#[derive(Debug,Clone)]
+struct Matrix(Vec<Vec<f64>>);
+
+impl From<Vec<Vec<f64>>> for Matrix {
+    fn from(item: Vec<Vec<f64>>) -> Self {
+        Matrix(item)
+    }
+}
 
 // 数乘
-fn scalar_multiply(matrix: &Matrix, scalar: f64) -> Matrix {
+fn scalar_multiply(matrix: &Vec<Vec<f64>>, scalar: f64) -> Vec<Vec<f64>> {
     matrix.iter().map(|row| row.iter().map(|&x| x * scalar).collect()).collect()
 }
 
+impl ops::Mul<f64> for Matrix {
+    type Output = Matrix;
+
+    fn mul(self, rhs: f64) -> Matrix{
+        Matrix::from(scalar_multiply(&(self.0), rhs))
+    }
+}
+
+impl ops::Mul<Matrix> for Matrix {
+    type Output = Matrix;
+
+    fn mul(self, rhs: Matrix) -> Matrix{
+        Matrix::from(dot(self.0, &(rhs.0)))
+    }
+}
+
 // 转置
-impl Transpose for Matrix { 
-    fn T(&self) -> Vec<Vec<f64>> {
-        let rows = self.len();
-        let cols = self[0].len();
+impl Matrix { 
+    #[allow(non_snake_case)]
+    fn T(&self) -> Matrix {
+        let rows = self.0.len();
+        let cols = self.0[0].len();
         let mut transposed = vec![vec![0.0; rows]; cols];
         for i in 0..rows {
             for j in 0..cols {
-                transposed[j][i] = self[i][j];
+                transposed[j][i] = self.0[i][j];
             }
         }
-        transposed
+        Matrix::from(transposed)
     }
 }
 
 
-fn inv(matrix: Vec<Vec<f64>>) -> Option<Vec<Vec<f64>>> {
-    let n = matrix.len();
+fn inv(matrix: Matrix) -> Option<Matrix> {
+    let n = matrix.0.len();
 
     // 构造增广矩阵
     let mut augmented_matrix = vec![vec![0.0; 2 * n]; n];
     for i in 0..n {
         for j in 0..n {
-            augmented_matrix[i][j] = matrix[i][j];
+            augmented_matrix[i][j] = matrix.0[i][j];
         }
         augmented_matrix[i][i + n] = 1.0;
     }
@@ -72,7 +93,7 @@ fn inv(matrix: Vec<Vec<f64>>) -> Option<Vec<Vec<f64>>> {
         }
     }
 
-    Some(inverse_matrix)
+    Some(Matrix(inverse_matrix))
 }
 
 // 点乘
@@ -94,21 +115,23 @@ fn dot(a: Vec<Vec<f64>>, b: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
     result
 }
 
+
+
 fn main() {
-    let x = vec![
+    let x = Matrix(vec![
         vec![1.0],
         vec![2.0],
         vec![3.0],
-    ];
-    let y = scalar_multiply(&x, 2.54);
-    println!("X:{:?}", x);
-    println!("Y:{:?}", y);
-    println!("X.T: {:?}", x.T());
-    println!("dot(X.T,X): {:?}", dot(x.T(),&x));
-    println!("inv(dot(X.T,X)): {:?}", inv(dot(x.T(),&x)));
-
-    // theta = dot(dot(inv(dot(X.T,X)),X.T),Y)
-
-    let theta = dot(dot(inv(dot(x.T(), &x)).unwrap(), &(x.T())), &y);
+    ]);
+    let y = x.clone() * 2.54;
+    let theta = inv(x.T() * x.clone()).unwrap() * x.T() * y.clone();
     println!("result is: {:?}", theta);
+
+    println!("X:{:?}", x);
+    println!("X:{:?}", y);
+    println!("X.T: {:?}", x.T());
+    println!("dot(X.T,X): {:?}", x.T() * x.clone());
+    println!("inv(dot(X.T,X)): {:?}", inv(x.T() * x.clone()));
+
+
 }
