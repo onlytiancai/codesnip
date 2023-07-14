@@ -14,7 +14,7 @@ fn scalar_multiply(matrix: &Vec<Vec<f64>>, scalar: f64) -> Vec<Vec<f64>> {
     matrix.iter().map(|row| row.iter().map(|&x| x * scalar).collect()).collect()
 }
 
-impl ops::Mul<f64> for Matrix {
+impl ops::Mul<f64> for &Matrix {
     type Output = Matrix;
 
     fn mul(self, rhs: f64) -> Matrix{
@@ -22,10 +22,10 @@ impl ops::Mul<f64> for Matrix {
     }
 }
 
-impl ops::Mul<Matrix> for Matrix {
+impl ops::Mul<&Matrix> for Matrix {
     type Output = Matrix;
 
-    fn mul(self, rhs: Matrix) -> Matrix{
+    fn mul(self, rhs: &Matrix) -> Matrix{
         Matrix::from(dot(self.0, &(rhs.0)))
     }
 }
@@ -123,15 +123,15 @@ fn main() {
         vec![2.0],
         vec![3.0],
     ]);
-    let y = x.clone() * 2.54;
-    let theta = inv(x.T() * x.clone()).unwrap() * x.T() * y.clone();
+    let y = &x * 2.54;
+    let theta = inv(x.T() * &x).unwrap() * &(x.T()) * &y;
     println!("result is: {:?}", theta);
 
     println!("X:{:?}", x);
     println!("X:{:?}", y);
     println!("X.T: {:?}", x.T());
-    println!("dot(X.T,X): {:?}", x.T() * x.clone());
-    println!("inv(dot(X.T,X)): {:?}", inv(x.T() * x.clone()));
+    println!("dot(X.T,X): {:?}", x.T() * &x);
+    println!("inv(dot(X.T,X)): {:?}", inv(x.T() * &x));
 
 
 }
