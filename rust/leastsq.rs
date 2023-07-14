@@ -76,7 +76,7 @@ fn inv(matrix: Vec<Vec<f64>>) -> Option<Vec<Vec<f64>>> {
 }
 
 // 点乘
-fn dot(a: Vec<Vec<f64>>, b: Vec<Vec<f64>>) -> Vec<Vec<f64>> {
+fn dot(a: Vec<Vec<f64>>, b: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
     let rows_a = a.len();
     let cols_a = a[0].len();
     let cols_b = b[0].len();
@@ -104,17 +104,11 @@ fn main() {
     println!("X:{:?}", x);
     println!("Y:{:?}", y);
     println!("X.T: {:?}", x.T());
-    println!("dot(X.T,X): {:?}", dot(x.T(),x.clone()));
-    println!("inv(dot(X.T,X)): {:?}", inv(dot(x.T(),x.clone())));
-    /*
+    println!("dot(X.T,X): {:?}", dot(x.T(),&x));
+    println!("inv(dot(X.T,X)): {:?}", inv(dot(x.T(),&x)));
 
     // theta = dot(dot(inv(dot(X.T,X)),X.T),Y)
-    match inv(dot(transpose(&x), x.clone())){
-        Some(t) =>  {
-            let theta = dot(dot(t, transpose(&x)), y);
-            println!("result is: {:?}", theta);
-        },
-        None => println!("inv is none"),
-    }
-    */
+
+    let theta = dot(dot(inv(dot(x.T(), &x)).unwrap(), &(x.T())), &y);
+    println!("result is: {:?}", theta);
 }
