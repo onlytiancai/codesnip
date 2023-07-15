@@ -11,7 +11,20 @@ impl From<Vec<Vec<f64>>> for Matrix {
 
 // 数乘
 fn scalar_multiply(matrix: &Vec<Vec<f64>>, scalar: f64) -> Vec<Vec<f64>> {
-    matrix.iter().map(|row| row.iter().map(|&x| x * scalar).collect()).collect()
+    // matrix.iter().map(|row| row.iter().map(|&x| x * scalar).collect()).collect()
+    let mut ret = vec![];
+    for i in 0..matrix.len() {
+        let row = &matrix[i];
+        let new_row = {
+            let mut temp = vec![];
+            for j in 0..row.len() {
+                temp.push(row[j] * scalar)
+            }
+            temp
+        };
+        ret.push(new_row);
+    }
+    ret
 }
 
 impl ops::Mul<f64> for &Matrix {
