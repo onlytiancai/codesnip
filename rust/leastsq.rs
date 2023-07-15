@@ -13,12 +13,11 @@ impl From<Vec<Vec<f64>>> for Matrix {
 fn scalar_multiply(matrix: &Vec<Vec<f64>>, scalar: f64) -> Vec<Vec<f64>> {
     // matrix.iter().map(|row| row.iter().map(|&x| x * scalar).collect()).collect()
     let mut ret = vec![];
-    for i in 0..matrix.len() {
-        let row = &matrix[i];
+    for row in matrix {
         let new_row = {
             let mut temp = vec![];
-            for j in 0..row.len() {
-                temp.push(row[j] * scalar)
+            for col in row {
+                temp.push(col * scalar)
             }
             temp
         };
@@ -42,6 +41,7 @@ impl ops::Mul<Matrix> for Matrix {
         Matrix::from(dot(self.0, &(rhs.0)))
     }
 }
+
 impl ops::Mul<&Matrix> for Matrix {
     type Output = Matrix;
 
@@ -49,6 +49,7 @@ impl ops::Mul<&Matrix> for Matrix {
         Matrix::from(dot(self.0, &(rhs.0)))
     }
 }
+
 // 转置
 impl Matrix { 
     #[allow(non_snake_case)]
@@ -73,6 +74,7 @@ impl Matrix {
 fn inv(matrix: &Matrix) -> Option<Matrix> {
     let n = matrix.0.len();
 
+    println!("before augmented_matrix: {:?}", matrix);
     // 构造增广矩阵
     let mut augmented_matrix = vec![vec![0.0; 2 * n]; n];
     for i in 0..n {
@@ -81,6 +83,7 @@ fn inv(matrix: &Matrix) -> Option<Matrix> {
         }
         augmented_matrix[i][i + n] = 1.0;
     }
+    println!("augmented_matrix: {:?}", augmented_matrix);
 
     // 行变换，将增广矩阵变成上三角形矩阵
     for i in 0..n {
@@ -95,6 +98,8 @@ fn inv(matrix: &Matrix) -> Option<Matrix> {
             }
         }
     }
+    println!("triangle augmented_matrix: {:?}", augmented_matrix);
+    
 
     // 反向代入，将上三角形矩阵变成单位矩阵以及右侧的部分即为逆矩阵
     for i in (0..n).rev() {
