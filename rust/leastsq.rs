@@ -34,11 +34,20 @@ impl ops::Mul<f64> for &Matrix {
     }
 }
 
+impl ops::Mul<Matrix> for &Matrix {
+    type Output = Matrix;
+
+    fn mul(self, rhs: Matrix) -> Matrix{
+        Matrix::from(dot(&(self.0), &(rhs.0)))
+    }
+}
+
+
 impl ops::Mul<Matrix> for Matrix {
     type Output = Matrix;
 
     fn mul(self, rhs: Matrix) -> Matrix{
-        Matrix::from(dot(self.0, &(rhs.0)))
+        Matrix::from(dot(&(self.0), &(rhs.0)))
     }
 }
 
@@ -46,7 +55,7 @@ impl ops::Mul<&Matrix> for Matrix {
     type Output = Matrix;
 
     fn mul(self, rhs: &Matrix) -> Matrix{
-        Matrix::from(dot(self.0, &(rhs.0)))
+        Matrix::from(dot(&(self.0), &(rhs.0)))
     }
 }
 
@@ -125,7 +134,7 @@ fn inv(matrix: &Matrix) -> Option<Matrix> {
 }
 
 // 点乘
-fn dot(a: Vec<Vec<f64>>, b: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
+fn dot(a: &Vec<Vec<f64>>, b: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
     let rows_a = a.len();
     let cols_a = a[0].len();
     let cols_b = b[0].len();
@@ -150,11 +159,11 @@ fn leastsq(x: &Matrix, y: &Matrix) -> Matrix {
 
 fn main() {
     let x = Matrix(vec![
-        vec![1.0],
-        vec![2.0],
-        vec![3.0],
+        vec![1.3, 2.3,3.4],
+        vec![2.9,3.5,4.7],
+        vec![3.6,2.8,9.5],
     ]);
-    let y = &x * 2.54;
+    let y = &x * Matrix(vec![vec![0.8], vec![7.9], vec![6.5]]);
     let theta = (x.T() * &x).inv() * x.T() * &y;
     println!("result is: {:?}", theta);
 
