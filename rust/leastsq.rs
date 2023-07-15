@@ -22,6 +22,13 @@ impl ops::Mul<f64> for &Matrix {
     }
 }
 
+impl ops::Mul<Matrix> for Matrix {
+    type Output = Matrix;
+
+    fn mul(self, rhs: Matrix) -> Matrix{
+        Matrix::from(dot(self.0, &(rhs.0)))
+    }
+}
 impl ops::Mul<&Matrix> for Matrix {
     type Output = Matrix;
 
@@ -29,7 +36,6 @@ impl ops::Mul<&Matrix> for Matrix {
         Matrix::from(dot(self.0, &(rhs.0)))
     }
 }
-
 // 转置
 impl Matrix { 
     #[allow(non_snake_case)]
@@ -43,6 +49,10 @@ impl Matrix {
             }
         }
         Matrix::from(transposed)
+    }
+
+    fn inv(self) -> Matrix {
+        inv(self).unwrap()
     }
 }
 
@@ -124,14 +134,13 @@ fn main() {
         vec![3.0],
     ]);
     let y = &x * 2.54;
-    let theta = inv(x.T() * &x).unwrap() * &(x.T()) * &y;
+    let theta = (x.T() * &x).inv() * x.T() * &y;
     println!("result is: {:?}", theta);
 
     println!("X:{:?}", x);
     println!("X:{:?}", y);
     println!("X.T: {:?}", x.T());
     println!("dot(X.T,X): {:?}", x.T() * &x);
-    println!("inv(dot(X.T,X)): {:?}", inv(x.T() * &x));
-
+    println!("inv(dot(X.T,X)): {:?}", (x.T() * x).inv());
 
 }
