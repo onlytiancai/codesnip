@@ -51,13 +51,13 @@ impl Matrix {
         Matrix::from(transposed)
     }
 
-    fn inv(self) -> Matrix {
+    fn inv(&self) -> Matrix {
         inv(self).unwrap()
     }
 }
 
 
-fn inv(matrix: Matrix) -> Option<Matrix> {
+fn inv(matrix: &Matrix) -> Option<Matrix> {
     let n = matrix.0.len();
 
     // 构造增广矩阵
@@ -125,6 +125,9 @@ fn dot(a: Vec<Vec<f64>>, b: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
     result
 }
 
+fn leastsq(x: &Matrix, y: &Matrix) -> Matrix {
+    (x.T() * x).inv() * x.T() * y
+}
 
 
 fn main() {
@@ -135,6 +138,9 @@ fn main() {
     ]);
     let y = &x * 2.54;
     let theta = (x.T() * &x).inv() * x.T() * &y;
+    println!("result is: {:?}", theta);
+
+    let theta = leastsq(&x, &y); 
     println!("result is: {:?}", theta);
 
     println!("X:{:?}", x);
