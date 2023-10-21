@@ -107,8 +107,8 @@ if __name__ == '__main__':
     if args.verbosity:
         logger.setLevel(logging.DEBUG)
 
-    # 'a:1 b:2 c:3' => {'a': '1', 'b': '2', 'c': '3'}
-    where = dict([x.split(':') for x in args.where.split(' ') if x.find(':') >= 0])
+    # 'a=1 b=2 c:3' => {'a': '1', 'b': '2', 'c': '3'}
+    where = dict([x.split('=') for x in args.where.split(' ') if x.find('=') >= 0])
     result = query(open(args.log_path), 
                    args.rule, 
                    args.select.split(' '),
