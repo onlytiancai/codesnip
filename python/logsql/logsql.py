@@ -1,5 +1,11 @@
 import re
 from typing import NamedTuple, Iterable
+import logging
+
+logger = logging.getLogger('logsql')
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+logger.addHandler(ch)
 
 class Token(NamedTuple):
     name: str
@@ -52,7 +58,7 @@ def _select(select, data):
     return result.rstrip()
 
 def _group_select(select, buffer):
-    print('debug', select, buffer)
+    logger.debug('_group_select:%s %s', select, buffer)
     result = ''
     for item in select:
         if item == 'count(*)':
@@ -62,6 +68,8 @@ def _group_select(select, buffer):
     return result.rstrip()
 
 def query(log:Iterable[str], rule:str, select:list=['*'], filter:dict={}, group:str=''):
+    logger.debug('query begin: log=%s, rule=%s, select=%s, filter=%s, group=%s',
+                  log, rule, select, filter, group)
     result = []
     group_buffer = [] 
     last_group = None
@@ -70,7 +78,7 @@ def query(log:Iterable[str], rule:str, select:list=['*'], filter:dict={}, group:
         cond = [data[k] == v for k, v in filter.items()]
         if all(cond):
             if group:
-                current_group = data[group] 
+                current_group = data[group]
                 if last_group != current_group:
                     if group_buffer:
                         result.append(_group_select(select, group_buffer))
@@ -86,63 +94,26 @@ def query(log:Iterable[str], rule:str, select:list=['*'], filter:dict={}, group:
 
     return result 
 
-import unittest
-class StatTest(unittest.TestCase):
-    log = '''10:11 111 222
-10:12 333 444
-10:14 333 666
-10:13 555 666'''
-    rule = 'a b c'
-    def test_filter(self):
-        actual = query(self.log.splitlines(), self.rule, ['*'], {'b': '333'}) 
-        expected = ['10:12 333 444', '10:14 333 666']
-        self.assertListEqual(actual, expected)
-
-        actual = query(self.log.splitlines(), self.rule, ['*'], {'b': '333', 'c': '444'}) 
-        expected = ['10:12 333 444']
-        self.assertListEqual(actual, expected)
-
-    def test_group_count(self):
-        actual = query(log=self.log.splitlines(), 
-                       rule=self.rule, 
-                       select=['b','count(*)'],
-                       group='b'
-                       )
-        expected = ['111 1', '333 2', '555 1']
-        self.assertListEqual(actual, expected)
-
-class ParseTest(unittest.TestCase):
-    '''根据规则解析文本日志为 json，以便对日志进行按字段的过滤统计
-    - 解析规则的多字段用空格隔开
-    - 字段支持包裹字符以支持字段内有空格或引号的情况'''
-
-    def test_error_token(self):
-        with self.assertRaisesRegex(Exception, 'error token:'):
-            parse('a "b c', '')
-
-    def test_base(self):
-        rule = 'a  b c'
-        line = '111 222 333'
-        expected = {'a':'111', 'b':'222', 'c': '333'} 
-        self.assertDictEqual(parse(rule, line), expected)
-
-    def test_enclose(self):
-        rule = '[a]  "b" c'
-        line = '[1"11] "2 22" 333'
-        expected = {'a':'1"11', 'b':'2 22', 'c': '333'} 
-        self.assertDictEqual(parse(rule, line), expected)
-
-    def test_escape(self):
-        rule = 'a "b" [c]'
-        line = r'111 "2\" 66 \"" [3\]33]'
-        expected = {'a': '111', 'b':r'2\" 66 \"', 'c': r'3\]33'} 
-        self.assertDictEqual(parse(rule, line), expected)
-
-    def test_skip_field(self):
-        rule = 'a - b'
-        line = r'111 222 333'
-        expected = {'a': '111', 'b':'333'} 
-        self.assertDictEqual(parse(rule, line), expected)
-
 if __name__ == '__main__':
-    unittest.main()
+    import argparse
+    parser = argparse.ArgumentParser(prog='logsql',description='快速分析日志')
+    parser.add_argument('log_path', type=str, help='日志路径')
+    parser.add_argument('rule', help='解析规则')
+    parser.add_argument('-s', '--select', help='选择哪些列', default='*')
+    parser.add_argument('-w', '--where', help='过滤条件', default='')
+    parser.add_argument('-g', '--group', help='分组列', default='')
+    parser.add_argument('-v', '--verbosity', help='显示调试信息', action='store_true')
+    args = parser.parse_args()
+    if args.verbosity:
+        logger.setLevel(logging.DEBUG)
+
+    # 'a:1 b:2 c:3' => {'a': '1', 'b': '2', 'c': '3'}
+    where = dict([x.split(':') for x in args.where.split(' ') if x.find(':') >= 0])
+    result = query(open(args.log_path), 
+                   args.rule, 
+                   args.select.split(' '),
+                   where,
+                   args.group,
+             )
+    for line in result:
+        print(line)
