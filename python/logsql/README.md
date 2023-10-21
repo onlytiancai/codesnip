@@ -1,3 +1,9 @@
+## 项目介绍
+
+用 SQL 直接分析任何文本日志，不需要 awk 复杂的语法，也不需要把日志写入 DB 或 Elasticsearch。
+
+## Quick Start 
+
 原始日志
 
     $ cat data.log
