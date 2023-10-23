@@ -8,3 +8,4 @@ node/mydb/
 *.d
 *.jar
 *.class
+node_modules

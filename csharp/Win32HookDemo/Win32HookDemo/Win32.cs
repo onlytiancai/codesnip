@@ -11,7 +11,9 @@ namespace Win32HookDemo
 
     public class NativeMethods
     {
-         
+
+        public const UInt32 MF_BYCOMMAND = 0x00000000;
+        public const UInt32 MF_BYPOSITION = 0x00000400;
 
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
         public static extern bool SendMessage(IntPtr hWnd, uint Msg, int wParam, StringBuilder lParam);
@@ -28,11 +30,44 @@ namespace Win32HookDemo
         [DllImport("user32.dll")]
         public static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
 
+        //Get the text of a control with its handle
+        public static string GetText(IntPtr handle)
+        {
+            int maxLength = 100;
+            IntPtr buffer = Marshal.AllocHGlobal((maxLength + 1) * 2);
+            SendMessageW(handle, WM_GETTEXT, maxLength, buffer);
+            string w = Marshal.PtrToStringUni(buffer);
+            Marshal.FreeHGlobal(buffer);
+            return w;
+        }
 
- 
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+
+        [DllImport("user32.dll", EntryPoint = "SendMessageW")]
+        public static extern int SendMessageW([InAttribute] System.IntPtr hWnd, int Msg, int wParam, IntPtr lParam);
 
         [DllImport("user32.dll")]
         public static extern bool GetCursorPos(out POINT lpPoint);
+
+        public static string GetText2(IntPtr hand) {
+            var foregroundWindowHandle = GetForegroundWindow();
+            uint remoteThreadId = GetWindowThreadProcessId(foregroundWindowHandle, 0);
+            uint currentThreadId = GetCurrentThreadId();
+
+            //AttachTrheadInput is needed so we can get the handle of a focused window in another app
+            AttachThreadInput(remoteThreadId, currentThreadId, true);
+            //Get the handle of a focused window
+            IntPtr focused = GetFocus();
+            //Now detach since we got the focused handle
+            AttachThreadInput(remoteThreadId, currentThreadId, false);
+
+            StringBuilder builder = new StringBuilder(256);
+            //Get the text from the active window into the stringbuilder
+            SendMessage(focused, WM_GETTEXT, builder.Capacity, builder);
+
+            return builder.ToString();
+        }
 
         public static Point GetCursorPosition()
         {
@@ -44,6 +79,18 @@ namespace Win32HookDemo
 
             return lpPoint;
         }
+
+        [DllImport("user32.dll")]
+        static extern IntPtr GetFocus();
+
+        [DllImport("user32.dll")]
+        static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
+
+        [DllImport("kernel32.dll")]
+        static extern uint GetCurrentThreadId();
+
+        [DllImport("user32.dll")]
+        static extern uint GetWindowThreadProcessId(IntPtr hWnd, int ProcessId);
 
         public static string GetControlText(IntPtr hWnd)
         {
@@ -73,6 +120,36 @@ namespace Win32HookDemo
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         public static extern int CallNextHookEx(int idHook, int nCode, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetMenu(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        public static extern int GetMenuString(IntPtr hMenu, uint uIDItem, [Out] StringBuilder lpString, int nMaxCount, uint uFlag);
+
+        [DllImport("user32.dll")]
+        public static extern int GetMenuItemCount(IntPtr hMenu);
+
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+    }
+
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT
+    {
+        public int Left;        // x position of upper-left corner
+        public int Top;         // y position of upper-left corner
+        public int Right;       // x position of lower-right corner
+        public int Bottom;      // y position of lower-right corner
+
+        public override string ToString()
+        {
+            return string.Format("l={0},t={1},r={2},b={3}", Left, Top, Right, Bottom);
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]

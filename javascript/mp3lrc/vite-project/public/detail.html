@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英语阅读</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            font-family: sans-serif;
+            color: #efefef;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header,
+        footer {
+            background-color: #333;
+            color: #fff;
+            height: 10vh;
+            line-height: 10vh;
+            padding-left: 10px;
+            display: flex;
+            font-size: 16px;
+        }
+
+        footer .buttons {
+            width: 50px;
+        }
+
+        footer .buttons select {
+            border-radius: 0;
+        }
+
+        footer .player-container {
+            flex: 1;
+            padding: 0 10px;
+        }
+
+        .player {
+            height: 20px;
+            width: 100%;
+            vertical-align: middle;
+        }
+
+        .container {
+            flex: 1;
+            overflow: hidden;
+
+        }
+
+        .container ul {
+            list-style: none;
+            transition: all 0.6s;
+            text-align: center;
+            padding: 0;
+        }
+
+        .container li {
+            color: #666;
+            cursor: pointer;
+        }
+
+        .container li p {
+            line-height: 30px;
+            margin: 0;
+        }
+
+        .container li p.li_cn {
+            display: none;
+        }
+
+        .container li:hover {
+            color: lightblue;
+        }
+
+        .container li.active {
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <header>新概念英语</header>
+
+    <div class="container">
+        <ul class="wordList">
+        </ul>
+    </div>
+
+    <footer>
+        <div class="buttons">
+            <select id="sel_subtitle">
+                <option value="en">英文</option>
+                <option value="cn">中文</option>
+                <option value="en_cn">中英</option>
+            </select>
+        </div>
+        <div class="player-container">
+            <audio class="player" controls></audio>
+
+        </div>
+
+    </footer>
+    <script>
+        function getQueryVariable(variable) {
+            var query = window.location.search.substring(1);
+            var vars = query.split("&");
+            for (var i = 0; i < vars.length; i++) {
+                var pair = vars[i].split("=");
+                if (pair[0] == variable) { return pair[1]; }
+            }
+            return (false);
+        }
+
+        !async function main() {
+            "use strict";
+            let name = getQueryVariable('name')
+            let book = getQueryVariable('book')    
+            console.log(book, name)
+            document.querySelector('header').innerText = decodeURIComponent(name)
+            const BASE_URL = "http://media.ihuhao.com/%E6%96%B0%E6%A6%82%E5%BF%B5%E8%8B%B1%E8%AF%AD/"+book+"/";
+
+            const doms = {
+                player: document.querySelector(".player"),
+                ul: document.querySelector("ul"),
+                container: document.querySelector(".container")
+            };
+
+            doms.player.src = BASE_URL + name + '.mp3';
+
+            // load lrc file
+            const res = await fetch( BASE_URL + name + ".lrc");
+            const lrc = await res.text();
+            const lyrics = parseLyric(lrc);
+            const res_cn = await fetch(BASE_URL + name + "_cn.lrc");
+            const lrc_cn = await res_cn.text();
+            const lyrics_cn = parseLyric(lrc_cn);
+            const cn_error = lyrics.length != lyrics_cn.length;
+
+            // 创建歌词列表
+            function createElements() {
+                doms.ul.removeChild
+                let frag = document.createDocumentFragment(); // 文档片段
+                for (let i = 0; i < lyrics.length; i++) {
+                    let li = document.createElement("li");
+
+                    li.innerHTML = '<p class="li_en">' + lyrics[i].text + '</p>';
+                    if (!cn_error) li.innerHTML += '<p class="li_cn">' + lyrics_cn[i].text + '</p>';
+                    li.addEventListener('click', () => {
+                        doms.player.currentTime = lyrics[i].time;
+                        doms.player.play()
+                    });
+                    frag.appendChild(li);
+                }
+                doms.ul.appendChild(frag);
+            }
+            createElements();
+
+            // 获取显示窗口的可视高度
+            let containerHeight = doms.container.clientHeight;
+            // 获取歌词列表的可视高度
+            let liHeight = doms.ul.children[0].clientHeight;
+            // 设置最大最小偏移量，防止显示效果不佳
+            let minOffset = 0;
+            let maxOffset = doms.ul.clientHeight - containerHeight + 10;
+            document.getElementById('sel_subtitle').addEventListener('change', (e) => {
+                switch (e.target.value) {
+                    case 'en':
+                        doms.ul.querySelectorAll(".li_cn").forEach((li) => { li.style.display = 'none'; });
+                        doms.ul.querySelectorAll(".li_en").forEach((li) => { li.style.display = 'block'; });
+                        break;
+                    case 'cn':
+                        doms.ul.querySelectorAll(".li_cn").forEach((li) => { li.style.display = 'block'; });
+                        doms.ul.querySelectorAll(".li_en").forEach((li) => { li.style.display = 'none'; });
+
+                        break;
+                    case 'en_cn':
+                        doms.ul.querySelectorAll(".li_cn").forEach((li) => { li.style.display = 'block'; });
+                        doms.ul.querySelectorAll(".li_en").forEach((li) => { li.style.display = 'block'; });
+                        break;
+                    default:
+                        break;
+                }
+                liHeight = doms.ul.children[0].clientHeight;
+                maxOffset = doms.ul.clientHeight - containerHeight + 10;
+            });
+
+            // 控制歌词滚动移动的函数
+            function setOffset() {
+                const time = doms.player.currentTime;
+                const index = syncLyric(lyrics, time);
+                // 计算滚动距离
+                const list = document.querySelectorAll('.container ul li')
+                const offsetTop = index != null ? list[index].offsetTop : 0;
+                let offset = offsetTop - containerHeight / 2 + 40;
+                if (offset < minOffset) {
+                    offset = minOffset;
+                };
+                if (offset > maxOffset) {
+                    offset = maxOffset;
+                };
+                // 滚动
+                doms.ul.style.transform = `translateY(-${offset}px)`;
+                // 清除之前的active
+                let li = doms.ul.querySelector(".active")
+                if (li) {
+                    li.classList.remove("active");
+                }
+                // 为当前所唱到的歌词添加active
+                li = doms.ul.children[index];
+                if (li) {
+                    li.classList.add("active");
+                }
+            };
+            // 当audio的播放时间更新时，触发该事件
+            doms.player.addEventListener("timeupdate", setOffset);
+        }();
+
+
+        // lrc (String) - lrc file text
+        function parseLyric(lrc) {
+            // will match "[00:00.00] ooooh yeah!"
+            // note: i use named capturing group
+            const regex = /^\[(?<time>\d{2}:\d{2}(.\d{2})?)\](?<text>.*)/;
+
+            // split lrc string to individual lines
+            const lines = lrc.split("\n");
+
+            const output = [];
+
+            lines.forEach(line => {
+                const matches = line.match(regex);
+
+                // if doesn't match, return.
+                if (matches == null) return;
+
+                const { time, text } = matches.groups;
+
+                output.push({
+                    time: parseTime(time),
+                    text: text.trim()
+                });
+
+            });
+
+            // parse formated time
+            // "03:24.73" => 204.73 (total time in seconds)
+            function parseTime(time) {
+                const minsec = time.split(":");
+
+                const min = parseInt(minsec[0]) * 60;
+                const sec = parseFloat(minsec[1]);
+
+                return min + sec;
+            }
+
+            return output;
+        }
+
+        // lyrics (Array) - output from parseLyric function
+        // time (Number) - current time from audio player
+        function syncLyric(lyrics, time) {
+            const scores = [];
+
+            lyrics.forEach(lyric => {
+                // get the gap or distance or we call it score
+                const score = time - lyric.time;
+
+                // we don't want a negative score
+                if (score >= 0) scores.push(score);
+            });
+
+            if (scores.length == 0) return null;
+
+            // get the smallest value from scores
+            const closest = Math.min(...scores);
+
+            // return the index of closest lyric
+            return scores.indexOf(closest);
+            //https://dev.to/mcanam/javascript-lyric-synchronizer-4i15
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Html2canvas</title>
+    <script src="https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/html2canvas/1.4.1/html2canvas.min.js" type="application/javascript"></script>
+    <script src="https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/jquery/3.6.0/jquery.min.js" type="application/javascript"></script>
+  </head>
+  <body>
+    <div id="capture" style="float:left;margin-top:-1000px;text-align:center;padding: 10px; background: #f5da55;">
+      <h4 style="color: #000; ">Hello world!</h4>
+      <div style="text-align: left;">
+       <ul>
+         <li>什么时候看，星星都那么美，想给孩子们抓一把。</li>
+         <li>能时常阅读，能看大海，那该多好呀！</li>
+         <li>继续自己的行程，直到整个宇宙，都装在心中。</li>
+       </ul> 
+      </div>
+      <img width="100" src="qr.png">
+    </div>
+    <div>
+      <img id="out" style="width:100%;" src='' />
+    </div>
+    <p>长按上面图片保存到本地并分享给朋友</p>
+    <script>
+      html2canvas(document.querySelector("#capture")).then(canvas => {
+        document.getElementById('out').src = canvas.toDataURL("image/png")
+      });
+    </script>
+  </body>
+</html>

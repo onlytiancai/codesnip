@@ -1,0 +1,8 @@
+body {
+    background-color: var(--weui-BG-0);
+    color: var(--weui-FG-0);
+}
+
+body[data-weui-theme=dark] a.weui-footer__link {
+    color: hsla(0,0%,100%,.2);
+}
