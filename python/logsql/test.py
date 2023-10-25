@@ -57,5 +57,6 @@ class ParseTest(unittest.TestCase):
         expected = {'a': '111', 'b':'333'} 
         self.assertDictEqual(parse(rule, line), expected)
 
+
 if __name__ == '__main__':
     unittest.main()
