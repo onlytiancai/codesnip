@@ -33,3 +33,12 @@ class SelectTest(unittest.TestCase):
                     {'min(age)': 16},
                    ]
         self.assertListEqual(actual, expected)
+
+    def test_func(self):
+        query = select('age+1').from_(self.data).filter('left(gender, 1)=="b"')
+        actual = list(query.run())
+        expected = [{'age+1': 19},
+                    {'age+1': 21},
+                    {'age+1': 57},
+                   ]
+        self.assertListEqual(actual, expected)

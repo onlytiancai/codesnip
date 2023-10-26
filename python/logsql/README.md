@@ -14,21 +14,21 @@
 
 按规则解析日志，并只显示 time 列和 c 列
 
-    $ python3 logsql.py data.log 'time b c' --select 'time c'
-    10:11 222
-    10:12 444
-    10:14 666
-    10:14 666
+    $ python3 logsql.py data.log 'time b c' --select 'time,c' 
+    {'time': '10:11'}
+    {'time': '10:12'}
+    {'time': '10:14'}
 
 增加 where 条件过滤数据
 
-    $ python3 logsql.py data.log 'time b c' --select 'time c' --where 'time=10:14'
-    10:14 666
-    10:14 666
+    $ logsql.py data.log 'time b c' --select 'time,c' --where 'time=="10:14"' 
+    {'time': '10:14', 'c': '666'}
+    {'time': '10:14', 'c': '666'}
 
 分组统计
 
-    $ python3 logsql.py data.log 'time b c' --select 'time count(*)' --group 'time'
-    10:11 1
-    10:12 1
-    10:14 2
+    $ python3 logsql.py data.log 'time b c' --select 'time,avg(c)' --group 'time' 
+    {'avg(c)': 222.0, 'time': '10:11'}
+    {'avg(c)': 444.0, 'time': '10:12'}
+    {'avg(c)': 666.0, 'time': '10:14'}
+

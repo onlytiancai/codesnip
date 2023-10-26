@@ -18,7 +18,6 @@ def parse(rule, line):
     tokens = _getTokens(rule)
     ret = {}
     for token in tokens:
-        # print(f'debug 1:[{line}] {token}')
         if not token.enclosed:
             m = re.search(r'(\s+|$)', line)
             if m:
@@ -48,54 +47,6 @@ def _getTokens(rule):
 
     return tokens
 
-def _select(select, data):
-    result = ''
-    for item in select:
-        if item == '*':
-            for k in sorted(data.keys()):
-                result += data[k] + ' '
-        elif (item in data):
-            result += data[item] + ' '
-    return result.rstrip()
-
-def _group_select(select, buffer):
-    logger.debug('_group_select:%s %s', select, buffer)
-    result = ''
-    for item in select:
-        if item == 'count(*)':
-            result += str(len(buffer)) + ' '
-        elif (item in buffer[0]):
-            result += buffer[0][item] + ' '
-    return result.rstrip()
-
-def query(log:Iterable[str], rule:str, select:list=['*'], filter:dict={}, group:str=''):
-    logger.debug('query begin: log=%s, rule=%s, select=%s, filter=%s, group=%s',
-                  log, rule, select, filter, group)
-    result = []
-    group_buffer = [] 
-    last_group = None
-    for line in log:
-        data = parse(rule, line)
-        cond = [data[k] == v for k, v in filter.items()]
-        if all(cond):
-            if group:
-                current_group = data[group]
-                if last_group != current_group:
-                    if group_buffer:
-                        result.append(_group_select(select, group_buffer))
-                    group_buffer = []
-                    last_group = current_group
-                group_buffer.append(data)
-            else:
-                selected = _select(select, data)
-                result.append(selected)
-
-    if group_buffer:
-        result.append(_group_select(select, group_buffer))
-
-    return result 
-import re
-
 class AvgFun(object):
     total = 0
     len = 0
@@ -104,7 +55,7 @@ class AvgFun(object):
         self.key = key
 
     def hit(self, data):
-        self.total += self.key(data) if self.key else data
+        self.total += float(self.key(data) if self.key else data)
         self.len += 1
 
     def result(self):
@@ -145,6 +96,9 @@ class MaxFun(object):
         self.ret = float('-inf')
         return result
 
+funs = {}
+funs['left'] = lambda s,l: s[:l]
+
 class Query(object):
     def __init__(self):
         self.selected = [] 
@@ -152,7 +106,7 @@ class Query(object):
         self.group_name = None
 
     def select(self, selected):
-        for item in selected.split(', '):
+        for item in re.split(',\s*', selected):
             matched = re.match(r'(\w+)\((\w+)\)', item)
             if matched:
                 func_name, arg = matched.groups()
@@ -166,25 +120,29 @@ class Query(object):
                     raise Exception(f'unknown function:{func_name}')
             else:
                 self.selected.append(item)
-
+        logger.debug('selected:%s', self.selected)
         return self
 
     def from_(self, data):
         self.data = data
+        logger.debug('from:%s', self.data)
         return self
 
     def groupby(self, group_name):
         self.group_name = group_name
+        logger.debug('group_name:%s', self.group_name)
         return self
 
     def _filtered_data(self, data):
         for line in data:
-            if eval(self.conditions, {}, line):
+            if eval(self.conditions, funs, line):
                 yield line
 
     def filter(self, conditions):
-        self.conditions = conditions
-        self.data = self._filtered_data(self.data) 
+        if conditions:
+            self.conditions = conditions
+            logger.debug('conditions:%s', self.conditions)
+            self.data = self._filtered_data(self.data) 
         return self
 
     def run(self):
@@ -204,10 +162,20 @@ class Query(object):
                 yield result
         else:
             for line in self.data:
-                yield dict((k,v) for k,v in line.items() if k in self.selected) 
+                result = dict((k,v) for k,v in line.items() if k in self.selected) 
+                for x in self.selected:
+                    if x not in line:
+                        result[x] = eval(x, funs, line)
+                yield result
 
 def select(selected):
     return Query().select(selected)
+
+def data_stream(rule, path):
+    for line in open(path):
+        result = parse(rule, line)
+        logger.debug('parse result:%s', result)
+        yield result 
 
 if __name__ == '__main__':
     import argparse
@@ -222,13 +190,8 @@ if __name__ == '__main__':
     if args.verbosity:
         logger.setLevel(logging.DEBUG)
 
-    # 'a=1 b=2 c:3' => {'a': '1', 'b': '2', 'c': '3'}
-    where = dict([x.split('=') for x in args.where.split(' ') if x.find('=') >= 0])
-    result = query(open(args.log_path), 
-                   args.rule, 
-                   args.select.split(' '),
-                   where,
-                   args.group,
-             )
-    for line in result:
+    stream = data_stream(args.rule, args.log_path) 
+    query = select(args.select).from_(stream).filter(args.where).groupby(args.group)
+    
+    for line in query.run():
         print(line)
