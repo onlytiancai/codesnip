@@ -11,40 +11,57 @@ logger.addHandler(ch)
 class Token(NamedTuple):
     name: str
     enclosed: str 
+    type: str
 
 supported_enclosed = ['""', "''", '[]']
+
+def _get_value(token, token_value):
+    if token.type == 'int':
+        return int(token_value)
+    elif token.type == 'float':
+        return float(token_value)
+    else:
+        return token_value
 
 def parse(rule, line):
     tokens = _getTokens(rule)
     ret = {}
     for token in tokens:
-        if not token.enclosed:
-            m = re.search(r'(\s+|$)', line)
-            if m:
-                if token.name != '-':
-                    ret[token.name] = line[m.pos:m.start()]
-                line = line[m.end():]
-        else:
+        regex = r'(\s+|$)'
+        if token.enclosed:
             line=line[1:]
-            m = re.search(r'(?<!\\)'+token.enclosed[-1]+r'(\s+|$)?', line)
-            if m:
-                if token.name != '-':
-                    ret[token.name] = line[m.pos:m.start()]
-                line = line[m.end():]
+            regex = r'(?<!\\)'+token.enclosed[-1]+r'(\s+|$)?'
+
+        m = re.search(regex, line)
+        if m:
+            if token.name != '-':
+                token_value = line[m.pos:m.start()]
+                ret[token.name] = _get_value(token, token_value) 
+            line = line[m.end():]
     return ret 
 
 def _getTokens(rule):
     tokens = []
     str_tokens = re.split(r'\s+', rule) 
     for token in str_tokens:
-        t = Token(token, '')
+        token_name = token
+        token_enclosed = ''
+        token_type = 'str'
         for enclosed in supported_enclosed:
             if token[0] == enclosed[0]:
                 if token[-1] != enclosed[-1]:
                     raise Exception(f"error token:{token}")
-                t = Token(token.strip(enclosed), enclosed)
-        tokens.append(t)
-
+                token_enclosed = enclosed
+                token_name = token.strip(enclosed)
+        arr = token_name.split(':')
+        if len(arr) == 2:
+            token_name = arr[0] 
+            if arr[1] == 'int':
+                token_type = 'int'
+            elif arr[1] == 'float':
+                token_type = 'float'
+        tokens.append(Token(token_name, token_enclosed, token_type))
+        logger.debug('tokens:%s', tokens)
     return tokens
 
 class AvgFun(object):
@@ -106,7 +123,7 @@ class Query(object):
         self.group_name = None
 
     def select(self, selected):
-        for item in re.split(',\s*', selected):
+        for item in re.split(r',\s*', selected):
             matched = re.match(r'(\w+)\((\w+)\)', item)
             if matched:
                 func_name, arg = matched.groups()
