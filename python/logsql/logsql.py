@@ -20,14 +20,14 @@ def parse(rule, line):
     for token in tokens:
         # print(f'debug 1:[{line}] {token}')
         if not token.enclosed:
-            m = re.search('(\s+|$)', line)
+            m = re.search(r'(\s+|$)', line)
             if m:
                 if token.name != '-':
                     ret[token.name] = line[m.pos:m.start()]
                 line = line[m.end():]
         else:
             line=line[1:]
-            m = re.search(r'(?<!\\)'+token.enclosed[-1]+'(\s+|$)?', line)
+            m = re.search(r'(?<!\\)'+token.enclosed[-1]+r'(\s+|$)?', line)
             if m:
                 if token.name != '-':
                     ret[token.name] = line[m.pos:m.start()]
@@ -36,7 +36,7 @@ def parse(rule, line):
 
 def _getTokens(rule):
     tokens = []
-    str_tokens = re.split('\s+', rule) 
+    str_tokens = re.split(r'\s+', rule) 
     for token in str_tokens:
         t = Token(token, '')
         for enclosed in supported_enclosed:
@@ -146,21 +146,27 @@ class MaxFun(object):
         return result
 
 class Query(object):
-    selected = [] 
-    data = None
-    group_name = None
+    def __init__(self):
+        self.selected = [] 
+        self.data = None
+        self.group_name = None
 
     def select(self, selected):
         for item in selected.split(', '):
-            func_name, arg = re.match(r'(\w+)\((\w+)\)', item).groups()
-            if func_name == 'avg':
-                self.selected.append(AvgFun(item, lambda x: x[arg]))
-            elif func_name == 'min':
-                self.selected.append(MinFun(item, lambda x: x[arg]))
-            elif func_name == 'max':
-                self.selected.append(MaxFun(item, lambda x: x[arg]))
+            matched = re.match(r'(\w+)\((\w+)\)', item)
+            if matched:
+                func_name, arg = matched.groups()
+                if func_name == 'avg':
+                    self.selected.append(AvgFun(item, lambda x: x[arg]))
+                elif func_name == 'min':
+                    self.selected.append(MinFun(item, lambda x: x[arg]))
+                elif func_name == 'max':
+                    self.selected.append(MaxFun(item, lambda x: x[arg]))
+                else:
+                    raise Exception(f'unknown function:{func_name}')
             else:
-                raise Exception(f'unknown function:{func_name}')
+                self.selected.append(item)
+
         return self
 
     def from_(self, data):
@@ -171,20 +177,37 @@ class Query(object):
         self.group_name = group_name
         return self
 
-    def run(self):
-        for k, g in groupby(self.data, key=lambda x: x[self.group_name]):
-            result = {self.group_name: k}
-            for item in g:
-                for x in self.selected:
-                    x.hit(item)
+    def _filtered_data(self, data):
+        for line in data:
+            if eval(self.conditions, {}, line):
+                yield line
 
-            for x in self.selected:
-                result[x.name] = x.result()
-            yield result
+    def filter(self, conditions):
+        self.conditions = conditions
+        self.data = self._filtered_data(self.data) 
+        return self
+
+    def run(self):
+        if self.group_name:
+            for k, g in groupby(self.data, key=lambda x: x[self.group_name]):
+                result = {}
+                for item in g:
+                    for x in self.selected:
+                        if not isinstance(x, str):
+                            x.hit(item)
+
+                for x in self.selected:
+                    if not isinstance(x, str):
+                        result[x.name] = x.result()
+                if self.group_name in self.selected:
+                    result[self.group_name] = k
+                yield result
+        else:
+            for line in self.data:
+                yield dict((k,v) for k,v in line.items() if k in self.selected) 
 
 def select(selected):
     return Query().select(selected)
-
 
 if __name__ == '__main__':
     import argparse
