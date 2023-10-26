@@ -1,5 +1,6 @@
 from logsql import parse, query
 import unittest
+
 class StatTest(unittest.TestCase):
     log = '''10:11 111 222
 10:12 333 444
