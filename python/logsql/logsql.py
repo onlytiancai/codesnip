@@ -2,6 +2,7 @@ import re
 from typing import NamedTuple, Iterable
 from itertools import groupby
 import logging
+from datetime import datetime
 
 logger = logging.getLogger('logsql')
 ch = logging.StreamHandler()
@@ -12,6 +13,7 @@ class Token(NamedTuple):
     name: str
     enclosed: str 
     type: str
+    format: str
 
 supported_enclosed = ['""', "''", '[]']
 
@@ -20,6 +22,9 @@ def _get_value(token, token_value):
         return int(token_value)
     elif token.type == 'float':
         return float(token_value)
+    elif token.type == 'time':
+        print(111, token_value, token.format)
+        return datetime.strptime(token_value, token.format) 
     else:
         return token_value
 
@@ -40,27 +45,36 @@ def parse(rule, line):
             line = line[m.end():]
     return ret 
 
+def _parseToken(token_name, token_enclosed):
+    # for `time:time:%Y-%m-%dT%H:%M:%S%z`
+    m = re.match(r'(\w+):(\w+):([\w%:-]+)', token_name)
+    if m:
+        arr = m.groups()
+        return Token(arr[0], token_enclosed, arr[1], arr[2])
+
+    # for `status_code:int`
+    m = re.match(r'(\w+):(\w+)', token_name)
+    if m:
+        arr = m.groups()
+        return Token(arr[0], token_enclosed, arr[1], '')
+
+    # for `name`
+    return Token(token_name, token_enclosed, 'str', '')
+
+def _parseEnclosed(token):
+    for enclosed in supported_enclosed:
+        if token[0] == enclosed[0]:
+            if token[-1] != enclosed[-1]:
+                raise Exception(f"error token:{token}")
+            return token.strip(enclosed), enclosed
+    return token, ''
+
 def _getTokens(rule):
     tokens = []
     str_tokens = re.split(r'\s+', rule) 
     for token in str_tokens:
-        token_name = token
-        token_enclosed = ''
-        token_type = 'str'
-        for enclosed in supported_enclosed:
-            if token[0] == enclosed[0]:
-                if token[-1] != enclosed[-1]:
-                    raise Exception(f"error token:{token}")
-                token_enclosed = enclosed
-                token_name = token.strip(enclosed)
-        arr = token_name.split(':')
-        if len(arr) == 2:
-            token_name = arr[0] 
-            if arr[1] == 'int':
-                token_type = 'int'
-            elif arr[1] == 'float':
-                token_type = 'float'
-        tokens.append(Token(token_name, token_enclosed, token_type))
+        token_name, token_enclosed = _parseEnclosed(token)
+        tokens.append(_parseToken(token_name, token_enclosed))
         logger.debug('tokens:%s', tokens)
     return tokens
 

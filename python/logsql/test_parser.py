@@ -1,4 +1,5 @@
 from logsql import parse
+from datetime import datetime
 import unittest
 
 class ParseTest(unittest.TestCase):
@@ -35,9 +36,9 @@ class ParseTest(unittest.TestCase):
         self.assertDictEqual(parse(rule, line), expected)
 
     def test_nginx_log(self):
-        rule = 'time status_code:int request_time:float upstream_time:float - ip "x_forward" host socket "url" bytes "-" "agent"'
+        rule = 'time:time:%Y-%m-%dT%H:%M:%S%z status_code:int request_time:float upstream_time:float - ip "x_forward" host socket "url" bytes "-" "agent"'
         line = '2023-10-26T16:19:44+08:00 200 0.021 0.020 - 172.31.24.99 "49.37.43.52, 172.70.184.133" abc.com unix:/var/run/php/php8.1-fpm.sock "GET /api/users HTTP/1.1" 731 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"'
-        expected = {'time': '2023-10-26T16:19:44+08:00', 
+        expected = {'time': datetime.strptime('2023-10-26T16:19:44+08:00','%Y-%m-%dT%H:%M:%S%z'), 
                     'status_code': 200, 
                     'request_time': 0.021,
                     'upstream_time': 0.020,
