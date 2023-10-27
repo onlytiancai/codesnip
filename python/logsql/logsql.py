@@ -9,6 +9,27 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
+def format_time(time, format):
+    if not isinstance(time, datetime):
+        raise Exception('type error for time')
+    m = re.match(r'^(\d+)([hms])$', format)
+    if not m:
+        raise Exception(f'unknown format:{format}')
+    n, unit = m.groups()
+    seconds = 1
+    if unit == 'h':
+        seconds = int(n) * 60 * 60
+        time = time.replace(minute=0, second=0)
+    elif unit == 'm':
+        seconds = int(n) * 60
+        time = time.replace(second=0)
+    elif unit == 's':
+        seconds = int(n)
+        pass
+
+    return datetime.fromtimestamp(int(time.timestamp()/seconds)*seconds)
+
+
 class Token(NamedTuple):
     name: str
     enclosed: str 
@@ -23,7 +44,6 @@ def _get_value(token, token_value):
     elif token.type == 'float':
         return float(token_value)
     elif token.type == 'time':
-        print(111, token_value, token.format)
         return datetime.strptime(token_value, token.format) 
     else:
         return token_value
@@ -137,7 +157,7 @@ class Query(object):
         self.group_name = None
 
     def select(self, selected):
-        for item in re.split(r',\s*', selected):
+        for item in re.split(r',(?=[a-z])', selected):
             matched = re.match(r'(\w+)\((\w+)\)', item)
             if matched:
                 func_name, arg = matched.groups()
@@ -176,9 +196,21 @@ class Query(object):
             self.data = self._filtered_data(self.data) 
         return self
 
+    def _group_key(self, x):
+        if self.group_name in x:
+            return x[self.group_name]
+        else:
+            # for `format_time(time,"1h")`
+            m = re.match(r'^(\w+)\(.+\)$', self.group_name)
+            if m:
+                funcs = {
+                    'format_time': format_time
+                }
+                return eval(self.group_name, funcs, x)
+
     def run(self):
         if self.group_name:
-            for k, g in groupby(self.data, key=lambda x: x[self.group_name]):
+            for k, g in groupby(self.data, key=self._group_key):
                 result = {}
                 for item in g:
                     for x in self.selected:

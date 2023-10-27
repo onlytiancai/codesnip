@@ -1,16 +1,17 @@
 from logsql import select 
 import unittest
+from datetime import datetime
 
 class SelectTest(unittest.TestCase):
-    data = [{'gender': 'boy', 'age': 18},
-            {'gender': 'boy', 'age': 20},
-            {'gender': 'girl', 'age': 16},
-            {'gender': 'girl', 'age': 18},
-            {'gender': 'boy', 'age': 56},
+    data = [{'time': datetime.strptime('2023-10-01 08:03', '%Y-%m-%d %H:%M'), 'gender': 'boy', 'age': 18},
+            {'time': datetime.strptime('2023-10-01 08:15', '%Y-%m-%d %H:%M'), 'gender': 'boy', 'age': 20},
+            {'time': datetime.strptime('2023-10-01 08:21', '%Y-%m-%d %H:%M'), 'gender': 'girl', 'age': 16},
+            {'time': datetime.strptime('2023-10-01 09:15', '%Y-%m-%d %H:%M'), 'gender': 'girl', 'age': 18},
+            {'time': datetime.strptime('2023-10-01 11:21', '%Y-%m-%d %H:%M'), 'gender': 'boy', 'age': 56},
            ] 
 
     def test_base_groupby(self):
-        query = select('gender, avg(age), min(age), max(age)').from_(self.data).groupby('gender')
+        query = select('gender,avg(age),min(age),max(age)').from_(self.data).groupby('gender')
         actual = list(query.run())
         expected = [{'avg(age)': 19.0, 'gender': 'boy', 'max(age)': 20, 'min(age)': 18},
                     {'avg(age)': 17.0, 'gender': 'girl', 'max(age)': 18, 'min(age)': 16},
@@ -40,5 +41,14 @@ class SelectTest(unittest.TestCase):
         expected = [{'age+1': 19},
                     {'age+1': 21},
                     {'age+1': 57},
+                   ]
+        self.assertListEqual(actual, expected)
+
+    def test_groupby_time(self):
+        query = select('format_time(time, "1h"),min(age)').from_(self.data).groupby('format_time(time, "1h")')
+        actual = list(query.run())
+        expected = [{'format_time(time, "1h")': datetime(2023, 10, 1, 8, 0), 'min(age)': 16},
+                    {'format_time(time, "1h")': datetime(2023, 10, 1, 9, 0), 'min(age)': 18},
+                    {'format_time(time, "1h")': datetime(2023, 10, 1, 11, 0), 'min(age)': 56},
                    ]
         self.assertListEqual(actual, expected)
