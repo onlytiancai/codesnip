@@ -1,4 +1,4 @@
-from logsql import format_time 
+from logsql import format_time, _split_select
 from datetime import datetime
 import unittest
 
@@ -22,4 +22,8 @@ class UtilsTest(unittest.TestCase):
         self.assertEqual(actual, expected)
 
 
-     
+    def test_split_select(self): 
+        txt = 'foo(a,b(2,3),e),b,a(c(6),2)'
+        actual = list(_split_select(txt))
+        expected = ['foo(a,b(2,3),e)', 'b', 'a(c(6),2)']
+        self.assertListEqual(actual, expected)

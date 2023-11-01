@@ -150,6 +150,21 @@ class MaxFun(object):
 funs = {}
 funs['left'] = lambda s,l: s[:l]
 
+def _split_select(txt):
+    in_bracket = 0
+    current = ''
+    for ch in txt:
+        current += ch
+        if ch == '(':
+            in_bracket += 1
+        if ch == ')':
+            in_bracket -= 1
+        if ch == ',' and in_bracket == 0:
+            yield current[:-1]
+            current = ''
+    if current:
+        yield current
+
 class Query(object):
     def __init__(self):
         self.selected = [] 
@@ -157,7 +172,7 @@ class Query(object):
         self.group_name = None
 
     def select(self, selected):
-        for item in re.split(r',(?=[a-z])', selected):
+        for item in _split_select(selected):
             matched = re.match(r'(\w+)\((\w+)\)', item)
             if matched:
                 func_name, arg = matched.groups()
