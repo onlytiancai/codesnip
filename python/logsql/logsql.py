@@ -165,7 +165,7 @@ def _split_select(txt):
     if current:
         yield current
 
-class Query(object):
+clas Query(object):
     def __init__(self):
         self.selected = [] 
         self.data = None
