@@ -1,5 +1,5 @@
 <script setup>
-
+document.getElementById('cover').remove()
 </script>
 
 <template>

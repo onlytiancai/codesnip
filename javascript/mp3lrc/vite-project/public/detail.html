@@ -149,6 +149,8 @@
             const res_cn = await fetch(BASE_URL + name + "_cn.lrc");
             const lrc_cn = await res_cn.text();
             const lyrics_cn = parseLyric(lrc_cn);
+            const cn_error = lyrics.length != lyrics_cn.length;
+
             // 创建歌词列表
             function createElements() {
                 doms.ul.removeChild
@@ -157,7 +159,7 @@
                     let li = document.createElement("li");
 
                     li.innerHTML = '<p class="li_en">' + lyrics[i].text + '</p>';
-                    li.innerHTML += '<p class="li_cn">' + lyrics_cn[i].text + '</p>';
+                    if (!cn_error) li.innerHTML += '<p class="li_cn">' + lyrics_cn[i].text + '</p>';
                     li.addEventListener('click', () => {
                         doms.player.currentTime = lyrics[i].time;
                         doms.player.play()
