@@ -32,3 +32,15 @@
     {'avg(c)': 444.0, 'time': '10:12'}
     {'avg(c)': 666.0, 'time': '10:14'}
 
+## todo
+
+- 实现 pct 函数 
+- 实时监控日志 
+- 指定输出csv还是json格式
+- select 支持 format_time
+
+## test
+
+    pytest test_query.py::SelectTest::test_base_groupby
+
+    python3 logsql.py access.log.10 'time:time:%Y-%m-%dT%H:%M:%S%z status_code:int request_time:float upstream_time - ip "x_forward" host socket  "url" bytes "-" "agent"' --select 'format_time(time, "10s"),count(),max(request_time)' --group 'format_time(time, "10s")' --filter '^2023' -of text | head

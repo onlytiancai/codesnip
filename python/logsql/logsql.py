@@ -1,4 +1,5 @@
 import re
+import sys
 from typing import NamedTuple, Iterable
 from itertools import groupby
 import logging
@@ -32,7 +33,7 @@ def format_time(time, format):
 
 class Token(NamedTuple):
     name: str
-    enclosed: str 
+    enclosed: str
     type: str
     format: str
 
@@ -44,7 +45,7 @@ def _get_value(token, token_value):
     elif token.type == 'float':
         return float(token_value)
     elif token.type == 'time':
-        return datetime.strptime(token_value, token.format) 
+        return datetime.strptime(token_value, token.format)
     else:
         return token_value
 
@@ -61,9 +62,9 @@ def parse(rule, line):
         if m:
             if token.name != '-':
                 token_value = line[m.pos:m.start()]
-                ret[token.name] = _get_value(token, token_value) 
+                ret[token.name] = _get_value(token, token_value)
             line = line[m.end():]
-    return ret 
+    return ret
 
 def _parseToken(token_name, token_enclosed):
     # for `time:time:%Y-%m-%dT%H:%M:%S%z`
@@ -91,7 +92,7 @@ def _parseEnclosed(token):
 
 def _getTokens(rule):
     tokens = []
-    str_tokens = re.split(r'\s+', rule) 
+    str_tokens = re.split(r'\s+', rule)
     for token in str_tokens:
         token_name, token_enclosed = _parseEnclosed(token)
         tokens.append(_parseToken(token_name, token_enclosed))
@@ -99,9 +100,9 @@ def _getTokens(rule):
     return tokens
 
 class AvgFun(object):
-    total = 0
-    len = 0
     def __init__(self, name, key=None):
+        self.total = 0
+        self.len = 0
         self.name = name
         self.key = key
 
@@ -116,8 +117,8 @@ class AvgFun(object):
         return result
 
 class MinFun(object):
-    ret = float('inf') 
     def __init__(self, name, key=None):
+        self.ret = float('inf')
         self.name = name
         self.key = key
 
@@ -127,13 +128,13 @@ class MinFun(object):
             self.ret = value
 
     def result(self):
-        result = self.ret
+        ret = self.ret
         self.ret = float('inf')
-        return result
+        return ret
 
 class MaxFun(object):
-    ret = float('-inf') 
     def __init__(self, name, key=None):
+        self.ret = float('-inf')
         self.name = name
         self.key = key
 
@@ -143,12 +144,27 @@ class MaxFun(object):
             self.ret = value
 
     def result(self):
-        result = self.ret
+        ret = self.ret
         self.ret = float('-inf')
-        return result
+        return ret
 
+class CountFun(object):
+    def __init__(self, name):
+        self.ret = 0
+        self.name = name
+
+    def hit(self, data):
+        self.ret += 1
+
+    def result(self):
+        ret = self.ret
+        self.ret = 0
+        return ret
+
+regexp = lambda s,r: re.match(r, s)
 funs = {}
 funs['left'] = lambda s,l: s[:l]
+funs['regexp'] = regexp
 
 def _split_select(txt):
     in_bracket = 0
@@ -165,23 +181,28 @@ def _split_select(txt):
     if current:
         yield current
 
-clas Query(object):
+def key_func(arg):
+    return lambda x: x[arg]
+
+class Query(object):
     def __init__(self):
-        self.selected = [] 
+        self.selected = []
         self.data = None
         self.group_name = None
 
     def select(self, selected):
         for item in _split_select(selected):
-            matched = re.match(r'(\w+)\((\w+)\)', item)
+            matched = re.match(r'(\w+)\((\w*)\)', item)
             if matched:
                 func_name, arg = matched.groups()
                 if func_name == 'avg':
-                    self.selected.append(AvgFun(item, lambda x: x[arg]))
+                    self.selected.append(AvgFun(item, key_func(arg)))
                 elif func_name == 'min':
-                    self.selected.append(MinFun(item, lambda x: x[arg]))
+                    self.selected.append(MinFun(item, key_func(arg)))
                 elif func_name == 'max':
-                    self.selected.append(MaxFun(item, lambda x: x[arg]))
+                    self.selected.append(MaxFun(item, key_func(arg)))
+                elif func_name == 'count':
+                    self.selected.append(CountFun(item))
                 else:
                     raise Exception(f'unknown function:{func_name}')
             else:
@@ -208,7 +229,7 @@ clas Query(object):
         if conditions:
             self.conditions = conditions
             logger.debug('conditions:%s', self.conditions)
-            self.data = self._filtered_data(self.data) 
+            self.data = self._filtered_data(self.data)
         return self
 
     def _group_key(self, x):
@@ -221,6 +242,7 @@ clas Query(object):
                 funcs = {
                     'format_time': format_time
                 }
+                # print(111, self.group_name, x['time'], eval(self.group_name, funcs, x))
                 return eval(self.group_name, funcs, x)
 
     def run(self):
@@ -240,7 +262,7 @@ clas Query(object):
                 yield result
         else:
             for line in self.data:
-                result = dict((k,v) for k,v in line.items() if k in self.selected) 
+                result = dict((k,v) for k,v in line.items() if k in self.selected)
                 for x in self.selected:
                     if x not in line:
                         result[x] = eval(x, funs, line)
@@ -249,13 +271,43 @@ clas Query(object):
 def select(selected):
     return Query().select(selected)
 
-def data_stream(rule, path):
-    for line in open(path):
-        result = parse(rule, line)
+def data_stream(rule, path, filter):
+    file = open(path) if path != '-' else sys.stdin
+    for line in file:
+        try:
+            if not regexp(line, filter):
+                continue
+            result = parse(rule, line)
+        except:
+            logger.error('parse error:%s', line)
+            raise
         logger.debug('parse result:%s', result)
-        yield result 
+        yield result
+
+def get_out_line(line, format, selected):
+    if format == 'json':
+        return line
+    arr = []
+    for x in selected:
+        k = x if isinstance(x, str) else x.name
+        if k in line:
+            arr.append(str(line[k]))
+    return '\t'.join(arr)
 
 if __name__ == '__main__':
+    import io
+    import os
+    import time
+
+    try:
+        # open stdout in binary mode, then wrap it in a TextIOWrapper and enable write_through
+        sys.stdout = io.TextIOWrapper(open(sys.stdout.fileno(), 'wb', 0), write_through=True)
+        # for flushing on newlines only use :
+        # sys.stdout.reconfigure(line_buffering=True)
+    except TypeError:
+        # In case you are on Python 2
+        sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
+
     import argparse
     parser = argparse.ArgumentParser(prog='logsql',description='快速分析日志')
     parser.add_argument('log_path', type=str, help='日志路径')
@@ -264,12 +316,18 @@ if __name__ == '__main__':
     parser.add_argument('-w', '--where', help='过滤条件', default='')
     parser.add_argument('-g', '--group', help='分组列', default='')
     parser.add_argument('-v', '--verbosity', help='显示调试信息', action='store_true')
+    parser.add_argument('-f', '--filter', help='过滤原始日志行', default='')
+    parser.add_argument('-of', '--out_format', help='输出格式', default='json')
     args = parser.parse_args()
     if args.verbosity:
         logger.setLevel(logging.DEBUG)
 
-    stream = data_stream(args.rule, args.log_path) 
+    stream = data_stream(args.rule, args.log_path, args.filter)
     query = select(args.select).from_(stream).filter(args.where).groupby(args.group)
-    
+
     for line in query.run():
-        print(line)
+        out_line = get_out_line(line, args.out_format, query.selected)
+        try:
+            print(out_line)
+        except BrokenPipeError:
+            break

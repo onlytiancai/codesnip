@@ -13,6 +13,7 @@ class SelectTest(unittest.TestCase):
     def test_base_groupby(self):
         query = select('gender,avg(age),min(age),max(age)').from_(self.data).groupby('gender')
         actual = list(query.run())
+        print(111, actual)
         expected = [{'avg(age)': 19.0, 'gender': 'boy', 'max(age)': 20, 'min(age)': 18},
                     {'avg(age)': 17.0, 'gender': 'girl', 'max(age)': 18, 'min(age)': 16},
                     {'avg(age)': 56.0, 'gender': 'boy', 'max(age)': 56, 'min(age)': 56}]
