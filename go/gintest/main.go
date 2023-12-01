@@ -2,11 +2,21 @@ package main
 
 import (
 	"fmt"
+  "embed"
+  "log"
+  "html/template"
+  "net/http"
 
 	"github.com/gin-gonic/gin"
   "gorm.io/gorm"
   "gorm.io/driver/sqlite"
 )
+
+//go:embed templates/*.html
+var templates embed.FS
+
+//go:embed assets/*
+var staticFiles embed.FS
 
 type Product struct {
   gorm.Model
@@ -97,10 +107,19 @@ func MyMiddleware2(c *gin.Context) {
 
 func main() {
 	e := gin.Default()
-	e.LoadHTMLGlob("templates/*")
   e.Use(MyMiddleware1, MyMiddleware2)
 
-  e.Static("/assets", "./assets")
+	// e.LoadHTMLGlob("templates/*")
+  // e.Static("/assets", "./assets")
+
+  e.StaticFS("/assets", http.FS(staticFiles))
+
+  tmpl, err := template.ParseFS(templates, "templates/*.html")
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  e.SetHTMLTemplate(tmpl)
 
 	e.GET("/", MyHandler)
 	e.GET("/login", Login)
