@@ -106,20 +106,21 @@ func MyMiddleware2(c *gin.Context) {
 }
 
 func main() {
-	e := gin.Default()
-  e.Use(MyMiddleware1, MyMiddleware2)
+    e := gin.Default()
 
-	// e.LoadHTMLGlob("templates/*")
-  // e.Static("/assets", "./assets")
+    e.Use(MyMiddleware1, MyMiddleware2)
 
-  e.StaticFS("/assets", http.FS(staticFiles))
+    //e.LoadHTMLGlob("templates/*")
+    //e.Static("/assets", "./assets")
 
-  tmpl, err := template.ParseFS(templates, "templates/*.html")
-  if err != nil {
-    log.Fatal(err)
-  }
+    e.StaticFS("/assets", http.FS(staticFiles))
 
-  e.SetHTMLTemplate(tmpl)
+    tmpl, err := template.ParseFS(templates, "templates/*.html")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    e.SetHTMLTemplate(tmpl)
 
 	e.GET("/", MyHandler)
 	e.GET("/login", Login)
