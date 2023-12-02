@@ -4,6 +4,7 @@ from typing import NamedTuple, Iterable
 from itertools import groupby
 import logging
 from datetime import datetime
+from collections import defaultdict
 
 logger = logging.getLogger('logsql')
 ch = logging.StreamHandler()
@@ -161,6 +162,23 @@ class CountFun(object):
         self.ret = 0
         return ret
 
+class TopFun(object):
+    def __init__(self, name, args):
+        self.counter = defaultdict(int) 
+        self.name = name
+        args = args.split(',')
+        self.field = args[0].strip()
+        self.limited = int(args[1].strip())
+
+    def hit(self, data):
+        key = key_func(self.field)(data)
+        self.counter[key] += 1
+
+    def result(self):
+        ret = self.counter
+        self.counter = defaultdict(int) 
+        return sorted(ret.items(), key=lambda x: x[1], reverse=True)[:self.limited]
+
 regexp = lambda s,r: re.match(r, s)
 funs = {}
 funs['left'] = lambda s,l: s[:l]
@@ -192,17 +210,19 @@ class Query(object):
 
     def select(self, selected):
         for item in _split_select(selected):
-            matched = re.match(r'(\w+)\((\w*)\)', item)
+            matched = re.match(r'(\w+)\(([\w, ]*)\)(\s+as\s+(\w+))*', item)
             if matched:
-                func_name, arg = matched.groups()
+                func_name, args, _, alias = matched.groups()
                 if func_name == 'avg':
-                    self.selected.append(AvgFun(item, key_func(arg)))
+                    self.selected.append(AvgFun(item, key_func(args)))
                 elif func_name == 'min':
-                    self.selected.append(MinFun(item, key_func(arg)))
+                    self.selected.append(MinFun(item, key_func(args)))
                 elif func_name == 'max':
-                    self.selected.append(MaxFun(item, key_func(arg)))
+                    self.selected.append(MaxFun(item, key_func(args)))
                 elif func_name == 'count':
                     self.selected.append(CountFun(item))
+                elif func_name == 'top':
+                    self.selected.append(TopFun(item, args))
                 else:
                     raise Exception(f'unknown function:{func_name}')
             else:

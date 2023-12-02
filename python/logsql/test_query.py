@@ -13,7 +13,6 @@ class SelectTest(unittest.TestCase):
     def test_base_groupby(self):
         query = select('gender,avg(age),min(age),max(age)').from_(self.data).groupby('gender')
         actual = list(query.run())
-        print(111, actual)
         expected = [{'avg(age)': 19.0, 'gender': 'boy', 'max(age)': 20, 'min(age)': 18},
                     {'avg(age)': 17.0, 'gender': 'girl', 'max(age)': 18, 'min(age)': 16},
                     {'avg(age)': 56.0, 'gender': 'boy', 'max(age)': 56, 'min(age)': 56}]
@@ -51,5 +50,15 @@ class SelectTest(unittest.TestCase):
         expected = [{'format_time(time, "1h")': datetime(2023, 10, 1, 8, 0), 'min(age)': 16},
                     {'format_time(time, "1h")': datetime(2023, 10, 1, 9, 0), 'min(age)': 18},
                     {'format_time(time, "1h")': datetime(2023, 10, 1, 11, 0), 'min(age)': 56},
+                   ]
+        self.assertListEqual(actual, expected)
+
+    def test_top_func(self):
+        self.maxDiff = None
+        query = select('format_time(time, "1h"),top(gender, 2)').from_(self.data).groupby('format_time(time, "1h")')
+        actual = list(query.run())
+        expected = [{'format_time(time, "1h")': datetime(2023, 10, 1, 8, 0), 'top(gender, 2)': [('boy', 2), ('girl', 1)]},
+                    {'format_time(time, "1h")': datetime(2023, 10, 1, 9, 0), 'top(gender, 2)': [('girl', 1)]},
+                    {'format_time(time, "1h")': datetime(2023, 10, 1, 11, 0), 'top(gender, 2)': [('boy', 1)]},
                    ]
         self.assertListEqual(actual, expected)
