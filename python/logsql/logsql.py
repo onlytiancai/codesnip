@@ -101,10 +101,10 @@ def _getTokens(rule):
     return tokens
 
 class AvgFun(object):
-    def __init__(self, name, key=None):
+    def __init__(self, name, key, alias):
         self.total = 0
         self.len = 0
-        self.name = name
+        self.name = alias or name 
         self.key = key
 
     def hit(self, data):
@@ -118,9 +118,9 @@ class AvgFun(object):
         return result
 
 class MinFun(object):
-    def __init__(self, name, key=None):
+    def __init__(self, name, key, alias):
         self.ret = float('inf')
-        self.name = name
+        self.name = alias or name 
         self.key = key
 
     def hit(self, data):
@@ -134,9 +134,9 @@ class MinFun(object):
         return ret
 
 class MaxFun(object):
-    def __init__(self, name, key=None):
+    def __init__(self, name, key, alias):
         self.ret = float('-inf')
-        self.name = name
+        self.name = alias or name 
         self.key = key
 
     def hit(self, data):
@@ -150,9 +150,9 @@ class MaxFun(object):
         return ret
 
 class CountFun(object):
-    def __init__(self, name):
+    def __init__(self, name, alias):
         self.ret = 0
-        self.name = name
+        self.name = alias or name 
 
     def hit(self, data):
         self.ret += 1
@@ -163,9 +163,9 @@ class CountFun(object):
         return ret
 
 class TopFun(object):
-    def __init__(self, name, args):
+    def __init__(self, name, args, alias):
         self.counter = defaultdict(int) 
-        self.name = name
+        self.name = alias or name 
         args = args.split(',')
         self.field = args[0].strip()
         self.limited = int(args[1].strip())
@@ -210,19 +210,19 @@ class Query(object):
 
     def select(self, selected):
         for item in _split_select(selected):
-            matched = re.match(r'(\w+)\(([\w, ]*)\)(\s+as\s+(\w+))*', item)
+            matched = re.match(r'\s*(\w+)\(([\w, ]*)\)(\s+as\s+(\w+))*', item)
             if matched:
                 func_name, args, _, alias = matched.groups()
                 if func_name == 'avg':
-                    self.selected.append(AvgFun(item, key_func(args)))
+                    self.selected.append(AvgFun(item, key_func(args), alias))
                 elif func_name == 'min':
-                    self.selected.append(MinFun(item, key_func(args)))
+                    self.selected.append(MinFun(item, key_func(args), alias))
                 elif func_name == 'max':
-                    self.selected.append(MaxFun(item, key_func(args)))
+                    self.selected.append(MaxFun(item, key_func(args), alias))
                 elif func_name == 'count':
-                    self.selected.append(CountFun(item))
+                    self.selected.append(CountFun(item, alias))
                 elif func_name == 'top':
-                    self.selected.append(TopFun(item, args))
+                    self.selected.append(TopFun(item, args, alias))
                 else:
                     raise Exception(f'unknown function:{func_name}')
             else:

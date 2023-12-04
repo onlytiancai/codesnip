@@ -54,11 +54,20 @@ class SelectTest(unittest.TestCase):
         self.assertListEqual(actual, expected)
 
     def test_top_func(self):
-        self.maxDiff = None
         query = select('format_time(time, "1h"),top(gender, 2)').from_(self.data).groupby('format_time(time, "1h")')
         actual = list(query.run())
         expected = [{'format_time(time, "1h")': datetime(2023, 10, 1, 8, 0), 'top(gender, 2)': [('boy', 2), ('girl', 1)]},
                     {'format_time(time, "1h")': datetime(2023, 10, 1, 9, 0), 'top(gender, 2)': [('girl', 1)]},
                     {'format_time(time, "1h")': datetime(2023, 10, 1, 11, 0), 'top(gender, 2)': [('boy', 1)]},
+                   ]
+        self.assertListEqual(actual, expected)
+
+    def test_alias(self):
+        self.maxDiff = None
+        query = select('format_time(time, "1h"), top(gender, 2) as gender').from_(self.data).groupby('format_time(time, "1h")')
+        actual = list(query.run())
+        expected = [{'format_time(time, "1h")': datetime(2023, 10, 1, 8, 0), 'gender': [('boy', 2), ('girl', 1)]},
+                    {'format_time(time, "1h")': datetime(2023, 10, 1, 9, 0), 'gender': [('girl', 1)]},
+                    {'format_time(time, "1h")': datetime(2023, 10, 1, 11, 0), 'gender': [('boy', 1)]},
                    ]
         self.assertListEqual(actual, expected)
