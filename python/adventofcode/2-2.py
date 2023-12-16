@@ -15,7 +15,7 @@ for line in open('data2.txt'):
                 max_map[color] = int(n)
     current = 1
     for x in max_map:
-        current *= max_map[x]
+        curren *= max_map[x]
     print(max_map, current)
     total+=current
 
