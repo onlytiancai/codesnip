@@ -1,46 +1,56 @@
-from collections import defaultdict
+def trans(map, a):
+    result=[]
+    print('seed', a)
+    for k,v in sorted(map):
+        print(k,v)
+        if a[0] < k[0] and a[0]<a[1]:
+            print('out', a[0], min(a[1], k[0]-1))
+            result.append([a[0], min(a[1], k[0]-1)])
+            a[0] = min(a[1],k[0]-1)+1
+
+        if a[1] >= k[0] and a[1] <= k[1] and a[0]<a[1]:
+            print('in', max(a[0], k[0]), min(a[1], k[1]))
+            result.append([v[0]+max(a[0], k[0])-k[0],v[0]+min(a[1], k[1])-k[0]])
+            a[0]=min(a[1], k[1])+1
+
+    if a[0]<a[1]:
+        print('fin', a)
+        result.append([a[0], a[1]])
+    print(result)
+    return result
+
 seeds = []
-map = defaultdict(list)
+maps = []
+map = []
 map_name = ''
 for i, line in enumerate(open('data5.txt')):
     line = line.strip()
-    print(i, line)
     if not line:
         continue
     if i == 0:
         a = [int(x.strip()) for x in line.split(':')[1].split(' ') if x]
-        seeds = [(a[i],a[i+1]) for i in range(0, len(a), 2)]
-        print('seeds:', seeds)
+        seeds = [[a[i],a[i]+a[i+1]] for i in range(0, len(a), 2)]
         continue
     if line.endswith('map:'):
+        if map:
+            maps.append(map)
+            map=[]
         map_name = line.split(' ')[0]
         continue
-    map[map_name].append([int(x) for x in line.split(' ')])
-print(map)
+    dst,src,rng = [int(x) for x in line.split(' ')]
+    map.append(((src,src+rng),(dst, dst+rng)))
 
-def trans(data, map_name):
-    for x in data:
-        result = -1
-        for dst,src,len in map[map_name]:
-            if x >= src and x < src + len:
-                result = dst + (x - src)
-                break
-        if result == -1:
-            result = x 
-        yield result
+if map:
+    maps.append(map)
+print('seeds:', seeds)
 
-min_result = float('inf')
-for begin, end in seeds:
-    print('111', begin, end)
-    for x in range(begin, begin+end):
-        print(222, x)
-        data = [x] 
-        for name in ['seed-to-soil', 'soil-to-fertilizer', 'fertilizer-to-water', 'water-to-light', 
-                'light-to-temperature', 'temperature-to-humidity', 'humidity-to-location']:
-            results = list(trans(data, name))
-            data = results
-        print('333', data)
-        if data[0] < min_result:
-            min_result = data[0]
-print(min_result)
+for map in maps:
+    print('map:', map)
+    results = []
+    for seed in seeds:
+        results.extend(trans(map, seed))
+    print('results:',results)
+    seeds = results
 
+print(seeds)
+print(min(seeds))
