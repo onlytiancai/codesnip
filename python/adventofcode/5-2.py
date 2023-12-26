@@ -1,23 +1,20 @@
-def trans(map, a):
-    result=[]
-    print('seed', a)
-    for k,v in sorted(map):
-        print(k,v)
-        if a[0] < k[0] and a[0]<a[1]:
-            print('out', a[0], min(a[1], k[0]-1))
-            result.append([a[0], min(a[1], k[0]-1)])
-            a[0] = min(a[1],k[0]-1)+1
+def trans(src, dst, pair):
+    results, remain=[],[]
+    print(f'pair:{pair}, src:{src}, dst:{dst}')
+    if pair[0] < src[0] and pair[1] > pair[0]:
+        print('111', pair)
+        remain.append([pair[0], min(pair[1], src[0]-1)])
+        pair[0] = min(pair[1], src[0]-1)+1
+    if pair[0] >= src[0] and pair[0] <= src[1] and pair[1] > pair[0]:
+        begin, end = max(pair[0],src[0]), min(pair[1], src[1])
+        print('222', pair, begin, end, [dst[0]+begin-src[0], dst[0]+end-src[0]])
+        results.append([dst[0]+begin-src[0], dst[0]+end-src[0]])
+        pair[0] = min(pair[1], src[1])+1
+    if pair[1] > pair[0]:
+        print('333', pair)
+        remain.append(pair)
+    return results, remain 
 
-        if a[1] >= k[0] and a[1] <= k[1] and a[0]<a[1]:
-            print('in', max(a[0], k[0]), min(a[1], k[1]))
-            result.append([v[0]+max(a[0], k[0])-k[0],v[0]+min(a[1], k[1])-k[0]])
-            a[0]=min(a[1], k[1])+1
-
-    if a[0]<a[1]:
-        print('fin', a)
-        result.append([a[0], a[1]])
-    print(result)
-    return result
 
 seeds = []
 maps = []
@@ -46,11 +43,31 @@ print('seeds:', seeds)
 
 for map in maps:
     print('map:', map)
-    results = []
+    next_seeds = []
+   
+    print('process seeds:', seeds)
+    remain = []
     for seed in seeds:
-        results.extend(trans(map, seed))
-    print('results:',results)
-    seeds = results
+        print('000:', seed)
+        for m in map:
+            next_remain = []
+            print('process remain:', remain)
+            for x  in remain:
+                results, new_remain = trans(m[0], m[1], x)
+                next_seeds.extend(results)
+                next_remain.extend(new_remain)
+
+            print('process seed:', seed)
+            results, new_remain = trans(m[0], m[1], seed)
+            next_seeds.extend(results)
+            next_remain.extend(new_remain)
+            remain = next_remain
+
+    next_seeds.extend(remain)
+    print('next_seeds:', next_seeds)
+    print()
+    seeds = next_seeds 
+
 
 print(seeds)
-print(min(seeds))
+print('next', min(seeds))
