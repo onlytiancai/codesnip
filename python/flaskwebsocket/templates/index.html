@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/jquery/3.6.0/jquery.min.js" type="application/javascript"></script>
+    <script src="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/socket.io/4.4.1/socket.io.min.js" type="application/javascript"></script>
+    <title>Index</title>
+  </head>
+  <body>
+    <div id="log">
+      
+    </div>
+    <form action="index_submit" method="get" accept-charset="utf-8" id="emit">
+      <input type="text" value="" name="" id="emit_data"/>
+     <input type="submit" value="emit" /> 
+    </form>
+    <form action="index_submit" method="get" accept-charset="utf-8" id="broadcast">
+      <input type="text" value="" name="" id="broadcast_data"/>
+     <input type="submit" value="broadcast" /> 
+    </form>
+  <script>
+    $(document).ready(function(){
+    var socket = io.connect('http://' + document.domain + ':' + location.port + '/test');
+    socket.on('my response', function(msg) {
+        $('#log').append('<p>Received: ' + msg.data + '</p>');
+    });
+    $('form#emit').submit(function(event) {
+        socket.emit('my event', {data: $('#emit_data').val()});
+        return false;
+    });
+    $('form#broadcast').submit(function(event) {
+        socket.emit('my broadcast event', {data: $('#broadcast_data').val()});
+        return false;
+    });
+  });
+  </script>
+  </body>
+</html>
