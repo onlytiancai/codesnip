@@ -1,0 +1,11 @@
+uprobe:./test.o:foo{
+    @start = nsecs;
+}
+uretprobe:./test.o:foo{
+    printf("cost: %ld ns\n", nsecs-@start);
+}
+END
+{
+    printf("program end\n");
+    clear(@start);
+}
