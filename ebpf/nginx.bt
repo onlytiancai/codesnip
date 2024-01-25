@@ -1,6 +1,17 @@
+/*
+(gdb) b ngx_http_process_request_uri
+(gdb) c
+(gdb) bt
+#0  ngx_http_process_request_uri (r=r@entry=0x5577af351d80)
+(gdb) ptype /o r
+1272      |     8     u_char *uri_start;
+1280      |     8     u_char *uri_end;
+1344      |     8     u_char *host_start;
+1352      |     8     u_char *host_end;
+*/
 uprobe:/usr/sbin/nginx-debug:ngx_http_process_request_uri{
-    $uri_start = arg0+1272;
-    $uri_end = arg0+1280;
-    $len = (uint8)(*$uri_end)-(uint8)(*$uri_start);
-    printf("get url:%s\n",str(*$uri_start, $len-4))
+    $uri_start = arg0 + 1272;
+    $uri_end = arg0 + 1280;
+    $len = (uint8)(*$uri_end) - (uint8)(*$uri_start);
+    printf("get url:%s\n", str(*$uri_start, $len));
 }
