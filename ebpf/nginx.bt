@@ -1,0 +1,6 @@
+uprobe:/usr/sbin/nginx-debug:ngx_http_process_request_uri{
+    $uri_start = arg0+1272;
+    $uri_end = arg0+1280;
+    $len = (uint8)(*$uri_end)-(uint8)(*$uri_start);
+    printf("get url:%s\n",str(*$uri_start, $len-4))
+}
