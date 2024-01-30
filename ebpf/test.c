@@ -1,18 +1,10 @@
 #include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <time.h>
+struct BBB {int xxx; int yyy;};
+struct AAA { int xxx; char yyy; int *zzz; struct BBB *ooo; };
 
-int foo(int i) {
-    int n = rand() % 500000 + 300000;
-    usleep(n);
-    printf("%d\n", i);
-    return n;
-}
 
 int main(int argc, char *argv[])
 {
-    srand(time(0));
-    for (int i = 0; i < 10000; ++i) {foo(i);}    
+    struct AAA aaa;
     return 0;
 }

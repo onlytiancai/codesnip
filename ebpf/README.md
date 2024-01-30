@@ -31,3 +31,19 @@ example
     printf("open path: %s\n", str(((struct path *)arg0)->dentry->d_name.name));
 
     sudo apt-get install gcc-multilib
+
+elf
+
+    readelf -a test.o
+    readelf -w test.o
+
+    >>> t = [die for die in dies if 'DW_AT_name' in die.attributes and die.attributes['DW_AT_name'].value == b'AAA']
+    >>> t = t[0]
+    >>> sec = [sec for sec in sections if sec.name == '.debug_info'][0]
+    >>> t = [die for die in dies if 'DW_AT_name' in die.attributes and die.attributes['DW_AT_name'].value == b'int'][0]
+    >>>> t = [die for die in dies if 'DW_AT_name' in die.attributes and die.attributes['DW_AT_name'].value == b'int'][0]
+>>> t.offset
+101
+>> t.offset
+    101
+
