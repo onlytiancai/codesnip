@@ -47,3 +47,21 @@ elf
 >> t.offset
     101
 
+nginx
+
+    ./configure --with-debug --with-cc-opt='-O0 -g' ...
+    readelf -w ./objs/nginx | grep ngx_http_request_s
+    python3 dump_struct.py /home/ubuntu/download/nginx-1.19.10/objs/nginx ngx_http_request_s
+
+    >>> dies_offset_map[827642].cu.cu_offset
+    825059
+    >>> ch = list(dies_name_map[b'ngx_http_request_s'].iter_children())[0]
+    >>> ch.attributes['DW_AT_type'].value
+    2583
+    >>> 825059+2583
+    827642
+
+    ch.get_DIE_from_attribute('DW_AT_type').get_DIE_from_attribute('DW_AT_type').get_DIE_from_attribute('DW_AT_type')
+
+    >>> set([ch.get_DIE_from_attribute('DW_AT_type').tag for ch in chs])
+    {'DW_TAG_pointer_type', 'DW_TAG_base_type', 'DW_TAG_array_type', 'DW_TAG_typedef'}

@@ -1,7 +1,9 @@
 from elftools.elf.elffile import ELFFile
 from pprint import pprint
+import sys
 
-struct_name = b'AAA'
+elf_file = sys.argv[1] 
+struct_name = sys.argv[2].encode('ascii')
 
 def dump_struct(struct_name, dies_name_map, dies_offset_map):
     target = dies_name_map.get(struct_name)
@@ -11,6 +13,10 @@ def dump_struct(struct_name, dies_name_map, dies_offset_map):
         for ch in target.iter_children():
             if 'DW_AT_type' in ch.attributes:
                 type = dies_offset_map.get(ch.attributes['DW_AT_type'].value)
+                if not type:
+                    print('error ch:', ch)
+                    sys.exit() 
+
                 if type.tag == 'DW_TAG_base_type':
                     print('    %s %s;' % (
                         type.attributes['DW_AT_name'].value.decode('ascii'), 
@@ -41,15 +47,15 @@ def dump_struct(struct_name, dies_name_map, dies_offset_map):
         for name in other_structs:
             dump_struct(temp_name, dies_name_map, dies_offset_map)
 
-with open('test.o', 'rb') as file:
+with open(elf_file, 'rb') as file:
     elf_info = ELFFile(file)
     dwarf_info = elf_info.get_dwarf_info()
-    for cu in dwarf_info.iter_CUs(): 
-        dies_name_map = {}
-        dies_offset_map = {}
+    dies_name_map = {}
+    dies_offset_map = {}
+    for i, cu in enumerate(dwarf_info.iter_CUs()): 
         for die in cu.iter_DIEs():
             dies_offset_map[die.offset] = die
             if 'DW_AT_name' in die.attributes:
                 dies_name_map[die.attributes['DW_AT_name'].value] = die
-
-        dump_struct(struct_name, dies_name_map, dies_offset_map)            
+    print(dies_offset_map.keys())
+    dump_struct(struct_name, dies_name_map, dies_offset_map)            
