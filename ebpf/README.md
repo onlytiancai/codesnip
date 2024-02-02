@@ -114,3 +114,6 @@ b'ctx'
 'DW_TAG_pointer_type'
 >>> chs[2].get_DIE_from_attribute('DW_AT_type').get_DIE_from_attribute('DW_AT_type').tag
 'DW_TAG_pointer_type'
+
+
+    typedef void (*ngx_http_event_handler_pt)(ngx_http_request_t *r);
