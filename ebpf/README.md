@@ -65,3 +65,52 @@ nginx
 
     >>> set([ch.get_DIE_from_attribute('DW_AT_type').tag for ch in chs])
     {'DW_TAG_pointer_type', 'DW_TAG_base_type', 'DW_TAG_array_type', 'DW_TAG_typedef'}
+
+    vi ~/download/nginx-1.19.10/src/http/ngx_http_request.h
+
+    >>> from elftools.elf.elffile import ELFFile
+    >>> elf_info = ELFFile(open('/home/ubuntu/download/nginx-1.19.10/objs/nginx','rb'))
+    >>> dwarf_info = elf_info.get_dwarf_info()
+
+    def get_die(struct_name):
+        for i, cu in enumerate(dwarf_info.iter_CUs()):
+            for die in cu.iter_DIEs():
+                if 'DW_AT_name' in die.attributes and die.attributes['DW_AT_name'].value == struct_name:
+                    return die
+    die = get_die(b'ngx_http_request_s')
+    chs = list(die.iter_children())
+    >>> chs[0].attributes['DW_AT_name'].value
+    b'signature'
+    >>> chs[0].get_DIE_from_attribute('DW_AT_type').tag
+    'DW_TAG_typedef'
+    >>> chs[0].get_DIE_from_attribute('DW_AT_type').attributes['DW_AT_name'].value
+    b'uint32_t'
+    chs[0].get_DIE_from_attribute('DW_AT_type').get_DIE_from_attribute('DW_AT_type').tag
+    >>> chs[0].get_DIE_from_attribute('DW_AT_type').get_DIE_from_attribute('DW_AT_type').attributes['DW_AT_name'].value
+    b'__uint32_t'
+    >>> chs[0].get_DIE_from_attribute('DW_AT_type').get_DIE_from_attribute('DW_AT_type').get_DIE_from_attribute('DW_AT_type').tag
+    'DW_TAG_base_type'
+    >>> chs[0].get_DIE_from_attribute('DW_AT_type').get_DIE_from_attribute('DW_AT_type').get_DIE_from_attribute('DW_AT_type').attributes['DW_AT_name'].value
+    b'unsigned int'
+
+    >>> chs[1].tag
+    'DW_TAG_member'
+    >>> chs[1].attributes['DW_AT_name'].value
+    b'connection'
+    >>> chs[1].get_DIE_from_attribute('DW_AT_type').tag
+    'DW_TAG_pointer_type'
+    >>> chs[1].get_DIE_from_attribute('DW_AT_type').get_DIE_from_attribute('DW_AT_type').tag
+    'DW_TAG_typedef'
+    >>> chs[1].get_DIE_from_attribute('DW_AT_type').get_DIE_from_attribute('DW_AT_type').attributes['DW_AT_name'].value
+b'ngx_connection_t'
+    >>> chs[1].get_DIE_from_attribute('DW_AT_type').get_DIE_from_attribute('DW_AT_type').get_DIE_from_attribute('DW_AT_type').tag
+    'DW_TAG_structure_type'
+
+>>> chs[2].tag
+'DW_TAG_member'
+>>> chs[2].attributes['DW_AT_name'].value
+b'ctx'
+>>> chs[2].get_DIE_from_attribute('DW_AT_type').tag
+'DW_TAG_pointer_type'
+>>> chs[2].get_DIE_from_attribute('DW_AT_type').get_DIE_from_attribute('DW_AT_type').tag
+'DW_TAG_pointer_type'
