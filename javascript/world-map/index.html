@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>World Map</title>
+    <link rel="stylesheet" href="./dist/css/jsvectormap.css" />
+    <script src="./dist/js/jsvectormap.min.js"></script>
+  </head>
+  <body>
+    <div id="map" style="width:1024px;height:1024px;"></div>
+    <script src="./dist/maps/world.js"></script>
+    <script src="./dist/maps/world-merc.js"></script>
+    <script charset="utf-8">
+
+// 根据数字在指定范围内地位置范围不同深浅的颜色
+function getColor(clicks, maxClicks, minClicks) {
+  const colorRange = [
+  '#fff', // 白色
+  '#fffaf0', // 接近白色的浅粉色
+  '#fffacd', // 浅鲑鱼色
+  '#ffa07a', // 浅珊瑚色
+  '#ff8c00', // 珊瑚色
+  '#ff7f50', // 珊瑚红
+  '#ff6347', // 砖红色
+  '#ff4500', // 猩红色
+  '#dc143c', // 猩红色
+  '#b22222', // 火砖红
+  '#8b0000', // 暗红色
+  '#800000', // 勃艮第红
+  '#660000', // 酒红色
+  '#4b0000', // 暗红色
+  '#330000', // 深红色
+  '#000000', // 黑色
+]; 
+  const colorIndex = Math.floor((clicks - minClicks) / (maxClicks*1.5 - minClicks) * (colorRange.length - 1));
+  if (colorIndex >= colorRange.length) colorIndex = colorRange.length -1;
+  if (colorIndex < 0 ) colorIndex = 0;
+  return colorRange[colorIndex];
+}
+
+const countryData = {
+  "DE": 1848,
+  "CN": 1500,
+  "US": 1300,
+  "SG": 1000,
+  "RU": 800,
+  "IE": 500,
+  "NL": 450,
+  "BG": 400,
+  "RO": 380,
+  "PL": 370,
+  "SC": 360,
+  "GB": 350,
+  "HK": 4,
+  "IN": 3,
+  "CA": 2,
+  "BE": 2,
+  "UA": 1,
+  "PT": 1,
+  "ID": 1,
+  "BR": 1,
+} 
+
+const countries = Object.keys(countryData);
+const values = Object.values(countryData), 
+  maxClicks = values.reduce((a, b) => Math.max(a, b)), 
+  minClicks = values.reduce((a, b) => Math.min(a, b));;
+
+const colorObject = countries.reduce((obj, country) => {
+  const clicks = countryData[country];
+  const color = getColor(clicks, maxClicks, minClicks);
+  if (color != '#ffffff') obj[country] = color;
+  return obj;
+}, {});
+
+console.log(colorObject)
+
+var map = new jsVectorMap({
+  map: 'world', // 'canada', ...
+  selector: '#map', 
+  series: {
+    regions: [
+      {
+        attribute: 'fill',
+        attributes: colorObject, 
+      },
+    ]
+  },
+})
+
+window.onload = function () {
+  map.addMarkers([{
+    name: 'Russia',
+    coords: [61, 105]
+  }, {
+    name: 'Egypt',
+    coords: [26.8206, 30.8025],
+    style: { fill: 'red' }
+  }])
+
+};
+
+
+    </script>
+  </body>
+</html>
