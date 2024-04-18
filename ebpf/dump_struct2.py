@@ -29,7 +29,7 @@ def dump_pointer(ch, ch_name):
     type_name = get_pointer_type(die)
     return '%s%s;' % (type_name, ch_name)
 
-def inspect_die(ch, die):
+def inspect_die(die):
     while True:
         if die.tag == 'DW_TAG_typedef':
             name = die.attributes['DW_AT_name']
@@ -43,7 +43,7 @@ def inspect_die(ch, die):
             else:
                 pass
                 # 匿名 struct，在 typedef 里定义
-        elif die.tag in ('DW_TAG_base_type', 'DW_TAG_pointer_type', 'DW_TAG_subroutine_type'):
+        elif die.tag in ('DW_TAG_base_type', 'DW_TAG_pointer_type', 'DW_TAG_subroutine_type', 'DW_TAG_member'):
             pass        
         else:
             print('inspect_die:unknown tag', die.tag, die)
@@ -56,7 +56,6 @@ def inspect_die(ch, die):
 def dump_typedef(ch, ch_name):
     die = ch.get_DIE_from_attribute('DW_AT_type')
     type_name = die.attributes['DW_AT_name'].value
-    inspect_die(ch, die)
     return '%s %s;' % (type_name.decode('ascii'), ch_name)
 
 
@@ -94,6 +93,7 @@ def dump_array_type(ch, ch_name):
 def dump_struct_member(die, ch):
     ch_name = ch.attributes['DW_AT_name'].value.decode('ascii')
     tag = ch.get_DIE_from_attribute('DW_AT_type').tag
+    inspect_die(ch)
     if tag == 'DW_TAG_typedef':
         return dump_typedef(ch, ch_name)
     if tag == 'DW_TAG_pointer_type':
@@ -138,9 +138,17 @@ def print_typedef(die):
         for ch in type_die.iter_children():
             print('   ', dump_struct_member(type_die, ch))
         print('} %s;' % name)
+    elif type_die.tag in ('DW_TAG_volatile_type'):
+        volatile_type_die = type_die.get_DIE_from_attribute('DW_AT_type')
+        if volatile_type_die.tag == 'DW_TAG_typedef':
+            name = volatile_type_die.attributes['DW_AT_name']
+            print(dump_typedef(volatile_type_die, name))
+        else:
+            print(222, volatile_type_die)
+            sys.exit()
     else:
         if 'DW_AT_name' not in type_die.attributes:
-            print(111, name, die, type_die)
+            print(111, name, die, '222',type_die)
             sys.exit()
         type_name  = type_die.attributes['DW_AT_name'].value.decode('ascii')
         print('typedef %s %s;' % (name, type_name))
