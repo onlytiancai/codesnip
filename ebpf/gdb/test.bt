@@ -1,10 +1,9 @@
 struct BBB { int x; int y;};
-struct AAA { int a; char *s; struct BBB b;char c[6]};
+struct AAA { int a; char *s; struct BBB b;char c[6];};
 uprobe:./test.o:print_data{
-    $a = (struct AAA*)arg1;
-    printf("print_data:%s %s %s %d %d %d\n", 
-        str(*arg0),
-        str(*($a->s)), $a->c, 
+    $a = (struct AAA*)arg0;
+    printf("%s %s %d %d %d\n",
+        str($a->s), $a->c,
         $a->a, $a->b.x, $a->b.y
     );
 }
