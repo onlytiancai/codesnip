@@ -11,6 +11,39 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
+def quantile(numbers, quantile_position):
+    """
+    Calculate a specific quantile of a list of numbers.
+
+    >>> quantile([random.uniform(1,1000) for x in range(1000)],0.95)
+    947.7164725442025
+    """
+
+    if not isinstance(numbers, list):
+        raise TypeError("Input data must be a list of numbers.")
+
+    if not 0 <= quantile_position <= 1:
+        raise ValueError("Quantile position must be between 0 and 1.")
+
+    # Sort the numbers in ascending order
+    sorted_numbers = sorted(numbers)
+
+    # Calculate the index based on the quantile position
+    index = int(quantile_position * (len(sorted_numbers) - 1))
+
+    # If the quantile falls exactly on a data point, use that value
+    if index < len(sorted_numbers):
+        quantile_value = sorted_numbers[index]
+    # Otherwise, interpolate between the two closest data points
+    else:
+        lower_value = sorted_numbers[index - 1]
+        upper_value = sorted_numbers[index]
+        interpolation_factor = quantile_position - (index - 1) / len(sorted_numbers)
+        quantile_value = lower_value + interpolation_factor * (upper_value - lower_value)
+
+    return quantile_value
+
+
 def format_time(time, format):
     if not isinstance(time, datetime):
         raise Exception('type error for time')

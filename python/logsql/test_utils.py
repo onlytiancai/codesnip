@@ -1,4 +1,4 @@
-from logsql import format_time, _split_select
+from logsql import format_time, _split_select, quantile
 from datetime import datetime
 import unittest
 
@@ -27,3 +27,9 @@ class UtilsTest(unittest.TestCase):
         actual = list(_split_select(txt))
         expected = ['foo(a,b(2,3),e)', 'b', 'a(c(6),2)']
         self.assertListEqual(actual, expected)
+
+    def test_quantile(self):
+        actual = quantile([1,2,3,4,5,6,7,8,9,10], 0.9) 
+        self.assertEqual(actual, 9)
+        actual = quantile([1,1,1,1,1,10,10,10,10,10,100,100], 0.9) 
+        self.assertEqual(actual, 9)

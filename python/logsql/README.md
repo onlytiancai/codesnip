@@ -34,7 +34,7 @@
 
 ## todo
 
-- 实现 pct 函数 
+- done: 实现 pct 函数 
 - 实时监控日志 
 - 指定输出csv还是json格式
 - select 支持 format_time

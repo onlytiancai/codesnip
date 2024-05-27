@@ -1,0 +1,12 @@
+就是写成
+if isOdd(x):
+   if isDivBy(x, 5):
+        xxx
+   if isDivBy(x, 3)==0:
+      yyy
+还是写成
+if  isOdd(x) and isDivBy(x, 5):
+   xxx
+if isOdd(x) and isDivBy(x, 3):
+    yyy
+呢，前者不是遵循了代码复用原则么
