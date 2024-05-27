@@ -17,5 +17,25 @@ watch(
 )
 </script>
 <template>
-    {{ title }}
+    <header>{{ title }}</header>
+
+    <div class="container">
+        <ul class="wordList">
+        </ul>
+    </div>
+
+    <footer>
+        <div class="buttons">
+            <select id="sel_subtitle">
+                <option value="en">英文</option>
+                <option value="cn">中文</option>
+                <option value="en_cn">中英</option>
+            </select>
+        </div>
+        <div class="player-container">
+            <audio class="player" controls></audio>
+
+        </div>
+
+    </footer>
 </template>

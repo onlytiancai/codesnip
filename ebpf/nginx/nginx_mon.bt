@@ -1,0 +1,10 @@
+struct request {
+    char pad[1272];
+    unsigned char *uri_start;
+};
+uprobe:/usr/sbin/nginx:ngx_http_process_request_uri{
+    $uri_start = arg0 + 1272;
+    $ptr = (struct request*)arg0;
+    printf("process:%p %p %p\n", arg0, $uri_start, $ptr->uri_start);
+}
+

@@ -1,0 +1,5 @@
+struct data {char a[1272];char b;unsigned char *c;};
+uprobe:./test.o:print_data {
+    $arg0 = (struct data*)(arg0);
+    printf("print_data:%d %d %d\n", (uint8)(*(*arg0+1273)), $arg0->b,*($arg0->c));
+}
