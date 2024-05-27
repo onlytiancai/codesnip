@@ -29,29 +29,28 @@ def parse(str: str) -> List[Token]:
 
 def analyze(tokens: List[Token]) -> ASTNode:
     '''
-    add -> mul (+ mul)* | mul (- mul)*
-    mul -> pri (* pri)* | pri (/ pri)*
-    pri -> Num
     '''
-    global curr
-    curr, tokens_count = 0, len(tokens)
+    global token_index 
+    token_index, tokens_count = 0, len(tokens)
 
     def peek():
-        return tokens[curr] if curr < tokens_count else Token('', '') 
+        return tokens[token_index] if token_index < tokens_count else Token('', '') 
 
     def read():
-        global curr
-        ret = tokens[curr] 
-        curr += 1
+        global token_index 
+        ret = tokens[token_index] 
+        token_index += 1
         return ret
 
     def pri():
+        'pri -> Num'
         token = read()
         if token.type != 'N':
-            raise Exception(f'expect numbers: {curr}:{token}')
+            raise Exception(f'expect numbers: {token_index}:{token}')
         return ASTNode(token.type, token.value, [])
 
     def mul():
+        'mul -> pri (* pri)* | pri (/ pri)*'
         child1 = pri();
         node = child1
         if child1:
@@ -67,6 +66,7 @@ def analyze(tokens: List[Token]) -> ASTNode:
         return node
 
     def add():
+        'add -> mul (+ mul)* | mul (- mul)*'
         child1 = mul();
         node = child1
         if child1:
@@ -90,8 +90,19 @@ def analyze(tokens: List[Token]) -> ASTNode:
     print_tree(ret)
     return ret
 
-def evaluate(ast: ASTNode) -> float:
-    pass
+def evaluate(node: ASTNode) -> float:
+    if node.value == '+':
+        return evaluate(node.children[0]) + evaluate(node.children[1])
+    elif node.value == '-':
+        return evaluate(node.children[0]) - evaluate(node.children[1])
+    elif node.value == '*':
+        return evaluate(node.children[0]) * evaluate(node.children[1])
+    elif node.value == '/':
+        return evaluate(node.children[0]) / evaluate(node.children[1])
+    elif node.type == 'N':
+        return node.value
+    else:
+        raise Exception(f'unexpect node:{node}')
 
 def run(input: str):
     return evaluate(analyze(parse(input)))
