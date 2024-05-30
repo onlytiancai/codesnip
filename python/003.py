@@ -1,31 +1,37 @@
 from collections import namedtuple
 from typing import List
+import re
 
 Token = namedtuple('Token', ['type', 'value'])
 ASTNode = namedtuple('ASTNode', ['type', 'value', 'children'])
 
-def parse(str: str) -> List[Token]:
-    tokens, curr = [], ''
-    for ch in str:
-        if '0' <= ch <='9':
-            curr += ch
-        else:
-            if curr:
-                tokens.append(Token('N', int(curr)))
-                curr = ''
-            if ch in ('+', '-', '*', '/', '(', ')'):
-                tokens.append(Token(ch, ch))
-            else:
-                raise Exception(f'unexpect token:{ch}')
-    if curr:
-        tokens.append(Token('N', int(curr)))
-        curr = ''
+rules = [
+    [r'\d+', 'N'],
+    [r'\+', '+'],
+    [r'-', '-'],
+    [r'\*', '*'],
+    [r'/', '/'],
+    [r'\(', '('],
+    [r'\)', ')'],
+    [r'[a-zA-Z_]+', 'ID'],
+    [r'\s+', 'IGNORE'],
+]
 
-    print('parse result:')
-    for token in tokens:
-        print(token)
-
-    return tokens 
+def parse(s: str) -> List[Token]:
+    ret = []
+    while True:
+        origin = s
+        for patt, type in rules:
+            m = re.match(patt, s)
+            if m:
+                if type != 'IGNORE':
+                    ret.append(Token(type, s[:m.end()]))
+                s = s[m.end():]
+        if not s:
+            break
+        if origin == s:
+            raise Exception('Unexpect token:', s[0])
+    return ret
 
 def analyze(tokens: List[Token]) -> ASTNode:
     global token_index 
@@ -44,6 +50,11 @@ def analyze(tokens: List[Token]) -> ASTNode:
         token = read()
         if token.type != token_type:
             raise Exception(f'expect {token}, got {token_type}')
+
+    def expr():
+        'expr -> add'
+        node = add()
+        return node
 
     def add():
         'add -> mul (+ mul)* | mul (- mul)*'
@@ -82,13 +93,21 @@ def analyze(tokens: List[Token]) -> ASTNode:
         'pri -> Num | (add)'
         token = read()
         if token.type == 'N':
-            return ASTNode(token.type, token.value, [])
+            return ASTNode(token.type, float(token.value), [])
         elif token.type == '(':
             node = add()
             match(')')
             return node
         else:
             raise Exception(f'expect numbers: {token_index}:{token}')
+
+    def func_call():
+        'func_call -> id ( expr_list)'
+        pass
+
+    def expr_list():
+        'expr_list -> expr (expr,)*'
+        pass
 
     ret = add()
     print('analyze result:')
