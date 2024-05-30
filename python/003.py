@@ -13,6 +13,7 @@ rules = [
     [r'/', '/'],
     [r'\(', '('],
     [r'\)', ')'],
+    [r',', ','],
     [r'[a-zA-Z_]+', 'ID'],
     [r'\s+', 'IGNORE'],
 ]
@@ -48,6 +49,10 @@ def analyze(tokens: List[Token]) -> ASTNode:
         ret = tokens[token_index] 
         token_index += 1
         return ret
+
+    def unread():
+        global token_index 
+        token_index -= 1
 
     def match(token_type):
         token = read()
@@ -93,7 +98,7 @@ def analyze(tokens: List[Token]) -> ASTNode:
         return node
 
     def pri():
-        'pri -> Num | (add)'
+        'pri -> Num | (add) | func_call'
         token = read()
         if token.type == 'N':
             return ASTNode(token.type, float(token.value), [])
@@ -101,18 +106,41 @@ def analyze(tokens: List[Token]) -> ASTNode:
             node = add()
             match(')')
             return node
+        elif token.type == 'ID':
+            unread()
+            return func_call()
         else:
             raise Exception(f'expect numbers: {token_index}:{token}')
 
     def func_call():
         'func_call -> id ( expr_list)'
-        pass
+        token = read()
+        if token.type != 'ID':
+            return None
+        node = ASTNode('FUNC_CALL', token.value, [])
+        match('(')
+        for arg in args():
+            node.children.append(arg)
+        match(')')
+        return node
 
-    def expr_list():
-        'expr_list -> expr (expr,)*'
-        pass
+    def args():
+        'args -> expr (,expr)* | empty'
+        ret = []
+        arg = expr()
+        if arg:
+            ret.append(arg)
+            while True:
+                token = read()
+                if token.type == ',':
+                    arg = expr()
+                    ret.append(arg)
+                else:
+                    unread()
+                    break
+        return ret 
 
-    ret = add()
+    ret = expr()
     print('analyze result:')
     def print_tree(node, level=0):
         print(level*'\t' + str(node.value))
@@ -132,12 +160,19 @@ def evaluate(node: ASTNode) -> float:
         return evaluate(node.children[0]) / evaluate(node.children[1])
     elif node.type == 'N':
         return node.value
+    elif node.type == 'FUNC_CALL':
+        if node.value == 'abs':
+            return abs(evaluate(node.children[0]))
+        elif node.value == 'pow':
+            return pow(evaluate(node.children[0]), evaluate(node.children[1]))
+        else:
+            raise Exception('Unexcept function name:%s' % node.value)
     else:
         raise Exception(f'unexpect node:{node}')
 
 def run(input: str):
     return evaluate(analyze(parse(input)))
 
-expr = '22+333*(4+-5)/2'
+expr = 'pow(abs(-2),4)+333*(4+-5)/2*abs(-6)'
 ret = run(expr)
 print(f'{expr} = {ret}')
