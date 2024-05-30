@@ -6,7 +6,7 @@ Token = namedtuple('Token', ['type', 'value'])
 ASTNode = namedtuple('ASTNode', ['type', 'value', 'children'])
 
 rules = [
-    [r'-?\d+', 'N'],
+    [r'\d+', 'N'],
     [r'\+', '+'],
     [r'-', '-'],
     [r'\*', '*'],
@@ -98,8 +98,10 @@ def analyze(tokens: List[Token]) -> ASTNode:
         return node
 
     def pri():
-        'pri -> Num | (add) | func_call'
+        'pri -> -pri| Num | (add) | func_call'
         token = read()
+        if token.type == '-':
+            return ASTNode('NEGATIVE', token.value, [pri()])
         if token.type == 'N':
             return ASTNode(token.type, float(token.value), [])
         elif token.type == '(':
@@ -150,6 +152,8 @@ def analyze(tokens: List[Token]) -> ASTNode:
     return ret
 
 def evaluate(node: ASTNode) -> float:
+    if node.type == 'NEGATIVE':
+        return -(evaluate(node.children[0]))
     if node.value == '+':
         return evaluate(node.children[0]) + evaluate(node.children[1])
     elif node.value == '-':
@@ -173,6 +177,6 @@ def evaluate(node: ASTNode) -> float:
 def run(input: str):
     return evaluate(analyze(parse(input)))
 
-expr = 'pow(abs(-2),4)+333*(4+-5)/2*abs(-6)'
+expr = 'pow(abs(-2),4)+333*(4+-5)/2*abs(-6)-5-64+---5'
 ret = run(expr)
 print(f'{expr} = {ret}')
