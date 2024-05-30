@@ -6,7 +6,7 @@ Token = namedtuple('Token', ['type', 'value'])
 ASTNode = namedtuple('ASTNode', ['type', 'value', 'children'])
 
 rules = [
-    [r'\d+', 'N'],
+    [r'-?\d+', 'N'],
     [r'\+', '+'],
     [r'-', '-'],
     [r'\*', '*'],
@@ -27,10 +27,13 @@ def parse(s: str) -> List[Token]:
                 if type != 'IGNORE':
                     ret.append(Token(type, s[:m.end()]))
                 s = s[m.end():]
+                break
         if not s:
             break
         if origin == s:
             raise Exception('Unexpect token:', s[0])
+    for token in ret:
+        print(token)
     return ret
 
 def analyze(tokens: List[Token]) -> ASTNode:
@@ -135,6 +138,6 @@ def evaluate(node: ASTNode) -> float:
 def run(input: str):
     return evaluate(analyze(parse(input)))
 
-expr = '22+333*(4-5)/2'
+expr = '22+333*(4+-5)/2'
 ret = run(expr)
 print(f'{expr} = {ret}')
