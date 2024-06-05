@@ -1,3 +1,154 @@
+'''
+programm: statement+ ;
+statement: expressionStatement | assignmentStatement ;
+expressionStatement: add ';' ;
+assignmentStatement: Id '=' add ';' ;
+
+add: mul (+ mul)*
+mul: pri (* pri)*
+pri: Id | Num | '(' add ')' | '-' pri
+
+
+exp
+    : or 
+    | or = exp
+
+or
+    : and 
+    | or || and
+
+or
+    : and or'
+or'
+    : || and or'
+    | empty 
+
+or
+    : and (|| and)*
+
+and
+    : equal 
+    | and && equal
+
+and
+    : equal and'
+    | && equal and'
+    | empty
+
+and
+    : equal (&& equal)*
+
+equal
+    : rel 
+    | equal == rel 
+    | equal != rel
+
+equal
+    : rel equal'
+
+equal'
+    : == rel equal'
+    | != rel equal'
+    | empty
+
+equal
+    : rel (== rel)*
+    | rel (!= rel)*
+
+rel 
+    : add 
+    | rel > add 
+    | rel < add 
+    | rel >= add 
+    | rel <= add
+
+rel
+    : add rel'
+
+rel'
+    : > add rel'
+    | < add rel'
+    | >= add rel'
+    | <= add rel'
+    | empty
+
+rel
+    : add (> add)*
+    | add (< add)*
+    | add (>= add)*
+    | add (<= add)*
+
+add
+    : mul 
+    | add + mul 
+    | add - mul
+
+add
+    : mul add'
+
+add'
+    : + mul add'
+    | - mul add'
+    | empty
+
+add
+    : mul (+ mul)*
+    | mul (- mul)*
+
+mul
+    : pri 
+    | mul * pri 
+    | mul / pri
+
+mul
+    : pri mul'
+
+mul'
+    : * pri mul'
+    | / pri mul'
+
+statement
+    : blockLabel=block
+    | IF parExpression statement (ELSE statement)?
+    | FOR '(' forControl ')' statement
+    | WHILE parExpression statement
+    | DO statement WHILE parExpression ';'
+    | SWITCH parExpression '{' switchBlockStatementGroup* switchLabel* '}'
+    | RETURN expression? ';'
+    | BREAK IDENTIFIER? ';'
+    | SEMI
+    | statementExpression=expression ';'
+    ;
+
+stmt -> if expr stmt
+      | if expr stmt else stmt
+      | other
+
+stmt -> fullyMatchedStmt | partlyMatchedStmt
+fullyMatchedStmt -> if expr fullyMatchedStmt else fullyMatchedStmt
+                   | other
+partlyMatchedStmt -> if expr stmt
+                   | if expr fullyMatchedStmt else partlyMatchedStmt
+
+statement : 
+         ...
+          | FOR '(' forControl ')' statement
+         ...
+          ;
+
+forControl 
+          : forInit? ';' expression? ';' forUpdate=expressionList?
+          ;
+
+forInit 
+          : variableDeclarators 
+          | expressionList 
+          ;
+
+expressionList
+          : expression (',' expression)*
+          ;
+'''
 from collections import namedtuple
 from typing import List
 import re
