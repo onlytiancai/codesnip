@@ -142,8 +142,8 @@ Token = namedtuple('Token', ['type', 'value'])
 ASTNode = namedtuple('ASTNode', ['type', 'value', 'children'])
 
 rules = [] 
-for patt in ['\+', '-', '\*', '/', '\(', '\)', ',', '=', ';', '>', '<','\{', '\}']:
-    rules.append(patt)
+for patt in ['\+', '-', '\*', '\/', '\(', '\)', ',', '=', ';', '>', '<','{', '}']:
+    rules.append([patt, patt])
 
 rules.extend([
     [r'\d+', 'N'],
@@ -151,11 +151,14 @@ rules.extend([
     [r'\s+', 'IGNORE'],
 ])
 
+print(rules)
+
 def parse(s: str) -> List[Token]:
     ret = []
     while True:
         origin = s
         for patt, type in rules:
+            print(111, patt)
             m = re.match(patt, s)
             if m:
                 if type != 'IGNORE':
