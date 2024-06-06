@@ -1,13 +1,20 @@
 '''
-programm: statement+ ;
-statement: expressionStatement | assignmentStatement ;
-expressionStatement: add ';' ;
-assignmentStatement: Id '=' add ';' ;
+prog
+    : stmt+ 
+    ;
 
-add: mul (+ mul)*
-mul: pri (* pri)*
-pri: Id | Num | '(' add ')' | '-' pri
+stmt
+    : exp ';'
+    | ID '=' exp ';' 
+    | IF '(' exp ')' block (ELSE block )?
+    | WHILE '(' exp ')' block
+    | BREAK ';'
+    | SEMI
+    ;
 
+block
+    : '{' stmt+ '}'
+    ;
 
 exp
     : or 
@@ -107,47 +114,25 @@ mul'
     : * pri mul'
     | / pri mul'
 
-statement
-    : blockLabel=block
-    | IF parExpression statement (ELSE statement)?
-    | FOR '(' forControl ')' statement
-    | WHILE parExpression statement
-    | DO statement WHILE parExpression ';'
-    | SWITCH parExpression '{' switchBlockStatementGroup* switchLabel* '}'
-    | RETURN expression? ';'
-    | BREAK IDENTIFIER? ';'
-    | SEMI
-    | statementExpression=expression ';'
+mul
+    : pri (* pri)*
+    | pri (/ pri)*
     ;
 
-stmt -> if expr stmt
-      | if expr stmt else stmt
-      | other
+pri
+    : ID
+    | funcCall 
+    | NUM 
+    | '(' exp ')' 
+    | '-' pri
+    ;
 
-stmt -> fullyMatchedStmt | partlyMatchedStmt
-fullyMatchedStmt -> if expr fullyMatchedStmt else fullyMatchedStmt
-                   | other
-partlyMatchedStmt -> if expr stmt
-                   | if expr fullyMatchedStmt else partlyMatchedStmt
+funcCall
+    : ID '(' expList ')'
 
-statement : 
-         ...
-          | FOR '(' forControl ')' statement
-         ...
-          ;
-
-forControl 
-          : forInit? ';' expression? ';' forUpdate=expressionList?
-          ;
-
-forInit 
-          : variableDeclarators 
-          | expressionList 
-          ;
-
-expressionList
-          : expression (',' expression)*
-          ;
+expList
+    : exp (, exp)* 
+    | empty
 '''
 from collections import namedtuple
 from typing import List
@@ -156,18 +141,15 @@ import re
 Token = namedtuple('Token', ['type', 'value'])
 ASTNode = namedtuple('ASTNode', ['type', 'value', 'children'])
 
-rules = [
+rules = [] 
+for patt in ['\+', '-', '\*', '/', '\(', '\)', ',', '=', ';', '>', '<','\{', '\}']:
+    rules.append(patt)
+
+rules.extend([
     [r'\d+', 'N'],
-    [r'\+', '+'],
-    [r'-', '-'],
-    [r'\*', '*'],
-    [r'/', '/'],
-    [r'\(', '('],
-    [r'\)', ')'],
-    [r',', ','],
     [r'[a-zA-Z_]+', 'ID'],
     [r'\s+', 'IGNORE'],
-]
+])
 
 def parse(s: str) -> List[Token]:
     ret = []
@@ -177,7 +159,10 @@ def parse(s: str) -> List[Token]:
             m = re.match(patt, s)
             if m:
                 if type != 'IGNORE':
-                    ret.append(Token(type, s[:m.end()]))
+                    value = s[:m.end()]
+                    if type == 'ID' and value in ['if', 'while']:
+                        type == value.upper()
+                    ret.append(Token(type, value))
                 s = s[m.end():]
                 break
         if not s:
@@ -202,13 +187,158 @@ def analyze(tokens: List[Token]) -> ASTNode:
         return ret
 
     def unread():
+        backto(token_index-1)
+
+    def backto(index):
         global token_index 
-        token_index -= 1
+        token_index = index 
+
 
     def match(token_type):
         token = read()
         if token.type != token_type:
             raise Exception(f'expect {token}, got {token_type}')
+
+    def prog():
+        '''
+        prog
+            : stmt+ 
+            ;
+        '''
+        node = ASTNode('prog', '', [])
+        child = stmt()
+        if not child:
+            raise Exception('prog: at least one stmt is required')
+        node.children.append(child)
+        while True:
+            child = stmt()
+            if not child:
+                break
+            node.children.append(child)
+
+        return node
+
+    def stmt():
+        '''
+        stmt
+            : exp ';'
+            | ID '=' exp ';' 
+            | IF '(' exp ')' block (ELSE block )?
+            | WHILE '(' exp ')' block
+            | BREAK ';'
+            | SEMI
+            ;
+        '''
+        for func in [expStmt, assignStmt, ifStmt, whileStmt, breakStmt, emptyStmt]:
+            node = func()
+            if node:
+                return node
+
+        raise Exception('stmt: unexpect stmt type')
+
+        def expStmt():
+            temp_index = token_index
+            node = exp()
+            if node:
+                token = peek()
+                if token.value == ';':
+                    return ASTNode('expStmt', '', [node])
+            backto(temp_index)
+
+        def assignStmt():
+            "| ID '=' exp ';'"
+            temp_index = token_index
+            token = peek()
+            if token.type == 'ID':
+                node = ASTNode('assignStmt', '', [token])
+                match('=')
+                child = exp()
+                if not child:
+                    raise Exception('assignStmt: exp required')
+                node.children.append(child)
+                match(';')
+                return node 
+            backto(temp_index)
+
+        def ifStmt(): 
+            "IF '(' exp ')' block (ELSE block )?"
+            temp_index = token_index
+            token = peek()
+            if token.type == 'IF':
+                node = ASTNode('ifStmt', '', [])
+                match('(')
+                child = exp()
+                if not child:
+                    raise Exception('ifStmt: exp required')
+                node.children.append(child)
+                match(')')
+                child = block()
+                if not child:
+                    raise Exception('ifStmt: if_block required')
+                node.children.append(child)
+                token = peek()
+                if token.type == 'ELSE':
+                    child = block()
+                    if not child:
+                        raise Exception('ifStmt: else_block required')
+                    node.children.append(child)
+                return node
+
+            backto(temp_index)
+
+        def whileStmt(): 
+            "WHILE '(' exp ')' block"
+            temp_index = token_index
+            token = peek()
+            if token.type == 'WHILE':
+                node = ASTNode('whileStmt', '', [])
+                match('(')
+                child = exp()
+                if not child:
+                    raise Exception('whileStmt: exp required')
+                node.children.append(child)
+                match(')')
+                child = block()
+                if not child:
+                    raise Exception('ifStmt: else_block required')
+                node.children.append(child)
+                return node
+
+            backto(temp_index)
+
+        def breakStmt():
+            "BREAK ';'"
+            temp_index = token_index
+            token = peek()
+            if token.type == 'BREAK':
+                node = ASTNode('breakStmt', '', [])
+                match(';')
+                return node
+            backto(temp_index)
+
+        def emptyStmt():
+            "SEMI"
+            temp_index = token_index
+            token = peek()
+            if token.type == ';':
+                return ASTNode('emptyStmt', '', [])
+            backto(temp_index)
+
+        def block():
+            "'{' stmt+ '}'"
+            temp_index = token_index
+            token = peek()
+            if token.type == '{':
+                node = ASTNode('block', '', [])
+                while true:
+                    child = exp()
+                    if not child:
+                        break
+                    node.children.append(child)
+                match('}')
+                return node
+            backto(temp_index)
+
 
     def expr():
         'expr -> add'
@@ -329,5 +459,10 @@ def run(input: str):
     return evaluate(analyze(parse(input)))
 
 expr = 'pow(abs(-2),4)+333*(4+-5)/2*abs(-6)-5-64+---5'
+ret = run(expr)
+print(f'{expr} = {ret}')
+
+
+expr = 'a=2;b=3;if(a+b>0){c=a+b};while(c<0){print(c);c=c-1;}'
 ret = run(expr)
 print(f'{expr} = {ret}')
