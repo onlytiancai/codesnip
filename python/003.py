@@ -251,7 +251,8 @@ def analyze(tokens: List[Token]) -> ASTNode:
             token = peek()
             if token.type == 'ID':
                 read()
-                node = ASTNode('assignStmt', 'assignStmt', [token])
+                child = ASTNode('id', token.value, [])
+                node = ASTNode('assignStmt', 'assignStmt', [child])
                 token = peek()
                 if token.type == '=':
                     read()
@@ -404,7 +405,7 @@ def analyze(tokens: List[Token]) -> ASTNode:
         return node
 
     def pri():
-        'pri -> -pri| Num | (add) | func_call'
+        'pri -> -pri| Num | (add) | func_call | id'
         token = read()
         print('pri', token)
         if token.type == '-':
@@ -421,6 +422,10 @@ def analyze(tokens: List[Token]) -> ASTNode:
                 print('222', token, token_index)
                 unread()
                 return func_call()
+            else:
+                unread()
+                token = read()
+                return ASTNode('id', token.value, [])
         else:
             unread()
 
@@ -462,6 +467,7 @@ def analyze(tokens: List[Token]) -> ASTNode:
     print_tree(ret)
     return ret
 
+var_map = {}
 def evaluate(node: ASTNode) -> float:
     if node.type == 'NEGATIVE':
         return -(evaluate(node.children[0]))
@@ -475,6 +481,12 @@ def evaluate(node: ASTNode) -> float:
         return evaluate(node.children[0]) / evaluate(node.children[1])
     elif node.type == 'N':
         return node.value
+    elif node.type == 'id':
+        return var_map.get(node.value, 0)
+    elif node.type == 'assignStmt':
+        var_name = node.children[0].value
+        val = evaluate(node.children[1])
+        var_map[var_name] = val
     elif node.type == 'FUNC_CALL':
         if node.value == 'abs':
             return abs(evaluate(node.children[0]))
@@ -493,13 +505,15 @@ def evaluate(node: ASTNode) -> float:
         raise Exception(f'unexpect node:{node}')
 
 def run(input: str):
-    return evaluate(analyze(parse(input)))
+    ret = evaluate(analyze(parse(input)))
+    print(var_map)
+    return ret
 
 expr = 'pow(abs(-2),4)+333*(4+-5)/2*abs(-6)-5-64+---5;'
 ret = run(expr)
 print(f'{expr} = {ret}')
 
 
-expr = 'a=2;b=3;if(a+b>0){c=a+b};while(c<0){print(c);c=c-1;}'
+expr = 'a=2;b=3;a+b;'
 ret = run(expr)
 print(f'{expr} = {ret}')
