@@ -6,9 +6,10 @@ Token = namedtuple('Token', ['type', 'value'])
 ASTNode = namedtuple('ASTNode', ['type', 'value', 'children'])
 
 rules = [] 
-for patt in ['\+', '-', '\*', '\/', '\(', '\)', ',', '=', 
-             ';', '>', '<', '<=','>=','{', '}', 
-             '\|\|', '&&', '==', '!=']:
+# 注意 <= 要在 < 前面，== 要在 = 前面
+for patt in ['\+', '-', '\*', '\/', '\(', '\)', ',', 
+             ';', '<=','<','>=','>','{', '}', 
+             '\|\|', '&&', '==', '!=', '=']:
     rules.append([patt, patt.replace('\\', '')])
 
 rules.extend([
@@ -81,11 +82,12 @@ def analyze(tokens: List[Token]) -> ASTNode:
             raise Exception('prog: at least one stmt is required')
         node.children.append(child)
         while True:
-            print('prog aaaaaaaaaa:',child)
+            print('prog 000')
             child = stmt()
-            print('prog bbbbbbbbb:',child)
+            print('prog 111:',child)
             if not child:
                 break
+            print('prog 222:',child.type)
             node.children.append(child)
 
         return node
@@ -166,7 +168,9 @@ def analyze(tokens: List[Token]) -> ASTNode:
             "WHILE '(' exp ')' block"
             temp_index = token_index
             token = peek()
+            print('whileStmt: aaa')
             if token.type == 'WHILE':
+                print('whileStmt: bbb')
                 read()
                 node = ASTNode('whileStmt', 'whileStmt', [])
                 match('(')
@@ -229,7 +233,7 @@ def analyze(tokens: List[Token]) -> ASTNode:
         for func in [expStmt, assignStmt, ifStmt, whileStmt, breakStmt, emptyStmt]:
             node = func()
             if node:
-                print('000', func, node)
+                print('for cunc:000', func, node)
                 return node
 
 
@@ -448,6 +452,20 @@ var_map = {}
 def evaluate(node: ASTNode) -> float:
     if node.type == 'NEGATIVE':
         return -(evaluate(node.children[0]))
+    elif node.value == '||':
+        return evaluate(node.children[0]) or evaluate(node.children[1])
+    elif node.value == '&&':
+        return evaluate(node.children[0]) and evaluate(node.children[1])
+    elif node.value == '<':
+        return evaluate(node.children[0]) < evaluate(node.children[1])
+    elif node.value == '>':
+        return evaluate(node.children[0]) > evaluate(node.children[1])
+    elif node.value == '<=':
+        return evaluate(node.children[0]) <= evaluate(node.children[1])
+    elif node.value == '>=':
+        return evaluate(node.children[0]) >= evaluate(node.children[1])
+    elif node.value == '==':
+        return evaluate(node.children[0]) == evaluate(node.children[1])
     if node.value == '+':
         return evaluate(node.children[0]) + evaluate(node.children[1])
     elif node.value == '-':
@@ -491,6 +509,13 @@ def evaluate(node: ASTNode) -> float:
             evaluate(node.children[1])
         elif len(node.children) == 3:
             evaluate(node.children[2])
+    elif node.type == 'whileStmt':
+        while True:
+            cond = evaluate(node.children[0])
+            print('run whileStmt', node.children[0], cond, var_map)
+            if not cond:
+                break
+            evaluate(node.children[1])
     else:
         raise Exception(f'unexpect node:{node}')
 
@@ -508,5 +533,13 @@ ret = run(expr)
 print(f'{expr} = {ret}')
 
 expr = 'a=3;b=3;a+b;if(a-b){c=a*b;}else{c=a/b;}print("c=",c);c;'
+ret = run(expr)
+print(f'{expr} = {ret}')
+
+expr = '1>=2||2==3&&3-2;'
+ret = run(expr)
+print(f'{expr} = {ret}')
+
+expr = 'sum=0;i=1;while(i<10){if(i<5){sum=sum+i;}i=i+1;print("debug:",i);}sum;'
 ret = run(expr)
 print(f'{expr} = {ret}')
