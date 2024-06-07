@@ -18,7 +18,6 @@ block
 
 exp
     : or 
-    | or = exp
 
 or
     : and 
@@ -142,7 +141,9 @@ Token = namedtuple('Token', ['type', 'value'])
 ASTNode = namedtuple('ASTNode', ['type', 'value', 'children'])
 
 rules = [] 
-for patt in ['\+', '-', '\*', '\/', '\(', '\)', ',', '=', ';', '>', '<','{', '}']:
+for patt in ['\+', '-', '\*', '\/', '\(', '\)', ',', '=', 
+             ';', '>', '<', '<=','>=','{', '}', 
+             '\|\|', '&&', '==', '!=']:
     rules.append([patt, patt.replace('\\', '')])
 
 rules.extend([
@@ -152,6 +153,7 @@ rules.extend([
     [r'"[^"]*"', 'S'],
 ])
 
+print(rules)
 def parse(s: str) -> List[Token]:
     ret = []
     while True:
@@ -362,47 +364,138 @@ def analyze(tokens: List[Token]) -> ASTNode:
 
 
     def exp():
-        'expr -> add'
-        node = add()
-        print('exp', node);
+        '''
+        exp
+            : or 
+        '''
+        node = or_()
         return node
+
+    def _bop(ops, child_func):
+        node = child_func();
+        if node:
+            while True:
+                token = peek()
+                if token.value in ops:
+                    read()
+                    node = ASTNode(token.type, token.value, [node, child_func()])
+                else:
+                    break
+        return node
+
+
+
+    def or_():
+        '''
+        or
+            : and 
+            | or || and
+        or
+            : and or'
+        or'
+            : || and or'
+            | empty 
+
+        or
+            : and (|| and)*
+        '''
+        return _bop(['||'], and_)
+
+    def and_():
+        '''
+        and
+            : equal 
+            | and && equal
+
+        and
+            : equal and'
+            | && equal and'
+            | empty
+
+        and
+            : equal (&& equal)*
+        '''
+        return _bop(['&&'], equal)
+
+    def equal():
+        '''
+        equal
+            : rel equal'
+
+        equal'
+            : == rel equal'
+            | != rel equal'
+            | empty
+
+        equal
+            : rel (== rel)*
+            | rel (!= rel)*
+        '''
+        return _bop(['==', '!='], rel)
+
+    def rel():
+        '''
+        rel 
+            : add 
+            | rel > add 
+            | rel < add 
+            | rel >= add 
+            | rel <= add
+
+        rel
+            : add rel'
+
+        rel'
+            : > add rel'
+            | < add rel'
+            | >= add rel'
+            | <= add rel'
+            | empty
+
+        rel
+            : add (> add)*
+            | add (< add)*
+            | add (>= add)*
+            | add (<= add)*
+        '''
+        return _bop(['>', '<', '>=', '<='], add)
 
     def add():
-        'add -> mul (+ mul)* | mul (- mul)*'
-        child1 = mul();
-        print('add', child1)
-        node = child1
-        if child1:
-            while True: 
-                token = peek()
-                print('666', token)
-                if token.value in ['+', '-']:
-                    read()
-                    child2 = mul()
-                    node = ASTNode(token.type, token.value, [child1, child2])
-                    child1 = node
-                else:
-                    break
-        return node
+        '''
+        add
+            : mul 
+            | add + mul 
+            | add - mul
 
+        add
+            : mul add'
+
+        add'
+            : + mul add'
+            | - mul add'
+            | empty
+
+        add
+            : mul (+ mul)*
+            | mul (- mul)*
+        '''
+        return _bop(['+', '-'], mul)
 
     def mul():
-        'mul -> pri (* pri)* | pri (/ pri)*'
-        child1 = pri();
-        print('mul', child1)
-        node = child1
-        if child1:
-            while True: 
-                token = peek()
-                print('555', token)
-                if token.value in ['*', '/']:
-                    read()
-                    child2 = pri()
-                    node = ASTNode(token.type, token.value, [child1, child2])
-                    child1 = node
-                else:
-                    break
-        return node
+        '''
+        mul
+            : pri mul'
+
+        mul'
+            : * pri mul'
+            | / pri mul'
+
+        mul
+            : pri (* pri)*
+            | pri (/ pri)*
+            ;
+        '''
+        return _bop(['*','/'], pri)
 
     def pri():
         'pri -> -pri| Num | (add) | func_call | id | S'
@@ -520,6 +613,10 @@ def run(input: str):
     ret = evaluate(analyze(parse(input)))
     print(var_map)
     return ret
+
+expr = '2+3*4-5;'
+ret = run(expr)
+print(f'{expr} = {ret}')
 
 expr = 'pow(abs(-2),4)+333*(4+-5)/2*abs(-6)-5-64+---5;'
 ret = run(expr)
