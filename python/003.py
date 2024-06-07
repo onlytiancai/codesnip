@@ -160,8 +160,8 @@ def parse(s: str) -> List[Token]:
             if m:
                 if type != 'IGNORE':
                     value = s[:m.end()]
-                    if type == 'ID' and value in ['if', 'while']:
-                        type == value.upper()
+                    if type == 'ID' and value in ['if', 'else', 'while']:
+                        type = value.upper()
                     ret.append(Token(type, value))
                 s = s[m.end():]
                 break
@@ -269,6 +269,7 @@ def analyze(tokens: List[Token]) -> ASTNode:
             temp_index = token_index
             token = peek()
             if token.type == 'IF':
+                print('ifStmt:', 111)
                 read()
                 node = ASTNode('ifStmt', 'ifStmt', [])
                 match('(')
@@ -278,6 +279,7 @@ def analyze(tokens: List[Token]) -> ASTNode:
                 node.children.append(child)
                 match(')')
                 child = block()
+                print('ifStmt:', 222)
                 if not child:
                     raise Exception('ifStmt: if_block required')
                 node.children.append(child)
@@ -340,11 +342,13 @@ def analyze(tokens: List[Token]) -> ASTNode:
             if token.type == '{':
                 read()
                 node = ASTNode('block', 'block', [])
-                while true:
-                    child = exp()
+                while True:
+                    child = stmt(); 
+                    print('block aaa', child)
                     if not child:
                         break
                     node.children.append(child)
+                print('block bbb')
                 match('}')
                 return node
             backto(temp_index)
@@ -354,11 +358,6 @@ def analyze(tokens: List[Token]) -> ASTNode:
             if node:
                 print('000', func, node)
                 return node
-
-        token = peek()
-        if token.type != '':
-            raise Exception('stmt: unexpect stmt type')
-
 
 
     def exp():
@@ -417,14 +416,11 @@ def analyze(tokens: List[Token]) -> ASTNode:
             match(')')
             return node
         elif token.type == 'ID':
-            token = peek()
-            if token.type == '(':
-                print('222', token, token_index)
+            next_token = peek()
+            if next_token.type == '(':
                 unread()
                 return func_call()
             else:
-                unread()
-                token = read()
                 return ASTNode('id', token.value, [])
         else:
             unread()
@@ -501,6 +497,15 @@ def evaluate(node: ASTNode) -> float:
         return ret
     elif node.type == 'expStmt':
         return evaluate(node.children[0])
+    elif node.type == 'block':
+        for node in node.children:
+            evaluate(node)
+    elif node.type == 'ifStmt':
+        cond = evaluate(node.children[0])
+        if cond:
+            evaluate(node.children[1])
+        elif len(node.children) == 3:
+            evaluate(node.children[2])
     else:
         raise Exception(f'unexpect node:{node}')
 
@@ -514,6 +519,6 @@ ret = run(expr)
 print(f'{expr} = {ret}')
 
 
-expr = 'a=2;b=3;a+b;'
+expr = 'a=3;b=3;a+b;if(a-b){c=a*b;}else{c=a/b;}c;'
 ret = run(expr)
 print(f'{expr} = {ret}')
