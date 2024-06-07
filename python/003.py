@@ -1,13 +1,14 @@
 from collections import namedtuple
 from typing import List
 import re
+import logging
 
 Token = namedtuple('Token', ['type', 'value'])
 ASTNode = namedtuple('ASTNode', ['type', 'value', 'children'])
 
 rules = [] 
 # 注意 <= 要在 < 前面，== 要在 = 前面
-for patt in ['\+', '-', '\*', '\/', '\(', '\)', ',', 
+for patt in ['\+', '-', '\*', '\/', '%', '\(', '\)', ',', 
              ';', '<=','<','>=','>','{', '}', 
              '\|\|', '&&', '==', '!=', '=']:
     rules.append([patt, patt.replace('\\', '')])
@@ -19,7 +20,6 @@ rules.extend([
     [r'"[^"]*"', 'S'],
 ])
 
-print(rules)
 def parse(s: str) -> List[Token]:
     ret = []
     while True:
@@ -39,7 +39,7 @@ def parse(s: str) -> List[Token]:
         if origin == s:
             raise Exception('Unexpect token:', s[0])
     for token in ret:
-        print(token)
+        logging.info(token)
     return ret
 
 def analyze(tokens: List[Token]) -> ASTNode:
@@ -82,12 +82,9 @@ def analyze(tokens: List[Token]) -> ASTNode:
             raise Exception('prog: at least one stmt is required')
         node.children.append(child)
         while True:
-            print('prog 000')
             child = stmt()
-            print('prog 111:',child)
             if not child:
                 break
-            print('prog 222:',child.type)
             node.children.append(child)
 
         return node
@@ -106,12 +103,10 @@ def analyze(tokens: List[Token]) -> ASTNode:
         def expStmt():
             temp_index = token_index
             node = exp()
-            print('expStmt', node)
             if node:
                 token = peek()
                 if token.value == ';':
                     read()
-                    print('444', token)
                     return ASTNode('expStmt', 'expStmt', [node])
             backto(temp_index)
 
@@ -139,7 +134,6 @@ def analyze(tokens: List[Token]) -> ASTNode:
             temp_index = token_index
             token = peek()
             if token.type == 'IF':
-                print('ifStmt:', 111)
                 read()
                 node = ASTNode('ifStmt', 'ifStmt', [])
                 match('(')
@@ -149,7 +143,6 @@ def analyze(tokens: List[Token]) -> ASTNode:
                 node.children.append(child)
                 match(')')
                 child = block()
-                print('ifStmt:', 222)
                 if not child:
                     raise Exception('ifStmt: if_block required')
                 node.children.append(child)
@@ -168,9 +161,7 @@ def analyze(tokens: List[Token]) -> ASTNode:
             "WHILE '(' exp ')' block"
             temp_index = token_index
             token = peek()
-            print('whileStmt: aaa')
             if token.type == 'WHILE':
-                print('whileStmt: bbb')
                 read()
                 node = ASTNode('whileStmt', 'whileStmt', [])
                 match('(')
@@ -221,11 +212,9 @@ def analyze(tokens: List[Token]) -> ASTNode:
                 node = ASTNode('block', 'block', [])
                 while True:
                     child = stmt(); 
-                    print('block aaa', child)
                     if not child:
                         break
                     node.children.append(child)
-                print('block bbb')
                 match('}')
                 return node
             backto(temp_index)
@@ -233,7 +222,6 @@ def analyze(tokens: List[Token]) -> ASTNode:
         for func in [expStmt, assignStmt, ifStmt, whileStmt, breakStmt, emptyStmt]:
             node = func()
             if node:
-                print('for cunc:000', func, node)
                 return node
 
 
@@ -363,13 +351,15 @@ def analyze(tokens: List[Token]) -> ASTNode:
         mul'
             : * pri mul'
             | / pri mul'
+            | % pri mul'
 
         mul
             : pri (* pri)*
             | pri (/ pri)*
+            | pri (% pri)*
             ;
         '''
-        return _bop(['*','/'], pri)
+        return _bop(['*','/', '%'], pri)
 
     def pri():
         '''
@@ -383,7 +373,6 @@ def analyze(tokens: List[Token]) -> ASTNode:
             ;
         '''
         token = read()
-        print('pri', token)
         if token.type == '-':
             return ASTNode('NEGATIVE', token.value, [pri()])
         if token.type == 'N':
@@ -440,9 +429,9 @@ def analyze(tokens: List[Token]) -> ASTNode:
         return ret 
 
     ret = prog()
-    print('analyze result:')
+    logging.info('analyze result:')
     def print_tree(node, level=0):
-        print(level*'\t' + str(node.value))
+        logging.info(level*'\t' + str(node.value))
         for child in node.children:
             print_tree(child, level+1)
     print_tree(ret)
@@ -474,6 +463,8 @@ def evaluate(node: ASTNode) -> float:
         return evaluate(node.children[0]) * evaluate(node.children[1])
     elif node.value == '/':
         return evaluate(node.children[0]) / evaluate(node.children[1])
+    elif node.value == '%':
+        return evaluate(node.children[0]) % evaluate(node.children[1])
     elif node.type == 'N':
         return node.value
     elif node.type == 'S':
@@ -512,7 +503,6 @@ def evaluate(node: ASTNode) -> float:
     elif node.type == 'whileStmt':
         while True:
             cond = evaluate(node.children[0])
-            print('run whileStmt', node.children[0], cond, var_map)
             if not cond:
                 break
             evaluate(node.children[1])
@@ -521,25 +511,45 @@ def evaluate(node: ASTNode) -> float:
 
 def run(input: str):
     ret = evaluate(analyze(parse(input)))
-    print(var_map)
+    logging.debug('var_map:%s', var_map)
     return ret
 
-expr = '2+3*4-5;'
-ret = run(expr)
-print(f'{expr} = {ret}')
+def test():
+    expr = '2+3*4-5;'
+    ret = run(expr)
+    print(f'{expr} = {ret}')
 
-expr = 'pow(abs(-2),4)+333*(4+-5)/2*abs(-6)-5-64+---5;'
-ret = run(expr)
-print(f'{expr} = {ret}')
+    expr = 'pow(abs(-2),4)+333*(4+-5)/2*abs(-6)-5-64+---5;'
+    ret = run(expr)
+    print(f'{expr} = {ret}')
 
-expr = 'a=3;b=3;a+b;if(a-b){c=a*b;}else{c=a/b;}print("c=",c);c;'
-ret = run(expr)
-print(f'{expr} = {ret}')
+    expr = 'a=3;b=3;a+b;if(a-b){c=a*b;}else{c=a/b;}print("c=",c);c;'
+    ret = run(expr)
+    print(f'{expr} = {ret}')
 
-expr = '1>=2||2==3&&3-2;'
-ret = run(expr)
-print(f'{expr} = {ret}')
+    expr = '1>=2||2==3&&3-2;'
+    ret = run(expr)
+    print(f'{expr} = {ret}')
 
-expr = 'sum=0;i=1;while(i<10){if(i<5){sum=sum+i;}i=i+1;print("debug:",i);}sum;'
-ret = run(expr)
-print(f'{expr} = {ret}')
+    expr = 'sum=0;i=1;while(i<10){if(i<5){sum=sum+i;}i=i+1;print("debug:",i);}sum;'
+    ret = run(expr)
+    print(f'{expr} = {ret}')
+
+    expr = 'sum=0;i=0;while(i<=100){if(i%2==0){sum=sum+i;}i=i+1;}pow(sum, 2);'
+    ret = run(expr)
+    print(f'{expr} = {ret}')
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description="My Script")
+    parser.add_argument("prog_text", help="prog text")
+    parser.add_argument("-l", "--log_level", help="log level", default="WARNING")
+    args = parser.parse_args()
+    logging.basicConfig(level=args.log_level.upper())
+
+    logging.info('==== rules')
+    for rule in rules:
+        logging.info('rule:%s', rule)
+
+    ret = run(args.prog_text)
+    print(f'input=[{args.prog_text}], result={ret}')
