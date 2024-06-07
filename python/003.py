@@ -1,138 +1,3 @@
-'''
-prog
-    : stmt+ 
-    ;
-
-stmt
-    : exp ';'
-    | ID '=' exp ';' 
-    | IF '(' exp ')' block (ELSE block )?
-    | WHILE '(' exp ')' block
-    | BREAK ';'
-    | SEMI
-    ;
-
-block
-    : '{' stmt+ '}'
-    ;
-
-exp
-    : or 
-
-or
-    : and 
-    | or || and
-
-or
-    : and or'
-or'
-    : || and or'
-    | empty 
-
-or
-    : and (|| and)*
-
-and
-    : equal 
-    | and && equal
-
-and
-    : equal and'
-    | && equal and'
-    | empty
-
-and
-    : equal (&& equal)*
-
-equal
-    : rel 
-    | equal == rel 
-    | equal != rel
-
-equal
-    : rel equal'
-
-equal'
-    : == rel equal'
-    | != rel equal'
-    | empty
-
-equal
-    : rel (== rel)*
-    | rel (!= rel)*
-
-rel 
-    : add 
-    | rel > add 
-    | rel < add 
-    | rel >= add 
-    | rel <= add
-
-rel
-    : add rel'
-
-rel'
-    : > add rel'
-    | < add rel'
-    | >= add rel'
-    | <= add rel'
-    | empty
-
-rel
-    : add (> add)*
-    | add (< add)*
-    | add (>= add)*
-    | add (<= add)*
-
-add
-    : mul 
-    | add + mul 
-    | add - mul
-
-add
-    : mul add'
-
-add'
-    : + mul add'
-    | - mul add'
-    | empty
-
-add
-    : mul (+ mul)*
-    | mul (- mul)*
-
-mul
-    : pri 
-    | mul * pri 
-    | mul / pri
-
-mul
-    : pri mul'
-
-mul'
-    : * pri mul'
-    | / pri mul'
-
-mul
-    : pri (* pri)*
-    | pri (/ pri)*
-    ;
-
-pri
-    : ID
-    | funcCall 
-    | NUM 
-    | '(' exp ')' 
-    | '-' pri
-    ;
-
-funcCall
-    : ID '(' expList ')'
-
-expList
-    : exp (, exp)* 
-    | empty
-'''
 from collections import namedtuple
 from typing import List
 import re
@@ -339,7 +204,12 @@ def analyze(tokens: List[Token]) -> ASTNode:
             backto(temp_index)
 
         def block():
-            "'{' stmt+ '}'"
+            '''
+            block
+                : '{' stmt+ '}'
+                ;
+            '''
+
             temp_index = token_index
             token = peek()
             if token.type == '{':
@@ -498,7 +368,16 @@ def analyze(tokens: List[Token]) -> ASTNode:
         return _bop(['*','/'], pri)
 
     def pri():
-        'pri -> -pri| Num | (add) | func_call | id | S'
+        '''
+        pri
+            : ID
+            | funcCall 
+            | NUM 
+            | '(' exp ')' 
+            | '-' pri
+            | S
+            ;
+        '''
         token = read()
         print('pri', token)
         if token.type == '-':
@@ -513,7 +392,7 @@ def analyze(tokens: List[Token]) -> ASTNode:
             next_token = peek()
             if next_token.type == '(':
                 unread()
-                return func_call()
+                return funcCall()
             else:
                 return ASTNode('id', token.value, [])
         elif token.type == 'S':
@@ -521,21 +400,27 @@ def analyze(tokens: List[Token]) -> ASTNode:
         else:
             unread()
 
-    def func_call():
-        'func_call -> id ( expr_list)'
+    def funcCall():
+        '''
+        funcCall
+            : ID '(' expList ')'
+        '''
         token = read()
-        print('3333', token, token_index)
         if token.type != 'ID':
             return None
         node = ASTNode('FUNC_CALL', token.value, [])
         match('(')
-        for arg in args():
-            node.children.append(arg)
+        for exp in expList():
+            node.children.append(exp)
         match(')')
         return node
 
-    def args():
-        'args -> expr (,expr)* | empty'
+    def expList():
+        '''
+        expList
+            : exp (, exp)* 
+            | empty
+        '''
         ret = []
         arg = exp()
         if arg:
@@ -621,7 +506,6 @@ print(f'{expr} = {ret}')
 expr = 'pow(abs(-2),4)+333*(4+-5)/2*abs(-6)-5-64+---5;'
 ret = run(expr)
 print(f'{expr} = {ret}')
-
 
 expr = 'a=3;b=3;a+b;if(a-b){c=a*b;}else{c=a/b;}print("c=",c);c;'
 ret = run(expr)
