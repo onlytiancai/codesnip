@@ -149,6 +149,7 @@ rules.extend([
     [r'\d+', 'N'],
     [r'[a-zA-Z_]+', 'ID'],
     [r'\s+', 'IGNORE'],
+    [r'"[^"]*"', 'S'],
 ])
 
 def parse(s: str) -> List[Token]:
@@ -404,7 +405,7 @@ def analyze(tokens: List[Token]) -> ASTNode:
         return node
 
     def pri():
-        'pri -> -pri| Num | (add) | func_call | id'
+        'pri -> -pri| Num | (add) | func_call | id | S'
         token = read()
         print('pri', token)
         if token.type == '-':
@@ -422,6 +423,8 @@ def analyze(tokens: List[Token]) -> ASTNode:
                 return func_call()
             else:
                 return ASTNode('id', token.value, [])
+        elif token.type == 'S':
+            return ASTNode(token.type, token.value.strip('"'), [])
         else:
             unread()
 
@@ -477,6 +480,8 @@ def evaluate(node: ASTNode) -> float:
         return evaluate(node.children[0]) / evaluate(node.children[1])
     elif node.type == 'N':
         return node.value
+    elif node.type == 'S':
+        return node.value
     elif node.type == 'id':
         return var_map.get(node.value, 0)
     elif node.type == 'assignStmt':
@@ -488,6 +493,8 @@ def evaluate(node: ASTNode) -> float:
             return abs(evaluate(node.children[0]))
         elif node.value == 'pow':
             return pow(evaluate(node.children[0]), evaluate(node.children[1]))
+        elif node.value == 'print':
+            print('%s%s' % (node.children[0].value, evaluate(node.children[1])))
         else:
             raise Exception('Unexcept function name:%s' % node.value)
     elif node.type == 'prog':
@@ -519,6 +526,6 @@ ret = run(expr)
 print(f'{expr} = {ret}')
 
 
-expr = 'a=3;b=3;a+b;if(a-b){c=a*b;}else{c=a/b;}c;'
+expr = 'a=3;b=3;a+b;if(a-b){c=a*b;}else{c=a/b;}print("c=",c);c;'
 ret = run(expr)
 print(f'{expr} = {ret}')
