@@ -56,44 +56,32 @@ mod tests {
 
     #[test]
     fn test_empty_string() {
-        let input = "";
-        let expected: Vec<String> = Vec::new();
-        assert_eq!(parse(input), expected);
+        assert_eq!(parse(""), Vec::<String>::new());
     }
 
     #[test]
     fn test_single_space() {
-        let input = " ";
-        let expected: Vec<String> = Vec::new();
-        assert_eq!(parse(input), expected);
+        assert_eq!(parse(" "), Vec::<String>::new());
     }
 
     #[test]
     fn test_multiple_spaces() {
-        let input = "   ";
-        let expected: Vec<String> = Vec::new();
-        assert_eq!(parse(input), expected);
+        assert_eq!(parse("   "), Vec::<String>::new());
     }
 
     #[test]
     fn test_single_digit() {
-        let input = "5";
-        let expected = vec!["5"];
-        assert_eq!(parse(input), expected);
+        assert_eq!(parse("5"), vec!["5"]);
     }
 
     #[test]
     fn test_multiple_digits() {
-        let input = "12345";
-        let expected = vec!["12345"];
-        assert_eq!(parse(input), expected);
+        assert_eq!(parse("12345"), vec!["12345"]);
     }
 
     #[test]
     fn test_edge_cases() {
-        let input = " 1 2  34 5   ";
-        let expected = vec!["1", "2", "34", "5"];
-        assert_eq!(parse(input), expected);
+        assert_eq!(parse(" 1 2  34 5   "), vec!["1", "2", "34", "5"]);
     }
 
 }
