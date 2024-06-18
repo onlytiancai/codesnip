@@ -72,21 +72,13 @@ trait DisplayNode: Debug {
     fn display_node(&self, indent: usize) -> String;
 }
 
-fn generate_spaces(n: usize) -> String {
-    let mut spaces = String::new();
-    for _ in 0..n {
-        spaces.push('\t');
-    }
-    spaces
-}
-
 impl DisplayNode for Node {
     fn display_node(&self, indent: usize) -> String {
         match self {
-            Node::Value(value) => format!("{}{}\n", generate_spaces(indent), value),
+            Node::Value(value) => format!("{}{}\n", "\t".repeat(indent), value),
             Node::Binary(left, op, right) => format!(
                 "{}{}\n{}\n{}\n",
-                generate_spaces(indent), op,
+                "\t".repeat(indent), op,
                 left.display_node(indent+1),
                 right.display_node(indent+1)
             ),
