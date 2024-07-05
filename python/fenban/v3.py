@@ -22,51 +22,100 @@ for i, row in enumerate(reader):
 print(students)
 class_count = 5
 
+def calc(weights):
+    # 权重表示每个人所在的班的索引，权重向下取整
+    class_list = defaultdict(list)
+    for i, x in enumerate(weights):
+        class_index = int(x)
+        class_list[class_index].append(students[i])
+
+    # 计算出每个班的各科平均成绩，人数，男生人数等
+    stu_count_list, boy_count_list = [],[]
+    total_score_list, chinese_list, math_list, english_list = [],[],[],[]
+    for class_students in class_list.values():
+        stu_count_list.append(len(class_students))
+        boy_count_list.append(len([stu for stu in class_students if stu.gender=='男']))
+        total_score_list.append(round(np.mean([stu.total_score for stu in class_students]),2))
+        chinese_list.append(round(np.mean([stu.chinese for stu in class_students]),2))
+        math_list.append(round(np.mean([stu.math for stu in class_students]),2))
+        english_list.append(round(np.mean([stu.english for stu in class_students]),2))
+
+    return stu_count_list, boy_count_list, total_score_list, chinese_list, math_list, english_list 
+
 # 创建优化问题
 class MyProblem:
     def __init__(self, dim):
-        self.dim = dim # 数据维度，学生个数
+        self.dim = dim  # 数据维度，学生个数
 
     def get_nobj(self):
-        return 6       # 优化目标个数
+        return 1        # 优化目标个数
 
     def fitness(self, weights):
         # print(weights)
-        # 权重表示每个人所在的班的索引，权重向下取整
-        class_list = defaultdict(list)
-        for i, x in enumerate(weights):
-            class_index = int(x)
-            class_list[class_index].append(students[i])
 
-        # 计算出每个班的各科平均成绩，人数，男生人数等
-        stu_count_list, boy_count_list = [],[]
-        total_score_list, chinese_list, math_list, english_list = [],[],[],[]
-        for class_students in class_list.values():
-            stu_count_list.append(len(class_students))
-            boy_count_list.append(len([stu for stu in class_students if stu.gender=='男']))
-            total_score_list.append(round(np.mean([stu.total_score for stu in class_students]),2))
-            chinese_list.append(round(np.mean([stu.chinese for stu in class_students]),2))
-            math_list.append(round(np.mean([stu.math for stu in class_students]),2))
-            english_list.append(round(np.mean([stu.english for stu in class_students]),2))
-
-        # 让各班之间的数学，英语成绩标准差最小
+        stu_count_list, boy_count_list, total_score_list, chinese_list, math_list, english_list = calc(weights)
+        '''
         print('*'*20)
-        print('各班人数：', stu_count_list, '\n各班男生人数：', boy_count_list, '\n各班总分:', total_score_list, 
-                '\n各班语文成绩:',chinese_list,'\n各班数学成绩:', math_list, '\n各班英语成绩:',english_list)
-        return [np.std(stu_count_list), np.std(boy_count_list), np.std(total_score_list),np.std(chinese_list), np.std(math_list), np.std(english_list)]
+        print('各班人数：', stu_count_list, max(stu_count_list)-min(stu_count_list),
+            '\n各班男生人数：', boy_count_list, max(boy_count_list)-min(boy_count_list),
+              '\n各班总分:', total_score_list, np.std(total_score_list),
+              '\n各班语文成绩:', chinese_list,np.std(chinese_list),
+              '\n各班数学成绩:', math_list, np.std(math_list),
+              '\n各班英语成绩:',english_list, np.std(english_list))
+        '''
+        return [
+                np.std(total_score_list)
+                +np.std(chinese_list)
+                +np.std(math_list)
+                +np.std(english_list)
+                + max(stu_count_list) - min(stu_count_list)
+                + max(boy_count_list) - min(boy_count_list)
+                ]
 
     def get_bounds(self):
         # 每个维度权重的上下界限，0 到班级个数之间，float 向下取整
         return ([0] * self.dim, [class_count] * self.dim)
 
 # 使用遗传算法进行优化
-prob = pg.problem(MyProblem(len(students)))
+prob= pg.problem(MyProblem(len(students)))
 print(prob)
-algo = pg.algorithm(pg.nsga2(gen=40))
+# algo = pg.algorithm(pg.nsga2(gen=40)) # 多目标算法
+algo = pg.algorithm(pg.bee_colony(gen=100, limit = 10))
 pop = pg.population(prob, size=40)
 status = algo.evolve(pop)
 
 # 获取最优的分班方案
-best_solution = status.get_f()
-print('best solution', best_solution)
-print(status)
+x_list = pop.get_x()
+best_x = x_list[pop.best_idx()]
+print('best x', [int(x) for x in best_x])
+
+stu_count_list, boy_count_list, total_score_list, chinese_list, math_list, english_list = calc(best_x)
+print('*'*20, '最优结果')
+print('各班人数：', stu_count_list, max(stu_count_list)-min(stu_count_list),
+      '\n各班男生人数：', boy_count_list, max(boy_count_list)-min(boy_count_list),
+      '\n各班总分:', total_score_list, np.std(total_score_list),
+      '\n各班语文成绩:', chinese_list,np.std(chinese_list),
+      '\n各班数学成绩:', math_list, np.std(math_list),
+      '\n各班英语成绩:',english_list, np.std(english_list))
+best_f = pop.get_f()[pop.best_idx()]
+print('best f', best_f)
+
+min_diff = 1000
+min_index = -1
+for i, x in enumerate(x_list):
+    stu_count_list, boy_count_list, total_score_list, chinese_list, math_list, english_list = calc(x)
+    diff = max(stu_count_list) - min(stu_count_list)
+    if diff < min_diff:
+        min_diff = diff
+        min_index = i
+
+best_x = x_list[min_index]
+stu_count_list, boy_count_list, total_score_list, chinese_list, math_list, english_list = calc(best_x)
+print('*'*20, '最优中的最优结果')
+print('各班人数：', stu_count_list, max(stu_count_list)-min(stu_count_list),
+      '\n各班男生人数：', boy_count_list, max(boy_count_list)-min(boy_count_list),
+      '\n各班总分:', total_score_list, np.std(total_score_list),
+      '\n各班语文成绩:', chinese_list,np.std(chinese_list),
+      '\n各班数学成绩:', math_list, np.std(math_list),
+      '\n各班英语成绩:',english_list, np.std(english_list))
+
