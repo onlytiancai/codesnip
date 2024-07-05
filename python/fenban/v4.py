@@ -51,8 +51,15 @@ https://blog.csdn.net/jnxxhzz/article/details/108637551#0_QQ470585226_2
 import csv
 
 def get_all_students():
+    ret = []
     reader = csv.DictReader(open('fakedata_v2.csv', encoding='utf-8'))
-    return list(reader) 
+    for x in reader:
+        x['总分'] = float(x['总分'])
+        x['语文'] = float(x['语文'])
+        x['数学'] = float(x['数学'])
+        x['英语'] = float(x['英语'])
+        ret.append(x)
+    return ret 
 
 all_students = get_all_students() 
 all_students = sorted(all_students, key=lambda x: x['总分'], reverse = True)
@@ -117,6 +124,12 @@ for i in range(len(all_students)):
 
 import numpy as np
 def print_class():
+    fenduan_map = {}
+    for duan in set([x['分段'] for x in all_students]):
+        duan_min = min([float(x['总分']) for x in all_students if x['分段']==duan])
+        duan_max = max([float(x['总分']) for x in all_students if x['分段']==duan])
+        fenduan_map[duan] = [duan_min, duan_max]
+
     for i, cla in enumerate(finall_class):
         stu_count = len(cla)
         boy_count = len([x for x in cla if x['性别']=='男'])
@@ -128,6 +141,9 @@ def print_class():
         print(f'{i+1} 班:')
         print(f'\t总人数:{stu_count}, 男生人数:{boy_count}，女生人数:{girl_count}')
         print(f'\t语文平均分：{chinese_score}, 数学平均分:{math_score}，英语平均分:{english_score}, 总分平均分:{total_score}')
+        for duan, (duan_min, duan_max) in fenduan_map.items():
+            duan_count = len([x for x in cla if x['分段']==duan])
+            print(f'\t分段{duan}({duan_min}-{duan_max}) 人数：{duan_count}')
 
 print_class()
 "[{'男': 22, '女': 18}, {'男': 25, '女': 15}, {'男': 17, '女': 23}, {'男': 17, '女': 23}, {'男': 21, '女': 19}]"
@@ -363,4 +379,3 @@ def change_people(max_class_id, min_class_id, subject):
                         if checkok == True:
                             finall_class[max_class_id][p1], finall_class[min_class_id][p2] = finall_class[min_class_id][p2], finall_class[max_class_id][p1]
                             finall_all_range = cal_ave()
-
