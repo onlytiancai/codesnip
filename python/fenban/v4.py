@@ -61,6 +61,7 @@ def get_all_students():
         ret.append(x)
     return ret 
 
+score_key = ['语文', '数学', '英语']
 all_students = get_all_students() 
 all_students = sorted(all_students, key=lambda x: x['总分'], reverse = True)
 need_class = 5 
@@ -71,6 +72,8 @@ finall_class = []
 every_class = []
 for i in range(need_class):
     temp_map = {'男':0,'女':0}
+    for subject in score_key:
+        temp_map[subject] = 0
     temp_list = []
     finall_class.append(temp_list)
     every_class.append(temp_map)
@@ -358,8 +361,8 @@ def change_people(max_class_id, min_class_id, subject):
         if finall_class[max_class_id][p1][subject] > every_class[max_class_id][subject]:
             for p2 in range(len(finall_class[min_class_id])):
                 # 预设班级的人不允许交换
-                if (book_key.count('预设班级') != 0 and finall_class[max_class_id][p1]['预设班级'] == '' and finall_class[min_class_id][p2]['预设班级'] == '') \
-                   or book_key.count('预设班级') == 0:
+                if (has_yushe() and finall_class[max_class_id][p1]['预设班级'] == '' and finall_class[min_class_id][p2]['预设班级'] == '') \
+                   or not has_yushe():
                     # 在低分班级中选出低于该科目平均分的人 finall_class[min_class_id][p2]
                     if finall_class[max_class_id][p1]['性别'] == finall_class[min_class_id][p2]['性别'] \
                         and finall_class[max_class_id][p1]['分段'] == finall_class[min_class_id][p2]['分段'] \
@@ -379,3 +382,15 @@ def change_people(max_class_id, min_class_id, subject):
                         if checkok == True:
                             finall_class[max_class_id][p1], finall_class[min_class_id][p2] = finall_class[min_class_id][p2], finall_class[max_class_id][p1]
                             finall_all_range = cal_ave()
+
+import random
+# 随机调整，让每科平均分差值相等
+print('随机调整')
+for i in range(20):
+    class_id_1, class_id_2 = random.sample(range(need_class), 2)
+    subject = random.sample(score_key, 1)
+    print(class_id_1, class_id_2, subject)
+    change_people(class_id_1, class_id_2, subject[0])
+
+print('最终结果')
+print_class()
