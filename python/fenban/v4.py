@@ -115,20 +115,31 @@ for i in range(len(all_students)):
         now_class_number = now_class_number - flag
         flag = -flag
 
+import numpy as np
 def print_class():
-    for x in finall_class:
-        print(x)
+    for i, cla in enumerate(finall_class):
+        stu_count = len(cla)
+        boy_count = len([x for x in cla if x['性别']=='男'])
+        girl_count = len([x for x in cla if x['性别']=='女'])
+        total_score = round(np.mean([float(stu['总分']) for stu in cla]),2)
+        chinese_score = round(np.mean([float(stu['语文']) for stu in cla]),2)
+        math_score = round(np.mean([float(stu['数学']) for stu in cla]),2)
+        english_score = round(np.mean([float(stu['英语']) for stu in cla]),2)
+        print(f'{i+1} 班:')
+        print(f'\t总人数:{stu_count}, 男生人数:{boy_count}，女生人数:{girl_count}')
+        print(f'\t语文平均分：{chinese_score}, 数学平均分:{math_score}，英语平均分:{english_score}, 总分平均分:{total_score}')
 
-# print_class()
-print(every_class)
+print_class()
 "[{'男': 22, '女': 18}, {'男': 25, '女': 15}, {'男': 17, '女': 23}, {'男': 17, '女': 23}, {'男': 21, '女': 19}]"
 
 every_boys_number1 = int(sum(x['男'] for x in every_class) / len(every_class))
 every_girls_number1 = int(sum(x['女'] for x in every_class) / len(every_class))
 every_boys_number2 = every_boys_number1+1
 every_girls_number2 = every_girls_number1+1
-print('每个班预期男生人数', every_boys_number1, every_boys_number2)
-print('每个班预期女生人数', every_girls_number1, every_girls_number2)
+
+print('每个班理想男生人数', every_boys_number1, every_boys_number2)
+print('每个班理想女生人数', every_girls_number1, every_girls_number2)
+print('调整男女比例...')
 
 def has_yushe():
     return False
@@ -253,9 +264,7 @@ def change_sex():
 
 
 change_sex()
-print(every_class)
-
-# print_class()
+print_class()
 
 # 调整预设班级
 if has_yushe():
