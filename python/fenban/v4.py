@@ -50,18 +50,42 @@ https://blog.csdn.net/jnxxhzz/article/details/108637551#0_QQ470585226_2
 '''
 import csv
 
+score_key = [] # 带分数的科目列
+has_yushe_lie = False # 是否有预设班级
+
 def get_all_students():
     ret = []
-    reader = csv.DictReader(open('fakedata_v2.csv', encoding='utf-8'))
-    for x in reader:
-        x['总分'] = float(x['总分'])
-        x['语文'] = float(x['语文'])
-        x['数学'] = float(x['数学'])
-        x['英语'] = float(x['英语'])
+    reader = csv.reader(open('fakedata_v2.csv', encoding='utf-8'))
+    # 用第一行探测列名
+    header = next(reader)
+    gender_index = header.index('性别')
+    total_score_index = header.index('总分')
+    for i in range(gender_index+1, total_score_index):
+        score_key.append(header[i])
+    print(header, gender_index, total_score_index)
+
+    for row in reader:
+        x = {}
+        # 性别之前的都是字符串列，如姓名，性别等
+        for i in range(gender_index+1):
+            x[header[i]] = row[i]
+
+        # 性别到总分，包括总分都是数字类型
+        for i in range(gender_index+1, total_score_index):
+            x[header[i]] = float(row[i])
+        x['总分'] = float(row[total_score_index])
+
+        # 总分之后的，表示预留班级编号
+        if total_score_index+1 < len(row):
+            has_yushe_lie = True 
+            for i in range(total_score_index+1, len(row)):
+                print(i)
+                x[header[i]] = int(row[i])
+
         ret.append(x)
+        print(x)
     return ret 
 
-score_key = ['语文', '数学', '英语']
 all_students = get_all_students() 
 all_students = sorted(all_students, key=lambda x: x['总分'], reverse = True)
 need_class = 5 
@@ -161,7 +185,7 @@ print('每个班理想女生人数', every_girls_number1, every_girls_number2)
 print('调整男女比例...')
 
 def has_yushe():
-    return False
+    return has_yushe_lie 
 
 def change_sex():
     # print(every_boys_number1," ", every_girls_number1)
