@@ -38,7 +38,23 @@ void sort_vec(vector<pair<string, int>>& vec) {
          });
 }
 
-void print_top_n(int n, vector<pair<string, int>>& vec) {
+void print_top_n_v0(int n, vector<pair<string, int>> vec) {
+    for (int i = 0; i < 10 && i < vec.size(); ++i) {
+        cout << vec[i].first << ": " << vec[i].second << endl;
+    }
+}
+void print_top_n_v1(int n, vector<pair<string, int>>& vec) {
+    for (int i = 0; i < 10 && i < vec.size(); ++i) {
+        cout << vec[i].first << ": " << vec[i].second << endl;
+    }
+}
+void print_top_n_v2(int n, vector<pair<string, int>>&& vec) {
+    for (int i = 0; i < 10 && i < vec.size(); ++i) {
+        cout << vec[i].first << ": " << vec[i].second << endl;
+    }
+}
+void print_top_n_v3(int n, unique_ptr<vector<pair<string, int>>> p_vec) {
+    auto vec = *p_vec;
     for (int i = 0; i < 10 && i < vec.size(); ++i) {
         cout << vec[i].first << ": " << vec[i].second << endl;
     }
@@ -54,6 +70,9 @@ int main() {
     auto p_map = fill_map(file);
     auto p_vec = fill_vec(*p_map);
     sort_vec(*p_vec);
-    print_top_n(10, *p_vec);
+    print_top_n_v0(10, *p_vec);
+    print_top_n_v1(10, *p_vec);
+    print_top_n_v2(10, move(*p_vec));
+    print_top_n_v3(10, move(p_vec));
     return 0;
 }
