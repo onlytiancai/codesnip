@@ -1,47 +1,59 @@
 #include <iostream>
+#include <memory>
 #include <fstream>
 #include <sstream>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <algorithm>
- 
+
+using namespace std;
+
+
+
+auto fill_map(ifstream& file) {
+    auto p_map= make_unique<unordered_map<string, int>>(); 
+    string word;
+    while (file >> word) {
+        if (!isalpha(word.front())) continue;
+        for (auto &ch : word) {
+            ch = tolower(ch);
+        }
+        ++(*p_map)[word];
+    }
+    return p_map;
+}
+
+auto fill_vec(unordered_map<string, int>& map) {
+    auto p_vec = make_unique<vector<pair<string, int>>>(); 
+    for (const auto &pair : map) {
+        (*p_vec).push_back(pair);
+    }
+    return p_vec;
+}
+
+void sort_vec(vector<pair<string, int>>& vec) {
+    sort(vec.begin(), vec.end(),
+         [](const auto& a, const auto& b) {
+            return a.second > b.second;
+         });
+}
+
+void print_top_n(int n, vector<pair<string, int>>& vec) {
+    for (int i = 0; i < 10 && i < vec.size(); ++i) {
+        cout << vec[i].first << ": " << vec[i].second << endl;
+    }
+}
+
 int main() {
-    std::ifstream file("../txt/scan.txt"); // 替换为你的文本文件路径
-    std::string word;
-    std::map<std::string, int> word_count;
-    std::vector<std::pair<std::string, int>> word_count_vec;
- 
-    // 检查文件是否成功打开
+    ifstream file("../txt/scan.txt");
     if (!file) {
-        std::cerr << "无法打开文件" << std::endl;
+        cerr << "无法打开文件" << endl;
         return 1;
     }
  
-    // 读取文件内容并统计每个单词出现的次数
-    while (file >> word) {
-        // 忽略不是字母的单词
-        if (!std::isalpha(word.front())) continue;
-        for (char &ch : word) {
-            ch = std::tolower(ch); // 转换为小写
-        }
-        ++word_count[word];
-    }
- 
-    // 将map中的数据复制到vector中
-    for (const auto &pair : word_count) {
-        word_count_vec.push_back(pair);
-    }
- 
-    // 根据单词出现次数进行排序
-    std::sort(word_count_vec.begin(), word_count_vec.end(),
-              [](const std::pair<std::string, int> &a, const std::pair<std::string, int> &b) {
-                  return a.second > b.second;
-              });
- 
-    // 输出出现次数最多的10个单词
-    for (int i = 0; i < 10 && i < word_count_vec.size(); ++i) {
-        std::cout << word_count_vec[i].first << ": " << word_count_vec[i].second << std::endl;
-    }
- 
+    auto p_map = fill_map(file);
+    auto p_vec = fill_vec(*p_map);
+    sort_vec(*p_vec);
+    print_top_n(10, *p_vec);
     return 0;
 }
