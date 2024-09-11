@@ -10,11 +10,46 @@
             padding: 5px;
             cursor: pointer;
         }
+      /* Loading overlay styles */
+        #loadingOverlay {
+            display: none; /* Initially hidden */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+            z-index: 1000; /* Ensure it is above other elements */
+        }
+
+        /* Loading spinner styles */
+        #loadingSpinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 16px solid #f3f3f3; /* Light grey */
+            border-top: 16px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+        }
+
+        /* Spinner animation */
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
     </style>
 </head>
 <body>
+    <div id="loadingOverlay">
+      <div id="loadingSpinner"></div>
+    </div>
     <audio id="audioPlayer" controls></audio><button id="play" disabled onclick="playNext()">开始播放</button>
     <div id="container"></div>
-    <script src="static/script.js"></script>
+    当前页：<span id="lblPage"></span><button onclick="pageBack()">上一页</button><button onclick="pageNext()">下一页</button>
+    <script src="static/script.js?v=3"></script>
 </body>
 </html>

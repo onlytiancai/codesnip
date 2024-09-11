@@ -33,10 +33,12 @@ def get_lines(n: int, m: int) -> str:
     with open('/home/ubuntu/temp/yitian.txt', 'r', encoding='utf-8') as file:
         for i, line in enumerate(file, start=1):
             if n <= i <= m:
-                lines.append(line)
+                line = line.strip()
+                if line:
+                    lines.append(line)
             elif i > m:
                 break
-    return PlainTextResponse(''.join(lines))
+    return PlainTextResponse('\n'.join(lines))
 
 @app.get("/stream-mp3")
 def stream_mp3(txt: str):
