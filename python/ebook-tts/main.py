@@ -15,13 +15,18 @@ async def root(request: Request):
         request=request, name="index.html", context={}
     )
 
+@app.get("/MP_verify_uWq04g650MYKCed8.txt")
+async def root(request: Request):
+    return PlainTextResponse('uWq04g650MYKCed8')
+
 async def tts(text, voice='zh-TW-HsiaoChenNeural'):
     communicate = edge_tts.Communicate(text, voice)
     async for chunk in communicate.stream():
         if chunk["type"] == "audio":
             yield chunk["data"]
         elif chunk["type"] == "WordBoundary":
-            print(f"WordBoundary: {chunk}")
+            pass
+            # print(f"WordBoundary: {chunk}")
 
 @app.get("/get_lines")
 def get_lines(n: int, m: int) -> str:
