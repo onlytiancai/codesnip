@@ -17,7 +17,7 @@ async def stream_log(request: Request):
     timeout_duration = 600 
 
     with open("log.txt", "r") as f:
-        last_lines = deque(f, maxlen=10)
+        last_lines = deque(f, maxlen=100)
         for line in last_lines:
             yield f"data: {line}\n\n"
 

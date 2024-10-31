@@ -3,21 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tail -f Web UI</title>
+    <title>Log Stream</title>
     <style>
         #log-container { 
             white-space: pre-line; 
             font-family: monospace; 
+            max-height: 400px; /* 设置容器最大高度，方便滚动条显示 */
+            overflow-y: auto;
+        }
+        #toggle-scroll {
+            margin: 10px 0; /* 按钮的间距 */
+            padding: 10px; /* 按钮的内边距 */
+            cursor: pointer; /* 鼠标悬停时显示为指针 */
         }
     </style>
 </head>
 <body>
-    <h1>tail -f Web UI</h1>
+    <h1>Log Stream Output</h1>
+    <button id="toggle-scroll">关闭自动滚动</button> <!-- 控制自动滚动的按钮 -->
     <div id="log-container"></div>
 
     <script>
         const logContainer = document.getElementById('log-container');
+        const toggleScrollButton = document.getElementById('toggle-scroll');
         const maxLines = 100;
+        let autoScrollEnabled = true; // 标志变量，控制自动滚动
 
         const eventSource = new EventSource("/stream");
 
@@ -29,11 +39,22 @@
             if (logContainer.children.length > maxLines) {
                 logContainer.removeChild(logContainer.firstChild); // 保持最多10行
             }
+
+            // 检查是否启用自动滚动
+            if (autoScrollEnabled) {
+                logEntry.scrollIntoView({ behavior: "smooth", block: "end" }); // 滚动到最新行
+            }
         };
 
         eventSource.onerror = function() {
             console.error("Error occurred while connecting to the stream.");
         };
+
+        // 切换自动滚动的函数
+        toggleScrollButton.addEventListener('click', function() {
+            autoScrollEnabled = !autoScrollEnabled; // 切换状态
+            toggleScrollButton.textContent = autoScrollEnabled ? "关闭自动滚动" : "打开自动滚动"; // 更新按钮文本
+        });
     </script>
 </body>
 </html>
