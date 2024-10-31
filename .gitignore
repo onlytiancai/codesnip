@@ -9,3 +9,4 @@ node/mydb/
 *.jar
 *.class
 node_modules
+log.txt

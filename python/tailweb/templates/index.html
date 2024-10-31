@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tail -f Web UI</title>
+    <style>
+        #log-container { 
+            white-space: pre-line; 
+            font-family: monospace; 
+        }
+    </style>
+</head>
+<body>
+    <h1>tail -f Web UI</h1>
+    <div id="log-container"></div>
+
+    <script>
+        const logContainer = document.getElementById('log-container');
+        const maxLines = 100;
+
+        const eventSource = new EventSource("/stream");
+
+        eventSource.onmessage = function(event) {
+            const logEntry = document.createElement("div");
+            logEntry.textContent = event.data;
+            logContainer.appendChild(logEntry);
+
+            if (logContainer.children.length > maxLines) {
+                logContainer.removeChild(logContainer.firstChild); // 保持最多10行
+            }
+        };
+
+        eventSource.onerror = function() {
+            console.error("Error occurred while connecting to the stream.");
+        };
+    </script>
+</body>
+</html>
