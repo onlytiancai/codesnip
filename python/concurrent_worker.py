@@ -17,6 +17,7 @@ import queue
 import signal
 import logging
 import threading
+from datetime import datetime
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("concurrent_worker")
@@ -24,10 +25,20 @@ logger.setLevel(logging.DEBUG)
 
 def run_workers(producer, task_func, num_workers):
     stop_event = threading.Event()
+    thread_status = {}
 
     def worker(worker_id, q):
         receive_none = False
         last_task_id = None
+
+        def run_task(args):
+            i, data = args
+            thread_status[worker_id]['last_task_recv_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            thread_status[worker_id]['last_task_id'] = i 
+            thread_status[worker_id]['last_task_data'] = data
+            task_func(worker_id, i, data)
+            q.task_done()
+
         while not stop_event.is_set():
             try:
                 args = q.get(timeout=0.5)
@@ -36,40 +47,38 @@ def run_workers(producer, task_func, num_workers):
                     q.task_done()
                     logger.info(f'{worker_id} receive None task.')
                     break
-
-                i, data = args
-                task_func(worker_id, i, data)
-                last_task_id = i
-                q.task_done()
+                run_task(args)
             except queue.Empty:
                 continue
 
-        logger.info(f'{worker_id} is exiting. receive_none:{receive_none}, qsize:{q.qsize()}')
+        logger.info(f'{worker_id} is exiting, receive none task:{receive_none}, qsize:{q.qsize()}')
         if not receive_none:
             try:
                 args = q.get(timeout=0.5)
                 if args:
-                    i, data = args
-                    logger.info(f'{worker_id} process last task:{i}')
-                    task_func(worker_id, i, data)
-                    last_task_id = i
-                    q.task_done()
+                    run_task(args)
             except queue.Empty:
                 pass 
 
-        logger.info(f'{worker_id} exited, last_task_id:{last_task_id}')
+        logger.info(f'{worker_id} exited:{thread_status[worker_id]}')
 
     q = queue.Queue(maxsize=num_workers)
     threads = []
     for worker_id in range(num_workers):
         thread = threading.Thread(target=worker, args=(worker_id, q))
+        thread_status[worker_id] = {}
         thread.start()
         threads.append(thread)
 
-    def handle_sigterm(signum, frame):
-        logger.info("recived SIGTERM, will exit, qsize:%s", q.qsize())
+    def stop_workers():
+        for k,v in thread_status.items():
+            print(k, v)
         stop_event.set()
         q.join()
+
+    def handle_sigterm(signum, frame):
+        logger.info("recived SIGTERM, will exit, qsize:%s", q.qsize())
+        stop_workers()
         for thread in threads:
             thread.join()
         sys.exit(0)
@@ -93,11 +102,11 @@ def run_workers(producer, task_func, num_workers):
         q.join()
     except KeyboardInterrupt:
         logger.info("recived ctrl+c, will exit, qsize:%s", q.qsize())
-        stop_event.set()
-        q.join()
+        stop_workers()
     finally:
         for thread in threads:
             thread.join()
+        logger.info('max task is:%s', max(thread_status.values(), key=lambda x: x['last_task_id']))
 
 if __name__ == '__main__':
     import time
