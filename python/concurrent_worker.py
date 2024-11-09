@@ -1,7 +1,7 @@
 '''
 多消费者队列
 1. 可设置 worker 数限制并发，防止无限并发打垮数据库或下游接口。
-2. 可用 CTRL+C 或发送 SIGTERM 优雅停止，正在运行的任务会完成。 
+2. 可用 CTRL+C 或发送 SIGTERM 优雅停止，正在运行的任务会完成。
 3. 所有任务处理完毕后会自动退出，并打印最后 task_id 以查看进度。
 
 技术细节：
@@ -34,10 +34,16 @@ def run_workers(producer, task_func, num_workers):
         def run_task(args):
             i, data = args
             thread_status[worker_id]['last_task_recv_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            thread_status[worker_id]['last_task_id'] = i 
+            thread_status[worker_id]['last_task_id'] = i
             thread_status[worker_id]['last_task_data'] = data
-            task_func(worker_id, i, data)
-            q.task_done()
+            try:
+                task_func(worker_id, i, data)
+            except:
+                logger.exception(f'occur worker error: {worker_id} {i}, {data}')
+                worker_error = True
+                stop_event.set()
+            finally:
+                q.task_done()
 
         while not stop_event.is_set():
             try:
@@ -58,7 +64,7 @@ def run_workers(producer, task_func, num_workers):
                 if args:
                     run_task(args)
             except queue.Empty:
-                pass 
+                pass
 
         logger.info(f'{worker_id} exited:{thread_status[worker_id]}')
 
@@ -96,13 +102,18 @@ def run_workers(producer, task_func, num_workers):
                     break
                 except queue.Full:
                     continue
-
-        for _ in range(num_workers):
-            q.put(None)
-        q.join()
+            if stop_event.is_set():
+                break
+        if not stop_event.is_set():
+            for _ in range(num_workers):
+                q.put(None)
+            q.join()
     except KeyboardInterrupt:
         logger.info("recived ctrl+c, will exit, qsize:%s", q.qsize())
         stop_workers()
+    except:
+        stop_workers()
+        raise
     finally:
         for thread in threads:
             thread.join()
