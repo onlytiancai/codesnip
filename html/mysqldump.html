@@ -7,12 +7,14 @@
     <title>MySQL Dump Command Generator</title>
     <link href="static/lib/bootstrap-5.3.3/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="static/lib/bootstrap-icons-1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="static/lib/use-bootstrap-tag/use-bootstrap-tag.min.css">
 </head>
 
 <body>
-
-    
     <div id="app">
+        <div class="container pt-4">
+
+        </div>
         <div class="container mt-4">
             <h2 class="mb-4">MySQL Dump Command Generator</h2>
             <form id="mysqldump-form" ref="form">
@@ -45,8 +47,9 @@
                                     required>
                             </div>
                             <div class="col-md-4">
-                                <label for="table" class="form-label">Table</label>
-                                <input type="text" class="form-control" v-model="table" placeholder="Table name">
+                                <label for="table" class="form-label">Tables</label>
+                                <input type="text" class="form-control" placeholder="Table name" @change="tableChange"
+                                    id="tables">
                             </div>
                             <div class="col-md-4">
                                 <label for="outputFile" class="form-label">Output File</label>
@@ -66,18 +69,20 @@
                         <div class="row g-2">
 
                             <div class="col-md-6 form-check form-switch mt-4">
-
-                                <label data-bs-html="true"   class="form-check-label" data-bs-toggle="tooltip"
-                                    data-bs-title="Add a DROP DATABASE before each create.">Add DROP DATABASE<i class="bi bi-question-circle"></i>
+                                <label class="form-check-label">Add DROP DATABASE
                                     <input class="form-check-input" type="checkbox" v-model="addDropDatabase">
                                 </label>
+                                <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-trigger="hover focus"
+                                    data-bs-title="Help" data-bs-toggle="popover"
+                                    data-bs-content="Add a DROP DATABASE before each create."></i>
                             </div>
                             <div class="col-md-6 form-check form-switch mt-4">
 
-                                <label data-bs-html="true"  class="form-check-label" data-bs-toggle="tooltip"
-                                    data-bs-title="Add a DROP TABLE before each create. <br>(Defaults to on; use --skip-add-drop-table to disable.)">Add
-                                    DROP TABLE<input class="form-check-input" type="checkbox"
-                                        v-model="addDropTable"></label>
+                                <label class="form-check-label">Add DROP TABLE<input class="form-check-input"
+                                        type="checkbox" v-model="addDropTable"></label>
+                                <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-html="true"
+                                    data-bs-trigger="hover focus" data-bs-title="Help" data-bs-toggle="popover"
+                                    data-bs-content="Add a DROP TABLE before each create. <br>(Defaults to on; use --skip-add-drop-table to disable.)"></i>
                             </div>
                         </div>
                         <div class="row g-2 mt-2">
@@ -116,25 +121,39 @@
                                             v-model="compress" placeholder="1-9"></label>
 
                                 </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Master Data<input type="number" class="form-control"
+                                            v-model="masterData" placeholder="1 or 2"></label>
+                                    <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-html="true"
+                                        data-bs-trigger="hover focus" data-bs-title="Help" data-bs-toggle="popover"
+                                        data-bs-content="This causes the binary log position and filename to be appended to the output. If equal to 1, will print it as a   CHANGE MASTER command; if equal to 2, that ommand will  be prefixed with a comment symbol. This option will turn  --lock-all-tables on, unless --single-transaction is  specified too (in which case a global ead lock is only  taken a short time at the beginning of the dump; don't  forget to read about --single-transaction below). In all  cases, any action on logs will happen at the exact moment  of the dump. Option automatically turns --lock-tables  off."></i>
+                                </div>
                             </div>
                             <div class="row g-2 mt-2">
                                 <div class="col-md-3 form-check form-switch">
 
-                                    <label class="form-check-label" ata-bs-html="true"   data-bs-toggle="tooltip"
-                                    data-bs-title="Lock all tables for read.\n(Defaults to on; use --skip-lock-tables to disable.)">Lock Tables<input class="form-check-input"
-                                            type="checkbox" v-model="lockTables"></label>
+                                    <label class="form-check-label">Lock
+                                        Tables<input class="form-check-input" type="checkbox"
+                                            v-model="lockTables"></label>
+                                    <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-html="true"
+                                        data-bs-trigger="hover focus" data-bs-title="Help" data-bs-toggle="popover"
+                                        data-bs-content="Lock all tables for read.\n(Defaults to on; use --skip-lock-tables to disable.)"></i>
                                 </div>
                                 <div class="col-md-3 form-check form-switch">
 
                                     <label class="form-check-label">No Data (Schema Only)<input class="form-check-input"
                                             type="checkbox" v-model="noData"></label>
+
                                 </div>
                                 <div class="col-md-3 form-check form-switch">
 
-                                    <label class="form-check-label" data-bs-html="true"   data-bs-toggle="tooltip"
-                                    data-bs-title="Creates a consistent snapshot by dumping all tables in a<br>single transaction. Works ONLY for tables stored in<br>storage engines which support multiversioning (currently<br>only InnoDB does); the dump is NOT guaranteed to be<br>consistent for other storage engines. While a<br>--single-transaction dump is in process, to ensure a<br>valid dump file (correct table contents and binary log<br>position), no other connection should use the following<br>statements: ALTER TABLE, DROP TABLE, RENAME TABLE,
-                                    <br>TRUNCATE TABLE, as consistent snapshot is not isolated<br>from them. Option automatically turns off --lock-tables.">Single Transaction<input class="form-check-input"
-                                            type="checkbox" v-model="singleTransaction"></label>
+                                    <label class="form-check-label">Single
+                                        Transaction<input class="form-check-input" type="checkbox"
+                                            v-model="singleTransaction"></label>
+                                    <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-html="true"
+                                        data-bs-trigger="hover focus" data-bs-title="Help" data-bs-toggle="popover"
+                                        data-bs-content="Creates a consistent snapshot by dumping all tables in a<br>single transaction. Works ONLY for tables stored in<br>storage engines which support multiversioning (currently<br>only InnoDB does); the dump is NOT guaranteed to be<br>consistent for other storage engines. While a<br>--single-transaction dump is in process, to ensure a<br>valid dump file (correct table contents and binary log<br>position), no other connection should use the following<br>statements: ALTER TABLE, DROP TABLE, RENAME TABLE,
+                                            <br>TRUNCATE TABLE, as consistent snapshot is not isolated<br>from them. Option automatically turns off --lock-tables."></i>
                                 </div>
                                 <div class="col-md-3 form-check form-switch">
 
@@ -161,6 +180,7 @@
     </div>
 
     <script src="static/lib/bootstrap-5.3.3/bootstrap.bundle.min.js"></script>
+    <script src="static/lib/use-bootstrap-tag/use-bootstrap-tag.min.js"></script>
     <script type="module">
         import { createApp, ref, computed, useTemplateRef, onMounted } from './static/lib/vue.esm-browser.js'
 
@@ -170,7 +190,7 @@
                 const user = ref('')
                 const password = ref('')
                 const database = ref('')
-                const table = ref('')
+                const tables = ref('')
                 const outputFile = ref('')
                 const port = ref(3306)
                 const addDropDatabase = ref(false)
@@ -178,7 +198,7 @@
                 const routines = ref(false)
                 const triggers = ref(false)
                 const noData = ref(false)
-                const singleTransaction = ref(false)
+                const singleTransaction = ref(true)
                 const quick = ref(false)
                 const lockTables = ref(false)
                 const compress = ref(0)
@@ -186,15 +206,28 @@
                 const form = useTemplateRef('form')
                 const alertClass = ref('alert-success')
                 const alertMessage = ref('')
+                const masterData = ref(2)
+                let tablesInput = null;
 
                 onMounted(() => {
                     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
                     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
+                    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+                    const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+
+                    tablesInput = UseBootstrapTag(document.getElementById('tables'))
                 })
 
                 const commandText = computed(() => {
-                    let command = `mysqldump -h ${host.value} -u ${user.value} -p${password.value} ${database.value}`;
-                    if (port.value) command += ` --port=${port.value}`;
+                    let command = `mysqldump`;
+                    if (host.value) command += ` -h ${host.value}`;
+                    if (user.value) command += ` -u ${user.value}`;
+                    if (password.value) command += ` -p${password.value}`;
+                    if (database.value) command += ` ${database.value}`;
+                    if (tables.value) command += ` ${tables.value}`;
+
+                    if (port.value != 3306) command += ` --port=${port.value}`;
                     if (addDropDatabase.value) command += ` --add-drop-database`;
                     if (addDropTable.value) command += ` --add-drop-table`;
                     if (routines.value) command += ` --routines`;
@@ -205,6 +238,7 @@
                     if (quick.value) command += ` --quick`;
                     if (lockTables.value) command += ` --lock-tables`;
                     if (compress.value) command += ` --compress=${compress.value}`;
+                    if (masterData.value != 0) command += ` --master-data=${masterData.value}`;
 
                     if (outputFile.value) command += ` > ${outputFile.value}`
 
@@ -231,11 +265,16 @@
                     });
                 }
 
+                function tableChange(params) {
+                    if (tablesInput) {
+                        tables.value = tablesInput.getValues().join(' ')
+                    }
+                }
 
                 return {
-                    host, user, password, database, table, outputFile, port, addDropDatabase, addDropTable,
+                    host, user, password, database, outputFile, port, addDropDatabase, addDropTable,
                     routines, triggers, noData, singleTransaction, quick, lockTables, compress, commandText,
-                    copyToClipboard, showAlert, alertMessage, alertClass
+                    copyToClipboard, showAlert, alertMessage, alertClass, masterData, tableChange,
                 }
 
             }
