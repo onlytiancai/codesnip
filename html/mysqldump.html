@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MySQL Dump Command Generator</title>
+    <link href="static/lib/bootstrap-5.3.3/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="static/lib/bootstrap-icons-1.11.3/font/bootstrap-icons.css">
+</head>
+
+<body>
+
+    
+    <div id="app">
+        <div class="container mt-4">
+            <h2 class="mb-4">MySQL Dump Command Generator</h2>
+            <form id="mysqldump-form" ref="form">
+
+                <!-- Essential Parameters -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        Essential Parameters
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label for="host" class="form-label">Host</label>
+                                <input type="text" class="form-control" v-model="host" placeholder="localhost" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="user" class="form-label">User</label>
+                                <input type="text" class="form-control" v-model="user" placeholder="root" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" v-model="password">
+                            </div>
+
+                        </div>
+                        <div class="row g-2 mt-2">
+                            <div class="col-md-4">
+                                <label for="database" class="form-label">Database</label>
+                                <input type="text" class="form-control" v-model="database" placeholder="Database name"
+                                    required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="table" class="form-label">Table</label>
+                                <input type="text" class="form-control" v-model="table" placeholder="Table name">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="outputFile" class="form-label">Output File</label>
+                                <input type="text" class="form-control" v-model="outputFile" placeholder="backup.sql"
+                                    required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Common Parameters -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        Common Parameters
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+
+                            <div class="col-md-6 form-check form-switch mt-4">
+
+                                <label data-bs-html="true"   class="form-check-label" data-bs-toggle="tooltip"
+                                    data-bs-title="Add a DROP DATABASE before each create.">Add DROP DATABASE<i class="bi bi-question-circle"></i>
+                                    <input class="form-check-input" type="checkbox" v-model="addDropDatabase">
+                                </label>
+                            </div>
+                            <div class="col-md-6 form-check form-switch mt-4">
+
+                                <label data-bs-html="true"  class="form-check-label" data-bs-toggle="tooltip"
+                                    data-bs-title="Add a DROP TABLE before each create. <br>(Defaults to on; use --skip-add-drop-table to disable.)">Add
+                                    DROP TABLE<input class="form-check-input" type="checkbox"
+                                        v-model="addDropTable"></label>
+                            </div>
+                        </div>
+                        <div class="row g-2 mt-2">
+                            <div class="col-md-6 form-check form-switch">
+
+                                <label class="form-check-label">Include Stored Procedures &
+                                    Functions<input class="form-check-input" type="checkbox" v-model="routines"></label>
+                            </div>
+                            <div class="col-md-6 form-check form-switch">
+
+                                <label class="form-check-label">Include Triggers<input class="form-check-input"
+                                        type="checkbox" v-model="triggers"></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Parameters (Collapsible) -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <button class="btn btn-link p-0" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#advancedParameters" aria-expanded="false"
+                            aria-controls="advancedParameters">
+                            Advanced Parameters
+                        </button>
+                    </div>
+                    <div id="advancedParameters" class="collapse">
+                        <div class="card-body">
+                            <div class="row g-2">
+                                <div class="col-md-3">
+                                    <label class="form-label">Port<input type="number" class="form-control"
+                                            v-model="port" placeholder="3306"></label>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Compression Level<input type="number" class="form-control"
+                                            v-model="compress" placeholder="1-9"></label>
+
+                                </div>
+                            </div>
+                            <div class="row g-2 mt-2">
+                                <div class="col-md-3 form-check form-switch">
+
+                                    <label class="form-check-label" ata-bs-html="true"   data-bs-toggle="tooltip"
+                                    data-bs-title="Lock all tables for read.\n(Defaults to on; use --skip-lock-tables to disable.)">Lock Tables<input class="form-check-input"
+                                            type="checkbox" v-model="lockTables"></label>
+                                </div>
+                                <div class="col-md-3 form-check form-switch">
+
+                                    <label class="form-check-label">No Data (Schema Only)<input class="form-check-input"
+                                            type="checkbox" v-model="noData"></label>
+                                </div>
+                                <div class="col-md-3 form-check form-switch">
+
+                                    <label class="form-check-label" data-bs-html="true"   data-bs-toggle="tooltip"
+                                    data-bs-title="Creates a consistent snapshot by dumping all tables in a<br>single transaction. Works ONLY for tables stored in<br>storage engines which support multiversioning (currently<br>only InnoDB does); the dump is NOT guaranteed to be<br>consistent for other storage engines. While a<br>--single-transaction dump is in process, to ensure a<br>valid dump file (correct table contents and binary log<br>position), no other connection should use the following<br>statements: ALTER TABLE, DROP TABLE, RENAME TABLE,
+                                    <br>TRUNCATE TABLE, as consistent snapshot is not isolated<br>from them. Option automatically turns off --lock-tables.">Single Transaction<input class="form-check-input"
+                                            type="checkbox" v-model="singleTransaction"></label>
+                                </div>
+                                <div class="col-md-3 form-check form-switch">
+
+                                    <label class="form-check-label">Quick Mode<input class="form-check-input"
+                                            type="checkbox" v-model="quick"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-primary" @click="copyToClipboard">Copy Command</button>
+                <div v-cloak v-if="showAlert" :class="[alertClass]" class="alert mt-2" role="alert">{{alertMessage}}
+                </div>
+            </form>
+
+            <!-- Display the Generated Command -->
+            <div class="mt-4">
+                <h5>Generated Command</h5>
+                <pre id="generatedCommand" class="bg-light p-3 border rounded text-wrap">{{commandText}}</pre>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="static/lib/bootstrap-5.3.3/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import { createApp, ref, computed, useTemplateRef, onMounted } from './static/lib/vue.esm-browser.js'
+
+        createApp({
+            setup() {
+                const host = ref('')
+                const user = ref('')
+                const password = ref('')
+                const database = ref('')
+                const table = ref('')
+                const outputFile = ref('')
+                const port = ref(3306)
+                const addDropDatabase = ref(false)
+                const addDropTable = ref(false)
+                const routines = ref(false)
+                const triggers = ref(false)
+                const noData = ref(false)
+                const singleTransaction = ref(false)
+                const quick = ref(false)
+                const lockTables = ref(false)
+                const compress = ref(0)
+                const showAlert = ref(false);
+                const form = useTemplateRef('form')
+                const alertClass = ref('alert-success')
+                const alertMessage = ref('')
+
+                onMounted(() => {
+                    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+                    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+                })
+
+                const commandText = computed(() => {
+                    let command = `mysqldump -h ${host.value} -u ${user.value} -p${password.value} ${database.value}`;
+                    if (port.value) command += ` --port=${port.value}`;
+                    if (addDropDatabase.value) command += ` --add-drop-database`;
+                    if (addDropTable.value) command += ` --add-drop-table`;
+                    if (routines.value) command += ` --routines`;
+                    if (triggers.value) command += ` --triggers`;
+
+                    if (noData.value) command += ` --no-data`;
+                    if (singleTransaction.value) command += ` --single-transaction`;
+                    if (quick.value) command += ` --quick`;
+                    if (lockTables.value) command += ` --lock-tables`;
+                    if (compress.value) command += ` --compress=${compress.value}`;
+
+                    if (outputFile.value) command += ` > ${outputFile.value}`
+
+                    return command;
+                })
+
+                function showInfo(message, cssClass = 'alert-success') {
+                    showAlert.value = true
+                    alertClass.value = cssClass
+                    alertMessage.value = message
+                    setTimeout(() => showAlert.value = false, 2000);
+                }
+                function copyToClipboard() {
+                    form.value.classList.add('was-validated')
+                    if (!form.value.checkValidity()) {
+                        showInfo('please check your input!', 'alert-warning')
+                        return;
+                    }
+
+                    navigator.clipboard.writeText(commandText.value).then(() => {
+                        showInfo('Content copied to clipboard!')
+                    }).catch(err => {
+                        showInfo('Failed to copy content: ' + err, 'alert-warning')
+                    });
+                }
+
+
+                return {
+                    host, user, password, database, table, outputFile, port, addDropDatabase, addDropTable,
+                    routines, triggers, noData, singleTransaction, quick, lockTables, compress, commandText,
+                    copyToClipboard, showAlert, alertMessage, alertClass
+                }
+
+            }
+        }).mount('#app')
+    </script>
+
+</body>
+
+</html>
