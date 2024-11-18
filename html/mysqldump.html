@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MySQL Dump Command Generator</title>
+    <title>MySQL Dump Web</title>
     <link href="static/lib/bootstrap-5.3.3/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="static/lib/bootstrap-icons-1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="static/lib/use-bootstrap-tag/use-bootstrap-tag.min.css">
@@ -12,172 +12,244 @@
 
 <body>
     <div id="app">
-        <div class="container pt-4">
-
-        </div>
         <div class="container mt-4">
-            <h2 class="mb-4">MySQL Dump Command Generator</h2>
-            <form id="mysqldump-form" ref="form">
-
-                <!-- Essential Parameters -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        Essential Parameters
+            <h2 class="mb-4">MySQL Dump Web</h2>
+            <ul class="nav nav-underline mb-2" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a id="tab-local-backup" class="nav-link active" data-bs-toggle="tab"
+                        data-bs-target="#pane-local-backup" type="button" role="tab" aria-controls="pane-local-backup"
+                        aria-selected="true">1. Local Backup</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a id="tab-remote-backup" class="nav-link " data-bs-toggle="tab"
+                        data-bs-target="#pane-remote-backup" type="button" role="tab" aria-controls="pane-remote-backup"
+                        aria-selected="false">2. Remote Backup </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a id="tab-schedule" class="nav-link " data-bs-toggle="tab" data-bs-target="#pane-schedule"
+                        type="button" role="tab" aria-controls="pane-schedule" aria-selected="false">3. Schedule</a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div id="pane-local-backup" class="tab-pane fade show active" role="tabpanel"
+                    aria-labelledby="tab-local-backup" tabindex="0">
+                    <div class="alert alert-info" role="alert">
+                        If you don't want to enter sensitive information such as passwords, we'll use environment variables instead, make sure you set them when you execute the script.
                     </div>
-                    <div class="card-body">
-                        <div class="row g-2">
-                            <div class="col-md-4">
-                                <label for="host" class="form-label">Host</label>
-                                <input type="text" class="form-control" v-model="host" placeholder="localhost" required>
+                    <form id="mysqldump-form" ref="form">
+                        <!-- Essential Parameters -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                Essential Parameters
                             </div>
-                            <div class="col-md-4">
-                                <label for="user" class="form-label">User</label>
-                                <input type="text" class="form-control" v-model="user" placeholder="root" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" v-model="password">
-                            </div>
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label for="host" class="form-label">Host</label>
+                                        <input type="text" class="form-control" v-model="host" placeholder="localhost"
+                                            required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="user" class="form-label">User</label>
+                                        <input type="text" class="form-control" v-model="user" placeholder="root"
+                                            required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="password" class="form-label">Password</label>
+                                        <input type="password" class="form-control" v-model="password">
+                                    </div>
 
+                                </div>
+                                <div class="row g-2 mt-2">
+                                    <div class="col-md-4">
+                                        <label for="database" class="form-label">Database</label>
+                                        <input type="text" class="form-control" v-model="database"
+                                            placeholder="Database name" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="table" class="form-label">Tables</label>
+                                        <input type="text" class="form-control" placeholder="Table name"
+                                            @change="tableChange" id="tables">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="outputFile" class="form-label">Output File</label>
+                                        <input type="text" class="form-control" v-model="outputFile"
+                                            placeholder="backup.sql" required>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="row g-2 mt-2">
-                            <div class="col-md-4">
-                                <label for="database" class="form-label">Database</label>
-                                <input type="text" class="form-control" v-model="database" placeholder="Database name"
-                                    required>
+
+                        <!-- Common Parameters -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                Common Parameters
                             </div>
-                            <div class="col-md-4">
-                                <label for="table" class="form-label">Tables</label>
-                                <input type="text" class="form-control" placeholder="Table name" @change="tableChange"
-                                    id="tables">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="outputFile" class="form-label">Output File</label>
-                                <input type="text" class="form-control" v-model="outputFile" placeholder="backup.sql"
-                                    required>
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-md-6 form-check form-switch mt-4">
+                                        <label class="form-check-label">Add DROP DATABASE
+                                            <input class="form-check-input" type="checkbox" v-model="addDropDatabase">
+                                        </label>
+                                        <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-trigger="hover focus"
+                                            data-bs-title="Help" data-bs-toggle="popover"
+                                            data-bs-content="Add a DROP DATABASE before each create."></i>
+                                    </div>
+                                    <div class="col-md-6 form-check form-switch mt-4">
+
+                                        <label class="form-check-label">Add DROP TABLE<input class="form-check-input"
+                                                type="checkbox" v-model="addDropTable"></label>
+                                        <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-html="true"
+                                            data-bs-trigger="hover focus" data-bs-title="Help" data-bs-toggle="popover"
+                                            data-bs-content="Add a DROP TABLE before each create. <br>(Defaults to on; use --skip-add-drop-table to disable.)"></i>
+                                    </div>
+                                </div>
+                                <div class="row g-2 mt-2">
+                                    <div class="col-md-6 form-check form-switch">
+
+                                        <label class="form-check-label">Include Stored Procedures &
+                                            Functions<input class="form-check-input" type="checkbox"
+                                                v-model="routines"></label>
+                                    </div>
+                                    <div class="col-md-6 form-check form-switch">
+
+                                        <label class="form-check-label">Include Triggers<input class="form-check-input"
+                                                type="checkbox" v-model="triggers"></label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+
+                        <!-- Advanced Parameters (Collapsible) -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <button class="btn btn-link p-0" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#advancedParameters" aria-expanded="false"
+                                    aria-controls="advancedParameters">
+                                    Advanced Parameters
+                                </button>
+                            </div>
+                            <div id="advancedParameters" class="collapse">
+                                <div class="card-body">
+                                    <div class="row g-2">
+                                        <div class="col-md-3">
+                                            <label class="form-label">Port<input type="number" class="form-control"
+                                                    v-model="port" placeholder="3306"></label>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Compression Level<input type="number"
+                                                    class="form-control" v-model="compress" placeholder="1-9"></label>
+
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Master Data<input type="number"
+                                                    class="form-control" v-model="masterData"
+                                                    placeholder="1 or 2"></label>
+                                            <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-html="true"
+                                                data-bs-trigger="hover focus" data-bs-title="Help"
+                                                data-bs-toggle="popover"
+                                                data-bs-content="This causes the binary log position and filename to be appended to the output. If equal to 1, will print it as a   CHANGE MASTER command; if equal to 2, that ommand will  be prefixed with a comment symbol. This option will turn  --lock-all-tables on, unless --single-transaction is  specified too (in which case a global ead lock is only  taken a short time at the beginning of the dump; don't  forget to read about --single-transaction below). In all  cases, any action on logs will happen at the exact moment  of the dump. Option automatically turns --lock-tables  off."></i>
+                                        </div>
+                                    </div>
+                                    <div class="row g-2 mt-2">
+                                        <div class="col-md-3 form-check form-switch">
+
+                                            <label class="form-check-label">Lock
+                                                Tables<input class="form-check-input" type="checkbox"
+                                                    v-model="lockTables"></label>
+                                            <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-html="true"
+                                                data-bs-trigger="hover focus" data-bs-title="Help"
+                                                data-bs-toggle="popover"
+                                                data-bs-content="Lock all tables for read.\n(Defaults to on; use --skip-lock-tables to disable.)"></i>
+                                        </div>
+                                        <div class="col-md-3 form-check form-switch">
+
+                                            <label class="form-check-label">No Data (Schema Only)<input
+                                                    class="form-check-input" type="checkbox" v-model="noData"></label>
+
+                                        </div>
+                                        <div class="col-md-3 form-check form-switch">
+
+                                            <label class="form-check-label">Single
+                                                Transaction<input class="form-check-input" type="checkbox"
+                                                    v-model="singleTransaction"></label>
+                                            <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-html="true"
+                                                data-bs-trigger="hover focus" data-bs-title="Help"
+                                                data-bs-toggle="popover"
+                                                data-bs-content="Creates a consistent snapshot by dumping all tables in a<br>single transaction. Works ONLY for tables stored in<br>storage engines which support multiversioning (currently<br>only InnoDB does); the dump is NOT guaranteed to be<br>consistent for other storage engines. While a<br>--single-transaction dump is in process, to ensure a<br>valid dump file (correct table contents and binary log<br>position), no other connection should use the following<br>statements: ALTER TABLE, DROP TABLE, RENAME TABLE,
+                                                    <br>TRUNCATE TABLE, as consistent snapshot is not isolated<br>from them. Option automatically turns off --lock-tables."></i>
+                                        </div>
+                                        <div class="col-md-3 form-check form-switch">
+
+                                            <label class="form-check-label">Quick Mode<input class="form-check-input"
+                                                    type="checkbox" v-model="quick"></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-
-                <!-- Common Parameters -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        Common Parameters
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-2">
-
-                            <div class="col-md-6 form-check form-switch mt-4">
-                                <label class="form-check-label">Add DROP DATABASE
-                                    <input class="form-check-input" type="checkbox" v-model="addDropDatabase">
-                                </label>
-                                <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-trigger="hover focus"
-                                    data-bs-title="Help" data-bs-toggle="popover"
-                                    data-bs-content="Add a DROP DATABASE before each create."></i>
+                <div id="pane-remote-backup" class="tab-pane fade " role="tabpanel" aria-labelledby="tab-local-backup"
+                    tabindex="0">
+                    <form id="remote-backup-form">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                Essential Parameters
                             </div>
-                            <div class="col-md-6 form-check form-switch mt-4">
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-md-4 form-check  form-switch">
+                                        <label class="form-check-label">Enable Remote Backup
+                                            <input class="form-check-input" type="checkbox"
+                                                v-model="enableRemoteBackup">
+                                        </label>
 
-                                <label class="form-check-label">Add DROP TABLE<input class="form-check-input"
-                                        type="checkbox" v-model="addDropTable"></label>
-                                <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-html="true"
-                                    data-bs-trigger="hover focus" data-bs-title="Help" data-bs-toggle="popover"
-                                    data-bs-content="Add a DROP TABLE before each create. <br>(Defaults to on; use --skip-add-drop-table to disable.)"></i>
-                            </div>
-                        </div>
-                        <div class="row g-2 mt-2">
-                            <div class="col-md-6 form-check form-switch">
-
-                                <label class="form-check-label">Include Stored Procedures &
-                                    Functions<input class="form-check-input" type="checkbox" v-model="routines"></label>
-                            </div>
-                            <div class="col-md-6 form-check form-switch">
-
-                                <label class="form-check-label">Include Triggers<input class="form-check-input"
-                                        type="checkbox" v-model="triggers"></label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Advanced Parameters (Collapsible) -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <button class="btn btn-link p-0" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#advancedParameters" aria-expanded="false"
-                            aria-controls="advancedParameters">
-                            Advanced Parameters
-                        </button>
-                    </div>
-                    <div id="advancedParameters" class="collapse">
-                        <div class="card-body">
-                            <div class="row g-2">
-                                <div class="col-md-3">
-                                    <label class="form-label">Port<input type="number" class="form-control"
-                                            v-model="port" placeholder="3306"></label>
+                                    </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Compression Level<input type="number" class="form-control"
-                                            v-model="compress" placeholder="1-9"></label>
+                                <div class="row g-2 mt-2">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Remote Host
+                                            <input type="text" class="form-control" v-model="remote_host">
+                                        </label>
+                                    </div>
+                                    <div class=" col-md-4">
+                                        <label class="form-label">Remote User
+                                            <input type="text" class="form-control" v-model="remote_user"></label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Remote Directory
+                                            <input type="text" class="form-control" v-model="remote_dir">
+                                        </label>
+                                    </div>
 
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Master Data<input type="number" class="form-control"
-                                            v-model="masterData" placeholder="1 or 2"></label>
-                                    <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-html="true"
-                                        data-bs-trigger="hover focus" data-bs-title="Help" data-bs-toggle="popover"
-                                        data-bs-content="This causes the binary log position and filename to be appended to the output. If equal to 1, will print it as a   CHANGE MASTER command; if equal to 2, that ommand will  be prefixed with a comment symbol. This option will turn  --lock-all-tables on, unless --single-transaction is  specified too (in which case a global ead lock is only  taken a short time at the beginning of the dump; don't  forget to read about --single-transaction below). In all  cases, any action on logs will happen at the exact moment  of the dump. Option automatically turns --lock-tables  off."></i>
-                                </div>
-                            </div>
-                            <div class="row g-2 mt-2">
-                                <div class="col-md-3 form-check form-switch">
-
-                                    <label class="form-check-label">Lock
-                                        Tables<input class="form-check-input" type="checkbox"
-                                            v-model="lockTables"></label>
-                                    <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-html="true"
-                                        data-bs-trigger="hover focus" data-bs-title="Help" data-bs-toggle="popover"
-                                        data-bs-content="Lock all tables for read.\n(Defaults to on; use --skip-lock-tables to disable.)"></i>
-                                </div>
-                                <div class="col-md-3 form-check form-switch">
-
-                                    <label class="form-check-label">No Data (Schema Only)<input class="form-check-input"
-                                            type="checkbox" v-model="noData"></label>
-
-                                </div>
-                                <div class="col-md-3 form-check form-switch">
-
-                                    <label class="form-check-label">Single
-                                        Transaction<input class="form-check-input" type="checkbox"
-                                            v-model="singleTransaction"></label>
-                                    <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-html="true"
-                                        data-bs-trigger="hover focus" data-bs-title="Help" data-bs-toggle="popover"
-                                        data-bs-content="Creates a consistent snapshot by dumping all tables in a<br>single transaction. Works ONLY for tables stored in<br>storage engines which support multiversioning (currently<br>only InnoDB does); the dump is NOT guaranteed to be<br>consistent for other storage engines. While a<br>--single-transaction dump is in process, to ensure a<br>valid dump file (correct table contents and binary log<br>position), no other connection should use the following<br>statements: ALTER TABLE, DROP TABLE, RENAME TABLE,
-                                            <br>TRUNCATE TABLE, as consistent snapshot is not isolated<br>from them. Option automatically turns off --lock-tables."></i>
-                                </div>
-                                <div class="col-md-3 form-check form-switch">
-
-                                    <label class="form-check-label">Quick Mode<input class="form-check-input"
-                                            type="checkbox" v-model="quick"></label>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
+                <div id="pane-schedule" class="tab-pane fade" role="tabpanel" aria-labelledby="tab-schedule"
+                    tabindex="0">
+                    schedule
+                </div>
+            </div>
 
-                <button type="button" class="btn btn-primary" @click="copyToClipboard">Copy Command</button>
-                <div v-cloak v-if="showAlert" :class="[alertClass]" class="alert mt-2" role="alert">{{alertMessage}}
-                </div>
-            </form>
 
             <!-- Display the Generated Command -->
             <div class="mt-4">
                 <h5>Generated Command</h5>
-                <pre id="generatedCommand" class="bg-light p-3 border rounded text-wrap">{{commandText}}</pre>
+                <pre id="generatedCommand" class="bg-light p-3 border rounded">{{commandText}}</pre>
+            </div>
+
+
+            <button type="button" class="btn btn-primary" @click="copyToClipboard">Copy Command</button>
+            <div v-cloak v-if="showAlert" :class="[alertClass]" class="alert mt-2" role="alert">{{alertMessage}}
             </div>
         </div>
 
     </div>
+    <hr>
+    <p class="text-center">© 2024 onlytiancai@gmail.com</p>
 
     <script src="static/lib/bootstrap-5.3.3/bootstrap.bundle.min.js"></script>
     <script src="static/lib/use-bootstrap-tag/use-bootstrap-tag.min.js"></script>
@@ -186,9 +258,9 @@
 
         createApp({
             setup() {
-                const host = ref('')
-                const user = ref('')
-                const password = ref('')
+                const host = ref('$HOST')
+                const user = ref('$USER')
+                const password = ref('$PASSWORD')
                 const database = ref('')
                 const tables = ref('')
                 const outputFile = ref('')
@@ -209,6 +281,11 @@
                 const masterData = ref(2)
                 let tablesInput = null;
 
+                const enableRemoteBackup = ref(false)
+                const remote_user = ref('ubuntu')
+                const remote_host = ref('bak-server')
+                const remote_dir = ref('/data/backup/')
+
                 onMounted(() => {
                     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
                     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
@@ -219,8 +296,14 @@
                     tablesInput = UseBootstrapTag(document.getElementById('tables'))
                 })
 
+
                 const commandText = computed(() => {
-                    let command = `mysqldump`;
+                    let command = '';
+                    if (enableRemoteBackup.value) {
+                        command += 'cat <<EOF > /opt/mysql_backup.sh\n'
+                    }
+
+                    command += 'mysqldump'
                     if (host.value) command += ` -h ${host.value}`;
                     if (user.value) command += ` -u ${user.value}`;
                     if (password.value) command += ` -p${password.value}`;
@@ -242,6 +325,12 @@
 
                     if (outputFile.value) command += ` > ${outputFile.value}`
 
+                    if (enableRemoteBackup.value) {
+                        command += '\nEOF'
+                        command += 'chmod +x /opt/mysql_backup.sh\n'
+                        command += '/opt/mysql_backup.sh\n'
+                        command += `rsync -avzP ${outputFile.value} ${remote_user.value}@${remote_host.value}:${remote_dir.value}`
+                    }
                     return command;
                 })
 
@@ -275,6 +364,7 @@
                     host, user, password, database, outputFile, port, addDropDatabase, addDropTable,
                     routines, triggers, noData, singleTransaction, quick, lockTables, compress, commandText,
                     copyToClipboard, showAlert, alertMessage, alertClass, masterData, tableChange,
+                    enableRemoteBackup, remote_user, remote_host, remote_dir
                 }
 
             }
