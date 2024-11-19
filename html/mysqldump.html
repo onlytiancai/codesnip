@@ -21,46 +21,87 @@
                         aria-selected="true">1. Local Backup</a>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <a id="tab-remote-backup" class="nav-link " data-bs-toggle="tab"
-                        data-bs-target="#pane-remote-backup" type="button" role="tab" aria-controls="pane-remote-backup"
-                        aria-selected="false">2. Remote Backup </a>
+                    <a id="tab-schedule" class="nav-link " data-bs-toggle="tab" data-bs-target="#pane-schedule"
+                        type="button" role="tab" aria-controls="pane-schedule" aria-selected="false">2. Schedule</a>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <a id="tab-schedule" class="nav-link " data-bs-toggle="tab" data-bs-target="#pane-schedule"
-                        type="button" role="tab" aria-controls="pane-schedule" aria-selected="false">3. Schedule</a>
+                    <a id="tab-remote-backup" class="nav-link " data-bs-toggle="tab"
+                        data-bs-target="#pane-remote-backup" type="button" role="tab" aria-controls="pane-remote-backup"
+                        aria-selected="false">3. Remote Backup </a>
                 </li>
             </ul>
             <div class="tab-content">
                 <div id="pane-local-backup" class="tab-pane fade show active" role="tabpanel"
                     aria-labelledby="tab-local-backup" tabindex="0">
-                    <div class="alert alert-info" role="alert">
-                        If you don't want to enter sensitive information such as passwords, we'll use environment variables instead, make sure you set them when you execute the script.
-                    </div>
                     <form id="mysqldump-form" ref="form">
-                        <!-- Essential Parameters -->
+
                         <div class="card mb-3">
                             <div class="card-header">
-                                Essential Parameters
+                                Server Setting
                             </div>
                             <div class="card-body">
                                 <div class="row g-2">
-                                    <div class="col-md-4">
-                                        <label for="host" class="form-label">Host</label>
-                                        <input type="text" class="form-control" v-model="host" placeholder="localhost"
-                                            required>
+                                    <div class="col-md-6 form-check form-switch mt-2">
+                                        <label class="form-check-label">Use environment variable
+                                            <input class="form-check-input" type="checkbox" v-model="useEnv">
+                                        </label>
+                                        <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-trigger="hover focus"
+                                            data-bs-title="Help" data-bs-toggle="popover"
+                                            data-bs-content="If you don't want to enter sensitive information such as passwords, you can use environment variables."></i>
                                     </div>
+                                </div>
+                                <div class="row g-2 mt-2" v-if="useEnv">
                                     <div class="col-md-4">
-                                        <label for="user" class="form-label">User</label>
-                                        <input type="text" class="form-control" v-model="user" placeholder="root"
-                                            required>
+                                        <label class="form-label">Env file path
+                                            <input type="text" class="form-control" v-model="envFilePath" required>
+                                        </label>
                                     </div>
-                                    <div class="col-md-4">
-                                        <label for="password" class="form-label">Password</label>
-                                        <input type="password" class="form-control" v-model="password">
+                                    <div class="alert alert-info mt-2" role="alert">
+                                        Create <code>{{envFilePath}}</code> file that looks like this, replace values
+                                        with your database info.
+                                        <pre class="bg-light p-3 border rounded">{{envExample}}</pre>
                                     </div>
 
                                 </div>
-                                <div class="row g-2 mt-2">
+
+                                <div class="row g-2 mt-2" v-if="!useEnv">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Host
+                                            <input type="text" class="form-control" v-model="host"
+                                                placeholder="localhost" required></label>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">User
+                                            <input type="text" class="form-control" v-model="user" placeholder="root"
+                                                required></label>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Password
+                                            <input type="password" class="form-control" v-model="password">
+                                        </label>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Port<input type="number" class="form-control"
+                                                v-model="port" placeholder="3306"></label>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                Database/Table Setting
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-md-6 form-check form-switch mt-4">
+                                        <label class="form-check-label">All Databases
+                                            <input class="form-check-input" type="checkbox" v-model="allDatabases">
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="row g-2 mt-2" v-if="!allDatabases">
                                     <div class="col-md-4">
                                         <label for="database" class="form-label">Database</label>
                                         <input type="text" class="form-control" v-model="database"
@@ -69,23 +110,24 @@
                                     <div class="col-md-4">
                                         <label for="table" class="form-label">Tables</label>
                                         <input type="text" class="form-control" placeholder="Table name"
-                                            @change="tableChange" id="tables">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="outputFile" class="form-label">Output File</label>
-                                        <input type="text" class="form-control" v-model="outputFile"
-                                            placeholder="backup.sql" required>
+                                            @change="tableChange" ref="tables">
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Common Parameters -->
                         <div class="card mb-3">
                             <div class="card-header">
                                 Common Parameters
                             </div>
                             <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label for="outputFile" class="form-label">Backup directory</label>
+                                        <input type="text" class="form-control" v-model="outputFile"
+                                            placeholder="/data/mysql-backup" required>
+                                    </div>
+                                </div>
                                 <div class="row g-2">
                                     <div class="col-md-6 form-check form-switch mt-4">
                                         <label class="form-check-label">Add DROP DATABASE
@@ -133,22 +175,19 @@
                                 <div class="card-body">
                                     <div class="row g-2">
                                         <div class="col-md-3">
-                                            <label class="form-label">Port<input type="number" class="form-control"
-                                                    v-model="port" placeholder="3306"></label>
-                                        </div>
-                                        <div class="col-md-3">
                                             <label class="form-label">Compression Level<input type="number"
                                                     class="form-control" v-model="compress" placeholder="1-9"></label>
 
                                         </div>
                                         <div class="col-md-3">
-                                            <label class="form-label">Master Data<input type="number"
-                                                    class="form-control" v-model="masterData"
+                                            <label class="form-label">Master Data
+                                                <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-html="true"
+                                                    data-bs-trigger="hover focus" data-bs-title="Help"
+                                                    data-bs-toggle="popover"
+                                                    data-bs-content="This causes the binary log position and filename to be appended to the output. If equal to 1, will print it as a   CHANGE MASTER command; if equal to 2, that ommand will  be prefixed with a comment symbol. This option will turn  --lock-all-tables on, unless --single-transaction is  specified too (in which case a global ead lock is only  taken a short time at the beginning of the dump; don't  forget to read about --single-transaction below). In all  cases, any action on logs will happen at the exact moment  of the dump. Option automatically turns --lock-tables  off."></i>
+                                                <input type="number" class="form-control" v-model="masterData"
                                                     placeholder="1 or 2"></label>
-                                            <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-html="true"
-                                                data-bs-trigger="hover focus" data-bs-title="Help"
-                                                data-bs-toggle="popover"
-                                                data-bs-content="This causes the binary log position and filename to be appended to the output. If equal to 1, will print it as a   CHANGE MASTER command; if equal to 2, that ommand will  be prefixed with a comment symbol. This option will turn  --lock-all-tables on, unless --single-transaction is  specified too (in which case a global ead lock is only  taken a short time at the beginning of the dump; don't  forget to read about --single-transaction below). In all  cases, any action on logs will happen at the exact moment  of the dump. Option automatically turns --lock-tables  off."></i>
+
                                         </div>
                                     </div>
                                     <div class="row g-2 mt-2">
@@ -192,6 +231,9 @@
                 </div>
                 <div id="pane-remote-backup" class="tab-pane fade " role="tabpanel" aria-labelledby="tab-local-backup"
                     tabindex="0">
+                    <div class="alert alert-info" role="alert">
+                        Please configure the SSH key login for the remote server in advance.
+                    </div>
                     <form id="remote-backup-form">
                         <div class="card mb-3">
                             <div class="card-header">
@@ -230,7 +272,74 @@
                 </div>
                 <div id="pane-schedule" class="tab-pane fade" role="tabpanel" aria-labelledby="tab-schedule"
                     tabindex="0">
-                    schedule
+                    <form id="schedule-form">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                Settings
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-md-4 form-check  form-switch">
+                                        <label class="form-check-label">Enable Schedule
+                                            <input class="form-check-input" type="checkbox" v-model="enableSchedule">
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="row g-2 mt-2">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Minute
+                                            <select class="form-select" v-model="schedule_minute">
+                                                <option value="*" selected>Every Minute (*)</option>
+                                                <option :value="n-1" v-for="n in 60">{{n-1}}</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <div class=" col-md-4">
+                                        <label class="form-label">Hour
+                                            <select class="form-select" v-model="schedule_hour">
+                                                <option value="*" selected>Every Hour (*)</option>
+                                                <option :value="n-1" v-for="n in 60">{{n-1}}</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Day
+                                            <select class="form-select" v-model="schedule_day">
+                                                <option value="*" selected>Every Day (*)</option>
+                                                <option :value="n-1" v-for="n in 31">{{n-1}}</option>
+                                            </select>
+                                        </label>
+                                    </div>
+
+                                </div>
+                                <div class="row g-2 mt-2">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Month
+                                            <select class="form-select" v-model="schedule_month">
+                                                <option value="*" selected>Every Month (*)</option>
+                                                <option
+                                                    v-for="(month, index) in ['January', 'February', 'March', 'April', 'May', 'June','July', 'August', 'September', 'October', 'November', 'December']"
+                                                    :key="index" :value="index + 1">
+                                                    {{ month }}
+                                                </option>
+                                            </select>
+                                    </div>
+                                    <div class=" col-md-4">
+                                        <label class="form-label">Weekday
+                                            <select class="form-select" v-model="schedule_weekday">
+                                                <option value="*" selected>Every Day (*)</option>
+                                                <option
+                                                    v-for="(day, index) in ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']"
+                                                    :key="index" :value="index">
+                                                    {{ day }}
+                                                </option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -254,16 +363,20 @@
     <script src="static/lib/bootstrap-5.3.3/bootstrap.bundle.min.js"></script>
     <script src="static/lib/use-bootstrap-tag/use-bootstrap-tag.min.js"></script>
     <script type="module">
-        import { createApp, ref, computed, useTemplateRef, onMounted } from './static/lib/vue.esm-browser.js'
+        import { createApp, ref, computed, useTemplateRef, onMounted, watchEffect } from './static/lib/vue.esm-browser.js'
 
         createApp({
             setup() {
-                const host = ref('$HOST')
-                const user = ref('$USER')
-                const password = ref('$PASSWORD')
+                const useEnv = ref(true)
+                const envFilePath = ref('./mysql_backup.cnf')
+                const envExample = ref('[client]\nuser=your_username\npassword=your_password\nhost=127.0.0.1\nport=3306')
+                const host = ref('')
+                const user = ref('')
+                const password = ref('')
+                const allDatabases = ref(true)
                 const database = ref('')
                 const tables = ref('')
-                const outputFile = ref('')
+                const outputFile = ref('./')
                 const port = ref(3306)
                 const addDropDatabase = ref(false)
                 const addDropTable = ref(false)
@@ -276,41 +389,73 @@
                 const compress = ref(0)
                 const showAlert = ref(false);
                 const form = useTemplateRef('form')
+                const tablesEle = useTemplateRef('tables')
                 const alertClass = ref('alert-success')
                 const alertMessage = ref('')
                 const masterData = ref(2)
                 let tablesInput = null;
+
 
                 const enableRemoteBackup = ref(false)
                 const remote_user = ref('ubuntu')
                 const remote_host = ref('bak-server')
                 const remote_dir = ref('/data/backup/')
 
+                const enableSchedule = ref(false)
+                const schedule_minute = ref('0')
+                const schedule_hour = ref('0')
+                const schedule_day = ref('*')
+                const schedule_month = ref('*')
+                const schedule_weekday = ref('*')
+                const basePath = ref('.')
+
+                watchEffect(() => {
+                    if (tablesEle.value) {
+                        tablesInput = UseBootstrapTag(tablesEle.value)
+                        if (tables.value) tablesInput.addValue(tables.value.split(' '))
+                    }
+                })
                 onMounted(() => {
                     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
                     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
                     const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
                     const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
-
-                    tablesInput = UseBootstrapTag(document.getElementById('tables'))
                 })
 
 
                 const commandText = computed(() => {
-                    let command = '';
-                    if (enableRemoteBackup.value) {
-                        command += 'cat <<EOF > /opt/mysql_backup.sh\n'
+                    const inShell = enableRemoteBackup.value || enableSchedule.value
+                    let command = ''
+                    
+                    const fileName = '`date +%Y%m%d%H%M%S`.sql'
+                    let fileDir = outputFile.value;
+                    if (!fileDir) fileDir = './'
+                    if (! fileDir.endsWith('/')) fileDir += '/'
+                    const filePath = `${ fileDir }${fileName}`
+
+                    if (inShell) {
+                        command += `cat <<EOF > ./mysql_backup.sh\n#!/bin/bash\nset -euo pipefail\n\n`
+                        command += `FILE=${filePath}\n`
                     }
 
                     command += 'mysqldump'
-                    if (host.value) command += ` -h ${host.value}`;
-                    if (user.value) command += ` -u ${user.value}`;
-                    if (password.value) command += ` -p${password.value}`;
-                    if (database.value) command += ` ${database.value}`;
-                    if (tables.value) command += ` ${tables.value}`;
+                    if (useEnv.value) {
+                        command += ` --defaults-extra-file=${envFilePath.value}`
+                    } else {
+                        if (host.value) command += ` -h ${host.value}`;
+                        if (user.value) command += ` -u ${user.value}`;
+                        if (password.value) command += ` -p${password.value}`;
+                        if (port.value != 3306) command += ` --port=${port.value}`;
+                    }
 
-                    if (port.value != 3306) command += ` --port=${port.value}`;
+                    if (allDatabases.value) {
+                        command += ` --all-databases`;
+
+                    } else {
+                        if (database.value) command += ` ${database.value}`;
+                        if (tables.value) command += ` ${tables.value}`
+                    }
                     if (addDropDatabase.value) command += ` --add-drop-database`;
                     if (addDropTable.value) command += ` --add-drop-table`;
                     if (routines.value) command += ` --routines`;
@@ -323,13 +468,24 @@
                     if (compress.value) command += ` --compress=${compress.value}`;
                     if (masterData.value != 0) command += ` --master-data=${masterData.value}`;
 
-                    if (outputFile.value) command += ` > ${outputFile.value}`
 
-                    if (enableRemoteBackup.value) {
-                        command += '\nEOF'
-                        command += 'chmod +x /opt/mysql_backup.sh\n'
-                        command += '/opt/mysql_backup.sh\n'
-                        command += `rsync -avzP ${outputFile.value} ${remote_user.value}@${remote_host.value}:${remote_dir.value}`
+                    if (inShell) {                       
+                        command += ' > \\$FILE'
+                    } else {
+                        command += ` > ${filePath}`
+                    }
+
+
+                    if (inShell) {
+                        if (enableRemoteBackup.value) {
+                            command += `\nrsync -avzP \\$FILE ${remote_user.value}@${remote_host.value}:${remote_dir.value}`
+                        }
+                        command += '\nEOF\n'
+                    }
+                    if (enableSchedule.value) {
+                        command += '\ncrontab -l > crontab_backup_$(date +\'%Y%m%d_%H%M%S\').txt 2>/dev/null\n'
+                        command += `new_rule="${schedule_minute.value} ${schedule_hour.value} ${schedule_day.value} ${schedule_month.value} ${schedule_weekday.value} cd $PWD && ./mysql_backup.sh >>./mysql_backup.log 2>&1 &"\n`;
+                        command +='(crontab -l 2>/dev/null; echo "$new_rule") | crontab -'
                     }
                     return command;
                 })
@@ -361,10 +517,11 @@
                 }
 
                 return {
-                    host, user, password, database, outputFile, port, addDropDatabase, addDropTable,
+                    useEnv, host, user, password, database, outputFile, port, addDropDatabase, addDropTable,
                     routines, triggers, noData, singleTransaction, quick, lockTables, compress, commandText,
                     copyToClipboard, showAlert, alertMessage, alertClass, masterData, tableChange,
-                    enableRemoteBackup, remote_user, remote_host, remote_dir
+                    enableRemoteBackup, remote_user, remote_host, remote_dir, allDatabases, envFilePath, envExample,
+                    enableSchedule, schedule_minute, schedule_hour, schedule_day, schedule_month, schedule_weekday,
                 }
 
             }
