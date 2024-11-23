@@ -1,0 +1,5 @@
+## mysqldump web
+
+- mysql_backup.cnf 内容复制
+- add drop 默认自带，需要加 skip
+- 帮我生成 mysql_backup.cnf 模板

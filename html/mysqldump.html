@@ -29,6 +29,11 @@
                         data-bs-target="#pane-remote-backup" type="button" role="tab" aria-controls="pane-remote-backup"
                         aria-selected="false">3. Remote Backup </a>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <a id="tab-notification" class="nav-link " data-bs-toggle="tab" data-bs-target="#pane-notification"
+                        type="button" role="tab" aria-controls="pane-notification" aria-selected="false">4. Notification
+                    </a>
+                </li>
             </ul>
             <div class="tab-content">
                 <div id="pane-local-backup" class="tab-pane fade show active" role="tabpanel"
@@ -42,26 +47,25 @@
                             <div class="card-body">
                                 <div class="row g-2">
                                     <div class="col-md-6 form-check form-switch mt-2">
-                                        <label class="form-check-label">Use environment variable
+                                        <label class="form-check-label">Use config file
                                             <input class="form-check-input" type="checkbox" v-model="useEnv">
                                         </label>
                                         <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-trigger="hover focus"
                                             data-bs-title="Help" data-bs-toggle="popover"
-                                            data-bs-content="If you don't want to enter sensitive information such as passwords, you can use environment variables."></i>
+                                            data-bs-content="If you don't want to enter sensitive information such as passwords, you can use config file."></i>
                                     </div>
                                 </div>
                                 <div class="row g-2 mt-2" v-if="useEnv">
                                     <div class="col-md-4">
-                                        <label class="form-label">Env file path
-                                            <input type="text" class="form-control" v-model="envFilePath" required>
+                                        <label class="form-label">Config file path
+                                            <input type="text" class="form-control" v-model="confFilePath" required>
                                         </label>
                                     </div>
                                     <div class="alert alert-info mt-2" role="alert">
-                                        Create <code>{{envFilePath}}</code> file that looks like this, replace values
-                                        with your database info.
-                                        <pre class="bg-light p-3 border rounded">{{envExample}}</pre>
+                                        Create the <code>{{confFilePath}}</code> file with the following contents and
+                                        modify it as needed.
+                                        <pre class="bg-light p-3 border rounded">{{dbConfExample}}</pre>
                                     </div>
-
                                 </div>
 
                                 <div class="row g-2 mt-2" v-if="!useEnv">
@@ -341,6 +345,70 @@
                         </div>
                     </form>
                 </div>
+                <div id="pane-notification" class="tab-pane fade" role="tabpanel" aria-labelledby="tab-notification"
+                    tabindex="0">
+                    <form id="notify-form">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                Essential Parameters
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-md-4 form-check  form-switch">
+                                        <label class="form-check-label">Enable Notification
+                                            <input class="form-check-input" type="checkbox"
+                                                v-model="enableNotification">
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="row g-2 mt-2">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Config file path
+                                            <input type="text" class="form-control" v-model="confFilePath" required>
+                                        </label>
+                                    </div>
+                                    <div class="alert alert-info mt-2" role="alert">
+                                        Create the <code>{{confFilePath}}</code> file with the following contents and
+                                        modify it as needed.
+                                        <pre class="bg-light p-3 border rounded">{{notifyConfExample}}</pre>
+                                    </div>
+                                </div>
+                                <div class="row g-2 mt-2">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Smtp Host</label>
+                                        <input type="text" class="form-control" v-model="smtp_host">
+
+                                    </div>
+                                    <div class=" col-md-3">
+                                        <label class="form-label">Smtp Port</label>
+                                        <input type="text" class="form-control" v-model="smtp_port">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Mail From</label>
+                                        <input type="text" class="form-control" v-model="smtp_mail_from">
+
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Mail to</label>
+                                        <input type="text" class="form-control" v-model="smtp_mail_to">
+
+                                    </div>
+                                </div>
+                                <div class="row g-2 mt-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Mail Subject</label>
+                                        <input type="text" class="form-control" v-model="smtp_mail_subject">
+
+                                    </div>
+                                    <div class=" col-md-6">
+                                        <label class="form-label">Smtp Body</label>
+                                        <input type="text" class="form-control" v-model="smtp_mail_body">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
 
 
@@ -368,13 +436,13 @@
         createApp({
             setup() {
                 const useEnv = ref(true)
-                const envFilePath = ref('./mysql_backup.cnf')
-                const envExample = ref('[client]\nuser=your_username\npassword=your_password\nhost=127.0.0.1\nport=3306')
+                const confFilePath = ref('./mysql_backup.cnf')
+                const dbConfExample = ref('[client]\nuser=your_username\npassword=your_password\nhost=127.0.0.1\nport=3306')
                 const host = ref('')
                 const user = ref('')
                 const password = ref('')
-                const allDatabases = ref(true)
-                const database = ref('')
+                const allDatabases = ref(false)
+                const database = ref('mytest2')
                 const tables = ref('')
                 const outputFile = ref('./')
                 const port = ref(3306)
@@ -409,6 +477,15 @@
                 const schedule_weekday = ref('*')
                 const basePath = ref('.')
 
+                const enableNotification = ref(false)
+                const notifyConfExample = ref('[smtp]\nuser=your_username\npassword=your_password')
+                const smtp_host = ref('smtp.qq.com')
+                const smtp_port = ref(587)
+                const smtp_mail_from = ref('wawasoft@qq.com')
+                const smtp_mail_to = ref('hao@ihuhao.com')
+                const smtp_mail_subject = ref('MySQL data backup notification')
+                const smtp_mail_body = ref('MySQL data backup notification')
+
                 watchEffect(() => {
                     if (tablesEle.value) {
                         tablesInput = UseBootstrapTag(tablesEle.value)
@@ -425,14 +502,14 @@
 
 
                 const commandText = computed(() => {
-                    const inShell = enableRemoteBackup.value || enableSchedule.value
+                    const inShell = enableRemoteBackup.value || enableSchedule.value || enableNotification.value
                     let command = ''
-                    
-                    const fileName = '`date +%Y%m%d%H%M%S`.sql'
+
+                    const fileName = inShell ? 'db_bak_\\`date +%Y%m%d%H%M%S\\`.sql' : 'mysql_bak_`date +%Y%m%d%H%M%S`.sql' 
                     let fileDir = outputFile.value;
                     if (!fileDir) fileDir = './'
-                    if (! fileDir.endsWith('/')) fileDir += '/'
-                    const filePath = `${ fileDir }${fileName}`
+                    if (!fileDir.endsWith('/')) fileDir += '/'
+                    const filePath = `${fileDir}${fileName}`
 
                     if (inShell) {
                         command += `cat <<EOF > ./mysql_backup.sh\n#!/bin/bash\nset -euo pipefail\n\n`
@@ -441,7 +518,7 @@
 
                     command += 'mysqldump'
                     if (useEnv.value) {
-                        command += ` --defaults-extra-file=${envFilePath.value}`
+                        command += ` --defaults-extra-file=${confFilePath.value}`
                     } else {
                         if (host.value) command += ` -h ${host.value}`;
                         if (user.value) command += ` -u ${user.value}`;
@@ -469,7 +546,7 @@
                     if (masterData.value != 0) command += ` --master-data=${masterData.value}`;
 
 
-                    if (inShell) {                       
+                    if (inShell) {
                         command += ' > \\$FILE'
                     } else {
                         command += ` > ${filePath}`
@@ -480,12 +557,41 @@
                         if (enableRemoteBackup.value) {
                             command += `\nrsync -avzP \\$FILE ${remote_user.value}@${remote_host.value}:${remote_dir.value}`
                         }
+                        if (enableNotification.value) {
+                            command += `
+if [ $? -eq 0 ]; then
+    STATUS="Backup successful"
+else
+    STATUS="Backup failed"
+fi
+
+python3 <<PYCODE
+import smtplib
+from email.mime.text import MIMEText
+from configparser import ConfigParser
+conf = ConfigParser()
+conf.read('${confFilePath.value}')
+
+msg = MIMEText('[\\$STATUS]${smtp_mail_body.value}')
+msg['Subject'] = '[\\$STATUS]${smtp_mail_subject.value}'
+msg['From'] = '${smtp_mail_from.value}'
+msg['To'] = '${smtp_mail_to.value}'
+
+with smtplib.SMTP('${smtp_host.value}', ${smtp_port.value}) as server:
+    server.starttls()
+    server.login(conf['smtp']['user'], conf['smtp']['password'])
+    server.send_message(msg)
+PYCODE                            
+                            `
+                        }
                         command += '\nEOF\n'
+                        command += 'chmod +x ./mysql_backup.sh'
                     }
+
                     if (enableSchedule.value) {
                         command += '\ncrontab -l > crontab_backup_$(date +\'%Y%m%d_%H%M%S\').txt 2>/dev/null\n'
                         command += `new_rule="${schedule_minute.value} ${schedule_hour.value} ${schedule_day.value} ${schedule_month.value} ${schedule_weekday.value} cd $PWD && ./mysql_backup.sh >>./mysql_backup.log 2>&1 &"\n`;
-                        command +='(crontab -l 2>/dev/null; echo "$new_rule") | crontab -'
+                        command += '(crontab -l 2>/dev/null; echo "$new_rule") | crontab -'
                     }
                     return command;
                 })
@@ -520,8 +626,9 @@
                     useEnv, host, user, password, database, outputFile, port, addDropDatabase, addDropTable,
                     routines, triggers, noData, singleTransaction, quick, lockTables, compress, commandText,
                     copyToClipboard, showAlert, alertMessage, alertClass, masterData, tableChange,
-                    enableRemoteBackup, remote_user, remote_host, remote_dir, allDatabases, envFilePath, envExample,
+                    enableRemoteBackup, remote_user, remote_host, remote_dir, allDatabases, confFilePath, dbConfExample,
                     enableSchedule, schedule_minute, schedule_hour, schedule_day, schedule_month, schedule_weekday,
+                    enableNotification, notifyConfExample, smtp_host, smtp_port, smtp_mail_from, smtp_mail_to, smtp_mail_subject, smtp_mail_body,
                 }
 
             }
