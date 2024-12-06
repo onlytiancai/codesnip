@@ -131,6 +131,10 @@
                                         <input type="text" class="form-control" v-model="outputFile"
                                             placeholder="/data/mysql-backup" required>
                                     </div>
+                                    <div class="col-md-8">
+                                        <label  class="form-label">Other args</label>
+                                        <input type="text" class="form-control" v-model="otherArgs" >
+                                    </div>
                                 </div>
                                 <div class="row g-2">
                                     <div class="col-md-6 form-check form-switch mt-4">
@@ -143,8 +147,8 @@
                                     </div>
                                     <div class="col-md-6 form-check form-switch mt-4">
 
-                                        <label class="form-check-label">Add DROP TABLE<input class="form-check-input"
-                                                type="checkbox" v-model="addDropTable"></label>
+                                        <label class="form-check-label">Skip Add DROP TABLE<input class="form-check-input"
+                                                type="checkbox" v-model="skipAddDropTable"></label>
                                         <i class="bi bi-question-circle ms-2" tabindex="0" data-bs-html="true"
                                             data-bs-trigger="hover focus" data-bs-title="Help" data-bs-toggle="popover"
                                             data-bs-content="Add a DROP TABLE before each create. <br>(Defaults to on; use --skip-add-drop-table to disable.)"></i>
@@ -279,7 +283,7 @@
                     <form id="schedule-form">
                         <div class="card mb-3">
                             <div class="card-header">
-                                Settings
+                                Schedule Settings
                             </div>
                             <div class="card-body">
                                 <div class="row g-2">
@@ -338,6 +342,33 @@
                                                     {{ day }}
                                                 </option>
                                             </select>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                Auto Clear Settings
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-md-4 ">
+                                        <label class="form-label">Keep Days
+                                            <select class="form-select" v-model="keep_days">
+                                                <option value="0" selected>Keep all backups</option>
+                                                <option value="3" selected>Keep 3 days</option>
+                                                <option value="7" selected>Keep a week</option>
+                                                <option value="14" selected>Keep two weeks</option>
+                                                <option value="21" selected>Keep three weeks</option>
+                                                <option value="30" selected>Keep a month</option>
+                                                <option value="60" selected>Keep two months</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-4 form-check form-switch mt-4">
+                                        <label class="form-check-label">Keep a monthly backup
+                                            <input class="form-check-input" type="checkbox" v-model="keep_month">
                                         </label>
                                     </div>
                                 </div>
@@ -444,10 +475,11 @@
                 const allDatabases = ref(false)
                 const database = ref('mytest2')
                 const tables = ref('')
-                const outputFile = ref('./')
+                const outputFile = ref('./data')
                 const port = ref(3306)
                 const addDropDatabase = ref(false)
-                const addDropTable = ref(false)
+                const skipAddDropTable = ref(true)
+                const otherArgs = ref('')
                 const routines = ref(false)
                 const triggers = ref(false)
                 const noData = ref(false)
@@ -476,6 +508,8 @@
                 const schedule_month = ref('*')
                 const schedule_weekday = ref('*')
                 const basePath = ref('.')
+                const keep_days = ref(0)
+                const keep_month = ref(false)
 
                 const enableNotification = ref(false)
                 const notifyConfExample = ref('[smtp]\nuser=your_username\npassword=your_password')
@@ -534,7 +568,8 @@
                         if (tables.value) command += ` ${tables.value}`
                     }
                     if (addDropDatabase.value) command += ` --add-drop-database`;
-                    if (addDropTable.value) command += ` --add-drop-table`;
+                    if (skipAddDropTable.value) command += ` --skip-add-drop-table`;
+                    if (otherArgs.value) command += ` ${otherArgs.value} `;
                     if (routines.value) command += ` --routines`;
                     if (triggers.value) command += ` --triggers`;
 
@@ -543,7 +578,7 @@
                     if (quick.value) command += ` --quick`;
                     if (lockTables.value) command += ` --lock-tables`;
                     if (compress.value) command += ` --compress=${compress.value}`;
-                    if (masterData.value != 0) command += ` --master-data=${masterData.value}`;
+                    if (masterData.value != 0) command += ` --source-data=${masterData.value}`;
 
 
                     if (inShell) {
@@ -554,6 +589,15 @@
 
 
                     if (inShell) {
+                        if (keep_days.value > 0) {
+                            command += `\nfind ${fileDir} -name "db_bak_*.sql" -type f -mtime +${keep_days.value} `
+                            
+                            if (keep_month.value) {
+                                command += " ! -name 'db_bak_??????01??????.sql' "
+                            }                           
+
+                            command += `-print -exec rm -f {} \;`                           
+                        }
                         if (enableRemoteBackup.value) {
                             command += `\nrsync -avzP \\$FILE ${remote_user.value}@${remote_host.value}:${remote_dir.value}`
                         }
@@ -623,11 +667,11 @@ PYCODE
                 }
 
                 return {
-                    useEnv, host, user, password, database, outputFile, port, addDropDatabase, addDropTable,
+                    useEnv, host, user, password, database, outputFile, port, addDropDatabase, skipAddDropTable, otherArgs,
                     routines, triggers, noData, singleTransaction, quick, lockTables, compress, commandText,
                     copyToClipboard, showAlert, alertMessage, alertClass, masterData, tableChange,
                     enableRemoteBackup, remote_user, remote_host, remote_dir, allDatabases, confFilePath, dbConfExample,
-                    enableSchedule, schedule_minute, schedule_hour, schedule_day, schedule_month, schedule_weekday,
+                    enableSchedule, schedule_minute, schedule_hour, schedule_day, schedule_month, schedule_weekday, keep_days, keep_month,
                     enableNotification, notifyConfExample, smtp_host, smtp_port, smtp_mail_from, smtp_mail_to, smtp_mail_subject, smtp_mail_body,
                 }
 
