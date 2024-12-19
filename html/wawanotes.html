@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Notes App</title>
+    <!-- 引用 Tailwind CSS CDN -->
+    <link href="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <!-- 引用 Vue 3 CDN -->
+    <script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/vue/3.2.31/vue.global.prod.min.js" type="application/javascript"></script>
+    <style>
+        .full-height {
+            height: calc(100vh - 14rem); /* Adjust based on your header/footer height */
+        }
+        .no-scrollbar {
+            overflow: hidden;
+        }
+        .selected-note {
+            background-color: #e2e8f0; /* Tailwind CSS gray-200 */
+        }
+        .flex-col-full-height {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .flex-grow-1 {
+            flex-grow: 1;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen">
+    <div id="app" class="flex flex-1">
+        <div class="w-1/4 p-4 border-r no-scrollbar">
+            <h2 class="text-xl font-bold mb-4 cursor-pointer" @click="resetSelection">WawaNotes</h2>
+            <div class="mb-4">
+                <button @click="createNewNote" class="bg-green-500 text-white p-2 mb-4 w-full">New Note</button>
+                <div class="flex mb-4">
+                    <button @click="currentTab = 'saved'" :class="{'bg-blue-500 text-white': currentTab === 'saved'}" class="flex-1 p-2">Saved Notes</button>
+                    <button @click="currentTab = 'trash'" :class="{'bg-blue-500 text-white': currentTab === 'trash'}" class="flex-1 p-2">Trash</button>
+                </div>
+            </div>
+            <ul v-if="currentTab === 'saved'" class="h-full overflow-auto no-scrollbar">
+                <li v-for="note in sortedNotes" :key="note.id" :class="{'selected-note': selectedNote && selectedNote.id === note.id}" class="mb-2 flex justify-between items-center">
+                    <div @click="selectNote(note)" class="cursor-pointer flex-1">
+                        <h3>{{ note.title }}</h3>
+                        <p class="text-sm text-gray-500">{{ note.lastModified }}</p>
+                    </div>
+                    <button @click="moveToTrash(note.id)" class="bg-red-500 text-white p-1 ml-2">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </li>
+            </ul>
+            <ul v-else class="h-full overflow-auto no-scrollbar">
+                <li v-for="note in sortedTrash" :key="note.id" :class="{'selected-note': selectedNote && selectedNote.id === note.id}" class="mb-2 flex justify-between items-center">
+                    <div @click="selectNote(note)" class="cursor-pointer flex-1">
+                        <h3>{{ note.title }}</h3>
+                        <p class="text-sm text-gray-500">{{ note.lastModified }}</p>
+                    </div>
+                    <button @click="restoreFromTrash(note.id)" class="bg-green-500 text-white p-1 ml-2">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <button @click="deleteNotePermanently(note.id)" class="bg-red-500 text-white p-1 ml-2">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="w-3/4 p-4 flex-col-full-height">
+            <h1 class="text-2xl font-bold mb-4">{{ selectedNote ? 'Edit Note' : 'Welcome to use WawaNotes' }}</h1>
+            <div v-if="selectedNote" class="flex-col-full-height">
+                <input v-model="selectedNote.title" placeholder="Note title" class="border p-2 w-full mb-2" @input="updateNote" />
+                <textarea v-model="selectedNote.content" placeholder="Note content" class="border p-2 w-full flex-grow-1" @input="updateNote"></textarea>
+            </div>
+            <div v-else class="flex-col-full-height">
+                <p >WawaNote is a simple and intuitive note-taking application. Create, edit, and manage your notes with ease. Your notes are saved locally in your browser, ensuring privacy and quick access.</p>
+                <p class=" mt-4">WawaNote 是一个简单直观的记笔记应用程序。轻松创建、编辑和管理您的笔记。您的笔记会保存在浏览器中，确保隐私和快速访问。</p>
+            </div>
+        </div>
+    </div>
+    <footer class="bg-gray-800 text-white text-center p-4">
+        &copy; 2023 Your onlytiancai. All rights reserved.
+    </footer>
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    newNoteTitle: '',
+                    newNoteContent: '',
+                    notes: JSON.parse(localStorage.getItem('notes')) || [],
+                    trash: JSON.parse(localStorage.getItem('trash')) || [],
+                    selectedNote: null,
+                    currentTab: 'saved'
+                }
+            },
+            computed: {
+                sortedNotes() {
+                    return this.notes.slice().sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
+                },
+                sortedTrash() {
+                    return this.trash.slice().sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
+                }
+            },
+            methods: {
+                createNewNote() {
+                    this.selectedNote = {
+                        id: Date.now(),
+                        title: '',
+                        content: '',
+                        lastModified: new Date().toLocaleString()
+                    };
+                    this.notes.push(this.selectedNote);
+                    this.saveNotes();
+                },
+                moveToTrash(id) {
+                    const note = this.notes.find(note => note.id === id);
+                    if (note) {
+                        this.trash.push(note);
+                        this.notes = this.notes.filter(note => note.id !== id);
+                        if (this.selectedNote && this.selectedNote.id === id) {
+                            this.selectedNote = null;
+                        }
+                        this.saveNotes();
+                        this.saveTrash();
+                    }
+                },
+                restoreFromTrash(id) {
+                    const note = this.trash.find(note => note.id === id);
+                    if (note) {
+                        this.notes.push(note);
+                        this.trash = this.trash.filter(note => note.id !== id);
+                        this.saveNotes();
+                        this.saveTrash();
+                    }
+                },
+                deleteNotePermanently(id) {
+                    this.trash = this.trash.filter(note => note.id !== id);
+                    this.saveTrash();
+                },
+                saveNotes() {
+                    localStorage.setItem('notes', JSON.stringify(this.notes));
+                },
+                saveTrash() {
+                    localStorage.setItem('trash', JSON.stringify(this.trash));
+                },
+                selectNote(note) {
+                    this.selectedNote = note;
+                },
+                updateNote() {
+                    if (this.selectedNote) {
+                        this.selectedNote.lastModified = new Date().toLocaleString();
+                        this.saveNotes();
+                    }
+                },
+                resetSelection() {
+                    this.selectedNote = null;
+                }
+            }
+        }).mount('#app');
+    </script>
+    <!-- 引用 Font Awesome CDN -->
+    <script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/font-awesome/6.0.0/js/all.min.js" type="application/javascript"></script>
+</body>
+</html>
