@@ -27,7 +27,7 @@ def binary_search_file(filename, target):
                 print('检测到死循环，退出')
                 break
             mid = (low + high) // 2
-            #print(f'search: {i}, l={low}, m={mid},h={high}')
+            print(f'search: {i}, l={low}, m={mid},h={high}')
 
             f.seek(mid)
             if mid != 0: # 如果不正好在行首，则跳过当前行的一部分，保证从下一行开始
