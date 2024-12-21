@@ -1,4 +1,6 @@
 .idea
+sorted_skipped_numbers.txt
+sorted_test.txt
 .ipynb_checkpoints
 venv
 config.py
