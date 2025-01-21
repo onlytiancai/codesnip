@@ -41,16 +41,14 @@ def eigen_decomposition(A):
         eigenvalue, eigenvector = power_iteration(A)
         eigenvalues.append(eigenvalue)
         eigenvectors.append(eigenvector)
-        
+
         # Deflate the matrix A by subtracting the outer product of the eigenvector
         # A' = A - λ vv^T
-        outer_product = matrix_multiplication(
-            [[eigenvector[i] * eigenvector[j] for j in range(n)] for i in range(n)],
-            [[eigenvalue]]
-        )
-        
+        outer_product = [[eigenvalue * eigenvector[i] * eigenvector[j] for j in range(n)] for i in range(n)]
+
+        # Update matrix A
         A = [[A[i][j] - outer_product[i][j] for j in range(n)] for i in range(n)]
-        
+
     return eigenvalues, eigenvectors
 
 # Example usage
