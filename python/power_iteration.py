@@ -54,8 +54,69 @@ def eigen_decomposition(A):
 # Example usage
 A = [[4, -2],
      [1, 1]]
-
+print('A:', A)
 eigenvalues, eigenvectors = eigen_decomposition(A)
 
 print("Eigenvalues:", eigenvalues)
 print("Eigenvectors:", eigenvectors)
+
+# ---------------- 使用特征方程验证幂迭代得到的特征值和特征向量 
+import numpy as np
+eigenvectors = np.array(eigenvectors).T
+for i in range(len(eigenvalues)):
+    lhs = np.dot(A, eigenvectors[:, i])  # A @ v
+    rhs = eigenvalues[i] * eigenvectors[:, i]  # λ * v
+    print(f"验证特征值 {eigenvalues[i]} 对应的特征向量:")
+    print("A @ v:", lhs)
+    print("λ * v:", rhs)
+    print("误差:", np.linalg.norm(lhs - rhs))
+
+# --------------- 和 numpy 结果对比
+eigenvalues, eigenvectors = np.linalg.eig(A)
+print("特征值:")
+print(eigenvalues)
+print("\n特征向量:")
+print(eigenvectors)
+
+eigenvectors = np.array(eigenvectors).T
+for i in range(len(eigenvalues)):
+    lhs = np.dot(A, eigenvectors[:, i])  # A @ v
+    rhs = eigenvalues[i] * eigenvectors[:, i]  # λ * v
+    print(f"验证特征值 {eigenvalues[i]} 对应的特征向量:")
+    print("A @ v:", lhs)
+    print("λ * v:", rhs)
+    print("误差:", np.linalg.norm(lhs - rhs))
+
+# --- 使用 numpy 的幂迭代
+
+def power_iteration(A, tol=1e-8, max_iter=1000):
+    """计算矩阵的主特征值和对应特征向量"""
+    n = A.shape[0]
+    b_k = np.random.rand(n)  # 初始化随机向量
+    b_k /= np.linalg.norm(b_k)  # 归一化
+
+    for _ in range(max_iter):
+        # 矩阵-向量乘法
+        b_k1 = np.dot(A, b_k)
+
+        # 归一化向量
+        b_k1_norm = np.linalg.norm(b_k1)
+        b_k1 /= b_k1_norm
+
+        # 检查收敛
+        if np.linalg.norm(b_k1 - b_k) < tol:
+            break
+        b_k = b_k1
+
+    eigenvalue = np.dot(b_k.T, np.dot(A, b_k))  # 计算特征值
+    return eigenvalue, b_k
+
+
+# 测试代码
+A = np.array([[4, -2],
+              [1,  1]])
+
+eigenvalue, eigenvector = power_iteration(A)
+
+print("幂迭代计算的特征值:", eigenvalue)
+print("幂迭代计算的特征向量:", eigenvector)
