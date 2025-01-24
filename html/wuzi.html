@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>五子棋 - 人机对战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+            background: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 5px; /* 减小间距 */
+            align-items: center;
+            padding: 5px; /* 添加小边距 */
+        }
+        #board {
+            width: 100%;
+            height: auto;
+            max-width: 100vw; /* 允许在手机上占满屏幕宽度 */
+            background: #e6b800;
+            border: 1px solid #333; /* 更窄的边框 */
+            display: block;
+            margin: 5px auto; /* 减小外边距 */
+        }
+        .controls {
+            text-align: center;
+            margin: 10px 0; /* 减小边距 */
+            order: 3; /* 确保按钮在最下方 */
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .message-box {
+            order: 2; /* 消息框在画布下方，按钮上方 */
+            position: static; /* 改为静态定位 */
+            margin: 10px auto;
+            padding: 10px 20px;
+            border-radius: 4px;
+            color: white;
+            font-size: 16px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-align: center;
+            max-width: 80%;
+        }
+        .message-box.success {
+            background: #4CAF50;
+        }
+        .message-box.info {
+            background: #2196F3;
+        }
+        .message-box.show {
+            opacity: 1;
+        }
+        .game-stats {
+            background: white;
+            padding: 10px; /* 减小内边距 */
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 5px 0; /* 减小边距 */
+            width: 100%;
+            max-width: 100vw;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .current-turn {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .stat-item {
+            background: #f5f5f5;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        /* 添加媒体查询优化移动端显示 */
+        @media screen and (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            .container {
+                padding: 0;
+            }
+            .stats-grid {
+                gap: 5px;
+            }
+            .stat-item {
+                padding: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-stats">
+            <div class="current-turn">当前回合: <span id="currentTurn">黑子</span></div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    胜利 <br><span id="wins" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    失败 <br><span id="losses" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    总局数 <br><span id="totalGames" class="stat-value">0</span>
+                </div>
+            </div>
+        </div>
+        <canvas id="board" width="450" height="450"></canvas>
+        <div id="messageBox" class="message-box"></div>
+        <div class="controls">
+            <button onclick="startNewGame()">开始新游戏</button>
+        </div>
+    </div>
+
+    <script>
+        const GRID_SIZE = 15;
+        let CELL_SIZE = 30;
+        let PIECE_RADIUS = 13;
+        let board = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
+        let isGameOver = false;
+        
+        // 添加评分系统常量
+        const SCORES = {
+            FIVE: 100000,
+            LIVE_FOUR: 10000,
+            DEAD_FOUR: 1000,
+            LIVE_THREE: 1000,
+            DEAD_THREE: 100,
+            LIVE_TWO: 100,
+            DEAD_TWO: 10
+        };
+
+        const canvas = document.getElementById('board');
+        const ctx = canvas.getContext('2d');
+
+        // 添加统计变量
+        const stats = {
+            wins: 0,
+            losses: 0,
+            totalGames: 0
+        };
+
+        function drawBoard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制棋盘线
+            for (let i = 0; i < GRID_SIZE; i++) {
+                ctx.beginPath();
+                ctx.moveTo(CELL_SIZE * 0.5, CELL_SIZE * (i + 0.5));
+                ctx.lineTo(CELL_SIZE * (GRID_SIZE - 0.5), CELL_SIZE * (i + 0.5));
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(CELL_SIZE * (i + 0.5), CELL_SIZE * 0.5);
+                ctx.lineTo(CELL_SIZE * (i + 0.5), CELL_SIZE * (GRID_SIZE - 0.5));
+                ctx.stroke();
+            }
+
+            // 绘制棋子
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    if (board[i][j] !== 0) {
+                        ctx.beginPath();
+                        ctx.arc(
+                            CELL_SIZE * (j + 0.5),
+                            CELL_SIZE * (i + 0.5),
+                            PIECE_RADIUS,
+                            0,
+                            2 * Math.PI
+                        );
+                        ctx.fillStyle = board[i][j] === 1 ? 'black' : 'white';
+                        ctx.fill();
+                    }
+                }
+            }
+        }
+
+        function checkWin(row, col, player) {
+            const directions = [
+                [[0, 1], [0, -1]], // 横向
+                [[1, 0], [-1, 0]], // 纵向
+                [[1, 1], [-1, -1]], // 主对角线
+                [[1, -1], [-1, 1]]  // 副对角线
+            ];
+
+            for (let dir of directions) {
+                let count = 1;
+                for (let [dx, dy] of dir) {
+                    let r = row + dx;
+                    let c = col + dy;
+                    while (
+                        r >= 0 && r < GRID_SIZE &&
+                        c >= 0 && c < GRID_SIZE &&
+                        board[r][c] === player
+                    ) {
+                        count++;
+                        r += dx;
+                        c += dy;
+                    }
+                }
+                if (count >= 5) return true;
+            }
+            return false;
+        }
+
+        // 新增评估方向的函数
+        function evaluateDirection(row, col, player, deltaRow, deltaCol) {
+            let count = 1;
+            let empty = 0;
+            let blocked = 0;
+            
+            // 向一个方向查找
+            for (let i = 1; i < 5; i++) {
+                let newRow = row + deltaRow * i;
+                let newCol = col + deltaCol * i;
+                
+                if (newRow < 0 || newRow >= GRID_SIZE || newCol < 0 || newCol >= GRID_SIZE) {
+                    blocked++;
+                    break;
+                }
+                
+                if (board[newRow][newCol] === player) {
+                    count++;
+                } else if (board[newRow][newCol] === 0) {
+                    empty++;
+                    break;
+                } else {
+                    blocked++;
+                    break;
+                }
+            }
+            
+            // 向相反方向查找
+            for (let i = 1; i < 5; i++) {
+                let newRow = row - deltaRow * i;
+                let newCol = col - deltaCol * i;
+                
+                if (newRow < 0 || newRow >= GRID_SIZE || newCol < 0 || newCol >= GRID_SIZE) {
+                    blocked++;
+                    break;
+                }
+                
+                if (board[newRow][newCol] === player) {
+                    count++;
+                } else if (board[newRow][newCol] === 0) {
+                    empty++;
+                    break;
+                } else {
+                    blocked++;
+                    break;
+                }
+            }
+
+            if (count >= 5) return SCORES.FIVE;
+            if (count === 4) {
+                if (blocked === 0) return SCORES.LIVE_FOUR;
+                if (blocked === 1) return SCORES.DEAD_FOUR;
+            }
+            if (count === 3) {
+                if (blocked === 0) return SCORES.LIVE_THREE;
+                if (blocked === 1) return SCORES.DEAD_THREE;
+            }
+            if (count === 2) {
+                if (blocked === 0) return SCORES.LIVE_TWO;
+                if (blocked === 1) return SCORES.DEAD_TWO;
+            }
+            return 0;
+        }
+
+        // 新增位置评估函数
+        function evaluatePosition(row, col, player) {
+            const directions = [
+                [0, 1],  // 水平
+                [1, 0],  // 垂直
+                [1, 1],  // 主对角线
+                [1, -1]  // 副对角线
+            ];
+
+            let score = 0;
+            for (let [deltaRow, deltaCol] of directions) {
+                score += evaluateDirection(row, col, player, deltaRow, deltaCol);
+            }
+            return score;
+        }
+
+        // 替换原有的 aiMove 函数
+        function aiMove() {
+            let bestScore = -1;
+            let bestMove = null;
+
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    if (board[i][j] === 0) {
+                        let aiScore = evaluatePosition(i, j, 2);
+                        let playerScore = evaluatePosition(i, j, 1);
+                        let score = aiScore * 1.1 + playerScore;
+                        
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMove = [i, j];
+                        }
+                    }
+                }
+            }
+
+            if (bestMove) {
+                const [row, col] = bestMove;
+                board[row][col] = 2;
+                if (checkWin(row, col, 2)) {
+                    showMessage('电脑获胜！再来一局吧！', 'info');
+                    isGameOver = true;
+                    stats.losses++;
+                    stats.totalGames++;
+                    updateStats();
+                }
+                drawBoard();
+                document.getElementById('currentTurn').textContent = '黑子';
+            }
+        }
+
+        canvas.addEventListener('click', function(event) {
+            if (isGameOver) {
+                showMessage('游戏已结束，请开始新游戏', 'info');
+                return;
+            }
+
+            const rect = canvas.getBoundingClientRect();
+            const size = rect.width; // 使用实际显示大小
+            const x = (event.clientX - rect.left) * (canvas.width / size);
+            const y = (event.clientY - rect.top) * (canvas.height / size);
+            
+            const row = Math.floor(y / CELL_SIZE);
+            const col = Math.floor(x / CELL_SIZE);
+
+            if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE && board[row][col] === 0) {
+                board[row][col] = 1;
+                drawBoard();
+                document.getElementById('currentTurn').textContent = '白子';
+
+                if (checkWin(row, col, 1)) {
+                    showMessage('恭喜你赢了！', 'success');
+                    isGameOver = true;
+                    stats.wins++;
+                    stats.totalGames++;
+                    updateStats();
+                    return;
+                }
+
+                // AI回合
+                setTimeout(aiMove, 500);
+            }
+        });
+
+        function startNewGame() {
+            board = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
+            isGameOver = false; // 确保重置游戏状态
+            drawBoard();
+            showMessage('新游戏开始！', 'success');
+            document.getElementById('currentTurn').textContent = '黑子';
+        }
+
+        // 添加消息提示功能
+        function showMessage(message, type = 'info') {
+            const messageBox = document.getElementById('messageBox');
+            // 先移除之前的类
+            messageBox.className = 'message-box';
+            // 强制重绘
+            void messageBox.offsetWidth;
+            // 添加新的类
+            messageBox.textContent = message;
+            messageBox.className = `message-box ${type} show`;
+            
+            setTimeout(() => {
+                messageBox.className = 'message-box';
+            }, 3000);
+        }
+
+        // 调整画布大小
+        function resizeCanvas() {
+            const container = document.querySelector('.container');
+            const containerWidth = container.clientWidth;
+            const size = Math.min(containerWidth, 450);
+            
+            canvas.style.width = size + 'px';
+            canvas.style.height = size + 'px';
+            
+            // 重新计算棋子大小
+            CELL_SIZE = size / GRID_SIZE;
+            PIECE_RADIUS = CELL_SIZE * 0.4;
+            
+            drawBoard();
+        }
+
+        // 监听窗口调整
+        window.addEventListener('resize', resizeCanvas);
+
+        // 初始化游戏
+        resizeCanvas();
+        drawBoard();
+
+        // 更新统计
+        function updateStats() {
+            document.getElementById('wins').textContent = stats.wins;
+            document.getElementById('losses').textContent = stats.losses;
+            document.getElementById('totalGames').textContent = stats.totalGames;
+            document.getElementById('currentTurn').textContent = isGameOver ? '-' : '黑子';
+        }
+
+        // 初始化统计
+        updateStats();
+    </script>
+</body>
+</html>
