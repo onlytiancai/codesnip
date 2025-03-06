@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "npm": "^11.1.0",
+    "openai": "^4.86.2",
+    "tencentcloud-sdk-nodejs-tts": "^4.0.1003"
+  }
+}
