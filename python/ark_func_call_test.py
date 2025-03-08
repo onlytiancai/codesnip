@@ -67,44 +67,47 @@ req = {
     "tools": [tool_weather, tool_city],
 }
 
-ts = time.time()
-completion = client.chat.completions.create(**req)
-if completion.choices[0].message.tool_calls:
-    pprint(completion.model_dump())
-    print(
-        f"Bot [{time.time() - ts:.3f} s][Use FC]: ",
-        completion.choices[0].message.tool_calls[0],
-    )
-    tool_call = completion.choices[0].message.tool_calls[0]
-    func_name = tool_call.function.name
-    func_args = json.loads(tool_call.function.arguments)
-    func_resp = '获取数据出错' 
-    if func_name == 'get_weather_by_city':
-        print('获取天气')
-        func_resp = weather_map.get(func_args['city'], '获取数据出错')
-    elif func_name == 'get_city_by_name':
-        print('获取城市')
-        func_resp = city_map.get(func_args['name'], '获取数据出错')
-    else:
-        raise Exception(f'unknow {tool_call.function.name}')
-
-    # ========== 补充函数调用的结果 =========
-    req["messages"].extend(
-        [
-            completion.choices[0].message.model_dump(),
-             {
-                "role": "tool",
-                "tool_call_id": completion.choices[0].message.tool_calls[0].id,
-                "content": func_resp,
-                "name": completion.choices[0].message.tool_calls[0].function.name,
-            },
-        ]
-    )
-    pprint(req['messages'])
-    # 再请求一次模型，获得总结。 如不需要，也可以省略
+req_times = 0
+while True:
+    req_times += 1
+    if req_times > 5:
+        print('请求次数太多')
+        break
     ts = time.time()
     completion = client.chat.completions.create(**req)
-    print(
-        f"Bot [{time.time() - ts:.3f} s][FC Summary]: ",
-        completion.choices[0].message.content,
-    )
+    # pprint(completion.model_dump())
+    if completion.choices[0].message.tool_calls:
+        tool_call = completion.choices[0].message.tool_calls[0]
+        func_name = tool_call.function.name
+        func_args = json.loads(tool_call.function.arguments)
+        func_resp = '获取数据出错' 
+        if func_name == 'get_weather_by_city':
+            func_resp = weather_map.get(func_args['city'], '获取数据出错')
+        elif func_name == 'get_city_by_name':
+            func_resp = city_map.get(func_args['name'], '获取数据出错')
+        else:
+            raise Exception(f'unknow {tool_call.function.name}')
+
+        print(
+            f"Bot [{time.time() - ts:.3f} s][Use FC]: ",
+            f'function name={func_name}, args=[{json.dumps(func_args, ensure_ascii=False)}], resp=[{func_resp}]'
+        )
+        req["messages"].extend(
+            [
+                completion.choices[0].message.model_dump(),
+                 {
+                    "role": "tool",
+                    "tool_call_id": completion.choices[0].message.tool_calls[0].id,
+                    "content": func_resp,
+                    "name": completion.choices[0].message.tool_calls[0].function.name,
+                },
+            ]
+        )
+
+        # pprint(req['messages'])
+    else:
+        print(
+            f"Bot [{time.time() - ts:.3f} s][FC Summary]: ",
+            completion.choices[0].message.content,
+        )
+        break
