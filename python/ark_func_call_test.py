@@ -1,92 +1,110 @@
 import config
+import json
+import sys
 from volcenginesdkarkruntime import Ark
 import time
+from pprint import pprint
+
+prompt = sys.argv[1]
+
 client = Ark(api_key=config.ARK_API_KEY)
 
-def test_function_call():
-    messages = [
-        {
-            "role": "system",
-            "content": "你是豆包，是由字节跳动开发的 AI 人工智能助手",
-        },
-        {
-            "role": "user",
-            "content": "北京今天的天气",
-        },
-    ]
-    req = {
-        "model": "doubao-1-5-pro-32k-250115",
-        "messages": messages,
-        "temperature": 0.8,
-        "tools": [
-            {
-                "type": "function",
-                "function": {
-                    "name": "MusicPlayer",
-                    "description": """歌曲查询Plugin，当用户需要搜索某个歌手或者歌曲时使用此plugin，给定歌手，歌名等特征返回相关音乐。\n 例子1：query=想听孙燕姿的遇见， 输出{"artist":"孙燕姿","song_name":"遇见","description":""}""",
-                    "parameters": {
-                        "properties": {
-                            "artist": {"description": "表示歌手名字", "type": "string"},
-                            "description": {
-                                "description": "表示描述信息",
-                                "type": "string",
-                            },
-                            "song_name": {
-                                "description": "表示歌曲名字",
-                                "type": "string",
-                            },
-                        },
-                        "required": [],
-                        "type": "object",
-                    },
-                },
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "get_current_weather",
-                    "description": "",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "location": {
-                                "type": "string",
-                                "description": "地理位置，比如北京市",
-                            },
-                            "unit": {"type": "string", "description": "枚举值 [摄氏度,华氏度]"},
-                        },
-                        "required": ["location"],
-                    },
-                },
-            },
-        ],
-    }
+city_map = {
+    '小明': '北京',
+    '小红': '深圳',
+}
 
+weather_map = {
+    '北京': '晴天，气温 15-20 度。',
+    '深圳': '小雨，气温 5-10 度。',
+}
+
+tool_city = {
+    "type": "function",
+    "function": {
+        "name": "get_city_by_name",
+        "description": "根据姓名获取所在城市",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string", "description": "姓名，如小王，小明"},
+             },
+            "required": ["name"],
+        },
+    },
+}
+tool_weather = {
+    "type": "function",
+    "function": {
+        "name": "get_weather_by_city",
+        "description": "根据城市获取天气",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "city": {"type": "string", "description": "城市名，比如北京，天津"},
+             },
+            "required": ["city"],
+        },
+    },
+}
+
+
+messages = [
+    {
+        "role": "system",
+        "content": "你是蛙蛙，一个 AI 人工智能助手",
+    },
+    {
+        "role": "user",
+        "content": prompt,
+    },
+]
+
+req = {
+    "model": "doubao-1-5-pro-32k-250115",
+    "messages": messages,
+    "temperature": 0.8,
+    "tools": [tool_weather, tool_city],
+}
+
+ts = time.time()
+completion = client.chat.completions.create(**req)
+if completion.choices[0].message.tool_calls:
+    pprint(completion.model_dump())
+    print(
+        f"Bot [{time.time() - ts:.3f} s][Use FC]: ",
+        completion.choices[0].message.tool_calls[0],
+    )
+    tool_call = completion.choices[0].message.tool_calls[0]
+    func_name = tool_call.function.name
+    func_args = json.loads(tool_call.function.arguments)
+    func_resp = '获取数据出错' 
+    if func_name == 'get_weather_by_city':
+        print('获取天气')
+        func_resp = weather_map.get(func_args['city'], '获取数据出错')
+    elif func_name == 'get_city_by_name':
+        print('获取城市')
+        func_resp = city_map.get(func_args['name'], '获取数据出错')
+    else:
+        raise Exception(f'unknow {tool_call.function.name}')
+
+    # ========== 补充函数调用的结果 =========
+    req["messages"].extend(
+        [
+            completion.choices[0].message.model_dump(),
+             {
+                "role": "tool",
+                "tool_call_id": completion.choices[0].message.tool_calls[0].id,
+                "content": func_resp,
+                "name": completion.choices[0].message.tool_calls[0].function.name,
+            },
+        ]
+    )
+    pprint(req['messages'])
+    # 再请求一次模型，获得总结。 如不需要，也可以省略
     ts = time.time()
     completion = client.chat.completions.create(**req)
-    if completion.choices[0].message.tool_calls:
-        print(
-            f"Bot [{time.time() - ts:.3f} s][Use FC]: ",
-            completion.choices[0].message.tool_calls[0],
-        )
-        # ========== 补充函数调用的结果 =========
-        req["messages"].extend(
-            [
-                completion.choices[0].message.dict(),
-                 {
-                    "role": "tool",
-                    "tool_call_id": completion.choices[0].message.tool_calls[0].id,
-                    "content": "北京天气多云，-5到3度",  # 根据实际调用函数结果填写，最好用自然语言。
-                    "name": completion.choices[0].message.tool_calls[0].function.name,
-                },
-            ]
-        )
-        # 再请求一次模型，获得总结。 如不需要，也可以省略
-        ts = time.time()
-        completion = client.chat.completions.create(**req)
-        print(
-            f"Bot [{time.time() - ts:.3f} s][FC Summary]: ",
-            completion.choices[0].message.content,
-        )
-
-test_function_call()
+    print(
+        f"Bot [{time.time() - ts:.3f} s][FC Summary]: ",
+        completion.choices[0].message.content,
+    )
