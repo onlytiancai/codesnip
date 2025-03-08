@@ -42,11 +42,11 @@ def parse_lrc_file(filepath):
 
     return sentences
 
-directory = r'D:\BaiduYunDownload\temp'
+directory = r'D:\BaiduYunDownload\NCE2-英音-(MP3+LRC)'
 lrc_files = list_lrc_files(directory)
 
 output_file = 'output.csv'
-with open(output_file, 'w', newline='', encoding='gbk') as csvfile:
+with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
     csvwriter = csv.writer(csvfile)
     csvwriter.writerow(['File', 'Start', 'End', 'Sentence'])
 
