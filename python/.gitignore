@@ -7,3 +7,4 @@ venv
 config.py
 tags
 config.ini
+fanyi_result/

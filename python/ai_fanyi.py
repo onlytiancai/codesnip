@@ -68,3 +68,21 @@ elif cmd == 'fanyi':
         ],
     )
     print(completion.choices[0].message.content)
+elif cmd == 'runall':
+    import csv
+    import time
+    reader = csv.reader(open('/home/ubuntu/temp/output.csv'))
+    context_id = 'ctx-20250417162254-cdpbh'
+    for i, row in enumerate(reader):
+        user_prompt = row[-1]
+        completion = client.context.completions.create(
+            context_id=context_id,
+            model= "ep-20250417161351-fcbrx", 
+            messages=[
+                {"role": "user", "content": user_prompt},
+            ],
+        )
+        output = completion.choices[0].message.content
+        print('progress', i, len(output))
+        open(f'./fanyi_result/{i}.md', 'w').write(output)
+        time.sleep(1)
