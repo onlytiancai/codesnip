@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>三体模拟 - 无拖尾 + 无声音 + 爆裂小天体</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+      user-select: none;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+class Body {
+  constructor(x, y, mass, vx = 0, vy = 0, color = 'white', fixed = false) {
+    this.x = x;
+    this.y = y;
+    this.mass = mass;
+    this.radius = mass * 2;
+    this.vx = vx;
+    this.vy = vy;
+    this.color = color;
+    this.fixed = fixed;
+  }
+  
+  draw() {
+    let gradient;
+    if (this.fixed) {
+      gradient = ctx.createRadialGradient(this.x, this.y, this.radius/3, this.x, this.y, this.radius*2);
+      gradient.addColorStop(0, 'white');
+      gradient.addColorStop(0.2, '#444');
+      gradient.addColorStop(1, 'black');
+    } else {
+      gradient = ctx.createRadialGradient(this.x, this.y, this.radius/2, this.x, this.y, this.radius);
+      gradient.addColorStop(0, this.color);
+      gradient.addColorStop(1, 'black');
+    }
+    
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+  }
+}
+
+const G = 0.4; // 引力常数
+
+const blackHole = new Body(canvas.width/2, canvas.height/2, 50, 0, 0, 'white', true);
+
+const bodies = [
+  new Body(canvas.width/2 - 250, canvas.height/2, 8, 0, 2, '#ff4b1f'),
+  new Body(canvas.width/2 + 200, canvas.height/2 - 100, 6, -2, 1.5, '#1fddff'),
+  new Body(canvas.width/2 + 50, canvas.height/2 + 200, 10, -1.5, -2, '#f9f047')
+];
+
+// 背景星星
+const stars = [];
+for (let i = 0; i < 200; i++) {
+  stars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    radius: Math.random() * 1.5,
+    alpha: Math.random(),
+    delta: Math.random() * 0.02
+  });
+}
+
+function drawStars() {
+  for (let star of stars) {
+    star.alpha += star.delta;
+    if (star.alpha <= 0 || star.alpha >= 1) {
+      star.delta = -star.delta;
+    }
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+    ctx.fill();
+  }
+}
+
+function resolveCollision(b1, b2) {
+  const dx = b2.x - b1.x;
+  const dy = b2.y - b1.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  if (distance < b1.radius + b2.radius) {
+    // 撞击，不播放声音
+    createFragments((b1.x + b2.x)/2, (b1.y + b2.y)/2, (b1.mass + b2.mass)/2);
+
+    // 删除原有两个星体
+    bodies.splice(bodies.indexOf(b1), 1);
+    bodies.splice(bodies.indexOf(b2), 1);
+  }
+}
+
+function createFragments(x, y, baseMass) {
+  const count = Math.floor(Math.random() * 5) + 3; // 生成 3~7 个碎片
+  for (let i = 0; i < count; i++) {
+    const mass = baseMass * (Math.random() * 0.3 + 0.2);
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 4 + 2;
+    const vx = Math.cos(angle) * speed;
+    const vy = Math.sin(angle) * speed;
+    const color = `hsl(${Math.random()*360}, 100%, 70%)`;
+    bodies.push(new Body(x, y, mass, vx, vy, color));
+  }
+}
+
+function update() {
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  drawStars();
+
+  blackHole.draw();
+
+  // 引力计算
+  for (let body of bodies) {
+    // 黑洞引力
+    let dx = blackHole.x - body.x;
+    let dy = blackHole.y - body.y;
+    let dist = Math.sqrt(dx * dx + dy * dy);
+    let force = (G * body.mass * blackHole.mass) / (dist * dist);
+    let fx = force * (dx / dist);
+    let fy = force * (dy / dist);
+    body.vx += fx / body.mass;
+    body.vy += fy / body.mass;
+
+    if (dist < blackHole.radius) {
+      bodies.splice(bodies.indexOf(body), 1);
+      continue;
+    }
+  }
+
+  for (let i = 0; i < bodies.length; i++) {
+    for (let j = i + 1; j < bodies.length; j++) {
+      resolveCollision(bodies[i], bodies[j]);
+    }
+  }
+
+  for (let body of bodies) {
+    body.x += body.vx;
+    body.y += body.vy;
+
+    // 边界反弹
+    if (body.x - body.radius < 0) {
+      body.x = body.radius;
+      body.vx *= -1;
+    }
+    if (body.x + body.radius > canvas.width) {
+      body.x = canvas.width - body.radius;
+      body.vx *= -1;
+    }
+    if (body.y - body.radius < 0) {
+      body.y = body.radius;
+      body.vy *= -1;
+    }
+    if (body.y + body.radius > canvas.height) {
+      body.y = canvas.height - body.radius;
+      body.vy *= -1;
+    }
+
+    body.draw();
+  }
+
+  requestAnimationFrame(update);
+}
+
+update();
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+// 点击生成新的星体
+canvas.addEventListener('click', (e) => {
+  const x = e.clientX;
+  const y = e.clientY;
+  const mass = Math.random() * 8 + 3; 
+  const speed = Math.random() * 4 - 2; 
+  const angle = Math.random() * Math.PI * 2;
+  const vx = Math.cos(angle) * speed;
+  const vy = Math.sin(angle) * speed;
+  const color = `hsl(${Math.random()*360}, 100%, 70%)`;
+
+  const newBody = new Body(x, y, mass, vx, vy, color);
+  bodies.push(newBody);
+});
+</script>
+</body>
+</html>
