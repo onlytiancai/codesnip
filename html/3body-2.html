@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Three Body Simulation</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: black; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// Set canvas size
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// Particle class
+class Particle {
+    constructor(x, y, mass) {
+        this.x = x;
+        this.y = y;
+        this.mass = mass * (Math.random() * 15 + 5); // More varied mass
+        this.vx = (Math.random() - 0.5) * 2;
+        this.vy = (Math.random() - 0.5) * 2;
+        this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+        this.radius = Math.sqrt(this.mass) * 1.5;
+    }
+
+    update(particles, blackHole) {
+        // Apply gravity from black hole
+        const dx = blackHole.x - this.x;
+        const dy = blackHole.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const force = blackHole.mass * this.mass / (dist * dist);
+        const angle = Math.atan2(dy, dx);
+        
+        this.vx += (force * Math.cos(angle)) / this.mass;
+        this.vy += (force * Math.sin(angle)) / this.mass;
+
+        // Apply gravity from other particles
+        particles.forEach(p => {
+            if (p !== this) {
+                const dx = p.x - this.x;
+                const dy = p.y - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const force = p.mass * this.mass / (dist * dist) * 0.1;
+                const angle = Math.atan2(dy, dx);
+                
+                this.vx += (force * Math.cos(angle)) / this.mass;
+                this.vy += (force * Math.sin(angle)) / this.mass;
+            }
+        });
+
+        // Update position
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Boundary collision
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -0.8;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -0.8;
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+    }
+}
+
+// Black hole with enhanced effects
+const blackHole = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    mass: 1000,
+    radius: 20,
+    draw() {
+        // Outer glow
+        const gradient = ctx.createRadialGradient(
+            this.x, this.y, this.radius,
+            this.x, this.y, this.radius * 4
+        );
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
+        gradient.addColorStop(0.2, 'rgba(30, 0, 60, 0.8)');
+        gradient.addColorStop(1, 'rgba(60, 0, 120, 0)');
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius * 4, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Core
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#000';
+        ctx.strokeStyle = '#fff';
+        ctx.fill();
+        ctx.stroke();
+
+        // Energy rings
+        const time = Date.now() * 0.001;
+        for(let i = 1; i <= 3; i++) {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius * (1 + i * 0.5) + Math.sin(time * i) * 5,
+                    0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(150, 0, 255, ${0.3 / i})`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+    }
+};
+
+// Particles array
+let particles = [];
+
+// Update particle generation
+function createParticle(x, y) {
+    const baseMass = Math.random() * 3 + 1; // More varied base mass
+    return new Particle(x, y, baseMass);
+}
+
+// Add initial particles
+particles = Array.from({length: 5}, () => 
+    createParticle(
+        Math.random() * canvas.width,
+        Math.random() * canvas.height
+    )
+);
+
+// Animation loop
+function animate() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw stars
+    for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.arc(
+            Math.random() * canvas.width,
+            Math.random() * canvas.height,
+            Math.random() * 2,
+            0,
+            Math.PI * 2
+        );
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.fill();
+    }
+
+    blackHole.draw();
+    
+    particles.forEach(particle => {
+        particle.update(particles, blackHole);
+        particle.draw();
+    });
+
+    requestAnimationFrame(animate);
+}
+
+// Update click handler
+canvas.addEventListener('click', (e) => {
+    particles.push(createParticle(e.clientX, e.clientY));
+});
+
+animate();
+</script>
+</body>
+</html>
