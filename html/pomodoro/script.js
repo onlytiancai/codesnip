@@ -28,6 +28,7 @@ let currentMode = 'work';
 let completedPomodoros = 0;
 let pomodoroSequence = 0;
 let screensaver = null;
+let celebration = null;
 
 // 初始化应用
 function initApp() {
@@ -36,8 +37,9 @@ function initApp() {
     loadCompletedPomodoros();
     loadTheme();
     
-    // 初始化屏保
+    // 初始化屏保和庆祝特效
     screensaver = new Screensaver();
+    celebration = new Celebration();
 }
 
 // 更新时间显示
@@ -45,7 +47,7 @@ function updateTimeDisplay() {
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
     timeLeftDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    document.title = `${timeLeftDisplay.textContent} - 番茄钟`;
+    document.title = `${timeLeftDisplay.textContent} - 蛙蛙番茄钟`;
 }
 
 // 开始/暂停计时器
@@ -157,6 +159,11 @@ function completePomodoro() {
         saveCompletedPomodoros();
         updateCompletedDisplay();
         
+        // 显示庆祝特效
+        if (celebration) {
+            celebration.show('恭喜完成一个番茄钟！');
+        }
+        
         // 决定下一个模式
         if (pomodoroSequence >= POMODORO_CYCLE) {
             setMode('longBreak');
@@ -264,6 +271,11 @@ function toggleTaskComplete(taskId) {
         
         // 保存到本地存储
         localStorage.setItem('tasks', JSON.stringify(tasks));
+        
+        // 如果任务被标记为完成，显示庆祝特效
+        if (tasks[taskIndex].completed && celebration) {
+            celebration.show('恭喜完成一项任务！');
+        }
     }
 }
 

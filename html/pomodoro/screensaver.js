@@ -37,6 +37,9 @@ class Screensaver {
         this.createBubbles();
         this.animate();
         
+        // 请求全屏
+        this.requestFullscreen();
+        
         // 禁止页面滚动
         document.body.style.overflow = 'hidden';
     }
@@ -58,12 +61,43 @@ class Screensaver {
             cancelAnimationFrame(this.animationFrame);
         }
         
+        // 退出全屏
+        this.exitFullscreen();
+        
         // 恢复页面滚动
         document.body.style.overflow = '';
         
         // 调用退出回调
         if (this.onExit) {
             this.onExit();
+        }
+    }
+
+    // 请求全屏
+    requestFullscreen() {
+        const docEl = document.documentElement;
+        
+        if (docEl.requestFullscreen) {
+            docEl.requestFullscreen();
+        } else if (docEl.mozRequestFullScreen) { // Firefox
+            docEl.mozRequestFullScreen();
+        } else if (docEl.webkitRequestFullscreen) { // Chrome, Safari, Opera
+            docEl.webkitRequestFullscreen();
+        } else if (docEl.msRequestFullscreen) { // IE/Edge
+            docEl.msRequestFullscreen();
+        }
+    }
+
+    // 退出全屏
+    exitFullscreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) { // Firefox
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) { // Chrome, Safari, Opera
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { // IE/Edge
+            document.msExitFullscreen();
         }
     }
 
