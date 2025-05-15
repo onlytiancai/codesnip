@@ -1,0 +1,72 @@
+.screensaver {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    z-index: 1000;
+    display: none;
+    overflow: hidden;
+}
+
+.screensaver.active {
+    display: block;
+}
+
+.bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.1));
+    animation: float 8s infinite ease-in-out;
+    opacity: 0.6;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0) translateX(0) rotate(0deg);
+    }
+    25% {
+        transform: translateY(-20px) translateX(10px) rotate(5deg);
+    }
+    50% {
+        transform: translateY(0) translateX(20px) rotate(10deg);
+    }
+    75% {
+        transform: translateY(20px) translateX(10px) rotate(5deg);
+    }
+    100% {
+        transform: translateY(0) translateX(0) rotate(0deg);
+    }
+}
+
+.timer-overlay {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 1.5rem;
+    z-index: 1001;
+}
+
+.exit-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(231, 76, 60, 0.7);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    z-index: 1001;
+    transition: background-color 0.3s;
+}
+
+.exit-button:hover {
+    background-color: rgba(231, 76, 60, 1);
+}

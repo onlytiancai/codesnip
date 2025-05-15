@@ -27,6 +27,7 @@ let isRunning = false;
 let currentMode = 'work';
 let completedPomodoros = 0;
 let pomodoroSequence = 0;
+let screensaver = null;
 
 // 初始化应用
 function initApp() {
@@ -34,6 +35,9 @@ function initApp() {
     loadTasks();
     loadCompletedPomodoros();
     loadTheme();
+    
+    // 初始化屏保
+    screensaver = new Screensaver();
 }
 
 // 更新时间显示
@@ -49,10 +53,20 @@ function toggleTimer() {
     if (isRunning) {
         clearInterval(timer);
         startBtn.textContent = '开始';
+        
+        // 如果在休息模式且屏保正在显示，则隐藏屏保
+        if ((currentMode === 'shortBreak' || currentMode === 'longBreak') && screensaver) {
+            screensaver.hide();
+        }
     } else {
         timer = setInterval(() => {
             timeLeft--;
             updateTimeDisplay();
+            
+            // 如果屏保正在显示，更新屏保上的时间
+            if (screensaver && (currentMode === 'shortBreak' || currentMode === 'longBreak')) {
+                screensaver.updateTimer(timeLeft);
+            }
             
             if (timeLeft <= 0) {
                 clearInterval(timer);
@@ -61,6 +75,15 @@ function toggleTimer() {
             }
         }, 1000);
         startBtn.textContent = '暂停';
+        
+        // 如果是休息模式，显示屏保
+        if ((currentMode === 'shortBreak' || currentMode === 'longBreak') && screensaver) {
+            screensaver.show(timeLeft, () => {
+                if (isRunning) {
+                    toggleTimer(); // 暂停计时器
+                }
+            });
+        }
     }
     isRunning = !isRunning;
 }
@@ -68,6 +91,12 @@ function toggleTimer() {
 // 重置计时器
 function resetTimer() {
     clearInterval(timer);
+    
+    // 如果屏保正在显示，隐藏它
+    if (screensaver) {
+        screensaver.hide();
+    }
+    
     setMode(currentMode);
     isRunning = false;
     startBtn.textContent = '开始';
@@ -79,6 +108,13 @@ function setMode(mode) {
     workBtn.classList.remove('active');
     shortBreakBtn.classList.remove('active');
     longBreakBtn.classList.remove('active');
+    
+    // 如果从休息模式切换到工作模式，隐藏屏保
+    if ((currentMode === 'shortBreak' || currentMode === 'longBreak') && mode === 'work') {
+        if (screensaver) {
+            screensaver.hide();
+        }
+    }
     
     currentMode = mode;
     
@@ -101,6 +137,16 @@ function setMode(mode) {
     }
     
     updateTimeDisplay();
+    
+    // 如果是休息模式且计时器正在运行，显示屏保
+    if ((mode === 'shortBreak' || mode === 'longBreak') && isRunning && screensaver) {
+        screensaver.show(timeLeft, () => {
+            // 当用户退出屏保时，如果计时器仍在运行，继续更新屏保上的时间
+            if (isRunning) {
+                toggleTimer(); // 暂停计时器
+            }
+        });
+    }
 }
 
 // 完成一个番茄钟
