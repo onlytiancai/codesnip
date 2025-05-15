@@ -57,9 +57,7 @@ function toggleTimer() {
         startBtn.textContent = '开始';
         
         // 如果在休息模式且屏保正在显示，则隐藏屏保
-        if ((currentMode === 'shortBreak' || currentMode === 'longBreak') && screensaver) {
-            screensaver.hide();
-        }
+        // 不在这里调用hide，避免递归调用
     } else {
         timer = setInterval(() => {
             timeLeft--;
@@ -81,8 +79,11 @@ function toggleTimer() {
         // 如果是休息模式，显示屏保
         if ((currentMode === 'shortBreak' || currentMode === 'longBreak') && screensaver) {
             screensaver.show(timeLeft, () => {
+                // 避免递归调用
                 if (isRunning) {
-                    toggleTimer(); // 暂停计时器
+                    isRunning = false;
+                    startBtn.textContent = '开始';
+                    clearInterval(timer);
                 }
             });
         }
@@ -143,9 +144,11 @@ function setMode(mode) {
     // 如果是休息模式且计时器正在运行，显示屏保
     if ((mode === 'shortBreak' || mode === 'longBreak') && isRunning && screensaver) {
         screensaver.show(timeLeft, () => {
-            // 当用户退出屏保时，如果计时器仍在运行，继续更新屏保上的时间
+            // 当用户退出屏保时，如果计时器仍在运行，暂停计时器
             if (isRunning) {
-                toggleTimer(); // 暂停计时器
+                isRunning = false;
+                startBtn.textContent = '开始';
+                clearInterval(timer);
             }
         });
     }

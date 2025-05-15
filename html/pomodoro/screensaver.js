@@ -6,6 +6,7 @@ class Screensaver {
         this.bubbles = [];
         this.maxBubbles = 15;
         this.animationFrame = null;
+        this.isFullscreen = false;
     }
 
     createScreensaverElement() {
@@ -45,6 +46,8 @@ class Screensaver {
     }
 
     hide() {
+        if (!this.active) return; // 防止重复调用
+        
         this.active = false;
         this.element.classList.remove('active');
         
@@ -67,9 +70,15 @@ class Screensaver {
         // 恢复页面滚动
         document.body.style.overflow = '';
         
-        // 调用退出回调
-        if (this.onExit) {
-            this.onExit();
+        // 保存回调函数并清除引用
+        const callback = this.onExit;
+        this.onExit = null;
+        
+        // 如果有回调，延迟执行以避免递归调用
+        if (callback) {
+            setTimeout(() => {
+                callback();
+            }, 0);
         }
     }
 
@@ -77,28 +86,51 @@ class Screensaver {
     requestFullscreen() {
         const docEl = document.documentElement;
         
-        if (docEl.requestFullscreen) {
-            docEl.requestFullscreen();
-        } else if (docEl.mozRequestFullScreen) { // Firefox
-            docEl.mozRequestFullScreen();
-        } else if (docEl.webkitRequestFullscreen) { // Chrome, Safari, Opera
-            docEl.webkitRequestFullscreen();
-        } else if (docEl.msRequestFullscreen) { // IE/Edge
-            docEl.msRequestFullscreen();
+        try {
+            if (docEl.requestFullscreen) {
+                docEl.requestFullscreen().then(() => {
+                    this.isFullscreen = true;
+                }).catch(err => {
+                    console.log('全屏请求被拒绝:', err);
+                });
+            } else if (docEl.mozRequestFullScreen) { // Firefox
+                docEl.mozRequestFullScreen();
+                this.isFullscreen = true;
+            } else if (docEl.webkitRequestFullscreen) { // Chrome, Safari, Opera
+                docEl.webkitRequestFullscreen();
+                this.isFullscreen = true;
+            } else if (docEl.msRequestFullscreen) { // IE/Edge
+                docEl.msRequestFullscreen();
+                this.isFullscreen = true;
+            }
+        } catch (e) {
+            console.log('请求全屏出错:', e);
         }
     }
 
     // 退出全屏
     exitFullscreen() {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.mozCancelFullScreen) { // Firefox
-            document.mozCancelFullScreen();
-        } else if (document.webkitExitFullscreen) { // Chrome, Safari, Opera
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) { // IE/Edge
-            document.msExitFullscreen();
+        if (!this.isFullscreen) return;
+        
+        try {
+            if (document.fullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(err => {
+                        console.log('退出全屏出错:', err);
+                    });
+                } else if (document.mozCancelFullScreen) { // Firefox
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) { // Chrome, Safari, Opera
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { // IE/Edge
+                    document.msExitFullscreen();
+                }
+            }
+        } catch (e) {
+            console.log('退出全屏出错:', e);
         }
+        
+        this.isFullscreen = false;
     }
 
     updateTimer(timeLeft) {
