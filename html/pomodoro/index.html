@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蛙蛙番茄钟</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="alarm.js"></script>
+</head>
+<body class="light-theme">
+    <div class="container">
+        <header>
+            <h1>蛙蛙番茄钟</h1>
+            <div class="theme-toggle">
+                <button id="theme-toggle-btn">切换主题</button>
+            </div>
+            <div class="pomodoro-count">已完成番茄钟: <span id="completed-count">0</span></div>
+        </header>
+
+        <div class="timer-container">
+            <div class="timer-display">
+                <div id="time-left">25:00</div>
+                <div id="mode-label">工作模式</div>
+            </div>
+            
+            <div class="timer-controls">
+                <button id="start-btn" class="btn">开始</button>
+                <button id="reset-btn" class="btn">重置</button>
+            </div>
+            
+            <div class="mode-buttons">
+                <button id="work-btn" class="mode-btn active">工作</button>
+                <button id="short-break-btn" class="mode-btn">短休息</button>
+                <button id="long-break-btn" class="mode-btn">长休息</button>
+            </div>
+        </div>
+
+        <div class="tasks-container">
+            <h2>任务列表</h2>
+            <div class="task-input">
+                <input type="text" id="task-input" placeholder="添加新任务...">
+                <button id="add-task-btn">添加</button>
+            </div>
+            <ul id="task-list"></ul>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

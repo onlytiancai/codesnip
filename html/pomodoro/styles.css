@@ -1,0 +1,290 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+:root {
+    /* 亮色主题变量 */
+    --bg-color: #f5f5f5;
+    --container-bg: white;
+    --text-color: #2c3e50;
+    --title-color: #e74c3c;
+    --secondary-text: #7f8c8d;
+    --panel-bg: #f9f9f9;
+    --btn-primary-bg: #3498db;
+    --btn-primary-hover: #2980b9;
+    --btn-primary-text: white;
+    --btn-secondary-bg: #ecf0f1;
+    --btn-secondary-text: #7f8c8d;
+    --btn-secondary-hover: #d5dbdb;
+    --btn-active-bg: #e74c3c;
+    --btn-active-text: white;
+    --add-btn-bg: #2ecc71;
+    --add-btn-hover: #27ae60;
+    --border-color: #ddd;
+    --task-border: #eee;
+    --complete-color: #2ecc71;
+    --delete-color: #e74c3c;
+    --box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.dark-theme {
+    /* 暗色主题变量 */
+    --bg-color: #2c3e50;
+    --container-bg: #34495e;
+    --text-color: #ecf0f1;
+    --title-color: #e74c3c;
+    --secondary-text: #bdc3c7;
+    --panel-bg: #2c3e50;
+    --btn-primary-bg: #3498db;
+    --btn-primary-hover: #2980b9;
+    --btn-primary-text: white;
+    --btn-secondary-bg: #7f8c8d;
+    --btn-secondary-text: #ecf0f1;
+    --btn-secondary-hover: #95a5a6;
+    --btn-active-bg: #e74c3c;
+    --btn-active-text: white;
+    --add-btn-bg: #2ecc71;
+    --add-btn-hover: #27ae60;
+    --border-color: #7f8c8d;
+    --task-border: #7f8c8d;
+    --complete-color: #2ecc71;
+    --delete-color: #e74c3c;
+    --box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+body {
+    background-color: var(--bg-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: var(--text-color);
+    transition: background-color 0.3s ease;
+}
+
+.container {
+    background-color: var(--container-bg);
+    border-radius: 10px;
+    box-shadow: var(--box-shadow);
+    width: 90%;
+    max-width: 500px;
+    padding: 20px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+h1 {
+    color: var(--title-color);
+    margin-bottom: 10px;
+}
+
+.theme-toggle {
+    margin: 10px 0;
+}
+
+#theme-toggle-btn {
+    background-color: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+}
+
+#theme-toggle-btn:hover {
+    background-color: var(--btn-primary-hover);
+}
+
+.pomodoro-count {
+    color: var(--secondary-text);
+    font-size: 0.9rem;
+}
+
+.timer-container {
+    background-color: var(--panel-bg);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+.timer-display {
+    margin-bottom: 15px;
+}
+
+#time-left {
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+#mode-label {
+    font-size: 1rem;
+    color: var(--secondary-text);
+    margin-top: 5px;
+}
+
+.timer-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.btn {
+    background-color: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+.btn:hover {
+    background-color: var(--btn-primary-hover);
+}
+
+.mode-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.mode-btn {
+    background-color: var(--btn-secondary-bg);
+    color: var(--btn-secondary-text);
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+}
+
+.mode-btn:hover {
+    background-color: var(--btn-secondary-hover);
+}
+
+.mode-btn.active {
+    background-color: var(--btn-active-bg);
+    color: var(--btn-active-text);
+}
+
+.tasks-container {
+    background-color: var(--panel-bg);
+    border-radius: 8px;
+    padding: 20px;
+    transition: background-color 0.3s ease;
+}
+
+h2 {
+    color: var(--text-color);
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+}
+
+.task-input {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+#task-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px 0 0 4px;
+    font-size: 0.9rem;
+    background-color: var(--container-bg);
+    color: var(--text-color);
+}
+
+#add-task-btn {
+    background-color: var(--add-btn-bg);
+    color: white;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#add-task-btn:hover {
+    background-color: var(--add-btn-hover);
+}
+
+#task-list {
+    list-style-type: none;
+}
+
+.task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid var(--task-border);
+}
+
+.task-item:last-child {
+    border-bottom: none;
+}
+
+.task-text {
+    flex: 1;
+}
+
+.completed {
+    text-decoration: line-through;
+    color: var(--secondary-text);
+}
+
+.task-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.task-btn {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+.complete-btn {
+    color: var(--complete-color);
+}
+
+.delete-btn {
+    color: var(--delete-color);
+}
+
+/* 响应式设计 */
+@media (max-width: 600px) {
+    .container {
+        width: 95%;
+        padding: 15px;
+    }
+    
+    #time-left {
+        font-size: 2.5rem;
+    }
+    
+    .mode-buttons {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
