@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Player with LRC</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .highlight {
+            background-color: yellow;
+        }
+        #lyrics div {
+            margin-bottom: 5px;
+            position: relative;
+        }
+        .play-button {
+            display: none;
+        }
+    </style>
+</head>
+<body class="container">
+    <h2 class="my-4">音频播放器与LRC</h2>
+    <div class="form-group d-flex">
+        <div class="mr-3">
+            <label for="audioFile">选择音频文件</label>
+            <input type="file" id="audioFile" accept="audio/*" class="form-control-file">
+        </div>
+        <div>
+            <label for="lrcFile">选择LRC文件</label>
+            <input type="file" id="lrcFile" accept=".lrc" class="form-control-file">
+        </div>
+    </div>
+    <audio id="audioPlayer" controls class="w-100 mb-4"></audio>
+    <div id="lyrics" class="mb-4"></div>
+    <button id="prevLine" class="btn btn-primary mb-2">播放上一句</button>
+    <button id="repeatLine" class="btn btn-secondary mb-2">重复播放当前一句</button>
+    <button id="nextLine" class="btn btn-success mb-2">播放下一句</button>
+
+    <script>
+        const audioPlayer = document.getElementById('audioPlayer');
+        const audioFileInput = document.getElementById('audioFile');
+        const lrcFileInput = document.getElementById('lrcFile');
+        const lyricsDiv = document.getElementById('lyrics');
+        const nextLineButton = document.getElementById('nextLine');
+        const prevLineButton = document.getElementById('prevLine');
+        const repeatLineButton = document.getElementById('repeatLine');
+        let lyrics = [];
+        let currentLineIndex = -1;
+
+        audioFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                audioPlayer.src = URL.createObjectURL(file);
+            }
+        });
+
+        lrcFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    parseLRC(e.target.result);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        audioPlayer.addEventListener('timeupdate', () => {
+            const currentTime = audioPlayer.currentTime;
+            updateLyricsHighlight(currentTime);
+        });
+
+        nextLineButton.addEventListener('click', () => {
+            playNextLine();
+        });
+
+        prevLineButton.addEventListener('click', () => {
+            playPreviousLine();
+        });
+
+        repeatLineButton.addEventListener('click', () => {
+            repeatCurrentLine();
+        });
+
+        function parseLRC(lrcText) {
+            lyrics = [];
+            const lines = lrcText.split('\n');
+            const timeRegEx = /\[(\d{2}):(\d{2})\.(\d{2})\]/;
+            lines.forEach(line => {
+                const match = timeRegEx.exec(line);
+                if (match) {
+                    const minutes = parseInt(match[1], 10);
+                    const seconds = parseInt(match[2], 10);
+                    const milliseconds = parseInt(match[3], 10);
+                    const time = minutes * 60 + seconds + milliseconds / 100;
+                    const text = line.replace(timeRegEx, '').trim();
+                    lyrics.push({ time, text });
+                }
+            });
+            displayLyrics();
+        }
+
+        function displayLyrics() {
+            lyricsDiv.innerHTML = '';
+            lyrics.forEach((line, index) => {
+                const div = document.createElement('div');
+                div.textContent = line.text;
+                div.dataset.index = index;
+
+                div.addEventListener('click', () => {
+                    playLine(index);
+                });
+                lyricsDiv.appendChild(div);
+            });
+        }
+
+        function updateLyricsHighlight(currentTime) {
+            for (let i = 0; i < lyrics.length; i++) {
+                if (currentTime >= lyrics[i].time && (i === lyrics.length - 1 || currentTime < lyrics[i + 1].time)) {
+                    if (currentLineIndex !== i) {
+                        if (currentLineIndex !== -1) {
+                            lyricsDiv.children[currentLineIndex].classList.remove('highlight');
+                        }
+                        lyricsDiv.children[i].classList.add('highlight');
+                        currentLineIndex = i;
+                    }
+                    break;
+                }
+            }
+        }
+
+        function playLine(index) {
+            if (index >= 0 && index < lyrics.length) {
+                const startTime = lyrics[index].time;
+                const endTime = index < lyrics.length - 1 ? lyrics[index + 1].time : audioPlayer.duration;
+                audioPlayer.currentTime = startTime;
+                audioPlayer.play();
+                setTimeout(() => {
+                    audioPlayer.pause();
+                }, (endTime - startTime) * 1000);
+            }
+        }
+
+        function playNextLine() {
+            if (currentLineIndex + 1 < lyrics.length) {
+                playLine(currentLineIndex + 1);
+            }
+        }
+
+        function playPreviousLine() {
+            if (currentLineIndex > 0) {
+                playLine(currentLineIndex - 1);
+            }
+        }
+
+        function repeatCurrentLine() {
+            if (currentLineIndex >= 0) {
+                playLine(currentLineIndex);
+            }
+        }
+    </script>
+</body>
+</html>
