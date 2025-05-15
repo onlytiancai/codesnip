@@ -151,6 +151,7 @@
         <div id="messageBox" class="message-box"></div>
         <div class="controls">
             <button onclick="startNewGame()">开始新游戏</button>
+            <button onclick="undoMove()">悔棋</button>
         </div>
     </div>
 
@@ -160,6 +161,7 @@
         let PIECE_RADIUS = 13;
         let board = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
         let isGameOver = false;
+        let moveStack = []; // 添加一个栈来记录每一步棋
         
         // 添加评分系统常量
         const SCORES = {
@@ -348,6 +350,7 @@
             if (bestMove) {
                 const [row, col] = bestMove;
                 board[row][col] = 2;
+                moveStack.push([row, col]); // 记录AI的棋步
                 if (checkWin(row, col, 2)) {
                     showMessage('电脑获胜！再来一局吧！', 'info');
                     isGameOver = true;
@@ -376,6 +379,7 @@
 
             if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE && board[row][col] === 0) {
                 board[row][col] = 1;
+                moveStack.push([row, col]); // 记录玩家的棋步
                 drawBoard();
                 document.getElementById('currentTurn').textContent = '白子';
 
@@ -396,8 +400,27 @@
         function startNewGame() {
             board = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
             isGameOver = false; // 确保重置游戏状态
+            moveStack = []; // 重置棋步记录
             drawBoard();
             showMessage('新游戏开始！', 'success');
+            document.getElementById('currentTurn').textContent = '黑子';
+        }
+
+        function undoMove() {
+            if (moveStack.length < 2 || isGameOver) {
+                showMessage('无法悔棋', 'info');
+                return;
+            }
+
+            // 撤销AI的棋步
+            let [row, col] = moveStack.pop();
+            board[row][col] = 0;
+
+            // 撤销玩家的棋步
+            [row, col] = moveStack.pop();
+            board[row][col] = 0;
+
+            drawBoard();
             document.getElementById('currentTurn').textContent = '黑子';
         }
 

@@ -49,7 +49,7 @@ is my teacher.
 cmd = sys.argv[1]
 if cmd == 'create_context':
     response = client.context.create(
-        model= "ep-20250417161351-fcbrx", 
+        model= "ep-20250417200154-wqfzm", 
         messages = [ 
             {"role":"system","content": system_prompt}
         ], 
@@ -62,7 +62,7 @@ elif cmd == 'fanyi':
     user_prompt = sys.argv[3]
     completion = client.context.completions.create(
         context_id=context_id,
-        model= "ep-20250417161351-fcbrx", 
+        model= "ep-20250417200154-wqfzm", 
         messages=[
             {"role": "user", "content": user_prompt},
         ],
@@ -72,12 +72,14 @@ elif cmd == 'runall':
     import csv
     import time
     reader = csv.reader(open('/home/ubuntu/temp/output.csv'))
-    context_id = 'ctx-20250417162254-cdpbh'
+    context_id = 'ctx-20250417200431-dqhdv'
     for i, row in enumerate(reader):
+        if i <= 911:
+            continue
         user_prompt = row[-1]
         completion = client.context.completions.create(
             context_id=context_id,
-            model= "ep-20250417161351-fcbrx", 
+            model= "ep-20250417200154-wqfzm", 
             messages=[
                 {"role": "user", "content": user_prompt},
             ],
