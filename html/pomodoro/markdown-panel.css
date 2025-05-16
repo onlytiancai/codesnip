@@ -1,0 +1,108 @@
+.markdown-panel {
+    background-color: var(--panel-bg);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.markdown-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.markdown-panel-title {
+    color: var(--text-color);
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.markdown-panel-edit {
+    background: none;
+    border: none;
+    color: var(--btn-primary-bg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.markdown-content {
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.markdown-content h1, 
+.markdown-content h2, 
+.markdown-content h3 {
+    color: var(--title-color);
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.markdown-content p {
+    margin-bottom: 1em;
+}
+
+.markdown-content ul, 
+.markdown-content ol {
+    margin-left: 1.5em;
+    margin-bottom: 1em;
+}
+
+.markdown-content blockquote {
+    border-left: 3px solid var(--btn-primary-bg);
+    padding-left: 1em;
+    margin-left: 0;
+    color: var(--secondary-text);
+}
+
+.markdown-content code {
+    background-color: rgba(0, 0, 0, 0.1);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.markdown-content pre {
+    background-color: rgba(0, 0, 0, 0.1);
+    padding: 1em;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin-bottom: 1em;
+}
+
+.markdown-content pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.markdown-editor {
+    display: none;
+    margin-top: 15px;
+}
+
+.markdown-editor.active {
+    display: block;
+}
+
+.markdown-editor textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--container-bg);
+    color: var(--text-color);
+    font-family: inherit;
+    resize: vertical;
+    margin-bottom: 10px;
+}
+
+.markdown-editor-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}

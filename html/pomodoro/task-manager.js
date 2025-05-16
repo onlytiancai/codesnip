@@ -331,8 +331,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // 切换任务完成状态
         async function toggleTaskComplete(taskId) {
             try {
-                await window.taskDB.completeTask(taskId);
-
+                const task = await window.taskDB.completeTask(taskId);
+                
+                // 如果任务被标记为完成，显示庆祝特效
+                if (task.completed && window.celebration) {
+                    window.celebration.show('恭喜完成一项任务！');
+                }
+                
                 await loadTasks();
             } catch (error) {
                 console.error('切换任务状态失败:', error);

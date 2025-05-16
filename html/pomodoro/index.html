@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="screensaver.css">
     <link rel="stylesheet" href="celebration.css">
     <link rel="stylesheet" href="settings.css">
+    <link rel="stylesheet" href="markdown-panel.css">
+    <script src="marked.min.js"></script>
     <script src="icons.js"></script>
     <script src="notifications.js"></script>
     <script src="notification-help.js"></script>
@@ -16,6 +18,7 @@
     <script src="celebration.js"></script>
     <script src="task-db.js"></script>
     <script src="task-manager.js"></script>
+    <script src="markdown-panel.js"></script>
 </head>
 <body class="light-theme">
     <div class="container">
@@ -43,6 +46,9 @@
                         <button id="long-break-btn" class="mode-btn">长休息</button>
                     </div>
                 </div>
+
+                <!-- 添加Markdown面板 -->
+                <div id="markdown-panel" class="markdown-panel"></div>
 
                 <div class="settings-container">
                     <div class="settings-toggle">
