@@ -8,10 +8,10 @@
     <link rel="stylesheet" href="screensaver.css">
     <link rel="stylesheet" href="celebration.css">
     <link rel="stylesheet" href="settings.css">
+    <script src="notifications.js"></script>
     <script src="alarm.js"></script>
     <script src="screensaver.js"></script>
     <script src="celebration.js"></script>
-    <script src="notifications.js"></script>
 </head>
 <body class="light-theme">
     <div class="container">
@@ -53,9 +53,12 @@
             <div class="setting-item">
                 <span class="setting-label">工作完成时显示通知</span>
                 <label class="toggle-switch">
-                    <input type="checkbox" id="notification-setting">
+                    <input type="checkbox" id="notification-setting" checked>
                     <span class="toggle-slider"></span>
                 </label>
+            </div>
+            <div class="setting-item">
+                <button id="test-notification-btn" class="btn">测试通知</button>
             </div>
         </div>
 

@@ -25,6 +25,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const notificationEnabled = localStorage.getItem('notificationEnabled');
         if (notificationEnabled !== null) {
             notificationSetting.checked = notificationEnabled === 'true';
+        } else {
+            // 默认开启通知
+            notificationSetting.checked = true;
+            localStorage.setItem('notificationEnabled', 'true');
         }
         
         // 添加设置变更事件监听
@@ -55,6 +59,11 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (notificationPermission === 'denied') {
             console.log('通知权限被拒绝');
             notificationSetting.disabled = true;
+        } else {
+            // 如果通知设置已开启但尚未获得权限，则请求权限
+            if (notificationSetting.checked) {
+                requestNotificationPermission();
+            }
         }
     }
     
@@ -67,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (notificationPermission !== 'granted' && notificationPermission !== 'denied') {
             Notification.requestPermission().then(permission => {
                 notificationPermission = permission;
+                console.log('通知权限状态:', permission);
                 if (permission !== 'granted') {
                     notificationSetting.checked = false;
                     localStorage.setItem('notificationEnabled', 'false');
@@ -77,19 +87,39 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 显示浏览器通知
     window.showNotification = function(title, message) {
-        if (!('Notification' in window) || notificationPermission !== 'granted' || !notificationSetting.checked) {
+        if (!('Notification' in window)) {
+            console.log('浏览器不支持通知');
             return;
         }
         
-        const notification = new Notification(title, {
-            body: message,
-            icon: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="50" height="50"><circle cx="50" cy="50" r="45" fill="%23e74c3c"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="40" fill="white">🍅</text></svg>'
-        });
+        if (notificationPermission !== 'granted') {
+            console.log('通知权限未获取，当前状态:', notificationPermission);
+            if (notificationPermission === 'default' && notificationSetting.checked) {
+                requestNotificationPermission();
+            }
+            return;
+        }
         
-        // 5秒后自动关闭
-        setTimeout(() => {
-            notification.close();
-        }, 5000);
+        if (!notificationSetting.checked) {
+            console.log('通知设置已关闭');
+            return;
+        }
+        
+        try {
+            const notification = new Notification(title, {
+                body: message,
+                icon: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="50" height="50"><circle cx="50" cy="50" r="45" fill="%23e74c3c"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="40" fill="white">🍅</text></svg>'
+            });
+            
+            console.log('通知已显示');
+            
+            // 5秒后自动关闭
+            setTimeout(() => {
+                notification.close();
+            }, 5000);
+        } catch (error) {
+            console.error('显示通知时出错:', error);
+        }
     };
     
     // 导出全屏设置状态

@@ -179,20 +179,24 @@ function completePomodoro() {
             window.showNotification('蛙蛙番茄钟', '恭喜完成一个番茄钟！休息一下吧~');
         }
         
-        // 决定下一个模式
+        // 重置计时器但不自动切换到休息模式
+        clearInterval(timer);
+        timeLeft = WORK_TIME;
+        updateTimeDisplay();
+        isRunning = false;
+        startBtn.textContent = '开始';
+        
+        // 更新模式计数
         if (pomodoroSequence >= POMODORO_CYCLE) {
-            setMode('longBreak');
             pomodoroSequence = 0;
-        } else {
-            setMode('shortBreak');
         }
     } else {
         // 休息结束后回到工作模式
         setMode('work');
+        
+        // 自动开始下一个计时
+        toggleTimer();
     }
-    
-    // 自动开始下一个计时
-    toggleTimer();
 }
 
 // 更新已完成番茄钟显示
@@ -391,6 +395,18 @@ taskInput.addEventListener('keypress', (e) => {
         addTask();
     }
 });
+
+// 测试通知按钮
+const testNotificationBtn = document.getElementById('test-notification-btn');
+if (testNotificationBtn) {
+    testNotificationBtn.addEventListener('click', () => {
+        if (window.showNotification) {
+            window.showNotification('测试通知', '这是一条测试通知，如果您看到这条消息，说明通知功能正常工作！');
+        } else {
+            alert('通知功能尚未初始化，请刷新页面后再试。');
+        }
+    });
+}
 
 // 初始化应用
 document.addEventListener('DOMContentLoaded', initApp);
