@@ -28,6 +28,7 @@
     --complete-color: #2ecc71;
     --delete-color: #e74c3c;
     --box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    --tab-active-border: #e74c3c;
 }
 
 .dark-theme {
@@ -53,11 +54,13 @@
     --complete-color: #2ecc71;
     --delete-color: #e74c3c;
     --box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    --tab-active-border: #e74c3c;
 }
 
 body {
     background-color: var(--bg-color);
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
@@ -70,7 +73,7 @@ body {
     border-radius: 10px;
     box-shadow: var(--box-shadow);
     width: 90%;
-    max-width: 500px;
+    max-width: 1000px;
     padding: 20px;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
@@ -86,28 +89,48 @@ h1 {
     margin-bottom: 10px;
 }
 
-.theme-toggle {
-    margin: 10px 0;
-}
-
-#theme-toggle-btn {
+.theme-toggle-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
     background-color: var(--btn-primary-bg);
     color: var(--btn-primary-text);
     border: none;
-    border-radius: 4px;
-    padding: 5px 10px;
     cursor: pointer;
-    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
     transition: background-color 0.3s;
 }
 
-#theme-toggle-btn:hover {
+.theme-toggle-btn:hover {
     background-color: var(--btn-primary-hover);
 }
 
 .pomodoro-count {
     color: var(--secondary-text);
     font-size: 0.9rem;
+}
+
+.main-content {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.timer-section {
+    flex: 1;
+    min-width: 300px;
+}
+
+.tasks-section {
+    flex: 1;
+    min-width: 300px;
 }
 
 .timer-container {
@@ -183,11 +206,78 @@ h1 {
     color: var(--btn-active-text);
 }
 
+.settings-container {
+    background-color: var(--panel-bg);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.settings-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.settings-toggle svg {
+    transition: transform 0.3s;
+}
+
+.settings-toggle.open svg {
+    transform: rotate(180deg);
+}
+
+.settings-content {
+    display: none;
+}
+
+.settings-content.open {
+    display: block;
+}
+
 .tasks-container {
     background-color: var(--panel-bg);
     border-radius: 8px;
     padding: 20px;
     transition: background-color 0.3s ease;
+}
+
+.tasks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.tasks-stats {
+    font-size: 0.9rem;
+    color: var(--secondary-text);
+}
+
+.tasks-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.task-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 15px;
+}
+
+.task-tab {
+    padding: 8px 16px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s;
+}
+
+.task-tab.active {
+    border-bottom: 2px solid var(--tab-active-border);
+    color: var(--title-color);
 }
 
 h2 {
@@ -225,8 +315,10 @@ h2 {
     background-color: var(--add-btn-hover);
 }
 
-#task-list {
+.task-list {
     list-style-type: none;
+    max-height: 300px;
+    overflow-y: auto;
 }
 
 .task-item {
@@ -272,11 +364,149 @@ h2 {
     color: var(--delete-color);
 }
 
+.task-date {
+    font-size: 0.8rem;
+    color: var(--secondary-text);
+    margin-top: 3px;
+}
+
+.help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: var(--secondary-text);
+    color: var(--container-bg);
+    font-size: 14px;
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.open {
+    display: flex;
+}
+
+.modal-content {
+    background-color: var(--container-bg);
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+}
+
+.modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--secondary-text);
+}
+
+.modal-title {
+    margin-bottom: 15px;
+    color: var(--title-color);
+}
+
+.modal-body {
+    margin-bottom: 15px;
+    
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-body p {
+    margin-bottom: 10px;
+}
+
+.modal-body ul {
+    margin-left: 20px;
+    margin-bottom: 10px;
+}
+
+.modal-body li {
+    margin-bottom: 5px;
+}
+
+.date-filter {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.date-filter label {
+    font-size: 0.9rem;
+}
+
+.date-filter input {
+    padding: 5px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--container-bg);
+    color: var(--text-color);
+}
+
+.no-tasks {
+    text-align: center;
+    color: var(--secondary-text);
+    padding: 20px 0;
+}
+
+/* 底部版权信息样式 */
+.footer {
+    margin-top: 30px;
+    padding: 15px 0;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+    color: var(--secondary-text);
+    font-size: 0.9rem;
+}
+
+.footer-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.footer a {
+    color: var(--btn-primary-bg);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.footer a:hover {
+    color: var(--btn-primary-hover);
+    text-decoration: underline;
+}
+
 /* 响应式设计 */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     .container {
         width: 95%;
         padding: 15px;
+    }
+    
+    .main-content {
+        flex-direction: column;
     }
     
     #time-left {
@@ -284,7 +514,6 @@ h2 {
     }
     
     .mode-buttons {
-        flex-direction: column;
-        gap: 5px;
+        flex-wrap: wrap;
     }
 }
