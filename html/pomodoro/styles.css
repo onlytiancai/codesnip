@@ -406,8 +406,6 @@ h2 {
     padding: 20px;
     max-width: 500px;
     width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
     position: relative;
 }
 
@@ -429,6 +427,9 @@ h2 {
 
 .modal-body {
     margin-bottom: 15px;
+    
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
 .modal-body p {

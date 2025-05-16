@@ -332,6 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
         async function toggleTaskComplete(taskId) {
             try {
                 await window.taskDB.completeTask(taskId);
+
                 await loadTasks();
             } catch (error) {
                 console.error('切换任务状态失败:', error);
