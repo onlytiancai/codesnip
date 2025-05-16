@@ -15,12 +15,11 @@ const workBtn = document.getElementById('work-btn');
 const shortBreakBtn = document.getElementById('short-break-btn');
 const longBreakBtn = document.getElementById('long-break-btn');
 const completedCountDisplay = document.getElementById('completed-count');
-const taskInput = document.getElementById('task-input');
-const addTaskBtn = document.getElementById('add-task-btn');
-const taskList = document.getElementById('task-list');
 const themeToggleBtn = document.getElementById('theme-toggle-btn');
-const fullscreenSetting = document.getElementById('fullscreen-setting');
-const notificationSetting = document.getElementById('notification-setting');
+const settingsToggle = document.querySelector('.settings-toggle');
+const settingsContent = document.querySelector('.settings-content');
+const settingsToggleIcon = document.getElementById('settings-toggle-icon');
+const notificationHelp = document.getElementById('notification-help');
 
 // 应用状态
 let timer = null;
@@ -31,21 +30,45 @@ let completedPomodoros = 0;
 let pomodoroSequence = 0;
 let screensaver = null;
 let celebration = null;
-let notificationPermission = 'default';
 
 // 初始化应用
 function initApp() {
     updateTimeDisplay();
-    loadTasks();
     loadCompletedPomodoros();
     loadTheme();
+    setupUI();
     
     // 初始化屏保和庆祝特效
     screensaver = new Screensaver();
     celebration = new Celebration();
+    
+    // 设置主题切换按钮图标
+    themeToggleBtn.innerHTML = ICONS.theme;
+    
+    // 设置设置切换图标
+    settingsToggleIcon.innerHTML = '▼';
 }
 
-
+// 设置UI
+function setupUI() {
+    // 设置切换
+    if (settingsToggle) {
+        settingsToggle.addEventListener('click', () => {
+            settingsContent.classList.toggle('open');
+            settingsToggle.classList.toggle('open');
+            settingsToggleIcon.textContent = settingsContent.classList.contains('open') ? '▲' : '▼';
+        });
+    }
+    
+    // 通知帮助
+    if (notificationHelp) {
+        notificationHelp.addEventListener('click', () => {
+            if (window.openNotificationHelp) {
+                window.openNotificationHelp();
+            }
+        });
+    }
+}
 
 // 更新时间显示
 function updateTimeDisplay() {
@@ -159,8 +182,6 @@ function setMode(mode) {
     }
 }
 
-undefined
-
 // 完成一个番茄钟
 function completePomodoro() {
     if (currentMode === 'work') {
@@ -175,6 +196,10 @@ function completePomodoro() {
         }
         
         // 显示浏览器通知
+        if (window.showInAppNotification) {
+            window.showInAppNotification('蛙蛙番茄钟', '恭喜完成一个番茄钟！休息一下吧~');
+        }
+        
         if (window.showNotification) {
             window.showNotification('蛙蛙番茄钟', '恭喜完成一个番茄钟！休息一下吧~');
         }
@@ -218,137 +243,6 @@ function loadCompletedPomodoros() {
     }
 }
 
-// 添加任务
-function addTask() {
-    const taskText = taskInput.value.trim();
-    if (taskText) {
-        const taskId = Date.now().toString();
-        const task = {
-            id: taskId,
-            text: taskText,
-            completed: false
-        };
-        
-        // 添加到DOM
-        renderTask(task);
-        
-        // 保存到本地存储
-        saveTasks();
-        
-        // 清空输入框
-        taskInput.value = '';
-    }
-}
-
-// 渲染任务
-function renderTask(task) {
-    const taskItem = document.createElement('li');
-    taskItem.className = 'task-item';
-    taskItem.dataset.id = task.id;
-    
-    const taskText = document.createElement('span');
-    taskText.className = 'task-text';
-    taskText.textContent = task.text;
-    if (task.completed) {
-        taskText.classList.add('completed');
-    }
-    
-    const taskActions = document.createElement('div');
-    taskActions.className = 'task-actions';
-    
-    const completeBtn = document.createElement('button');
-    completeBtn.className = 'task-btn complete-btn';
-    completeBtn.innerHTML = '✓';
-    completeBtn.addEventListener('click', () => toggleTaskComplete(task.id));
-    
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'task-btn delete-btn';
-    deleteBtn.innerHTML = '×';
-    deleteBtn.addEventListener('click', () => deleteTask(task.id));
-    
-    taskActions.appendChild(completeBtn);
-    taskActions.appendChild(deleteBtn);
-    
-    taskItem.appendChild(taskText);
-    taskItem.appendChild(taskActions);
-    
-    taskList.appendChild(taskItem);
-}
-
-// 切换任务完成状态
-function toggleTaskComplete(taskId) {
-    const tasks = getTasks();
-    const taskIndex = tasks.findIndex(task => task.id === taskId);
-    
-    if (taskIndex !== -1) {
-        tasks[taskIndex].completed = !tasks[taskIndex].completed;
-        
-        // 更新DOM
-        const taskItem = document.querySelector(`.task-item[data-id="${taskId}"]`);
-        const taskText = taskItem.querySelector('.task-text');
-        taskText.classList.toggle('completed');
-        
-        // 保存到本地存储
-        localStorage.setItem('tasks', JSON.stringify(tasks));
-        
-        // 如果任务被标记为完成，显示庆祝特效和通知
-        if (tasks[taskIndex].completed) {
-            if (celebration) {
-                celebration.show('恭喜完成一项任务！');
-            }
-            
-            // 显示浏览器通知
-            if (window.showNotification) {
-                window.showNotification('蛙蛙番茄钟', `恭喜完成任务：${tasks[taskIndex].text}`);
-            }
-        }
-    }
-}
-
-// 删除任务
-function deleteTask(taskId) {
-    const tasks = getTasks().filter(task => task.id !== taskId);
-    
-    // 更新DOM
-    const taskItem = document.querySelector(`.task-item[data-id="${taskId}"]`);
-    taskItem.remove();
-    
-    // 保存到本地存储
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-}
-
-// 获取所有任务
-function getTasks() {
-    const tasksJSON = localStorage.getItem('tasks');
-    return tasksJSON ? JSON.parse(tasksJSON) : [];
-}
-
-// 保存所有任务
-function saveTasks() {
-    const taskItems = document.querySelectorAll('.task-item');
-    const tasks = [];
-    
-    taskItems.forEach(item => {
-        const taskId = item.dataset.id;
-        const taskText = item.querySelector('.task-text').textContent;
-        const isCompleted = item.querySelector('.task-text').classList.contains('completed');
-        
-        tasks.push({
-            id: taskId,
-            text: taskText,
-            completed: isCompleted
-        });
-    });
-    
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-}
-
-// 加载任务
-function loadTasks() {
-    const tasks = getTasks();
-    tasks.forEach(task => renderTask(task));
-}
-
 // 主题切换功能
 function toggleTheme() {
     const body = document.body;
@@ -388,25 +282,7 @@ resetBtn.addEventListener('click', resetTimer);
 workBtn.addEventListener('click', () => setMode('work'));
 shortBreakBtn.addEventListener('click', () => setMode('shortBreak'));
 longBreakBtn.addEventListener('click', () => setMode('longBreak'));
-addTaskBtn.addEventListener('click', addTask);
 themeToggleBtn.addEventListener('click', toggleTheme);
-taskInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        addTask();
-    }
-});
-
-// 测试通知按钮
-const testNotificationBtn = document.getElementById('test-notification-btn');
-if (testNotificationBtn) {
-    testNotificationBtn.addEventListener('click', () => {
-        if (window.showNotification) {
-            window.showNotification('测试通知', '这是一条测试通知，如果您看到这条消息，说明通知功能正常工作！');
-        } else {
-            alert('通知功能尚未初始化，请刷新页面后再试。');
-        }
-    });
-}
 
 // 初始化应用
 document.addEventListener('DOMContentLoaded', initApp);

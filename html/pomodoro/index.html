@@ -8,69 +8,118 @@
     <link rel="stylesheet" href="screensaver.css">
     <link rel="stylesheet" href="celebration.css">
     <link rel="stylesheet" href="settings.css">
+    <link rel="stylesheet" href="in-app-notification.css">
+    <script src="icons.js"></script>
     <script src="notifications.js"></script>
+    <script src="in-app-notification.js"></script>
+    <script src="notification-help.js"></script>
     <script src="alarm.js"></script>
     <script src="screensaver.js"></script>
     <script src="celebration.js"></script>
+    <script src="task-db.js"></script>
+    <script src="task-manager.js"></script>
 </head>
 <body class="light-theme">
     <div class="container">
         <header>
             <h1>蛙蛙番茄钟</h1>
-            <div class="theme-toggle">
-                <button id="theme-toggle-btn">切换主题</button>
-            </div>
             <div class="pomodoro-count">已完成番茄钟: <span id="completed-count">0</span></div>
         </header>
 
-        <div class="timer-container">
-            <div class="timer-display">
-                <div id="time-left">25:00</div>
-                <div id="mode-label">工作模式</div>
-            </div>
-            
-            <div class="timer-controls">
-                <button id="start-btn" class="btn">开始</button>
-                <button id="reset-btn" class="btn">重置</button>
-            </div>
-            
-            <div class="mode-buttons">
-                <button id="work-btn" class="mode-btn active">工作</button>
-                <button id="short-break-btn" class="mode-btn">短休息</button>
-                <button id="long-break-btn" class="mode-btn">长休息</button>
-            </div>
-        </div>
+        <div class="main-content">
+            <div class="timer-section">
+                <div class="timer-container">
+                    <div class="timer-display">
+                        <div id="time-left">25:00</div>
+                        <div id="mode-label">工作模式</div>
+                    </div>
+                    
+                    <div class="timer-controls">
+                        <button id="start-btn" class="btn">开始</button>
+                        <button id="reset-btn" class="btn">重置</button>
+                    </div>
+                    
+                    <div class="mode-buttons">
+                        <button id="work-btn" class="mode-btn active">工作</button>
+                        <button id="short-break-btn" class="mode-btn">短休息</button>
+                        <button id="long-break-btn" class="mode-btn">长休息</button>
+                    </div>
+                </div>
 
-        <div class="settings-container">
-            <h2 class="settings-title">设置</h2>
-            <div class="setting-item">
-                <span class="setting-label">休息时全屏显示</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="fullscreen-setting" checked>
-                    <span class="toggle-slider"></span>
-                </label>
+                <div class="settings-container">
+                    <div class="settings-toggle">
+                        <h2 class="settings-title">设置</h2>
+                        <span id="settings-toggle-icon"></span>
+                    </div>
+                    <div class="settings-content">
+                        <div class="setting-item">
+                            <span class="setting-label">休息时全屏显示</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="fullscreen-setting" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <span class="setting-label">
+                                工作完成时显示通知
+                                <span class="help-icon" id="notification-help">?</span>
+                            </span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="notification-setting" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="setting-item">
-                <span class="setting-label">工作完成时显示通知</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="notification-setting" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            <div class="setting-item">
-                <button id="test-notification-btn" class="btn">测试通知</button>
-            </div>
-        </div>
 
-        <div class="tasks-container">
-            <h2>任务列表</h2>
-            <div class="task-input">
-                <input type="text" id="task-input" placeholder="添加新任务...">
-                <button id="add-task-btn">添加</button>
+            <div class="tasks-section">
+                <div class="tasks-container">
+                    <div class="tasks-header">
+                        <h2>任务列表</h2>
+                        <div class="tasks-stats" id="task-stats">
+                            总计: 0 | 已完成: 0 | 今日: 0 | 今日已完成: 0
+                        </div>
+                    </div>
+
+                    <div class="task-tabs">
+                        <div class="task-tab active" data-tab="today">今日任务</div>
+                        <div class="task-tab" data-tab="all">全部任务</div>
+                        <div class="task-tab" data-tab="deleted">已删除</div>
+                    </div>
+
+                    <div class="task-container" data-tab="today" style="display: block;">
+                        <div class="task-input">
+                            <input type="text" id="task-input" placeholder="添加新任务...">
+                            <button id="add-task-btn">添加</button>
+                        </div>
+                        <ul class="task-list" id="today-tasks"></ul>
+                    </div>
+
+                    <div class="task-container" data-tab="all" style="display: none;">
+                        <div class="date-filter">
+                            <label for="date-filter">按日期筛选:</label>
+                            <input type="date" id="date-filter">
+                        </div>
+                        <ul class="task-list" id="all-tasks"></ul>
+                        <div class="tasks-actions">
+                            <button id="export-tasks-btn" class="btn">导出任务</button>
+                            <button id="import-tasks-btn" class="btn">导入任务</button>
+                        </div>
+                    </div>
+
+                    <div class="task-container" data-tab="deleted" style="display: none;">
+                        <ul class="task-list" id="deleted-tasks"></ul>
+                        <div class="tasks-actions">
+                            <button id="clear-deleted-btn" class="btn">清空已删除</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <ul id="task-list"></ul>
         </div>
     </div>
+
+    <button class="theme-toggle-btn" id="theme-toggle-btn" title="切换主题"></button>
 
     <script src="script.js"></script>
 </body>
