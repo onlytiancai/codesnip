@@ -19,6 +19,8 @@ const taskInput = document.getElementById('task-input');
 const addTaskBtn = document.getElementById('add-task-btn');
 const taskList = document.getElementById('task-list');
 const themeToggleBtn = document.getElementById('theme-toggle-btn');
+const fullscreenSetting = document.getElementById('fullscreen-setting');
+const notificationSetting = document.getElementById('notification-setting');
 
 // 应用状态
 let timer = null;
@@ -29,6 +31,7 @@ let completedPomodoros = 0;
 let pomodoroSequence = 0;
 let screensaver = null;
 let celebration = null;
+let notificationPermission = 'default';
 
 // 初始化应用
 function initApp() {
@@ -41,6 +44,8 @@ function initApp() {
     screensaver = new Screensaver();
     celebration = new Celebration();
 }
+
+
 
 // 更新时间显示
 function updateTimeDisplay() {
@@ -76,8 +81,8 @@ function toggleTimer() {
         }, 1000);
         startBtn.textContent = '暂停';
         
-        // 如果是休息模式，显示屏保
-        if ((currentMode === 'shortBreak' || currentMode === 'longBreak') && screensaver) {
+        // 如果是休息模式且全屏设置开启，显示屏保
+        if ((currentMode === 'shortBreak' || currentMode === 'longBreak') && screensaver && window.isFullscreenEnabled()) {
             screensaver.show(timeLeft, () => {
                 // 避免递归调用
                 if (isRunning) {
@@ -141,8 +146,8 @@ function setMode(mode) {
     
     updateTimeDisplay();
     
-    // 如果是休息模式且计时器正在运行，显示屏保
-    if ((mode === 'shortBreak' || mode === 'longBreak') && isRunning && screensaver) {
+    // 如果是休息模式且计时器正在运行且全屏设置开启，显示屏保
+    if ((mode === 'shortBreak' || mode === 'longBreak') && isRunning && screensaver && window.isFullscreenEnabled()) {
         screensaver.show(timeLeft, () => {
             // 当用户退出屏保时，如果计时器仍在运行，暂停计时器
             if (isRunning) {
@@ -153,6 +158,8 @@ function setMode(mode) {
         });
     }
 }
+
+undefined
 
 // 完成一个番茄钟
 function completePomodoro() {
@@ -165,6 +172,11 @@ function completePomodoro() {
         // 显示庆祝特效
         if (celebration) {
             celebration.show('恭喜完成一个番茄钟！');
+        }
+        
+        // 显示浏览器通知
+        if (window.showNotification) {
+            window.showNotification('蛙蛙番茄钟', '恭喜完成一个番茄钟！休息一下吧~');
         }
         
         // 决定下一个模式
@@ -275,9 +287,16 @@ function toggleTaskComplete(taskId) {
         // 保存到本地存储
         localStorage.setItem('tasks', JSON.stringify(tasks));
         
-        // 如果任务被标记为完成，显示庆祝特效
-        if (tasks[taskIndex].completed && celebration) {
-            celebration.show('恭喜完成一项任务！');
+        // 如果任务被标记为完成，显示庆祝特效和通知
+        if (tasks[taskIndex].completed) {
+            if (celebration) {
+                celebration.show('恭喜完成一项任务！');
+            }
+            
+            // 显示浏览器通知
+            if (window.showNotification) {
+                window.showNotification('蛙蛙番茄钟', `恭喜完成任务：${tasks[taskIndex].text}`);
+            }
         }
     }
 }

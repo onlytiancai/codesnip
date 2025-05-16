@@ -7,9 +7,11 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="screensaver.css">
     <link rel="stylesheet" href="celebration.css">
+    <link rel="stylesheet" href="settings.css">
     <script src="alarm.js"></script>
     <script src="screensaver.js"></script>
     <script src="celebration.js"></script>
+    <script src="notifications.js"></script>
 </head>
 <body class="light-theme">
     <div class="container">
@@ -36,6 +38,24 @@
                 <button id="work-btn" class="mode-btn active">工作</button>
                 <button id="short-break-btn" class="mode-btn">短休息</button>
                 <button id="long-break-btn" class="mode-btn">长休息</button>
+            </div>
+        </div>
+
+        <div class="settings-container">
+            <h2 class="settings-title">设置</h2>
+            <div class="setting-item">
+                <span class="setting-label">休息时全屏显示</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="fullscreen-setting" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">工作完成时显示通知</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="notification-setting">
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
         </div>
 
