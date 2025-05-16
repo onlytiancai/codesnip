@@ -60,6 +60,7 @@
 body {
     background-color: var(--bg-color);
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
@@ -468,6 +469,33 @@ h2 {
     text-align: center;
     color: var(--secondary-text);
     padding: 20px 0;
+}
+
+/* 底部版权信息样式 */
+.footer {
+    margin-top: 30px;
+    padding: 15px 0;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+    color: var(--secondary-text);
+    font-size: 0.9rem;
+}
+
+.footer-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.footer a {
+    color: var(--btn-primary-bg);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.footer a:hover {
+    color: var(--btn-primary-hover);
+    text-decoration: underline;
 }
 
 /* 响应式设计 */

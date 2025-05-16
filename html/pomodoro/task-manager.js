@@ -333,11 +333,6 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const task = await window.taskDB.completeTask(taskId);
                 
-                // 如果任务被标记为完成，显示庆祝特效
-                if (task.completed && window.celebration) {
-                    window.celebration.show('恭喜完成一项任务！');
-                }
-                
                 await loadTasks();
             } catch (error) {
                 console.error('切换任务状态失败:', error);

@@ -11,7 +11,8 @@ const MIME_TYPES = {
   '.json': 'application/json',
   '.mp3': 'audio/mpeg',
   '.wav': 'audio/wav',
-  '.ico': 'image/x-icon'
+  '.ico': 'image/x-icon',
+  '.svg': 'image/svg+xml'
 };
 
 const server = http.createServer((req, res) => {

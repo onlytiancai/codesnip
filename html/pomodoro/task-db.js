@@ -187,6 +187,10 @@ class TaskDB {
                     task.completed = !task.completed;
                     if (task.completed) {
                         task.completedAt = new Date().toISOString();
+                        // 显示庆祝特效
+                        if (celebration) {
+                            celebration.show('恭喜完成一个任务！');
+                        }
                     } else {
                         task.completedAt = null;
                     }
