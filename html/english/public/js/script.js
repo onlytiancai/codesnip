@@ -1,26 +1,5 @@
-// 首页脚本
+// 详情页脚本 - 点击英文显示中文
 document.addEventListener('DOMContentLoaded', function() {
-  // 搜索功能
-  const searchInput = document.getElementById('search');
-  if (searchInput) {
-    searchInput.addEventListener('input', function() {
-      const searchTerm = this.value.toLowerCase();
-      const items = document.querySelectorAll('.dialogue-item');
-      
-      items.forEach(item => {
-        const title = item.querySelector('.dialogue-title').textContent.toLowerCase();
-        const scenarios = item.querySelector('.dialogue-scenarios').textContent.toLowerCase();
-        
-        if (title.includes(searchTerm) || scenarios.includes(searchTerm)) {
-          item.style.display = '';
-        } else {
-          item.style.display = 'none';
-        }
-      });
-    });
-  }
-  
-  // 详情页脚本 - 点击英文显示中文
   bindTranslationToggle();
 });
 

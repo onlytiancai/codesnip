@@ -31,16 +31,34 @@ h3 {
 }
 
 /* 首页样式 */
-.search-container {
+.tabs {
+  display: flex;
   margin-bottom: 20px;
+  border-bottom: 1px solid #ddd;
 }
 
-#search {
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
+.tab {
+  padding: 10px 20px;
+  cursor: pointer;
+  background-color: #f5f5f5;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-bottom: none;
+  margin-right: 5px;
+  border-radius: 5px 5px 0 0;
+}
+
+.tab.active {
+  background-color: #3498db;
+  color: white;
+  border-color: #3498db;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
 }
 
 .dialogue-list {
