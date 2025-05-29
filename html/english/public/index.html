@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>英语对话集</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>英语对话集 (English Dialogues)</h1>
+    
+    <div class="search-container">
+      <input type="text" id="search" placeholder="搜索对话主题或场景...">
+    </div>
+    
+    <ul class="dialogue-list" id="dialogueList">
+      <!-- 对话列表将通过JavaScript动态加载 -->
+    </ul>
+  </div>
+  
+  <script>
+    // 加载对话列表
+    fetch('/api/index')
+      .then(response => response.json())
+      .then(data => {
+        const dialogueList = document.getElementById('dialogueList');
+        
+        data.forEach(item => {
+          const li = document.createElement('li');
+          li.className = 'dialogue-item';
+          li.onclick = function() {
+            window.location.href = `/detail/${item.number}`;
+          };
+          
+          const titleDiv = document.createElement('div');
+          titleDiv.className = 'dialogue-title';
+          titleDiv.textContent = `${item.number}. ${item.title.zh} (${item.title.en})`;
+          
+          const scenariosDiv = document.createElement('div');
+          scenariosDiv.className = 'dialogue-scenarios';
+          
+          const scenarioTexts = item.scenarios.map(scenario => 
+            `${scenario.title.zh} (${scenario.title.en})`
+          );
+          scenariosDiv.textContent = scenarioTexts.join(' | ');
+          
+          li.appendChild(titleDiv);
+          li.appendChild(scenariosDiv);
+          dialogueList.appendChild(li);
+        });
+      })
+      .catch(error => console.error('Error loading index:', error));
+  </script>
+  <script src="/js/script.js"></script>
+</body>
+</html>

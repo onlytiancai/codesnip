@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>对话详情</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/script.js"></script>
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="back-link">返回首页</a>
+    <div id="dialogueContent">
+      <!-- 对话内容将通过JavaScript动态加载 -->
+    </div>
+  </div>
+  
+  <script>
+    // 从URL获取对话编号
+    const pathParts = window.location.pathname.split('/');
+    const dialogueNumber = pathParts[pathParts.length - 1];
+    
+    // 加载对话详情
+    fetch(`/api/dialogue/${dialogueNumber}`)
+      .then(response => response.json())
+      .then(data => {
+        const contentDiv = document.getElementById('dialogueContent');
+        
+        // 设置标题
+        document.title = `${data.number}. ${data.category.zh} (${data.category.en})`;
+        
+        // 创建标题
+        const title = document.createElement('h1');
+        title.textContent = `${data.number}. ${data.category.zh} (${data.category.en})`;
+        contentDiv.appendChild(title);
+        
+        // 遍历所有场景
+        data.scenarios.forEach(scenario => {
+          const scenarioSection = document.createElement('section');
+          scenarioSection.className = 'scenario';
+          
+          const scenarioTitle = document.createElement('h2');
+          scenarioTitle.textContent = `场景 (Scenario): ${scenario.title.zh} (${scenario.title.en})`;
+          scenarioSection.appendChild(scenarioTitle);
+          
+          // 遍历所有对话
+          scenario.dialogues.forEach(dialogue => {
+            const dialogueDiv = document.createElement('div');
+            dialogueDiv.className = 'dialogue';
+            
+            const dialogueTitle = document.createElement('h3');
+            dialogueTitle.textContent = dialogue.title;
+            dialogueDiv.appendChild(dialogueTitle);
+            
+            const exchangesDiv = document.createElement('div');
+            exchangesDiv.className = 'exchanges';
+            
+            // 遍历所有对话内容
+            dialogue.exchanges.forEach(exchange => {
+              const exchangeDiv = document.createElement('div');
+              exchangeDiv.className = 'exchange';
+              
+              const englishDiv = document.createElement('div');
+              englishDiv.className = 'english';
+              englishDiv.innerHTML = `<strong>${exchange.speaker}:</strong> ${exchange.text}`;
+              
+              const chineseDiv = document.createElement('div');
+              chineseDiv.className = 'chinese';
+              chineseDiv.innerHTML = `<strong>${exchange.speaker_cn}:</strong> ${exchange.translation}`;
+              
+              exchangeDiv.appendChild(englishDiv);
+              exchangeDiv.appendChild(chineseDiv);
+              exchangesDiv.appendChild(exchangeDiv);
+            });
+            
+            dialogueDiv.appendChild(exchangesDiv);
+            scenarioSection.appendChild(dialogueDiv);
+          });
+          
+          contentDiv.appendChild(scenarioSection);
+        });
+        
+        // 内容加载完成后绑定点击事件
+        bindTranslationToggle();
+      })
+      .catch(error => console.error('Error loading dialogue:', error));
+  </script>
+</body>
+</html>

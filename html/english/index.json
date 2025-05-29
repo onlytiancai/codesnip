@@ -1,0 +1,1502 @@
+[
+  {
+    "number": 1,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "安排会议",
+          "en": "Scheduling a Meeting"
+        }
+      }
+    ]
+  },
+  {
+    "number": 2,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "课堂提问",
+          "en": "Asking a Question in Class"
+        }
+      }
+    ]
+  },
+  {
+    "number": 3,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在餐厅点餐",
+          "en": "Ordering Food in a Restaurant"
+        }
+      }
+    ]
+  },
+  {
+    "number": 4,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "办理酒店入住",
+          "en": "Checking into a Hotel"
+        }
+      }
+    ]
+  },
+  {
+    "number": 5,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "自我介绍",
+          "en": "Introducing Yourself"
+        }
+      }
+    ]
+  },
+  {
+    "number": 6,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "请求帮助完成任务",
+          "en": "Asking for Help with a Task"
+        }
+      }
+    ]
+  },
+  {
+    "number": 7,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "给同事反馈",
+          "en": "Giving Feedback to a Colleague"
+        }
+      }
+    ]
+  },
+  {
+    "number": 8,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "和同学讨论课堂笔记",
+          "en": "Discussing Lecture Notes with a Classmate"
+        }
+      }
+    ]
+  },
+  {
+    "number": 9,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在图书馆寻求研究帮助",
+          "en": "Library: Asking for Research Help"
+        }
+      }
+    ]
+  },
+  {
+    "number": 10,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在杂货店询问商品",
+          "en": "Grocery Shopping: Asking for an Item"
+        }
+      }
+    ]
+  },
+  {
+    "number": 11,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "投诉商品问题",
+          "en": "Making a Complaint - Faulty Product"
+        }
+      }
+    ]
+  },
+  {
+    "number": 12,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在机场办理登机手续",
+          "en": "Airport: At the Check-in Desk"
+        }
+      }
+    ]
+  },
+  {
+    "number": 13,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "问路",
+          "en": "作为游客"
+        }
+      }
+    ]
+  },
+  {
+    "number": 14,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "闲聊天气",
+          "en": "Making Small Talk - Weather"
+        }
+      }
+    ]
+  },
+  {
+    "number": 15,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "邀请某人",
+          "en": "例如喝咖啡"
+        }
+      }
+    ]
+  },
+  {
+    "number": 16,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "解释技术问题",
+          "en": "Explaining a Technical Problem"
+        }
+      }
+    ]
+  },
+  {
+    "number": 17,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "参与头脑风暴会议",
+          "en": "Participating in a Brainstorming Session"
+        }
+      }
+    ]
+  },
+  {
+    "number": 18,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在课堂上做简短演示",
+          "en": "Giving a Short Presentation in Class"
+        }
+      }
+    ]
+  },
+  {
+    "number": 19,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "加入大学社团",
+          "en": "Joining a University Club"
+        }
+      }
+    ]
+  },
+  {
+    "number": 20,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在邮局寄包裹",
+          "en": "At the Post Office: Mailing a Package"
+        }
+      }
+    ]
+  },
+  {
+    "number": 21,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在理发店/美发沙龙",
+          "en": "At the Hairdresser/Barber"
+        }
+      }
+    ]
+  },
+  {
+    "number": 22,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "办理酒店退房",
+          "en": "Hotel: Checking Out"
+        }
+      }
+    ]
+  },
+  {
+    "number": 23,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在旅行中餐厅点餐",
+          "en": "询问当地特色菜"
+        }
+      }
+    ]
+  },
+  {
+    "number": 24,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "祝贺他人",
+          "en": "Congratulating Someone"
+        }
+      }
+    ]
+  },
+  {
+    "number": 25,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "请求帮助",
+          "en": "Asking for a Favor"
+        }
+      }
+    ]
+  },
+  {
+    "number": 26,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "讨论紧张的截止日期",
+          "en": "Discussing a Tight Deadline"
+        }
+      }
+    ]
+  },
+  {
+    "number": 27,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在活动中建立人脉",
+          "en": "Networking at an Event"
+        }
+      }
+    ]
+  },
+  {
+    "number": 28,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "教授答疑时间",
+          "en": "讨论作业困难"
+        }
+      }
+    ]
+  },
+  {
+    "number": 29,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "和同学讨论考试成绩",
+          "en": "Discussing Exam Results with a Classmate"
+        }
+      }
+    ]
+  },
+  {
+    "number": 30,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "去咖啡店",
+          "en": "Going to a Coffee Shop"
+        }
+      }
+    ]
+  },
+  {
+    "number": 31,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "退货",
+          "en": "Returning an Item to a Store"
+        }
+      }
+    ]
+  },
+  {
+    "number": 32,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在机场过安检",
+          "en": "Airport: Going Through Security"
+        }
+      }
+    ]
+  },
+  {
+    "number": 33,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在酒店索要物品",
+          "en": "例如: 额外毛巾, Wi-Fi密码"
+        }
+      }
+    ]
+  },
+  {
+    "number": 34,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "接受邀请",
+          "en": "更具体的例子"
+        }
+      }
+    ]
+  },
+  {
+    "number": 35,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "礼貌地拒绝邀请",
+          "en": "更具体的例子"
+        }
+      }
+    ]
+  },
+  {
+    "number": 36,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "请假",
+          "en": "Asking for Leave"
+        }
+      }
+    ]
+  },
+  {
+    "number": 37,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "工作面试",
+          "en": "应聘者视角"
+        }
+      }
+    ]
+  },
+  {
+    "number": 38,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在图书馆借书",
+          "en": "Library: Checking Out Books"
+        }
+      }
+    ]
+  },
+  {
+    "number": 39,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "注册课程",
+          "en": "Enrolling in a Course"
+        }
+      }
+    ]
+  },
+  {
+    "number": 40,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "谈论爱好",
+          "en": "Talking About Hobbies"
+        }
+      }
+    ]
+  },
+  {
+    "number": 41,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在火车站买票",
+          "en": "At the Train Station: Buying a Ticket"
+        }
+      }
+    ]
+  },
+  {
+    "number": 42,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "乘坐出租车",
+          "en": "例如: 去机场/酒店"
+        }
+      }
+    ]
+  },
+  {
+    "number": 43,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "兑换货币",
+          "en": "Exchanging Currency"
+        }
+      }
+    ]
+  },
+  {
+    "number": 44,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "道歉",
+          "en": "社交场合"
+        }
+      }
+    ]
+  },
+  {
+    "number": 45,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "和老朋友叙旧",
+          "en": "Catching Up with an Old Friend"
+        }
+      }
+    ]
+  },
+  {
+    "number": 46,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "欢迎新同事",
+          "en": "Welcoming a New Colleague"
+        }
+      }
+    ]
+  },
+  {
+    "number": 47,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "向其他部门索取信息",
+          "en": "Requesting Information from Another Department"
+        }
+      }
+    ]
+  },
+  {
+    "number": 48,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在校园问路",
+          "en": "Asking for Directions on Campus"
+        }
+      }
+    ]
+  },
+  {
+    "number": 49,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "教授答疑时间",
+          "en": "请求延期"
+        }
+      }
+    ]
+  },
+  {
+    "number": 50,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "和朋友安排聚会",
+          "en": "Arranging a Get-Together with Friends"
+        }
+      }
+    ]
+  },
+  {
+    "number": 51,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "和邻居互动",
+          "en": "借东西"
+        }
+      }
+    ]
+  },
+  {
+    "number": 52,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "购买纪念品",
+          "en": "Shopping for Souvenirs"
+        }
+      }
+    ]
+  },
+  {
+    "number": 53,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "处理行李丢失",
+          "en": "Dealing with Lost Luggage"
+        }
+      }
+    ]
+  },
+  {
+    "number": 54,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "提供帮助",
+          "en": "Offering Help to Someone"
+        }
+      }
+    ]
+  },
+  {
+    "number": 55,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "谈论家庭",
+          "en": "Talking About Family"
+        }
+      }
+    ]
+  },
+  {
+    "number": 56,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "给予指示",
+          "en": "例如：给实习生或新团队成员"
+        }
+      }
+    ]
+  },
+  {
+    "number": 57,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "分派任务",
+          "en": "Delegating a Task"
+        }
+      }
+    ]
+  },
+  {
+    "number": 58,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "讨论小组项目进展",
+          "en": "Discussing Group Project Progress"
+        }
+      }
+    ]
+  },
+  {
+    "number": 59,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "请教授写推荐信",
+          "en": "Asking a Professor for a Letter of Recommendation"
+        }
+      }
+    ]
+  },
+  {
+    "number": 60,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在药店",
+          "en": "取药/咨询"
+        }
+      }
+    ]
+  },
+  {
+    "number": 61,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "和房东/邻居谈论问题",
+          "en": "例如: 噪音, 维修"
+        }
+      }
+    ]
+  },
+  {
+    "number": 62,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "理解公共交通广播",
+          "en": "在新城市"
+        }
+      }
+    ]
+  },
+  {
+    "number": 63,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "预订旅游团",
+          "en": "Booking a Tour"
+        }
+      }
+    ]
+  },
+  {
+    "number": 64,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "给予和接受赞美",
+          "en": "Giving and Receiving Compliments"
+        }
+      }
+    ]
+  },
+  {
+    "number": 65,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "讨论新闻或时事",
+          "en": "轻松地"
+        }
+      }
+    ]
+  },
+  {
+    "number": 66,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "为工作中的错误道歉",
+          "en": "Apologizing for a Mistake at Work"
+        }
+      }
+    ]
+  },
+  {
+    "number": 67,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "处理顾客投诉",
+          "en": "在服务台/商店当面"
+        }
+      }
+    ]
+  },
+  {
+    "number": 68,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "向朋友借课堂材料",
+          "en": "Borrowing Class Materials from a Friend"
+        }
+      }
+    ]
+  },
+  {
+    "number": 69,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "找学习伙伴",
+          "en": "Finding a Study Partner"
+        }
+      }
+    ]
+  },
+  {
+    "number": 70,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "支付账单",
+          "en": "例如: 水电费, 网上缴费"
+        }
+      }
+    ]
+  },
+  {
+    "number": 71,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在宠物医院",
+          "en": "At the Vet"
+        }
+      }
+    ]
+  },
+  {
+    "number": 72,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "入住爱彼迎",
+          "en": "Checking into an Airbnb"
+        }
+      }
+    ]
+  },
+  {
+    "number": 73,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "询问当地习俗/礼仪",
+          "en": "Asking about Local Customs/Etiquette"
+        }
+      }
+    ]
+  },
+  {
+    "number": 74,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "礼貌地结束对话",
+          "en": "时间紧张时"
+        }
+      }
+    ]
+  },
+  {
+    "number": 75,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "分享好消息/坏消息",
+          "en": "Sharing Good News/Bad News"
+        }
+      }
+    ]
+  },
+  {
+    "number": 76,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "绩效评估",
+          "en": "经理视角，给予反馈"
+        }
+      }
+    ]
+  },
+  {
+    "number": 77,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "参加视频会议",
+          "en": "礼仪, 技术问题"
+        }
+      }
+    ]
+  },
+  {
+    "number": 78,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "和教授预约见面",
+          "en": "Making an Appointment with a Professor"
+        }
+      }
+    ]
+  },
+  {
+    "number": 79,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "对作业给予同学反馈",
+          "en": "Giving Peer Feedback on an Assignment"
+        }
+      }
+    ]
+  },
+  {
+    "number": 80,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "处理小意外",
+          "en": "例如: 丢失钥匙, 家中轻伤"
+        }
+      }
+    ]
+  },
+  {
+    "number": 81,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "使用自助洗衣店",
+          "en": "Using a Launderette/Laundromat"
+        }
+      }
+    ]
+  },
+  {
+    "number": 82,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "理解导游的讲解",
+          "en": "Understanding a Tour Guide"
+        }
+      }
+    ]
+  },
+  {
+    "number": 83,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "过陆路边境",
+          "en": "At a Border Crossing - Land"
+        }
+      }
+    ]
+  },
+  {
+    "number": 84,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "安排孩子们的玩乐约会",
+          "en": "Arranging a Playdate - for parents"
+        }
+      }
+    ]
+  },
+  {
+    "number": 85,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "回复邀请",
+          "en": "书面, 例如: 邮件/短信"
+        }
+      }
+    ]
+  },
+  {
+    "number": 86,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "工作面试",
+          "en": "面试官视角"
+        }
+      }
+    ]
+  },
+  {
+    "number": 87,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "跟进任务或请求",
+          "en": "Following Up on a Task or Request"
+        }
+      }
+    ]
+  },
+  {
+    "number": 88,
+    "title": {
+      "zh": "工作",
+      "en": "Work"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "辞职",
+          "en": "Resigning from a Job"
+        }
+      }
+    ]
+  },
+  {
+    "number": 89,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "参与课堂辩论",
+          "en": "Participating in a Classroom Debate"
+        }
+      }
+    ]
+  },
+  {
+    "number": 90,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "使用大学设施",
+          "en": "例如: 健身房, 电脑室"
+        }
+      }
+    ]
+  },
+  {
+    "number": 91,
+    "title": {
+      "zh": "学习",
+      "en": "Study"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "向教授/导师寻求职业建议",
+          "en": "Seeking Career Advice from a Professor/Advisor"
+        }
+      }
+    ]
+  },
+  {
+    "number": 92,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "报失或拾物",
+          "en": "非行李"
+        }
+      }
+    ]
+  },
+  {
+    "number": 93,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "讨论家务活",
+          "en": "Discussing Household Chores"
+        }
+      }
+    ]
+  },
+  {
+    "number": 94,
+    "title": {
+      "zh": "生活",
+      "en": "Daily Life"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "预约",
+          "en": "例如: 牙医, 沙龙 - 医生预约已涵盖"
+        }
+      }
+    ]
+  },
+  {
+    "number": 95,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "在酒店点客房送餐服务",
+          "en": "Hotel: Ordering Room Service"
+        }
+      }
+    ]
+  },
+  {
+    "number": 96,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "确认预订",
+          "en": "酒店, 旅游团"
+        }
+      }
+    ]
+  },
+  {
+    "number": 97,
+    "title": {
+      "zh": "旅游",
+      "en": "Travel"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "帮别人拍照 / 请别人帮忙拍照",
+          "en": "Taking a Photo for Someone / Asking Someone to Take a Photo"
+        }
+      }
+    ]
+  },
+  {
+    "number": 98,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "赠送和接受礼物",
+          "en": "Giving and Receiving Gifts"
+        }
+      }
+    ]
+  },
+  {
+    "number": 99,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "表达同情",
+          "en": "Expressing Sympathy"
+        }
+      }
+    ]
+  },
+  {
+    "number": 100,
+    "title": {
+      "zh": "交友",
+      "en": "Socializing"
+    },
+    "scenarios": [
+      {
+        "title": {
+          "zh": "策划惊喜派对",
+          "en": "Planning a Surprise Party"
+        }
+      }
+    ]
+  }
+]
