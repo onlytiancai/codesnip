@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>对话详情</title>
-  <link rel="stylesheet" href="/css/style.css">
-  <script src="/js/script.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/script.js"></script>
 </head>
 <body>
   <div class="container">
-    <a href="/" class="back-link">返回首页</a>
+    <a href="index.html" class="back-link">返回首页</a>
     <div id="dialogueContent">
       <!-- 对话内容将通过JavaScript动态加载 -->
     </div>
@@ -17,11 +17,15 @@
   
   <script>
     // 从URL获取对话编号
-    const pathParts = window.location.pathname.split('/');
-    const dialogueNumber = pathParts[pathParts.length - 1];
+    const urlParams = new URLSearchParams(window.location.search);
+    const dialogueNumber = urlParams.get('id');
+    
+    if (!dialogueNumber) {
+      window.location.href = 'index.html';
+    }
     
     // 加载对话详情
-    fetch(`/api/dialogue/${dialogueNumber}`)
+    fetch(`data/dialogue-${dialogueNumber}.json`)
       .then(response => response.json())
       .then(data => {
         const contentDiv = document.getElementById('dialogueContent');
@@ -83,7 +87,13 @@
         // 内容加载完成后绑定点击事件
         bindTranslationToggle();
       })
-      .catch(error => console.error('Error loading dialogue:', error));
+      .catch(error => {
+        console.error('Error loading dialogue:', error);
+        document.getElementById('dialogueContent').innerHTML = `
+          <h2>加载失败</h2>
+          <p>无法加载对话内容，请返回<a href="index.html">首页</a>重试。</p>
+        `;
+      });
   </script>
 </body>
 </html>

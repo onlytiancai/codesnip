@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>英语对话集</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div class="container">
@@ -27,7 +27,7 @@
   
   <script>
     // 加载对话列表
-    fetch('/api/index')
+    fetch('data/index.json')
       .then(response => response.json())
       .then(data => {
         // 提取所有唯一的类别
@@ -103,7 +103,7 @@
       const li = document.createElement('li');
       li.className = 'dialogue-item';
       li.onclick = function() {
-        window.location.href = `/detail/${item.number}`;
+        window.location.href = `detail.html?id=${item.number}`;
       };
       
       const titleDiv = document.createElement('div');
