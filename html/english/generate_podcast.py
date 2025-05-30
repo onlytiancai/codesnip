@@ -7,6 +7,8 @@ from pathlib import Path
 import contextlib
 import wave
 from google.genai import types
+from pydub import AudioSegment
+from pydub.utils import which
 
 
 @contextlib.contextmanager
@@ -35,6 +37,9 @@ def generate_podcast_from_dialogue(json_file_path, output_audio_path=None):
     Returns:
         str: Path to the generated audio file
     """
+    # Set ffmpeg path
+    AudioSegment.converter = r"D:\haohu\soft\ffmpeg\bin\ffmpeg.exe"
+    
     # Load environment variables
     load_dotenv()
     
@@ -125,7 +130,13 @@ def generate_podcast_from_dialogue(json_file_path, output_audio_path=None):
 
             save_audio_blob(str(output_audio_path), response)
             
+            # Convert WAV to MP3
+            mp3_path = str(output_audio_path).replace('.wav', '.mp3')
+            audio = AudioSegment.from_wav(str(output_audio_path))
+            audio.export(mp3_path, format="mp3")
+            
             print(f"Generated podcast saved to: {output_audio_path}")
+            print(f"MP3 version saved to: {mp3_path}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate podcast from dialogue JSON")
