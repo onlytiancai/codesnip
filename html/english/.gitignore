@@ -1,2 +1,4 @@
 dialogues/*
 json_dialogues/*
+.env
+*.wav
