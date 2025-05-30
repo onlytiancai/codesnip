@@ -87,10 +87,12 @@ def generate_podcast_from_dialogue(json_file_path, output_audio_path=None):
     # Process each scenario and dialogue
     for i, scenario in enumerate(dialogue_data.get('scenarios', [])):
         scenario_title = scenario.get('title', {}).get('en', 'Untitled Scenario')
+        print(f"Processing scenario: {i} {scenario_title}")
         
         for j,dialogue in enumerate(scenario.get('dialogues', [])):
             output_audio_path = output_dir / f"dialogue_{dialogue_number}_{i}_{j}_podcast.wav"
             dialogue_title = dialogue.get('title', 'Untitled Dialogue')
+            print(f"Processing dialogue: {j} {dialogue_title}")
             
             # Format the script for TTS
             script_lines = []
@@ -124,7 +126,6 @@ def generate_podcast_from_dialogue(json_file_path, output_audio_path=None):
             save_audio_blob(str(output_audio_path), response)
             
             print(f"Generated podcast saved to: {output_audio_path}")
-            return str(output_audio_path)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate podcast from dialogue JSON")
