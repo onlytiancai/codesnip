@@ -107,6 +107,17 @@ h3 {
   border-radius: 5px;
 }
 
+.dialogue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.dialogue-audio {
+  max-width: 300px;
+}
+
 .exchange {
   margin-bottom: 15px;
   padding-bottom: 10px;

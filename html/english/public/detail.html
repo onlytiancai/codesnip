@@ -39,7 +39,7 @@
         contentDiv.appendChild(title);
         
         // 遍历所有场景
-        data.scenarios.forEach(scenario => {
+        data.scenarios.forEach((scenario, scenarioIndex) => {
           const scenarioSection = document.createElement('section');
           scenarioSection.className = 'scenario';
           
@@ -48,13 +48,32 @@
           scenarioSection.appendChild(scenarioTitle);
           
           // 遍历所有对话
-          scenario.dialogues.forEach(dialogue => {
+          scenario.dialogues.forEach((dialogue, dialogueIndex) => {
             const dialogueDiv = document.createElement('div');
             dialogueDiv.className = 'dialogue';
             
+            const dialogueHeader = document.createElement('div');
+            dialogueHeader.className = 'dialogue-header';
+            
             const dialogueTitle = document.createElement('h3');
             dialogueTitle.textContent = dialogue.title;
-            dialogueDiv.appendChild(dialogueTitle);
+            dialogueHeader.appendChild(dialogueTitle);
+            
+            // 添加音频播放器
+            const audioPath = `generated_podcasts/dialogue_${data.number}_${scenarioIndex}_${dialogueIndex}_podcast.mp3`;
+            const audioPlayer = document.createElement('audio');
+            audioPlayer.controls = true;
+            audioPlayer.className = 'dialogue-audio';
+            
+            const audioSource = document.createElement('source');
+            audioSource.src = audioPath;
+            audioSource.type = 'audio/mpeg';
+            
+            audioPlayer.appendChild(audioSource);
+            audioPlayer.innerHTML += '您的浏览器不支持音频播放';
+            
+            dialogueHeader.appendChild(audioPlayer);
+            dialogueDiv.appendChild(dialogueHeader);
             
             const exchangesDiv = document.createElement('div');
             exchangesDiv.className = 'exchanges';
@@ -94,6 +113,14 @@
           <p>无法加载对话内容，请返回<a href="index.html">首页</a>重试。</p>
         `;
       });
+      
+    // 处理音频加载错误
+    document.addEventListener('error', function(e) {
+      if (e.target.tagName === 'AUDIO' || e.target.tagName === 'SOURCE') {
+        const audio = e.target.tagName === 'SOURCE' ? e.target.parentNode : e.target;
+        audio.style.display = 'none';
+      }
+    }, true);
   </script>
 </body>
 </html>
