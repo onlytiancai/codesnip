@@ -38,3 +38,7 @@ from generate_podcast import generate_podcast_from_dialogue
 # Generate podcast from a dialogue file
 audio_path = generate_podcast_from_dialogue("public/data/dialogue-1.json")
 ```
+
+- https://ai.google.dev/gemini-api/docs?hl=zh-cn
+- https://aistudio.google.com/prompts/new_chat
+- https://aistudio.google.com/usage

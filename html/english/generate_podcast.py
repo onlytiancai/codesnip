@@ -59,7 +59,7 @@ def generate_podcast_from_dialogue(json_file_path, output_audio_path=None):
     
     # If output path not specified, create one based on dialogue number
     if not output_audio_path:
-        output_dir = Path("generated_podcasts")
+        output_dir = Path("public") / Path("generated_podcasts")
         output_dir.mkdir(exist_ok=True)
 
 
@@ -134,6 +134,8 @@ def generate_podcast_from_dialogue(json_file_path, output_audio_path=None):
             mp3_path = str(output_audio_path).replace('.wav', '.mp3')
             audio = AudioSegment.from_wav(str(output_audio_path))
             audio.export(mp3_path, format="mp3")
+            # Delete original WAV file after MP3 conversion
+            os.remove(str(output_audio_path))
             
             print(f"Generated podcast saved to: {output_audio_path}")
             print(f"MP3 version saved to: {mp3_path}")
