@@ -108,14 +108,12 @@ h3 {
 }
 
 .dialogue-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 15px;
 }
 
 .dialogue-audio {
-  max-width: 300px;
+  width: 100%;
+  margin-top: 10px;
 }
 
 .exchange {

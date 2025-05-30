@@ -65,6 +65,15 @@
             audioPlayer.controls = true;
             audioPlayer.className = 'dialogue-audio';
             
+            // 添加播放事件监听，确保只有一个音频在播放
+            audioPlayer.addEventListener('play', function() {
+              document.querySelectorAll('audio').forEach(audio => {
+                if (audio !== this && !audio.paused) {
+                  audio.pause();
+                }
+              });
+            });
+            
             const audioSource = document.createElement('source');
             audioSource.src = audioPath;
             audioSource.type = 'audio/mpeg';
