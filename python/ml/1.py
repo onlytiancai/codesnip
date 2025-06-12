@@ -34,6 +34,13 @@ class SimpleNN:
         """Sigmoid 激活函数的导数"""
         return x * (1 - x)
 
+    # 添加 ReLU 激活函数
+    def relu(self, x):
+        return np.maximum(0, x)
+
+    def relu_derivative(self, x):
+        return (x > 0).astype(float) # 当 x > 0 时为 1，否则为 0
+
     def forward(self, X):
         """
         前向传播。
@@ -46,7 +53,7 @@ class SimpleNN:
         """
         # 隐藏层计算
         self.z1 = np.dot(X, self.W1) + self.b1
-        self.a1 = self.sigmoid(self.z1)
+        self.a1 = self.relu(self.z1) # 使用 ReLU
 
         # 输出层计算
         self.z2 = np.dot(self.a1, self.W2) + self.b2
@@ -71,7 +78,7 @@ class SimpleNN:
 
         # 计算隐藏层的误差
         self.hidden_error = np.dot(self.output_delta, self.W2.T)
-        self.hidden_delta = self.hidden_error * self.sigmoid_derivative(self.a1)
+        self.hidden_delta = self.hidden_error * self.relu_derivative(self.a1) # 使用 ReLU 导数
 
         # 更新权重和偏置
         # 权重更新：学习率 * (输入层输出的转置 . 误差项)
@@ -134,7 +141,7 @@ if __name__ == "__main__":
     input_size = 2      # 输入层神经元数量 (XOR 有两个输入)
     hidden_size = 4     # 隐藏层神经元数量 (可以尝试不同值)
     output_size = 1     # 输出层神经元数量 (XOR 有一个输出)
-    learning_rate = 0.5 # 学习率
+    learning_rate = 0.1 # 学习率
 
     nn = SimpleNN(input_size, hidden_size, output_size, learning_rate)
 
