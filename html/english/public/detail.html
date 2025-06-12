@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>对话详情</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/script.js"></script>
+</head>
+<body>
+  <div class="container">
+    <a href="index.html" class="back-link">返回首页</a>
+    <div id="dialogueContent">
+      <!-- 对话内容将通过JavaScript动态加载 -->
+    </div>
+  </div>
+  
+  <script>
+    // 从URL获取对话编号
+    const urlParams = new URLSearchParams(window.location.search);
+    const dialogueNumber = urlParams.get('id');
+    
+    if (!dialogueNumber) {
+      window.location.href = 'index.html';
+    }
+    
+    // 加载对话详情
+    fetch(`data/dialogue-${dialogueNumber}.json`)
+      .then(response => response.json())
+      .then(data => {
+        const contentDiv = document.getElementById('dialogueContent');
+        
+        // 设置标题
+        document.title = `${data.number}. ${data.category.zh} (${data.category.en})`;
+        
+        // 创建标题
+        const title = document.createElement('h1');
+        title.textContent = `${data.number}. ${data.category.zh} (${data.category.en})`;
+        contentDiv.appendChild(title);
+        
+        // 遍历所有场景
+        data.scenarios.forEach((scenario, scenarioIndex) => {
+          const scenarioSection = document.createElement('section');
+          scenarioSection.className = 'scenario';
+          
+          const scenarioTitle = document.createElement('h2');
+          scenarioTitle.textContent = `场景 (Scenario): ${scenario.title.zh} (${scenario.title.en})`;
+          scenarioSection.appendChild(scenarioTitle);
+          
+          // 遍历所有对话
+          scenario.dialogues.forEach((dialogue, dialogueIndex) => {
+            const dialogueDiv = document.createElement('div');
+            dialogueDiv.className = 'dialogue';
+            
+            const dialogueHeader = document.createElement('div');
+            dialogueHeader.className = 'dialogue-header';
+            
+            const dialogueTitle = document.createElement('h3');
+            dialogueTitle.textContent = dialogue.title;
+            dialogueHeader.appendChild(dialogueTitle);
+            
+            // 添加音频播放器
+            const audioPath = `generated_podcasts/dialogue_${data.number}_${scenarioIndex}_${dialogueIndex}_podcast.mp3`;
+            const audioPlayer = document.createElement('audio');
+            audioPlayer.controls = true;
+            audioPlayer.className = 'dialogue-audio';
+            
+            // 添加播放事件监听，确保只有一个音频在播放
+            audioPlayer.addEventListener('play', function() {
+              document.querySelectorAll('audio').forEach(audio => {
+                if (audio !== this && !audio.paused) {
+                  audio.pause();
+                }
+              });
+            });
+            
+            const audioSource = document.createElement('source');
+            audioSource.src = audioPath;
+            audioSource.type = 'audio/mpeg';
+            
+            audioPlayer.appendChild(audioSource);
+            audioPlayer.innerHTML += '您的浏览器不支持音频播放';
+            
+            dialogueHeader.appendChild(audioPlayer);
+            dialogueDiv.appendChild(dialogueHeader);
+            
+            const exchangesDiv = document.createElement('div');
+            exchangesDiv.className = 'exchanges';
+            
+            // 遍历所有对话内容
+            dialogue.exchanges.forEach(exchange => {
+              const exchangeDiv = document.createElement('div');
+              exchangeDiv.className = 'exchange';
+              
+              const englishDiv = document.createElement('div');
+              englishDiv.className = 'english';
+              englishDiv.innerHTML = `<strong>${exchange.speaker}:</strong> ${exchange.text}`;
+              
+              const chineseDiv = document.createElement('div');
+              chineseDiv.className = 'chinese';
+              chineseDiv.innerHTML = `<strong>${exchange.speaker_cn}:</strong> ${exchange.translation}`;
+              
+              exchangeDiv.appendChild(englishDiv);
+              exchangeDiv.appendChild(chineseDiv);
+              exchangesDiv.appendChild(exchangeDiv);
+            });
+            
+            dialogueDiv.appendChild(exchangesDiv);
+            scenarioSection.appendChild(dialogueDiv);
+          });
+          
+          contentDiv.appendChild(scenarioSection);
+        });
+        
+        // 内容加载完成后绑定点击事件
+        bindTranslationToggle();
+      })
+      .catch(error => {
+        console.error('Error loading dialogue:', error);
+        document.getElementById('dialogueContent').innerHTML = `
+          <h2>加载失败</h2>
+          <p>无法加载对话内容，请返回<a href="index.html">首页</a>重试。</p>
+        `;
+      });
+      
+    // 处理音频加载错误
+    document.addEventListener('error', function(e) {
+      if (e.target.tagName === 'AUDIO' || e.target.tagName === 'SOURCE') {
+        const audio = e.target.tagName === 'SOURCE' ? e.target.parentNode : e.target;
+        audio.style.display = 'none';
+      }
+    }, true);
+  </script>
+</body>
+</html>

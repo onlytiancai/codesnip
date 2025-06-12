@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>英语对话集</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>英语对话集 (English Dialogues)</h1>
+    
+    <div class="tabs" id="categoryTabs">
+      <!-- 标签页将通过JavaScript动态加载 -->
+      <div class="tab active" data-category="all">全部</div>
+    </div>
+    
+    <div class="tab-contents">
+      <div class="tab-content active" id="all">
+        <ul class="dialogue-list" id="allDialogueList">
+          <!-- 全部对话列表将通过JavaScript动态加载 -->
+        </ul>
+      </div>
+      <!-- 其他标签内容将通过JavaScript动态加载 -->
+    </div>
+  </div>
+  
+  <script>
+    // 加载对话列表
+    fetch('data/index.json')
+      .then(response => response.json())
+      .then(data => {
+        // 提取所有唯一的类别
+        const categories = new Set();
+        data.forEach(item => {
+          if (item.title && item.title.en) {
+            categories.add(item.title.en);
+          }
+        });
+        
+        // 创建标签页
+        const tabsContainer = document.getElementById('categoryTabs');
+        const tabContents = document.querySelector('.tab-contents');
+        
+        // 为每个类别创建标签和内容区域
+        categories.forEach(category => {
+          // 创建标签
+          const tab = document.createElement('div');
+          tab.className = 'tab';
+          tab.setAttribute('data-category', category);
+          tab.textContent = category;
+          tabsContainer.appendChild(tab);
+          
+          // 创建内容区域
+          const content = document.createElement('div');
+          content.className = 'tab-content';
+          content.id = category;
+          
+          const list = document.createElement('ul');
+          list.className = 'dialogue-list';
+          list.id = `${category}DialogueList`;
+          content.appendChild(list);
+          
+          tabContents.appendChild(content);
+        });
+        
+        // 为所有标签添加点击事件
+        document.querySelectorAll('.tab').forEach(tab => {
+          tab.addEventListener('click', function() {
+            // 移除所有活动状态
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // 添加当前活动状态
+            this.classList.add('active');
+            const category = this.getAttribute('data-category');
+            document.getElementById(category === 'all' ? 'all' : category).classList.add('active');
+          });
+        });
+        
+        // 填充对话列表
+        const allList = document.getElementById('allDialogueList');
+        
+        data.forEach(item => {
+          // 创建对话项
+          const li = createDialogueItem(item);
+          allList.appendChild(li);
+          
+          // 添加到对应类别的列表中
+          if (item.title && item.title.en) {
+            const categoryList = document.getElementById(`${item.title.en}DialogueList`);
+            if (categoryList) {
+              const categoryLi = createDialogueItem(item);
+              categoryList.appendChild(categoryLi);
+            }
+          }
+        });
+      })
+      .catch(error => console.error('Error loading index:', error));
+    
+    // 创建对话项的辅助函数
+    function createDialogueItem(item) {
+      const li = document.createElement('li');
+      li.className = 'dialogue-item';
+      li.onclick = function() {
+        window.location.href = `detail.html?id=${item.number}`;
+      };
+      
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'dialogue-title';
+      titleDiv.textContent = `${item.number}. ${item.title.zh} (${item.title.en})`;
+      
+      const scenariosDiv = document.createElement('div');
+      scenariosDiv.className = 'dialogue-scenarios';
+      
+      const scenarioTexts = item.scenarios.map(scenario => 
+        `${scenario.title.zh} (${scenario.title.en})`
+      );
+      scenariosDiv.textContent = scenarioTexts.join(' | ');
+      
+      li.appendChild(titleDiv);
+      li.appendChild(scenariosDiv);
+      
+      return li;
+    }
+  </script>
+</body>
+</html>
