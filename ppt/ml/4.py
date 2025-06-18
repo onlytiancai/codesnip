@@ -264,7 +264,7 @@ if __name__ == "__main__":
     print(f"学习率变化: 初始值={step_history[0]:.4f}, 最终值={step_history[-1]:.4f}")
     
     # 可视化静态图，显示学习率变化
-    #visualize_gradient_descent(x_history, y_history, step_history)
+    visualize_gradient_descent(x_history, y_history, step_history)
     
     # 如果需要动画，取消下面的注释
-    animate_gradient_descent(x_history, y_history, step_history)
+    #animate_gradient_descent(x_history, y_history, step_history)

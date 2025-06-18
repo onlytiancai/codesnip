@@ -49,11 +49,11 @@ plt.scatter(x_data, y_data, label='原始数据点 (含噪声)', s=15, color='bl
 # 绘制拟合出的曲线
 x_fit = np.linspace(min(x_data), max(x_data), 100)
 y_fit = a_found * x_fit**2 + b_found * x_fit + c_found
-plt.plot(x_fit, y_fit, color='red', label=f'拟合曲线: y = {a_found:.2f}x^2 + {b_found:.2f}x + {c_found:.2f}', linewidth=2)
+# plt.plot(x_fit, y_fit, color='red', label=f'拟合曲线: y = {a_found:.2f}x^2 + {b_found:.2f}x + {c_found:.2f}', linewidth=2)
 
 # 绘制真实的原始曲线 (用于比较，实际应用中你不知道这个)
 y_true = true_a * x_fit**2 + true_b * x_fit + true_c
-plt.plot(x_fit, y_true, color='green', linestyle='--', label='真实函数 (无噪声)', linewidth=1)
+# plt.plot(x_fit, y_true, color='green', linestyle='--', label='真实函数 (无噪声)', linewidth=1)
 
 
 plt.title('一元二次函数拟合 (最小二乘法)')
