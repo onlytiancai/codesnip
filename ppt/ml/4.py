@@ -175,11 +175,12 @@ def animate_gradient_descent(x_history, y_history, step_history):
     x_range = np.linspace(x_min - x_margin, x_max + x_margin, 1000)
     y_range = target_function(x_range)
     
-    # 创建图形
+    # 创建图形，增加顶部边距
     fig, ax = plt.subplots(figsize=(12, 8))
+    plt.subplots_adjust(top=0.85)  # 增加顶部边距
     
     # 绘制函数曲线（固定不变的部分）
-    ax.plot(x_range, y_range, 'b-', linewidth=2, label='y = x² + sin(x)')
+    ax.plot(x_range, y_range, 'b-', linewidth=2, label='y = x^2 + sin(x)')
     ax.set_xlabel('x', fontsize=12)
     ax.set_ylabel('y', fontsize=12)
     ax.set_title('梯度下降动画演示', fontsize=14)
@@ -192,19 +193,19 @@ def animate_gradient_descent(x_history, y_history, step_history):
     v_line, = ax.plot([], [], 'r--', alpha=0.5)
     h_line, = ax.plot([], [], 'r--', alpha=0.5)
     
-    # 添加文本信息 - 放大字体
-    iteration_text = ax.text(0.02, 0.95, '', transform=ax.transAxes, fontsize=12, 
+    # 添加文本信息 - 放大字体并调整位置，避免被截断
+    iteration_text = ax.text(0.02, 0.85, '', transform=ax.transAxes, fontsize=12, 
                             bbox=dict(facecolor='white', alpha=0.7))
     
-    # 设置坐标轴范围 - 聚焦在迭代区域
+    # 设置坐标轴范围 - 聚焦在迭代区域，并留出足够空间显示文本
     ax.set_xlim(x_min - x_margin, x_max + x_margin)
-    ax.set_ylim(y_min - y_margin, y_max + y_margin)
+    ax.set_ylim(y_min - y_margin, y_max + y_margin * 1.2)
     
     # 添加网格线
     ax.grid(True, linestyle='--', alpha=0.6)
     
-    # 添加图例
-    ax.legend(fontsize=12)
+    # 添加图例，调整位置到右下角
+    ax.legend(fontsize=12, loc='lower right')
     
     def init():
         point.set_data([], [])
@@ -263,7 +264,7 @@ if __name__ == "__main__":
     print(f"学习率变化: 初始值={step_history[0]:.4f}, 最终值={step_history[-1]:.4f}")
     
     # 可视化静态图，显示学习率变化
-    visualize_gradient_descent(x_history, y_history, step_history)
+    #visualize_gradient_descent(x_history, y_history, step_history)
     
     # 如果需要动画，取消下面的注释
-    # animate_gradient_descent(x_history, y_history, step_history)
+    animate_gradient_descent(x_history, y_history, step_history)
