@@ -1,9 +1,13 @@
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 
-# 设置matplotlib支持中文的字体和负号显示
-matplotlib.rcParams['font.family'] = ['SimHei'] # 或者你系统支持的中文 C:\Windows\Fonts
+# matplotlib.rcParams['font.family'] = ['SimHei'] # 或者你系统支持的中文 C:\Windows\Fonts
+if sys.platform.startswith('win'):
+    matplotlib.rcParams['font.family'] = ['SimHei'] # Windows的中文字体
+elif sys.platform.startswith('darwin'):
+    matplotlib.rcParams['font.family'] = ['Arial Unicode MS'] # Mac的中文字体
 matplotlib.rcParams['axes.unicode_minus'] = False 
 
 # --- 1. 生成模拟数据 (实际应用中，这些是你的100个输入点) ---
