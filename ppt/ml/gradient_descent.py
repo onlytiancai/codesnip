@@ -1,11 +1,15 @@
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 import matplotlib
 
-# 设置matplotlib支持中文的字体和负号显示
-matplotlib.rcParams['font.family'] = ['SimHei']
+# matplotlib.rcParams['font.family'] = ['SimHei'] # 或者你系统支持的中文 C:\Windows\Fonts
+if sys.platform.startswith('win'):
+    matplotlib.rcParams['font.family'] = ['SimHei'] # Windows的中文字体
+elif sys.platform.startswith('darwin'):
+    matplotlib.rcParams['font.family'] = ['Arial Unicode MS'] # Mac的中文字体
 matplotlib.rcParams['axes.unicode_minus'] = False 
 
 # 定义目标函数 y = x² + sinx
@@ -34,9 +38,6 @@ def gradient_descent(initial_x, learning_rate=0.1, min_step=1e-6, max_iterations
             # 检查梯度方向是否变化
             if gradient * gradient_history[-1] < 0:
                 learning_rate *= 0.5
-            # 每5次迭代额外减小一次学习率，使变化更明显
-            elif iteration % 5 == 0:
-                learning_rate *= 0.9
         
         # 梯度下降更新位置
         new_x = x - learning_rate * gradient
@@ -53,6 +54,7 @@ def gradient_descent(initial_x, learning_rate=0.1, min_step=1e-6, max_iterations
             
         x = new_x
         iteration += 1
+        print(f"Iteration {iteration}: x = {x:.4f}, y = {target_function(x):.4f}, gradient = {gradient:.4f}, learning_rate = {learning_rate:.4f}")
     
     return x, target_function(x), x_history, y_history, step_history
 
@@ -264,7 +266,7 @@ if __name__ == "__main__":
     print(f"学习率变化: 初始值={step_history[0]:.4f}, 最终值={step_history[-1]:.4f}")
     
     # 可视化静态图，显示学习率变化
-    visualize_gradient_descent(x_history, y_history, step_history)
+    #visualize_gradient_descent(x_history, y_history, step_history)
     
     # 如果需要动画，取消下面的注释
     #animate_gradient_descent(x_history, y_history, step_history)

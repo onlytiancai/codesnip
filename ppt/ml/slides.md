@@ -17,6 +17,44 @@ transition: slide-left
 
 ---
 
+# 神经网络 Hello World：手写数字识别
+
+<img src="./images/digits.png" width="90%"> 
+
+---
+
+# 了解相关的库
+
+- numpy
+- matplotlib
+- sklearn
+
+---
+
+# 手写数字识别 
+
+digit_recognition.py
+
+```python
+# 1. 加载数据
+digits = load_digits()
+X, y = digits.data, digits.target
+
+# 2. 分割数据
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 3. 创建神经网络
+mlp = MLPClassifier(hidden_layer_sizes=(50,), max_iter=500, random_state=42)
+
+# 4. 训练模型
+mlp.fit(X_train, y_train)
+
+# 预测
+y_pred = mlp.predict(X_test)
+```
+<img src="./images/digit-predict.png" width="60%"> 
+---
+
 # 目录
 
 带着问题学习
@@ -154,9 +192,9 @@ layout: two-columns
 layout: two-columns
 ---
 
-# 没有导数怎么求极值
+# 梯度下降法
 
-没有原函数的解析式，也没有导数，只有原函数的一些数据点，如何求极值
+目标函数是个黑盒，不知道导数，只有目标函数生成的一些数据点，如何求极值？
 
 ::left::
 
@@ -172,6 +210,134 @@ layout: two-columns
 3. 根据梯度的方向选择下一个点的方向
 4. 根据梯度的斜率确定选择下一个点的步长（学习率）
 5. 迭代 2-4 步，直到梯度（绝对值）不再下降，或下降很小
+
+---
+layout: two-columns
+---
+
+# 梯度下降 `digit_recognition.py`
+
+::left::
+
+- 定义目标函数: $y = x² + sinx$
+- 计算函数在某点的导数（梯度）
+- 定义相关变量
+```python
+def target_function(x):
+    return x**2 + np.sin(x)
+
+def calculate_gradient(x, h=1e-6):
+    # 用数值差分法近似导数：f'(x) ≈ [f(x+h) - f(x)] / h
+    return (target_function(x + h) - target_function(x)) / h
+
+x = np.random.uniform(-5, 5) # 随机初始化一个点
+learning_rate=0.1            # 初始化一个步长，学习率
+min_step=1e-6                # 找到极值最小步长
+max_iterations=1000          # 最大迭代次数
+```
+::right::
+
+迭代过程
+
+```python
+for iteration in range(max_iterations):
+    # 计算当前点的梯度
+    # 动态调整学习率（步长）
+    # 梯度下降更新位置
+    # 检查是否收敛（步长足够小）
+```
+
+---
+
+# 梯度下降
+
+```python
+last_gradient = calculate_gradient(x)
+for iteration in range(max_iterations):        
+    gradient = calculate_gradient(x)     # 计算当前点的梯度
+            
+    if iteration > 0:                    # 动态调整学习率（步长）            
+        if gradient * last_gradient < 0: # 检查梯度方向是否变化
+            print(f"学习率变化：gradient={gradient:.4f}, last_gradient={last_gradient:.4f}",
+                    f"learning_rate={learning_rate}")
+            learning_rate *= 0.5
+            
+    new_x = x - learning_rate * gradient # 梯度下降更新位置           
+    if abs(new_x - x) < min_step:        # 检查是否收敛（步长足够小）
+        break
+        
+    x = new_x
+    last_gradient = gradient
+    print(f"Iteration {iteration}: x = {x:.4f}, y = {target_function(x):.4f}, "
+            f"gradient = {gradient:.4f}, learning_rate = {learning_rate:.4f}")
+    
+print(f"找到极值点: x = {x:.6f}, y = {target_function(x):.6f}, gradient = {gradient:.6f}")
+```
+
+---
+
+# 梯度下降，初始化一个较大的学习率
+
+初始 x 为 4， 学习率为 0.5
+
+- 梯度下降很快，迭代 9 次即可找到最优点
+- 迭代到第 2 次时，梯度由正转负，学习率从 0.5 下降到 0.25
+
+```
+随机初始点: x = 4.0000, y = 15.2432
+Iteration 0: x = 0.3268, y = 0.4278, gradient = 7.3464, learning_rate = 0.5000
+Iteration 1: x = -0.4735, y = -0.2318, gradient = 1.6007, learning_rate = 0.5000
+学习率变化：gradient=-0.0571, last_gradient=1.6007 learning_rate=0.5
+Iteration 2: x = -0.4593, y = -0.2324, gradient = -0.0571, learning_rate = 0.2500
+Iteration 3: x = -0.4537, y = -0.2325, gradient = -0.0221, learning_rate = 0.2500
+Iteration 4: x = -0.4516, y = -0.2325, gradient = -0.0086, learning_rate = 0.2500
+Iteration 5: x = -0.4507, y = -0.2325, gradient = -0.0034, learning_rate = 0.2500
+Iteration 6: x = -0.4504, y = -0.2325, gradient = -0.0013, learning_rate = 0.2500
+Iteration 7: x = -0.4503, y = -0.2325, gradient = -0.0005, learning_rate = 0.2500
+Iteration 8: x = -0.4502, y = -0.2325, gradient = -0.0002, learning_rate = 0.2500
+Iteration 9: x = -0.4502, y = -0.2325, gradient = -0.0001, learning_rate = 0.2500
+找到极值点: x = -0.450197, y = -0.232466, gradient = -0.000031
+```
+
+---
+
+# 梯度下降，初始化一个较小的学习率
+
+初始 x 为 4， 学习率为 0.1
+
+- 梯度下降很慢，迭代 45 次才找到最优点
+- 梯度符号始终为正，没有变号，学习率始终没有下降
+
+```
+随机初始点: x = 4.0000, y = 15.2432
+Iteration 0: x = 3.2654, y = 10.5391, gradient = 7.3464, learning_rate = 0.1000
+Iteration 1: x = 2.7115, y = 7.7693, gradient = 5.5384, learning_rate = 0.1000
+Iteration 2: x = 2.2601, y = 5.8798, gradient = 4.5141, learning_rate = 0.1000
+Iteration 3: x = 1.8717, y = 4.4583, gradient = 3.8842, learning_rate = 0.1000
+Iteration 4: x = 1.5270, y = 3.3307, gradient = 3.4470, learning_rate = 0.1000
+Iteration 5: x = 1.2172, y = 2.4197, gradient = 3.0978, learning_rate = 0.1000
+Iteration 6: x = 0.9391, y = 1.6890, gradient = 2.7807, learning_rate = 0.1000
+...
+Iteration 43: x = -0.4501, y = -0.2325, gradient = 0.0002, learning_rate = 0.1000
+Iteration 44: x = -0.4501, y = -0.2325, gradient = 0.0002, learning_rate = 0.1000
+Iteration 45: x = -0.4501, y = -0.2325, gradient = 0.0001, learning_rate = 0.1000
+找到极值点: x = -0.450145, y = -0.232466, gradient = 0.000096
+```
+---
+
+# 再次认识几个概念
+
+- 梯度：本质就是 x 增加一个微小值，y 变化的量
+  - 方向：如果 x 增加，y 增加，梯度是正值，说明是增函数
+  - 幅度：变化大（绝对值），说明曲线比较陡，变化小，说明曲线比较平缓
+- x 变化的方向：因为我们要找最小值，所以 x 应该向梯度的反方向变化
+- x 变化的幅度：学习率乘以梯度
+  - `new_x = x - learning_rate * gradient`
+- 什么时候停止？`abs(new_x - x) < min_step`
+  - x 变化很小的时候，x 的变化大小取决于梯度和学习率
+  - 学习率只有梯度变号时才会缩小，所以不是主要因素
+  - 梯度每次都会变化，所以是主要因素
+    - 最终就是梯度比较小，就是坡度比较平缓的时候，实际上就是导数接近 0 的时候
 
 ---
 layout: two-columns
