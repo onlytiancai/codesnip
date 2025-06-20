@@ -160,6 +160,52 @@ def visualize_gradient_descent(x_history, y_history, step_history):
     plt.tight_layout()
     plt.show()
 
+# 新增：在同一图表展示所有参数随迭代次数的变化
+def plot_iteration_metrics(x_history, y_history, step_history):
+    gradient_history = [calculate_gradient(x) for x in x_history]
+    iterations = range(len(x_history))
+    
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    # 创建多个y轴来显示不同量级的数据
+    ax2 = ax.twinx()
+    ax3 = ax.twinx()
+    ax4 = ax.twinx()
+    
+    # 调整右侧轴的位置
+    ax3.spines['right'].set_position(('outward', 60))
+    ax4.spines['right'].set_position(('outward', 120))
+    
+    # 绘制各条曲线
+    line1 = ax.plot(iterations, x_history, 'b-o', label='x值', markersize=4)
+    line2 = ax2.plot(iterations, y_history, 'r-s', label='y值', markersize=4)
+    line3 = ax3.plot(iterations, step_history, 'g-^', label='学习率', markersize=4)
+    line4 = ax4.plot(iterations, gradient_history, 'm-d', label='梯度', markersize=4)
+    
+    # 设置轴标签和颜色
+    ax.set_xlabel('迭代次数', fontsize=12)
+    ax.set_ylabel('x值', color='b', fontsize=12)
+    ax2.set_ylabel('y值', color='r', fontsize=12)
+    ax3.set_ylabel('学习率', color='g', fontsize=12)
+    ax4.set_ylabel('梯度', color='m', fontsize=12)
+    
+    # 设置轴颜色
+    ax.tick_params(axis='y', labelcolor='b')
+    ax2.tick_params(axis='y', labelcolor='r')
+    ax3.tick_params(axis='y', labelcolor='g')
+    ax4.tick_params(axis='y', labelcolor='m')
+    
+    # 合并所有图例
+    lines = line1 + line2 + line3 + line4
+    labels = [l.get_label() for l in lines]
+    ax.legend(lines, labels, loc='upper right')
+    
+    ax.set_title('梯度下降过程中各参数随迭代次数的变化', fontsize=14)
+    ax.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.show()
+
 # 使用动画可视化梯度下降过程
 def animate_gradient_descent(x_history, y_history, step_history):
     # 计算显示范围 - 只关注迭代区域
@@ -256,7 +302,7 @@ def animate_gradient_descent(x_history, y_history, step_history):
 # 运行梯度下降算法
 if __name__ == "__main__":
     # 使用随机初始点
-    initial_x = np.random.uniform(-5, 5)
+    initial_x = 4
     print(f"随机初始点: x = {initial_x:.4f}, y = {target_function(initial_x):.4f}")
     
     # 执行梯度下降，使用较大的学习率和适当的收敛阈值，确保有足够的迭代次数
@@ -269,7 +315,10 @@ if __name__ == "__main__":
     print(f"学习率变化: 初始值={step_history[0]:.4f}, 最终值={step_history[-1]:.4f}")
     
     # 可视化静态图，显示学习率变化
-    #visualize_gradient_descent(x_history, y_history, step_history)
+    # visualize_gradient_descent(x_history, y_history, step_history)
+    
+    # 新增：展示所有参数随迭代次数的变化
+    plot_iteration_metrics(x_history, y_history, step_history)
     
     # 如果需要动画，取消下面的注释
     #animate_gradient_descent(x_history, y_history, step_history)

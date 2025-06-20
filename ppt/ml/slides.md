@@ -82,23 +82,6 @@ $f(x) = x^2$：这是一个函数，当你输入 $x=2$ 时，输出 $f(2) = 2^2 
 
 <img src="./images/functions.png" width="75%"> 
 
----
-layout: two-columns
----
-
-# 多元函数
-
-多元函数 f(x,y) = x^2 + y^2 - 2*x*y
-
-::left::
-
-<img src="./images/function3d.png" width="70%"> 
-
-::right::
-
-- 输入参数有多个，或者参数是一个向量
-- 输出可以是一个向量，也可以是用一个标量值
-- 图像是 3D 的，或者更高维度
 
 ---
 layout: two-columns
@@ -121,15 +104,35 @@ layout: two-columns
 - 导函数和某个点的导数的区别
 
 ---
+layout: two-columns
+---
 
-# 多元函数的导数
+# 多元函数
 
-<img src="./images/gradient.png" width="90%"> 
+多元函数 f(x,y) = x^2 + y^2 - 2*x*y
+
+::left::
+
+<img src="./images/function3d.png" width="70%"> 
+
+::right::
+
+- 输入参数有多个，或者参数是一个向量
+- 输出可以是一个向量，也可以是用一个标量值
+- 图像是 3D 的，或者更高维度
+
+---
+
+
+# 多元函数的导数 `f(x,y) = x² + y² - 2xy`
+
+<img src="./images/gradient.png" width="70%"> 
 
 
 - 偏导数：多元函数在某一个变量方向上的导数
-- 梯度：表示一个多元函数在各个方向上的偏导数，是一个向量
-
+- 梯度：表示一个多元函数在各个方向上的偏导数，是一个向量，∇f = (2x-2y, 2y-2x)
+- 在点(1, 2)处: 函数值: f(1, 2) = 1 梯度: ∇f = (-2, 2) 梯度模长: |∇f| = 2.828
+- 等高线密集表示陡峭，等高线稀疏表示平缓
 ---
 layout: three-columns
 ---
@@ -220,7 +223,7 @@ layout: two-columns
 layout: two-columns
 ---
 
-# 梯度下降法
+# 梯度下降法求最小值(一元函数)
 
 目标函数是个黑盒，不知道导数，只有目标函数生成的一些数据点，如何求极值？
 
@@ -233,17 +236,19 @@ layout: two-columns
 
 ::right::
 
-1. 随机找到一个点
+1. 随机找到一个点（在定义域内）
 2. 用数值差分法求该点的近似导数（梯度）
 3. 根据梯度的方向选择下一个点的方向
-4. 根据梯度的斜率确定选择下一个点的步长（学习率）
-5. 迭代 2-4 步，直到梯度（绝对值）不再下降，或下降很小
+4. 确定步长系数（学习率），梯度变号后减半，防止连续震荡
+5. 迭代 2-4 步，直到步长几乎不再缩小
 
 ---
 layout: two-columns
 ---
 
-# 梯度下降 `digit_recognition.py`
+# 梯度下降，代码
+
+`digit_recognition.py`
 
 ::left::
 
@@ -270,27 +275,29 @@ max_iterations=1000          # 最大迭代次数
 ```python
 for iteration in range(max_iterations):
     # 计算当前点的梯度
-    # 动态调整学习率（步长）
+    # 动态调整学习率
     # 梯度下降更新位置
     # 检查是否收敛（步长足够小）
 ```
 
 ---
 
-# 梯度下降
+# 梯度下降，代码
+
+迭代过程
 
 ```python
 last_gradient = calculate_gradient(x)
 for iteration in range(max_iterations):        
     gradient = calculate_gradient(x)     # 计算当前点的梯度
             
-    if iteration > 0:                    # 动态调整学习率（步长）            
-        if gradient * last_gradient < 0: # 检查梯度方向是否变化
+    if iteration > 0:                    # 检查梯度方向是否变化，动态调整学习率        
+        if gradient * last_gradient < 0: 
             print(f"学习率变化：gradient={gradient:.4f}, last_gradient={last_gradient:.4f}",
                     f"learning_rate={learning_rate}")
             learning_rate *= 0.5
             
-    new_x = x - learning_rate * gradient # 梯度下降更新位置           
+    new_x = x - learning_rate * gradient # 梯度下降更新位置
     if abs(new_x - x) < min_step:        # 检查是否收敛（步长足够小）
         break
         
@@ -351,21 +358,59 @@ Iteration 44: x = -0.4501, y = -0.2325, gradient = 0.0002, learning_rate = 0.100
 Iteration 45: x = -0.4501, y = -0.2325, gradient = 0.0001, learning_rate = 0.1000
 找到极值点: x = -0.450145, y = -0.232466, gradient = 0.000096
 ```
+
 ---
 
-# 再次认识几个概念
+# 梯度下降，可视化
 
-- 梯度：本质就是 x 增加一个微小值，y 变化的量
-  - 方向：如果 x 增加，y 增加，梯度是正值，说明是增函数
-  - 幅度：变化大（绝对值），说明曲线比较陡，变化小，说明曲线比较平缓
-- x 变化的方向：因为我们要找最小值，所以 x 应该向梯度的反方向变化
-- x 变化的幅度：学习率乘以梯度
-  - `new_x = x - learning_rate * gradient`
-- 什么时候停止？`abs(new_x - x) < min_step`
-  - x 变化很小的时候，x 的变化大小取决于梯度和学习率
-  - 学习率只有梯度变号时才会缩小，所以不是主要因素
-  - 梯度每次都会变化，所以是主要因素
-    - 最终就是梯度比较小，就是坡度比较平缓的时候，实际上就是导数接近 0 的时候
+<img src="./images/gd-chart.png" width="90%"> 
+
+
+---
+
+# 小结，思考一下
+
+- x 变化的方向？梯度指向函数增长最快的方向，我们找最小值，所以要向相反方向移动
+- 移动步长为什么要考虑学习率? `new_x = x - learning_rate * gradient`
+  - 防止步长过大：如果直接用梯度更新 `new_x = x - gradient`，可能一步跳过最优点
+  - 控制收敛速度：合适的学习率让算法既不会收敛太慢，也不会震荡不收敛
+- 学习率变化必须考虑梯度大小吗？不能固定吗？
+  - 是的，绝对需要
+  - 梯度大：函数变化陡峭，需要小学习率防止跳过最优点
+  - 梯度小：函数变化平缓，可以用大学习率加速收敛
+- 学习率可以大于1吗？
+  - 学习率 > 1 意味着每次更新的步长比梯度本身还大
+  - 在梯度较大的陡峭区域，容易导致震荡或发散
+
+---
+
+# 小结，思考一下
+
+超参数学习率取值范围如何确定？
+
+- 经验法则：
+  - 通常在 [0.001, 1.0] 范围内
+  - 深度学习常用：0.01, 0.001, 0.0001
+  - 传统优化常用：0.1, 0.01
+- 确定方法：
+  - 网格搜索：尝试 [0.1, 0.01, 0.001] 等
+  - 学习率调度：从大到小逐步尝试
+  - 观察损失曲线：震荡说明太大，下降太慢说明太小
+- 自适应方法：AdaGrad，Adam，RMSprop
+
+
+---
+
+# 小结，思考一下
+
+什么时候停止迭代？`abs(new_x - x) < min_step`
+
+- 当 x 移动步长很小，绝对值接近 0 的时候，说明几乎无法移动 x 来降低函数值 y
+- x 的变化大小取决于梯度和学习率 `new_x = x - learning_rate * gradient`
+- 学习率只有梯度变号时才会缩小，所以不是主要因素
+- 梯度每次都会变化，所以是主要因素
+- 最终就是梯度比较小，就是坡度比较平缓的时候，实际上就是导数接近 0 的时候
+
 
 ---
 layout: two-columns
