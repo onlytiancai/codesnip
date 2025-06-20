@@ -246,7 +246,7 @@ layout: two-columns
 
 # 梯度下降法求最小值(一元函数)
 
-目标函数是个黑盒，不知道导数，只有目标函数生成的一些数据点，如何求极值？
+不需要知道目标函数及其导数的解析式，只能调用目标函数，如何求极值？
 
 ::left::
 
@@ -257,7 +257,7 @@ layout: two-columns
 
 ::right::
 
-1. 随机找到一个点（在定义域内）
+1. 随机选取一个点（在定义域内）
 2. 用数值差分法求该点的近似导数（梯度）
 3. 根据梯度的方向选择下一个点的方向
 4. 确定步长系数（学习率），梯度变号后减半，防止连续震荡
@@ -439,18 +439,80 @@ layout: two-columns
 
 # 回归，根据数据点拟合函数
 
-- 之前的梯度下降是，已知一个明确的函数 $y = x² + sinx$
-- 现在只知道函数的形式是 $f'(x) = ax^2 - bx + c$，以及一些数据点，求 a, b, c，这就叫回归
+- 之前的梯度下降算法有一个可调用的目标函数
+- 现在没有目标函数，只有一些数据点，但它看起来像一个二次函数曲线
+- 我们想用 $f(x) = ax^2 - bx + c$ 来拟合这些点，寻找最优的 a, b, c，这就叫回归
 
-::left::
+::left::  
 
 <img src="./images/data-sample.png" width="90%"> 
 
 ::right::
 
 - 没有导数，只有数据点
-- 定义误差函数，如均方误差 MSE
-- 验证误差函数的凹凸性以及是否有极值
-- 求误差函数的最小值
+- 定义误差函数（损失函数，代价函数）
+- 验证误差函数的平滑线，凹凸性，是否有极值
+  - 绝对值函数不平滑
+  - 误差平方函数，光滑可导，凸函数，有极值
+- 用梯度下降法求误差函数的最小值
 
 ---
+
+# 问题建模
+
+**1. 问题建模**
+
+用函数：$f(x) = ax^2 - bx + c$ 去拟合一组平面上的点：$(x_1, y_1),\ (x_2, y_2),\ \ldots,\ (x_n, y_n)$
+
+**2. 误差函数设计（Loss Function）**
+
+最常见的误差函数是**平方误差和（Mean Squared Error）**：
+
+$$
+L(a, b, c) = \frac{1}{n} \sum_{i=1}^{n} \left[ ax_i^2 - bx_i + c - y_i \right]^2
+$$
+
+这个函数衡量了拟合曲线与所有点之间的“偏差平方总和”。
+
+---
+
+# 问题建模 
+
+**3. 梯度计算**
+
+我们需要对 $L(a,b,c)$ 分别对 $a$、$b$、$c$ 求偏导
+
+
+$$
+\frac{\partial L}{\partial a} = \frac{2}{n} \sum_{i=1}^{n} \left( ax_i^2 - bx_i + c - y_i \right)x_i^2
+$$
+
+$$
+\frac{\partial L}{\partial b} = \frac{-2}{n} \sum_{i=1}^{n} \left( ax_i^2 - bx_i + c - y_i \right)x_i
+$$
+
+$$
+\frac{\partial L}{\partial c} = \frac{2}{n} \sum_{i=1}^{n} \left( ax_i^2 - bx_i + c - y_i \right)
+$$
+
+---
+
+# 问题建模 
+
+**4、梯度下降法（Gradient Descent）**
+
+使用以下更新规则迭代优化：
+
+$$
+a \gets a - \eta \cdot \frac{\partial L}{\partial a}
+$$
+
+$$
+b \gets b - \eta \cdot \frac{\partial L}{\partial b}
+$$
+
+$$
+c \gets c - \eta \cdot \frac{\partial L}{\partial c}
+$$
+
+其中 $\eta$ 是学习率。
