@@ -38,6 +38,9 @@ def gradient_descent(initial_x, learning_rate=0.1, min_step=1e-6, max_iterations
             # 检查梯度方向是否变化
             if gradient * gradient_history[-1] < 0:
                 learning_rate *= 0.5
+            # 每5次迭代额外减小一次学习率，使变化更明显
+            elif iteration % 5 == 0:
+                learning_rate *= 0.9
         
         # 梯度下降更新位置
         new_x = x - learning_rate * gradient
