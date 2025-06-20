@@ -218,7 +218,28 @@ layout: two-columns
 - $\sqrt{4.01} \approx 2 + 0.0025$
 - $\sqrt{4.01} \approx 2.0025$
 
+---
+layout: two-columns
+---
 
+# 求最小值 $y = x² + sinx$
+
+假设函数图像是处处连续，平滑，可导的
+
+::left::
+
+<img src="./images/sqr_sin.png" width="100%"> 
+
+::right::
+
+**证明有最小值**
+
+- 图像不是严格证明
+- 二阶导数曲线恒大于 0 ，说明是凸函数，至少可能有最小值
+  - sinx 的值在 -1 到 1 之间，$2-sin(x)$ 肯定大于 0 
+- 一阶导数曲线穿越 0 轴，说明可取 0 值，即肯定有最小值
+
+**求最小值**：令一阶导数等于 0，$2x + \cos x = 0$，得 $-0.5 \le x \le 0.5$
 ---
 layout: two-columns
 ---
@@ -308,6 +329,11 @@ for iteration in range(max_iterations):
     
 print(f"找到极值点: x = {x:.6f}, y = {target_function(x):.6f}, gradient = {gradient:.6f}")
 ```
+---
+
+# 梯度下降，可视化
+
+<img src="./images/gd-chart.png" width="90%"> 
 
 ---
 
@@ -359,11 +385,6 @@ Iteration 45: x = -0.4501, y = -0.2325, gradient = 0.0001, learning_rate = 0.100
 找到极值点: x = -0.450145, y = -0.232466, gradient = 0.000096
 ```
 
----
-
-# 梯度下降，可视化
-
-<img src="./images/gd-chart.png" width="90%"> 
 
 
 ---
@@ -416,9 +437,10 @@ Iteration 45: x = -0.4501, y = -0.2325, gradient = 0.0001, learning_rate = 0.100
 layout: two-columns
 ---
 
-# 根据数据求函数权重
+# 回归，根据数据点拟合函数
 
-已知函数 $f'(x) = ax^2 - bx + c$ 的一些数据点，求 a, b, c，然后就可以根据任意的输入 x ，预测到 y 了。
+- 之前的梯度下降是，已知一个明确的函数 $y = x² + sinx$
+- 现在只知道函数的形式是 $f'(x) = ax^2 - bx + c$，以及一些数据点，求 a, b, c，这就叫回归
 
 ::left::
 
