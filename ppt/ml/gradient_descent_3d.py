@@ -19,13 +19,14 @@ Y = 3 * X**2 + 2 * X + 1 + np.random.normal(0, 0.5, len(X))
 # 显示X和Y数据点
 plt.figure(figsize=(8, 6))
 plt.scatter(X, Y, color='blue', alpha=0.6, label='数据点')
-plt.plot(X, 3 * X**2 + 2 * X + 1, 'r-', label='真实函数: 3x² + 2x + 1')
+plt.plot(X, 3 * X**2 + 2 * X + 1, 'r-', label='真实函数: 3x^2 + 2x + 1')
 plt.xlabel('X')
 plt.ylabel('Y')
 plt.title('二次函数数据')
 plt.legend()
 plt.grid(True)
 plt.show()
+
 
 # 损失函数：对于 y = ax^2 + bx + c，只优化 a 和 b（固定 c=1）
 def loss_function(a, b):
@@ -51,11 +52,16 @@ a, b = 1.0, 0.0  # 初始参数
 lr = 0.01
 path = [(a, b, loss_function(a, b))]
 
-for _ in range(100):
+for i in range(100):
     da, db = compute_gradients(a, b)
     a -= lr * da
     b -= lr * db
-    path.append((a, b, loss_function(a, b)))
+    loss = loss_function(a, b)
+    print(f"i={i}, a={a:.4f}, b={b:.4f}, loss={loss:.4f}")
+    if loss < 0.5:
+        print(f"最优参数: a={a:.4f}, b={b:.4f}")
+        break
+    path.append((a, b, loss))
 
 path = np.array(path)
 

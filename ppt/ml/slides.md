@@ -445,7 +445,7 @@ layout: two-columns
 
 ::left::  
 
-<img src="./images/data-sample.png" width="90%"> 
+<img src="./images/data-sample.png" width="80%"> 
 
 ::right::
 
@@ -464,44 +464,103 @@ layout: two-columns
 
 **1. 问题建模：**
 
-用函数：$f(x) = ax^2 - bx + c$ 去拟合一组平面上的点：$(x_1, y_1),\ (x_2, y_2),\ \ldots,\ (x_n, y_n)$
+用函数：$f(x) = ax^2 + bx + c$ 去拟合一组平面上的点：$(x_1, y_1),\ (x_2, y_2),\ \ldots,\ (x_n, y_n)$
 
 **2. 误差函数设计：**（也叫损失函数，代价函数）
 
-平方误差和（Mean Squared Error），平滑可导，凸函数，有极值（绝对值误差和则不可以）。
+均方误差和（Mean Squared Error），平滑可导，凸函数，有极值（绝对值误差和则不可以）。
 
-设 $\hat{y}_i=ax_i^2 - bx_i + c, e_i=\hat{y}_i - y_i$，则$L(a, b, c) = \frac{1}{n} \sum_{i=1}^{n}e_i^2 =\frac{1}{n} \sum_{i=1}^{n} \left[ ax_i^2 - bx_i + c - y_i \right]^2$
+设 $\hat{y}_i=ax_i^2 + bx_i + c, e_i=\hat{y}_i - y_i$，则$L(a, b, c) = \frac{1}{n} \sum_{i=1}^{n}e_i^2 =\frac{1}{n} \sum_{i=1}^{n} \left[ ax_i^2 + bx_i + c - y_i \right]^2$
 
 **3. 分别对 $a$，$b$，$c$ 求偏导数**
 
 $\frac{\partial L}{\partial a}=\frac{\partial}{\partial a} \left( \frac{1}{n} \sum_{i=1}^n e_i^2 \right)=\frac{1}{n} \sum_{i=1}^n\frac{\partial}{\partial a} \left(e_i^2\right)= \frac{1}{n} \sum_{i=1}^n 2 e_i \cdot \frac{\partial e_i}{\partial a}$
 
-$e_i = ax_i^2 - bx_i + c - y_i \Rightarrow \frac{\partial e_i}{\partial a} = x_i^2$，所以$\frac{\partial L}{\partial a} = \frac{2}{n} \sum_{i=1}^n e_i x_i^2
-= \frac{2}{n} \sum_{i=1}^n (ax_i^2 - bx_i + c - y_i) x_i^2$
+$e_i = ax_i^2 + bx_i + c - y_i \Rightarrow \frac{\partial e_i}{\partial a} = x_i^2$，所以$\frac{\partial L}{\partial a} = \frac{2}{n} \sum_{i=1}^n e_i x_i^2
+= \frac{2}{n} \sum_{i=1}^n (ax_i^2 + bx_i + c - y_i) x_i^2$
 
-同理：$\frac{\partial L}{\partial b} = \frac{-2}{n} \sum_{i=1}^{n} \left( ax_i^2 - bx_i + c - y_i \right)x_i$，$\frac{\partial L}{\partial c} = \frac{2}{n} \sum_{i=1}^{n} \left( ax_i^2 - bx_i + c - y_i \right)$
+同理：$\frac{\partial L}{\partial b} = \frac{2}{n} \sum_{i=1}^{n} \left( ax_i^2 + bx_i + c - y_i \right)x_i$，$\frac{\partial L}{\partial c} = \frac{2}{n} \sum_{i=1}^{n} \left( ax_i^2 + bx_i + c - y_i \right)$
 
 **求导提示**：1. 链式求导法则 2. 导数运算是线性的，常数因子可提取 3. 和运算求导可先分别求导，再求和
 
 
 ---
+layout: two-columns
+---
 
-# 问题建模 
+## 梯度下降，代码
 
-**4、梯度下降法（Gradient Descent）**
+::left::
+生成数据点
 
-使用以下更新规则迭代优化：
+```python
+np.random.seed(42)
+X = np.linspace(-2, 2, 50)
+Y = 3 * X**2 + 2 * X + 1 + np.random.normal(0, 0.5, len(X))
+```
 
-$$
-a \gets a - \eta \cdot \frac{\partial L}{\partial a}
-$$
+定义损失函数，只优化 $a$ 和 $b$（固定 $c=1$）
 
-$$
-b \gets b - \eta \cdot \frac{\partial L}{\partial b}
-$$
+```python
+def loss_function(a, b):
+    y_pred = a * X**2 + b * X + 1
+    return np.mean((y_pred - Y)**2)
+```
 
-$$
-c \gets c - \eta \cdot \frac{\partial L}{\partial c}
-$$
+计算梯度
+```python
+def compute_gradients(a, b):
+    y_pred = a * X**2 + b * X + 1
+    error = y_pred - Y
+    da = 2 * np.mean(error * X**2)
+    db = 2 * np.mean(error * X)
+    return da, db
+```
+::right::
 
-其中 $\eta$ 是学习率。
+梯度下降
+```python
+a, b = 1.0, 0.0  # 初始参数
+lr = 0.01
+path = [(a, b, loss_function(a, b))]
+for i in range(100):
+    da, db = compute_gradients(a, b)
+    a -= lr * da
+    b -= lr * db
+    loss = loss_function(a, b)
+    print(f"i={i}, a={a:.4f}, b={b:.4f}, loss={loss:.4f}")
+    if loss < 0.5:
+        print(f"最优参数: a={a:.4f}, b={b:.4f}")
+        break
+```
+输出
+```
+i=0, a=1.1375, b=0.0535, loss=16.9121
+i=1, a=1.2655, b=0.1055, loss=15.0639
+...
+i=51, a=2.9372, b=1.4815, loss=0.5020
+i=52, a=2.9404, b=1.4939, loss=0.4859
+最优参数: a=2.9404, b=1.4939
+```
+
+---
+
+# 梯度下降，可视化
+
+<img src="./images/gd-3d.png" width="90%"> 
+
+---
+
+# 小结：一元函数与多元函数梯度下降的异同点
+
+**相同点：**
+- 核心思想：沿着梯度的反方向移动以寻找函数的最小值
+- 迭代过程：初始化参数 → 计算梯度 → 更新参数 → 重复直到收敛
+- 学习率：都需要合适的学习率来控制步长
+- 收敛条件：梯度接近零或参数变化很小时停止
+
+**不同点：**
+- 参数空间：一元函数在一维空间移动，多元函数在高维空间移动
+- 梯度计算：一元函数计算导数，多元函数计算偏导数向量（梯度向量）
+- 更新规则：一元函数 $x_{new} = x - \alpha \cdot f'(x)$，多元函数 $\vec{\theta}_{new} = \vec{\theta} - \alpha \cdot \nabla f(\vec{\theta})$
+- 可视化：一元函数可在二维平面可视化，多元函数需要三维或等高线图
