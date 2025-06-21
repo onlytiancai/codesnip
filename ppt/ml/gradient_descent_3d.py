@@ -1,12 +1,31 @@
+import sys
+import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
 
+if sys.platform.startswith('win'):
+    matplotlib.rcParams['font.family'] = ['SimHei'] # Windows的中文字体
+elif sys.platform.startswith('darwin'):
+    matplotlib.rcParams['font.family'] = ['Arial Unicode MS'] # Mac的中文字体
+matplotlib.rcParams['axes.unicode_minus'] = False 
+
 # 生成简单的二次函数数据
 np.random.seed(42)
 X = np.linspace(-2, 2, 50)
 Y = 3 * X**2 + 2 * X + 1 + np.random.normal(0, 0.5, len(X))
+
+# 显示X和Y数据点
+plt.figure(figsize=(8, 6))
+plt.scatter(X, Y, color='blue', alpha=0.6, label='数据点')
+plt.plot(X, 3 * X**2 + 2 * X + 1, 'r-', label='真实函数: 3x² + 2x + 1')
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.title('二次函数数据')
+plt.legend()
+plt.grid(True)
+plt.show()
 
 # 损失函数：对于 y = ax^2 + bx + c，只优化 a 和 b（固定 c=1）
 def loss_function(a, b):

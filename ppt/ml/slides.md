@@ -458,42 +458,31 @@ layout: two-columns
 
 ---
 
-# 问题建模
+# 梯度下降（多元函数）
 
-**1. 问题建模**
+数学原理
+
+**1. 问题建模：**
 
 用函数：$f(x) = ax^2 - bx + c$ 去拟合一组平面上的点：$(x_1, y_1),\ (x_2, y_2),\ \ldots,\ (x_n, y_n)$
 
-**2. 误差函数设计（Loss Function）**
+**2. 误差函数设计：**（也叫损失函数，代价函数）
 
-最常见的误差函数是**平方误差和（Mean Squared Error）**：
+平方误差和（Mean Squared Error），平滑可导，凸函数，有极值（绝对值误差和则不可以）。
 
-$$
-L(a, b, c) = \frac{1}{n} \sum_{i=1}^{n} \left[ ax_i^2 - bx_i + c - y_i \right]^2
-$$
+设 $\hat{y}_i=ax_i^2 - bx_i + c, e_i=\hat{y}_i - y_i$，则$L(a, b, c) = \frac{1}{n} \sum_{i=1}^{n}e_i^2 =\frac{1}{n} \sum_{i=1}^{n} \left[ ax_i^2 - bx_i + c - y_i \right]^2$
 
-这个函数衡量了拟合曲线与所有点之间的“偏差平方总和”。
+**3. 分别对 $a$，$b$，$c$ 求偏导数**
 
----
+$\frac{\partial L}{\partial a}=\frac{\partial}{\partial a} \left( \frac{1}{n} \sum_{i=1}^n e_i^2 \right)=\frac{1}{n} \sum_{i=1}^n\frac{\partial}{\partial a} \left(e_i^2\right)= \frac{1}{n} \sum_{i=1}^n 2 e_i \cdot \frac{\partial e_i}{\partial a}$
 
-# 问题建模 
+$e_i = ax_i^2 - bx_i + c - y_i \Rightarrow \frac{\partial e_i}{\partial a} = x_i^2$，所以$\frac{\partial L}{\partial a} = \frac{2}{n} \sum_{i=1}^n e_i x_i^2
+= \frac{2}{n} \sum_{i=1}^n (ax_i^2 - bx_i + c - y_i) x_i^2$
 
-**3. 梯度计算**
+同理：$\frac{\partial L}{\partial b} = \frac{-2}{n} \sum_{i=1}^{n} \left( ax_i^2 - bx_i + c - y_i \right)x_i$，$\frac{\partial L}{\partial c} = \frac{2}{n} \sum_{i=1}^{n} \left( ax_i^2 - bx_i + c - y_i \right)$
 
-我们需要对 $L(a,b,c)$ 分别对 $a$、$b$、$c$ 求偏导
+**求导提示**：1. 链式求导法则 2. 导数运算是线性的，常数因子可提取 3. 和运算求导可先分别求导，再求和
 
-
-$$
-\frac{\partial L}{\partial a} = \frac{2}{n} \sum_{i=1}^{n} \left( ax_i^2 - bx_i + c - y_i \right)x_i^2
-$$
-
-$$
-\frac{\partial L}{\partial b} = \frac{-2}{n} \sum_{i=1}^{n} \left( ax_i^2 - bx_i + c - y_i \right)x_i
-$$
-
-$$
-\frac{\partial L}{\partial c} = \frac{2}{n} \sum_{i=1}^{n} \left( ax_i^2 - bx_i + c - y_i \right)
-$$
 
 ---
 
