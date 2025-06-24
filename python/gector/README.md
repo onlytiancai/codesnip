@@ -284,3 +284,39 @@ GECToR 的思想是：
 * 教育类应用（如作文纠错、英语学习工具）
 * 英语 NLP 预处理增强（如 grammar-aware translation）
 * 英文邮件、文章写作辅助（像 Grammarly）
+
+# GECToR 到底是  Yandex Research 发布 还是 grammarly 发布的呢？他们有什么关系
+
+
+## ✅ GECToR 是谁发布的？
+
+**GECToR**（**G**rammatical **E**rror **C**orrection: **T**ransformation **O**riented **R**efinement）是由 **Yandex Research** 发布的。
+
+### 🔹 原始论文：
+
+* **标题**：*GECToR – Grammatical Error Correction: Tag, Not Rewrite.*
+* **作者**：Maksym Del, Oleksandr Skurzhanskyi, Mikhail Yavorsky, Dmytro Chaplynskyi
+* **机构**：**Yandex**
+* **发布年份**：2020
+* **论文链接**：[ACL Anthology (2020)](https://aclanthology.org/2020.bea-1.16/)
+
+---
+
+## 🤔 那 Grammarly 是做什么的？
+
+Grammarly 的研究团队在 **2021 年** fork 了 GECToR，并：
+
+* 对其进行了**进一步优化和训练**
+* 发布了自己的 GECToR 模型版本和预训练模型权重（如 `roberta_1_gectorv2.th`）
+* 把模型和代码开源在了：[https://github.com/grammarly/gector](https://github.com/grammarly/gector)
+
+他们还训练了多个更大的模型、改进了标注和预测流程。
+
+## ✅ Grammarly 的贡献
+
+| Grammarly 做了什么 | 说明                           |
+| -------------- | ---------------------------- |
+| 训练更大规模的模型      | 使用更丰富的语料、微调更强的 RoBERTa       |
+| 开源模型权重         | `.th` 文件，供开发者直接使用            |
+| 改进代码结构         | 更易集成、更兼容 AllenNLP            |
+| 更强的纠错效果        | 相比原始 GECToR 在 CoNLL-14 上表现更佳 |
