@@ -320,3 +320,58 @@ Grammarly 的研究团队在 **2021 年** fork 了 GECToR，并：
 | 开源模型权重         | `.th` 文件，供开发者直接使用            |
 | 改进代码结构         | 更易集成、更兼容 AllenNLP            |
 | 更强的纠错效果        | 相比原始 GECToR 在 CoNLL-14 上表现更佳 |
+
+# 病句
+
+
+### ✅ 病句列表（5个）
+
+#### 1. 主谓不一致 + 时态错误
+
+```text
+The list of item are on the table since yesterday.
+```
+
+🔍 正确：`The list of items has been on the table since yesterday.`
+
+---
+
+#### 2. 动词形式错误 + 固定搭配错误
+
+```text
+She suggested me to go to the doctor immediatly.
+```
+
+🔍 正确：`She suggested that I go to the doctor immediately.`
+
+---
+
+#### 3. 介词搭配错误 + 拼写错误
+
+```text
+He is married with a woman who lives in the same building and have two child.
+```
+
+🔍 正确：`He is married to a woman who lives in the same building and has two children.`
+
+---
+
+#### 4. 冠词使用错误 + 句法不清晰
+
+```text
+I have experience of managing project and I enjoy to working with a team.
+```
+
+🔍 正确：`I have experience managing projects, and I enjoy working with a team.`
+
+---
+
+#### 5. 多种错误混合（拼写、动词时态、句法结构）
+
+```text
+Although he don’t knew the answer, but he still tried to explaining it clearly.
+```
+
+🔍 正确：`Although he didn’t know the answer, he still tried to explain it clearly.`
+
+
