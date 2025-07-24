@@ -6,12 +6,45 @@ import numpy as np
 
 # -------------------------- 数据准备 --------------------------
 # 生成训练数据：数字序列 -> 字母序列（1->A, 2->B, ..., 5->E）
-# 输入格式：[1,2,3] -> 输出格式：[<SOS>,A,B,C,<EOS>] （<SOS>=6, <EOS>=7）
+# 输入格式：[1,2,3] -> 输出格式：[< SOS >,A,B,C,<EOS>] （< SOS >=6, <EOS>=7）
+
+# 大幅增加训练数据，包含各种长度的序列
 train_data = [
-    (torch.tensor([1, 2, 3]), torch.tensor([6, 1, 2, 3, 7])),  # 1,2,3 -> SOS,A,B,C,EOS
-    (torch.tensor([2, 4, 5]), torch.tensor([6, 2, 4, 5, 7])),  # 2,4,5 -> SOS,B,D,E,EOS
-    (torch.tensor([1, 5]), torch.tensor([6, 1, 5, 7])),        # 1,5 -> SOS,A,E,EOS
-    (torch.tensor([3, 4, 2, 1]), torch.tensor([6, 3, 4, 2, 1, 7])),
+    # 长度为1的序列
+    (torch.tensor([1]), torch.tensor([6, 1, 7])),
+    (torch.tensor([2]), torch.tensor([6, 2, 7])),
+    (torch.tensor([3]), torch.tensor([6, 3, 7])),
+    (torch.tensor([4]), torch.tensor([6, 4, 7])),
+    (torch.tensor([5]), torch.tensor([6, 5, 7])),
+    
+    # 长度为2的序列（重点加强，因为测试用例是长度2）
+    (torch.tensor([1, 2]), torch.tensor([6, 1, 2, 7])),
+    (torch.tensor([1, 3]), torch.tensor([6, 1, 3, 7])),
+    (torch.tensor([1, 4]), torch.tensor([6, 1, 4, 7])),
+    (torch.tensor([1, 5]), torch.tensor([6, 1, 5, 7])),
+    (torch.tensor([2, 3]), torch.tensor([6, 2, 3, 7])),
+    (torch.tensor([2, 4]), torch.tensor([6, 2, 4, 7])),
+    (torch.tensor([2, 5]), torch.tensor([6, 2, 5, 7])),
+    (torch.tensor([3, 4]), torch.tensor([6, 3, 4, 7])),  # 测试用例
+    (torch.tensor([3, 5]), torch.tensor([6, 3, 5, 7])),
+    (torch.tensor([4, 5]), torch.tensor([6, 4, 5, 7])),
+    (torch.tensor([5, 1]), torch.tensor([6, 5, 1, 7])),
+    (torch.tensor([4, 2]), torch.tensor([6, 4, 2, 7])),
+    (torch.tensor([5, 3]), torch.tensor([6, 5, 3, 7])),
+    
+    # 长度为3的序列
+    (torch.tensor([1, 2, 3]), torch.tensor([6, 1, 2, 3, 7])),
+    (torch.tensor([2, 4, 5]), torch.tensor([6, 2, 4, 5, 7])),
+    (torch.tensor([1, 3, 5]), torch.tensor([6, 1, 3, 5, 7])),
+    (torch.tensor([2, 3, 4]), torch.tensor([6, 2, 3, 4, 7])),
+    (torch.tensor([3, 4, 5]), torch.tensor([6, 3, 4, 5, 7])),
+    (torch.tensor([5, 4, 3]), torch.tensor([6, 5, 4, 3, 7])),
+    
+    # 长度为4的序列
+    (torch.tensor([1, 2, 3, 4]), torch.tensor([6, 1, 2, 3, 4, 7])),
+    (torch.tensor([2, 3, 4, 5]), torch.tensor([6, 2, 3, 4, 5, 7])),
+    (torch.tensor([5, 4, 3, 2]), torch.tensor([6, 5, 4, 3, 2, 7])),
+    (torch.tensor([1, 3, 5, 2]), torch.tensor([6, 1, 3, 5, 2, 7])),
 ]
 
 # 词汇表大小（源：6种，目标：8种）
@@ -35,16 +68,17 @@ def create_target_mask(seq):
 model = Transformer(
     src_vocab_size=src_vocab_size,
     tgt_vocab_size=tgt_vocab_size,
-    d_model=64,  # 简化模型，减小维度
-    num_layers=2,
-    num_heads=2,
-    d_ff=128
+    d_model=128,  # 增加模型容量
+    num_layers=3,  # 增加层数
+    num_heads=4,   # 增加注意力头数
+    d_ff=256       # 增加前馈网络维度
 )
 criterion = nn.CrossEntropyLoss(ignore_index=0)  # 忽略PAD的损失
-optimizer = optim.Adam(model.parameters(), lr=0.001)
-epochs = 100  # 训练轮次
+optimizer = optim.Adam(model.parameters(), lr=0.0005)  # 降低学习率
+epochs = 300  # 增加训练轮次
 
 # -------------------------- 训练过程 --------------------------
+print("开始训练，总训练样本数:", len(train_data))
 for epoch in range(epochs):
     model.train()
     total_loss = 0
@@ -78,24 +112,32 @@ for epoch in range(epochs):
     
     # 每20轮打印一次损失
     if (epoch + 1) % 20 == 0:
-        print(f"Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(train_data):.4f}")
+        avg_loss = total_loss / len(train_data)
+        print(f"Epoch {epoch+1}/{epochs}, Loss: {avg_loss:.4f}")
 
-# -------------------------- 测试推理 --------------------------
-def translate(src_seq):
-    """用训练好的模型生成目标序列"""
+# -------------------------- 改进的测试推理函数 --------------------------
+def translate_improved(src_seq, max_length=None):
+    """改进的翻译函数，支持长度控制"""
     model.eval()
     with torch.no_grad():
         src = src_seq.unsqueeze(0)  # 增加batch维度
         src_mask = create_pad_mask(src)
         
-        # 初始化目标序列（从<SOS>开始）
-        tgt_seq = torch.tensor([[6]], dtype=torch.long)  # 6是<SOS>
+        # 初始化目标序列（从< SOS >开始）
+        tgt_seq = torch.tensor([[6]], dtype=torch.long)  # 6是< SOS >
         
-        # 生成序列（最多生成10个token）
-        for _ in range(10):
+        # 如果没有指定最大长度，则根据源序列长度+2（SOS和EOS）
+        if max_length is None:
+            max_length = len(src_seq) + 2
+        
+        # 生成序列
+        for i in range(max_length - 1):  # -1因为已经有了SOS
             tgt_mask = create_target_mask(tgt_seq)
             output = model(src, tgt_seq, src_mask, tgt_mask, src_mask)
-            next_token = output[:, -1, :].argmax(dim=-1, keepdim=True)  # 取最后一个token的预测
+            
+            # 获取最后一个位置的预测概率
+            logits = output[:, -1, :]
+            next_token = logits.argmax(dim=-1, keepdim=True)
             tgt_seq = torch.cat([tgt_seq, next_token], dim=1)
             
             # 如果生成EOS，停止
@@ -104,13 +146,31 @@ def translate(src_seq):
         
         return tgt_seq.squeeze(0).tolist()  # 去除batch维度
 
-# 测试案例：输入 [3,4]（预期输出：SOS,C,D,EOS -> [6,3,4,7]）
-test_src = torch.tensor([3, 4])
-predicted_tgt = translate(test_src)
+# -------------------------- 测试多个用例 --------------------------
+def test_multiple_cases():
+    """测试多个用例"""
+    test_cases = [
+        torch.tensor([3, 4]),    # 主要测试用例
+        torch.tensor([1, 2]),    # 简单用例
+        torch.tensor([5]),       # 单个数字
+        torch.tensor([2, 3, 4]), # 长序列
+    ]
+    
+    # 映射为字母（1→A,2→B,3→C,4→D,5→E,6→SOS,7→EOS）
+    char_map = {1:'A', 2:'B', 3:'C', 4:'D', 5:'E', 6:'< SOS >', 7:'<EOS>'}
+    
+    for i, test_src in enumerate(test_cases):
+        predicted_tgt = translate_improved(test_src)
+        predicted_chars = [char_map[token] for token in predicted_tgt]
+        
+        print(f"\n测试用例 {i+1}:")
+        print(f"输入（数字）：{test_src.tolist()}")
+        print(f"模型输出（字母）：{predicted_chars}")
+        
+        # 显示预期输出
+        expected = ['< SOS >'] + [char_map[x.item()] for x in test_src] + ['<EOS>']
+        print(f"预期输出：{expected}")
+        print(f"是否正确：{'✓' if predicted_chars == expected else '✗'}")
 
-# 映射为字母（1→A,2→B,3→C,4→D,5→E,6→SOS,7→EOS）
-char_map = {1:'A',2:'B',3:'C',4:'D',5:'E',6:'<SOS>',7:'<EOS>'}
-predicted_chars = [char_map[token] for token in predicted_tgt]
-
-print("\n测试输入（数字）：", test_src.tolist())
-print("模型输出（字母）：", predicted_chars)
+# 运行测试
+test_multiple_cases()
