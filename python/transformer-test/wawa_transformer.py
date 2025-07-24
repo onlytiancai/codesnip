@@ -5,17 +5,51 @@ import math
 
 # 位置编码：为序列添加位置信息
 class PositionalEncoding(nn.Module):
+
     def __init__(self, d_model, max_len=5000, dropout=0.1):
+        # 位置编码采用三角函数（正弦和余弦），其核心思想是为每个序列位置生成唯一的向量，
+        # 并且这种编码方式允许模型在推理时泛化到比训练时更长的序列。
+        # 数学原理如下：
+        # 1. 对于每个位置 pos 和每个维度 i，编码定义为：
+        #    PE(pos, 2i)   = sin(pos / (10000^(2i/d_model)))
+        #    PE(pos, 2i+1) = cos(pos / (10000^(2i/d_model)))
+        # 2. 这样设计有两个好处：
+        #    a) 不同位置的编码向量彼此不同，且相似位置的编码向量距离较近，有助于模型捕捉相对和绝对位置信息。
+        #    b) 任意两个位置的编码可以通过线性变换表达其相对距离（即 sin(a+b) = sin(a)cos(b) + cos(a)sin(b)），
+        #       这使得模型能推断出序列中元素之间的相对顺序。
+        # 3. 采用不同频率的三角函数（通过指数缩放）可以让模型在不同维度上感知不同粒度的位置信息，
+        #    低维度变化慢，关注全局顺序，高维度变化快，关注局部顺序。
+        
         super().__init__()
         self.dropout = nn.Dropout(p=dropout)
         
         # 初始化位置编码矩阵
+        # position: 创建一个形状为 (max_len, 1) 的张量，表示序列中每个位置的索引（从0到max_len-1）
+        # 例如，如果max_len=5，则position为[[0], [1], [2], [3], [4]]
         position = torch.arange(max_len).unsqueeze(1)
+        
+        # div_term: 形状为 (d_model/2,) 的张量，用于控制不同维度的正弦/余弦函数的频率
+        # torch.arange(0, d_model, 2) 生成偶数索引（如0,2,4,...），
+        # -math.log(10000.0) / d_model 是缩放因子，使得高维度变化更快
+        # 这样每个维度的周期都不同，有助于模型区分不同位置
         div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
+        
+        # pe: 初始化一个全零张量，形状为 (max_len, 1, d_model)
+        # 用于存储每个位置的编码，1是为了后续和batch维度对齐
         pe = torch.zeros(max_len, 1, d_model)
-        pe[:, 0, 0::2] = torch.sin(position * div_term)  # 偶数维度用正弦
-        pe[:, 0, 1::2] = torch.cos(position * div_term)  # 奇数维度用余弦
-        self.register_buffer('pe', pe)  # 不参与训练的参数
+        
+        # 偶数维度（0,2,4,...）用正弦函数编码位置信息
+        # position * div_term 会广播成 (max_len, d_model/2) 的形状
+        # 这样每个位置的每个偶数维度都有唯一的正弦值
+        pe[:, 0, 0::2] = torch.sin(position * div_term)
+        
+        # 奇数维度（1,3,5,...）用余弦函数编码位置信息
+        # 这样每个位置的每个奇数维度都有唯一的余弦值
+        pe[:, 0, 1::2] = torch.cos(position * div_term)
+        
+        # register_buffer: 把pe注册为模型的“缓冲区”
+        # 这样pe不会作为参数参与训练（不会被优化），但会随模型保存和加载
+        self.register_buffer('pe', pe)
 
     def forward(self, x):
         # x: (seq_len, batch_size, d_model)
