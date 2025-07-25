@@ -5,6 +5,23 @@ import math
 
 # 位置编码：为序列添加位置信息
 class PositionalEncoding(nn.Module):
+    """
+    Implements the positional encoding as described in "Attention is All You Need".
+    Args:
+        d_model (int): The dimension of the model (embedding size). 决定每个位置编码向量的长度，需与输入特征维度一致。
+        max_len (int, optional): The maximum length of input sequences. 默认为5000，表示能支持的最大序列长度。
+        dropout (float, optional): Dropout probability applied after adding positional encoding. 默认为0.1，用于防止过拟合。
+    Attributes:
+        dropout (nn.Dropout): Dropout layer applied to the output.
+        pe (torch.Tensor): Positional encoding buffer of shape (max_len, 1, d_model).
+    Methods:
+        forward(x):
+            Adds positional encoding to the input tensor and applies dropout.
+            Args:
+                x (torch.Tensor): Input tensor of shape (seq_len, batch_size, d_model).
+            Returns:
+                torch.Tensor: Output tensor with positional encoding added, same shape as input.
+    """
 
     def __init__(self, d_model, max_len=5000, dropout=0.1):
         # 位置编码采用三角函数（正弦和余弦），其核心思想是为每个序列位置生成唯一的向量，
@@ -53,12 +70,31 @@ class PositionalEncoding(nn.Module):
 
     def forward(self, x):
         # x: (seq_len, batch_size, d_model)
+        # 将位置编码加到输入x上，pe[:x.size(0)]会自动匹配序列长度
+        # 这样每个位置都获得了唯一的位置信息
         x = x + self.pe[:x.size(0)]
+        # 应用dropout，防止过拟合
         return self.dropout(x)
 
 # 多头注意力机制
 class MultiHeadAttention(nn.Module):
     def __init__(self, d_model, num_heads):
+        """
+        初始化多头自注意力机制的参数。
+        Args:
+            d_model (int): 输入特征的维度，即模型的隐藏层维度。
+            num_heads (int): 注意力头的数量，将输入特征分为多少个头进行并行计算。
+        Raises:
+            AssertionError: 如果 d_model 不能被 num_heads 整除，则抛出异常。
+        Attributes:
+            d_model (int): 输入特征的维度。
+            num_heads (int): 注意力头的数量。
+            d_k (int): 每个注意力头的特征维度，等于 d_model // num_heads。
+            w_q (nn.Linear): 查询（Q）的线性变换层。
+            w_k (nn.Linear): 键（K）的线性变换层。
+            w_v (nn.Linear): 值（V）的线性变换层。
+            w_o (nn.Linear): 输出的线性变换层。
+        """
         super().__init__()
         assert d_model % num_heads == 0, "d_model必须能被num_heads整除"
         

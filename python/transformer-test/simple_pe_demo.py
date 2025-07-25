@@ -44,7 +44,7 @@ def simple_positional_encoding_demo():
     print("观察规律:")
     print("1. 偶数列(0,2,4,6)是sin函数值")
     print("2. 奇数列(1,3,5,7)是cos函数值") 
-    print("3. 从左到右，波动频率越来越快")
+    print("3. 从左到右，波动频率越来越慢")
     print("4. 每一行(位置)都有独特的编码模式")
     print("="*50)
     

@@ -105,9 +105,11 @@ def demonstrate_linear_transformation_property():
     # 构造旋转矩阵（对于每个频率）
     for freq_idx, freq in enumerate(div_term):
         angle = relative_distance * freq
+        cos_angle = torch.cos(angle)
+        sin_angle = torch.sin(angle)
         rotation_matrix = torch.tensor([
-            [np.cos(angle), -np.sin(angle)],
-            [np.sin(angle), np.cos(angle)]
+            [cos_angle, -sin_angle],
+            [sin_angle, cos_angle]
         ])
         
         print(f"\n频率 {freq_idx} (freq={freq:.4f}) 的旋转矩阵:")
@@ -161,9 +163,11 @@ def demonstrate_relative_position_learning():
         # 对于第一个频率维度
         freq = div_term[0]
         angle = relative_dist * freq
+        cos_angle = torch.cos(angle)
+        sin_angle = torch.sin(angle)
         rotation_matrix = torch.tensor([
-            [np.cos(angle), -np.sin(angle)],
-            [np.sin(angle), np.cos(angle)]
+            [cos_angle, -sin_angle],
+            [sin_angle, cos_angle]
         ])
         
         pos_a_encoding = pe[pos_a, 0:2]  # 前两维
@@ -225,9 +229,11 @@ def create_visualization():
     orig_y = pe[1:max_len-relative_dist, 1]
     
     # Transformed positions
+    cos_angle = torch.cos(angle)
+    sin_angle = torch.sin(angle)
     rotation_matrix = torch.tensor([
-        [np.cos(angle), -np.sin(angle)],
-        [np.sin(angle), np.cos(angle)]
+        [cos_angle, -sin_angle],
+        [sin_angle, cos_angle]
     ])
     
     transformed_points = []
@@ -266,9 +272,11 @@ def create_visualization():
     
     for rd in relative_distances:
         angle = rd * freq
+        cos_angle = torch.cos(angle)
+        sin_angle = torch.sin(angle)
         rotation_matrix = torch.tensor([
-            [np.cos(angle), -np.sin(angle)],
-            [np.sin(angle), np.cos(angle)]
+            [cos_angle, -sin_angle],
+            [sin_angle, cos_angle]
         ])
         
         total_error = 0
