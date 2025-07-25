@@ -109,6 +109,22 @@ class MultiHeadAttention(nn.Module):
         self.w_o = nn.Linear(d_model, d_model)
 
     def forward(self, q, k, v, mask=None):
+        """
+        执行多头注意力机制的前向传播。
+        参数说明:
+            q (torch.Tensor): 查询张量，形状为 (batch_size, seq_len_q, d_model)。
+            表示用于计算注意力的查询向量。
+            k (torch.Tensor): 键张量，形状为 (batch_size, seq_len_k, d_model)。
+            表示用于计算注意力的键向量。
+            v (torch.Tensor): 值张量，形状为 (batch_size, seq_len_v, d_model)。
+            表示注意力聚合后的值向量。
+            mask (torch.Tensor, 可选): 注意力掩码，形状为 (batch_size, num_heads, seq_len_q, seq_len_k)。
+            用于屏蔽某些位置（如padding或未来时刻），被屏蔽的位置会被赋值为一个很大的负数，使其注意力权重为0。
+        返回值:
+            torch.Tensor: 多头注意力和线性投影后的输出张量，形状为 (batch_size, seq_len_q, d_model)。
+            torch.Tensor: 注意力权重张量，形状为 (batch_size, num_heads, seq_len_q, seq_len_k)，
+            表示每个头归一化后的注意力分数。
+        """
         batch_size = q.size(0)
         
         # 线性变换并分多头 (batch_size, num_heads, seq_len, d_k)

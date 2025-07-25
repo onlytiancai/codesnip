@@ -377,3 +377,7 @@ R(Δ) = [[cos(Δ*ω), -sin(Δ*ω)]
 - 处理比训练时更长的序列（因为相对关系是可复制的）
 
 从生成的可视化图 `positional_encoding_linear_transformation.png` 中，你可以看到这种线性变换的几何直观：位置编码在复平面上形成规律的旋转模式，这正是sin/cos函数的几何本质。
+
+# 原始论文
+
+https://arxiv.org/html/1706.03762v7
