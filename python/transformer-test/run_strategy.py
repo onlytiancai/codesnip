@@ -1,3 +1,39 @@
+# ==============================================================================
+#                 高频趋势跟踪策略: Transformer 模型训练与回测
+#
+# 介绍:
+#   本脚本实现了一个基于Transformer模型的期货高频趋势跟踪策略。它被设计为
+#   一个一体化的工具，可以通过命令行参数控制其运行模式：训练或回测。
+#
+# 功能:
+#   1. 数据模拟: 如果本地没有数据，脚本会自动生成模拟的1分钟K线数据。
+#   2. 特征工程: 基于原始数据计算模型所需的多种技术特征。
+#   3. 模型训练 (--mode train):
+#      - 使用历史数据训练一个4层因果Transformer模型。
+#      - 模型的目标是预测未来5分钟的收益率。
+#      - 训练过程中会自动保存验证集上表现最好的模型。
+#   4. 策略回测 (--mode backtest):
+#      - 加载已训练好的模型。
+#      - 在整个数据集上模拟交易，应用策略规则。
+#      - 输出详细的性能报告并绘制包含权益曲线和交易点位的图表。
+#
+# 依赖库:
+#   - torch
+#   - pandas
+#   - numpy
+#   - matplotlib
+#   - tqdm
+#   请使用 'pip install torch pandas numpy matplotlib tqdm' 命令安装。
+#
+# 使用方式:
+#   1. 训练模型:
+#      python this_script_name.py --mode train --epochs 20 --lr 0.001
+#
+#   2. 执行回测 (在训练完成后):
+#      python this_script_name.py --mode backtest
+#
+# ==============================================================================
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -13,7 +49,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 # ==============================================================================
-# Part 0: 日志和图表配置 (Logging and Plotting Configuration)
+# Part 0: 日志配置 (Logging Configuration)
 # ==============================================================================
 # 配置日志记录器
 logging.basicConfig(
@@ -21,14 +57,6 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
-
-# 配置Matplotlib以支持中文显示
-try:
-    plt.rcParams['font.sans-serif'] = ['SimHei']  # 指定默认字体
-    plt.rcParams['axes.unicode_minus'] = False  # 解决保存图像是负号'-'显示为方块的问题
-except Exception as e:
-    logging.warning(f"无法设置中文字体'SimHei'，图表标题可能显示不正常。错误: {e}")
-    logging.warning("您可以尝试安装'SimHei'字体或修改为系统中已有的中文字体。")
 
 
 # ==============================================================================
@@ -275,7 +303,7 @@ class Backtester:
         for i in tqdm(range(self.seq_len, len(self.data)), desc="回测进度"):
             # 规则1：检查是否达到最大持仓周期，如果达到则平仓
             if self.position != 'NONE' and (i - self.entry_time_step) >= self.hold_period:
-                self.close_position(i, reason="达到最大持仓周期")
+                self.close_position(i, reason="Max holding period reached")
 
             # 规则2：如果没有持仓，则寻找新的交易机会
             if self.position == 'NONE':
@@ -295,14 +323,14 @@ class Backtester:
                 elif pred_return < -0.001 and (1 - bullish_score) > 0.6: self.open_position('SHORT', i)
 
         # 回测结束时，强制平掉所有剩余仓位
-        if self.position != 'NONE': self.close_position(len(self.data) - 1, reason="回测结束")
+        if self.position != 'NONE': self.close_position(len(self.data) - 1, reason="End of backtest")
         self.calculate_and_show_performance()
 
     def open_position(self, side, time_step):
         """开仓"""
         self.position, self.entry_time_step = side, time_step
         self.entry_price = self.data.at[time_step, 'close']
-        logging.info(f"开仓 {side} @ {self.entry_price:.2f} | 时间: {self.data.at[time_step, 'timestamp']}")
+        logging.info(f"Open {side} @ {self.entry_price:.2f} | Time: {self.data.at[time_step, 'timestamp']}")
 
     def close_position(self, time_step, reason=""):
         """平仓并记录交易"""
@@ -318,14 +346,14 @@ class Backtester:
             "side": self.position,
             "pnl_pct": pnl_pct
         })
-        logging.info(f"平仓 {self.position} @ {close_price:.2f} | PnL: {pnl_pct:.4%} | 原因: {reason}")
+        logging.info(f"Close {self.position} @ {close_price:.2f} | PnL: {pnl_pct:.4%} | Reason: {reason}")
         self.position = 'NONE'
 
     def calculate_and_show_performance(self):
         """计算并展示详细的回测性能报告和图表"""
-        logging.info("\n" + "="*25 + " 回测性能报告 " + "="*25)
+        logging.info("\n" + "="*25 + " Backtest Performance Report " + "="*25)
         if not self.trades:
-            logging.info("回测期间没有发生任何交易。")
+            logging.info("No trades were executed during the backtest.")
             return
         
         trade_df = pd.DataFrame(self.trades)
@@ -340,63 +368,59 @@ class Backtester:
         gross_loss = abs(losses['pnl_pct'].sum())
         profit_factor = gross_profit / gross_loss if gross_loss > 0 else float('inf')
         
-        avg_win = wins['pnl_pct'].mean()
-        avg_loss = abs(losses['pnl_pct'].mean())
+        avg_win = wins['pnl_pct'].mean() if len(wins) > 0 else 0
+        avg_loss = abs(losses['pnl_pct'].mean()) if len(losses) > 0 else 0
         avg_win_loss_ratio = avg_win / avg_loss if avg_loss > 0 else float('inf')
         
         # --- 打印报告 ---
-        print("\n--- 总体表现 ---")
-        print(f"总交易次数: {total_trades}")
-        print(f"盈利次数: {len(wins)}")
-        print(f"亏损次数: {len(losses)}")
-        print(f"胜率: {win_rate:.2%}")
+        print("\n--- General Performance ---")
+        print(f"Total Trades: {total_trades}")
+        print(f"Winning Trades: {len(wins)}")
+        print(f"Losing Trades: {len(losses)}")
+        print(f"Win Rate: {win_rate:.2%}")
         
-        print("\n--- 盈亏分析 ---")
-        print(f"总盈利(百分比): {gross_profit:.2%}")
-        print(f"总亏损(百分比): {gross_loss:.2%}")
-        print(f"盈利因子 (总盈利/总亏损): {profit_factor:.2f}")
-        print(f"平均盈利: {avg_win:.4%}")
-        print(f"平均亏损: {avg_loss:.4%}")
-        print(f"平均盈亏比: {avg_win_loss_ratio:.2f}")
+        print("\n--- Profit and Loss Analysis ---")
+        print(f"Gross Profit (%): {gross_profit:.2%}")
+        print(f"Gross Loss (%): {gross_loss:.2%}")
+        print(f"Profit Factor (Gross Profit / Gross Loss): {profit_factor:.2f}")
+        print(f"Average Win (%): {avg_win:.4%}")
+        print(f"Average Loss (%): {avg_loss:.4%}")
+        print(f"Average Win/Loss Ratio: {avg_win_loss_ratio:.2f}")
         
         self.plot_performance(trade_df)
 
     def plot_performance(self, trade_df):
         """绘制权益曲线和交易点位图"""
-        logging.info("正在生成回测性能图表...")
+        logging.info("Generating backtest performance chart...")
         
         # 1. 计算权益曲线
-        # 将交易收益率按时间顺序排列
         trade_df = trade_df.sort_values(by='exit_time').reset_index(drop=True)
-        # 计算累积收益率作为权益曲线
         trade_df['equity_curve'] = (1 + trade_df['pnl_pct']).cumprod() - 1
 
         # 2. 创建图表
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 12), sharex=True, gridspec_kw={'height_ratios': [1, 2]})
-        fig.suptitle('高频趋势跟踪策略回测表现', fontsize=16)
+        fig.suptitle('HFT Trend Following Strategy - Backtest Performance', fontsize=16)
 
         # 3. 绘制权益曲线
-        ax1.plot(trade_df['exit_time'], trade_df['equity_curve'] * 100, label='权益曲线 (%)', color='blue')
-        ax1.set_ylabel('累积收益率 (%)')
-        ax1.set_title('权益曲线')
+        ax1.plot(trade_df['exit_time'], trade_df['equity_curve'] * 100, label='Equity Curve (%)', color='blue')
+        ax1.set_ylabel('Cumulative Return (%)')
+        ax1.set_title('Equity Curve')
         ax1.grid(True, linestyle='--', alpha=0.5)
         ax1.legend()
 
         # 4. 绘制价格和交易点位
-        ax2.plot(self.data['timestamp'], self.data['close'], label='收盘价', color='black', alpha=0.7)
+        ax2.plot(self.data['timestamp'], self.data['close'], label='Close Price', color='black', alpha=0.7)
         
-        # 标记做多交易
         long_trades = trade_df[trade_df['side'] == 'LONG']
-        ax2.scatter(long_trades['entry_time'], long_trades['entry_price'], label='做多开仓', marker='^', color='red', s=100, zorder=5)
-        ax2.scatter(long_trades['exit_time'], long_trades['exit_price'], label='做多平仓', marker='o', color='red', s=50, zorder=5)
+        ax2.scatter(long_trades['entry_time'], long_trades['entry_price'], label='Long Entry', marker='^', color='red', s=100, zorder=5)
+        ax2.scatter(long_trades['exit_time'], long_trades['exit_price'], label='Long Exit', marker='o', color='red', s=50, zorder=5)
 
-        # 标记做空交易
         short_trades = trade_df[trade_df['side'] == 'SHORT']
-        ax2.scatter(short_trades['entry_time'], short_trades['entry_price'], label='做空开仓', marker='v', color='green', s=100, zorder=5)
-        ax2.scatter(short_trades['exit_time'], short_trades['exit_price'], label='做空平仓', marker='o', color='green', s=50, zorder=5)
+        ax2.scatter(short_trades['entry_time'], short_trades['entry_price'], label='Short Entry', marker='v', color='green', s=100, zorder=5)
+        ax2.scatter(short_trades['exit_time'], short_trades['exit_price'], label='Short Exit', marker='o', color='green', s=50, zorder=5)
 
-        ax2.set_ylabel('价格')
-        ax2.set_title('价格走势与交易点位')
+        ax2.set_ylabel('Price')
+        ax2.set_title('Price Chart with Trade Entries and Exits')
         ax2.legend()
         ax2.grid(True, linestyle='--', alpha=0.5)
         
