@@ -150,3 +150,11 @@ Open
    \# ... (后续代码不变) ...
 
 通过这个流程，您就完成了一个从数据生成、模型训练到模型保存的完整机器学习工作流。接下来使用这个经过训练的模型进行回测，其结果会比使用随机模型更有意义。
+
+---
+合并后的代码
+
+    python run_strategy.py --mode train
+    python run_strategy.py --mode train --epochs 20 --lr 0.0005
+    python run_strategy.py --mode backtest
+
