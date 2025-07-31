@@ -319,9 +319,8 @@ if __name__ == '__main__':
     raw_data = generate_mock_data(num_minutes=5000)
     featured_data = create_features(raw_data)
 
-    # 2. 初始化模型
-    # 重要：这里模型是随机初始化的。在真实场景中，你需要加载已经训练好的模型权重。
-    print("\n初始化未训练的Transformer模型...")
+  # 2. 初始化模型
+    print("\n从 'transformer_hft_model.pth' 加载已训练的模型...")
     model = CausalTransformerEncoder(
         num_features=NUM_FEATURES,
         model_dim=MODEL_DIM,
@@ -329,6 +328,10 @@ if __name__ == '__main__':
         num_layers=NUM_LAYERS,
         seq_len=SEQ_LEN
     )
+    # 加载保存的权重
+    model.load_state_dict(torch.load('transformer_hft_model.pth'))
+    model.eval() # 确保设置为评估模式
+
     
     # 3. 运行回测
     backtester = Backtester(

@@ -217,7 +217,7 @@ if __name__ == '__main__':
     NUM_LAYERS = 4
     
     # Training params
-    NUM_EPOCHS = 10 # 为快速演示设为10，实际可设为50-100
+    NUM_EPOCHS = 1 # 为快速演示设为10，实际可设为50-100
     BATCH_SIZE = 64
     LEARNING_RATE = 0.001
     MODEL_SAVE_PATH = "transformer_hft_model.pth"
