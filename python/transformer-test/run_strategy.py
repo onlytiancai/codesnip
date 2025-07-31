@@ -22,17 +22,22 @@ def generate_and_save_data(filename="mock_data.csv", num_days=252):
     num_minutes = num_days * 4 * 60
     base_price = 4000
     data = []
-    current_time = pd.to_datetime('2023-01-01')
+    # FIX: Start with a specific date, normalized to midnight, to track the current day.
+    current_date = pd.to_datetime('2023-01-01').normalize()
 
     for i in range(num_minutes):
         day_minute = i % (4 * 60)
         if day_minute == 0:
-            current_time = (current_time.date() + pd.Timedelta(days=1))
-            while current_time.weekday() >= 5: # Skip weekends
-                current_time += pd.Timedelta(days=1)
+            # Move to the next day
+            current_date += pd.Timedelta(days=1)
+            # Skip weekends
+            while current_date.weekday() >= 5:
+                current_date += pd.Timedelta(days=1)
             base_price *= (1 + random.uniform(-0.02, 0.02))
         
-        timestamp = pd.to_datetime(str(current_time.date()) + ' 09:00:00') + pd.Timedelta(minutes=day_minute)
+        # FIX: Construct the final timestamp for the minute from the current date.
+        # This avoids the AttributeError by not calling .date() on an object that might already be a date.
+        timestamp = current_date + pd.Timedelta(hours=9, minutes=day_minute)
         
         open_price = base_price + random.uniform(-5, 5)
         close_price = open_price + random.uniform(-3, 3)
@@ -156,7 +161,13 @@ def run_training(args):
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # UPDATED: Device selection logic for Apple Silicon (M1/M2/M3) support
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
     print(f"Using device: {device}")
 
     model = CausalTransformerEncoder(
@@ -265,7 +276,13 @@ def run_backtesting(args):
     raw_df = pd.read_csv(args.data_file, index_col='timestamp', parse_dates=True)
     featured_data = create_features(raw_df)
     
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # UPDATED: Device selection logic for Apple Silicon (M1/M2/M3) support
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
     print(f"Using device: {device}")
     
     model = CausalTransformerEncoder(
