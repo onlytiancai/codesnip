@@ -6,7 +6,7 @@ d = 512
 i_values = np.arange(0, 512)
 pos_values = [0, 1, 10, 50, 100, 500]
 
-# Create figure with 4 subplots
+# Create figure with 6 subplots
 fig, axes = plt.subplots(3, 2, figsize=(12, 8))
 axes = axes.flatten()
 
