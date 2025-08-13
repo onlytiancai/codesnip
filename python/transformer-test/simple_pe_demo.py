@@ -93,7 +93,7 @@ def simple_positional_encoding_demo():
         axes[row, col].set_ylim(-1.1, 1.1)
     
     plt.tight_layout()
-    plt.savefig('/home/haohu/src/codesnip/python/transformer-test/simple_pe_demo.png', dpi=150)
+    plt.savefig('./simple_pe_demo.png', dpi=150)
     plt.show()
     print("简化演示图已保存为 simple_pe_demo.png")
     
