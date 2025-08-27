@@ -10,3 +10,4 @@ node/mydb/
 *.class
 node_modules
 log.txt
+.venv
