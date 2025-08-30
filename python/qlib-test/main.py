@@ -63,27 +63,19 @@ BENCHMARK = 'SPY'
 # Forward 4-week return (approx. 20 trading days) — mid-horizon
 LABEL = "Ref($close, -20) / Ref($close, -1) - 1"
 
-# Alpha158 already provides ~158 TA features from OHLCV.
-# We'll optionally append a few custom features (momentum, reversal, volatility, size proxy).
-CUSTOM_EXPRS = {
-    # Momentum (12-1): past 252d price change excluding last 21d
-    'mom_12_1': "Ref($close, -21) / Ref($close, -252) - 1",
-    # Short-term reversal: last 5d return
-    'rev_5': "Ref($close, -1) / Ref($close, -6) - 1",
-    # Volatility: 60d rolling std of daily returns
-    'vol_60': "Std($close/Ref($close,-1)-1, 60)",
-    # Turnover intensity: 20d average turnover (volume scaled by free float if available)
-    'to_20': "Mean($turnover, 20)",
-    # Size proxy: log(median dollar volume 60d)
-    'dollar_vol_60_log': "Log( Mean($volume*$close, 60) + 1e-6 )",
-}
+FEATURES = [
+    "Alpha158($close, $volume)",   # 生成 Alpha158 默认的因子
+    # 加上自定义的表达式
+    "Ref($close, -21) / Ref($close, -252) - 1 as mom_12_1",
+    "Ref($close, -1) / Ref($close, -6) - 1 as rev_5",
+    "Std($close/Ref($close,-1)-1, 60) as vol_60",
+    "Mean($turnover, 20) as to_20",
+    "Log( Mean($volume*$close, 60) + 1e-6 ) as dollar_vol_60_log",
+]
 
-# ----------------------
-# 3. Handler & Dataset
-# ----------------------
 HANDLER_CONF = {
-    'class': 'Alpha158',
-    'module_path': 'qlib.contrib.data.handler',
+    'class': 'DataHandlerLP',
+    'module_path': 'qlib.data.dataset.handler',
     'kwargs': {
         'start_time': '2012-01-01',
         'end_time': '2025-07-31',
@@ -91,19 +83,36 @@ HANDLER_CONF = {
         'fit_end_time': '2022-12-31',
         'instruments': UNIVERSE,
         'infer_processors': [
-            {'class': 'RobustZScoreNorm', 'kwargs': {'clip_outlier': True, 'fields_group': 'feature'}},
+            {
+                'class': 'RobustZScoreNorm',
+                'kwargs': {
+                    'clip_outlier': True,
+                    'fields_group': 'feature',
+                    'fit_start_time': '2012-01-01',
+                    'fit_end_time': '2022-12-31',
+                }
+            },
             {'class': 'Fillna', 'kwargs': {'fields_group': 'feature'}}
         ],
         'learn_processors': [
             {'class': 'DropnaLabel'},
             {'class': 'CSRankNorm', 'kwargs': {'fields_group': 'label'}},
-            {'class': 'RobustZScoreNorm', 'kwargs': {'clip_outlier': True, 'fields_group': 'feature'}},
+            {
+                'class': 'RobustZScoreNorm',
+                'kwargs': {
+                    'clip_outlier': True,
+                    'fields_group': 'feature',
+                    'fit_start_time': '2012-01-01',
+                    'fit_end_time': '2022-12-31',
+                }
+            },
             {'class': 'Fillna', 'kwargs': {'fields_group': 'feature'}},
         ],
         'label': LABEL,
-        'custom': CUSTOM_EXPRS,  # append our extra features
+        'feature': FEATURES,   # ✅ 在这里放所有因子
     },
 }
+
 
 DATASET_CONF = {
     'class': 'DatasetH',
