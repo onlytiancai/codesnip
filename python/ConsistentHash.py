@@ -62,13 +62,13 @@ class ConsistentHash:
 # 1. 初始化哈希环，有三个节点
 print("--- 步骤1：初始化三个节点 ---")
 nodes = ["NodeA", "NodeB", "NodeC"]
-consistent_hash = ConsistentHash(nodes=nodes)
+consistent_hash = ConsistentHash(nodes=nodes, replicas=10000)
 
 # 2. 模拟数据分配，并记录初始节点
-print("\n--- 步骤2：分配1000个数据并记录初始节点 ---")
+print("\n--- 步骤2：分配100000个数据并记录初始节点 ---")
 initial_data_mapping = {}
 initial_distribution = {}
-for i in range(1000):
+for i in range(100000):
     key = f"data_{i}"
     node = consistent_hash.get_node(key)
     initial_data_mapping[key] = node
@@ -89,14 +89,19 @@ consistent_hash.add_node("NodeD")
 print("\n--- 步骤4：重新分配数据并统计迁移量 ---")
 new_distribution = {}
 migrated_count = 0
+migrated_from_nodes = {} # 新增：记录从各个旧节点迁移的数据量
 
-for i in range(1000):
+for i in range(100000):
     key = f"data_{i}"
     old_node = initial_data_mapping[key]
-    new_node = consistent_hash.get_node(key) # 此时get_node会使用新的哈希环
+    new_node = consistent_hash.get_node(key) 
     
     if new_node != old_node:
         migrated_count += 1
+        # 如果数据迁移到了新节点D
+        if new_node == 'NodeD':
+            migrated_from_nodes.setdefault(old_node, 0)
+            migrated_from_nodes[old_node] += 1
         
     new_distribution.setdefault(new_node, 0)
     new_distribution[new_node] += 1
@@ -106,5 +111,10 @@ print("扩容后数据分布情况：")
 for node, count in new_distribution.items():
     print(f"  {node}: {count} 个 ({count/total_data:.2%})")
 
-print(f"\n📢 扩容后需要迁移的数据量： {migrated_count} 个")
+print(f"\n📢 扩容后需要迁移的数据总量： {migrated_count} 个")
 print(f"📢 迁移率： {migrated_count/total_data:.2%}")
+
+print("\n--- 详细迁移情况 ---")
+print("旧节点迁移到新节点NodeD的数据量:")
+for old_node, count in migrated_from_nodes.items():
+    print(f"  从 {old_node} 迁移出 {count} 个数据")
