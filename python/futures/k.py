@@ -22,6 +22,12 @@ app = dash.Dash(__name__)
 app.layout = html.Div([
     html.H3("多级K线联动图", style={"textAlign": "center"}),
 
+
+
+    # --- 日线图 ---
+    html.Div([
+        dcc.Graph(id="daily-chart", clear_on_unhover=True)
+    ]),
     # --- 日期控制区 ---
     html.Div([
         html.Button("⬅ 上一天", id="prev-day", n_clicks=0),
@@ -29,14 +35,8 @@ app.layout = html.Div([
         html.Button("下一天 ➡", id="next-day", n_clicks=0),
     ], style={"textAlign": "center", "marginBottom": "10px"}),
 
-    # --- 日线图 ---
-    html.Div([
-        dcc.Graph(id="daily-chart", clear_on_unhover=True)
-    ]),
-
     # --- 分钟图 ---
     html.Div([
-        html.H4(id="sub-title"),
         dcc.Graph(id="intraday-chart")
     ]),
 
@@ -112,7 +112,6 @@ def update_selected_date(clickData, prev_clicks, next_clicks, current_date):
 # ====== 下方分钟图随选中日期更新 ======
 @app.callback(
     Output("intraday-chart", "figure"),
-    Output("sub-title", "children"),
     Output("current-date-label", "children"),
     Input("selected-date", "data")
 )
@@ -133,7 +132,7 @@ def update_intraday(selected_date):
         xaxis_rangeslider_visible=False,
         height=400,
     )
-    return fig, f"📅 {selected_date} 当日分钟K线", f"当前日期：{selected_date}"
+    return fig,  f"当前日期：{selected_date}"
 
 # ====== 运行 ======
 if __name__ == "__main__":
