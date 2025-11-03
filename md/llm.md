@@ -1,17 +1,24 @@
 # 大模型训练
 
-- 什么是 LLM？它的底层原理是什么？
-- LLM 有哪些分类？
-- 什么是 LLM 的训练？
-- 什么是 LLM 的推理？
-- 什么时候应该训练自己的大模型？
-- 如何训练自己的大模型？
-- 什么时候应该用 RAG？
-- hugging face 有哪些帮助训练大模型的库？
-- 训练时如何降低内存和显卡使用量？
-- 大模型压缩有哪些技术？
+参考链接：https://chatgpt.com/share/69085d86-ca58-8008-baf5-4713fb1ef95a
 
-## 什么是 LLM，他们有哪些分类？
+
+- 一、基础概念
+    - 1.1 LLM 底层原理是什么？
+    - 1.2 LLM 有哪些分类？
+- 二、训练
+    - 2.1 什么是 LLM 的训练？
+    - 2.2 什么时候应该训练自己的大模型？    
+    - 2.3 如何训练自己的大模型？
+    - 2.4 hugging face 有哪些帮助训练大模型的库？        
+    - 2.5 训练时如何降低内存和显卡使用量？    
+- 三、推理    
+    - 3.1 什么是 LLM 的推理？
+    - 3.2 什么时候应该用 RAG？
+    - 3.3 大模型压缩有哪些技术？
+
+# 一、基础概念
+## 1.1. LLM 底层原理是什么？
 
 **LLM（大语言模型）** 是一种基于深度学习的模型，训练目标是**理解和生成自然语言文本**。
 它通过在大规模文本数据上训练，学习语言的统计规律、语义结构、推理关系等。
@@ -52,7 +59,7 @@ $$
 $$
 
 
-## LLM 有哪些分类？
+## 1.2. LLM 有哪些分类？
 
 按训练目标分类
 
@@ -72,16 +79,9 @@ $$
 | **Encoder–Decoder** | 编码器+解码器      | T5、BART | 平衡理解与生成 |
 
 
-总结
+# 二、训练
 
-| 维度  | 掩码语言模型（Masked LM） | 因果语言模型（Causal LM） |
-| --- | ----------------- | ----------------- |
-| 上下文 | 双向                | 单向                |
-| 用途  | 理解                | 生成                |
-| 架构  | Encoder-only      | Decoder-only      |
-| 举例  | BERT、RoBERTa      | GPT、LLaMA、Mistral |
-
-## 什么是 LLM 的训练？
+## 2.1. 什么是 LLM 的训练？
 
 **训练（Training）** 就是让模型通过大量数据“学习”语言规律与人类意图的过程。从最顶层看，大语言模型的训练通常分为四个阶段：
 
@@ -100,41 +100,288 @@ $$
 | 对齐   | 偏好数据  | 强化学习 / DPO | 学价值观   | 符合人类预期 |
 | 增量微调 | 特定语料  | 有监督或少样本    | 学领域知识  | 专业任务表现 |
 
+## 2.2 什么时候应该训练自己的大模型？
 
-# other
-pip install huggingface_hub
-HF_ENDPOINT=https://hf-mirror.com hf download bigscience/mt0-large --local-dir ./mt0-large
+真的需要“训练自己的大模型”吗？
 
-export HF_ENDPOINT=https://hf-mirror.com
-pip install -q peft transformers datasets
+| 目标                            | 是否需要自己训练  | 推荐方案                                   |
+| ----------------------------- | --------- | -------------------------------------- |
+| **只想用自然语言交互（问答、摘要、生成）**       | ❌ 不需要     | 直接用现成大模型（如 GPT、Claude、Gemini、DeepSeek） |
+| **希望结合企业内部知识库**               | ❌ 不需要训练   | 用 **RAG（检索增强生成）**                      |
+| **需要特定行业风格（医疗、金融、法律）**        | ⚠️ 轻度微调即可 | 用 **LoRA / QLoRA 微调**                  |
+| **要模型掌握新任务、新格式或复杂技能**         | ✅ 需要 SFT  | 进行 **监督微调 (SFT)**                      |
+| **需要模型符合企业安全标准或特殊语气风格**       | ✅ 需要对齐训练  | RLHF / DPO                             |
+| **要从零打造一个通用大模型（超大语料 + 自研算力）** | 🚫 极度昂贵   | 只有顶级机构会做（OpenAI、Anthropic、Meta）        |
 
-Transformers 快速入门
-https://huggingface.co/docs/transformers/quicktour
+不同阶段的技术和工具推荐
 
-peft notebooks
-https://huggingface.co/spaces/PEFT/causal-language-modeling
+| 阶段   | 工具 / 框架                                             | 特点        |
+| ---- | --------------------------------------------------- | --------- |
+| 预训练  | Megatron-LM / DeepSpeed / ColossalAI                | 分布式训练框架   |
+| 微调   | Hugging Face Transformers + PEFT (LoRA/QLoRA)       | 最常用组合     |
+| 对齐   | TRL (Hugging Face) / RLHF / DPO pipelines           | 强化学习与偏好优化 |
+| 推理   | vLLM / TGI / TensorRT-LLM                           | 高性能部署     |
+| 数据管理 | OpenPipe / Databricks / Datasets / Weights & Biases | 数据与实验追踪   |
 
-因果模型（Causal language modeling）微调教程
-https://huggingface.co/docs/transformers/tasks/language_modeling
 
-因果模型（Causal language modeling）微调 notebooks
-https://colab.research.google.com/github/huggingface/notebooks/blob/main/examples/language_modeling.ipynb
 
-微调相关：
-- Fine-Tuning Large Language Models with LoRA: A Practical Guide https://www.christianmenz.ch/programming/fine-tuning-large-language-models-with-lora-a-practical-guide/?utm_source=chatgpt.com
-- In-depth guide to fine-tuning LLMs with LoRA and QLoRA https://www.mercity.ai/blog-post/guide-to-fine-tuning-llms-with-lora-and-qlora?utm_source=chatgpt.com
-- Efficient Fine-tuning with PEFT and LoRA https://heidloff.net/article/efficient-fine-tuning-lora/?utm_source=chatgpt.com 
-    - https://www.philschmid.de/fine-tune-flan-t5-peft
-    - https://huggingface.co/blog/4bit-transformers-bitsandbytes
-- Fine-Tuning Large Language Models (LLMs) https://towardsdatascience.com/fine-tuning-large-language-models-llms-23473d763b91/
-- Making LLMs even more accessible with bitsandbytes, 4-bit quantization and QLoRA https://huggingface.co/blog/4bit-transformers-bitsandbytes
+成本和数据量参考（经验值）
 
-摘录
+| 阶段           | 数据量             | GPU 数量      | 成本级别       | 可行性          |
+| ------------ | --------------- | ----------- | ---------- | ------------ |
+| 预训练          | TB 级            | 1000+       | 💸💸💸💸💸 | ❌ 仅大厂        |
+| 领域微调         | 10M–100M tokens | 8–32        | 💸💸       | ✅ 中大型企业      |
+| 监督微调         | 10k–100k 样本     | 1–8         | 💸         | ✅ 普通企业可做     |
+| 对齐训练         | 1k–10k 偏好对      | 4–16        | 💸💸       | ✅ 有意向产品化时    |
+| RAG + Prompt | 几百条知识文档         | CPU / 单 GPU | 💰         | ✅ 个人 / 小团队首选 |
 
-- 使用 RAG 时，我们不会对模型进行任何操作，它就是原始模型，数据只是随请求一起传递。而微调则不同，它使用额外的领域特定数据重新训练模型，因此我们会更改模型权重，最终得到一个包含领域特定知识的新模型。
-- 你可以创建两个低秩矩阵，然后将它们相乘得到一个大矩阵。
-- 微调后的模型可以通过提供定制化功能，从多方面提升业务绩效。微调模型有助于您根据自身需求和知识进行定制。
-- 您可以使用 RAG 管道来定制模型，但有时知识量过于庞大，仅靠嵌入和相似性搜索是不够的，这时就需要通过微调进行定制。
-- 微调不仅可以提高基础模型的性能，而且较小的（微调后的）模型通常在其训练的任务集上优于较大的（更昂贵的）模型 
-- 一个主要问题是，LLM 的上下文窗口有限。因此，对于需要庞大知识库或领域特定信息的任务，模型的性能可能欠佳[1]。微调模型可以通过在微调过程中“学习”这些信息来避免这个问题。
-- 微调模型通常有三种方法 ：自监督学习、监督学习和强化学习。
+
+## 2.3 如何训练自己的大模型
+
+在已有的基础大模型（Base LLM）上，**用更小的代价，让它掌握你的专业知识和任务风格**。
+
+这就是：
+
+* **领域微调 (Domain Finetuning)** → 学会「内容」
+* **监督微调 (SFT)** → 学会「行为」
+
+整体流程概览
+
+```
+基础模型（Base LLM）
+    ↓
+数据准备
+    ↓
+(1) 领域微调 → 学习行业语料、术语
+    ↓
+(2) 监督微调 (SFT) → 学习指令风格和任务执行
+    ↓
+(可选) 对齐 (DPO / RLHF)
+    ↓
+部署推理（vLLM / TGI / TensorRT）
+```
+
+**领域微调（Domain Finetuning）**
+
+- 让模型熟悉你所在行业的“语言环境”和“专业表达”，医疗报告、法律文书、科研论文、制造标准、企业知识库……
+- 模型通过阅读大量专业文本，学习该领域的表达逻辑与术语语义。
+- 数据集：只是领域语料，不需要加指令，通常打包成一个大语料文件，通过因果语言建模继续学习
+- 训练方式：QLoRA（低成本 + 性能接近全参）
+
+微调方式
+
+| 方式                          | 原理         | 优点    | 推荐场景         |
+| --------------------------- | ---------- | ----- | ------------ |
+| **全参数微调 (Full Finetune)**   | 更新所有参数     | 精度最高  | 有算力（≥8张A100） |
+| **LoRA / QLoRA**            | 只在部分矩阵加低秩层 | 显存需求小 | 推荐企业 & 个人使用  |
+| **Adapter / Prefix-tuning** | 注入小规模参数层   | 轻量但较弱 | 小任务适用        |
+
+**监督微调（SFT, Supervised Fine-Tuning）**
+
+- 在模型已经“懂行业语言”的基础上，让它听懂人类指令，执行特定任务，遵守输出格式、风格和语气
+- 数据集：小任务：几千条，中型指令模型：2–10 万条，高质量比数量更重要！
+- 训练方式：Transformers + PEFT (LoRA/QLoRA)
+
+若想让模型更“懂人”，可继续做
+* **DPO（Direct Preference Optimization）**  用人类偏好对 (A,B) 微调回答质量
+* **RLHF（Reinforcement Learning from Human Feedback）**  高级对齐方法，但成本较高
+
+## 2.4 hugging face 有哪些帮助训练大模型的库？
+
+Hugging Face 不仅是一个模型社区（存模型的网站），更是一个 **完整的 LLM 开发生态体系**。它提供从 “数据 → 模型 → 训练 → 推理 → 部署” 的一整套工具链。
+
+大模型训练核心库全景
+
+| 类别             | 库名                                                                  | 功能定位                       | 主要用途                          |
+| -------------- | ------------------------------------------------------------------- | -------------------------- | ----------------------------- |
+| 🧱 模型与训练核心     | **Transformers**                                                    | 模型定义与训练主框架                 | 训练 / 微调 / 推理各种 Transformer 模型 |
+| 💾 数据管理        | **Datasets**                                                        | 数据加载与预处理                   | 快速加载大规模数据集                    |
+| ⚙️ 参数高效微调      | **PEFT**                                                            | LoRA、QLoRA、Prefix Tuning 等 | 低成本微调 LLM                     |
+| 🚀 训练加速        | **Accelerate**                                                      | 分布式与混合精度训练                 | 简化多 GPU / TPU 训练              |
+| 🎯 奖励模型 & RLHF | **TRL** (Transformers Reinforcement Learning)                       | SFT、DPO、PPO 等              | 人类反馈训练（对齐阶段）                  |
+| 🔍 评估与基准       | **Evaluate**                                                        | 自动评估指标                     | BLEU、ROUGE、accuracy 等         |
+| 📦 模型管理与发布     | **Hub / Model Hub**                                                 | 模型云仓库                      | 上传、下载、版本管理                    |
+| 💬 数据标注        | **Datasets Viewer / Spaces / Label Studio**                         | 可视化数据标注                    | 准备 SFT 数据                     |
+| 🧠 模型推理        | **Inference Endpoints / Optimum / Text Generation Inference (TGI)** | 高性能推理与部署                   | 快速部署微调模型                      |
+| 💡 优化与硬件适配     | **Optimum**                                                         | 与硬件厂商合作优化                  | 加速推理 (ONNX, Intel, NVIDIA)    |
+| 🧩 评估基准        | **Open LLM Leaderboard**                                            | 模型对比榜单                     | 查看不同模型效果                      |
+
+典型训练组合方案
+
+| 目标            | 推荐组合                                 |
+| ------------- | ------------------------------------ |
+| 🔹 领域微调       | `Transformers` + `Datasets` + `PEFT` |
+| 🔹 指令微调 (SFT) | `Transformers` + `PEFT` + `TRL`      |
+| 🔹 RLHF 对齐训练  | `TRL` + `Accelerate` + `Evaluate`    |
+| 🔹 分布式大规模训练   | `Accelerate` + `DeepSpeed`           |
+| 🔹 高速推理部署     | `Optimum` + `TGI`                    |
+
+## 2.5 训练时如何降低内存和显卡使用量？
+
+微调大模型时，显存主要消耗在：
+
+| 模块                       | 占用来源                | 优化方向                              |
+| ------------------------ | ------------------- | --------------------------------- |
+| **模型权重**                 | 模型本身（几十亿参数）         | 量化 / 参数冻结                         |
+| **优化器状态**                | AdamW 三倍参数量         | 低精度优化器 / LoRA                     |
+| **激活缓存（activations）**    | 反向传播中保存梯度           | Gradient checkpointing            |
+| **Batch 数据**             | 输入 tokens + padding | 动态批次、梯度累积                         |
+| **中间张量复制**               | 多 GPU 通信或 FP32 转换   | 混合精度训练 (bf16/fp16)                |
+| **奖励模型 / 参考模型**（在 TRL 中） | 需要多模型同时加载           | Reference offload / model sharing |
+
+通用节省显存策略（所有 LLM 适用）
+
+- 使用 **LoRA / QLoRA (PEFT)** — 减少参数更新量
+- 启用 **gradient_checkpointing**（梯度检查点）
+- 启用 **mixed precision / bf16 / fp16**
+- 使用 **梯度累积（gradient_accumulation_steps）**
+- 动态 Padding + Packed Dataset
+- 使用 **deepspeed** 或 **FSDP** 分布式优化
+
+PEFT 专属优化策略
+
+| 技术                              | 功能                     | 效果         |
+| ------------------------------- | ---------------------- | ---------- |
+| **LoRA 层只插入部分模块**               | 只在 `q_proj, v_proj` 调整 | 显存 ↓20–40% |
+| **use_rslora=True**             | 缩放正则化 LoRA             | 性能更稳       |
+| **merge_and_unload()**          | 训练结束后合并权重释放显存          | 节省部署显存     |
+| **bitsandbytes int4**           | 模型加载为 4-bit            | 显存 ↓70%    |
+| **bnb_4bit_compute_dtype=bf16** | 提高稳定性                  | 数值稳定       |
+
+TRL（对齐训练）场景的显存优化
+
+TRL（尤其 DPO / PPO）中显存瓶颈更大，因为通常需要加载多个模型：
+
+| 模型              | 作用            |
+| --------------- | ------------- |
+| Policy Model    | 正在训练的策略模型     |
+| Reference Model | 对比参考模型（不训练）   |
+| Reward Model    | 打分模型（在 PPO 用） |
+
+实践组合（个人 + 企业）
+
+| 环境             | 建议配置                               | 备注             |
+| -------------- | ---------------------------------- | -------------- |
+| 💻 个人显卡 (24GB) | QLoRA + gradient checkpoint + fp16 | 可跑 7B 模型 SFT   |
+| 🧩 中型企业 (80GB) | LoRA + Deepspeed + bf16            | 可跑 13B~34B     |
+| 🧠 大型集群        | FSDP + ZeRO + PEFT + TRL           | 可跑 70B+ 模型对齐训练 |
+
+
+# 三、推理
+
+## 3.1. 什么是 LLM 的推理？
+
+在训练完成后，模型根据输入（Prompt），**逐步生成输出（Token-by-Token）** 的过程，就叫做 **推理（Inference）**。
+
+换句话说：
+
+* 训练（Training） = 学习语言规律；
+* 推理（Inference） = 使用这些规律生成语言。
+
+LLM 的推理流程大致如下
+
+```
+输入 Prompt → Tokenizer 编码 → Transformer 前向传播 → Softmax 输出下一个 token 概率 → 采样生成 → 循环
+```
+主流的推理技术（Inference Techniques）
+- 采样策略（Sampling Strategies）：top-k,top-p,temperature
+- 在推理时，Transformer 每一步都要计算注意力，但前面的结果可以复用。使用 KV Cache (Key-Value Cache) 存储历史注意力结果，只计算新增 token。大幅提升生成速度（加速 3~10 倍）。
+- 将模型参数从高精度（FP16/FP32）压缩到低精度（INT8/INT4），以减少显存占用和加快计算。
+- 张量并行与模型并行，用于大模型分布式推理（参数太大放不下一张显卡）：拆分矩阵计算，拆分 Transformer 层，切分权重到多 GPU / 节点
+- 推理加速框架（Serving Frameworks）：vLLM，TensorRT-LLM
+- 推理调度与批处理优化：在多请求环境中，LLM 推理的性能瓶颈通常是 GPU 空转。 框架（如 **vLLM**）会动态合并多个请求到同一批次计算，以最大化吞吐量。
+
+## 3.2 什么时候应该用 RAG？
+
+RAG（Retrieval-Augmented Generation，检索增强生成）是大模型应用里最“高性价比”的关键技术之一
+
+结构示意：
+
+```
+用户问题 → 检索系统 → 找到相关文档 → 拼接上下文 → 送入 LLM → 生成回答
+```
+
+也就是：“用你的知识 + 模型的语言能力 = 专业回答”
+
+在以下情况尤其合适：
+
+| 场景                    | 是否推荐用 RAG | 原因             |
+| --------------------- | --------- | -------------- |
+| 模型需要使用 **企业私有知识**     | ✅ 强烈推荐    | 比如内部文档、FAQ、手册  |
+| 模型需要访问 **最新信息（动态更新）** | ✅         | 无需重新训练         |
+| 模型知识存在“幻觉”风险          | ✅         | 让回答基于真实文档      |
+| 模型需要根据 **长文档回答问题**    | ✅         | 文档太长无法直接输入     |
+| 模型回答错误成本高（如医疗、法律）     | ✅         | 提升可解释性         |
+| 模型需要多领域知识融合           | ✅         | 可动态组合多个知识库     |
+| 想节省训练成本               | ✅         | 比微调便宜 10–100 倍 |
+| 模型只是闲聊或通用知识问答         | ❌         | 直接用大模型即可       |
+
+典型场景
+
+| 类别                  | 示例                   | 描述            |
+| ------------------- | -------------------- | ------------- |
+| 🏢 **企业知识问答**       | 企业内部手册、政策、流程         | 聊天机器人引用内部知识库  |
+| 🧑‍⚕️ **专业咨询助手**    | 医疗、法律、金融、教育          | 根据权威资料生成建议    |
+| 📚 **学术搜索 / 文献总结**  | PaperRAG, ScholarGPT | 查论文、提炼核心观点    |
+| ⚙️ **代码或 API 文档助手** | 技术支持 / 开发文档          | 解释函数、生成代码示例   |
+| 📰 **新闻/报告生成**      | 数据报告生成               | 结合最新文章回答      |
+| 💬 **客服与问答机器人**     | FAQ + LLM            | 语义理解 + 精准引用答案 |
+
+RAG vs 微调：怎么选？
+
+| 场景               | 推荐方式       | 原因      |
+| ---------------- | ---------- | ------- |
+| 想让模型“知道”新知识      | ✅ RAG      | 快速、可更新  |
+| 想让模型“学会”新技能或任务逻辑 | ✅ 微调 (SFT) | 需要行为学习  |
+| 数据频繁变动           | ✅ RAG      | 可即时更新   |
+| 数据固定、结构清晰        | ✅ 微调       | 效果稳定    |
+| 希望输出可溯源（引用出处）    | ✅ RAG      | 可显示参考来源 |
+
+**最佳实践：** “先用 RAG 解决 80% 的知识问题，再用微调提升 20% 的行为与风格。”
+
+流程及相关工具
+
+| 模块   | 功能                        | 常用工具                         |
+| ---- | ------------------------- | ---------------------------- |
+| 文本切分 | 拆分长文档                     | LangChain Splitter           |
+| 向量化  | 文本→向量                     | BGE, E5, OpenAI Embedding    |
+| 向量存储 | 高效检索                      | FAISS / Milvus / Chroma      |
+| 检索增强 | 找到最相关知识                   | LangChain Retriever          |
+| 生成回答 | LLM 输出                    | GPT / LLaMA / Qwen / Mistral |
+| 优化   | Re-rank, Hybrid, GraphRAG | 提升准确性                        |
+
+## 3.3 大模型压缩
+
+在尽量不损失性能的前提下，通过算法或结构优化，让大语言模型的 **参数更少、计算更快、内存占用更低**。
+
+> 四大类核心技术：**量化（Quantization）**、**剪枝（Pruning）**、**蒸馏（Distillation）**、**低秩分解（Low-rank / LoRA）** 再加上辅助的结构优化与缓存技术。
+
+压缩技术效果对比
+
+| 技术          | 是否需再训练    | 压缩比  | 精度损失 | 难度 | 适用阶段   |
+| ----------- | --------- | ---- | ---- | -- | ------ |
+| 量化          | ❌ 可直接压缩   | ⭐⭐⭐⭐ | 轻微   | 低  | 推理/部署  |
+| 剪枝          | ✅ 可再训练    | ⭐⭐⭐  | 中等   | 中  | 模型结构优化 |
+| 蒸馏          | ✅ 必需训练    | ⭐⭐⭐⭐ | 可控   | 高  | 任务定制   |
+| 低秩分解 (LoRA) | ✅ 训练少量参数  | ⭐⭐   | 轻微   | 低  | 微调阶段   |
+| 结构优化        | ❌ 架构设计时决定 | ⭐⭐⭐  | 无    | 高  | 预训练阶段  |
+
+常见压缩组合方案
+
+| 目标             | 推荐组合                                        | 效果       |
+| -------------- | ------------------------------------------- | -------- |
+| 🧩 轻量化推理（桌面显卡） | **4-bit QLoRA + FlashAttention + KV Cache** | 显存 ↓75%  |
+| ⚡ 快速推理服务       | **INT8 Quant + Prune 30% + vLLM**           | 吞吐 +3×   |
+| 💾 模型部署在移动端    | **Distillation + INT4 + ONNX**              | 模型 < 1GB |
+| 🔬 任务定制模型      | **LoRA + Distillation**                     | 精度与体积平衡  |
+
+实践建议
+
+| 场景          | 推荐策略                                    |
+| ----------- | --------------------------------------- |
+| 想快速部署 LLM → | **INT4 量化 + FlashAttention + KV Cache** |
+| 显卡有限但要微调 →  | **QLoRA**                               |
+| 想做任务定制小模型 → | **蒸馏 + LoRA**                           |
+| 想持续节省推理成本 → | **量化 + 剪枝**                             |
+| 想边缘端落地 →    | **蒸馏 + INT4 + ONNX Runtime**            |
+
