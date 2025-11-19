@@ -18,11 +18,24 @@ function randomNick() {
 // 简单广播（不会记录历史）
 function broadcast(data, except) {
   const s = JSON.stringify(data);
+  let sent = 0;
   wss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN && client !== except) {
-      client.send(s);
+      try {
+        client.send(s);
+        sent++;
+      } catch (err) {
+        // 不阻塞广播流程
+        console.error('Broadcast send error to client:', err && err.message ? err.message : err);
+      }
     }
   });
+  // 简短日志，避免太多输出
+  if (data && data.type) {
+    console.log(`[broadcast] type=${data.type} sent=${sent}` + (data.nick ? ` from=${data.nick}` : ''));
+  } else {
+    console.log(`[broadcast] sent=${sent}`);
+  }
 }
 
 wss.on('connection', (ws, req) => {
@@ -60,6 +73,10 @@ wss.on('connection', (ws, req) => {
 
   const remoteAddr = (req && (req.socket && req.socket.remoteAddress)) || (ws && ws._socket && ws._socket.remoteAddress) || '';
   ws.ip = maskIp(remoteAddr);
+  // 保留原始地址用于 server 日志显示（不对外广播原始地址）
+  ws.remoteAddr = remoteAddr;
+
+  console.log(`[connect] nick=${ws.nick} ip=${ws.remoteAddr}`);
 
   // 向新连接的客户端发送分配的昵称（服务端分配）
   ws.send(JSON.stringify({ type: 'assign', nick, ip: ws.ip }));
@@ -90,6 +107,7 @@ wss.on('connection', (ws, req) => {
   ws.send(JSON.stringify({ type: 'assign', nick: ws.nick, ip: ws.ip }));
   // 广播昵称更改事件给其他人
   broadcast({ type: 'nick', oldNick, newNick, ip: ws.ip, ts: Date.now() }, ws);
+  console.log(`[nick] ${oldNick} -> ${newNick} ip=${ws.remoteAddr}`);
       return;
     }
 
@@ -102,7 +120,8 @@ wss.on('connection', (ws, req) => {
         text: msg.text.slice(0, 1000), // 限长
         ts: Date.now(),
       };
-      broadcast(out);
+  broadcast(out);
+  console.log(`[message] from=${ws.nick} ip=${ws.remoteAddr} textLen=${String(out.text).length} [${String(out.text)}]`);
     }
 
     // 处理语音消息（前端发送 data URL）
@@ -121,12 +140,15 @@ wss.on('connection', (ws, req) => {
         ts: Date.now(),
       };
       broadcast(out);
+  console.log(`[audio] from=${ws.nick} ip=${ws.remoteAddr} size=${estimatedBytes}B`);
     }
   });
 
   ws.on('close', () => {
   broadcast({ type: 'leave', nick: ws.nick, ip: ws.ip, ts: Date.now() });
+  console.log(`[close] nick=${ws.nick} ip=${ws.remoteAddr}`);
   });
+  ws.on('error', err => { console.error('[ws error]', err && err.message ? err.message : err); });
 });
 
 // 清理死连接
@@ -138,8 +160,8 @@ const interval = setInterval(() => {
   });
 }, 30000);
 
-server.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
+server.listen(3005, () => {
+  console.log('Server running on http://localhost:3005');
 });
 
 process.on('SIGTERM', () => { clearInterval(interval); server.close(); });
