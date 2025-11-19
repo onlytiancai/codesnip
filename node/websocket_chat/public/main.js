@@ -148,13 +148,25 @@ if (recordBtn) {
       appendLine('<div class="meta">⚠️ 浏览器不支持录音</div>');
       return;
     }
-    recordBtn.textContent = '正在录音...';
+  recordBtn.textContent = '正在录音...';
     recordBtn.style.background = '#c33';
     audioChunks = [];
+  // 记录录音开始时间，用于判断时长
+  recordBtn._recordStart = Date.now();
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
       mediaRecorder = new MediaRecorder(stream);
       mediaRecorder.ondataavailable = e => { if (e.data && e.data.size) audioChunks.push(e.data); };
       mediaRecorder.onstop = () => {
+        const durationMs = Date.now() - (recordBtn._recordStart || 0);
+        // 最短录音时长：1000ms
+        const minMs = 1000;
+        if (durationMs < minMs) {
+          appendLine(`<div class="meta">⚠️ 录音过短（${Math.round(durationMs)}ms），需至少 ${minMs}ms</div>`);
+          // 停止所有音轨以释放麦克风
+          stream.getTracks().forEach(t => t.stop());
+          return;
+        }
+
         const blob = new Blob(audioChunks, { type: audioChunks[0] ? audioChunks[0].type : 'audio/webm' });
         const reader = new FileReader();
         reader.onload = () => {
