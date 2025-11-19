@@ -79,6 +79,15 @@ $$
 | **Encoder–Decoder** | 编码器+解码器      | T5、BART | 平衡理解与生成 |
 
 
+**Dense model（稠密模型）** 通常指：**所有参数都在推理时被激活、使用的模型。**
+
+* 每一层的每个神经元、每个注意力头、每个权重矩阵都在每个前向计算中生效。
+* 与之相对的是 **Sparse model（稀疏模型）**，例如：
+
+  * Mixture of Experts（MoE）模型：每次只激活部分专家；
+  * 稀疏注意力机制（如 Longformer、BigBird）；
+  * 或者在推理中动态剪枝的模型。
+
 # 二、训练
 
 ## 2.1. 什么是 LLM 的训练？
@@ -385,3 +394,21 @@ RAG vs 微调：怎么选？
 | 想持续节省推理成本 → | **量化 + 剪枝**                             |
 | 想边缘端落地 →    | **蒸馏 + INT4 + ONNX Runtime**            |
 
+## 摘要
+
+- Making language models bigger does not inherently make them better at following a user's intent. 
+- 您可以使用 RAG 管道来定制模型，但有时知识量过于庞大，仅靠嵌入和相似性搜索是不够的，这时就需要通过微调进行定制。
+- 微调不仅可以提高基础模型的性能，而且较小的（微调后的）模型通常在其训练的任务集上优于较大的（更昂贵的）模型 
+
+## 链接
+
+- https://huggingface.co/spaces/HuggingFaceTB/smol-training-playbook#designing-the-model-architecture
+
+## 名词解释
+
+- SOTA Model: 英文短语 “State of the Art” 的缩写，当前技术的最高水平的模型，更长上下文，多模态能力，指令微调 + 人类反馈 (SFT + RLHF/RLHF 变体)，稀疏化 / MoE，开源等。
+- Dense model: 所有参数都在推理时被激活、使用的模型。
+- Sparse model: 如 MoE 模型：每次只激活部分专家；稀疏注意力机制（如 Longformer、BigBird）；或者在推理中动态剪枝的模型。
+- MoE model： Mixture of Experts
+- Causal model：模型只可以利用先前的 token 来预测下一个 token，而不是看到整个句子的双向上下文，也被称为 自回归语言模型（autoregressive LM）。如 GPT-2，3，4，LLaMA 系列，DeepSeek 等
+- Masked mode: 能看见前后文，只挡着某个 token 用来预测，如 BERT、RoBERTa、ELECTRA

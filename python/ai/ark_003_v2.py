@@ -1,12 +1,3 @@
-'''
-借鉴 ark_002.py 使用 arkitect和doubao-1-5-pro-32k-250115 function call的代码完成如下需求
-- 用户输入一段文字给某几个同学加分，比如“给张三加5分，给李四加3分”
-- 定义两个函数，一个是根据同学姓名得到学号，一个是根据学号增加分数
-- 用户输入文字后自动根据姓名得到学号，并给这个学号增加分数
-- 注意错误处理，比如获取学号失败，或者增加分数失败等
-- 打印详细的日志方便排错
-'''
-
 from arkitect.core.component.context.context import Context
 from pydantic import Field
 import asyncio
@@ -86,7 +77,7 @@ def add_score(student_id: str = Field(description="学生的学号"),
 async def process_score_addition():
     # 初始化上下文，注册工具函数
     ctx = Context(
-        model="doubao-1-5-pro-32k-250115",
+        model="doubao-seed-1-6-251015",
         tools=[get_student_id, add_score]
     )
     await ctx.init()
@@ -94,10 +85,21 @@ async def process_score_addition():
     # 用户输入（可以改为input()函数获取实际输入）
     user_input = "给张三加5分，给李四加3分，给小明加2分"
     logger.info(f"收到用户输入：{user_input}")
-    
+
+    messages=[
+        {"role": "system", "content": """
+        你需要处理用户的加分指令，规则如下：
+        1. 必须先通过get_student_id函数查询学生姓名对应的学号，不可直接猜测。
+        2. 调用add_score函数时，分数必须是正整数，且需使用查询到的学号。
+        3. 若有多个学生，需逐个处理，前一个失败不影响后一个。
+        4. 最终返回所有处理结果，包括成功和失败的详情。
+        """},
+        {"role": "user", "content": user_input}
+    ]
+
     # 处理请求
     completion = await ctx.completions.create(
-        messages=[{"role": "user", "content": user_input}],
+        messages=messages,
         stream=False
     )
     
