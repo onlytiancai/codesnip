@@ -104,6 +104,24 @@ wss.on('connection', (ws, req) => {
       };
       broadcast(out);
     }
+
+    // 处理语音消息（前端发送 data URL）
+    if (msg.type === 'audio' && typeof msg.data === 'string') {
+      // 不在服务器端解码，只做简单大小限制（防止被滥用）
+      const maxSize = 2 * 1024 * 1024; // 2MB
+      // 估算 base64 大小：data:audio/...;base64,xxxx
+      const base64Part = msg.data.split(',')[1] || '';
+      const estimatedBytes = Math.ceil((base64Part.length * 3) / 4);
+      if (estimatedBytes > maxSize) return; // 忽略过大的语音
+      const out = {
+        type: 'audio',
+        nick: ws.nick,
+        ip: ws.ip,
+        data: msg.data,
+        ts: Date.now(),
+      };
+      broadcast(out);
+    }
   });
 
   ws.on('close', () => {
