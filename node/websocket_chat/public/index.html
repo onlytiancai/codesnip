@@ -28,9 +28,18 @@
         <div id="status" style="font-size:13px; opacity:0.9">连接中…</div>
   <button id="changeNick" style="padding:4px 8px; font-size:13px">修改昵称</button>
   <button id="clearBtn" style="padding:4px 8px; font-size:13px">清屏</button>
+  <button id="toggleUsers" style="padding:4px 8px; font-size:13px">在线人员</button>
       </div>
     </header>
     <div id="log"></div>
+    <!-- 在线人员侧栏（默认隐藏） -->
+    <aside id="usersPanel" style="display:none; position:fixed; right:12px; top:64px; width:220px; max-height:60vh; overflow:auto; background:#fff; border:1px solid #ddd; box-shadow:0 4px 12px rgba(0,0,0,0.08); border-radius:8px; z-index:1000; padding:8px">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+        <strong>在线人员</strong>
+        <button id="closeUsers" style="padding:4px 8px; font-size:12px">关闭</button>
+      </div>
+      <div id="usersList" style="font-size:13px; color:#333"></div>
+    </aside>
     <footer>
   <input id="input" type="text" placeholder="输入消息，回车发送" autocomplete="off" />
   <button id="send">发送</button>

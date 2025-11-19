@@ -98,8 +98,24 @@ wss.on('connection', (ws, req) => {
   // 向新连接的客户端发送分配的昵称（服务端分配）
   ws.send(JSON.stringify({ type: 'assign', nick, ip: ws.ip }));
 
+  // 发送当前在线列表给新连接（包含自己）
+  function buildPresence() {
+    const users = [];
+    wss.clients.forEach(c => {
+      if (c && c.readyState === WebSocket.OPEN) {
+        users.push({ nick: c.nick || '', ip: c.ip || '' });
+      }
+    });
+    return users;
+  }
+  try {
+    ws.send(JSON.stringify({ type: 'presence', users: buildPresence() }));
+  } catch (e) {}
+
   // 告知其他人有人加入（可选）
   broadcast({ type: 'join', nick, ip: ws.ip, ts: Date.now() }, ws);
+  // 广播最新在线列表
+  broadcast({ type: 'presence', users: buildPresence() });
 
   // 心跳（保持连接健康）
   ws.isAlive = true;
@@ -124,7 +140,17 @@ wss.on('connection', (ws, req) => {
   ws.send(JSON.stringify({ type: 'assign', nick: ws.nick, ip: ws.ip }));
   // 广播昵称更改事件给其他人
   broadcast({ type: 'nick', oldNick, newNick, ip: ws.ip, ts: Date.now() }, ws);
+  // 广播最新在线列表（包含更新后的昵称）
+  broadcast({ type: 'presence', users: buildPresence() });
   console.log(`[nick] ${oldNick} -> ${newNick} ip=${ws.remoteAddr}`);
+      return;
+    }
+
+    // 客户端请求在线人员（可选）
+    if (msg.type === 'request_presence') {
+      try {
+        ws.send(JSON.stringify({ type: 'presence', users: buildPresence() }));
+      } catch (e) {}
       return;
     }
 
@@ -163,6 +189,8 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', () => {
   broadcast({ type: 'leave', nick: ws.nick, ip: ws.ip, ts: Date.now() });
+  // 广播最新在线列表
+  broadcast({ type: 'presence', users: buildPresence() });
   console.log(`[close] nick=${ws.nick} ip=${ws.remoteAddr}`);
   });
   ws.on('error', err => { console.error('[ws error]', err && err.message ? err.message : err); });

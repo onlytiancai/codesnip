@@ -5,6 +5,9 @@ const statusEl = document.getElementById('status');
 const changeNickBtn = document.getElementById('changeNick');
 const clearBtn = document.getElementById('clearBtn');
 const recordBtn = document.getElementById('recordBtn');
+const toggleUsersBtn = document.getElementById('toggleUsers');
+const usersPanel = document.getElementById('usersPanel');
+const usersListEl = document.getElementById('usersList');
 
 let nick = null;
 let ws = null;
@@ -55,7 +58,7 @@ function connect() {
     if (msg.type === 'join') {
   const ipPart = msg.ip ? ` <span style="color:#999;font-size:12px">(${escapeHtml(msg.ip)})</span>` : '';
   appendLine(`<div class="meta">🔔 <strong>${escapeHtml(msg.nick)}</strong>${ipPart} 加入聊天室</div>`);
-      return;
+  return;
     }
 
     if (msg.type === 'leave') {
@@ -86,6 +89,12 @@ function connect() {
       // 显示昵称变更事件
   const ipPart = msg.ip ? ` <span style="color:#999;font-size:12px">(${escapeHtml(msg.ip)})</span>` : '';
   appendLine(`<div class="meta">🔁 <strong>${escapeHtml(msg.oldNick)}</strong> 改名为 <strong>${escapeHtml(msg.newNick)}</strong>${ipPart}</div>`);
+      return;
+    }
+    
+    if (msg.type === 'presence') {
+      // msg.users = [{nick, ip}]
+      renderUsers(msg.users || []);
       return;
     }
   });
@@ -131,6 +140,35 @@ changeNickBtn.addEventListener('click', () => {
     ws.send(JSON.stringify({ type: 'nick', nick: n }));
   }
 });
+
+// 在线人员面板交互
+if (toggleUsersBtn) {
+  toggleUsersBtn.addEventListener('click', () => {
+    if (!usersPanel) return;
+    usersPanel.style.display = usersPanel.style.display === 'none' || usersPanel.style.display === '' ? 'block' : 'none';
+    if (usersPanel.style.display === 'block' && ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'request_presence' }));
+    }
+  });
+}
+const closeUsersBtn = document.getElementById('closeUsers');
+if (closeUsersBtn) closeUsersBtn.addEventListener('click', () => { if (usersPanel) usersPanel.style.display = 'none'; });
+
+function renderUsers(list) {
+  if (!usersListEl) return;
+  usersListEl.innerHTML = '';
+  if (!Array.isArray(list) || list.length === 0) {
+    usersListEl.innerHTML = '<div style="color:#777">暂无在线人员</div>';
+    return;
+  }
+  list.forEach(u => {
+    const div = document.createElement('div');
+    div.style.padding = '6px 4px';
+    div.style.borderBottom = '1px solid #f0f0f0';
+    div.innerHTML = `<strong>${escapeHtml(u.nick || '')}</strong> <span style="color:#999;font-size:12px">${u.ip || ''}</span>`;
+    usersListEl.appendChild(div);
+  });
+}
 
 // 清屏按钮逻辑
 if (clearBtn) {
