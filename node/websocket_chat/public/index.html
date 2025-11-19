@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>实时聊天室（WebSocket）</title>
+  <title>Wawa Chat</title>
   <style>
     body { font-family: system-ui, -apple-system, "Helvetica Neue", Arial; margin: 0; height: 100vh; display:flex; }
     .col { display:flex; flex-direction:column; flex:1; }
@@ -23,10 +23,11 @@
 <body>
   <div class="col">
     <header>
-      <strong>实时聊天室（WebSocket）</strong>
+      <strong>Wawa Chat</strong>
       <div style="float:right; display:flex; gap:8px; align-items:center">
         <div id="status" style="font-size:13px; opacity:0.9">连接中…</div>
-        <button id="changeNick" style="padding:4px 8px; font-size:13px">修改昵称</button>
+  <button id="changeNick" style="padding:4px 8px; font-size:13px">修改昵称</button>
+  <button id="clearBtn" style="padding:4px 8px; font-size:13px">清屏</button>
       </div>
     </header>
     <div id="log"></div>

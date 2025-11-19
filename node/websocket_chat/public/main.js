@@ -3,6 +3,7 @@ const inputEl = document.getElementById('input');
 const sendBtn = document.getElementById('send');
 const statusEl = document.getElementById('status');
 const changeNickBtn = document.getElementById('changeNick');
+const clearBtn = document.getElementById('clearBtn');
 
 let nick = null;
 let ws = null;
@@ -19,7 +20,8 @@ function appendMessage(msg, self) {
   const d = document.createElement('div');
   d.className = 'msg ' + (self ? 'self' : 'other');
   const t = new Date(msg.ts).toLocaleTimeString();
-  d.innerHTML = `<div class="bubble"><div class="meta">[${t}] <strong>${escapeHtml(msg.nick)}</strong></div><div class="text">${escapeHtml(msg.text)}</div></div>`;
+  const ipPart = msg.ip ? ` <span style="color:#999;font-size:12px">(${escapeHtml(msg.ip)})</span>` : '';
+  d.innerHTML = `<div class="bubble"><div class="meta">[${t}] <strong>${escapeHtml(msg.nick)}</strong>${ipPart}</div><div class="text">${escapeHtml(msg.text)}</div></div>`;
   logEl.appendChild(d);
   logEl.scrollTop = logEl.scrollHeight;
 }
@@ -41,17 +43,20 @@ function connect() {
 
     if (msg.type === 'assign') {
       nick = msg.nick;
-      appendLine(`<div class="meta"><strong>${nick}</strong> 已加入（你的昵称）</div>`);
+  const ipPart = msg.ip ? ` <span style="color:#999;font-size:12px">(${escapeHtml(msg.ip)})</span>` : '';
+  appendLine(`<div class="meta"><strong>${nick}</strong>${ipPart} 已加入（你的昵称）</div>`);
       return;
     }
 
     if (msg.type === 'join') {
-      appendLine(`<div class="meta">🔔 <strong>${msg.nick}</strong> 加入聊天室</div>`);
+  const ipPart = msg.ip ? ` <span style="color:#999;font-size:12px">(${escapeHtml(msg.ip)})</span>` : '';
+  appendLine(`<div class="meta">🔔 <strong>${escapeHtml(msg.nick)}</strong>${ipPart} 加入聊天室</div>`);
       return;
     }
 
     if (msg.type === 'leave') {
-      appendLine(`<div class="meta">🔕 <strong>${msg.nick}</strong> 离开</div>`);
+  const ipPart = msg.ip ? ` <span style="color:#999;font-size:12px">(${escapeHtml(msg.ip)})</span>` : '';
+  appendLine(`<div class="meta">🔕 <strong>${escapeHtml(msg.nick)}</strong>${ipPart} 离开</div>`);
       return;
     }
 
@@ -62,7 +67,8 @@ function connect() {
 
     if (msg.type === 'nick') {
       // 显示昵称变更事件
-      appendLine(`<div class="meta">🔁 <strong>${escapeHtml(msg.oldNick)}</strong> 改名为 <strong>${escapeHtml(msg.newNick)}</strong></div>`);
+  const ipPart = msg.ip ? ` <span style="color:#999;font-size:12px">(${escapeHtml(msg.ip)})</span>` : '';
+  appendLine(`<div class="meta">🔁 <strong>${escapeHtml(msg.oldNick)}</strong> 改名为 <strong>${escapeHtml(msg.newNick)}</strong>${ipPart}</div>`);
       return;
     }
   });
@@ -108,3 +114,12 @@ changeNickBtn.addEventListener('click', () => {
     ws.send(JSON.stringify({ type: 'nick', nick: n }));
   }
 });
+
+// 清屏按钮逻辑
+if (clearBtn) {
+  clearBtn.addEventListener('click', () => {
+    // 清空日志内容并显示一条提示
+    logEl.innerHTML = '';
+    appendLine('<div class="meta">🧹 已清屏</div>');
+  });
+}
