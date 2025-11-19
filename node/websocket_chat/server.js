@@ -43,6 +43,7 @@ wss.on('connection', (ws, req) => {
   const nick = randomNick();
   ws.nick = nick;
   // 提取客户端 IP 并做简单掩码处理（只显示第一段和最后一段）
+  // 优先使用代理头部（X-Forwarded-For / X-Real-IP），以支持 nginx 反代场景
   function maskIp(ip) {
     if (!ip) return '';
     // IPv6 链接本地或带端口的 IPv4 地址可能出现，例如 ::1、::ffff:192.168.1.80
@@ -71,7 +72,23 @@ wss.on('connection', (ws, req) => {
     return raw;
   }
 
-  const remoteAddr = (req && (req.socket && req.socket.remoteAddress)) || (ws && ws._socket && ws._socket.remoteAddress) || '';
+  // 从请求头尝试解析真实客户端地址（X-Forwarded-For 可能包含多个地址，按惯例第一个是客户端）
+  function extractClientIp(req) {
+    if (!req) return '';
+    const headers = req.headers || {};
+    // X-Forwarded-For 可能是逗号分隔的列表：客户端, proxy1, proxy2
+    const xff = headers['x-forwarded-for'];
+    if (xff && typeof xff === 'string') {
+      const first = xff.split(',')[0].trim();
+      if (first) return first;
+    }
+    const xr = headers['x-real-ip'];
+    if (xr && typeof xr === 'string') return xr.trim();
+    // 最后回退到 socket 地址
+    return (req.socket && req.socket.remoteAddress) || (ws && ws._socket && ws._socket.remoteAddress) || '';
+  }
+
+  const remoteAddr = extractClientIp(req);
   ws.ip = maskIp(remoteAddr);
   // 保留原始地址用于 server 日志显示（不对外广播原始地址）
   ws.remoteAddr = remoteAddr;
