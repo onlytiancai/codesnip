@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>实时聊天室（WebSocket）</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Helvetica Neue", Arial; margin: 0; height: 100vh; display:flex; }
+    .col { display:flex; flex-direction:column; flex:1; }
+    header { padding:12px; background:#0b5; color:#fff; }
+    #log { flex:1; padding:12px; overflow:auto; background:#f6f6f6; }
+  .msg { margin-bottom:8px; display:flex; }
+  .msg.other { justify-content:flex-start; }
+  .msg.self { justify-content:flex-end; }
+  .bubble { max-width:70%; background:#fff; padding:8px 12px; border-radius:8px; box-shadow:0 1px 0 rgba(0,0,0,0.04); }
+  .msg.self .bubble { background:#dff; }
+    .meta { font-size:12px; color:#666; }
+    footer { padding:8px; display:flex; gap:8px; }
+    input[type=text]{ flex:1; padding:8px; font-size:14px }
+    button{ padding:8px 12px }
+  </style>
+</head>
+<body>
+  <div class="col">
+    <header>
+      <strong>实时聊天室（WebSocket）</strong>
+      <div style="float:right; display:flex; gap:8px; align-items:center">
+        <div id="status" style="font-size:13px; opacity:0.9">连接中…</div>
+        <button id="changeNick" style="padding:4px 8px; font-size:13px">修改昵称</button>
+      </div>
+    </header>
+    <div id="log"></div>
+    <footer>
+      <input id="input" type="text" placeholder="输入消息，回车发送" autocomplete="off" />
+      <button id="send">发送</button>
+    </footer>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
