@@ -18,6 +18,11 @@
     footer { padding:8px; display:flex; gap:8px; }
     input[type=text]{ flex:1; padding:8px; font-size:14px }
     button{ padding:8px 12px }
+  /* image thumbnail */
+  img.thumb { max-width:220px; max-height:160px; display:block; border-radius:6px; cursor:pointer }
+  /* modal overlay */
+  .img-modal { position:fixed; left:0; top:0; right:0; bottom:0; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:2000; }
+  .img-modal img { max-width:95%; max-height:95%; border-radius:6px; }
   </style>
 </head>
 <body>
@@ -28,6 +33,7 @@
     <div id="status" style="font-size:13px; opacity:0.9">连接中…</div>
   <button id="newRoom" style="padding:4px 8px; font-size:13px">新建聊天室</button>
   <button id="copyLink" style="padding:4px 8px; font-size:13px">复制链接</button>
+  <input id="uploadInput" type="file" accept="image/*" style="display:none" />
   <button id="changeNick" style="padding:4px 8px; font-size:13px">修改昵称</button>
   <button id="clearBtn" style="padding:4px 8px; font-size:13px">清屏</button>
   <button id="toggleUsers" style="padding:4px 8px; font-size:13px">在线人员</button>
@@ -45,6 +51,7 @@
     <footer>
   <input id="input" type="text" placeholder="输入消息，回车发送" autocomplete="off" />
   <button id="send">发送</button>
+  <button id="uploadBtn">上传图片</button>
   <button id="recordBtn" style="padding:8px 12px; background:#f44; color:#fff; border:none; border-radius:6px">按住录音</button>
     </footer>
   </div>

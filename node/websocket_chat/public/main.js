@@ -8,6 +8,8 @@ const recordBtn = document.getElementById('recordBtn');
 const toggleUsersBtn = document.getElementById('toggleUsers');
 const usersPanel = document.getElementById('usersPanel');
 const usersListEl = document.getElementById('usersList');
+const uploadInput = document.getElementById('uploadInput');
+const uploadBtn = document.getElementById('uploadBtn');
 
 let nick = null;
 let ws = null;
@@ -29,7 +31,13 @@ function appendMessage(msg, self) {
   d.className = 'msg ' + (self ? 'self' : 'other');
   const t = new Date(msg.ts).toLocaleTimeString();
   const ipPart = msg.ip ? ` <span style="color:#999;font-size:12px">(${escapeHtml(msg.ip)})</span>` : '';
-  d.innerHTML = `<div class="bubble"><div class="meta">[${t}] <strong>${escapeHtml(msg.nick)}</strong>${ipPart}</div><div class="text">${escapeHtml(msg.text)}</div></div>`;
+  // 支持 text 或 image
+  if (msg.type === 'image' && msg.data) {
+    // 显示缩略图，点击放大
+    d.innerHTML = `<div class="bubble"><div class="meta">[${t}] <strong>${escapeHtml(msg.nick)}</strong>${ipPart}</div><div class="text"><img class="thumb" src="${escapeHtml(msg.data)}" alt="image from ${escapeHtml(msg.nick)}"/></div></div>`;
+  } else {
+    d.innerHTML = `<div class="bubble"><div class="meta">[${t}] <strong>${escapeHtml(msg.nick)}</strong>${ipPart}</div><div class="text">${escapeHtml(msg.text)}</div></div>`;
+  }
   logEl.appendChild(d);
   logEl.scrollTop = logEl.scrollHeight;
 }
@@ -96,6 +104,19 @@ function connect() {
       return;
     }
 
+    if (msg.type === 'image') {
+      // msg.data is a data URL (image/*)
+      const isSelf = msg.nick === nick;
+      const d = document.createElement('div');
+      d.className = 'msg ' + (isSelf ? 'self' : 'other');
+      const t = new Date(msg.ts).toLocaleTimeString();
+      const ipPart = msg.ip ? ` <span style="color:#999;font-size:12px">(${escapeHtml(msg.ip)})</span>` : '';
+      d.innerHTML = `<div class="bubble"><div class="meta">[${t}] <strong>${escapeHtml(msg.nick)}</strong>${ipPart}</div><div class="text"><img class="thumb" src="${escapeHtml(msg.data)}"/></div></div>`;
+      logEl.appendChild(d);
+      logEl.scrollTop = logEl.scrollHeight;
+      return;
+    }
+
     if (msg.type === 'nick') {
       // 显示昵称变更事件
   const ipPart = msg.ip ? ` <span style="color:#999;font-size:12px">(${escapeHtml(msg.ip)})</span>` : '';
@@ -149,6 +170,93 @@ changeNickBtn.addEventListener('click', () => {
   if (!n) return;
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: 'nick', nick: n }));
+  }
+});
+
+// 图片发送相关
+const MAX_IMAGE_BYTES = 500 * 1024; // 500KB
+
+function sendImageDataUrl(dataUrl) {
+  // 基本检查：估算大小
+  const base64 = dataUrl.split(',')[1] || '';
+  const estimated = Math.ceil((base64.length * 3) / 4);
+  if (estimated > MAX_IMAGE_BYTES) {
+    appendLine(`<div class="meta">⚠️ 图片过大，不能超过 ${MAX_IMAGE_BYTES} 字节</div>`);
+    return;
+  }
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'image', data: dataUrl }));
+    appendLine('<div class="meta">🖼️ 图片已发送</div>');
+  } else {
+    appendLine('<div class="meta">⚠️ 未连接，发送失败</div>');
+  }
+}
+
+// 处理文件对象并发送
+function handleFileImage(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  if (file.size > MAX_IMAGE_BYTES) {
+    appendLine(`<div class="meta">⚠️ 图片过大（${Math.round(file.size/1024)}KB），不能超过 ${Math.round(MAX_IMAGE_BYTES/1024)}KB</div>`);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => { sendImageDataUrl(reader.result); };
+  reader.readAsDataURL(file);
+}
+
+// 上传选择
+if (uploadInput) {
+  uploadInput.addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    if (f) handleFileImage(f);
+    uploadInput.value = '';
+  });
+}
+
+if (uploadBtn && uploadInput) {
+  uploadBtn.addEventListener('click', () => uploadInput.click());
+}
+
+// 处理粘贴图片
+window.addEventListener('paste', async ev => {
+  const items = (ev.clipboardData && ev.clipboardData.items) || [];
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    if (it.type && it.type.startsWith('image/')) {
+      const blob = it.getAsFile();
+      if (blob) {
+        handleFileImage(blob);
+        ev.preventDefault();
+        return;
+      }
+    }
+    // 某些浏览器提供 ClipboardItem
+    if (typeof ClipboardItem !== 'undefined') {
+      try {
+        const citems = ev.clipboardData.items || [];
+        for (const ci of citems) {
+          if (!ci.type) continue;
+          if (ci.type.startsWith('image/')) {
+            const file = ci.getAsFile ? ci.getAsFile() : null;
+            if (file) { handleFileImage(file); ev.preventDefault(); return; }
+          }
+        }
+      } catch (e) {}
+    }
+  }
+});
+
+// 点击缩略图放大
+document.addEventListener('click', e => {
+  const t = e.target;
+  if (t && t.tagName === 'IMG' && t.classList.contains('thumb')) {
+    const modal = document.createElement('div');
+    modal.className = 'img-modal';
+    const img = document.createElement('img');
+    img.src = t.src;
+    modal.appendChild(img);
+    modal.addEventListener('click', () => { document.body.removeChild(modal); });
+    document.body.appendChild(modal);
   }
 });
 

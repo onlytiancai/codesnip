@@ -196,6 +196,22 @@ wss.on('connection', (ws, req) => {
   broadcast(out, null, ws.room);
   console.log(`[audio] from=${ws.nick} ip=${ws.remoteAddr} size=${estimatedBytes}B`);
     }
+    // 处理图片消息（前端发送 data URL）
+    if (msg.type === 'image' && typeof msg.data === 'string') {
+      const maxSize = 500 * 1024; // 500KB
+      const base64Part = msg.data.split(',')[1] || '';
+      const estimatedBytes = Math.ceil((base64Part.length * 3) / 4);
+      if (estimatedBytes > maxSize) return; // 忽略过大的图片
+      const out = {
+        type: 'image',
+        nick: ws.nick,
+        ip: ws.ip,
+        data: msg.data,
+        ts: Date.now(),
+      };
+      broadcast(out, null, ws.room);
+      console.log(`[image] from=${ws.nick} ip=${ws.remoteAddr} size=${estimatedBytes}B`);
+    }
   });
 
   ws.on('close', () => {
