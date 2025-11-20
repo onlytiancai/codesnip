@@ -16,29 +16,40 @@ function randomNick() {
 }
 
 // 简单广播（不会记录历史）
-function broadcast(data, except) {
+// 支持可选的 room 参数，若提供则只向该房间内的客户端广播
+function broadcast(data, except, room) {
   const s = JSON.stringify(data);
   let sent = 0;
   wss.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN && client !== except) {
-      try {
-        client.send(s);
-        sent++;
-      } catch (err) {
-        // 不阻塞广播流程
-        console.error('Broadcast send error to client:', err && err.message ? err.message : err);
-      }
+    if (client.readyState !== WebSocket.OPEN) return;
+    if (except && client === except) return;
+    if (room != null && client.room !== room) return;
+    try {
+      client.send(s);
+      sent++;
+    } catch (err) {
+      // 不阻塞广播流程
+      console.error('Broadcast send error to client:', err && err.message ? err.message : err);
     }
   });
   // 简短日志，避免太多输出
   if (data && data.type) {
-    console.log(`[broadcast] type=${data.type} sent=${sent}` + (data.nick ? ` from=${data.nick}` : ''));
+    console.log(`[broadcast] type=${data.type} sent=${sent}` + (data.nick ? ` from=${data.nick}` : '') + (room ? ` room=${room}` : ''));
   } else {
-    console.log(`[broadcast] sent=${sent}`);
+    console.log(`[broadcast] sent=${sent}` + (room ? ` room=${room}` : ''));
   }
 }
 
 wss.on('connection', (ws, req) => {
+  // 解析房间参数：支持 ?room=<uuid>，默认房间为 'default'
+  try {
+    const url = req.url || '';
+    const qp = new URL(url, `http://${req.headers.host || 'localhost'}`);
+    ws.room = qp.searchParams.get('room') || 'default';
+  } catch (e) {
+    ws.room = 'default';
+  }
+
   // 给连接分配昵称
   const nick = randomNick();
   ws.nick = nick;
@@ -95,27 +106,27 @@ wss.on('connection', (ws, req) => {
 
   console.log(`[connect] nick=${ws.nick} ip=${ws.remoteAddr}`);
 
-  // 向新连接的客户端发送分配的昵称（服务端分配）
-  ws.send(JSON.stringify({ type: 'assign', nick, ip: ws.ip }));
+  // 向新连接的客户端发送分配的昵称（服务端分配），包含房间信息
+  ws.send(JSON.stringify({ type: 'assign', nick, ip: ws.ip, room: ws.room }));
 
-  // 发送当前在线列表给新连接（包含自己）
-  function buildPresence() {
+  // 发送当前房间在线列表给新连接（包含自己）
+  function buildPresence(room) {
     const users = [];
     wss.clients.forEach(c => {
-      if (c && c.readyState === WebSocket.OPEN) {
+      if (c && c.readyState === WebSocket.OPEN && c.room === room) {
         users.push({ nick: c.nick || '', ip: c.ip || '' });
       }
     });
     return users;
   }
   try {
-    ws.send(JSON.stringify({ type: 'presence', users: buildPresence() }));
+    ws.send(JSON.stringify({ type: 'presence', users: buildPresence(ws.room) }));
   } catch (e) {}
 
-  // 告知其他人有人加入（可选）
-  broadcast({ type: 'join', nick, ip: ws.ip, ts: Date.now() }, ws);
-  // 广播最新在线列表
-  broadcast({ type: 'presence', users: buildPresence() });
+  // 告知房间内其他人有人加入（可选）
+  broadcast({ type: 'join', nick, ip: ws.ip, ts: Date.now() }, ws, ws.room);
+  // 广播最新房间在线列表
+  broadcast({ type: 'presence', users: buildPresence(ws.room) }, null, ws.room);
 
   // 心跳（保持连接健康）
   ws.isAlive = true;
@@ -131,17 +142,17 @@ wss.on('connection', (ws, req) => {
 
     // 处理不同类型的消息
     // 改昵称请求（前端会发 {type: 'nick', nick: 'newNick'}）
-    if (msg.type === 'nick' && typeof msg.nick === 'string') {
+  if (msg.type === 'nick' && typeof msg.nick === 'string') {
       const newNick = msg.nick.trim().slice(0, 32);
       if (!newNick) return;
       const oldNick = ws.nick;
       ws.nick = newNick;
       // 给请求者发回确认（assign 保持兼容）
-  ws.send(JSON.stringify({ type: 'assign', nick: ws.nick, ip: ws.ip }));
-  // 广播昵称更改事件给其他人
-  broadcast({ type: 'nick', oldNick, newNick, ip: ws.ip, ts: Date.now() }, ws);
-  // 广播最新在线列表（包含更新后的昵称）
-  broadcast({ type: 'presence', users: buildPresence() });
+  ws.send(JSON.stringify({ type: 'assign', nick: ws.nick, ip: ws.ip, room: ws.room }));
+  // 广播昵称更改事件给房间内其他人
+  broadcast({ type: 'nick', oldNick, newNick, ip: ws.ip, ts: Date.now() }, ws, ws.room);
+  // 广播最新房间在线列表（包含更新后的昵称）
+  broadcast({ type: 'presence', users: buildPresence(ws.room) }, null, ws.room);
   console.log(`[nick] ${oldNick} -> ${newNick} ip=${ws.remoteAddr}`);
       return;
     }
@@ -149,7 +160,7 @@ wss.on('connection', (ws, req) => {
     // 客户端请求在线人员（可选）
     if (msg.type === 'request_presence') {
       try {
-        ws.send(JSON.stringify({ type: 'presence', users: buildPresence() }));
+        ws.send(JSON.stringify({ type: 'presence', users: buildPresence(ws.room) }));
       } catch (e) {}
       return;
     }
@@ -163,7 +174,7 @@ wss.on('connection', (ws, req) => {
         text: msg.text.slice(0, 1000), // 限长
         ts: Date.now(),
       };
-  broadcast(out);
+  broadcast(out, null, ws.room);
   console.log(`[message] from=${ws.nick} ip=${ws.remoteAddr} textLen=${String(out.text).length} [${String(out.text)}]`);
     }
 
@@ -182,15 +193,15 @@ wss.on('connection', (ws, req) => {
         data: msg.data,
         ts: Date.now(),
       };
-      broadcast(out);
+  broadcast(out, null, ws.room);
   console.log(`[audio] from=${ws.nick} ip=${ws.remoteAddr} size=${estimatedBytes}B`);
     }
   });
 
   ws.on('close', () => {
-  broadcast({ type: 'leave', nick: ws.nick, ip: ws.ip, ts: Date.now() });
-  // 广播最新在线列表
-  broadcast({ type: 'presence', users: buildPresence() });
+  broadcast({ type: 'leave', nick: ws.nick, ip: ws.ip, ts: Date.now() }, null, ws.room);
+  // 广播最新房间在线列表
+  broadcast({ type: 'presence', users: buildPresence(ws.room) }, null, ws.room);
   console.log(`[close] nick=${ws.nick} ip=${ws.remoteAddr}`);
   });
   ws.on('error', err => { console.error('[ws error]', err && err.message ? err.message : err); });

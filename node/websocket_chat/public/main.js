@@ -14,6 +14,7 @@ let ws = null;
 let mediaRecorder = null;
 let audioChunks = [];
 let recordingTimeout = null;
+let currentRoom = null;
 
 function appendLine(html) {
   const d = document.createElement('div');
@@ -37,7 +38,11 @@ function connect() {
   // 使用相同 origin 的 ws
   const loc = window.location;
   const protocol = loc.protocol === 'https:' ? 'wss' : 'ws';
-  const url = protocol + '://' + loc.host;
+  // 保持页面可能传入的 room 参数（?room=...），默认不传则在服务端使用 'default'
+  const params = new URLSearchParams(loc.search);
+  const roomParam = params.get('room');
+  currentRoom = roomParam || null;
+  const url = protocol + '://' + loc.host + (roomParam ? `/?room=${encodeURIComponent(roomParam)}` : '/');
   ws = new WebSocket(url);
 
   ws.addEventListener('open', () => {
@@ -51,7 +56,13 @@ function connect() {
     if (msg.type === 'assign') {
       nick = msg.nick;
   const ipPart = msg.ip ? ` <span style="color:#999;font-size:12px">(${escapeHtml(msg.ip)})</span>` : '';
-  appendLine(`<div class="meta"><strong>${nick}</strong>${ipPart} 已加入（你的昵称）</div>`);
+  const roomPart = msg.room ? ` <span style="color:#999;font-size:12px">[room:${escapeHtml(msg.room)}]</span>` : '';
+  appendLine(`<div class="meta"><strong>${nick}</strong>${ipPart}${roomPart} 已加入（你的昵称）</div>`);
+  // 显示房间在状态栏
+  if (msg.room) {
+    statusEl.textContent = `已连接（房间 ${msg.room}）`;
+    currentRoom = msg.room;
+  }
       return;
     }
 
@@ -138,6 +149,64 @@ changeNickBtn.addEventListener('click', () => {
   if (!n) return;
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: 'nick', nick: n }));
+  }
+});
+
+// 生成简单随机 UUID v4（浏览器环境）
+function generateUuid() {
+  // 使用 crypto API 如果可用
+  if (window.crypto && window.crypto.getRandomValues) {
+    const buf = new Uint8Array(16);
+    window.crypto.getRandomValues(buf);
+    // set version bits
+    buf[6] = (buf[6] & 0x0f) | 0x40;
+    buf[8] = (buf[8] & 0x3f) | 0x80;
+    const hex = Array.from(buf).map(b => b.toString(16).padStart(2, '0')).join('');
+    return `${hex.substr(0,8)}-${hex.substr(8,4)}-${hex.substr(12,4)}-${hex.substr(16,4)}-${hex.substr(20,12)}`;
+  }
+  // 回退实现
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+function reconnectToRoom(room) {
+  // 更新地址栏但不刷新页面
+  const url = new URL(window.location.href);
+  if (room) url.searchParams.set('room', room);
+  else url.searchParams.delete('room');
+  history.pushState({}, '', url.toString());
+  // 关闭现有连接并重连
+  try { if (ws) ws.close(); } catch (e) {}
+  // 小延时确保 close 触发
+  setTimeout(connect, 200);
+}
+
+// 新建房间按钮
+const newRoomBtn = document.getElementById('newRoom');
+if (newRoomBtn) newRoomBtn.addEventListener('click', () => {
+  const id = generateUuid();
+  reconnectToRoom(id);
+  appendLine(`<div class="meta">🆕 已创建房间 <strong>${escapeHtml(id)}</strong></div>`);
+});
+
+// 复制链接按钮
+const copyLinkBtn = document.getElementById('copyLink');
+if (copyLinkBtn) copyLinkBtn.addEventListener('click', async () => {
+  const url = window.location.href;
+  try {
+    await navigator.clipboard.writeText(url);
+    appendLine(`<div class="meta">🔗 已复制链接：${escapeHtml(url)}</div>`);
+  } catch (e) {
+    // 回退：使用临时输入
+    const input = document.createElement('input');
+    document.body.appendChild(input);
+    input.value = url;
+    input.select();
+    try { document.execCommand('copy'); appendLine('<div class="meta">🔗 链接已复制（回退方式）</div>'); } catch (ee) { appendLine('<div class="meta">⚠️ 复制失败，请手动复制链接</div>'); }
+    document.body.removeChild(input);
   }
 });
 
