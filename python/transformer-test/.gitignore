@@ -1,2 +1,6 @@
 *.csv
 *.pth
+*.pt
+mlruns
+results
+tiny_transformer_tokenizer

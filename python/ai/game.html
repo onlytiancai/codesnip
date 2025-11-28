@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Word Runner — WASD Typing Challenge</title>
+<style>
+  :root{
+    --bg:#0b1220;
+    --panel:#0f1724dd;
+    --accent:#6ee7b7;
+    --muted:#9aa6b2;
+    --danger:#ff7b7b;
+    --glass: rgba(255,255,255,0.03);
+  }
+  html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
+  body{
+    background: linear-gradient(180deg,#071021 0%, #0b1220 100%);
+    color:#e6eef6;
+    overflow:hidden;
+  }
+
+  #game {
+    position: absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  canvas{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.0));
+    border-radius:12px;
+    box-shadow: 0 10px 30px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+    width: 100%;
+    height: 100%;
+    display:block;
+  }
+
+  /* HUD */
+  .hud {
+    position: absolute;
+    right: 20px;
+    top: 16px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+    z-index:30;
+  }
+  .score {
+    background:var(--panel);
+    padding:10px 14px;
+    border-radius:10px;
+    min-width:120px;
+    text-align:center;
+    box-shadow: 0 4px 12px rgba(2,6,23,0.4);
+  }
+  .score .label{font-size:12px;color:var(--muted);display:block}
+  .score .value{font-size:20px;font-weight:700;color:var(--accent)}
+
+  .controls {
+    background:var(--glass);
+    padding:10px 12px;border-radius:10px;
+    font-size:13px;color:var(--muted);
+  }
+
+  /* Typing overlay */
+  #typingOverlay {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-30%);
+    background: linear-gradient(180deg, rgba(12,18,30,0.95), rgba(8,12,18,0.92));
+    padding:18px 22px;border-radius:12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    z-index: 60;
+    min-width:360px;
+    max-width:90%;
+    display:none;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  #typingOverlay h2{margin:0 0 8px 0;font-size:18px;color:#fff}
+  #targetWord{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size:22px;
+    letter-spacing:0.6px;
+    margin-bottom:8px;
+    word-break:break-all;
+  }
+  #typed{
+    font-family: ui-monospace, Menlo, monospace;
+    font-size:20px;
+    margin-bottom:6px;
+  }
+  #typingProgress{
+    height:8px;border-radius:6px;background: rgba(255,255,255,0.04);
+    overflow:hidden;margin-bottom:10px;
+  }
+  #typingProgress > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#a3f6d6);}
+
+  .meta{
+    display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);
+  }
+
+  #footerInfo{
+    position:absolute;left:20px;bottom:18px;color:var(--muted);font-size:13px;z-index:40;
+    background:var(--glass);padding:8px 10px;border-radius:10px;
+  }
+
+  /* small hint */
+  .hint {font-size:12px;color:var(--muted);margin-top:6px}
+
+  /* responsive */
+  @media (max-width:640px){
+    #typingOverlay{left:50%;top:52%;transform:translate(-50%,-50%);min-width:300px}
+    .score{min-width:96px;padding:8px 10px}
+  }
+</style>
+</head>
+<body>
+<div id="game">
+  <canvas id="c"></canvas>
+</div>
+
+<div class="hud" aria-hidden="false">
+  <div class="score" id="scorePanel">
+    <span class="label">Score</span>
+    <span class="value" id="score">0</span>
+  </div>
+
+  <div class="controls" id="controls">
+    WASD to move • TYPE words when encountered
+    <div class="hint">Tip: speed + accuracy = big points</div>
+  </div>
+</div>
+
+<div id="typingOverlay" role="dialog" aria-modal="true" aria-hidden="true">
+  <h2>Type this word!</h2>
+  <div id="targetWord"></div>
+  <div id="typed"></div>
+  <div id="typingProgress"><i></i></div>
+  <div class="meta">
+    <div id="timer">Time left: <strong id="timeLeft">0.00</strong>s</div>
+    <div id="pointsForThis">Points: <strong id="pointsPreview">0</strong></div>
+  </div>
+</div>
+
+<div id="footerInfo">
+  <div>World distance: <span id="distance">0</span>m</div>
+  <div style="margin-top:6px;color:var(--muted)">Controls: A/D move • W jump • Shift sprint • Space to cancel typing</div>
+</div>
+
+<script>
+/* Word Runner — single-file game
+   - Canvas-based side scroller
+   - WASD movement
+   - Encounter words -> typing mini-game
+   - Score based on speed/word length
+*/
+
+/* -------------------------
+   Configuration & state
+   ------------------------- */
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d', { alpha:false });
+
+let W = 1280, H = 720;
+function resize() {
+  // keep aspect ratio but fill available space
+  const ratio = 16/9;
+  const aw = window.innerWidth;
+  const ah = window.innerHeight;
+  if (aw/ah > ratio) {
+    H = Math.min(ah - 20, 900);
+    W = Math.round(H * ratio);
+  } else {
+    W = Math.min(aw - 20, 1400);
+    H = Math.round(W / ratio);
+  }
+  canvas.width = W * devicePixelRatio;
+  canvas.height = H * devicePixelRatio;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+const scoreEl = document.getElementById('score');
+const distanceEl = document.getElementById('distance');
+const typingOverlay = document.getElementById('typingOverlay');
+const targetWordEl = document.getElementById('targetWord');
+const typedEl = document.getElementById('typed');
+const timeLeftEl = document.getElementById('timeLeft');
+const pointsPreviewEl = document.getElementById('pointsPreview');
+const progressBar = document.querySelector('#typingProgress > i');
+
+let score = 0;
+let worldDistance = 0; // meters / arbitrary units
+let lastTimestamp = 0;
+
+/* -------------------------
+   Player & world
+   ------------------------- */
+const player = {
+  x: 240, // screen x; player anchored horizontally, world scrolls
+  y: 0,
+  vy: 0,
+  speed: 160, // horizontal world speed baseline
+  sprintMultiplier:1.6,
+  moveLeft:false, moveRight:false, sprint:false,
+  width:48, height:64,
+  grounded:false
+};
+
+let worldOffset = 0; // how far we've scrolled (in world units)
+let gravity = 1200;
+let jumpSpeed = -480;
+
+/* -------------------------
+   Word generation & objects
+   ------------------------- */
+const wordObjects = []; // {id, x (world), y (screen ground), word, width, collected}
+let nextSpawnAt = 1200; // distance to next word spawn
+let spawnInterval = 900; // starting interval (distance)
+let gameTicks = 0;
+
+/* Large word list (common + interesting) */
+const WORD_BANK = [
+  "apple","river","quiet","memento","spectrum","quantum","silhouette","artichoke","luminous","cascade",
+  "galaxy","swift","harbor","ember","cobalt","saffron","verdant","echo","canyon","marigold",
+  "kaleidoscope","whisper","vortex","rhapsody","pinnacle","zenith","nebula","aurora","mystic","solstice",
+  "paper","keyboard","language","bicycle","pineapple","python","jazz","symphony","luggage","circuit",
+  "battery","november","laptop","charger","compass","anchor","bridge","notebook","lantern","passport",
+  "pilgrim","fortune","horizon","island","jungle","ocean","palette","saffron","mirage","paradox",
+  "construct","imagine","wander","serendipity","labyrinth","allegory","chronicle","hologram","silence","brook",
+  "copper","bronze","sapphire","lattice","thread","citrus","ember","fluent","glisten","whimsy",
+  "courage","fidget","sprinkle","glacier","orchid","pine","algorithm","binary","canvas","diagonal",
+  "eclipse","fractal","geometry","hinge","ignite","jitter","kismet","laundry","momentum","nectar",
+  "oxygen","parade","quiver","riddle","saffron","tangible","umbra","valiant","wanderlust","xylophone",
+  "yonder","zephyr","blossom","cabin","delta","ember","feather","gargoyle","harvest","inkling"
+];
+
+/* Helper: generate a "gibberish" word of variable length */
+function gibberishWord(len) {
+  const consonants = "bcdfghjklmnpqrstvwxyz";
+  const vowels = "aeiou";
+  let s = "";
+  for (let i=0;i<len;i++){
+    if (i%2===0) s += consonants[Math.floor(Math.random()*consonants.length)];
+    else s += vowels[Math.floor(Math.random()*vowels.length)];
+  }
+  return s;
+}
+
+function pickRandomWord() {
+  // high variability: sometimes pick from bank, sometimes generate
+  const r = Math.random();
+  if (r < 0.6) {
+    // pick simple or complex from bank
+    return WORD_BANK[Math.floor(Math.random() * WORD_BANK.length)];
+  } else if (r < 0.85) {
+    // composite word
+    const a = WORD_BANK[Math.floor(Math.random()*WORD_BANK.length)];
+    const b = WORD_BANK[Math.floor(Math.random()*WORD_BANK.length)];
+    return a + (Math.random() < 0.4 ? "-" : "") + b;
+  } else {
+    const len = 3 + Math.floor(Math.random()*8);
+    return gibberishWord(len);
+  }
+}
+
+/* -------------------------
+   Typing mini-game state
+   ------------------------- */
+let typingActive = false;
+let currentWordObj = null;
+let typedSoFar = "";
+let typingStartTime = 0;
+let typingMaxTime = 6.0; // seconds allowed (scales with word length)
+let typingTimer = 0;
+
+/* -------------------------
+   Input handling
+   ------------------------- */
+const keys = {};
+window.addEventListener('keydown', (e)=>{
+  if (e.key === ' ' && typingActive) {
+    // allow space to cancel typing (user hint)
+    cancelTyping();
+    return;
+  }
+  if (e.key === 'Escape' && typingActive) { cancelTyping(); return; }
+  // WASD and arrows
+    if (!typingActive) {
+        if (['w', 'a', 's', 'd', 'W', 'A', 'S', 'D', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'Shift'].includes(e.key)) {
+            e.preventDefault();
+        }
+    }
+
+  keys[e.key] = true;
+});
+window.addEventListener('keyup', (e)=>{
+  keys[e.key] = false;
+});
+
+/* Typing characters */
+window.addEventListener('keypress', (e)=>{
+  if (!typingActive) return;
+  // accept visible characters
+  const ch = e.key;
+  if (ch.length === 1) {
+    // only accept printable characters (no control)
+    typedSoFar += ch;
+    updateTypingUI();
+  }
+});
+
+/* Backspace handling */
+window.addEventListener('keydown', (e)=>{
+  if (!typingActive) return;
+  if (e.key === 'Backspace') {
+    e.preventDefault();
+    typedSoFar = typedSoFar.slice(0, -1);
+    updateTypingUI();
+  }
+});
+
+/* -------------------------
+   Typing logic & scoring
+   ------------------------- */
+function beginTyping(wordObj){
+  typingActive = true;
+  currentWordObj = wordObj;
+  typedSoFar = "";
+  typingStartTime = performance.now();
+  // max time scales with word length but with min and max
+  typingMaxTime = Math.max(3, Math.min(10, wordObj.word.length * 0.9));
+  typingTimer = typingMaxTime;
+  // show overlay
+  targetWordEl.textContent = wordObj.word;
+  typedEl.innerHTML = '';
+  pointsPreviewEl.textContent = '0';
+  timeLeftEl.textContent = typingTimer.toFixed(2);
+  progressBar.style.width = '100%';
+  typingOverlay.style.display = 'block';
+  typingOverlay.setAttribute('aria-hidden','false');
+}
+
+function cancelTyping() {
+  typingActive = false;
+  if (currentWordObj) currentWordObj.hit = false; // allow re-encounter later
+  currentWordObj = null;
+  typingOverlay.style.display = 'none';
+}
+
+/* Compute points preview (based on current typed time & match) */
+function computePoints(word, elapsed){
+  // Score depends on length and speed: base = length * 10, speed multiplier: (remaining/time)
+  const L = Math.max(1, word.length || 1);
+  const base = L * 10;
+  // remaining fraction
+  const maxT = Math.max(0.001, typingMaxTime);
+  const remaining = Math.max(0, maxT - elapsed);
+  const frac = remaining / maxT; // 0..1
+  // multiplier 1..3
+  const mult = 1 + 2 * frac;
+  // reward accuracy by extra if typed equals word (full match)
+  const accuracyBonus = (typedSoFar === word) ? 1.0 : 0;
+  const pts = Math.ceil(base * (mult + accuracyBonus));
+  return pts;
+}
+
+/* Update UI for typed progress */
+function updateTypingUI(){
+  if (!currentWordObj) return;
+  const tgt = currentWordObj.word;
+  // create highlighted typed portion and remaining
+  const typed = typedSoFar;
+  let display = '';
+  for (let i=0;i<tgt.length;i++){
+    const ch = tgt[i];
+    if (i < typed.length){
+      if (typed[i] === ch) display += `<span style="color:var(--accent)">${escapeHtml(ch)}</span>`;
+      else display += `<span style="color:var(--danger);text-decoration:line-through">${escapeHtml(typed[i] || '')}</span>`;
+    } else {
+      display += `<span style="opacity:0.75">${escapeHtml(ch)}</span>`;
+    }
+  }
+  // If typing has extra wrong characters, show them highlighted
+  if (typed.length > tgt.length){
+    display += ` <span style="color:var(--danger)">+${escapeHtml(typed.slice(tgt.length))}</span>`;
+  }
+  typedEl.innerHTML = display;
+  // preview points using elapsed
+  const elapsed = (performance.now() - typingStartTime) / 1000;
+  const pts = computePoints(tgt, elapsed);
+  pointsPreviewEl.textContent = pts;
+}
+
+/* Escape HTML helper */
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' ,"'" : '&#39;'})[m]);
+}
+
+/* Check when typed matches */
+function checkTypedComplete(){
+  if (!currentWordObj) return;
+  const target = currentWordObj.word;
+  // exact match only
+  if (typedSoFar === target){
+    const elapsed = (performance.now() - typingStartTime) / 1000;
+    const pts = computePoints(target, elapsed);
+    score += pts;
+    scoreEl.textContent = score;
+    // mark object collected
+    currentWordObj.collected = true;
+    typingActive = false;
+    currentWordObj = null;
+    typingOverlay.style.display = 'none';
+    // small particle or feedback can be added - we'll flash the screen
+    flashScore(pts);
+  }
+}
+
+/* little flash effect when scoring */
+let flashAlpha = 0, flashPts = 0;
+function flashScore(pts){
+  flashAlpha = 1.0;
+  flashPts = pts;
+  setTimeout(()=>{ flashAlpha = 0; }, 650);
+}
+
+/* -------------------------
+   Spawn / world update
+   ------------------------- */
+function spawnWordAt(worldX){
+  const word = pickRandomWord();
+  // vertical placement near ground with slight variation
+  const yOffset = 0; // words on ground line
+  const w = Math.max(60, (word.length * 10) + 24);
+  wordObjects.push({
+    id: Math.random().toString(36).slice(2,9),
+    x: worldX,
+    yOffset,
+    word,
+    width: w,
+    collected:false,
+    hit:false
+  });
+}
+
+/* -------------------------
+   Game Loop & Render
+   ------------------------- */
+
+function update(dt) {
+  // dt in seconds
+  gameTicks += dt * 60;
+  // input controls (if not in typing mode)
+  const left = keys['a'] || keys['A'] || keys['ArrowLeft'];
+  const right = keys['d'] || keys['D'] || keys['ArrowRight'];
+  const up = keys['w'] || keys['W'] || keys['ArrowUp'];
+  const shift = keys['Shift'];
+
+  if (!typingActive) {
+    // horizontal movement influences worldOffset (side-scroller effect)
+    let horizontal = 0;
+    if (left) horizontal -= 1;
+    if (right) horizontal += 1;
+
+    const sprint = !!shift;
+    const speed = player.speed * (sprint ? player.sprintMultiplier : 1);
+
+    // move world opposite direction to simulate player moving across world
+    worldOffset += horizontal * speed * dt;
+    worldDistance = Math.max(0, Math.floor(worldOffset / 10)); // scale to "meters"
+    distanceEl.textContent = worldDistance;
+
+    // gravity & jumping
+    if (up && player.grounded) {
+      player.vy = jumpSpeed;
+      player.grounded = false;
+    }
+    player.vy += gravity * dt;
+    player.y += player.vy * dt;
+
+    // ground line
+    const groundY = H - 120; // y coordinate of ground
+    if (player.y + player.height/2 >= groundY) {
+      player.y = groundY - player.height/2;
+      player.vy = 0;
+      player.grounded = true;
+    }
+  } else {
+    // typing active: update timer
+    const elapsed = (performance.now() - typingStartTime) / 1000;
+    typingTimer = typingMaxTime - elapsed;
+    if (typingTimer <= 0){
+      // time up: fail, remove word (or mark missed)
+      if (currentWordObj){
+        // penalize a bit by deducting small points
+        score = Math.max(0, score - Math.ceil(currentWordObj.word.length * 3));
+        scoreEl.textContent = score;
+        // mark as collected to avoid immediate re-trigger, but they can re-encounter later
+        currentWordObj.collected = true;
+      }
+      currentWordObj = null;
+      typingActive = false;
+      typingOverlay.style.display = 'none';
+    } else {
+      // update UI
+      timeLeftEl.textContent = typingTimer.toFixed(2);
+      const elapsed = (performance.now() - typingStartTime) / 1000;
+      const pts = currentWordObj ? computePoints(currentWordObj.word, elapsed) : 0;
+      pointsPreviewEl.textContent = pts;
+      // progress bar
+      const pct = Math.max(0, typingTimer / typingMaxTime) * 100;
+      progressBar.style.width = pct + '%';
+      updateTypingUI();
+      checkTypedComplete();
+    }
+  }
+
+  // spawn words based on worldOffset and spawnInterval
+  if (worldOffset + 0 > nextSpawnAt) {
+    // spawn ahead by some screen-width so it appears in front
+    const spawnX = worldOffset + W + 200 + Math.random()*600;
+    spawnWordAt(spawnX);
+    // schedule next spawn; spawn rate ramps up over distance
+    const ramp = Math.max(0.5, 1 - (worldDistance / 6000)); // from 1 -> 0.5
+    spawnInterval = 800 * ramp + Math.random()*600;
+    nextSpawnAt = worldOffset + spawnInterval;
+  }
+
+  // remove collected words far behind
+  for (let i=wordObjects.length-1;i>=0;i--){
+    const wo = wordObjects[i];
+    if (wo.collected && (wo.x < worldOffset - 2000)) {
+      wordObjects.splice(i,1);
+    } else if (wo.x < worldOffset - 4000) {
+      // too far behind, drop
+      wordObjects.splice(i,1);
+    }
+  }
+
+  // detect collisions between player and words (approx)
+  // player's world x coordinate = worldOffset (distance scrolled)
+  // The player's screen coordinate is fixed at player.x; a word's screenX = (word.x - worldOffset)
+  for (const wo of wordObjects){
+    if (wo.collected || wo.hit) continue;
+    const sx = wo.x - worldOffset;
+    const sy = H - 120 - 32; // baseline for words (near ground)
+    const woRect = {x: sx - wo.width/2, y: sy - 24, w: wo.width, h: 40};
+    const playerRect = {x: player.x - player.width/2, y: player.y - player.height/2, w: player.width, h: player.height};
+    if (rectIntersect(woRect, playerRect)) {
+      // trigger typing
+      wo.hit = true;
+      beginTyping(wo);
+      break; // only one at a time
+    }
+  }
+}
+
+function rectIntersect(a,b){
+  return !(b.x > a.x + a.w || b.x + b.w < a.x || b.y > a.y + a.h || b.y + b.h < a.y);
+}
+
+/* -------------------------
+   Render
+   ------------------------- */
+function render(dt, t) {
+  // clear
+  ctx.fillStyle = "#06101a";
+  ctx.fillRect(0,0,W,H);
+
+  // draw parallax background
+  drawBackground(t);
+
+  // ground
+  const groundY = H - 120;
+  ctx.fillStyle = "#0c1b26";
+  ctx.fillRect(0, groundY, W, 160);
+
+  // draw distant skyline / decoration
+  drawDecorations();
+
+  // draw word objects
+  for (const wo of wordObjects){
+    if (wo.collected) continue;
+    const sx = Math.round(wo.x - worldOffset);
+    // cull if off-screen
+    if (sx + wo.width/2 < -200 || sx - wo.width/2 > W + 200) continue;
+    const sy = groundY - 32;
+    // capsule background
+    ctx.save();
+    ctx.beginPath();
+    const br = 10;
+    roundedRect(ctx, sx - wo.width/2, sy - 24, wo.width, 40, br);
+    ctx.fillStyle = wo.hit ? 'rgba(120,40,50,0.85)' : 'rgba(18,28,36,0.95)';
+    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+    ctx.stroke();
+    ctx.restore();
+
+    // word text
+    ctx.fillStyle = wo.hit ? '#fff' : '#cfe7ff';
+    ctx.font = '18px ui-monospace, monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(wo.word, sx, sy);
+  }
+
+  // draw player (simple sprite)
+  drawPlayer();
+
+  // HUD overlay elements via canvas
+  // flash effect on score
+  if (flashAlpha > 0) {
+    ctx.fillStyle = `rgba(110,231,183,${flashAlpha * 0.18})`;
+    ctx.fillRect(0,0,W, H);
+    // score pop text
+    ctx.fillStyle = `rgba(255,255,255,${flashAlpha})`;
+    ctx.font = 'bold 34px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('+' + flashPts, W - 36, 72);
+    flashAlpha -= 0.02;
+    if (flashAlpha < 0) flashAlpha = 0;
+  }
+}
+
+/* Draw background parallax */
+function drawBackground(t) {
+  // distant mountains / gradient shapes
+  ctx.save();
+  // subtle horizontal gradient sky
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0, '#071426');
+  g.addColorStop(1, '#08121a');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,W, H);
+  // moving stars / particles
+  const starCount = 60;
+  ctx.fillStyle = 'rgba(255,255,255,0.03)';
+  for (let i=0;i<starCount;i++){
+    const x = (i * 57 + Math.sin(t*0.0008 + i) * 2000) % (W+200) - 100;
+    const y = 40 + (i*23 % (H*0.6));
+    ctx.fillRect(x, y, 2,2);
+  }
+  ctx.restore();
+}
+
+/* Draw decorations like fences, trees to show movement */
+function drawDecorations(){
+  const groundY = H - 120;
+  const repeat = 180;
+  ctx.save();
+  // draw "trees" as simple triangles repeating across world
+  const start = - (worldOffset % repeat) - 100;
+  for (let sx = start; sx < W + 300; sx += repeat){
+    // compute subtle parallax speed
+    const treeH = 80 + ((sx/1000)%1)*40;
+    const tx = sx + 20;
+    ctx.beginPath();
+    ctx.moveTo(tx, groundY - 24);
+    ctx.lineTo(tx - 18, groundY - 24 - treeH);
+    ctx.lineTo(tx + 18, groundY - 24 - treeH);
+    ctx.closePath();
+    ctx.fillStyle = '#0b3a2f';
+    ctx.fill();
+    // trunk
+    ctx.fillStyle = '#2e1b10';
+    ctx.fillRect(tx - 3, groundY - 24, 6, 12);
+  }
+  ctx.restore();
+}
+
+/* Draw simple player */
+function drawPlayer(){
+  const px = player.x;
+  const py = player.y;
+  // shadow
+  ctx.beginPath();
+  ctx.ellipse(px, H - 84, 28, 8, 0, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.fill();
+
+  // body (rounded rect)
+  roundedRect(ctx, px - player.width/2, py - player.height/2, player.width, player.height, 8);
+  ctx.fillStyle = '#2b6b8f';
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+  ctx.stroke();
+
+  // face (simple circle)
+  ctx.beginPath();
+  ctx.arc(px, py - 6, 10, 0, Math.PI*2);
+  ctx.fillStyle = '#ffe6c9';
+  ctx.fill();
+  // eyes
+  ctx.fillStyle = '#17303a';
+  ctx.fillRect(px - 6, py - 10, 3, 4);
+  ctx.fillRect(px + 3, py - 10, 3, 4);
+
+  // small name / speed indicator
+  ctx.font = '12px sans-serif';
+  ctx.fillStyle = '#cdebf1';
+  ctx.textAlign = 'center';
+  ctx.fillText('You', px, py + player.height/2 + 16);
+}
+
+/* roundedRect helper */
+function roundedRect(ctx, x, y, w, h, r) {
+  const minr = Math.min(r, w/2, h/2);
+  ctx.beginPath();
+  ctx.moveTo(x + minr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, minr);
+  ctx.arcTo(x + w, y + h, x, y + h, minr);
+  ctx.arcTo(x, y + h, x, y, minr);
+  ctx.arcTo(x, y, x + w, y, minr);
+  ctx.closePath();
+}
+
+/* -------------------------
+   Main loop
+   ------------------------- */
+let rafId;
+function loop(ts){
+  if (!lastTimestamp) lastTimestamp = ts;
+  const dt = Math.min(0.06, (ts - lastTimestamp) / 1000); // cap dt
+  update(dt);
+  render(dt, ts);
+  lastTimestamp = ts;
+  rafId = requestAnimationFrame(loop);
+}
+rafId = requestAnimationFrame(loop);
+
+/* -------------------------
+   Utility & initial placement
+   ------------------------- */
+// place player initially on ground
+player.y = H - 120 - player.height/2;
+
+// initial spawns so there's a few ahead
+for (let i=1;i<=4;i++){
+  spawnWordAt(i * 900 + Math.random()*600);
+}
+nextSpawnAt = 1200;
+
+/* Helper: allow clicking overlay to focus typing (not necessary) */
+typingOverlay.addEventListener('click', ()=>{
+  // mobile: tapping overlay shouldn't do anything
+});
+
+// Cancel typing on space for convenience already handled
+
+/* Small UI polish: show initial instructions for a moment */
+(function showIntro(){
+  // Nothing heavy — instructions are in top-left HUD
+})();
+
+/* Windows focus handling: pause when not visible */
+document.addEventListener('visibilitychange', ()=>{
+  if (document.hidden) {
+    // blur key states
+    for (let k in keys) keys[k] = false;
+  }
+});
+
+/* -------------------------
+   Accessibility & helper
+   ------------------------- */
+/* Expose a small debug command on console:
+   window.game = {wordObjects, spawnWordAt, score}
+*/
+
+/* Prevent text selection dragging while playing */
+document.addEventListener('selectstart', (e)=>{ e.preventDefault(); });
+
+/* keep typed input updated in case of paste (we don't allow paste purposely) */
+window.addEventListener('paste', (e)=>{
+  if (!typingActive) return;
+  e.preventDefault();
+});
+
+/* keyboard polling to allow cancel typing with space already handled. */
+/* Done. Enjoy! */
+</script>
+</body>
+</html>

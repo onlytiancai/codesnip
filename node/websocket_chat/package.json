@@ -1,0 +1,17 @@
+{
+  "name": "websocket_chat",
+  "version": "1.0.0",
+  "description": "这个小项目包含一个 **Node.js WebSocket 服务端** 和一个 **前端 HTML 客户端**。",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0",
+    "ws": "^8.18.3"
+  }
+}
