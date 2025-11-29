@@ -1,3 +1,8 @@
+'''
+https://modelscope.cn/models/iic/CosyVoice2-0.5B
+https://github.com/FunAudioLLM/CosyVoice
+https://funaudiollm.github.io/cosyvoice2/#Instructed%20Voice%20Generation
+'''
 import sys
 sys.path.append('third_party/Matcha-TTS')
 import torchaudio

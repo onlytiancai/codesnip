@@ -1,0 +1,53 @@
+## 新 MAC
+
+安装软件
+
+- https://github.com/runjuu/InputSourcePro
+- https://github.com/astral-sh/uv
+- https://nodejs.org/zh-cn/download 
+- https://github.com/exelban/stats
+- https://brew.sh/
+- https://github.com/pyenv/pyenv
+- https://iterm2.com/
+
+## 常用命令
+
+### uv
+
+    uv python install
+    uv venv
+    uv venv -p 3.11
+    source .venv/bin/activate
+    uv pip install numpy
+
+### python
+
+    brew install pyenv openssl
+
+    # 安装一个新版本的 Python，比如 3.11，并指定 OpenSSL
+    env PYTHON_CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install 3.11.9
+    pyenv global 3.11.9
+
+    vi ~/.zshrc
+
+    export PATH="$HOME/.pyenv/bin:$PATH"
+    eval "$(pyenv init --path)"
+    eval "$(pyenv init -)"
+
+    git clone https://github.com/pyenv/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
+    eval "$(pyenv init -)"
+    eval "$(pyenv virtualenv-init -)"
+    pyenv virtualenv 3.11.9 qlib
+    pyenv activate qlib
+
+nginx
+
+    sudo lsof -i -P -n | grep LISTEN
+    brew services start nginx
+    brew services info nginx
+    open /opt/homebrew/etc/nginx
+
+查看端口
+
+    sudo lsof -i -P -n | grep LISTEN
+
