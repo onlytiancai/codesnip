@@ -174,12 +174,12 @@ hf download mradermacher/Fara-7B-GGUF --include "Fara-7B.Q8_0.gguf" --local-dir 
 ~/src/llama.cpp/build/bin/llama-server \
     -m microsoft_Fara-7B-Q4_K_M.gguf \
     --mmproj Fara-7B.mmproj-Q8_0.gguf  \
-    --ctx-size 4096 \
+    --ctx-size 16384 \
     --threads 8 \
     --host 0.0.0.0 \
     --port 8000
 
-curl -q http://localhost:8000/v1/chat/completions \
+curl -s http://localhost:8000/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "Fara-7B",
@@ -191,7 +191,7 @@ curl -q http://localhost:8000/v1/chat/completions \
           {
             "type": "image_url",
             "image_url": {
-                "url": "data:image/png;base64,'$(base64 -i ~/Pictures/logo128.png)'"
+                "url": "data:image/png;base64,'$(base64 -i ~/Pictures/apollo.png)'"
             }
           }
         ]
@@ -199,4 +199,42 @@ curl -q http://localhost:8000/v1/chat/completions \
     ]
   }' | jq
 
+cat endpoint_configs/vllm_config.json
+{
+    "model": "Fara-7B",
+    "base_url": "http://localhost:8000/v1",
+    "api_key": "<YOUR API KEY>"
+}
+fara-cli  --task "whats the weather in new york now" --endpoint_config endpoint_configs/vllm_config.json
+
 ```
+
+### magentic-ui 
+
+    pip install 'magentic-ui[fara]'
+
+    cat fara_config.yaml
+    model_config_local_surfer: &client_surfer
+    provider: OpenAIChatCompletionClient
+    config:
+        model: "Fara-7B"
+        base_url: http://localhost:8000/v1
+        api_key: not-needed
+        model_info:
+        vision: true
+        function_calling: true
+        json_output: false
+        family: "unknown"
+        structured_output: false
+        multiple_system_messages: false
+
+    orchestrator_client: *client_surfer
+    coder_client: *client_surfer
+    web_surfer_client: *client_surfer
+    file_surfer_client: *client_surfer
+    action_guard_client: *client_surfer
+    model_client: *client_surfer
+
+    magentic-ui --fara --port 8081 --config fara_config.yaml
+
+
