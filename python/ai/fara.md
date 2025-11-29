@@ -160,3 +160,43 @@ server.py
     vi endpoint_configs/vllm_config.json # 5001
     fara-cli  --task "whats the weather in new york now" --endpoint_config endpoint_configs/vllm_config.json
 
+### 量化版本
+
+```
+hf download bartowski/microsoft_Fara-7B-GGUF --include "microsoft_Fara-7B-Q4_K_M.gguf" --local-dir ./
+~/src/llama.cpp/build/bin/llama-cli -m microsoft_Fara-7B-Q4_K_M.gguf -p "你好，帮我做个总结" --threads 8
+~/src/llama.cpp/build/bin/llama-cli -m microsoft_Fara-7B-Q4_K_M.gguf --image ~/Pictures/logo128.png  -p "Please describe this image."   -n 512 -c 4096
+
+hf download mradermacher/Fara-7B-GGUF --include "Fara-7B.mmproj-Q8_0.gguf" --local-dir ./
+hf download mradermacher/Fara-7B-GGUF --include "Fara-7B.Q8_0.gguf" --local-dir ./
+~/src/llama.cpp/build/bin/llama-mtmd-cli -m microsoft_Fara-7B-Q4_K_M.gguf --mmproj Fara-7B.mmproj-Q8_0.gguf --image ~/Pictures/logo128.png  -p "Please describe this image."   -n 512 -c 4096
+
+~/src/llama.cpp/build/bin/llama-server \
+    -m microsoft_Fara-7B-Q4_K_M.gguf \
+    --mmproj Fara-7B.mmproj-Q8_0.gguf  \
+    --ctx-size 4096 \
+    --threads 8 \
+    --host 0.0.0.0 \
+    --port 8000
+
+curl -q http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "Fara-7B",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          { "type": "text", "text": "Describe this image." },
+          {
+            "type": "image_url",
+            "image_url": {
+                "url": "data:image/png;base64,'$(base64 -i ~/Pictures/logo128.png)'"
+            }
+          }
+        ]
+      }
+    ]
+  }' | jq
+
+```
