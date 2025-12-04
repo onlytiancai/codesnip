@@ -95,8 +95,9 @@ createApp({
     const rate = ref(1.0);
     const pitch = ref(1.0);
 
-    const wordBlocks = reactive([]);
-    let utter = null;
+  const wordBlocks = reactive([]);
+  let utter = null;
+  let stopRequested = false;
 
     const offlineIPA = {
       "this":"ðɪs","is":"ɪz","a":"ə","test":"tɛst",
@@ -148,31 +149,47 @@ createApp({
       }
     }
 
-    function speak() {
+    async function speak() {
+      // Speak one word at a time to strictly synchronize highlight
       stop();
       if (!text.value) return;
 
-      utter = new SpeechSynthesisUtterance(text.value);
-      utter.lang = "en-US";
-      utter.rate = rate.value;
-      utter.pitch = pitch.value;
+      stopRequested = false;
 
-      // 关键修复：使用与 analyze一致的 [A-Za-z]+ 分词
       const tokens = text.value.match(/[A-Za-z]+/g) || [];
 
-      utter.onboundary = (e) => {
-        if (e.name === "word") {
-          const before = text.value.slice(0, e.charIndex);
-          
-          const count = (before.match(/[A-Za-z]+/g) || []).length;
-          const idx = count - 1;
-          highlightIndex(idx);
-        }
-      };
+      for (let i = 0; i < tokens.length; i++) {
+        if (stopRequested) break;
 
-      utter.onend = () => highlightIndex(-1);
+        const w = tokens[i];
+        const clean = w.replace(/[^A-Za-z]/g, "");
 
-      speechSynthesis.speak(utter);
+        utter = new SpeechSynthesisUtterance(clean);
+        utter.lang = "en-US";
+        utter.rate = rate.value;
+        utter.pitch = pitch.value;
+
+        // Promise that resolves when this utterance ends or errors
+        await new Promise((resolve) => {
+          utter.onstart = () => {
+            highlightIndex(i);
+          };
+          utter.onend = () => {
+            highlightIndex(-1);
+            resolve();
+          };
+          utter.onerror = () => {
+            highlightIndex(-1);
+            resolve();
+          };
+
+          speechSynthesis.speak(utter);
+        });
+      }
+
+      highlightIndex(-1);
+      utter = null;
+      stopRequested = false;
     }
 
     function speakWord(i) {
@@ -194,6 +211,7 @@ createApp({
     }
 
     function stop() {
+      stopRequested = true;
       speechSynthesis.cancel();
       highlightIndex(-1);
       utter = null;
