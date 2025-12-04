@@ -26,6 +26,7 @@
     font-weight: 600;
     font-size: 1.125rem;
     line-height: 1;
+  cursor: pointer;
   }
   .ipa {
     font-size: 0.95rem;
@@ -52,7 +53,7 @@
               rows="4"></textarea>
 
     <div class="mt-3 flex flex-wrap gap-3">
-      <button @click="analyze" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500">分析 & 显示音标</button>
+      <button @click="analyze" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500">分析</button>
       <button @click="speak" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500">朗读</button>
       <button @click="stop" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-400">停止</button>
     </div>
