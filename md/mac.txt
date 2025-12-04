@@ -51,3 +51,10 @@ nginx
 
     sudo lsof -i -P -n | grep LISTEN
 
+需要清理大文件的路径
+
+    huggingface
+    ollama
+    orbstack
+    pyenv
+    ~/src/llama.cpp/build/models

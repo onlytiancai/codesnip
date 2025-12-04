@@ -160,3 +160,81 @@ server.py
     vi endpoint_configs/vllm_config.json # 5001
     fara-cli  --task "whats the weather in new york now" --endpoint_config endpoint_configs/vllm_config.json
 
+### 量化版本
+
+```
+hf download bartowski/microsoft_Fara-7B-GGUF --include "microsoft_Fara-7B-Q4_K_M.gguf" --local-dir ./
+~/src/llama.cpp/build/bin/llama-cli -m microsoft_Fara-7B-Q4_K_M.gguf -p "你好，帮我做个总结" --threads 8
+~/src/llama.cpp/build/bin/llama-cli -m microsoft_Fara-7B-Q4_K_M.gguf --image ~/Pictures/logo128.png  -p "Please describe this image."   -n 512 -c 4096
+
+hf download mradermacher/Fara-7B-GGUF --include "Fara-7B.mmproj-Q8_0.gguf" --local-dir ./
+hf download mradermacher/Fara-7B-GGUF --include "Fara-7B.Q8_0.gguf" --local-dir ./
+~/src/llama.cpp/build/bin/llama-mtmd-cli -m microsoft_Fara-7B-Q4_K_M.gguf --mmproj Fara-7B.mmproj-Q8_0.gguf --image ~/Pictures/logo128.png  -p "Please describe this image."   -n 512 -c 4096
+
+~/src/llama.cpp/build/bin/llama-server \
+    -m microsoft_Fara-7B-Q4_K_M.gguf \
+    --mmproj Fara-7B.mmproj-Q8_0.gguf  \
+    --ctx-size 16384 \
+    --threads 8 \
+    --host 0.0.0.0 \
+    --port 8000
+
+curl -s http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "Fara-7B",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          { "type": "text", "text": "Describe this image." },
+          {
+            "type": "image_url",
+            "image_url": {
+                "url": "data:image/png;base64,'$(base64 -i ~/Pictures/apollo.png)'"
+            }
+          }
+        ]
+      }
+    ]
+  }' | jq
+
+cat endpoint_configs/vllm_config.json
+{
+    "model": "Fara-7B",
+    "base_url": "http://localhost:8000/v1",
+    "api_key": "<YOUR API KEY>"
+}
+fara-cli  --task "whats the weather in new york now" --endpoint_config endpoint_configs/vllm_config.json
+
+```
+
+### magentic-ui 
+
+    pip install 'magentic-ui[fara]'
+
+    cat fara_config.yaml
+    model_config_local_surfer: &client_surfer
+    provider: OpenAIChatCompletionClient
+    config:
+        model: "Fara-7B"
+        base_url: http://localhost:8000/v1
+        api_key: not-needed
+        model_info:
+        vision: true
+        function_calling: true
+        json_output: false
+        family: "unknown"
+        structured_output: false
+        multiple_system_messages: false
+
+    orchestrator_client: *client_surfer
+    coder_client: *client_surfer
+    web_surfer_client: *client_surfer
+    file_surfer_client: *client_surfer
+    action_guard_client: *client_surfer
+    model_client: *client_surfer
+
+    magentic-ui --fara --port 8081 --config fara_config.yaml
+
+
