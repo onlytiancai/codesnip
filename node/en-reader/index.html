@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Vue3 + Speech + IPA (fixed highlight)</title>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+
+<style>
+  .sentence {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+  .word-block {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    white-space: nowrap;
+  }
+  .word-top {
+    font-weight: 600;
+    font-size: 1.125rem;
+    line-height: 1;
+  }
+  .ipa {
+    font-size: 0.95rem;
+    color: #6b7280;
+  }
+  .hl {
+    background: linear-gradient(90deg, rgba(250,204,21,0.95), rgba(250,204,21,0.6));
+    padding: 0.125rem 0.35rem;
+    border-radius: 0.25rem;
+  }
+</style>
+</head>
+
+
+<body class="bg-slate-50 text-slate-800">
+
+<div id="app" class="min-h-screen p-8">
+  <div class="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6">
+
+    <h1 class="text-2xl font-bold">Speech + IPA Demo</h1>
+
+    <textarea v-model="text"
+              class="mt-4 w-full rounded-md border border-slate-200 p-3"
+              rows="4"></textarea>
+
+    <div class="mt-3 flex flex-wrap gap-3">
+      <button @click="analyze" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500">分析 & 显示音标</button>
+      <button @click="speak" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500">朗读</button>
+      <button @click="stop" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-400">停止</button>
+    </div>
+
+    <div class="mt-3 flex gap-3 items-center">
+      <label class="text-sm">语速</label>
+      <input type="range" min="0.5" max="2" step="0.1" v-model="rate" class="w-36" />
+      <label class="text-sm">音调</label>
+      <input type="range" min="0.5" max="2" step="0.1" v-model="pitch" class="w-36" />
+    </div>
+
+    <!-- 句子呈现 -->
+    <div class="mt-6">
+      <div class="sentence">
+        <template v-if="wordBlocks.length">
+          <span class="word-block" v-for="(w, idx) in wordBlocks" :key="idx">
+            <span :id="'word-'+idx" class="word-top" :class="w.highlight ? 'hl' : ''"
+                  @click="speakWord(idx)">
+              {{ w.word }}
+            </span>
+            <span class="ipa">{{ w.ipa || '—' }}</span>
+          </span>
+        </template>
+        <template v-else>
+          <span class="text-sm text-slate-400">（点击“分析 & 显示音标”生成对齐的单词与音标）</span>
+        </template>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const { createApp, ref, reactive } = Vue;
+
+createApp({
+  setup() {
+    const text = ref("this is a test, hello world, good morning.");
+    const rate = ref(1.0);
+    const pitch = ref(1.0);
+
+    const wordBlocks = reactive([]);
+    let utter = null;
+
+    const offlineIPA = {
+      "this":"ðɪs","is":"ɪz","a":"ə","test":"tɛst",
+      "hello":"həˈloʊ","world":"wɜːrld","good":"ɡʊd","morning":"ˈmɔːrnɪŋ"
+    };
+
+    const CACHE_KEY = "ipa_cache_v1";
+
+    const getCache = () => JSON.parse(localStorage.getItem(CACHE_KEY) || "{}");
+    const saveCache = (obj) => localStorage.setItem(CACHE_KEY, JSON.stringify(obj));
+
+    async function fetchIPA(word) {
+      if (!word) return null;
+
+      const cache = getCache();
+      if (cache[word]) return cache[word];
+
+      try {
+        const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+        if (!res.ok) throw 0;
+        const json = await res.json();
+        const ipa = json?.[0]?.phonetics?.find(p => p.text)?.text?.trim() || null;
+        const finalIPA = ipa || offlineIPA[word] || null;
+        cache[word] = finalIPA; saveCache(cache);
+        return finalIPA;
+      } catch (err) {
+        const fallback = offlineIPA[word] || null;
+        cache[word] = fallback; saveCache(cache);
+        return fallback;
+      }
+    }
+
+    async function analyze() {
+      // 使用与 SpeechSynthesis 一致的分词规则：只取英文单词
+      const matches = text.value.match(/[A-Za-z]+/g) || [];
+
+      wordBlocks.splice(0, wordBlocks.length);
+
+      for (let w of matches) {
+        const clean = w.toLowerCase();
+        const ipa = await fetchIPA(clean);
+        wordBlocks.push({ word: w, ipa, highlight:false });
+      }
+    }
+
+    function highlightIndex(index) {
+      for (let i = 0; i < wordBlocks.length; i++) {
+        wordBlocks[i].highlight = (i === index);
+      }
+    }
+
+    function speak() {
+      stop();
+      if (!text.value) return;
+
+      utter = new SpeechSynthesisUtterance(text.value);
+      utter.lang = "en-US";
+      utter.rate = rate.value;
+      utter.pitch = pitch.value;
+
+      // 关键修复：使用与 analyze一致的 [A-Za-z]+ 分词
+      const tokens = text.value.match(/[A-Za-z]+/g) || [];
+
+      utter.onboundary = (e) => {
+        if (e.name === "word") {
+          const before = text.value.slice(0, e.charIndex);
+          const count = (before.match(/[A-Za-z]+/g) || []).length;
+          const idx = count - 1;
+          highlightIndex(idx);
+        }
+      };
+
+      utter.onend = () => highlightIndex(-1);
+
+      speechSynthesis.speak(utter);
+    }
+
+    function speakWord(i) {
+      stop();
+      if (i < 0 || i >= wordBlocks.length) return;
+
+      const w = wordBlocks[i].word;
+      const clean = w.replace(/[^A-Za-z]/g, "");
+
+      utter = new SpeechSynthesisUtterance(clean);
+      utter.lang = "en-US";
+      utter.rate = rate.value;
+      utter.pitch = pitch.value;
+
+      utter.onstart = () => highlightIndex(i);
+      utter.onend = () => highlightIndex(-1);
+
+      speechSynthesis.speak(utter);
+    }
+
+    function stop() {
+      speechSynthesis.cancel();
+      highlightIndex(-1);
+      utter = null;
+    }
+
+    return { text, rate, pitch, analyze, speak, stop, wordBlocks, speakWord };
+  }
+}).mount("#app");
+</script>
+
+</body>
+</html>
