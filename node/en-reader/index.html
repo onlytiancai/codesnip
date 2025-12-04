@@ -162,6 +162,7 @@ createApp({
       utter.onboundary = (e) => {
         if (e.name === "word") {
           const before = text.value.slice(0, e.charIndex);
+          
           const count = (before.match(/[A-Za-z]+/g) || []).length;
           const idx = count - 1;
           highlightIndex(idx);
