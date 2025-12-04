@@ -91,7 +91,7 @@ const { createApp, ref, reactive } = Vue;
 
 createApp({
   setup() {
-    const text = ref("this is a test, hello world, good morning.");
+    const text = ref("Language modeling is a long-standing research topic, dating back to the 1950s with Shannon’s application of information theory to human language, where he measured how well simple n-gram language models predict or compress natural language text");
     const rate = ref(1.0);
     const pitch = ref(1.0);
 
@@ -130,15 +130,24 @@ createApp({
       }
     }
 
+    // Tokenize but preserve original punctuation and special characters
+    function tokenizePreserve(textStr) {
+      // Match sequences of letters, digits, ASCII apostrophe ' , Unicode right single quote ’,
+      // and hyphen (to keep n-gram / hyphenated words intact), or any single non-space character.
+      const re = /[A-Za-z0-9\u2019'-]+|[^\s]/gu;
+      return Array.from(textStr.matchAll(re), m => m[0]);
+    }
+
     async function analyze() {
-      // 使用与 SpeechSynthesis 一致的分词规则：只取英文单词
-      const matches = text.value.match(/[A-Za-z]+/g) || [];
+      // 使用保留标点的分词规则：保留原文中的数字与撇号（例如 1950s, Shannon’s）
+      const matches = tokenizePreserve(text.value || "");
 
       wordBlocks.splice(0, wordBlocks.length);
 
       for (let w of matches) {
-        const clean = w.toLowerCase();
-        const ipa = await fetchIPA(clean);
+        // For IPA lookup, normalize to letters only (remove digits and apostrophes).
+        const lookup = w.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
+        const ipa = lookup ? await fetchIPA(lookup) : null;
         wordBlocks.push({ word: w, ipa, highlight:false });
       }
     }
@@ -150,21 +159,27 @@ createApp({
     }
 
     async function speak() {
-      // Speak one word at a time to strictly synchronize highlight
+      // Speak one token at a time to strictly synchronize highlight
       stop();
       if (!text.value) return;
 
       stopRequested = false;
 
-      const tokens = text.value.match(/[A-Za-z]+/g) || [];
+      const tokens = tokenizePreserve(text.value);
+
 
       for (let i = 0; i < tokens.length; i++) {
         if (stopRequested) break;
 
         const w = tokens[i];
-        const clean = w.replace(/[^A-Za-z]/g, "");
+        // If token doesn't contain any letter or digit, treat it as punctuation and skip speaking/highlighting
+        if (!/[A-Za-z0-9]/.test(w)) continue;
 
-        utter = new SpeechSynthesisUtterance(clean);
+        // Prepare a cleaned version for speech: normalize curly apostrophe to ASCII and keep letters/digits/apostrophe/hyphen
+        let speakText = w.replace(/[\u2019]/g, "'").replace(/[^A-Za-z0-9'\-]/g, "");
+        if (!speakText) speakText = w; // fallback to original if nothing left after cleaning
+
+        utter = new SpeechSynthesisUtterance(speakText);
         utter.lang = "en-US";
         utter.rate = rate.value;
         utter.pitch = pitch.value;
@@ -197,9 +212,13 @@ createApp({
       if (i < 0 || i >= wordBlocks.length) return;
 
       const w = wordBlocks[i].word;
-      const clean = w.replace(/[^A-Za-z]/g, "");
+      // Skip punctuation-only tokens
+      if (!/[A-Za-z0-9]/.test(w)) return;
 
-      utter = new SpeechSynthesisUtterance(clean);
+      let speakText = w.replace(/[\u2019]/g, "'").replace(/[^A-Za-z0-9'\-]/g, "");
+      if (!speakText) speakText = w;
+
+      utter = new SpeechSynthesisUtterance(speakText);
       utter.lang = "en-US";
       utter.rate = rate.value;
       utter.pitch = pitch.value;
