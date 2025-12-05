@@ -1,361 +1,358 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8" />
-<title>Vue3 + Speech + IPA (fixed highlight)</title>
+  <meta charset="utf-8" />
+  <title>Vue3 + Speech + IPA (fixed highlight)</title>
 
-<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-<style>
-  .sentence {
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    align-items: flex-start;
-  }
-  .word-block {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    white-space: nowrap;
-  }
-  .word-top {
-    font-weight: 600;
-    font-size: 1.125rem;
-    line-height: 1;
-  cursor: pointer;
-  }
-  .ipa {
-    font-size: 0.95rem;
-    color: #6b7280;
-  }
-  .hl {
-    background: linear-gradient(90deg, rgba(250,204,21,0.95), rgba(250,204,21,0.6));
-    padding: 0.125rem 0.35rem;
-    border-radius: 0.25rem;
-  }
-</style>
+  <style>
+    .sentence {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: flex-start;
+    }
+
+    .word-block {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .word-top {
+      font-weight: 600;
+      font-size: 1.125rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .ipa {
+      font-size: 0.95rem;
+      color: #6b7280;
+    }
+
+    .hl {
+      background: linear-gradient(90deg, rgba(250, 204, 21, 0.95), rgba(250, 204, 21, 0.6));
+      padding: 0.125rem 0.35rem;
+      border-radius: 0.25rem;
+    }
+  </style>
 </head>
 
 
 <body class="bg-slate-50 text-slate-800">
 
-<div id="app" class="min-h-screen p-8">
-  <div class="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6">
+  <div id="app" class="min-h-screen p-8">
+    <div class="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6">
 
-    <h1 class="text-2xl font-bold">Speech + IPA Demo</h1>
+      <h1 class="text-2xl font-bold">Speech + IPA Demo</h1>
 
-    <textarea v-model="text"
-              class="mt-4 w-full rounded-md border border-slate-200 p-3"
-              rows="4"></textarea>
+      <textarea v-model="text" class="mt-4 w-full rounded-md border border-slate-200 p-3" rows="4"></textarea>
 
-    <div class="mt-3 flex flex-wrap gap-3">
-  <button @click="analyze" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500">分析</button>
-  <button @click="speak" :disabled="!speechSupported" :title="speechSupported ? '' : '当前浏览器不支持语音朗读'" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500 disabled:opacity-50">逐词朗读</button>
-  <button @click="speakSentences" :disabled="!speechSupported" :title="speechSupported ? '' : '当前浏览器不支持语音朗读'" class="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-500 disabled:opacity-50">逐句朗读</button>
-      <button @click="stop" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-400">停止</button>
-    </div>
+      <div class="mt-3 flex flex-wrap gap-3">
+        <button @click="analyze" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500">分析</button>
+        <button @click="speak" :disabled="!speechSupported" :title="speechSupported ? '' : '当前浏览器不支持语音朗读'"
+          class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500 disabled:opacity-50">逐词朗读</button>
+        <button @click="speakSentences" :disabled="!speechSupported" :title="speechSupported ? '' : '当前浏览器不支持语音朗读'"
+          class="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-500 disabled:opacity-50">逐句朗读</button>
+        <button @click="stop" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-400">停止</button>
+      </div>
 
-    <div class="mt-3 flex gap-3 items-center">
-      <label class="text-sm">语速</label>
-      <input type="range" min="0.5" max="2" step="0.1" v-model="rate" class="w-36" />
-      <label class="text-sm">音调</label>
-      <input type="range" min="0.5" max="2" step="0.1" v-model="pitch" class="w-36" />
-    </div>
+      <div class="mt-3 flex gap-3 items-center">
+        <label class="text-sm">语速</label>
+        <input type="range" min="0.5" max="2" step="0.1" v-model="rate" class="w-36" />
+        <label class="text-sm">音调</label>
+        <input type="range" min="0.5" max="2" step="0.1" v-model="pitch" class="w-36" />
+      </div>
 
-    <!-- 句子呈现 -->
-    <!-- Friendly notice when speech not supported -->
-    <div v-if="!speechSupported" class="mt-4 p-3 rounded border border-yellow-300 bg-yellow-50 text-yellow-900">
-      <div class="flex items-start gap-3">
-        <div class="flex-1">
-          <div class="font-semibold">语音朗读不可用</div>
-          <div class="text-sm mt-1">当前浏览器似乎不支持 Web Speech API 的 SpeechSynthesis（语音朗读）。建议使用最新版本的 Chrome、Edge、Safari 或 Firefox（部分版本）以获得更好的体验。</div>
+      <!-- 句子呈现 -->
+      <!-- Friendly notice when speech not supported -->
+      <div v-if="!speechSupported" class="mt-4 p-3 rounded border border-yellow-300 bg-yellow-50 text-yellow-900">
+        <div class="flex items-start gap-3">
+          <div class="flex-1">
+            <div class="font-semibold">语音朗读不可用</div>
+            <div class="text-sm mt-1">当前浏览器似乎不支持 Web Speech API 的 SpeechSynthesis（语音朗读）。建议使用最新版本的 Chrome、Edge、Safari 或
+              Firefox（部分版本）以获得更好的体验。</div>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="mt-6">
-      <div class="sentence">
-        <template v-if="wordBlocks.length">
-          <span class="word-block" v-for="(w, idx) in wordBlocks" :key="idx">
-            <span :id="'word-'+idx" class="word-top" :class="w.highlight ? 'hl' : ''"
-                  @click="speakWord(idx)">
-              {{ w.word }}
+      <div class="mt-6">
+        <div class="sentence">
+          <template v-if="wordBlocks.length">
+            <span class="word-block" v-for="(w, idx) in wordBlocks" :key="idx">
+              <span :id="'word-'+idx" class="word-top" :class="w.highlight ? 'hl' : ''" @click="speakWord(idx)">
+                {{ w.word }}
+              </span>
+              <span class="ipa">{{ w.ipa || '—' }}</span>
             </span>
-            <span class="ipa">{{ w.ipa || '—' }}</span>
-          </span>
-        </template>
-        <template v-else>
-          <span class="text-sm text-slate-400">（点击“分析 & 显示音标”生成对齐的单词与音标）</span>
-        </template>
+          </template>
+          <template v-else>
+            <span class="text-sm text-slate-400">（点击“分析 & 显示音标”生成对齐的单词与音标）</span>
+          </template>
+        </div>
       </div>
+
     </div>
-
   </div>
-</div>
 
-<script>
-const { createApp, ref, reactive } = Vue;
+  <script>
+    const { createApp, ref, reactive } = Vue;
 
-createApp({
-  setup() {
-  const speechSupported = ref(true);
-    const text = ref("Language modeling is a long-standing research topic, dating back to the 1950s with Shannon’s application of information theory to human language, where he measured how well simple n-gram language models predict or compress natural language text");
-    const rate = ref(1.0);
-    const pitch = ref(1.0);
+    createApp({
+      setup() {
+        const speechSupported = ref(true);
+        const text = ref("Language modeling is a long-standing research topic, dating back to the 1950s with Shannon’s application of information theory to human language, where he measured how well simple n-gram language models predict or compress natural language text");
+        const rate = ref(1.0);
+        const pitch = ref(1.0);
 
-  const wordBlocks = reactive([]);
-  let utter = null;
-  let stopRequested = false;
+        const wordBlocks = reactive([]);
+        let utter = null;
+        let stopRequested = false;
 
-    // offline IPA map will be loaded from `config/offlineIPA.json` at runtime.
-    // Start with an empty map; loadOfflineIPA() will populate this.
-    const offlineIPA = {};
+        // offline IPA map will be loaded from `config/offlineIPA.json` at runtime.
+        // Start with an empty map; loadOfflineIPA() will populate this.
+        const offlineIPA = {};
 
-    // Load offline IPA from CSV file: config/offlineIPA.csv
-    async function loadOfflineIPA() {
-      try {
-        const res = await fetch('./config/offlineIPA.csv', { cache: 'no-store' });
-        if (!res.ok) throw new Error('offlineIPA CSV fetch failed');
-        const text = await res.text();
-        // parse simple CSV: first header row (word,ipa), subsequent rows word,ipa
-        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'));
-        // skip header if present
-        const startIdx = (lines[0] && lines[0].toLowerCase().startsWith('word,')) ? 1 : 0;
-        for (let i = startIdx; i < lines.length; i++) {
-          const parts = lines[i].split(',');
-          const w = (parts[0] || '').trim().toLowerCase();
-          const p = (parts.slice(1).join(',') || '').trim();
-          if (w) offlineIPA[w] = p || null;
+        // Load offline IPA from CSV file: config/offlineIPA.csv
+        async function loadOfflineIPA() {
+          try {
+            const res = await fetch('./config/offlineIPA.csv', { cache: 'no-store' });
+            if (!res.ok) throw new Error('offlineIPA CSV fetch failed');
+            const text = await res.text();
+            // parse simple CSV: first header row (word,ipa), subsequent rows word,ipa
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+            // skip header if present
+            const startIdx = (lines[0] && lines[0].toLowerCase().startsWith('word,')) ? 1 : 0;
+            for (let i = startIdx; i < lines.length; i++) {
+              const parts = lines[i].split(',');
+              const w = (parts[0] || '').trim().toLowerCase();
+              const p = (parts.slice(1).join(',') || '').trim();
+              if (w) offlineIPA[w] = p || null;
+            }
+          } catch (e) {
+            console.warn('Could not load config/offlineIPA.csv, continuing with built-in empty map.', e);
+          }
         }
-      } catch (e) {
-        console.warn('Could not load config/offlineIPA.csv, continuing with built-in empty map.', e);
-      }
-    }
 
-    const CACHE_KEY = "ipa_cache_v1";
-
-    const getCache = () => JSON.parse(localStorage.getItem(CACHE_KEY) || "{}");
-    const saveCache = (obj) => localStorage.setItem(CACHE_KEY, JSON.stringify(obj));
-
-    // Only use local CSV-based offline IPA map and local cache; remove dependency on external API
-    async function fetchIPA(word) {
-      if (!word) return null;
-      const cache = getCache();
-      if (cache[word]) return cache[word];
-      const local = offlineIPA[word] || null;
-      cache[word] = local; saveCache(cache);
-      return local;
-    }
-
-    // Tokenize but preserve original punctuation and special characters
-    function tokenizePreserve(textStr) {
-      // Match sequences of letters, digits, ASCII apostrophe ' , Unicode right single quote ’,
-      // and hyphen (to keep n-gram / hyphenated words intact), or any single non-space character.
-      const re = /[A-Za-z0-9\u2019'-]+|[^\s]/gu;
-      return Array.from(textStr.matchAll(re), m => m[0]);
-    }
-
-    async function analyze() {
-      // 使用保留标点的分词规则：保留原文中的数字与撇号（例如 1950s, Shannon’s）
-      const matches = tokenizePreserve(text.value || "");
-
-      wordBlocks.splice(0, wordBlocks.length);
-
-      // Build tokens and also assign sentence index by splitting on common sentence delimiters.
-      // We'll treat .,!,? as sentence end; commas and semicolons stay inside sentences but user requested commas considered when splitting sentences — include comma as a split point as well.
-      // We'll accumulate tokens into sentences; sentenceIndex increments when we hit a split token.
-      let sentenceIdx = 0;
-      const sentenceSplitRe = /[.,!?，。！；;]/; // include various punctuation
-      for (let w of matches) {
-        // For IPA lookup, normalize to letters only (remove digits and apostrophes).
-        const lookup = w.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
-        const ipa = lookup ? await fetchIPA(lookup) : null;
-        // push token with sentence index
-        wordBlocks.push({ word: w, ipa, highlight:false, sentenceIndex: sentenceIdx });
-
-        // If token matches a split character, increment sentence index for following tokens.
-        if (sentenceSplitRe.test(w)) {
-          sentenceIdx++;
+        // Only use local CSV-based offline IPA map; no caching
+        async function fetchIPA(word) {
+          if (!word) return null;
+          return offlineIPA[word] || null;
         }
-      }
-    }
 
-  // Detect SpeechSynthesis support once when app runs
-    if (typeof window === 'undefined' || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
-      speechSupported.value = false;
-    } else {
-      speechSupported.value = true;
-    }
+        // Tokenize but preserve original punctuation and special characters
+        function tokenizePreserve(textStr) {
+          // Match sequences of letters, digits, ASCII apostrophe ' , Unicode right single quote ’,
+          // and hyphen (to keep n-gram / hyphenated words intact), or any single non-space character.
+          const re = /[A-Za-z0-9\u2019'-]+|[^\s]/gu;
+          return Array.from(textStr.matchAll(re), m => m[0]);
+        }
 
-  // Attempt to load the offline IPA map. Do it asynchronously but don't block the UI.
-  // analyze() will still work: fetchIPA consults offlineIPA at call time.
-  loadOfflineIPA();
+        async function analyze() {
+          // 使用保留标点的分词规则：保留原文中的数字与撇号（例如 1950s, Shannon’s）
+          const matches = tokenizePreserve(text.value || "");
 
-    function highlightIndex(index) {
-      for (let i = 0; i < wordBlocks.length; i++) {
-        wordBlocks[i].highlight = (i === index);
-      }
-    }
+          wordBlocks.splice(0, wordBlocks.length);
 
-    function highlightRange(startIdx, endIdx) {
-      for (let i = 0; i < wordBlocks.length; i++) {
-        wordBlocks[i].highlight = (i >= startIdx && i <= endIdx);
-      }
-    }
+          // Build tokens and also assign sentence index by splitting on common sentence delimiters.
+          // We'll treat .,!,? as sentence end; commas and semicolons stay inside sentences but user requested commas considered when splitting sentences — include comma as a split point as well.
+          // We'll accumulate tokens into sentences; sentenceIndex increments when we hit a split token.
+          let sentenceIdx = 0;
+          const sentenceSplitRe = /[.,!?，。！；;]/; // include various punctuation
+          for (let w of matches) {
+            // For IPA lookup, normalize to letters only (remove digits and apostrophes).
+            const lookup = w.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
+            const ipa = lookup ? await fetchIPA(lookup) : null;
+            // push token with sentence index
+            wordBlocks.push({ word: w, ipa, highlight: false, sentenceIndex: sentenceIdx });
 
-    async function speak() {
-  // Speak one token at a time to strictly synchronize highlight
-      stop();
-      if (!text.value) return;
+            // If token matches a split character, increment sentence index for following tokens.
+            if (sentenceSplitRe.test(w)) {
+              sentenceIdx++;
+            }
+          }
+        }
 
-  if (!speechSupported.value) return;
+        // Detect SpeechSynthesis support once when app runs
+        if (typeof window === 'undefined' || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+          speechSupported.value = false;
+        } else {
+          speechSupported.value = true;
+        }
 
-      stopRequested = false;
+        // Attempt to load the offline IPA map. Do it asynchronously but don't block the UI.
+        // analyze() will still work: fetchIPA consults offlineIPA at call time.
+        loadOfflineIPA();
 
-      const tokens = tokenizePreserve(text.value);
+        function highlightIndex(index) {
+          for (let i = 0; i < wordBlocks.length; i++) {
+            wordBlocks[i].highlight = (i === index);
+          }
+        }
+
+        function highlightRange(startIdx, endIdx) {
+          for (let i = 0; i < wordBlocks.length; i++) {
+            wordBlocks[i].highlight = (i >= startIdx && i <= endIdx);
+          }
+        }
+
+        async function speak() {
+          // Speak one token at a time to strictly synchronize highlight
+          stop();
+          if (!text.value) return;
+
+          if (!speechSupported.value) return;
+
+          stopRequested = false;
+
+          const tokens = tokenizePreserve(text.value);
 
 
-  for (let i = 0; i < tokens.length; i++) {
-        if (stopRequested) break;
+          for (let i = 0; i < tokens.length; i++) {
+            if (stopRequested) break;
 
-        const w = tokens[i];
-        // If token doesn't contain any letter or digit, treat it as punctuation and skip speaking/highlighting
-        if (!/[A-Za-z0-9]/.test(w)) continue;
+            const w = tokens[i];
+            // If token doesn't contain any letter or digit, treat it as punctuation and skip speaking/highlighting
+            if (!/[A-Za-z0-9]/.test(w)) continue;
 
-        // Prepare a cleaned version for speech: normalize curly apostrophe to ASCII and keep letters/digits/apostrophe/hyphen
-        let speakText = w.replace(/[\u2019]/g, "'").replace(/[^A-Za-z0-9'\-]/g, "");
-        if (!speakText) speakText = w; // fallback to original if nothing left after cleaning
+            // Prepare a cleaned version for speech: normalize curly apostrophe to ASCII and keep letters/digits/apostrophe/hyphen
+            let speakText = w.replace(/[\u2019]/g, "'").replace(/[^A-Za-z0-9'\-]/g, "");
+            if (!speakText) speakText = w; // fallback to original if nothing left after cleaning
 
-  utter = new SpeechSynthesisUtterance(speakText);
-        utter.lang = "en-US";
-        utter.rate = rate.value;
-        utter.pitch = pitch.value;
+            utter = new SpeechSynthesisUtterance(speakText);
+            utter.lang = "en-US";
+            utter.rate = rate.value;
+            utter.pitch = pitch.value;
 
-        // Promise that resolves when this utterance ends or errors
-        await new Promise((resolve) => {
-          utter.onstart = () => {
-            // find the corresponding index in wordBlocks for this token position
-            highlightIndex(i);
-          };
-          utter.onend = () => {
-            highlightIndex(-1);
-            resolve();
-          };
-          utter.onerror = () => {
-            highlightIndex(-1);
-            resolve();
-          };
+            // Promise that resolves when this utterance ends or errors
+            await new Promise((resolve) => {
+              utter.onstart = () => {
+                // find the corresponding index in wordBlocks for this token position
+                highlightIndex(i);
+              };
+              utter.onend = () => {
+                highlightIndex(-1);
+                resolve();
+              };
+              utter.onerror = () => {
+                highlightIndex(-1);
+                resolve();
+              };
+
+              speechSynthesis.speak(utter);
+            });
+          }
+
+          highlightIndex(-1);
+          utter = null;
+          stopRequested = false;
+        }
+
+        // Speak sentence-by-sentence. Highlight the whole sentence while speaking.
+        async function speakSentences() {
+          stop();
+          if (!text.value) return;
+
+          if (!speechSupported.value) return;
+
+          stopRequested = false;
+
+          // Ensure wordBlocks is populated
+          if (!wordBlocks.length) await analyze();
+
+          // Group indices by sentenceIndex
+          const sentences = new Map();
+          for (let i = 0; i < wordBlocks.length; i++) {
+            const s = wordBlocks[i].sentenceIndex || 0;
+            if (!sentences.has(s)) sentences.set(s, []);
+            sentences.get(s).push(i);
+          }
+
+          const sortedKeys = Array.from(sentences.keys()).sort((a, b) => a - b);
+
+          for (let sk of sortedKeys) {
+            if (stopRequested) break;
+            const idxs = sentences.get(sk);
+            if (!idxs || !idxs.length) continue;
+
+            const start = idxs[0];
+            const end = idxs[idxs.length - 1];
+
+            // Build sentence text by joining words that contain letters/digits or punctuation
+            const parts = wordBlocks.slice(start, end + 1).map(w => w.word);
+            let sentenceText = parts.join(" ");
+
+            // Clean up spacing around punctuation: remove space before punctuation
+            sentenceText = sentenceText.replace(/\s+([.,!?;，。！；])/g, "$1");
+
+            utter = new SpeechSynthesisUtterance(sentenceText.replace(/[ ]/g, ""));
+            utter.lang = "en-US";
+            utter.rate = rate.value;
+            utter.pitch = pitch.value;
+
+            await new Promise((resolve) => {
+              utter.onstart = () => {
+                highlightRange(start, end);
+              };
+              utter.onend = () => {
+                highlightRange(-1, -2); // clears all
+                resolve();
+              };
+              utter.onerror = () => {
+                highlightRange(-1, -2);
+                resolve();
+              };
+              speechSynthesis.speak(utter);
+            });
+          }
+
+          highlightRange(-1, -2);
+          utter = null;
+          stopRequested = false;
+        }
+
+        function speakWord(i) {
+          stop();
+          if (i < 0 || i >= wordBlocks.length) return;
+
+          if (!speechSupported.value) return;
+
+          const w = wordBlocks[i].word;
+          // Skip punctuation-only tokens
+          if (!/[A-Za-z0-9]/.test(w)) return;
+
+          let speakText = w.replace(/[\u2019]/g, "'").replace(/[^A-Za-z0-9'\-]/g, "");
+          if (!speakText) speakText = w;
+
+          utter = new SpeechSynthesisUtterance(speakText);
+          utter.lang = "en-US";
+          utter.rate = rate.value;
+          utter.pitch = pitch.value;
+
+          utter.onstart = () => highlightIndex(i);
+          utter.onend = () => highlightIndex(-1);
 
           speechSynthesis.speak(utter);
-        });
+        }
+
+        function stop() {
+          stopRequested = true;
+          speechSynthesis.cancel();
+          highlightIndex(-1);
+          utter = null;
+        }
+
+        return { text, rate, pitch, analyze, speak, stop, wordBlocks, speakWord, speakSentences, speechSupported };
       }
-
-      highlightIndex(-1);
-      utter = null;
-      stopRequested = false;
-    }
-
-    // Speak sentence-by-sentence. Highlight the whole sentence while speaking.
-    async function speakSentences() {
-      stop();
-      if (!text.value) return;
-
-  if (!speechSupported.value) return;
-
-      stopRequested = false;
-
-      // Ensure wordBlocks is populated
-      if (!wordBlocks.length) await analyze();
-
-      // Group indices by sentenceIndex
-      const sentences = new Map();
-      for (let i = 0; i < wordBlocks.length; i++) {
-        const s = wordBlocks[i].sentenceIndex || 0;
-        if (!sentences.has(s)) sentences.set(s, []);
-        sentences.get(s).push(i);
-      }
-
-      const sortedKeys = Array.from(sentences.keys()).sort((a,b)=>a-b);
-
-      for (let sk of sortedKeys) {
-        if (stopRequested) break;
-        const idxs = sentences.get(sk);
-        if (!idxs || !idxs.length) continue;
-
-        const start = idxs[0];
-        const end = idxs[idxs.length - 1];
-
-        // Build sentence text by joining words that contain letters/digits or punctuation
-        const parts = wordBlocks.slice(start, end+1).map(w => w.word);
-        let sentenceText = parts.join(" ");
-
-        // Clean up spacing around punctuation: remove space before punctuation
-        sentenceText = sentenceText.replace(/\s+([.,!?;，。！；])/g, "$1");
-
-        utter = new SpeechSynthesisUtterance(sentenceText.replace(/[ ]/g, ""));
-        utter.lang = "en-US";
-        utter.rate = rate.value;
-        utter.pitch = pitch.value;
-
-        await new Promise((resolve) => {
-          utter.onstart = () => {
-            highlightRange(start, end);
-          };
-          utter.onend = () => {
-            highlightRange(-1, -2); // clears all
-            resolve();
-          };
-          utter.onerror = () => {
-            highlightRange(-1, -2);
-            resolve();
-          };
-          speechSynthesis.speak(utter);
-        });
-      }
-
-      highlightRange(-1, -2);
-      utter = null;
-      stopRequested = false;
-    }
-
-    function speakWord(i) {
-      stop();
-      if (i < 0 || i >= wordBlocks.length) return;
-
-  if (!speechSupported.value) return;
-
-      const w = wordBlocks[i].word;
-      // Skip punctuation-only tokens
-      if (!/[A-Za-z0-9]/.test(w)) return;
-
-      let speakText = w.replace(/[\u2019]/g, "'").replace(/[^A-Za-z0-9'\-]/g, "");
-      if (!speakText) speakText = w;
-
-      utter = new SpeechSynthesisUtterance(speakText);
-      utter.lang = "en-US";
-      utter.rate = rate.value;
-      utter.pitch = pitch.value;
-
-      utter.onstart = () => highlightIndex(i);
-      utter.onend = () => highlightIndex(-1);
-
-      speechSynthesis.speak(utter);
-    }
-
-    function stop() {
-      stopRequested = true;
-      speechSynthesis.cancel();
-      highlightIndex(-1);
-      utter = null;
-    }
-
-  return { text, rate, pitch, analyze, speak, stop, wordBlocks, speakWord, speakSentences, speechSupported };
-  }
-}).mount("#app");
-</script>
+    }).mount("#app");
+  </script>
 
 </body>
+
 </html>

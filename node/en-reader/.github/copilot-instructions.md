@@ -1,12 +1,12 @@
 Project: Speech + IPA Demo (Vue3)
 
 Purpose
-- Small single-page demo that runs entirely in the browser. It tokenizes input text, looks up IPA using a local offline CSV file (no external API dependency), caches results in localStorage, and uses the Web Speech API to read text aloud with per-word and per-sentence highlighting.
+- Small single-page demo that runs entirely in the browser. It tokenizes input text, looks up IPA using a local offline CSV file (no external API dependency), and uses the Web Speech API to read text aloud with per-word and per-sentence highlighting.
 
 Quick facts for an AI agent
 - Single HTML file: `index.html` contains the entire app (Vue UMD + inline script + Tailwind). Focus edits here.
 - No build toolchain: app uses CDN JS (Vue, Tailwind) and runs as a static page. Changes to JS are edits to `index.html`.
--- Network dependency: None for IPA lookup — the app now uses `config/offlineIPA.csv` as the single source of IPA entries. localStorage caching (`ipa_cache_v1`) is still used to store resolved IPA values.
+-- Network dependency: None for IPA lookup — the app now uses `config/offlineIPA.csv` as the single source of IPA entries.
 
 Key files / patterns
 - `index.html` — app logic (setup(), tokenizePreserve, analyze, speak, speakSentences, speakWord). Most PRs will touch this file.
@@ -24,7 +24,7 @@ Developer workflows
 
 Project-specific conventions
 - Single-file app: prefer editing `index.html` instead of splitting into many files unless you add a minimal build setup and explain it in README.
-- Keep the offline IPA map (`offlineIPA`) and `CACHE_KEY` semantics consistent. When adding new IPA providers or changing cache shape, keep backward compatibility with existing cache entries.
+- Keep the offline IPA map (`offlineIPA`) consistent. When adding new IPA providers or changing data shape, ensure compatibility with existing code.
 - Tokenization must preserve original punctuation and whitespace surrounding tokens for correct visual rendering; use `tokenizePreserve` as canonical implementation.
 
 Testing and safety
