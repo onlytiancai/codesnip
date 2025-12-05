@@ -1,0 +1,14 @@
+{
+  // 工作区设置：优化 Copilot 在本项目中的建议
+  "editor.inlineSuggest.enabled": true,
+  "github.copilot.enable": {
+    "*": true
+  },
+  "github.copilot.inlineSuggest.enable": true,
+  // 优先返回中文建议（如果可用）并倾向使用工作区文件作为上下文
+  "github.copilot.suggestLanguage": "zh",
+  // 允许 Copilot 使用仓库文件作为上下文来生成更相关的建议
+  "github.copilot.useWorkspaceContext": true,
+  // 关闭实验性遥测（仅为建议，可按需修改）
+  "github.copilot.experimental.enableTelemetry": false
+}
