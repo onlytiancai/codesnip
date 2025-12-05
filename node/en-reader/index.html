@@ -53,8 +53,9 @@
               rows="4"></textarea>
 
     <div class="mt-3 flex flex-wrap gap-3">
-      <button @click="analyze" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500">分析</button>
-      <button @click="speak" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500">朗读</button>
+  <button @click="analyze" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500">分析</button>
+  <button @click="speak" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500">逐词朗读</button>
+  <button @click="speakSentences" class="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-500">逐句朗读</button>
       <button @click="stop" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-400">停止</button>
     </div>
 
@@ -144,17 +145,34 @@ createApp({
 
       wordBlocks.splice(0, wordBlocks.length);
 
+      // Build tokens and also assign sentence index by splitting on common sentence delimiters.
+      // We'll treat .,!,? as sentence end; commas and semicolons stay inside sentences but user requested commas considered when splitting sentences — include comma as a split point as well.
+      // We'll accumulate tokens into sentences; sentenceIndex increments when we hit a split token.
+      let sentenceIdx = 0;
+      const sentenceSplitRe = /[.,!?，。！；;]/; // include various punctuation
       for (let w of matches) {
         // For IPA lookup, normalize to letters only (remove digits and apostrophes).
         const lookup = w.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
         const ipa = lookup ? await fetchIPA(lookup) : null;
-        wordBlocks.push({ word: w, ipa, highlight:false });
+        // push token with sentence index
+        wordBlocks.push({ word: w, ipa, highlight:false, sentenceIndex: sentenceIdx });
+
+        // If token matches a split character, increment sentence index for following tokens.
+        if (sentenceSplitRe.test(w)) {
+          sentenceIdx++;
+        }
       }
     }
 
     function highlightIndex(index) {
       for (let i = 0; i < wordBlocks.length; i++) {
         wordBlocks[i].highlight = (i === index);
+      }
+    }
+
+    function highlightRange(startIdx, endIdx) {
+      for (let i = 0; i < wordBlocks.length; i++) {
+        wordBlocks[i].highlight = (i >= startIdx && i <= endIdx);
       }
     }
 
@@ -168,7 +186,7 @@ createApp({
       const tokens = tokenizePreserve(text.value);
 
 
-      for (let i = 0; i < tokens.length; i++) {
+  for (let i = 0; i < tokens.length; i++) {
         if (stopRequested) break;
 
         const w = tokens[i];
@@ -179,7 +197,7 @@ createApp({
         let speakText = w.replace(/[\u2019]/g, "'").replace(/[^A-Za-z0-9'\-]/g, "");
         if (!speakText) speakText = w; // fallback to original if nothing left after cleaning
 
-        utter = new SpeechSynthesisUtterance(speakText);
+  utter = new SpeechSynthesisUtterance(speakText);
         utter.lang = "en-US";
         utter.rate = rate.value;
         utter.pitch = pitch.value;
@@ -187,6 +205,7 @@ createApp({
         // Promise that resolves when this utterance ends or errors
         await new Promise((resolve) => {
           utter.onstart = () => {
+            // find the corresponding index in wordBlocks for this token position
             highlightIndex(i);
           };
           utter.onend = () => {
@@ -203,6 +222,67 @@ createApp({
       }
 
       highlightIndex(-1);
+      utter = null;
+      stopRequested = false;
+    }
+
+    // Speak sentence-by-sentence. Highlight the whole sentence while speaking.
+    async function speakSentences() {
+      stop();
+      if (!text.value) return;
+
+      stopRequested = false;
+
+      // Ensure wordBlocks is populated
+      if (!wordBlocks.length) await analyze();
+
+      // Group indices by sentenceIndex
+      const sentences = new Map();
+      for (let i = 0; i < wordBlocks.length; i++) {
+        const s = wordBlocks[i].sentenceIndex || 0;
+        if (!sentences.has(s)) sentences.set(s, []);
+        sentences.get(s).push(i);
+      }
+
+      const sortedKeys = Array.from(sentences.keys()).sort((a,b)=>a-b);
+
+      for (let sk of sortedKeys) {
+        if (stopRequested) break;
+        const idxs = sentences.get(sk);
+        if (!idxs || !idxs.length) continue;
+
+        const start = idxs[0];
+        const end = idxs[idxs.length - 1];
+
+        // Build sentence text by joining words that contain letters/digits or punctuation
+        const parts = wordBlocks.slice(start, end+1).map(w => w.word);
+        let sentenceText = parts.join(" ");
+
+        // Clean up spacing around punctuation: remove space before punctuation
+        sentenceText = sentenceText.replace(/\s+([.,!?;，。！；])/g, "$1");
+
+        utter = new SpeechSynthesisUtterance(sentenceText.replace(/[ ]/g, ""));
+        utter.lang = "en-US";
+        utter.rate = rate.value;
+        utter.pitch = pitch.value;
+
+        await new Promise((resolve) => {
+          utter.onstart = () => {
+            highlightRange(start, end);
+          };
+          utter.onend = () => {
+            highlightRange(-1, -2); // clears all
+            resolve();
+          };
+          utter.onerror = () => {
+            highlightRange(-1, -2);
+            resolve();
+          };
+          speechSynthesis.speak(utter);
+        });
+      }
+
+      highlightRange(-1, -2);
       utter = null;
       stopRequested = false;
     }
@@ -236,7 +316,7 @@ createApp({
       utter = null;
     }
 
-    return { text, rate, pitch, analyze, speak, stop, wordBlocks, speakWord };
+  return { text, rate, pitch, analyze, speak, stop, wordBlocks, speakWord, speakSentences };
   }
 }).mount("#app");
 </script>
