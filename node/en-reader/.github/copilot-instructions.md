@@ -1,12 +1,12 @@
 Project: Speech + IPA Demo (Vue3)
 
 Purpose
-- Small single-page demo that runs entirely in the browser. It tokenizes input text, fetches IPA from an external dictionary API (with offline fallbacks), caches results in localStorage, and uses the Web Speech API to read text aloud with per-word and per-sentence highlighting.
+- Small single-page demo that runs entirely in the browser. It tokenizes input text, looks up IPA using a local offline CSV file (no external API dependency), caches results in localStorage, and uses the Web Speech API to read text aloud with per-word and per-sentence highlighting.
 
 Quick facts for an AI agent
 - Single HTML file: `index.html` contains the entire app (Vue UMD + inline script + Tailwind). Focus edits here.
 - No build toolchain: app uses CDN JS (Vue, Tailwind) and runs as a static page. Changes to JS are edits to `index.html`.
-- Network dependency: `fetchIPA` calls `https://api.dictionaryapi.dev`. Provide graceful fallbacks already present in `offlineIPA` and localStorage caching (`ipa_cache_v1`).
+-- Network dependency: None for IPA lookup — the app now uses `config/offlineIPA.csv` as the single source of IPA entries. localStorage caching (`ipa_cache_v1`) is still used to store resolved IPA values.
 
 Key files / patterns
 - `index.html` — app logic (setup(), tokenizePreserve, analyze, speak, speakSentences, speakWord). Most PRs will touch this file.
@@ -19,7 +19,7 @@ Architecture & invariants
 - Speech behavior uses the browser `speechSynthesis` APIs and `SpeechSynthesisUtterance`. Code paths must guard against `speechSynthesis` being undefined (project already includes such guards).
 
 Developer workflows
-- Run locally by opening `index.html` directly in a browser, or run a lightweight static server (e.g., `python3 -m http.server 8000` from repo root) and visit `http://localhost:8000`.
+- Run locally by opening `index.html` directly in a browser, or (recommended) use a local development server such as the "Live Server" VS Code extension which handles file serving and avoids file:// fetch restrictions. The project no longer requires `python3 -m http.server`.
 - No npm install or build required for typical edits. If adding new dependencies or tooling, include a README section and a package manifest (`package.json`).
 
 Project-specific conventions

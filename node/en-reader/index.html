@@ -110,35 +110,44 @@ createApp({
   let utter = null;
   let stopRequested = false;
 
-    const offlineIPA = {
-      "this":"ðɪs","is":"ɪz","a":"ə","test":"tɛst",
-      "hello":"həˈloʊ","world":"wɜːrld","good":"ɡʊd","morning":"ˈmɔːrnɪŋ"
-    };
+    // offline IPA map will be loaded from `config/offlineIPA.json` at runtime.
+    // Start with an empty map; loadOfflineIPA() will populate this.
+    const offlineIPA = {};
+
+    // Load offline IPA from CSV file: config/offlineIPA.csv
+    async function loadOfflineIPA() {
+      try {
+        const res = await fetch('./config/offlineIPA.csv', { cache: 'no-store' });
+        if (!res.ok) throw new Error('offlineIPA CSV fetch failed');
+        const text = await res.text();
+        // parse simple CSV: first header row (word,ipa), subsequent rows word,ipa
+        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+        // skip header if present
+        const startIdx = (lines[0] && lines[0].toLowerCase().startsWith('word,')) ? 1 : 0;
+        for (let i = startIdx; i < lines.length; i++) {
+          const parts = lines[i].split(',');
+          const w = (parts[0] || '').trim().toLowerCase();
+          const p = (parts.slice(1).join(',') || '').trim();
+          if (w) offlineIPA[w] = p || null;
+        }
+      } catch (e) {
+        console.warn('Could not load config/offlineIPA.csv, continuing with built-in empty map.', e);
+      }
+    }
 
     const CACHE_KEY = "ipa_cache_v1";
 
     const getCache = () => JSON.parse(localStorage.getItem(CACHE_KEY) || "{}");
     const saveCache = (obj) => localStorage.setItem(CACHE_KEY, JSON.stringify(obj));
 
+    // Only use local CSV-based offline IPA map and local cache; remove dependency on external API
     async function fetchIPA(word) {
       if (!word) return null;
-
       const cache = getCache();
       if (cache[word]) return cache[word];
-
-      try {
-        const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-        if (!res.ok) throw 0;
-        const json = await res.json();
-        const ipa = json?.[0]?.phonetics?.find(p => p.text)?.text?.trim() || null;
-        const finalIPA = ipa || offlineIPA[word] || null;
-        cache[word] = finalIPA; saveCache(cache);
-        return finalIPA;
-      } catch (err) {
-        const fallback = offlineIPA[word] || null;
-        cache[word] = fallback; saveCache(cache);
-        return fallback;
-      }
+      const local = offlineIPA[word] || null;
+      cache[word] = local; saveCache(cache);
+      return local;
     }
 
     // Tokenize but preserve original punctuation and special characters
@@ -174,12 +183,16 @@ createApp({
       }
     }
 
-    // Detect SpeechSynthesis support once when app runs
+  // Detect SpeechSynthesis support once when app runs
     if (typeof window === 'undefined' || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
       speechSupported.value = false;
     } else {
       speechSupported.value = true;
     }
+
+  // Attempt to load the offline IPA map. Do it asynchronously but don't block the UI.
+  // analyze() will still work: fetchIPA consults offlineIPA at call time.
+  loadOfflineIPA();
 
     function highlightIndex(index) {
       for (let i = 0; i < wordBlocks.length; i++) {
