@@ -115,7 +115,7 @@
     createApp({
       setup() {
         const speechSupported = ref(true);
-        const text = ref("Language modeling is a long-standing research topic, dating back to the 1950s with Shannon’s application of information theory to human language. He measures how well simple n-gram language models predict or compress natural language text. She carries a book and reads it. The dog is running and barks loudly. He studied hard and passed the exam.");
+        const text = ref("Language modeling is a long-standing research topic, dating back to the 1950s with Shannon’s application of information theory to human language. For example, e.g., i.e., and etc. are common abbreviations. Low-dimensional embeddings and high-performance computing are important in this field. She carries a book and reads it. The dog is running and barks loudly. He studied hard and passed the exam.");
         const rate = ref(1.0);
         const pitch = ref(1.0);
         const isLoadingIPA = ref(false);
@@ -206,8 +206,9 @@
         // Tokenize but preserve original punctuation and special characters
         function tokenizePreserve(textStr) {
           // Match sequences of letters, digits, ASCII apostrophe ' , Unicode right single quote ’,
-          // and hyphen (to keep n-gram / hyphenated words intact), or any single non-space character.
-          const re = /[A-Za-z0-9\u2019'-]+|[^\s]/gu;
+          // hyphen (to keep n-gram / hyphenated words intact), or any single non-space character.
+          // Also match common abbreviations like e.g., i.e., etc.
+          const re = /(?:[A-Za-z]\.){2,}|[A-Za-z0-9\u2019'-]+|[^\s]/gu;
           return Array.from(textStr.matchAll(re), m => m[0]);
         }
 
@@ -223,11 +224,30 @@
           let sentenceIdx = 0;
           const sentenceSplitRe = /[.,!?，。！；;]/; // include various punctuation
           for (let w of matches) {
-            // For IPA lookup, normalize to letters only (remove digits and apostrophes).
-            const lookup = w.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
-            const ipa = lookup ? await fetchIPA(lookup) : null;
-            // push token with sentence index
-            wordBlocks.push({ word: w, ipa, highlight: false, sentenceIndex: sentenceIdx });
+            // 处理连接词：拆分连字符连接的多个部分，分别查询音标
+            if (w.includes('-') && /^[A-Za-z0-9\u2019'-]+$/.test(w)) {
+              // 拆分为多个部分
+              const parts = w.split('-');
+              const ipas = [];
+              
+              // 为每个部分查询音标
+              for (let part of parts) {
+                const lookup = part.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
+                const ipa = lookup ? await fetchIPA(lookup) : null;
+                ipas.push(ipa);
+              }
+              
+              // 合并音标，用连字符连接
+              const combinedIpa = ipas.join('-');
+              // push token with sentence index
+              wordBlocks.push({ word: w, ipa: combinedIpa || null, highlight: false, sentenceIndex: sentenceIdx });
+            } else {
+              // 常规单词：For IPA lookup, normalize to letters only (remove digits and apostrophes).
+              const lookup = w.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
+              const ipa = lookup ? await fetchIPA(lookup) : null;
+              // push token with sentence index
+              wordBlocks.push({ word: w, ipa, highlight: false, sentenceIndex: sentenceIdx });
+            }
 
             // If token matches a split character, increment sentence index for following tokens.
             if (sentenceSplitRe.test(w)) {
