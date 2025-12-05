@@ -12,10 +12,16 @@
 
   <style>
     .sentence {
-      display: inline-flex;
+      display: flex;
       flex-wrap: wrap;
       gap: 0.75rem;
       align-items: flex-start;
+    }
+    
+    /* 换行符样式 */
+    .line-break {
+      width: 100%;
+      height: 0.75rem;
     }
 
     .word-block {
@@ -93,12 +99,18 @@
       <div class="mt-6">
         <div class="sentence">
           <template v-if="wordBlocks.length">
-            <span class="word-block" v-for="(w, idx) in wordBlocks" :key="idx">
-              <span :id="'word-'+idx" class="word-top" :class="w.highlight ? 'hl' : ''" @click="speakWord(idx)">
-                {{ w.word }}
+            <!-- Render each token, handling newlines specially -->
+            <template v-for="(w, idx) in wordBlocks" :key="idx">
+              <!-- Handle newline tokens -->
+              <div v-if="w.isNewline" class="line-break"></div>
+              <!-- Handle regular word tokens -->
+              <span v-else class="word-block">
+                <span :id="'word-'+idx" class="word-top" :class="w.highlight ? 'hl' : ''" @click="speakWord(idx)">
+                  {{ w.word }}
+                </span>
+                <span class="ipa">{{ w.ipa || '—' }}</span>
               </span>
-              <span class="ipa">{{ w.ipa || '—' }}</span>
-            </span>
+            </template>
           </template>
           <template v-else>
             <span class="text-sm text-slate-400">（点击“分析 & 显示音标”生成对齐的单词与音标）</span>
@@ -115,7 +127,13 @@
     createApp({
       setup() {
         const speechSupported = ref(true);
-        const text = ref("Language modeling is a long-standing research topic, dating back to the 1950s with Shannon’s application of information theory to human language. For example, e.g., i.e., and etc. are common abbreviations. Low-dimensional embeddings and high-performance computing are important in this field. She carries a book and reads it. The dog is running and barks loudly. He studied hard and passed the exam.");
+        const text = ref(`Language modeling is a long-standing research topic, dating back to the 1950s with Shannon’s application of information theory to human language.
+
+For example, e.g., i.e., and etc. are common abbreviations.
+
+Low-dimensional embeddings and high-performance computing are important in this field. She carries a book and reads it. The dog is running and barks loudly.
+
+He studied hard and passed the exam.`);
         const rate = ref(1.0);
         const pitch = ref(1.0);
         const isLoadingIPA = ref(false);
@@ -207,8 +225,8 @@
         function tokenizePreserve(textStr) {
           // Match sequences of letters, digits, ASCII apostrophe ' , Unicode right single quote ’,
           // hyphen (to keep n-gram / hyphenated words intact), or any single non-space character.
-          // Also match common abbreviations like e.g., i.e., etc.
-          const re = /(?:[A-Za-z]\.){2,}|[A-Za-z0-9\u2019'-]+|[^\s]/gu;
+          // Also match common abbreviations like e.g., i.e., etc. and preserve newlines
+          const re = /(?:[A-Za-z]\.){2,}|[A-Za-z0-9\u2019'-]+|\n+|[^\s]/gu;
           return Array.from(textStr.matchAll(re), m => m[0]);
         }
 
@@ -224,6 +242,21 @@
           let sentenceIdx = 0;
           const sentenceSplitRe = /[.,!?，。！；;]/; // include various punctuation
           for (let w of matches) {
+            // 处理换行符
+            if (/^\n+$/.test(w)) {
+              // 为换行符创建特殊的wordBlock对象
+              wordBlocks.push({ 
+                word: w, 
+                ipa: null, 
+                highlight: false, 
+                sentenceIndex: sentenceIdx,
+                isNewline: true
+              });
+              // 换行符表示句子结束
+              sentenceIdx++;
+              continue;
+            }
+            
             // 处理连接词：拆分连字符连接的多个部分，分别查询音标
             if (w.includes('-') && /^[A-Za-z0-9\u2019'-]+$/.test(w)) {
               // 拆分为多个部分
@@ -240,13 +273,13 @@
               // 合并音标，用连字符连接
               const combinedIpa = ipas.join('-');
               // push token with sentence index
-              wordBlocks.push({ word: w, ipa: combinedIpa || null, highlight: false, sentenceIndex: sentenceIdx });
+              wordBlocks.push({ word: w, ipa: combinedIpa || null, highlight: false, sentenceIndex: sentenceIdx, isNewline: false });
             } else {
               // 常规单词：For IPA lookup, normalize to letters only (remove digits and apostrophes).
               const lookup = w.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
               const ipa = lookup ? await fetchIPA(lookup) : null;
               // push token with sentence index
-              wordBlocks.push({ word: w, ipa, highlight: false, sentenceIndex: sentenceIdx });
+              wordBlocks.push({ word: w, ipa, highlight: false, sentenceIndex: sentenceIdx, isNewline: false });
             }
 
             // If token matches a split character, increment sentence index for following tokens.
