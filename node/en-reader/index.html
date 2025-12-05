@@ -230,7 +230,8 @@ He studied hard and passed the exam.`);
           // Match sequences of letters, digits, ASCII apostrophe ' , Unicode right single quote ’,
           // hyphen (to keep n-gram / hyphenated words intact), or any single non-space character.
           // Also match common abbreviations like e.g., i.e., etc. and preserve newlines
-          const re = /(?:[A-Za-z]\.){2,}|[A-Za-z0-9\u2019'-]+|\n+|[^\s]/gu;
+          // Modified to include common punctuation (.,!?;:,()) with preceding words
+          const re = /(?:[A-Za-z]\.){2,}|[A-Za-z0-9\u2019'-]+[.,!?;:()"'’]*|\n+|[^\s\w]/gu;
           return Array.from(textStr.matchAll(re), m => m[0]);
         }
 
