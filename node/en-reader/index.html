@@ -54,8 +54,8 @@
 
     <div class="mt-3 flex flex-wrap gap-3">
   <button @click="analyze" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500">分析</button>
-  <button @click="speak" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500">逐词朗读</button>
-  <button @click="speakSentences" class="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-500">逐句朗读</button>
+  <button @click="speak" :disabled="!speechSupported" :title="speechSupported ? '' : '当前浏览器不支持语音朗读'" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500 disabled:opacity-50">逐词朗读</button>
+  <button @click="speakSentences" :disabled="!speechSupported" :title="speechSupported ? '' : '当前浏览器不支持语音朗读'" class="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-500 disabled:opacity-50">逐句朗读</button>
       <button @click="stop" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-400">停止</button>
     </div>
 
@@ -67,6 +67,15 @@
     </div>
 
     <!-- 句子呈现 -->
+    <!-- Friendly notice when speech not supported -->
+    <div v-if="!speechSupported" class="mt-4 p-3 rounded border border-yellow-300 bg-yellow-50 text-yellow-900">
+      <div class="flex items-start gap-3">
+        <div class="flex-1">
+          <div class="font-semibold">语音朗读不可用</div>
+          <div class="text-sm mt-1">当前浏览器似乎不支持 Web Speech API 的 SpeechSynthesis（语音朗读）。建议使用最新版本的 Chrome、Edge、Safari 或 Firefox（部分版本）以获得更好的体验。</div>
+        </div>
+      </div>
+    </div>
     <div class="mt-6">
       <div class="sentence">
         <template v-if="wordBlocks.length">
@@ -92,6 +101,7 @@ const { createApp, ref, reactive } = Vue;
 
 createApp({
   setup() {
+  const speechSupported = ref(true);
     const text = ref("Language modeling is a long-standing research topic, dating back to the 1950s with Shannon’s application of information theory to human language, where he measured how well simple n-gram language models predict or compress natural language text");
     const rate = ref(1.0);
     const pitch = ref(1.0);
@@ -164,6 +174,13 @@ createApp({
       }
     }
 
+    // Detect SpeechSynthesis support once when app runs
+    if (typeof window === 'undefined' || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+      speechSupported.value = false;
+    } else {
+      speechSupported.value = true;
+    }
+
     function highlightIndex(index) {
       for (let i = 0; i < wordBlocks.length; i++) {
         wordBlocks[i].highlight = (i === index);
@@ -177,9 +194,11 @@ createApp({
     }
 
     async function speak() {
-      // Speak one token at a time to strictly synchronize highlight
+  // Speak one token at a time to strictly synchronize highlight
       stop();
       if (!text.value) return;
+
+  if (!speechSupported.value) return;
 
       stopRequested = false;
 
@@ -230,6 +249,8 @@ createApp({
     async function speakSentences() {
       stop();
       if (!text.value) return;
+
+  if (!speechSupported.value) return;
 
       stopRequested = false;
 
@@ -291,6 +312,8 @@ createApp({
       stop();
       if (i < 0 || i >= wordBlocks.length) return;
 
+  if (!speechSupported.value) return;
+
       const w = wordBlocks[i].word;
       // Skip punctuation-only tokens
       if (!/[A-Za-z0-9]/.test(w)) return;
@@ -316,7 +339,7 @@ createApp({
       utter = null;
     }
 
-  return { text, rate, pitch, analyze, speak, stop, wordBlocks, speakWord, speakSentences };
+  return { text, rate, pitch, analyze, speak, stop, wordBlocks, speakWord, speakSentences, speechSupported };
   }
 }).mount("#app");
 </script>
