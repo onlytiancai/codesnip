@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <title>Wawa English Speaker</title>
 
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.staticfile.net/vue/3.3.4/vue.global.prod.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
 
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -47,6 +47,12 @@
       padding: 0.125rem 0.35rem;
       border-radius: 0.25rem;
     }
+    
+    .sentence-hl {
+      background: linear-gradient(90deg, rgba(147, 197, 253, 0.5), rgba(147, 197, 253, 0.3));
+      padding: 0.125rem 0.35rem;
+      border-radius: 0.25rem;
+    }
   </style>
 </head>
 
@@ -62,10 +68,12 @@
 
       <div class="mt-3 flex flex-wrap gap-3">
         <button @click="analyze" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500">分析</button>
-        <button @click="speak" :disabled="!speechSupported" :title="speechSupported ? '' : '当前浏览器不支持语音朗读'"
-          class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500 disabled:opacity-50">逐词朗读</button>
+        <button @click="speakPreviousSentence" :disabled="!speechSupported || currentSentenceIndex === 0" :title="speechSupported ? (currentSentenceIndex === 0 ? '这是第一句' : '') : '当前浏览器不支持语音朗读'"
+          class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 disabled:opacity-50">上一句</button>
         <button @click="speakSentences" :disabled="!speechSupported" :title="speechSupported ? '' : '当前浏览器不支持语音朗读'"
-          class="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-500 disabled:opacity-50">逐句朗读</button>
+          class="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-500 disabled:opacity-50">当前句</button>
+        <button @click="speakNextSentence" :disabled="!speechSupported || currentSentenceIndex >= sortedKeys.length - 1" :title="speechSupported ? (currentSentenceIndex >= sortedKeys.length - 1 ? '这是最后一句' : '') : '当前浏览器不支持语音朗读'"
+          class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 disabled:opacity-50">下一句</button>
         <button @click="stop" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-400">停止</button>
       </div>
 
@@ -108,7 +116,7 @@
               <div v-if="w.isNewline" class="line-break"></div>
               <!-- Handle regular word tokens -->
               <span v-else class="word-block">
-                <span :id="'word-'+idx" class="word-top" :class="w.highlight ? 'hl' : ''" @click="speakWord(idx)">
+                <span :id="'word-'+idx" class="word-top" :class="w.highlight ? 'hl' : (w.sentenceHighlight ? 'sentence-hl' : '')" @click="speakWord(idx)">
                   {{ w.word }}
                 </span>
                 <span v-if="showIPA" class="ipa">{{ w.ipa || '—' }}</span>
@@ -141,6 +149,7 @@ He studied hard and passed the exam.`);
         const pitch = ref(1.0);
         const isLoadingIPA = ref(false);
         const showIPA = ref(false);
+        const currentSentenceIndex = ref(0);
 
         const wordBlocks = reactive([]);
         let utter = null;
@@ -235,6 +244,53 @@ He studied hard and passed the exam.`);
           return Array.from(textStr.matchAll(re), m => m[0]);
         }
 
+        // 高亮当前句子
+        function highlightCurrentSentence() {
+          console.log('highlightCurrentSentence called');
+          console.log('sortedKeys:', sortedKeys.value);
+          console.log('currentSentenceIndex:', currentSentenceIndex.value);
+          
+          // 先清除所有句子高亮
+          for (let i = 0; i < wordBlocks.length; i++) {
+            wordBlocks[i].sentenceHighlight = false;
+          }
+          
+          // 确保 sortedKeys 和 currentSentenceIndex 有效
+          if (sortedKeys.value.length === 0 || currentSentenceIndex.value >= sortedKeys.value.length) {
+            console.log('No valid sentence to highlight');
+            return;
+          }
+          
+          // 高亮当前句子中的所有单词
+          const currentSentenceKey = sortedKeys.value[currentSentenceIndex.value];
+          console.log('Current sentence key:', currentSentenceKey);
+          
+          let highlightedCount = 0;
+          for (let i = 0; i < wordBlocks.length; i++) {
+            if (wordBlocks[i].sentenceIndex === currentSentenceKey) {
+              wordBlocks[i].sentenceHighlight = true;
+              highlightedCount++;
+              console.log('Highlighted word:', i, wordBlocks[i].word);
+            }
+          }
+          
+          console.log('Highlighted', highlightedCount, 'words in sentence');
+        }
+
+        // 获取所有句子索引的数组
+        function getSentenceKeys() {
+          const sentences = new Map();
+          for (let i = 0; i < wordBlocks.length; i++) {
+            const s = wordBlocks[i].sentenceIndex || 0;
+            if (!sentences.has(s)) sentences.set(s, []);
+            sentences.get(s).push(i);
+          }
+          return Array.from(sentences.keys()).sort((a, b) => a - b);
+        }
+
+        // 创建响应式变量存储句子索引数组
+        const sortedKeys = ref([]);
+
         async function analyze() {
           // 使用保留标点的分词规则：保留原文中的数字与撇号（例如 1950s, Shannon’s）
           const matches = tokenizePreserve(text.value || "");
@@ -254,6 +310,7 @@ He studied hard and passed the exam.`);
                 word: w, 
                 ipa: null, 
                 highlight: false, 
+                sentenceHighlight: false,
                 sentenceIndex: sentenceIdx,
                 isNewline: true
               });
@@ -278,13 +335,13 @@ He studied hard and passed the exam.`);
               // 合并音标，用连字符连接
               const combinedIpa = ipas.join('-');
               // push token with sentence index
-              wordBlocks.push({ word: w, ipa: combinedIpa || null, highlight: false, sentenceIndex: sentenceIdx, isNewline: false });
+              wordBlocks.push({ word: w, ipa: combinedIpa || null, highlight: false, sentenceHighlight: false, sentenceIndex: sentenceIdx, isNewline: false });
             } else {
               // 常规单词：For IPA lookup, normalize to letters only (remove digits and apostrophes).
               const lookup = w.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
               const ipa = lookup ? await fetchIPA(lookup) : null;
               // push token with sentence index
-              wordBlocks.push({ word: w, ipa, highlight: false, sentenceIndex: sentenceIdx, isNewline: false });
+              wordBlocks.push({ word: w, ipa, highlight: false, sentenceHighlight: false, sentenceIndex: sentenceIdx, isNewline: false });
             }
 
             // If token matches a split character, increment sentence index for following tokens.
@@ -292,6 +349,14 @@ He studied hard and passed the exam.`);
               sentenceIdx++;
             }
           }
+
+          // 更新句子索引数组并重置当前句子索引
+          sortedKeys.value = getSentenceKeys();
+          console.log('After analyze - sortedKeys:', sortedKeys.value);
+          currentSentenceIndex.value = 0;
+          console.log('After analyze - currentSentenceIndex:', currentSentenceIndex.value);
+          // 高亮当前句子
+          highlightCurrentSentence();
         }
 
         // Detect SpeechSynthesis support once when app runs
@@ -317,58 +382,6 @@ He studied hard and passed the exam.`);
           }
         }
 
-        async function speak() {
-          // Speak one token at a time to strictly synchronize highlight
-          stop();
-          if (!text.value) return;
-
-          if (!speechSupported.value) return;
-
-          stopRequested = false;
-
-          const tokens = tokenizePreserve(text.value);
-
-
-          for (let i = 0; i < tokens.length; i++) {
-            if (stopRequested) break;
-
-            const w = tokens[i];
-            // If token doesn't contain any letter or digit, treat it as punctuation and skip speaking/highlighting
-            if (!/[A-Za-z0-9]/.test(w)) continue;
-
-            // Prepare a cleaned version for speech: normalize curly apostrophe to ASCII and keep letters/digits/apostrophe/hyphen
-            let speakText = w.replace(/[\u2019]/g, "'").replace(/[^A-Za-z0-9'\-]/g, "");
-            if (!speakText) speakText = w; // fallback to original if nothing left after cleaning
-
-            utter = new SpeechSynthesisUtterance(speakText);
-            utter.lang = "en-US";
-            utter.rate = rate.value;
-            utter.pitch = pitch.value;
-
-            // Promise that resolves when this utterance ends or errors
-            await new Promise((resolve) => {
-              utter.onstart = () => {
-                // find the corresponding index in wordBlocks for this token position
-                highlightIndex(i);
-              };
-              utter.onend = () => {
-                highlightIndex(-1);
-                resolve();
-              };
-              utter.onerror = () => {
-                highlightIndex(-1);
-                resolve();
-              };
-
-              speechSynthesis.speak(utter);
-            });
-          }
-
-          highlightIndex(-1);
-          utter = null;
-          stopRequested = false;
-        }
-
         // Speak sentence-by-sentence. Highlight the whole sentence while speaking.
         async function speakSentences() {
           stop();
@@ -389,48 +402,60 @@ He studied hard and passed the exam.`);
             sentences.get(s).push(i);
           }
 
-          const sortedKeys = Array.from(sentences.keys()).sort((a, b) => a - b);
-
-          for (let sk of sortedKeys) {
-            if (stopRequested) break;
-            const idxs = sentences.get(sk);
-            if (!idxs || !idxs.length) continue;
-
-            const start = idxs[0];
-            const end = idxs[idxs.length - 1];
-
-            // Build sentence text by joining words that contain letters/digits or punctuation
-            const parts = wordBlocks.slice(start, end + 1).map(w => w.word);
-            let sentenceText = parts.join(" ");
-
-            // Clean up spacing around punctuation: remove space before punctuation
-            sentenceText = sentenceText.replace(/\s+([.,!?;，。！；])/g, "$1");
-
-            utter = new SpeechSynthesisUtterance(sentenceText.replace(/[ ]/g, ""));
-            utter.lang = "en-US";
-            utter.rate = rate.value;
-            utter.pitch = pitch.value;
-
-            await new Promise((resolve) => {
-              utter.onstart = () => {
-                highlightRange(start, end);
-              };
-              utter.onend = () => {
-                highlightRange(-1, -2); // clears all
-                resolve();
-              };
-              utter.onerror = () => {
-                highlightRange(-1, -2);
-                resolve();
-              };
-              speechSynthesis.speak(utter);
-            });
+          const currentSentenceKey = sortedKeys.value[currentSentenceIndex.value];
+          
+          // Check if current sentence exists
+          if (currentSentenceKey === undefined || !sentences.has(currentSentenceKey)) {
+            utter = null;
+            stopRequested = false;
+            return;
           }
 
-          highlightRange(-1, -2);
+          const idxs = sentences.get(currentSentenceKey);
+          if (!idxs || !idxs.length) {
+            utter = null;
+            stopRequested = false;
+            return;
+          }
+
+          const start = idxs[0];
+          const end = idxs[idxs.length - 1];
+
+          // Build sentence text by joining words that contain letters/digits or punctuation
+          const parts = wordBlocks.slice(start, end + 1).map(w => w.word);
+          let sentenceText = parts.join(" ");
+
+          // Clean up spacing around punctuation: remove space before punctuation
+          sentenceText = sentenceText.replace(/\s+([.,!?;，。！；])/g, "$1");
+
+          utter = new SpeechSynthesisUtterance(sentenceText.replace(/[ ]/g, ""));
+          utter.lang = "en-US";
+          utter.rate = rate.value;
+          utter.pitch = pitch.value;
+
+          await new Promise((resolve) => {
+            utter.onstart = () => {
+              // 保持当前句子的高亮状态
+              highlightCurrentSentence();
+            };
+            utter.onend = () => {
+              // 朗读结束后重新高亮当前句子
+              highlightCurrentSentence();
+              resolve();
+            };
+            utter.onerror = () => {
+              // 错误发生后重新高亮当前句子
+              highlightCurrentSentence();
+              resolve();
+            };
+            speechSynthesis.speak(utter);
+          });
+
           utter = null;
           stopRequested = false;
         }
+
+
 
         function speakWord(i) {
           stop();
@@ -451,7 +476,7 @@ He studied hard and passed the exam.`);
           utter.pitch = pitch.value;
 
           utter.onstart = () => highlightIndex(i);
-          utter.onend = () => highlightIndex(-1);
+          utter.onend = () => highlightCurrentSentence();
 
           speechSynthesis.speak(utter);
         }
@@ -459,11 +484,37 @@ He studied hard and passed the exam.`);
         function stop() {
           stopRequested = true;
           speechSynthesis.cancel();
-          highlightIndex(-1);
+          highlightCurrentSentence();
           utter = null;
         }
 
-        return { text, rate, pitch, analyze, speak, stop, wordBlocks, speakWord, speakSentences, speechSupported, isLoadingIPA, showIPA };
+        // Speak the previous sentence
+        async function speakPreviousSentence() {
+          // Ensure wordBlocks is populated
+          if (!wordBlocks.length) await analyze();
+          
+          // Check if we can go to previous sentence
+          if (currentSentenceIndex.value > 0) {
+            currentSentenceIndex.value--;
+            highlightCurrentSentence();
+            await speakSentences();
+          }
+        }
+
+        // Speak the next sentence
+        async function speakNextSentence() {
+          // Ensure wordBlocks is populated
+          if (!wordBlocks.length) await analyze();
+          
+          // Check if we can go to next sentence
+          if (currentSentenceIndex.value < sortedKeys.value.length - 1) {
+            currentSentenceIndex.value++;
+            highlightCurrentSentence();
+            await speakSentences();
+          }
+        }
+
+        return { text, rate, pitch, analyze, stop, wordBlocks, speakWord, speakSentences, speechSupported, isLoadingIPA, showIPA, currentSentenceIndex, sortedKeys, speakPreviousSentence, speakNextSentence };
       }
     }).mount("#app");
   </script>
