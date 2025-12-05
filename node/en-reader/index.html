@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Vue3 + Speech + IPA (fixed highlight)</title>
+  <title>Wawa English Speaker</title>
 
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -51,7 +51,7 @@
   <div id="app" class="min-h-screen p-8">
     <div class="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6">
 
-      <h1 class="text-2xl font-bold">Speech + IPA Demo</h1>
+      <h1 class="text-2xl font-bold">Wawa English Speaker</h1>
 
       <textarea v-model="text" class="mt-4 w-full rounded-md border border-slate-200 p-3" rows="4"></textarea>
 
@@ -72,6 +72,14 @@
       </div>
 
       <!-- 句子呈现 -->
+      <!-- Loading indicator for IPA rules -->
+      <div v-if="isLoadingIPA" class="mt-4 p-3 rounded border border-blue-300 bg-blue-50 text-blue-900">
+        <div class="flex items-start gap-3">
+          <div class="flex-1">
+            <div class="font-semibold">正在加载音标规则...</div>
+          </div>
+        </div>
+      </div>
       <!-- Friendly notice when speech not supported -->
       <div v-if="!speechSupported" class="mt-4 p-3 rounded border border-yellow-300 bg-yellow-50 text-yellow-900">
         <div class="flex items-start gap-3">
@@ -107,9 +115,10 @@
     createApp({
       setup() {
         const speechSupported = ref(true);
-        const text = ref("Language modeling is a long-standing research topic, dating back to the 1950s with Shannon’s application of information theory to human language, where he measured how well simple n-gram language models predict or compress natural language text");
+        const text = ref("Language modeling is a long-standing research topic, dating back to the 1950s with Shannon’s application of information theory to human language. He measures how well simple n-gram language models predict or compress natural language text. She carries a book and reads it. The dog is running and barks loudly. He studied hard and passed the exam.");
         const rate = ref(1.0);
         const pitch = ref(1.0);
+        const isLoadingIPA = ref(false);
 
         const wordBlocks = reactive([]);
         let utter = null;
@@ -121,6 +130,7 @@
 
         // Load offline IPA from CSV file: config/offlineIPA.csv
         async function loadOfflineIPA() {
+          isLoadingIPA.value = true;
           try {
             const res = await fetch('./config/offlineIPA.csv', { cache: 'no-store' });
             if (!res.ok) throw new Error('offlineIPA CSV fetch failed');
@@ -130,20 +140,67 @@
             // skip header if present
             const startIdx = (lines[0] && lines[0].toLowerCase().startsWith('word,')) ? 1 : 0;
             for (let i = startIdx; i < lines.length; i++) {
-              const parts = lines[i].split(',');
+              // 处理带引号的CSV字段
+              const parts = lines[i].split(',').map(part => {
+                // 去掉两边的引号
+                return part.trim().replace(/^"|"$/g, '');
+              });
               const w = (parts[0] || '').trim().toLowerCase();
               const p = (parts.slice(1).join(',') || '').trim();
               if (w) offlineIPA[w] = p || null;
             }
+            console.log('IPA规则加载完成，共加载', Object.keys(offlineIPA).length, '个单词的IPA信息');
           } catch (e) {
             console.warn('Could not load config/offlineIPA.csv, continuing with built-in empty map.', e);
+          } finally {
+            isLoadingIPA.value = false;
           }
         }
 
         // Only use local CSV-based offline IPA map; no caching
         async function fetchIPA(word) {
           if (!word) return null;
-          return offlineIPA[word] || null;
+          
+          // 首先尝试直接查找
+          let ipa = offlineIPA[word];
+          if (ipa) return ipa;
+          
+          // 如果找不到，尝试去掉常见后缀再查找
+          const suffixes = [
+            // 第三人称单数
+            { suffix: 'es', length: 2 },
+            { suffix: 's', length: 1 },
+            // 过去式/过去分词
+            { suffix: 'ied', length: 3 }, // 如carried -> carry
+            { suffix: 'ed', length: 2 },
+            { suffix: 'd', length: 1 }, // 如lived -> live
+            // 现在分词
+            { suffix: 'ing', length: 3 }
+          ];
+          
+          for (const { suffix, length } of suffixes) {
+            if (word.endsWith(suffix)) {
+              let baseWord;
+              if (suffix === 'ied' && word.length > 3) {
+                // 处理y结尾的单词，如carried -> carry
+                baseWord = word.slice(0, -3) + 'y';
+              } else {
+                baseWord = word.slice(0, -length);
+              }
+              
+              ipa = offlineIPA[baseWord];
+              if (ipa) return ipa;
+            }
+          }
+          
+          // 最后尝试去掉ies后缀（如carries -> carry）
+          if (word.endsWith('ies')) {
+            const baseWord = word.slice(0, -3) + 'y';
+            ipa = offlineIPA[baseWord];
+            if (ipa) return ipa;
+          }
+          
+          return null;
         }
 
         // Tokenize but preserve original punctuation and special characters
@@ -348,7 +405,7 @@
           utter = null;
         }
 
-        return { text, rate, pitch, analyze, speak, stop, wordBlocks, speakWord, speakSentences, speechSupported };
+        return { text, rate, pitch, analyze, speak, stop, wordBlocks, speakWord, speakSentences, speechSupported, isLoadingIPA };
       }
     }).mount("#app");
   </script>

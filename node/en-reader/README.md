@@ -1,4 +1,4 @@
-# Speech + IPA Demo（Vue3）
+# Wawa English Speaker
 
 这是一个使用 Vue 3 和 浏览器 Speech Synthesis API 的示例应用，演示如何：
 
