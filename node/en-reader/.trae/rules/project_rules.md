@@ -7,6 +7,8 @@ Quick facts for an AI agent
 - Single HTML file: `index.html` contains the entire app (Vue UMD + inline script + Tailwind). Focus edits here.
 - No build toolchain: app uses CDN JS (Vue, Tailwind) and runs as a static page. Changes to JS are edits to `index.html`.
 -- Network dependency: None for IPA lookup — the app now uses `config/offlineIPA.csv` as the single source of IPA entries.
+- 修改完代码后不需要用python -m http.server测试
+
 
 Key files / patterns
 - `index.html` — app logic (setup(), tokenizePreserve, analyze, speak, speakSentences, speakWord). Most PRs will touch this file.

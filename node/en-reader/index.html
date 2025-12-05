@@ -14,7 +14,7 @@
     .sentence {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.75rem;
+      gap: 0.5rem;
       align-items: flex-start;
     }
     
@@ -32,7 +32,6 @@
     }
 
     .word-top {
-      font-weight: 600;
       font-size: 1.125rem;
       line-height: 1;
       cursor: pointer;
@@ -75,6 +74,10 @@
         <input type="range" min="0.5" max="2" step="0.1" v-model="rate" class="w-36" />
         <label class="text-sm">音调</label>
         <input type="range" min="0.5" max="2" step="0.1" v-model="pitch" class="w-36" />
+        <label class="flex items-center gap-2 ml-4">
+          <input type="checkbox" v-model="showIPA" class="rounded" />
+          <span class="text-sm">显示音标</span>
+        </label>
       </div>
 
       <!-- 句子呈现 -->
@@ -108,7 +111,7 @@
                 <span :id="'word-'+idx" class="word-top" :class="w.highlight ? 'hl' : ''" @click="speakWord(idx)">
                   {{ w.word }}
                 </span>
-                <span class="ipa">{{ w.ipa || '—' }}</span>
+                <span v-if="showIPA" class="ipa">{{ w.ipa || '—' }}</span>
               </span>
             </template>
           </template>
@@ -137,6 +140,7 @@ He studied hard and passed the exam.`);
         const rate = ref(1.0);
         const pitch = ref(1.0);
         const isLoadingIPA = ref(false);
+        const showIPA = ref(false);
 
         const wordBlocks = reactive([]);
         let utter = null;
@@ -458,7 +462,7 @@ He studied hard and passed the exam.`);
           utter = null;
         }
 
-        return { text, rate, pitch, analyze, speak, stop, wordBlocks, speakWord, speakSentences, speechSupported, isLoadingIPA };
+        return { text, rate, pitch, analyze, speak, stop, wordBlocks, speakWord, speakSentences, speechSupported, isLoadingIPA, showIPA };
       }
     }).mount("#app");
   </script>
