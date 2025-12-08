@@ -48,10 +48,17 @@
       border-radius: 0.25rem;
     }
     
+    .sentence-container {
+      display: inline-block;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      transition: background-color 0.3s ease;
+    }
+    
     .sentence-hl {
       background: linear-gradient(90deg, rgba(147, 197, 253, 0.5), rgba(147, 197, 253, 0.3));
-      padding: 0.125rem 0.35rem;
-      border-radius: 0.25rem;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
     }
   </style>
 </head>
@@ -108,32 +115,36 @@
         </div>
       </div>
       <div class="mt-6">
-        <div class="sentence">
-          <template v-if="wordBlocks.length">
-            <!-- Render each token, handling newlines specially -->
-            <template v-for="(w, idx) in wordBlocks" :key="idx">
-              <!-- Handle newline tokens -->
-              <div v-if="w.isNewline" class="line-break"></div>
-              <!-- Handle regular word tokens -->
-              <span v-else class="word-block">
-                <span :id="'word-'+idx" class="word-top" :class="w.highlight ? 'hl' : (w.sentenceHighlight ? 'sentence-hl' : '')" @click="speakWord(idx)">
-                  {{ w.word }}
-                </span>
-                <span v-if="showIPA" class="ipa">{{ w.ipa || '—' }}</span>
-              </span>
-            </template>
+        <template v-if="wordBlocks.length">
+          <!-- 按句子分组显示 -->
+          <template v-for="(sentence, sentenceIdx) in sentences" :key="sentence[0]">
+            <div class="sentence-container" :class="{'sentence-hl': currentSentenceIndex === sentence[0]}">
+              <div class="sentence">
+                <template v-for="(w, idx) in sentence[1]" :key="idx">
+                  <!-- Handle newline tokens -->
+                  <div v-if="w.isNewline" class="line-break"></div>
+                  <!-- Handle regular word tokens -->
+                  <span v-else class="word-block">
+                    <span :id="'word-'+sentenceIdx+'-'+idx" class="word-top" :class="w.highlight ? 'hl' : ''" @click="speakWord(wordBlocks.indexOf(w))">
+                      {{ w.word }}
+                    </span>
+                    <span v-if="showIPA" class="ipa">{{ w.ipa || '—' }}</span>
+                  </span>
+                </template>
+              </div>
+            </div>
           </template>
-          <template v-else>
-            <span class="text-sm text-slate-400">（点击“分析 & 显示音标”生成对齐的单词与音标）</span>
-          </template>
-        </div>
+        </template>
+        <template v-else>
+          <span class="text-sm text-slate-400">（点击“分析 & 显示音标”生成对齐的单词与音标）</span>
+        </template>
       </div>
 
     </div>
   </div>
 
   <script>
-    const { createApp, ref, reactive } = Vue;
+    const { createApp, ref, reactive, computed } = Vue;
 
     createApp({
       setup() {
@@ -246,35 +257,10 @@ He studied hard and passed the exam.`);
 
         // 高亮当前句子
         function highlightCurrentSentence() {
-          console.log('highlightCurrentSentence called');
-          console.log('sortedKeys:', sortedKeys.value);
-          console.log('currentSentenceIndex:', currentSentenceIndex.value);
-          
-          // 先清除所有句子高亮
+          // 清除所有单词高亮
           for (let i = 0; i < wordBlocks.length; i++) {
-            wordBlocks[i].sentenceHighlight = false;
+            wordBlocks[i].highlight = false;
           }
-          
-          // 确保 sortedKeys 和 currentSentenceIndex 有效
-          if (sortedKeys.value.length === 0 || currentSentenceIndex.value >= sortedKeys.value.length) {
-            console.log('No valid sentence to highlight');
-            return;
-          }
-          
-          // 高亮当前句子中的所有单词
-          const currentSentenceKey = sortedKeys.value[currentSentenceIndex.value];
-          console.log('Current sentence key:', currentSentenceKey);
-          
-          let highlightedCount = 0;
-          for (let i = 0; i < wordBlocks.length; i++) {
-            if (wordBlocks[i].sentenceIndex === currentSentenceKey) {
-              wordBlocks[i].sentenceHighlight = true;
-              highlightedCount++;
-              console.log('Highlighted word:', i, wordBlocks[i].word);
-            }
-          }
-          
-          console.log('Highlighted', highlightedCount, 'words in sentence');
         }
 
         // 获取所有句子索引的数组
@@ -290,6 +276,20 @@ He studied hard and passed the exam.`);
 
         // 创建响应式变量存储句子索引数组
         const sortedKeys = ref([]);
+        
+        // 计算属性：将单词块按sentenceIndex分组
+        const sentences = computed(() => {
+          const groups = new Map();
+          for (let i = 0; i < wordBlocks.length; i++) {
+            const w = wordBlocks[i];
+            const s = w.sentenceIndex || 0;
+            if (!groups.has(s)) {
+              groups.set(s, []);
+            }
+            groups.get(s).push(w);
+          }
+          return Array.from(groups.entries()).sort((a, b) => a[0] - b[0]);
+        });
 
         async function analyze() {
           // 使用保留标点的分词规则：保留原文中的数字与撇号（例如 1950s, Shannon’s）
@@ -514,7 +514,7 @@ He studied hard and passed the exam.`);
           }
         }
 
-        return { text, rate, pitch, analyze, stop, wordBlocks, speakWord, speakSentences, speechSupported, isLoadingIPA, showIPA, currentSentenceIndex, sortedKeys, speakPreviousSentence, speakNextSentence };
+        return { text, rate, pitch, analyze, stop, wordBlocks, speakWord, speakSentences, speechSupported, isLoadingIPA, showIPA, currentSentenceIndex, sortedKeys, speakPreviousSentence, speakNextSentence, sentences };
       }
     }).mount("#app");
   </script>
