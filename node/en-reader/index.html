@@ -123,13 +123,15 @@
         <template v-if="wordBlocks.length">
           <!-- 按句子分组显示 -->
           <div class="sentence-container">
-            <template v-for="(sentence, sentenceIdx) in sentences" :key="sentence[0]">
-              <span class="sentence" :class="{'sentence-hl': currentSentenceIndex === sentence[0]}">
-                <template v-for="(w, idx) in sentence[1]" :key="idx">
-                  <!-- Handle newline tokens -->
-                  <span v-if="w.isNewline" ><br /></span>
-                  <!-- Handle regular word tokens -->
-                  <span v-else class="word-block">
+            <template v-for="(sentence, sentenceIdx) in sentences" :key="sentence.sentenceIndex">
+              <!-- 处理换行符句子 -->
+              <span v-if="sentence.isNewline" class="sentence">
+                <span v-for="n in sentence.newline_count" :key="n" class="line-break"><br /></span>
+              </span>
+              <!-- 处理常规句子 -->
+              <span v-else class="sentence" :class="{'sentence-hl': currentSentenceIndex === sentence.sentenceIndex}">
+                <template v-for="(w, idx) in sentence.words" :key="idx">
+                  <span class="word-block">
                     <span :id="'word-'+sentenceIdx+'-'+idx" class="word-top" :class="w.highlight ? 'hl' : ''" @click="speakWord(wordBlocks.indexOf(w))">
                       {{ w.word }}
                     </span>
@@ -266,54 +268,75 @@ He studied hard and passed the exam.`);
           for (let i = 0; i < wordBlocks.length; i++) {
             wordBlocks[i].highlight = false;
           }
-        }
-
-        // 获取所有句子索引的数组
-        function getSentenceKeys() {
-          const sentences = new Map();
-          for (let i = 0; i < wordBlocks.length; i++) {
-            const s = wordBlocks[i].sentenceIndex || 0;
-            if (!sentences.has(s)) sentences.set(s, []);
-            sentences.get(s).push(i);
+          
+          // 高亮当前句子的单词
+          if (currentSentenceIndex.value < sentences.value.length) {
+            const currentSentence = sentences.value[currentSentenceIndex.value];
+            if (currentSentence && currentSentence.words) {
+              currentSentence.words.forEach(word => {
+                word.highlight = true;
+              });
+            }
           }
-          return Array.from(sentences.keys()).sort((a, b) => a - b);
         }
 
-        // 创建响应式变量存储句子索引数组
-        const sortedKeys = ref([]);
-        
         // 创建响应式变量存储句子
         const sentences = ref([]);
+        
+        // 创建响应式变量存储句子索引数组
+        // 注意：现在我们直接使用sentences数组的索引作为句子键
+        const sortedKeys = computed(() => {
+          return sentences.value.map((_, index) => index);
+        });
 
         async function analyze() {
           // 使用保留标点的分词规则：保留原文中的数字与撇号（例如 1950s, Shannon’s）
           const matches = tokenizePreserve(text.value || "");
 
           wordBlocks.splice(0, wordBlocks.length);
+          sentences.value = [];
 
-          // Build tokens and also assign sentence index by splitting on common sentence delimiters.
-          // We'll treat .,!,? as sentence end; commas and semicolons stay inside sentences but user requested commas considered when splitting sentences — include comma as a split point as well.
-          // We'll accumulate tokens into sentences; sentenceIndex increments when we hit a split token.
-          let sentenceIdx = 0;
+          // Build tokens and sentences simultaneously
           const sentenceSplitRe = /[.,!?，。！；;]/; // include various punctuation
+          
+          // 当前句子对象
+          let currentSentence = { 
+            words: [], 
+            isNewline: false, 
+            newline_count: 0,
+            sentenceIndex: 0
+          };
+
           for (let w of matches) {
             // 处理换行符
-          if (/^\n+$/.test(w)) {
-            console.log('newline', w);
-            // 为换行符创建特殊的wordBlock对象
-            wordBlocks.push({ 
-              word: w, 
-              ipa: null, 
-              highlight: false, 
-              sentenceHighlight: false,
-              sentenceIndex: sentenceIdx,
-              isNewline: true
-            });
-            // 换行符表示句子结束，增加句子索引
-            sentenceIdx++;
-            continue;
-          }
+            if (/^\n+$/.test(w)) {
+              
+              // 如果当前句子有内容，先添加到sentences
+              if (currentSentence.words.length > 0) {
+                sentences.value.push(currentSentence);
+              }
+              
+              // 创建换行符句子
+              const newlineCount = w.length;
+              const newlineSentence = { 
+                words: [], 
+                isNewline: true, 
+                newline_count: newlineCount,
+                sentenceIndex: sentences.value.length
+              };
+              sentences.value.push(newlineSentence);
+              
+              // 重置当前句子，设置正确的sentenceIndex
+              currentSentence = { 
+                words: [], 
+                isNewline: false, 
+                newline_count: 0,
+                sentenceIndex: sentences.value.length
+              };
+              continue;
+            }
             
+            let wordBlock;
             // 处理连接词：拆分连字符连接的多个部分，分别查询音标
             if (w.includes('-') && /^[A-Za-z0-9\u2019'-]+$/.test(w)) {
               // 拆分为多个部分
@@ -329,41 +352,62 @@ He studied hard and passed the exam.`);
               
               // 合并音标，用连字符连接
               const combinedIpa = ipas.join('-');
-              // push token with sentence index
-              wordBlocks.push({ word: w, ipa: combinedIpa || null, highlight: false, sentenceHighlight: false, sentenceIndex: sentenceIdx, isNewline: false });
+              
+              wordBlock = { 
+                word: w, 
+                ipa: combinedIpa || null, 
+                highlight: false, 
+                sentenceHighlight: false,
+                sentenceIndex: currentSentence.sentenceIndex,
+                isNewline: false
+              };
             } else {
               // 常规单词：For IPA lookup, normalize to letters only (remove digits and apostrophes).
               const lookup = w.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
               const ipa = lookup ? await fetchIPA(lookup) : null;
-              // push token with sentence index
-              wordBlocks.push({ word: w, ipa, highlight: false, sentenceHighlight: false, sentenceIndex: sentenceIdx, isNewline: false });
+              
+              wordBlock = { 
+                word: w, 
+                ipa, 
+                highlight: false, 
+                sentenceHighlight: false,
+                sentenceIndex: currentSentence.sentenceIndex,
+                isNewline: false
+              };
             }
+            
+            // 添加到wordBlocks和当前句子
+            wordBlocks.push(wordBlock);
+            currentSentence.words.push(wordBlock);
 
-            // If token matches a split character, increment sentence index for following tokens.
+            // If token matches a split character, add current sentence to sentences
             if (sentenceSplitRe.test(w)) {
-              sentenceIdx++;
+              sentences.value.push(currentSentence);
+              
+              // 重置当前句子，设置正确的sentenceIndex
+              currentSentence = { 
+                words: [], 
+                isNewline: false, 
+                newline_count: 0,
+                sentenceIndex: sentences.value.length
+              };
             }
           }
-
-          // 在analyze函数中构建sentences数组
-          const groups = new Map();
-          for (let i = 0; i < wordBlocks.length; i++) {
-            const w = wordBlocks[i];
-            const s = w.sentenceIndex || 0;
-            if (!groups.has(s)) {
-              groups.set(s, []);
-            }
-            groups.get(s).push(w);
+          
+          // 如果最后一个句子有内容但没有被添加，手动添加
+          if (currentSentence.words.length > 0) {
+            sentences.value.push(currentSentence);
           }
-          sentences.value = Array.from(groups.entries()).sort((a, b) => a[0] - b[0]);
 
-          // 更新句子索引数组并重置当前句子索引
-          sortedKeys.value = getSentenceKeys();
-          console.log('After analyze - sortedKeys:', sortedKeys.value);
+          // 重置当前句子索引
           currentSentenceIndex.value = 0;
-          console.log('After analyze - currentSentenceIndex:', currentSentenceIndex.value);
-          // 高亮当前句子
-          highlightCurrentSentence();
+          
+          // 如果第一个句子是换行符，自动跳过
+          if (sentences.value.length > 0 && sentences.value[0].isNewline) {
+            speakNextSentence();
+          } else {
+            highlightCurrentSentence();
+          }
         }
 
         // Detect SpeechSynthesis support once when app runs
@@ -401,35 +445,32 @@ He studied hard and passed the exam.`);
           // Ensure wordBlocks is populated
           if (!wordBlocks.length) await analyze();
 
-          // Group indices by sentenceIndex
-          const sentenceIndices = new Map();
-          for (let i = 0; i < wordBlocks.length; i++) {
-            const s = wordBlocks[i].sentenceIndex || 0;
-            if (!sentenceIndices.has(s)) sentenceIndices.set(s, []);
-            sentenceIndices.get(s).push(i);
-          }
-
-          const currentSentenceKey = sortedKeys.value[currentSentenceIndex.value];
+          // Get current sentence from sentences array
+          const currentSentence = sentences.value[currentSentenceIndex.value];
           
           // Check if current sentence exists
-          if (currentSentenceKey === undefined || !sentenceIndices.has(currentSentenceKey)) {
+          if (!currentSentence) {
             utter = null;
             stopRequested = false;
             return;
           }
 
-          const idxs = sentenceIndices.get(currentSentenceKey);
-          if (!idxs || !idxs.length) {
+          // Skip reading newline sentences
+          if (currentSentence.isNewline) {
             utter = null;
             stopRequested = false;
             return;
           }
 
-          const start = idxs[0];
-          const end = idxs[idxs.length - 1];
+          // Check if sentence has words
+          if (!currentSentence.words || !currentSentence.words.length) {
+            utter = null;
+            stopRequested = false;
+            return;
+          }
 
-          // Build sentence text by joining words that contain letters/digits or punctuation
-          const parts = wordBlocks.slice(start, end + 1).map(w => w.word);
+          // Build sentence text by joining words
+          const parts = currentSentence.words.map(w => w.word);
           let sentenceText = parts.join(" ");
 
           // Clean up spacing around punctuation: remove space before punctuation
@@ -500,9 +541,14 @@ He studied hard and passed the exam.`);
           // Ensure wordBlocks is populated
           if (!wordBlocks.length) await analyze();
           
-          // Check if we can go to previous sentence
-          if (currentSentenceIndex.value > 0) {
-            currentSentenceIndex.value--;
+          // Find the previous non-newline sentence
+          let prevIndex = currentSentenceIndex.value - 1;
+          while (prevIndex >= 0 && sentences.value[prevIndex].isNewline) {
+            prevIndex--;
+          }
+          
+          if (prevIndex >= 0) {
+            currentSentenceIndex.value = prevIndex;
             highlightCurrentSentence();
             await speakSentences();
           }
@@ -513,9 +559,14 @@ He studied hard and passed the exam.`);
           // Ensure wordBlocks is populated
           if (!wordBlocks.length) await analyze();
           
-          // Check if we can go to next sentence
-          if (currentSentenceIndex.value < sortedKeys.value.length - 1) {
-            currentSentenceIndex.value++;
+          // Find the next non-newline sentence
+          let nextIndex = currentSentenceIndex.value + 1;
+          while (nextIndex < sentences.value.length && sentences.value[nextIndex].isNewline) {
+            nextIndex++;
+          }
+          
+          if (nextIndex < sentences.value.length) {
+            currentSentenceIndex.value = nextIndex;
             highlightCurrentSentence();
             await speakSentences();
           }
