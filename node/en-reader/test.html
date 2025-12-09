@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .mt-6 {width: 800px;}
+
+    
+    /* 换行符样式 */
+    .line-break {
+      width: auto;
+      height: 0.75rem;
+      display: inline-block;
+    }
+
+    .word-block {
+      display: inline-block;
+      margin-right: 0.5rem;
+      white-space: nowrap;
+    }
+
+    .word-top {
+      font-size: 1.125rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .ipa {
+      font-size: 0.95rem;
+      color: #6b7280;
+    }
+
+    .hl {
+      background: linear-gradient(90deg, rgba(250, 204, 21, 0.95), rgba(250, 204, 21, 0.6));
+      padding: 0.125rem 0.35rem;
+      border-radius: 0.25rem;
+    }
+    
+    .sentence-container {
+      display: block;
+      width: 100%;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      transition: background-color 0.3s ease;
+    }
+
+    /* 句子整体高亮样式 */
+    .sentence-hl {
+      background: linear-gradient(90deg, rgba(147, 197, 253, 0.5), rgba(147, 197, 253, 0.3));
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      border: 1px solid rgba(59, 130, 246, 0.8);
+      margin: 0.25rem 0;
+      display: inline;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    
+
+  </style>
+</head>
+
+<body>
+    <div class="mt-6">
+            <div class="sentence-container">
+                <!-- 第一句整体高亮 -->
+                <span class="sentence-hl">
+                    <span class="word-block"><span id="word-0-0" class="word-top">Language</span><!----></span>
+                    <span class="word-block"><span id="word-0-1" class="word-top">modeling</span><!----></span>
+                    <span class="word-block"><span id="word-0-2" class="word-top">is</span><!----></span>
+                    <span class="word-block"><span id="word-0-3" class="word-top">a</span><!----></span>
+                    <span class="word-block"><span id="word-0-4" class="word-top">long-standing</span><!----></span>
+                    <span class="word-block"><span id="word-0-5" class="word-top">research</span><!----></span>
+                    <span class="word-block"><span id="word-0-6" class="word-top">topic,</span><!----></span>
+                </span>
+                
+                <span>
+                    <span class="word-block"><span id="word-1-0" class="word-top">dating</span><!----></span>
+                    <span class="word-block"><span id="word-1-1" class="word-top">back</span><!----></span>
+                    <span class="word-block"><span id="word-1-2" class="word-top">to</span><!----></span>
+                    <span class="word-block"><span id="word-1-3" class="word-top">the</span><!----></span>
+                    <span class="word-block"><span id="word-1-4" class="word-top">1950s</span><!----></span>
+                    <span class="word-block"><span id="word-1-5" class="word-top">with</span><!----></span>
+                    <span class="word-block"><span id="word-1-6" class="word-top">Shannon’s</span><!----></span>
+                    <span class="word-block"><span id="word-1-7" class="word-top">application</span><!----></span>
+                    <span class="word-block"><span id="word-1-8" class="word-top">of</span><!----></span>
+                    <span class="word-block"><span id="word-1-9" class="word-top">information</span><!----></span>
+                    <span class="word-block"><span id="word-1-10" class="word-top">theory</span><!----></span>
+                    <span class="word-block"><span id="word-1-11" class="word-top">to</span><!----></span>
+                    <span class="word-block"><span id="word-1-12" class="word-top">human</span><!----></span>
+                    <span class="word-block"><span id="word-1-13" class="word-top">language.</span><!----></span>
+                </span>
+            </div>
+        </div>
+</body>
+
+</html>

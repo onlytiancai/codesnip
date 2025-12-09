@@ -20,8 +20,9 @@
     
     /* 换行符样式 */
     .line-break {
-      width: 100%;
+      width: auto;
       height: 0.75rem;
+      display: inline-block;
     }
 
     .word-block {
@@ -49,10 +50,14 @@
     }
     
     .sentence-container {
-      display: inline-block;
+      display: inline-flex;
+      flex-wrap: wrap;
       padding: 0.5rem;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
       border-radius: 0.5rem;
       transition: background-color 0.3s ease;
+      vertical-align: top;
     }
     
     .sentence-hl {
@@ -314,8 +319,7 @@ He studied hard and passed the exam.`);
                 sentenceIndex: sentenceIdx,
                 isNewline: true
               });
-              // 换行符表示句子结束
-              sentenceIdx++;
+              // 换行符不再表示句子结束，保持当前句子索引
               continue;
             }
             
