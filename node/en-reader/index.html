@@ -127,7 +127,7 @@
               <span class="sentence" :class="{'sentence-hl': currentSentenceIndex === sentence[0]}">
                 <template v-for="(w, idx) in sentence[1]" :key="idx">
                   <!-- Handle newline tokens -->
-                  <span v-if="w.isNewline" ><br /><br /></span>
+                  <span v-if="w.isNewline" ><br /></span>
                   <!-- Handle regular word tokens -->
                   <span v-else class="word-block">
                     <span :id="'word-'+sentenceIdx+'-'+idx" class="word-top" :class="w.highlight ? 'hl' : ''" @click="speakWord(wordBlocks.indexOf(w))">
@@ -282,19 +282,8 @@ He studied hard and passed the exam.`);
         // 创建响应式变量存储句子索引数组
         const sortedKeys = ref([]);
         
-        // 计算属性：将单词块按sentenceIndex分组
-        const sentences = computed(() => {
-          const groups = new Map();
-          for (let i = 0; i < wordBlocks.length; i++) {
-            const w = wordBlocks[i];
-            const s = w.sentenceIndex || 0;
-            if (!groups.has(s)) {
-              groups.set(s, []);
-            }
-            groups.get(s).push(w);
-          }
-          return Array.from(groups.entries()).sort((a, b) => a[0] - b[0]);
-        });
+        // 创建响应式变量存储句子
+        const sentences = ref([]);
 
         async function analyze() {
           // 使用保留标点的分词规则：保留原文中的数字与撇号（例如 1950s, Shannon’s）
@@ -309,20 +298,21 @@ He studied hard and passed the exam.`);
           const sentenceSplitRe = /[.,!?，。！；;]/; // include various punctuation
           for (let w of matches) {
             // 处理换行符
-            if (/^\n+$/.test(w)) {
-              console.log('newline', w);
-              // 为换行符创建特殊的wordBlock对象
-              wordBlocks.push({ 
-                word: w, 
-                ipa: null, 
-                highlight: false, 
-                sentenceHighlight: false,
-                sentenceIndex: sentenceIdx,
-                isNewline: true
-              });
-              // 换行符不再表示句子结束，保持当前句子索引
-              continue;
-            }
+          if (/^\n+$/.test(w)) {
+            console.log('newline', w);
+            // 为换行符创建特殊的wordBlock对象
+            wordBlocks.push({ 
+              word: w, 
+              ipa: null, 
+              highlight: false, 
+              sentenceHighlight: false,
+              sentenceIndex: sentenceIdx,
+              isNewline: true
+            });
+            // 换行符表示句子结束，增加句子索引
+            sentenceIdx++;
+            continue;
+          }
             
             // 处理连接词：拆分连字符连接的多个部分，分别查询音标
             if (w.includes('-') && /^[A-Za-z0-9\u2019'-]+$/.test(w)) {
@@ -354,6 +344,18 @@ He studied hard and passed the exam.`);
               sentenceIdx++;
             }
           }
+
+          // 在analyze函数中构建sentences数组
+          const groups = new Map();
+          for (let i = 0; i < wordBlocks.length; i++) {
+            const w = wordBlocks[i];
+            const s = w.sentenceIndex || 0;
+            if (!groups.has(s)) {
+              groups.set(s, []);
+            }
+            groups.get(s).push(w);
+          }
+          sentences.value = Array.from(groups.entries()).sort((a, b) => a[0] - b[0]);
 
           // 更新句子索引数组并重置当前句子索引
           sortedKeys.value = getSentenceKeys();
@@ -400,23 +402,23 @@ He studied hard and passed the exam.`);
           if (!wordBlocks.length) await analyze();
 
           // Group indices by sentenceIndex
-          const sentences = new Map();
+          const sentenceIndices = new Map();
           for (let i = 0; i < wordBlocks.length; i++) {
             const s = wordBlocks[i].sentenceIndex || 0;
-            if (!sentences.has(s)) sentences.set(s, []);
-            sentences.get(s).push(i);
+            if (!sentenceIndices.has(s)) sentenceIndices.set(s, []);
+            sentenceIndices.get(s).push(i);
           }
 
           const currentSentenceKey = sortedKeys.value[currentSentenceIndex.value];
           
           // Check if current sentence exists
-          if (currentSentenceKey === undefined || !sentences.has(currentSentenceKey)) {
+          if (currentSentenceKey === undefined || !sentenceIndices.has(currentSentenceKey)) {
             utter = null;
             stopRequested = false;
             return;
           }
 
-          const idxs = sentences.get(currentSentenceKey);
+          const idxs = sentenceIndices.get(currentSentenceKey);
           if (!idxs || !idxs.length) {
             utter = null;
             stopRequested = false;
