@@ -50,20 +50,23 @@
     }
     
     .sentence-container {
-      display: inline-flex;
-      flex-wrap: wrap;
+      display: block;
+      width: 100%;
       padding: 0.5rem;
-      margin-right: 0.5rem;
       margin-bottom: 0.5rem;
       border-radius: 0.5rem;
       transition: background-color 0.3s ease;
-      vertical-align: top;
     }
     
     .sentence-hl {
       background: linear-gradient(90deg, rgba(147, 197, 253, 0.5), rgba(147, 197, 253, 0.3));
-      padding: 0.5rem;
-      border-radius: 0.5rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      border: 1px solid rgba(59, 130, 246, 0.8);
+      margin: 0.25rem 0;
+      display: inline;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
     }
   </style>
 </head>
@@ -122,9 +125,9 @@
       <div class="mt-6">
         <template v-if="wordBlocks.length">
           <!-- 按句子分组显示 -->
-          <template v-for="(sentence, sentenceIdx) in sentences" :key="sentence[0]">
-            <div class="sentence-container" :class="{'sentence-hl': currentSentenceIndex === sentence[0]}">
-              <div class="sentence">
+          <div class="sentence-container">
+            <template v-for="(sentence, sentenceIdx) in sentences" :key="sentence[0]">
+              <span :class="{'sentence-hl': currentSentenceIndex === sentence[0]}">
                 <template v-for="(w, idx) in sentence[1]" :key="idx">
                   <!-- Handle newline tokens -->
                   <div v-if="w.isNewline" class="line-break"></div>
@@ -136,9 +139,9 @@
                     <span v-if="showIPA" class="ipa">{{ w.ipa || '—' }}</span>
                   </span>
                 </template>
-              </div>
-            </div>
-          </template>
+              </span>
+            </template>
+          </div>
         </template>
         <template v-else>
           <span class="text-sm text-slate-400">（点击“分析 & 显示音标”生成对齐的单词与音标）</span>
