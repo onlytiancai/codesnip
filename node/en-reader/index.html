@@ -12,17 +12,13 @@
 
   <style>
     .sentence {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      align-items: flex-start;
+      line-height: 2em;
     }
     
     /* 换行符样式 */
     .line-break {
       width: auto;
       height: 0.75rem;
-      display: inline-block;
     }
 
     .word-block {
@@ -30,6 +26,7 @@
       flex-direction: column;
       align-items: center;
       white-space: nowrap;
+      margin-right: 5px;
     }
 
     .word-top {
@@ -127,10 +124,10 @@
           <!-- 按句子分组显示 -->
           <div class="sentence-container">
             <template v-for="(sentence, sentenceIdx) in sentences" :key="sentence[0]">
-              <span :class="{'sentence-hl': currentSentenceIndex === sentence[0]}">
+              <span class="sentence" :class="{'sentence-hl': currentSentenceIndex === sentence[0]}">
                 <template v-for="(w, idx) in sentence[1]" :key="idx">
                   <!-- Handle newline tokens -->
-                  <div v-if="w.isNewline" class="line-break"></div>
+                  <span v-if="w.isNewline" ><br /><br /></span>
                   <!-- Handle regular word tokens -->
                   <span v-else class="word-block">
                     <span :id="'word-'+sentenceIdx+'-'+idx" class="word-top" :class="w.highlight ? 'hl' : ''" @click="speakWord(wordBlocks.indexOf(w))">
@@ -313,6 +310,7 @@ He studied hard and passed the exam.`);
           for (let w of matches) {
             // 处理换行符
             if (/^\n+$/.test(w)) {
+              console.log('newline', w);
               // 为换行符创建特殊的wordBlock对象
               wordBlocks.push({ 
                 word: w, 
