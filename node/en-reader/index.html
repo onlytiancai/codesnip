@@ -262,23 +262,7 @@ He studied hard and passed the exam.`);
           return Array.from(textStr.matchAll(re), m => m[0]);
         }
 
-        // 高亮当前句子
-        function highlightCurrentSentence() {
-          // 清除所有单词高亮
-          for (let i = 0; i < wordBlocks.length; i++) {
-            wordBlocks[i].highlight = false;
-          }
-          
-          // 高亮当前句子的单词
-          if (currentSentenceIndex.value < sentences.value.length) {
-            const currentSentence = sentences.value[currentSentenceIndex.value];
-            if (currentSentence && currentSentence.words) {
-              currentSentence.words.forEach(word => {
-                word.highlight = true;
-              });
-            }
-          }
-        }
+
 
         // 创建响应式变量存储句子
         const sentences = ref([]);
@@ -405,8 +389,6 @@ He studied hard and passed the exam.`);
           // 如果第一个句子是换行符，自动跳过
           if (sentences.value.length > 0 && sentences.value[0].isNewline) {
             speakNextSentence();
-          } else {
-            highlightCurrentSentence();
           }
         }
 
@@ -483,17 +465,14 @@ He studied hard and passed the exam.`);
 
           await new Promise((resolve) => {
             utter.onstart = () => {
-              // 保持当前句子的高亮状态
-              highlightCurrentSentence();
+              // 保持当前句子的高亮状态（通过模板中的条件类实现）
             };
             utter.onend = () => {
-              // 朗读结束后重新高亮当前句子
-              highlightCurrentSentence();
+              // 朗读结束后高亮状态自动维持
               resolve();
             };
             utter.onerror = () => {
-              // 错误发生后重新高亮当前句子
-              highlightCurrentSentence();
+              // 错误发生后高亮状态自动维持
               resolve();
             };
             speechSynthesis.speak(utter);
@@ -524,7 +503,10 @@ He studied hard and passed the exam.`);
           utter.pitch = pitch.value;
 
           utter.onstart = () => highlightIndex(i);
-          utter.onend = () => highlightCurrentSentence();
+          utter.onend = () => {
+            // 清除单词高亮，句子高亮通过模板中的条件类自动维持
+            highlightIndex(-1);
+          };
 
           speechSynthesis.speak(utter);
         }
@@ -532,7 +514,8 @@ He studied hard and passed the exam.`);
         function stop() {
           stopRequested = true;
           speechSynthesis.cancel();
-          highlightCurrentSentence();
+          // 清除单词高亮，句子高亮通过模板中的条件类自动维持
+          highlightIndex(-1);
           utter = null;
         }
 
@@ -549,7 +532,7 @@ He studied hard and passed the exam.`);
           
           if (prevIndex >= 0) {
             currentSentenceIndex.value = prevIndex;
-            highlightCurrentSentence();
+            // 句子高亮通过模板中的条件类自动实现
             await speakSentences();
           }
         }
@@ -567,7 +550,7 @@ He studied hard and passed the exam.`);
           
           if (nextIndex < sentences.value.length) {
             currentSentenceIndex.value = nextIndex;
-            highlightCurrentSentence();
+            // 句子高亮通过模板中的条件类自动实现
             await speakSentences();
           }
         }
