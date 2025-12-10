@@ -109,6 +109,8 @@ He studied hard and passed the exam.`);
       }
       
       if (prevIndex >= 0) {
+        // Stop current sentence playback if any
+        stop();
         currentSentenceIndex.value = prevIndex;
         await speakSentences();
       }
@@ -125,6 +127,8 @@ He studied hard and passed the exam.`);
       }
       
       if (nextIndex < sentences.value.length) {
+        // Stop current sentence playback if any
+        stop();
         currentSentenceIndex.value = nextIndex;
         await speakSentences();
       }
