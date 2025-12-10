@@ -1,5 +1,5 @@
 // components/Sentence.js - Sentence component
-import { defineComponent } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
+import { defineComponent } from '../lib/vue/vue.esm-browser.js';
 import WordBlock from './WordBlock.js';
 
 export default defineComponent({
