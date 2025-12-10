@@ -30,6 +30,8 @@ export async function analyzeText(text, wordBlocks, sentences, fetchIPA) {
     sentenceIndex: 0
   };
 
+  let wordIndex = 0;
+
   for (let w of matches) {
     // Handle newlines
     if (/^\n+$/.test(w)) {
@@ -82,7 +84,8 @@ export async function analyzeText(text, wordBlocks, sentences, fetchIPA) {
         highlight: false,
         sentenceHighlight: false,
         sentenceIndex: currentSentence.sentenceIndex,
-        isNewline: false
+        isNewline: false,
+        wordIndex: wordIndex
       };
     } else {
       // Regular words: For IPA lookup, normalize to letters only (remove digits and apostrophes).
@@ -95,13 +98,15 @@ export async function analyzeText(text, wordBlocks, sentences, fetchIPA) {
         highlight: false,
         sentenceHighlight: false,
         sentenceIndex: currentSentence.sentenceIndex,
-        isNewline: false
+        isNewline: false,
+        wordIndex: wordIndex
       };
     }
     
     // Add to wordBlocks and current sentence
     wordBlocks.push(wordBlock);
     currentSentence.words.push(wordBlock);
+    wordIndex++;
 
     // If token matches a split character, add current sentence to sentences
     if (sentenceSplitRe.test(w)) {

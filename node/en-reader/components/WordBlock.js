@@ -27,7 +27,7 @@ export default defineComponent({
   setup(props) {
     return {
       handleClick: () => {
-        props.onClick(props.wordIndex);
+        props.onClick(props.word.wordIndex);
       }
     };
   },

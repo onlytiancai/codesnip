@@ -4,18 +4,154 @@
 <head>
   <meta charset="utf-8" />
   <title>Wawa English Speaker</title>
-
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
   <style>
+    /* 全局样式 */
+    body {
+      background-color: #f8fafc;
+      color: #1e293b;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* App容器 */
+    #app {
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    /* 主内容容器 */
+    .main-container {
+      max-width: 48rem;
+      margin: 0 auto;
+      background-color: white;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+    }
+
+    /* 标题 */
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 0 1rem 0;
+    }
+
+    /* 文本输入框 */
+    textarea {
+      margin-top: 1rem;
+      width: 100%;
+      border-radius: 0.375rem;
+      border: 1px solid #e2e8f0;
+      padding: 0.75rem;
+      font-family: inherit;
+      resize: vertical;
+    }
+
+    /* 按钮容器 */
+    .btn-container {
+      margin-top: 0.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    /* 分析按钮 */
+    .analyze-btn {
+      padding: 0.5rem 1rem;
+      background-color: #4f46e5;
+      color: white;
+      border-radius: 0.375rem;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .analyze-btn:hover {
+      background-color: #4338ca;
+    }
+
+    /* 控制容器 */
+    .controls-container {
+      margin-top: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    /* 控制标签 */
+    .control-label {
+      font-size: 0.875rem;
+    }
+
+    /* 滑块 */
+    input[type="range"] {
+      width: 9rem;
+    }
+
+    /* 复选框容器 */
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: 1rem;
+    }
+
+    /* 复选框 */
+    input[type="checkbox"] {
+      border-radius: 0.25rem;
+    }
+
+    /* 小文本 */
+    .text-sm {
+      font-size: 0.875rem;
+    }
+
+    /* 加载提示 */
+    .loading-indicator {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      border-radius: 0.375rem;
+      border: 1px solid #bfdbfe;
+      background-color: #eff6ff;
+      color: #1e40af;
+    }
+
+    /* 警告提示 */
+    .warning-notice {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      border-radius: 0.375rem;
+      border: 1px solid #fde68a;
+      background-color: #fffbeb;
+      color: #92400e;
+    }
+
+    /* 提示容器 */
+    .notice-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    /* 粗体文本 */
+    .font-semibold {
+      font-weight: 600;
+    }
+
+    /* 句子容器 */
+    .sentences-container {
+      margin-top: 1.5rem;
+    }
+
+    /* 句子样式 */
     .sentence {
       line-height: 2em;
     }
-    
+
     /* 换行符样式 */
     .line-break {
       width: auto;
@@ -46,7 +182,7 @@
       padding: 0.125rem 0.35rem;
       border-radius: 0.25rem;
     }
-    
+
     .sentence-container {
       display: block;
       width: 100%;
@@ -55,7 +191,7 @@
       border-radius: 0.5rem;
       transition: background-color 0.3s ease;
     }
-    
+
     .sentence-hl {
       background: linear-gradient(90deg, rgba(147, 197, 253, 0.5), rgba(147, 197, 253, 0.3));
       padding: 0.25rem 0.5rem;
@@ -66,7 +202,7 @@
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
     }
-    
+
     /* 悬浮控制栏样式 */
     .floating-controls {
       position: fixed;
@@ -83,7 +219,7 @@
       gap: 8px;
       align-items: center;
     }
-    
+
     .control-btn {
       width: 40px;
       height: 40px;
@@ -96,12 +232,12 @@
       font-size: 16px;
       transition: all 0.3s ease;
     }
-    
+
     .control-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
-    
+
     .control-btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
@@ -112,62 +248,71 @@
 </head>
 
 
-<body class="bg-slate-50 text-slate-800">
+<body>
 
-  <div id="app" class="min-h-screen p-8">
-    <div class="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6">
+  <div id="app">
+    <div class="main-container">
 
-      <h1 class="text-2xl font-bold">Wawa English Speaker</h1>
+      <h1>Wawa English Speaker</h1>
 
-      <textarea v-model="text" class="mt-4 w-full rounded-md border border-slate-200 p-3" rows="4"></textarea>
+      <textarea v-model="text" rows="4"></textarea>
 
-      <div class="mt-3 flex flex-wrap gap-3">
-        <button @click="analyze" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500">分析</button>
+      <div class="btn-container">
+        <button @click="analyze" class="analyze-btn">分析</button>
       </div>
-      
+
       <!-- 悬浮控制栏 -->
       <div class="floating-controls">
         <button @click="speakPreviousSentence" :disabled="!speechSupported || currentSentenceIndex === 0" :title="speechSupported ? (currentSentenceIndex === 0 ? '这是第一句' : '') : '当前浏览器不支持语音朗读'"
           class="control-btn bg-blue-600 text-white">
-          <i class="fas fa-chevron-left"></i>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
         </button>
-        <button v-if="!isSpeaking" @click="speakSentences" :disabled="!speechSupported" :title="speechSupported ? '' : '当前浏览器不支持语音朗读'"
-          class="control-btn bg-emerald-600 text-white">
-          <i class="fas fa-play"></i>
+        <button v-if="!isSpeaking" @click="speakSentences" :disabled="!speechSupported"
+          :title="speechSupported ? '' : '当前浏览器不支持语音朗读'" class="control-btn bg-emerald-600 text-white">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
         </button>
         <button v-else @click="stop" :disabled="!speechSupported" :title="speechSupported ? '' : '当前浏览器不支持语音朗读'"
           class="control-btn bg-red-500 text-white">
-          <i class="fas fa-stop"></i>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="6" width="12" height="12"></rect>
+          </svg>
         </button>
-        <button @click="speakNextSentence" :disabled="!speechSupported || currentSentenceIndex >= sortedKeys.length - 1" :title="speechSupported ? (currentSentenceIndex >= sortedKeys.length - 1 ? '这是最后一句' : '') : '当前浏览器不支持语音朗读'"
+        <button @click="speakNextSentence" :disabled="!speechSupported || currentSentenceIndex >= sortedKeys.length - 1"
+          :title="speechSupported ? (currentSentenceIndex >= sortedKeys.length - 1 ? '这是最后一句' : '') : '当前浏览器不支持语音朗读'"
           class="control-btn bg-blue-600 text-white">
-          <i class="fas fa-chevron-right"></i>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
         </button>
       </div>
 
-      <div class="mt-3 flex gap-3 items-center">
-        <label class="text-sm">语速</label>
-        <input type="range" min="0.5" max="2" step="0.1" v-model="rate" class="w-36" />
-        <label class="text-sm">音调</label>
-        <input type="range" min="0.5" max="2" step="0.1" v-model="pitch" class="w-36" />
-        <label class="flex items-center gap-2 ml-4">
-          <input type="checkbox" v-model="showIPA" class="rounded" />
+      <div class="controls-container">
+        <label class="control-label">语速</label>
+        <input type="range" min="0.5" max="2" step="0.1" v-model="rate" />
+        <label class="control-label">音调</label>
+        <input type="range" min="0.5" max="2" step="0.1" v-model="pitch" />
+        <label class="checkbox-container">
+          <input type="checkbox" v-model="showIPA" />
           <span class="text-sm">显示音标</span>
         </label>
       </div>
 
       <!-- 句子呈现 -->
       <!-- Loading indicator for IPA rules -->
-      <div v-if="isLoadingIPA" class="mt-4 p-3 rounded border border-blue-300 bg-blue-50 text-blue-900">
-        <div class="flex items-start gap-3">
+      <div v-if="isLoadingIPA" class="loading-indicator">
+        <div class="notice-content">
           <div class="flex-1">
             <div class="font-semibold">正在加载音标规则...</div>
           </div>
         </div>
       </div>
       <!-- Friendly notice when speech not supported -->
-      <div v-if="!speechSupported" class="mt-4 p-3 rounded border border-yellow-300 bg-yellow-50 text-yellow-900">
-        <div class="flex items-start gap-3">
+      <div v-if="!speechSupported" class="warning-notice">
+        <div class="notice-content">
           <div class="flex-1">
             <div class="font-semibold">语音朗读不可用</div>
             <div class="text-sm mt-1">当前浏览器似乎不支持 Web Speech API 的 SpeechSynthesis（语音朗读）。建议使用最新版本的 Chrome、Edge、Safari 或
@@ -175,19 +320,13 @@
           </div>
         </div>
       </div>
-      <div class="mt-6">
+      <div class="sentences-container">
         <template v-if="wordBlocks.length">
           <!-- 按句子分组显示 -->
           <div class="sentence-container">
-            <Sentence
-              v-for="(sentence, sentenceIdx) in sentences"
-              :key="sentenceIdx"
-              :sentence="sentence"
-              :show-ipa="showIPA"
-              :sentence-index="sentenceIdx"
-              :is-current="currentSentenceIndex === sentenceIdx"
-              :on-word-click="speakWord"
-            />
+            <Sentence v-for="(sentence, sentenceIdx) in sentences" :key="sentenceIdx" :sentence="sentence"
+              :show-ipa="showIPA" :sentence-index="sentenceIdx" :is-current="currentSentenceIndex === sentenceIdx"
+              :on-word-click="speakWord" />
           </div>
         </template>
         <template v-else>
