@@ -99,13 +99,17 @@
         (async () => {
             const url = "./kv.db";
 
+            console.log("Loading index...");
             const index = await loadIndex(url);
+            console.log("Index loaded with", index.length, "items");
 
-            const v1 = await kvGet(url, index, "banana");
-            console.log("banana =", v1);
-
-            const v2 = await kvGet(url, index, "cat");
-            console.log("cat =", v2);
+            // Test with a common word that should be in the ECDICT database
+            const testWords = ["hello", "world", "apple", "banana"];
+            
+            for (const word of testWords) {
+                const v = await kvGet(url, index, word);
+                console.log(`${word} =`, v ? JSON.parse(v) : null);
+            }
         })();
 
     </script>
