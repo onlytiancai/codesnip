@@ -60,7 +60,6 @@ He studied hard and passed the exam.`);
     // Speech functions
     async function speakSentences() {
       await speakSentence(sentences.value, currentSentenceIndex.value, rate.value, pitch.value, (sentenceText) => {
-        // Speech synthesis implementation
         utter = new SpeechSynthesisUtterance(sentenceText);
         utter.lang = "en-US";
         utter.rate = rate.value;
