@@ -244,6 +244,10 @@
       transform: none;
       box-shadow: none;
     }
+
+    .text-input{
+      font-size: 16px;
+    }
   </style>
 </head>
 
@@ -255,7 +259,7 @@
 
       <h1>Wawa English Speaker</h1>
 
-      <textarea v-model="text" rows="4"></textarea>
+      <textarea class="text-input" v-model="text" rows="4"></textarea>
 
       <div class="btn-container">
         <button @click="analyze" class="analyze-btn">分析</button>
