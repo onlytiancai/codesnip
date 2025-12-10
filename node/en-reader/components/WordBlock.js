@@ -7,7 +7,7 @@ export default defineComponent({
       type: Object,
       required: true
     },
-    showIPA: {
+    showIpa: {
       type: Boolean,
       default: false
     },
@@ -36,7 +36,7 @@ export default defineComponent({
       <span :id="'word-'+sentenceIndex+'-'+wordIndex" class="word-top" :class="word.highlight ? 'hl' : ''" @click="handleClick">
         {{ word.word }}
       </span>
-      <span v-if="showIPA" class="ipa">{{ word.ipa || '—' }}</span>
+      <span v-if="showIpa" class="ipa">{{ word.ipa || '—' }}</span>
     </span>
   `
 });

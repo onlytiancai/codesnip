@@ -11,7 +11,7 @@ export default defineComponent({
       type: Object,
       required: true
     },
-    showIPA: {
+    showIpa: {
       type: Boolean,
       default: false
     },
@@ -39,14 +39,14 @@ export default defineComponent({
     </template>
     <span v-else class="sentence" :class="{'sentence-hl': isCurrent}">
       <WordBlock
-        v-for="(w, idx) in sentence.words"
-        :key="idx"
-        :word="w"
-        :show-ipa="showIPA"
-        :sentence-index="sentenceIndex"
-        :word-index="idx"
-        :on-click="onWordClick"
-      />
+          v-for="(w, idx) in sentence.words"
+          :key="idx"
+          :word="w"
+          :show-ipa="showIpa"
+          :sentence-index="sentenceIndex"
+          :word-index="idx"
+          :on-click="onWordClick"
+        />
     </span>
   `
 });

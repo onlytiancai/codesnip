@@ -296,7 +296,7 @@
         <label class="control-label">音调</label>
         <input type="range" min="0.5" max="2" step="0.1" v-model="pitch" />
         <label class="checkbox-container">
-          <input type="checkbox" v-model="showIPA" />
+          <input type="checkbox" v-model="showIpa" />
           <span class="text-sm">显示音标</span>
         </label>
       </div>
@@ -325,7 +325,7 @@
           <!-- 按句子分组显示 -->
           <div class="sentence-container">
             <Sentence v-for="(sentence, sentenceIdx) in sentences" :key="sentenceIdx" :sentence="sentence"
-              :show-ipa="showIPA" :sentence-index="sentenceIdx" :is-current="currentSentenceIndex === sentenceIdx"
+              :show-ipa="showIpa" :sentence-index="sentenceIdx" :is-current="currentSentenceIndex === sentenceIdx"
               :on-word-click="speakWord" />
           </div>
         </template>
