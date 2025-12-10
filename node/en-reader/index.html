@@ -24,12 +24,47 @@
 
     /* 主内容容器 */
     .main-container {
-      max-width: 48rem;
+      max-width: 96rem;
       margin: 0 auto;
       background-color: white;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       border-radius: 0.5rem;
       padding: 1.5rem;
+      display: flex;
+      gap: 2rem;
+    }
+
+    /* 左侧内容区域 */
+    .left-panel {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* 右侧内容区域 */
+    .right-panel {
+      width: 30rem;
+      border-left: 1px solid #e2e8f0;
+      padding-left: 2rem;
+    }
+
+    /* 当前句子部分样式 */
+    .current-sentence-section {
+      margin-bottom: 2rem;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 1200px) {
+      .main-container {
+        flex-direction: column;
+      }
+
+      .right-panel {
+        width: auto;
+        border-left: none;
+        border-top: 1px solid #e2e8f0;
+        padding-left: 0;
+        padding-top: 2rem;
+      }
     }
 
     /* 标题 */
@@ -311,130 +346,146 @@
 
   <div id="app">
     <div class="main-container">
+      <!-- 左侧面板 -->
+      <div class="left-panel">
+        <h1>Wawa English Speaker</h1>
 
-      <h1>Wawa English Speaker</h1>
+        <textarea class="text-input" v-model="text" rows="4"></textarea>
 
-      <textarea class="text-input" v-model="text" rows="4"></textarea>
-
-      <div class="btn-container">
-        <button @click="analyze" class="analyze-btn">分析</button>
-      </div>
-
-      <!-- 悬浮控制栏 -->
-      <div class="floating-controls">
-        <button @click="speakPreviousSentence" :disabled="!speechSupported || currentSentenceIndex === 0" :title="speechSupported ? (currentSentenceIndex === 0 ? '这是第一句' : '') : '当前浏览器不支持语音朗读'"
-          class="control-btn bg-blue-600 text-white">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
-        <button v-if="!isSpeaking" @click="speakSentences" :disabled="!speechSupported"
-          :title="speechSupported ? '' : '当前浏览器不支持语音朗读'" class="control-btn bg-emerald-600 text-white">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-          </svg>
-        </button>
-        <button v-else @click="stop" :disabled="!speechSupported" :title="speechSupported ? '' : '当前浏览器不支持语音朗读'"
-          class="control-btn bg-red-500 text-white">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="6" y="6" width="12" height="12"></rect>
-          </svg>
-        </button>
-        <button @click="speakNextSentence" :disabled="!speechSupported || currentSentenceIndex >= sortedKeys.length - 1"
-          :title="speechSupported ? (currentSentenceIndex >= sortedKeys.length - 1 ? '这是最后一句' : '') : '当前浏览器不支持语音朗读'"
-          class="control-btn bg-blue-600 text-white">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
-      </div>
-
-      <div class="controls-container">
-        <label class="control-label">语速</label>
-        <input type="range" min="0.5" max="2" step="0.1" v-model="rate" />
-        <label class="control-label">音调</label>
-        <input type="range" min="0.5" max="2" step="0.1" v-model="pitch" />
-        <label class="checkbox-container">
-          <input type="checkbox" v-model="showIpa" />
-          <span class="text-sm">显示音标</span>
-        </label>
-      </div>
-
-      <!-- 句子呈现 -->
-      <!-- Loading indicator for IPA rules -->
-      <div v-if="isLoadingIPA" class="loading-indicator">
-        <div class="notice-content">
-          <div class="flex-1">
-            <div class="font-semibold">正在加载音标规则...</div>
-          </div>
+        <div class="btn-container">
+          <button @click="analyze" class="analyze-btn">分析</button>
         </div>
-      </div>
-      <!-- Friendly notice when speech not supported -->
-      <div v-if="!speechSupported" class="warning-notice">
-        <div class="notice-content">
-          <div class="flex-1">
-            <div class="font-semibold">语音朗读不可用</div>
-            <div class="text-sm mt-1">当前浏览器似乎不支持 Web Speech API 的 SpeechSynthesis（语音朗读）。建议使用最新版本的 Chrome、Edge、Safari 或
-              Firefox（部分版本）以获得更好的体验。</div>
-          </div>
+
+        <!-- 悬浮控制栏 -->
+        <div class="floating-controls">
+          <button @click="speakPreviousSentence" :disabled="!speechSupported || currentSentenceIndex === 0" :title="speechSupported ? (currentSentenceIndex === 0 ? '这是第一句' : '') : '当前浏览器不支持语音朗读'"
+            class="control-btn bg-blue-600 text-white">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button v-if="!isSpeaking" @click="speakSentences" :disabled="!speechSupported"
+            :title="speechSupported ? '' : '当前浏览器不支持语音朗读'" class="control-btn bg-emerald-600 text-white">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          </button>
+          <button v-else @click="stop" :disabled="!speechSupported" :title="speechSupported ? '' : '当前浏览器不支持语音朗读'"
+            class="control-btn bg-red-500 text-white">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="6" y="6" width="12" height="12"></rect>
+            </svg>
+          </button>
+          <button @click="speakNextSentence" :disabled="!speechSupported || currentSentenceIndex >= sortedKeys.length - 1"
+            :title="speechSupported ? (currentSentenceIndex >= sortedKeys.length - 1 ? '这是最后一句' : '') : '当前浏览器不支持语音朗读'"
+            class="control-btn bg-blue-600 text-white">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
         </div>
-      </div>
-      <div class="sentences-container">
-        <template v-if="wordBlocks.length">
-          <!-- 按句子分组显示 -->
-          <div class="sentence-container">
-            <Sentence v-for="(sentence, sentenceIdx) in sentences" :key="sentenceIdx" :sentence="sentence"
-              :show-ipa="showIpa" :sentence-index="sentenceIdx" :is-current="currentSentenceIndex === sentenceIdx"
-              :on-word-click="speakWord" />
-          </div>
-        </template>
-        <template v-else>
-          <span class="text-sm text-slate-400">（点击“分析 & 显示音标”生成对齐的单词与音标）</span>
-        </template>
-      </div>
-      
-      <!-- Word Information Panel -->
-      <div v-if="isLoadingWord" class="loading-indicator mt-4">
-        <div class="notice-content">
-          <div class="flex-1">
-            <div class="font-semibold">正在加载单词信息...</div>
-          </div>
+
+        <div class="controls-container">
+          <label class="control-label">语速</label>
+          <input type="range" min="0.5" max="2" step="0.1" v-model="rate" />
+          <label class="control-label">音调</label>
+          <input type="range" min="0.5" max="2" step="0.1" v-model="pitch" />
+          <label class="checkbox-container">
+            <input type="checkbox" v-model="showIpa" />
+            <span class="text-sm">显示音标</span>
+          </label>
         </div>
-      </div>
-      <div v-else-if="wordInfo" class="word-info-panel mt-4">
-        <div class="word-info-header">
-          <h2 class="word-info-word">{{ wordInfo.word }}</h2>
-          <span v-if="wordInfo.phonetic" class="word-info-phonetic">{{ wordInfo.phonetic }}</span>
-        </div>
-        
-        <div v-if="wordInfo.translation" class="word-info-section">
-          <div class="word-info-label">翻译</div>
-          <div class="word-info-content">{{ wordInfo.translation }}</div>
-        </div>
-        
-        <div v-if="wordInfo.definition" class="word-info-section">
-          <div class="word-info-label">定义</div>
-          <div class="word-info-content">
-            <div v-for="(def, idx) in wordInfo.definition.split('\n')" :key="idx" class="word-info-definition">
-              <span class="def-number">{{ idx + 1 }}.</span> {{ def.replace(/^\w+\s/, '') }}
+
+        <!-- 句子呈现 -->
+        <!-- Loading indicator for IPA rules -->
+        <div v-if="isLoadingIPA" class="loading-indicator">
+          <div class="notice-content">
+            <div class="flex-1">
+              <div class="font-semibold">正在加载音标规则...</div>
             </div>
           </div>
         </div>
-        
-        <div v-if="wordInfo.exchange" class="word-info-section">
-          <div class="word-info-label">变化形式</div>
-          <div class="word-info-content">{{ wordInfo.exchange }}</div>
-        </div>
-      </div>
-      <div v-else-if="selectedWord" class="warning-notice mt-4">
-        <div class="notice-content">
-          <div class="flex-1">
-            <div class="font-semibold">单词未找到</div>
-            <div class="text-sm mt-1">未能在词典中找到单词 "{{ selectedWord }}" 的信息。</div>
+        <!-- Friendly notice when speech not supported -->
+        <div v-if="!speechSupported" class="warning-notice">
+          <div class="notice-content">
+            <div class="flex-1">
+              <div class="font-semibold">语音朗读不可用</div>
+              <div class="text-sm mt-1">当前浏览器似乎不支持 Web Speech API 的 SpeechSynthesis（语音朗读）。建议使用最新版本的 Chrome、Edge、Safari 或
+                Firefox（部分版本）以获得更好的体验。</div>
+            </div>
           </div>
+        </div>
+        <div class="sentences-container">
+          <template v-if="wordBlocks.length">
+            <!-- 按句子分组显示 -->
+            <div class="sentence-container">
+              <Sentence v-for="(sentence, sentenceIdx) in sentences" :key="sentenceIdx" :sentence="sentence"
+                :show-ipa="showIpa" :sentence-index="sentenceIdx" :is-current="currentSentenceIndex === sentenceIdx"
+                :on-word-click="speakWord" />
+            </div>
+          </template>
+          <template v-else>
+            <span class="text-sm text-slate-400">（点击“分析 & 显示音标”生成对齐的单词与音标）</span>
+          </template>
         </div>
       </div>
 
+      <!-- 右侧面板 -->
+      <div class="right-panel">
+        <!-- 当前句子显示 -->
+        <div v-if="wordBlocks.length" class="current-sentence-section">
+          <h2 class="word-info-label">当前句子</h2>
+          <div v-if="currentSentenceIndex >= 0 && currentSentenceIndex < sentences.length && !sentences[currentSentenceIndex].isNewline" class="sentence-container">
+            <Sentence :sentence="sentences[currentSentenceIndex]" :show-ipa="showIpa" :is-current="true" :on-word-click="speakWord" />
+          </div>
+          <div v-else class="text-sm text-slate-400">选择一个句子开始学习</div>
+        </div>
+
+        <!-- Word Information Panel -->
+        <div v-if="isLoadingWord" class="loading-indicator mt-4">
+          <div class="notice-content">
+            <div class="flex-1">
+              <div class="font-semibold">正在加载单词信息...</div>
+            </div>
+          </div>
+        </div>
+        <div v-else-if="wordInfo" class="word-info-panel mt-4">
+          <div class="word-info-header">
+            <h2 class="word-info-word">{{ wordInfo.word }}</h2>
+            <span v-if="wordInfo.phonetic" class="word-info-phonetic">{{ wordInfo.phonetic }}</span>
+          </div>
+          
+          <div v-if="wordInfo.translation" class="word-info-section">
+            <div class="word-info-label">翻译</div>
+            <div class="word-info-content">{{ wordInfo.translation }}</div>
+          </div>
+          
+          <div v-if="wordInfo.definition" class="word-info-section">
+            <div class="word-info-label">定义</div>
+            <div class="word-info-content">
+              <div v-for="(def, idx) in wordInfo.definition.split('\n')" :key="idx" class="word-info-definition">
+                <span class="def-number">{{ idx + 1 }}.</span> {{ def.replace(/^\w+\s/, '') }}
+              </div>
+            </div>
+          </div>
+          
+          <div v-if="wordInfo.exchange" class="word-info-section">
+            <div class="word-info-label">变化形式</div>
+            <div class="word-info-content">{{ wordInfo.exchange }}</div>
+          </div>
+        </div>
+        <div v-else-if="selectedWord" class="warning-notice mt-4">
+          <div class="notice-content">
+            <div class="flex-1">
+              <div class="font-semibold">单词未找到</div>
+              <div class="text-sm mt-1">未能在词典中找到单词 "{{ selectedWord }}" 的信息。</div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="mt-4">
+          <span class="text-sm text-slate-400">点击单词查看详细信息</span>
+        </div>
+      </div>
     </div>
   </div>
 
