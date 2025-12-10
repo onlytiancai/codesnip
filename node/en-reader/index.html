@@ -207,7 +207,7 @@
   </div>
 
   <script>
-    const { createApp, ref, reactive, computed } = Vue;
+    const { createApp, ref, reactive, computed, onMounted, onUnmounted } = Vue;
 
     createApp({
       setup() {
@@ -616,6 +616,51 @@ He studied hard and passed the exam.`);
             await speakSentences();
           }
         }
+
+        // Keyboard event handler
+        function handleKeyDown(event) {
+          // Prevent default behavior for space to avoid scrolling
+          if (event.code === 'Space') {
+            event.preventDefault();
+          }
+
+          // Only handle keys if speech is supported
+          if (!speechSupported.value) return;
+
+          // Handle different key presses
+          switch(event.code) {
+            case 'ArrowLeft':
+              // Previous sentence
+              if (currentSentenceIndex.value > 0) {
+                speakPreviousSentence();
+              }
+              break;
+            case 'ArrowRight':
+              // Next sentence
+              if (currentSentenceIndex.value < sortedKeys.value.length - 1) {
+                speakNextSentence();
+              }
+              break;
+            case 'Space':
+              // Play/Pause
+              if (isSpeaking.value) {
+                stop();
+              } else {
+                speakSentences();
+              }
+              break;
+          }
+        }
+
+        // Register keyboard event listeners
+        onMounted(() => {
+          window.addEventListener('keydown', handleKeyDown);
+        });
+
+        // Remove keyboard event listeners when component is unmounted
+        onUnmounted(() => {
+          window.removeEventListener('keydown', handleKeyDown);
+        });
 
         return { text, rate, pitch, analyze, stop, wordBlocks, speakWord, speakSentences, speechSupported, isLoadingIPA, showIPA, currentSentenceIndex, sortedKeys, speakPreviousSentence, speakNextSentence, sentences, isSpeaking };
       }
