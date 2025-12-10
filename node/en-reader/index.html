@@ -248,6 +248,61 @@
     .text-input{
       font-size: 16px;
     }
+    
+    /* Word Information Panel */
+    .word-info-panel {
+      background-color: #f8fafc;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .word-info-header {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .word-info-word {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    
+    .word-info-phonetic {
+      font-size: 1.125rem;
+      color: #6b7280;
+      font-style: italic;
+    }
+    
+    .word-info-section {
+      margin-bottom: 1.25rem;
+    }
+    
+    .word-info-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .word-info-content {
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+    
+    .word-info-definition {
+      margin-bottom: 0.75rem;
+    }
+    
+    .def-number {
+      font-weight: 600;
+      color: #4f46e5;
+      margin-right: 0.5rem;
+    }
   </style>
 </head>
 
@@ -336,6 +391,48 @@
         <template v-else>
           <span class="text-sm text-slate-400">（点击“分析 & 显示音标”生成对齐的单词与音标）</span>
         </template>
+      </div>
+      
+      <!-- Word Information Panel -->
+      <div v-if="isLoadingWord" class="loading-indicator mt-4">
+        <div class="notice-content">
+          <div class="flex-1">
+            <div class="font-semibold">正在加载单词信息...</div>
+          </div>
+        </div>
+      </div>
+      <div v-else-if="wordInfo" class="word-info-panel mt-4">
+        <div class="word-info-header">
+          <h2 class="word-info-word">{{ wordInfo.word }}</h2>
+          <span v-if="wordInfo.phonetic" class="word-info-phonetic">{{ wordInfo.phonetic }}</span>
+        </div>
+        
+        <div v-if="wordInfo.translation" class="word-info-section">
+          <div class="word-info-label">翻译</div>
+          <div class="word-info-content">{{ wordInfo.translation }}</div>
+        </div>
+        
+        <div v-if="wordInfo.definition" class="word-info-section">
+          <div class="word-info-label">定义</div>
+          <div class="word-info-content">
+            <div v-for="(def, idx) in wordInfo.definition.split('\n')" :key="idx" class="word-info-definition">
+              <span class="def-number">{{ idx + 1 }}.</span> {{ def.replace(/^\w+\s/, '') }}
+            </div>
+          </div>
+        </div>
+        
+        <div v-if="wordInfo.exchange" class="word-info-section">
+          <div class="word-info-label">变化形式</div>
+          <div class="word-info-content">{{ wordInfo.exchange }}</div>
+        </div>
+      </div>
+      <div v-else-if="selectedWord" class="warning-notice mt-4">
+        <div class="notice-content">
+          <div class="flex-1">
+            <div class="font-semibold">单词未找到</div>
+            <div class="text-sm mt-1">未能在词典中找到单词 "{{ selectedWord }}" 的信息。</div>
+          </div>
+        </div>
       </div>
 
     </div>

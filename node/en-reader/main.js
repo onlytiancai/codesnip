@@ -7,6 +7,7 @@ import Sentence from './components/Sentence.js';
 import { loadOfflineIPA, fetchIPA } from './utils/ipa.js';
 import { analyzeText } from './utils/tokenizer.js';
 import { speakWord, speakSentence, stopSpeech, isSpeechSupported } from './utils/speech.js';
+import { lookupWord } from './utils/dictionary.js';
 
 createApp({
   components: {
@@ -29,6 +30,9 @@ He studied hard and passed the exam.`);
     const showIpa = ref(false);
     const currentSentenceIndex = ref(0);
     const isSpeaking = ref(false);
+    const isLoadingWord = ref(false);
+    const selectedWord = ref(null);
+    const wordInfo = ref(null);
 
     const wordBlocks = reactive([]);
     const sentences = ref([]);
@@ -57,6 +61,27 @@ He studied hard and passed the exam.`);
       }
     }
 
+    // Word information functions
+    async function handleGetWordInfo(word) {
+      if (!word || word.trim() === '') {
+        return;
+      }
+      
+      isLoadingWord.value = true;
+      selectedWord.value = word;
+      wordInfo.value = null;
+      
+      try {
+        const info = await lookupWord(word);
+        wordInfo.value = info;
+      } catch (error) {
+        console.error('Failed to get word info:', error);
+        wordInfo.value = null;
+      } finally {
+        isLoadingWord.value = false;
+      }
+    }
+    
     // Speech functions
     async function speakSentences() {
       await speakSentence(sentences.value, currentSentenceIndex.value, rate.value, pitch.value, (sentenceText) => {
@@ -74,9 +99,16 @@ He studied hard and passed the exam.`);
     }
 
     // Speak word function
-    function handleSpeakWord(index) {
+    async function handleSpeakWord(index) {
       // Stop current sentence playback if any
       stop();
+      
+      // Get the word at the index
+      const word = wordBlocks[index];
+      if (word && word.word) {
+        // Get word info first
+        await handleGetWordInfo(word.word);
+      }
       
       speakWord(wordBlocks, index, rate.value, pitch.value, (speakText) => {
         utter = new SpeechSynthesisUtterance(speakText);
@@ -189,6 +221,9 @@ He studied hard and passed the exam.`);
       showIpa,
       currentSentenceIndex,
       isSpeaking,
+      isLoadingWord,
+      selectedWord,
+      wordInfo,
       wordBlocks,
       sentences,
       sortedKeys,
@@ -198,7 +233,8 @@ He studied hard and passed the exam.`);
       speakPreviousSentence,
       speakNextSentence,
       stop,
-      speakWord: handleSpeakWord
+      speakWord: handleSpeakWord,
+      getWordInfo: handleGetWordInfo
     };
   }
 }).mount('#app');
