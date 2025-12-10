@@ -116,7 +116,7 @@ He studied hard and passed the exam.`);
         utter.rate = rate.value;
         utter.pitch = pitch.value;
         return utter;
-      }, (i) => highlightIndex(i), () => highlightIndex(-1));
+      }, (i) => highlightIndex(i), () => {});
     }
 
     // Stop speech function
@@ -124,7 +124,6 @@ He studied hard and passed the exam.`);
       stopSpeech(() => {
         stopRequested = true;
         isSpeaking.value = false;
-        highlightIndex(-1);
         utter = null;
       });
     }
