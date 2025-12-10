@@ -8,6 +8,17 @@
 </head>
 
 <body>
+    <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
+        <h1>Dictionary Lookup</h1>
+        <div style="margin-bottom: 20px;">
+            <input type="text" id="wordInput" placeholder="Enter a word" style="padding: 8px; width: 200px;">
+            <button id="searchBtn" style="padding: 8px 16px; margin-left: 10px;">Search</button>
+        </div>
+        <div>
+            <h3>Result:</h3>
+            <pre id="resultDisplay" style="background: #f4f4f4; padding: 10px; border-radius: 5px; overflow-x: auto;"></pre>
+        </div>
+    </div>
     <script>
         async function httpRange(url, start, end) {
             const res = await fetch(url, {
@@ -96,20 +107,63 @@
             
             return value;
         }
-        (async () => {
-            const url = "./kv.db";
+        // Global variables to cache index
+        let cachedIndex = null;
+        const dbUrl = "./dict.db";
 
-            console.log("Loading index...");
-            const index = await loadIndex(url);
-            console.log("Index loaded with", index.length, "items");
-
-            // Test with a common word that should be in the ECDICT database
-            const testWords = ["hello", "world", "apple", "banana"];
-            
-            for (const word of testWords) {
-                const v = await kvGet(url, index, word);
-                console.log(`${word} =`, v ? JSON.parse(v) : null);
+        // Load index once and cache it
+        async function loadAndCacheIndex() {
+            if (!cachedIndex) {
+                console.log("Loading index...");
+                cachedIndex = await loadIndex(dbUrl);
+                console.log("Index loaded with", cachedIndex.length, "items");
             }
+            return cachedIndex;
+        }
+
+        // Search function for button click
+        async function searchWord() {
+            const word = document.getElementById('wordInput').value.trim();
+            const resultDisplay = document.getElementById('resultDisplay');
+            
+            if (!word) {
+                resultDisplay.textContent = "Please enter a word.";
+                return;
+            }
+            
+            resultDisplay.textContent = "Searching...";
+            
+            try {
+                const index = await loadAndCacheIndex();
+                const value = await kvGet(dbUrl, index, word);
+                
+                if (value) {
+                    // Format JSON for better readability
+                    const formattedJson = JSON.stringify(JSON.parse(value), null, 2);
+                    resultDisplay.textContent = formattedJson;
+                } else {
+                    resultDisplay.textContent = `Word "${word}" not found.`;
+                }
+            } catch (error) {
+                console.error("Error searching word:", error);
+                resultDisplay.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Add event listener to search button
+        document.getElementById('searchBtn').addEventListener('click', searchWord);
+        
+        // Also search on Enter key
+        document.getElementById('wordInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchWord();
+            }
+        });
+
+        // Initialize: load index on page load
+        (async () => {
+            await loadAndCacheIndex();
+            document.getElementById('resultDisplay').textContent = "Index loaded. Ready to search!";
         })();
 
     </script>
