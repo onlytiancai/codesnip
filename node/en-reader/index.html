@@ -454,14 +454,8 @@
         <!-- 句子翻译显示 -->
         <div v-if="wordBlocks.length" class="current-sentence-section">
           <h2 class="word-info-label">句子翻译</h2>
-          <div v-if="isLoadingTranslation" class="loading-indicator">
-            <div class="notice-content">
-              <div class="flex-1">
-                <div class="font-semibold">正在翻译...</div>
-              </div>
-            </div>
-          </div>
-          <div v-else-if="translationError" class="warning-notice">
+          <!-- 错误信息始终优先显示 -->
+          <div v-if="translationError" class="warning-notice">
             <div class="notice-content">
               <div class="flex-1">
                 <div class="font-semibold">翻译错误</div>
@@ -469,10 +463,21 @@
               </div>
             </div>
           </div>
-          <div v-else-if="currentSentenceTranslation" class="word-info-panel">
-            <pre class="word-info-content">{{ currentSentenceTranslation }}</pre>
+          <!-- 翻译内容区域 -->
+          <div v-else>
+            <!-- 显示翻译内容（流式更新） -->
+            <div class="word-info-panel">
+              <pre class="word-info-content">{{ currentSentenceTranslation || '（翻译进行中...）' }}</pre>
+            </div>
+            <!-- 加载指示器：只在没有翻译内容且正在加载时显示 -->
+            <div v-if="isLoadingTranslation && !currentSentenceTranslation" class="loading-indicator mt-2">
+              <div class="notice-content">
+                <div class="flex-1">
+                  <div class="font-semibold">正在翻译...</div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div v-else class="text-sm text-slate-400">选择一个句子查看翻译</div>
         </div>
 
         <!-- Word Information Panel -->

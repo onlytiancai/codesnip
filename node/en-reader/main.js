@@ -37,8 +37,10 @@ He studied hard and passed the exam.`);
     // Translation state
     const currentSentenceTranslation = ref('');
     const isLoadingTranslation = ref(false);
-    const translationError = ref(null);
+    const translationError = ref(false);
     const isAnalyzing = ref(false);
+    const isSettingInitialIndex = ref(false);
+    const justAnalyzed = ref(false);
 
     const wordBlocks = reactive([]);
     const sentences = ref([]);
@@ -62,6 +64,7 @@ He studied hard and passed the exam.`);
       
       // Reset state variables
       isAnalyzing.value = true;
+      isSettingInitialIndex.value = true;
       currentSentenceIndex.value = 0;
       isSpeaking.value = false;
       isLoadingWord.value = false;
@@ -75,10 +78,12 @@ He studied hard and passed the exam.`);
       if (sentences.value.length > 0 && !sentences.value[0].isNewline) {
         const firstSentence = sentences.value[0].words.map(word => word.word).join(' ');
         await translateSentence(firstSentence);
+        justAnalyzed.value = true; // 设置标志位，表示刚刚分析完并手动翻译了
       }
       
-      // Reset analyzing flag
+      // Reset flags
       isAnalyzing.value = false;
+      isSettingInitialIndex.value = false;
     }
 
     // Highlight functions
@@ -270,8 +275,14 @@ He studied hard and passed the exam.`);
 
     // Watch for changes in currentSentenceIndex and translate the new sentence
     watchEffect(() => {
-      // Skip translation if we're in the middle of analyzing
-      if (isAnalyzing.value) return;
+      // Skip translation if we're in the middle of analyzing or setting initial index
+      if (isAnalyzing.value || isSettingInitialIndex.value) return;
+      
+      // If we just analyzed and manually translated, skip the first watchEffect run
+      if (justAnalyzed.value && currentSentenceIndex.value === 0) {
+        justAnalyzed.value = false;
+        return;
+      }
       
       if (sentences.value.length > 0 && currentSentenceIndex.value >= 0 && currentSentenceIndex.value < sentences.value.length) {
         const currentSentence = sentences.value[currentSentenceIndex.value];

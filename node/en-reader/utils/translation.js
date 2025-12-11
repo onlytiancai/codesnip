@@ -34,20 +34,45 @@ export async function translateSentence(sentence, options = {}) {
 
     let fullTranslation = '';
     const decoder = new TextDecoder();
+    let buffer = '';
 
     for await (const chunk of response.body) {
-      const chunkText = decoder.decode(chunk);
+      buffer += decoder.decode(chunk);
+      
+      // Split buffer into lines
+      const lines = buffer.split('\n');
+      // Keep the last line (could be incomplete)
+      buffer = lines.pop();
+      
+      // Process each complete line
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        
+        try {
+          const chunkData = JSON.parse(line);
+          if (chunkData.response) {
+            fullTranslation += chunkData.response;
+            onProgress?.(fullTranslation);
+          }
+          if (chunkData.done) {
+            break;
+          }
+        } catch (e) {
+          console.error('Failed to parse chunk:', e);
+        }
+      }
+    }
+
+    // Process any remaining data in buffer
+    if (buffer.trim()) {
       try {
-        const chunkData = JSON.parse(chunkText);
+        const chunkData = JSON.parse(buffer);
         if (chunkData.response) {
           fullTranslation += chunkData.response;
           onProgress?.(fullTranslation);
         }
-        if (chunkData.done) {
-          break;
-        }
       } catch (e) {
-        console.error('Failed to parse chunk:', e);
+        console.error('Failed to parse remaining buffer:', e);
       }
     }
 
