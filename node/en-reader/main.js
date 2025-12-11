@@ -1,5 +1,5 @@
 // main.js - Application entry point
-import { createApp, ref, reactive, computed, onMounted, onUnmounted } from './lib/vue/vue.esm-browser.js';
+import { createApp, ref, reactive, computed, onMounted, onUnmounted, watchEffect } from './lib/vue/vue.esm-browser.js';
 // Import components
 import WordBlock from './components/WordBlock.js';
 import Sentence from './components/Sentence.js';
@@ -8,6 +8,7 @@ import { loadOfflineIPA, fetchIPA } from './utils/ipa.js';
 import { analyzeText } from './utils/tokenizer.js';
 import { speakWord, speakSentence, stopSpeech, isSpeechSupported } from './utils/speech.js';
 import { lookupWord } from './utils/dictionary.js';
+import { translateSentence as translateSentenceApi } from './utils/translation.js';
 
 createApp({
   components: {
@@ -33,6 +34,11 @@ He studied hard and passed the exam.`);
     const isLoadingWord = ref(false);
     const selectedWord = ref(null);
     const wordInfo = ref(null);
+    // Translation state
+    const currentSentenceTranslation = ref('');
+    const isLoadingTranslation = ref(false);
+    const translationError = ref(null);
+    const isAnalyzing = ref(false);
 
     const wordBlocks = reactive([]);
     const sentences = ref([]);
@@ -55,6 +61,7 @@ He studied hard and passed the exam.`);
       stop();
       
       // Reset state variables
+      isAnalyzing.value = true;
       currentSentenceIndex.value = 0;
       isSpeaking.value = false;
       isLoadingWord.value = false;
@@ -63,6 +70,15 @@ He studied hard and passed the exam.`);
       stopRequested = false;
       
       const result = await analyzeText(text.value, wordBlocks, sentences, fetchIPA);
+      
+      // Translate the first sentence after analysis
+      if (sentences.value.length > 0 && !sentences.value[0].isNewline) {
+        const firstSentence = sentences.value[0].words.map(word => word.word).join(' ');
+        await translateSentence(firstSentence);
+      }
+      
+      // Reset analyzing flag
+      isAnalyzing.value = false;
     }
 
     // Highlight functions
@@ -128,6 +144,40 @@ He studied hard and passed the exam.`);
         utter.pitch = pitch.value;
         return utter;
       }, (i) => highlightIndex(i), () => {});
+    }
+
+    // Translate sentence function using Ollama API
+    async function translateSentence(sentence) {
+      if (!sentence) {
+        currentSentenceTranslation.value = '';
+        return;
+      }
+
+      isLoadingTranslation.value = true;
+      translationError.value = null;
+      currentSentenceTranslation.value = '';
+
+      try {
+        await translateSentenceApi(sentence, {
+          onProgress: (progress) => {
+            currentSentenceTranslation.value = progress;
+          },
+          onComplete: () => {
+            isLoadingTranslation.value = false;
+          },
+          onError: (error) => {
+            console.error('Translation error:', error);
+            translationError.value = '翻译失败，请检查Ollama服务是否正常运行';
+            currentSentenceTranslation.value = '';
+            isLoadingTranslation.value = false;
+          }
+        });
+      } catch (error) {
+        console.error('Translation error:', error);
+        translationError.value = '翻译失败，请检查Ollama服务是否正常运行';
+        currentSentenceTranslation.value = '';
+        isLoadingTranslation.value = false;
+      }
     }
 
     // Stop speech function
@@ -218,6 +268,20 @@ He studied hard and passed the exam.`);
       await loadOfflineIPA(isLoadingIPA);
     });
 
+    // Watch for changes in currentSentenceIndex and translate the new sentence
+    watchEffect(() => {
+      // Skip translation if we're in the middle of analyzing
+      if (isAnalyzing.value) return;
+      
+      if (sentences.value.length > 0 && currentSentenceIndex.value >= 0 && currentSentenceIndex.value < sentences.value.length) {
+        const currentSentence = sentences.value[currentSentenceIndex.value];
+        if (currentSentence && !currentSentence.isNewline) {
+          const sentenceText = currentSentence.words.map(word => word.word).join(' ');
+          translateSentence(sentenceText);
+        }
+      }
+    });
+
     onUnmounted(() => {
       window.removeEventListener('keydown', handleKeyDown);
     });
@@ -238,13 +302,18 @@ He studied hard and passed the exam.`);
       sentences,
       sortedKeys,
       speechSupported,
+      // Translation related state
+      currentSentenceTranslation,
+      isLoadingTranslation,
+      translationError,
       analyze,
       speakSentences,
       speakPreviousSentence,
       speakNextSentence,
       stop,
       speakWord: handleSpeakWord,
-      getWordInfo: handleGetWordInfo
+      getWordInfo: handleGetWordInfo,
+      translateSentence
     };
   }
 }).mount('#app');

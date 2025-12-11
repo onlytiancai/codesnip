@@ -328,6 +328,14 @@
       font-size: 1rem;
       line-height: 1.6;
     }
+
+    pre.word-info-content {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      margin: 0;
+      padding: 0;
+      font-family: inherit;
+    }
     
     .word-info-definition {
       margin-bottom: 0.75rem;
@@ -441,6 +449,30 @@
             </span>
           </div>
           <div v-else class="text-sm text-slate-400">选择一个句子开始学习</div>
+        </div>
+
+        <!-- 句子翻译显示 -->
+        <div v-if="wordBlocks.length" class="current-sentence-section">
+          <h2 class="word-info-label">句子翻译</h2>
+          <div v-if="isLoadingTranslation" class="loading-indicator">
+            <div class="notice-content">
+              <div class="flex-1">
+                <div class="font-semibold">正在翻译...</div>
+              </div>
+            </div>
+          </div>
+          <div v-else-if="translationError" class="warning-notice">
+            <div class="notice-content">
+              <div class="flex-1">
+                <div class="font-semibold">翻译错误</div>
+                <div class="text-sm mt-1">{{ translationError }}</div>
+              </div>
+            </div>
+          </div>
+          <div v-else-if="currentSentenceTranslation" class="word-info-panel">
+            <pre class="word-info-content">{{ currentSentenceTranslation }}</pre>
+          </div>
+          <div v-else class="text-sm text-slate-400">选择一个句子查看翻译</div>
         </div>
 
         <!-- Word Information Panel -->
