@@ -436,7 +436,7 @@
         <div v-if="wordBlocks.length" class="current-sentence-section">
           <h2 class="word-info-label">当前句子</h2>
           <div v-if="currentSentenceIndex >= 0 && currentSentenceIndex < sentences.length && !sentences[currentSentenceIndex].isNewline" class="sentence-container">
-            <Sentence :sentence="sentences[currentSentenceIndex]" :show-ipa="showIpa" :is-current="true" :on-word-click="speakWord" />
+            <Sentence :sentence="sentences[currentSentenceIndex]" :show-ipa="showIpa" :sentence-index="currentSentenceIndex" :is-current="true" :on-word-click="speakWord" />
           </div>
           <div v-else class="text-sm text-slate-400">选择一个句子开始学习</div>
         </div>

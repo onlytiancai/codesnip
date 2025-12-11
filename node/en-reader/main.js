@@ -51,6 +51,17 @@ He studied hard and passed the exam.`);
 
     // Analyze text function
     async function analyze() {
+      // Stop any ongoing speech
+      stop();
+      
+      // Reset state variables
+      currentSentenceIndex.value = 0;
+      isSpeaking.value = false;
+      isLoadingWord.value = false;
+      selectedWord.value = null;
+      wordInfo.value = null;
+      stopRequested = false;
+      
       const result = await analyzeText(text.value, wordBlocks, sentences, fetchIPA);
     }
 
