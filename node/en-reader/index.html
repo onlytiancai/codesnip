@@ -603,7 +603,7 @@
         </div>
 
         <!-- 句子翻译显示 -->
-        <div v-if="wordBlocks.length" class="current-sentence-section">
+        <div v-if="wordBlocks.length && settings.enableTranslation" class="current-sentence-section">
           <h2 class="word-info-label">句子翻译</h2>
           <!-- 错误信息始终优先显示 -->
           <div v-if="translationError" class="warning-notice">

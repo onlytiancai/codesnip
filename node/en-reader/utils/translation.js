@@ -11,9 +11,10 @@
  * @param {string} [config.ollamaApiUrl] - Ollama API URL
  * @param {string} [config.modelName] - Model name to use
  * @param {string} [config.translationPrompt] - Translation prompt template
+ * @param {AbortController} [abortController] - AbortController for cancellation
  * @returns {Promise<string>} The translated sentence
  */
-export async function translateSentence(sentence, options = {}, config = {}) {
+export async function translateSentence(sentence, options = {}, config = {}, abortController = null) {
   if (!sentence) {
     options.onProgress?.('');
     options.onComplete?.('');
@@ -35,7 +36,8 @@ export async function translateSentence(sentence, options = {}, config = {}) {
         model: modelName,
         prompt: prompt,
         stream: true
-      })
+      }),
+      signal: abortController?.signal
     });
 
     if (!response.body) {
@@ -89,6 +91,10 @@ export async function translateSentence(sentence, options = {}, config = {}) {
     onComplete?.(fullTranslation);
     return fullTranslation;
   } catch (error) {
+    // Ignore AbortError since it's expected when canceling
+    if (error.name === 'AbortError') {
+      return '';
+    }
     console.error('Translation error:', error);
     onError?.(error.message);
     throw error;

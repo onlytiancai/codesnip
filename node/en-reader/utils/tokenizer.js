@@ -20,7 +20,7 @@ export async function analyzeText(text, wordBlocks, sentences, fetchIPA) {
   sentences.value = [];
 
   // Build tokens and sentences simultaneously
-  const sentenceSplitRe = /[.,!?，。！；;]/; // include various punctuation
+    const sentenceSplitRe = /[.!?！;]/; // only use sentence-ending punctuation (excluding commas)
   
   // Current sentence object
   let currentSentence = {

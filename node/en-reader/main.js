@@ -63,6 +63,8 @@ He studied hard and passed the exam.`);
     // Speech synthesis variables
     let utter = null;
     let stopRequested = false;
+    // Translation cancellation variables
+    let translationAbortController = null;
 
     // Check SpeechSynthesis support
     speechSupported.value = isSpeechSupported();
@@ -109,12 +111,15 @@ He studied hard and passed the exam.`);
         return;
       }
       
+      // Remove punctuation from word for lookup
+      const wordWithoutPunctuation = word.replace(/[.,!?;:()"'’]$/g, '');
+      
       isLoadingWord.value = true;
-      selectedWord.value = word;
+      selectedWord.value = wordWithoutPunctuation;
       wordInfo.value = null;
       
       try {
-        const info = await lookupWord(word);
+        const info = await lookupWord(wordWithoutPunctuation);
         wordInfo.value = info;
       } catch (error) {
         console.error('Failed to get word info:', error);
@@ -168,6 +173,15 @@ He studied hard and passed the exam.`);
         return;
       }
 
+      // Cancel any ongoing translation
+      if (translationAbortController) {
+        translationAbortController.abort();
+        translationAbortController = null;
+      }
+
+      // Create new AbortController for this translation
+      translationAbortController = new AbortController();
+
       isLoadingTranslation.value = true;
       translationError.value = null;
       currentSentenceTranslation.value = '';
@@ -182,19 +196,25 @@ He studied hard and passed the exam.`);
         },
         onComplete: () => {
           isLoadingTranslation.value = false;
+          translationAbortController = null;
         },
         onError: (error) => {
           console.error('Translation error:', error);
           translationError.value = '翻译失败，请检查Ollama服务是否正常运行';
           currentSentenceTranslation.value = '';
           isLoadingTranslation.value = false;
+          translationAbortController = null;
         }
-      }, translationSettings);
+      }, translationSettings, translationAbortController);
       } catch (error) {
-        console.error('Translation error:', error);
-        translationError.value = '翻译失败，请检查Ollama服务是否正常运行';
-        currentSentenceTranslation.value = '';
+        // Ignore AbortError since it's expected when canceling
+        if (error.name !== 'AbortError') {
+          console.error('Translation error:', error);
+          translationError.value = '翻译失败，请检查Ollama服务是否正常运行';
+          currentSentenceTranslation.value = '';
+        }
         isLoadingTranslation.value = false;
+        translationAbortController = null;
       }
     }
 
