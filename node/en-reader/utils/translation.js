@@ -7,9 +7,13 @@
  * @param {Function} options.onProgress - Callback for progress updates
  * @param {Function} options.onComplete - Callback for translation completion
  * @param {Function} options.onError - Callback for translation errors
+ * @param {Object} [config] - API configuration
+ * @param {string} [config.ollamaApiUrl] - Ollama API URL
+ * @param {string} [config.modelName] - Model name to use
+ * @param {string} [config.translationPrompt] - Translation prompt template
  * @returns {Promise<string>} The translated sentence
  */
-export async function translateSentence(sentence, options = {}) {
+export async function translateSentence(sentence, options = {}, config = {}) {
   if (!sentence) {
     options.onProgress?.('');
     options.onComplete?.('');
@@ -17,13 +21,19 @@ export async function translateSentence(sentence, options = {}) {
   }
 
   const { onProgress, onComplete, onError } = options;
+  
+  // Use default values if config not provided
+  const apiUrl = config.ollamaApiUrl || 'http://localhost:11434/api/generate';
+  const modelName = config.modelName || 'gemma3:4b';
+  const promptTemplate = config.translationPrompt || '请将以下英文句子翻译成中文："{sentence}"';
+  const prompt = promptTemplate.replace('{sentence}', sentence);
 
   try {
-    const response = await fetch("http://localhost:11434/api/generate", {
+    const response = await fetch(apiUrl, {
       method: "POST",
       body: JSON.stringify({
-        model: "gemma3:4b",
-        prompt: `请将以下英文句子翻译成中文："${sentence}"`,
+        model: modelName,
+        prompt: prompt,
         stream: true
       })
     });

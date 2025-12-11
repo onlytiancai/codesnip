@@ -25,10 +25,8 @@ For example, e.g., i.e., and etc. are common abbreviations.
 Low-dimensional embeddings and high-performance computing are important in this field. She carries a book and reads it. The dog is running and barks loudly.
 
 He studied hard and passed the exam.`);
-    const rate = ref(1.0);
-    const pitch = ref(1.0);
+
     const isLoadingIPA = ref(false);
-    const showIpa = ref(false);
     const currentSentenceIndex = ref(0);
     const isSpeaking = ref(false);
     const isLoadingWord = ref(false);
@@ -41,6 +39,18 @@ He studied hard and passed the exam.`);
     const isAnalyzing = ref(false);
     const isSettingInitialIndex = ref(false);
     const justAnalyzed = ref(false);
+    
+    // Settings state
+    const isSettingsOpen = ref(false);
+    const settings = reactive({
+      enableTranslation: true,
+      ollamaApiUrl: 'http://localhost:11434/api/generate',
+      modelName: 'gemma3:4b',
+      translationPrompt: '请将以下英文句子翻译成中文："{sentence}"',
+      rate: 1.0,
+      pitch: 1.0,
+      showIpa: false
+    });
 
     const wordBlocks = reactive([]);
     const sentences = ref([]);
@@ -75,9 +85,9 @@ He studied hard and passed the exam.`);
       const result = await analyzeText(text.value, wordBlocks, sentences, fetchIPA);
       
       // Translate the first sentence after analysis
-      if (sentences.value.length > 0 && !sentences.value[0].isNewline) {
+      if (settings.enableTranslation && sentences.value.length > 0 && !sentences.value[0].isNewline) {
         const firstSentence = sentences.value[0].words.map(word => word.word).join(' ');
-        await translateSentence(firstSentence);
+        await translateSentence(firstSentence, {}, settings);
         justAnalyzed.value = true; // 设置标志位，表示刚刚分析完并手动翻译了
       }
       
@@ -116,11 +126,11 @@ He studied hard and passed the exam.`);
     
     // Speech functions
     async function speakSentences() {
-      await speakSentence(sentences.value, currentSentenceIndex.value, rate.value, pitch.value, (sentenceText) => {
+      await speakSentence(sentences.value, currentSentenceIndex.value, settings.rate, settings.pitch, (sentenceText) => {
         utter = new SpeechSynthesisUtterance(sentenceText);
         utter.lang = "en-US";
-        utter.rate = rate.value;
-        utter.pitch = pitch.value;
+        utter.rate = settings.rate;
+        utter.pitch = settings.pitch;
         return utter;
       }, () => {
         isSpeaking.value = true;
@@ -142,17 +152,17 @@ He studied hard and passed the exam.`);
         await handleGetWordInfo(word.word);
       }
       
-      speakWord(wordBlocks, index, rate.value, pitch.value, (speakText) => {
+      speakWord(wordBlocks, index, settings.rate, settings.pitch, (speakText) => {
         utter = new SpeechSynthesisUtterance(speakText);
         utter.lang = "en-US";
-        utter.rate = rate.value;
-        utter.pitch = pitch.value;
+        utter.rate = settings.rate;
+        utter.pitch = settings.pitch;
         return utter;
       }, (i) => highlightIndex(i), () => {});
     }
 
     // Translate sentence function using Ollama API
-    async function translateSentence(sentence) {
+    async function translateSentence(sentence, options = {}, customSettings = null) {
       if (!sentence) {
         currentSentenceTranslation.value = '';
         return;
@@ -162,21 +172,24 @@ He studied hard and passed the exam.`);
       translationError.value = null;
       currentSentenceTranslation.value = '';
 
+      // Use custom settings if provided, otherwise use global settings
+      const translationSettings = customSettings || settings;
+
       try {
         await translateSentenceApi(sentence, {
-          onProgress: (progress) => {
-            currentSentenceTranslation.value = progress;
-          },
-          onComplete: () => {
-            isLoadingTranslation.value = false;
-          },
-          onError: (error) => {
-            console.error('Translation error:', error);
-            translationError.value = '翻译失败，请检查Ollama服务是否正常运行';
-            currentSentenceTranslation.value = '';
-            isLoadingTranslation.value = false;
-          }
-        });
+        onProgress: (progress) => {
+          currentSentenceTranslation.value = progress;
+        },
+        onComplete: () => {
+          isLoadingTranslation.value = false;
+        },
+        onError: (error) => {
+          console.error('Translation error:', error);
+          translationError.value = '翻译失败，请检查Ollama服务是否正常运行';
+          currentSentenceTranslation.value = '';
+          isLoadingTranslation.value = false;
+        }
+      }, translationSettings);
       } catch (error) {
         console.error('Translation error:', error);
         translationError.value = '翻译失败，请检查Ollama服务是否正常运行';
@@ -271,6 +284,8 @@ He studied hard and passed the exam.`);
       window.addEventListener('keydown', handleKeyDown);
       // Load offline IPA map
       await loadOfflineIPA(isLoadingIPA);
+      // Load settings from localStorage
+      loadSettings();
     });
 
     // Watch for changes in currentSentenceIndex and translate the new sentence
@@ -284,14 +299,36 @@ He studied hard and passed the exam.`);
         return;
       }
       
-      if (sentences.value.length > 0 && currentSentenceIndex.value >= 0 && currentSentenceIndex.value < sentences.value.length) {
+      // Only translate if translation is enabled
+      if (settings.enableTranslation && sentences.value.length > 0 && currentSentenceIndex.value >= 0 && currentSentenceIndex.value < sentences.value.length) {
         const currentSentence = sentences.value[currentSentenceIndex.value];
         if (currentSentence && !currentSentence.isNewline) {
           const sentenceText = currentSentence.words.map(word => word.word).join(' ');
-          translateSentence(sentenceText);
+          translateSentence(sentenceText, {}, settings);
         }
       }
     });
+    
+    // Settings functions
+    function toggleSettings() {
+      isSettingsOpen.value = !isSettingsOpen.value;
+    }
+    
+    function saveSettings() {
+      // Save settings to localStorage
+      localStorage.setItem('wawaSettings', JSON.stringify(settings));
+      // Close settings panel
+      isSettingsOpen.value = false;
+    }
+    
+    // Load settings from localStorage
+    function loadSettings() {
+      const savedSettings = localStorage.getItem('wawaSettings');
+      if (savedSettings) {
+        const parsedSettings = JSON.parse(savedSettings);
+        Object.assign(settings, parsedSettings);
+      }
+    }
 
     onUnmounted(() => {
       window.removeEventListener('keydown', handleKeyDown);
@@ -300,10 +337,7 @@ He studied hard and passed the exam.`);
     // Return reactive data and methods
     return {
       text,
-      rate,
-      pitch,
       isLoadingIPA,
-      showIpa,
       currentSentenceIndex,
       isSpeaking,
       isLoadingWord,
@@ -317,6 +351,11 @@ He studied hard and passed the exam.`);
       currentSentenceTranslation,
       isLoadingTranslation,
       translationError,
+      // Settings related state and methods
+      isSettingsOpen,
+      settings,
+      toggleSettings,
+      saveSettings,
       analyze,
       speakSentences,
       speakPreviousSentence,
