@@ -185,7 +185,7 @@
       right: 0;
       bottom: 0;
       background-color: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
+      z-index: 2001;
       opacity: 1;
       transition: opacity 0.3s ease;
     }
@@ -198,7 +198,7 @@
       height: 100vh;
       background-color: white;
       box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
-      z-index: 1001;
+      z-index: 2002;
       transition: right 0.3s ease;
       display: flex;
       flex-direction: column;
@@ -724,15 +724,6 @@
       </div>
     </div>
 
-    <!-- Word tooltip component -->
-    <word-tooltip
-      :visible="tooltipVisible"
-      :position="tooltipPosition"
-      :is-loading="isLoadingWord"
-      :word-info="wordInfo"
-      @close="closeTooltip"
-    />
-
     <!-- 抽屉式设置面板 -->
     <div class="settings-overlay" v-if="isSettingsOpen" @click="toggleSettings"></div>
     <div class="settings-drawer" :class="{ 'open': isSettingsOpen }">
@@ -797,6 +788,15 @@
         <button class="settings-save-btn" @click="saveSettings">保存设置</button>
       </div>
     </div>
+    
+    <!-- Word tooltip component -->
+    <word-tooltip
+      :visible="tooltipVisible"
+      :position="tooltipPosition"
+      :is-loading="isLoadingWord"
+      :word-info="wordInfo"
+      @close="closeTooltip"
+    />
   </div>
 
   <script type="module" src="main.js"></script>
