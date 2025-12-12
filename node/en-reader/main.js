@@ -56,7 +56,19 @@ He studied hard and passed the exam.`);
       enableParagraphTranslation: true,
       ollamaApiUrl: 'http://localhost:11434/api/generate',
       modelName: 'gemma3:4b',
-      translationPrompt: '请将以下英文句子翻译成中文："{sentence}"',
+      translationPrompt: `
+You are a professional chinese native translator who needs to fluently translate text into chinese.
+
+## Translation Rules
+1. Output only the translated content, without explanations or additional content (such as "Here's the translation:" or "Translation as follows:")
+2. The returned translation must maintain exactly the same number of paragraphs and format as the original text
+3. If the text contains HTML tags, consider where the tags should be placed in the translation while maintaining fluency
+4. For content that should not be translated (such as proper nouns, code, etc.), keep the original text.
+
+Translate to chinese (output translation only):
+
+{sentence}
+      `,
       rate: 1.0,
       pitch: 1.0,
       showIpa: false
