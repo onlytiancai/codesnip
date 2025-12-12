@@ -4,6 +4,7 @@ Purpose
 - Feature-rich English reader application that runs entirely in the browser. It tokenizes input text, looks up IPA using a local offline CSV file, provides word information, uses the Web Speech API for text-to-speech with per-word/sentence highlighting, and supports sentence translation via Ollama API.
 
 Quick facts for an AI agent
+- 不要尝试用 python3 -m http.server 8000 来测试页面，直接跳过测试
 - Modular Vue3 application: Uses component-based architecture with separate files for components and utilities.
 - Main entry point: `main.js` handles application setup and logic.
 - Components directory: `components/` contains Vue components (Sentence.js, WordBlock.js).

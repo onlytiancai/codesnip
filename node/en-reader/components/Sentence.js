@@ -26,6 +26,14 @@ export default defineComponent({
     onWordClick: {
       type: Function,
       default: () => {}
+    },
+    onWordMouseEnter: {
+      type: Function,
+      default: () => {}
+    },
+    onWordMouseLeave: {
+      type: Function,
+      default: () => {}
     }
   },
   setup(props) {
@@ -46,6 +54,8 @@ export default defineComponent({
           :sentence-index="sentenceIndex"
           :word-index="idx"
           :on-click="onWordClick"
+          :on-mouse-enter="onWordMouseEnter"
+          :on-mouse-leave="onWordMouseLeave"
         />
     </span>
   `

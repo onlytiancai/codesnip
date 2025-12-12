@@ -32,6 +32,14 @@ He studied hard and passed the exam.`);
     const isLoadingWord = ref(false);
     const selectedWord = ref(null);
     const wordInfo = ref(null);
+    
+    // Tooltip state
+    const tooltipVisible = ref(false);
+    const tooltipPosition = ref({ x: 0, y: 0 });
+    const tooltipWordIndex = ref(null);
+    const tooltipSentenceIndex = ref(null);
+    const tooltipWordIdx = ref(null);
+    const isTooltipHovered = ref(false);
     // Translation state
     const currentSentenceTranslation = ref('');
     const isLoadingTranslation = ref(false);
@@ -105,8 +113,56 @@ He studied hard and passed the exam.`);
       }
     }
 
+    // Hover highlight function
+    function hoverIndex(index) {
+      for (let i = 0; i < wordBlocks.length; i++) {
+        wordBlocks[i].hover = (i === index);
+      }
+    }
+
+    // Clear hover highlight
+    function clearHover() {
+      for (let i = 0; i < wordBlocks.length; i++) {
+        wordBlocks[i].hover = false;
+      }
+    }
+
+    // Handle mouse enter word
+    function handleWordMouseEnter(index, sentenceIdx, wordIdx) {
+      hoverIndex(index);
+    }
+
+    // Handle mouse leave word
+    function handleWordMouseLeave(index) {
+      if (!tooltipVisible.value || tooltipWordIndex.value !== index) {
+        // Only clear hover if tooltip is not visible or not for this word
+        clearHover();
+      }
+      // Don't close tooltip when mouse leaves word
+    }
+
+    // Handle tooltip mouse enter
+    function handleTooltipMouseEnter() {
+      isTooltipHovered.value = true;
+    }
+
+    // Handle tooltip mouse leave
+    function handleTooltipMouseLeave() {
+      isTooltipHovered.value = false;
+      // Don't close tooltip when mouse leaves tooltip
+    }
+
+    // Close tooltip function
+    function closeTooltip() {
+      tooltipVisible.value = false;
+      tooltipWordIndex.value = null;
+      tooltipSentenceIndex.value = null;
+      tooltipWordIdx.value = null;
+      clearHover();
+    }
+
     // Word information functions
-    async function handleGetWordInfo(word) {
+    async function handleGetWordInfo(word, index, sentenceIdx, wordIdx) {
       if (!word || word.trim() === '') {
         return;
       }
@@ -118,12 +174,31 @@ He studied hard and passed the exam.`);
       selectedWord.value = wordWithoutPunctuation;
       wordInfo.value = null;
       
+      // Set tooltip position
+      const wordElement = document.getElementById(`word-${sentenceIdx}-${wordIdx}`);
+      if (wordElement) {
+        const rect = wordElement.getBoundingClientRect();
+        tooltipPosition.value = {
+          x: rect.left + rect.width / 2,
+          y: rect.top - 10
+        };
+      }
+      
       try {
         const info = await lookupWord(wordWithoutPunctuation);
         wordInfo.value = info;
+        
+        // Show tooltip after getting word info
+        if (wordInfo.value) {
+          tooltipVisible.value = true;
+          tooltipWordIndex.value = index;
+          tooltipSentenceIndex.value = sentenceIdx;
+          tooltipWordIdx.value = wordIdx;
+        }
       } catch (error) {
         console.error('Failed to get word info:', error);
         wordInfo.value = null;
+        closeTooltip();
       } finally {
         isLoadingWord.value = false;
       }
@@ -154,7 +229,7 @@ He studied hard and passed the exam.`);
       const word = wordBlocks[index];
       if (word && word.word) {
         // Get word info first
-        await handleGetWordInfo(word.word);
+        await handleGetWordInfo(word.word, index);
       }
       
       speakWord(wordBlocks, index, settings.rate, settings.pitch, (speakText) => {
@@ -266,7 +341,13 @@ He studied hard and passed the exam.`);
 
     // Keyboard event handler
     function handleKeyDown(event) {
-      // Only handle keys if speech is supported
+      // Handle ESC key to close tooltip
+      if (event.code === 'Escape' && tooltipVisible.value) {
+        closeTooltip();
+        return;
+      }
+      
+      // Only handle other keys if speech is supported
       if (!speechSupported.value) return;
 
       // Check if focus is in input/textarea
@@ -299,9 +380,26 @@ He studied hard and passed the exam.`);
       }
     }
 
+    // Handle click outside tooltip to close it
+    function handleClickOutside(event) {
+      if (tooltipVisible.value) {
+        const tooltipElement = document.querySelector('.word-tooltip:not(.hidden)');
+        const wordElement = tooltipSentenceIndex.value !== null && tooltipWordIdx.value !== null 
+          ? document.getElementById(`word-${tooltipSentenceIndex.value}-${tooltipWordIdx.value}`)
+          : null;
+        
+        // Check if click is outside tooltip and outside the associated word
+        if (tooltipElement && !tooltipElement.contains(event.target) && 
+            (!wordElement || !wordElement.contains(event.target))) {
+          closeTooltip();
+        }
+      }
+    }
+
     // Setup keyboard event listener
     onMounted(async () => {
       window.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('click', handleClickOutside);
       // Load offline IPA map
       await loadOfflineIPA(isLoadingIPA);
       // Load settings from localStorage
@@ -352,6 +450,7 @@ He studied hard and passed the exam.`);
 
     onUnmounted(() => {
       window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('click', handleClickOutside);
     });
 
     // Return reactive data and methods
@@ -383,7 +482,16 @@ He studied hard and passed the exam.`);
       stop,
       speakWord: handleSpeakWord,
       getWordInfo: handleGetWordInfo,
-      translateSentence
+      translateSentence,
+      // Tooltip related state and methods
+      tooltipVisible,
+      tooltipPosition,
+      isTooltipHovered,
+      handleTooltipMouseEnter,
+      handleTooltipMouseLeave,
+      handleWordMouseEnter,
+      handleWordMouseLeave,
+      closeTooltip
     };
   }
 }).mount('#app');

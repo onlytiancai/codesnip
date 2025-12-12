@@ -372,6 +372,93 @@
       border-radius: 0.25rem;
     }
 
+    .hover-hl {
+      background: linear-gradient(90deg, rgba(99, 102, 241, 0.7), rgba(99, 102, 241, 0.4));
+      padding: 0.125rem 0.35rem;
+      border-radius: 0.25rem;
+    }
+
+    /* Tooltip styles */
+    .word-tooltip {
+      position: fixed;
+      background-color: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      padding: 1rem;
+      z-index: 2000;
+      max-width: 300px;
+      transform: translateX(-50%) translateY(-100%);
+      pointer-events: auto;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .word-tooltip::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid white;
+    }
+
+    /* Tooltip close button */
+    .tooltip-close-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: none;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 4px;
+      color: #6b7280;
+      transition: color 0.2s ease;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .tooltip-close-btn:hover {
+      color: #374151;
+      background-color: #f3f4f6;
+    }
+
+    .word-tooltip.hidden {
+      opacity: 0;
+      transform: translateX(-50%) translateY(-95%);
+      pointer-events: none;
+    }
+
+    /* Loading spinner */
+    .loading-spinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #4f46e5;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
     .sentence-container {
       display: block;
       width: 100%;
@@ -579,8 +666,10 @@
             <!-- 按句子分组显示 -->
             <div class="sentence-container">
               <Sentence v-for="(sentence, sentenceIdx) in sentences" :key="sentenceIdx" :sentence="sentence"
-                :show-ipa="settings.showIpa" :sentence-index="sentenceIdx" :is-current="currentSentenceIndex === sentenceIdx"
-                :on-word-click="speakWord" />
+              :show-ipa="settings.showIpa" :sentence-index="sentenceIdx" :is-current="currentSentenceIndex === sentenceIdx"
+              :on-word-click="(index, sentenceIdx, wordIdx) => getWordInfo(sentence.words[wordIdx].word, index, sentenceIdx, wordIdx)"
+              :on-word-mouse-enter="handleWordMouseEnter"
+              :on-word-mouse-leave="handleWordMouseLeave" />
             </div>
           </template>
           <template v-else>
@@ -650,15 +739,6 @@
             <div class="word-info-content">{{ wordInfo.translation }}</div>
           </div>
           
-          <div v-if="wordInfo.definition" class="word-info-section">
-            <div class="word-info-label">定义</div>
-            <div class="word-info-content">
-              <div v-for="(def, idx) in wordInfo.definition.split('\n')" :key="idx" class="word-info-definition">
-                <span class="def-number">{{ idx + 1 }}.</span> {{ def.replace(/^\w+\s/, '') }}
-              </div>
-            </div>
-          </div>
-          
           <div v-if="wordInfo.exchange" class="word-info-section">
             <div class="word-info-label">变化形式</div>
             <div class="word-info-content">{{ wordInfo.exchange }}</div>
@@ -674,6 +754,41 @@
         </div>
         <div v-else class="mt-4">
           <span class="text-sm text-slate-400">点击单词查看详细信息</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Word tooltip -->
+    <div 
+      class="word-tooltip" 
+      :class="{ 'hidden': !tooltipVisible }"
+      :style="{ left: tooltipPosition.x + 'px', top: tooltipPosition.y + 'px' }"
+      @mouseenter="handleTooltipMouseEnter"
+      @mouseleave="handleTooltipMouseLeave"
+    >
+      <button class="tooltip-close-btn" @click="closeTooltip">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div v-if="isLoadingWord" class="loading-spinner">
+        <div class="spinner"></div>
+      </div>
+      <div v-else-if="wordInfo">
+        <div class="word-info-header">
+          <h2 class="word-info-word">{{ wordInfo.word }}</h2>
+          <span v-if="wordInfo.phonetic" class="word-info-phonetic">{{ wordInfo.phonetic }}</span>
+        </div>
+        
+        <div v-if="wordInfo.translation" class="word-info-section">
+          <div class="word-info-label">翻译</div>
+          <div class="word-info-content">{{ wordInfo.translation }}</div>
+        </div>
+        
+        <div v-if="wordInfo.exchange" class="word-info-section">
+          <div class="word-info-label">变化形式</div>
+          <div class="word-info-content">{{ wordInfo.exchange }}</div>
         </div>
       </div>
     </div>
