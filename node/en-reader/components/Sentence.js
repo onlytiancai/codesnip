@@ -40,11 +40,6 @@ export default defineComponent({
     return {};
   },
   template: `
-    <template v-if="sentence.isNewline">
-      <span class="sentence">
-        <span v-for="n in sentence.newline_count" :key="n" class="line-break"><br /></span>
-      </span>
-    </template>
     <span v-else class="sentence" :class="{'sentence-hl': isCurrent}">
       <WordBlock
           v-for="(w, idx) in sentence.words"
