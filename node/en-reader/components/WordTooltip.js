@@ -1,5 +1,5 @@
 // WordTooltip.js - Word tooltip component
-import { ref, reactive, onMounted, onUnmounted, defineComponent } from '../lib/vue/vue.esm-browser.js';
+import { ref, reactive, onMounted, onUnmounted, defineComponent, watch } from '../lib/vue/vue.esm-browser.js';
 
 export default defineComponent({
   name: 'WordTooltip',
@@ -23,7 +23,12 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     const isHovered = ref(false);
-    const showDefinition = ref(true);
+    const showDefinition = ref(false);
+
+    // Watch for changes in wordInfo to reset showDefinition to false
+    watch(() => props.wordInfo, () => {
+      showDefinition.value = false;
+    }, { immediate: true });
 
     // Handle tooltip mouse enter
     function handleMouseEnter() {
@@ -117,7 +122,7 @@ export default defineComponent({
         
         <div v-if="showDefinition && wordInfo.definition" class="word-info-section">
           <div class="word-info-label">定义</div>
-          <div class="word-info-content">{{ wordInfo.definition }}</div>
+          <pre class="word-info-content">{{ wordInfo.definition }}</pre>
         </div>
         
         <div v-if="wordInfo.exchange" class="word-info-section">
