@@ -40,7 +40,7 @@ export default defineComponent({
     return {};
   },
   template: `
-    <span v-else class="sentence" :class="{'sentence-hl': isCurrent}">
+    <span v-if="sentence.words.length > 0" class="sentence" :class="{'sentence-hl': isCurrent}">
       <WordBlock
           v-for="(w, idx) in sentence.words"
           :key="idx"
