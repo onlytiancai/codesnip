@@ -1,5 +1,5 @@
 // main.js - Application entry point
-import { createApp, ref, reactive, computed, onMounted, onUnmounted, watchEffect } from './lib/vue/vue.esm-browser.js';
+import { createApp, ref, reactive, computed, onMounted, onUnmounted, watchEffect, nextTick } from './lib/vue/vue.esm-browser.js';
 // Import components
 import WordBlock from './components/WordBlock.js';
 import Sentence from './components/Sentence.js';
@@ -53,6 +53,7 @@ He studied hard and passed the exam.`);
     const isSettingsOpen = ref(false);
     const settings = reactive({
       enableTranslation: true,
+      enableParagraphTranslation: true,
       ollamaApiUrl: 'http://localhost:11434/api/generate',
       modelName: 'gemma3:4b',
       translationPrompt: '请将以下英文句子翻译成中文："{sentence}"',
@@ -63,10 +64,44 @@ He studied hard and passed the exam.`);
 
     const wordBlocks = reactive([]);
     const sentences = ref([]);
+    const paragraphs = ref([]);
     
     // Computed property for sorted sentence keys
     const sortedKeys = computed(() => {
       return sentences.value.map((_, index) => index);
+    });
+    
+    // Computed property to build paragraphs from sentences
+    const buildParagraphs = computed(() => {
+      const paraMap = new Map();
+      
+      sentences.value.forEach(sentence => {
+        const paraIndex = sentence.paragraphIndex;
+        if (!paraMap.has(paraIndex)) {
+          paraMap.set(paraIndex, {
+            sentences: [],
+            translation: '',
+            isLoading: false,
+            error: null
+          });
+        }
+        paraMap.get(paraIndex).sentences.push(sentence);
+      });
+      
+      // Convert map to array and sort by paragraph index
+      return Array.from(paraMap.entries())
+        .sort((a, b) => a[0] - b[0])
+        .map(([index, para]) => {
+          return {
+            index,
+            ...para
+          };
+        });
+    });
+    
+    // Update paragraphs whenever buildParagraphs changes
+    watchEffect(() => {
+      paragraphs.value = buildParagraphs.value;
     });
 
     // Speech synthesis variables
@@ -74,6 +109,7 @@ He studied hard and passed the exam.`);
     let stopRequested = false;
     // Translation cancellation variables
     let translationAbortController = null;
+    let paragraphAbortControllers = new Map();
 
     // Check SpeechSynthesis support
     speechSupported.value = isSpeechSupported();
@@ -95,11 +131,28 @@ He studied hard and passed the exam.`);
       
       const result = await analyzeText(text.value, wordBlocks, sentences, fetchIPA);
       
+      // Wait for DOM updates and computed properties to recalculate
+      await nextTick();
+      
       // Translate the first sentence after analysis
-      if (settings.enableTranslation && sentences.value.length > 0 && !sentences.value[0].isNewline) {
-        const firstSentence = sentences.value[0].words.map(word => word.word).join(' ');
-        await translateSentence(firstSentence, {}, settings);
-        justAnalyzed.value = true; // 设置标志位，表示刚刚分析完并手动翻译了
+      if (settings.enableTranslation && sentences.value.length > 0) {
+        // Find the first non-newline sentence by global index
+        const firstSentence = sentences.value.find(s => !s.isNewline);
+        if (firstSentence) {
+          const firstSentenceText = firstSentence.words.map(word => word.word).join(' ');
+          await translateSentence(firstSentenceText, {}, settings);
+          justAnalyzed.value = true; // 设置标志位，表示刚刚分析完并手动翻译了
+        }
+      }
+      
+      // Translate all paragraphs after analysis
+      if (settings.enableParagraphTranslation && paragraphs.value.length > 0) {
+        for (let i = 0; i < paragraphs.value.length; i++) {
+          // Only translate paragraphs that have content
+          if (paragraphs.value[i].sentences.some(sent => !sent.isNewline)) {
+            await translateParagraph(i, settings);
+          }
+        }
       }
       
       // Reset flags
@@ -227,6 +280,71 @@ He studied hard and passed the exam.`);
       }, (i) => highlightIndex(i), () => {});
     }
 
+    // Translate paragraph function using Ollama API
+    async function translateParagraph(paragraphIndex, customSettings = null) {
+      if (!paragraphs.value[paragraphIndex]) {
+        return;
+      }
+
+      const paragraph = paragraphs.value[paragraphIndex];
+      
+      // Get paragraph text by joining all sentences
+      const paragraphText = paragraph.sentences
+        .filter(sentence => !sentence.isNewline)
+        .map(sentence => sentence.words.map(word => word.word).join(' '))
+        .join(' ');
+
+      if (!paragraphText) {
+        paragraph.translation = '';
+        return;
+      }
+
+      // Cancel any ongoing translation for this paragraph
+      if (paragraphAbortControllers.has(paragraphIndex)) {
+        paragraphAbortControllers.get(paragraphIndex).abort();
+        paragraphAbortControllers.delete(paragraphIndex);
+      }
+
+      // Create new AbortController for this translation
+      const abortController = new AbortController();
+      paragraphAbortControllers.set(paragraphIndex, abortController);
+
+      paragraph.isLoading = true;
+      paragraph.error = null;
+      paragraph.translation = '';
+
+      // Use custom settings if provided, otherwise use global settings
+      const translationSettings = customSettings || settings;
+
+      try {
+        await translateSentenceApi(paragraphText, {
+          onProgress: (progress) => {
+            paragraph.translation = progress;
+          },
+          onComplete: () => {
+            paragraph.isLoading = false;
+            paragraphAbortControllers.delete(paragraphIndex);
+          },
+          onError: (error) => {
+            console.error('Paragraph translation error:', error);
+            paragraph.error = '翻译失败，请检查Ollama服务是否正常运行';
+            paragraph.translation = '';
+            paragraph.isLoading = false;
+            paragraphAbortControllers.delete(paragraphIndex);
+          }
+        }, translationSettings, abortController);
+      } catch (error) {
+        // Ignore AbortError since it's expected when canceling
+        if (error.name !== 'AbortError') {
+          console.error('Paragraph translation error:', error);
+          paragraph.error = '翻译失败，请检查Ollama服务是否正常运行';
+          paragraph.translation = '';
+        }
+        paragraph.isLoading = false;
+        paragraphAbortControllers.delete(paragraphIndex);
+      }
+    }
+
     // Translate sentence function using Ollama API
     async function translateSentence(sentence, options = {}, customSettings = null) {
       if (!sentence) {
@@ -293,9 +411,14 @@ He studied hard and passed the exam.`);
       // Ensure wordBlocks is populated
       if (!wordBlocks.length) await analyze();
       
-      // Find the previous non-newline sentence
+      // Find the previous non-newline sentence by global sentenceIndex
       let prevIndex = currentSentenceIndex.value - 1;
-      while (prevIndex >= 0 && sentences.value[prevIndex].isNewline) {
+      while (prevIndex >= 0) {
+        // Find sentence with this global index
+        const sentence = sentences.value.find(s => s.sentenceIndex === prevIndex);
+        if (sentence && !sentence.isNewline) {
+          break;
+        }
         prevIndex--;
       }
       
@@ -311,13 +434,25 @@ He studied hard and passed the exam.`);
       // Ensure wordBlocks is populated
       if (!wordBlocks.length) await analyze();
       
-      // Find the next non-newline sentence
+      // Find the next non-newline sentence by global sentenceIndex
       let nextIndex = currentSentenceIndex.value + 1;
-      while (nextIndex < sentences.value.length && sentences.value[nextIndex].isNewline) {
+      while (true) {
+        // Find sentence with this global index
+        const sentence = sentences.value.find(s => s.sentenceIndex === nextIndex);
+        if (!sentence) {
+          // No more sentences
+          break;
+        }
+        if (!sentence.isNewline) {
+          // Found a valid sentence
+          break;
+        }
         nextIndex++;
       }
       
-      if (nextIndex < sentences.value.length) {
+      // Check if we found a valid sentence
+      const foundSentence = sentences.value.find(s => s.sentenceIndex === nextIndex);
+      if (foundSentence) {
         // Stop current sentence playback if any
         stop();
         currentSentenceIndex.value = nextIndex;
@@ -383,8 +518,9 @@ He studied hard and passed the exam.`);
       }
       
       // Only translate if translation is enabled
-      if (settings.enableTranslation && sentences.value.length > 0 && currentSentenceIndex.value >= 0 && currentSentenceIndex.value < sentences.value.length) {
-        const currentSentence = sentences.value[currentSentenceIndex.value];
+      if (settings.enableTranslation && sentences.value.length > 0) {
+        // Find current sentence by global sentenceIndex
+        const currentSentence = sentences.value.find(s => s.sentenceIndex === currentSentenceIndex.value);
         if (currentSentence && !currentSentence.isNewline) {
           const sentenceText = currentSentence.words.map(word => word.word).join(' ');
           translateSentence(sentenceText, {}, settings);
@@ -428,6 +564,7 @@ He studied hard and passed the exam.`);
       wordInfo,
       wordBlocks,
       sentences,
+      paragraphs,
       sortedKeys,
       speechSupported,
       // Translation related state

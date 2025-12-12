@@ -20,17 +20,20 @@ export async function analyzeText(text, wordBlocks, sentences, fetchIPA) {
   sentences.value = [];
 
   // Build tokens and sentences simultaneously
-    const sentenceSplitRe = /[.!?！;]/; // only use sentence-ending punctuation (excluding commas)
+  const sentenceSplitRe = /[.!?！;]/; // only use sentence-ending punctuation (excluding commas)
   
   // Current sentence object
   let currentSentence = {
     words: [],
     isNewline: false,
     newline_count: 0,
-    sentenceIndex: 0
+    sentenceIndex: 0,
+    paragraphIndex: 0
   };
 
   let wordIndex = 0;
+  let paragraphIndex = 0;
+  let globalSentenceIndex = 0; // Track global sentence index across all paragraphs
 
   for (let w of matches) {
     // Handle newlines
@@ -47,16 +50,24 @@ export async function analyzeText(text, wordBlocks, sentences, fetchIPA) {
         words: [],
         isNewline: true,
         newline_count: newlineCount,
-        sentenceIndex: sentences.value.length
+        sentenceIndex: globalSentenceIndex,
+        paragraphIndex: paragraphIndex
       };
       sentences.value.push(newlineSentence);
+      globalSentenceIndex++;
       
-      // Reset current sentence with correct sentenceIndex
+      // Check if this is a paragraph break (2 or more newlines)
+      if (newlineCount >= 2) {
+        paragraphIndex++;
+      }
+      
+      // Reset current sentence with correct sentenceIndex and paragraphIndex
       currentSentence = {
         words: [],
         isNewline: false,
         newline_count: 0,
-        sentenceIndex: sentences.value.length
+        sentenceIndex: globalSentenceIndex,
+        paragraphIndex: paragraphIndex
       };
       continue;
     }
@@ -111,13 +122,15 @@ export async function analyzeText(text, wordBlocks, sentences, fetchIPA) {
     // If token matches a split character, add current sentence to sentences
     if (sentenceSplitRe.test(w)) {
       sentences.value.push(currentSentence);
+      globalSentenceIndex++;
       
-      // Reset current sentence with correct sentenceIndex
+      // Reset current sentence with correct sentenceIndex and paragraphIndex
       currentSentence = {
         words: [],
         isNewline: false,
         newline_count: 0,
-        sentenceIndex: sentences.value.length
+        sentenceIndex: globalSentenceIndex,
+        paragraphIndex: paragraphIndex
       };
     }
   }

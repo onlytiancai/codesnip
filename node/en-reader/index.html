@@ -458,7 +458,7 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-
+    
     .sentence-container {
       display: block;
       width: 100%;
@@ -466,6 +466,22 @@
       margin-bottom: 0.5rem;
       border-radius: 0.5rem;
       transition: background-color 0.3s ease;
+    }
+    
+    /* 段落容器 */
+    .paragraph-container {
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    
+    /* 段落翻译 */
+    .paragraph-translation {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #f8fafc;
+      border-radius: 0.375rem;
+      border-left: 4px solid #4f46e5;
     }
 
     .sentence-hl {
@@ -663,13 +679,42 @@
         </div>
         <div class="sentences-container">
           <template v-if="wordBlocks.length">
-            <!-- 按句子分组显示 -->
-            <div class="sentence-container">
-              <Sentence v-for="(sentence, sentenceIdx) in sentences" :key="sentenceIdx" :sentence="sentence"
-              :show-ipa="settings.showIpa" :sentence-index="sentenceIdx" :is-current="currentSentenceIndex === sentenceIdx"
-              :on-word-click="(index, sentenceIdx, wordIdx) => { getWordInfo(sentence.words[wordIdx].word, index, sentenceIdx, wordIdx); speakWord(index); }"
-              :on-word-mouse-enter="handleWordMouseEnter"
-              :on-word-mouse-leave="handleWordMouseLeave" />
+            <!-- 按段落分组显示 -->
+            <div v-for="paragraph in paragraphs" :key="paragraph.index" class="paragraph-container">
+              <div class="sentence-container">
+                <Sentence v-for="sentence in paragraph.sentences" :key="sentence.sentenceIndex" :sentence="sentence"
+                :show-ipa="settings.showIpa" :sentence-index="sentence.sentenceIndex" :is-current="currentSentenceIndex === sentence.sentenceIndex"
+                :on-word-click="(index, sentenceIdx, wordIdx) => { getWordInfo(sentence.words[wordIdx].word, index, sentence.sentenceIndex, wordIdx); speakWord(index); }"
+                :on-word-mouse-enter="handleWordMouseEnter"
+                :on-word-mouse-leave="handleWordMouseLeave" />
+              </div>
+              <!-- 段落翻译显示 -->
+              <div v-if="settings.enableParagraphTranslation && paragraph.sentences.some(sent => !sent.isNewline)" class="paragraph-translation">
+                <!-- 错误信息始终优先显示 -->
+                <div v-if="paragraph.error" class="warning-notice">
+                  <div class="notice-content">
+                    <div class="flex-1">
+                      <div class="font-semibold">翻译错误</div>
+                      <div class="text-sm mt-1">{{ paragraph.error }}</div>
+                    </div>
+                  </div>
+                </div>
+                <!-- 翻译内容区域 -->
+                <div v-else>
+                  <!-- 显示翻译内容（流式更新） -->
+                  <div class="word-info-panel">
+                    <pre class="word-info-content">{{ paragraph.translation || '（翻译进行中...）' }}</pre>
+                  </div>
+                  <!-- 加载指示器：只在没有翻译内容且正在加载时显示 -->
+                  <div v-if="paragraph.isLoading && !paragraph.translation" class="loading-indicator mt-2">
+                    <div class="notice-content">
+                      <div class="flex-1">
+                        <div class="font-semibold">正在翻译...</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </template>
           <template v-else>
@@ -744,6 +789,11 @@
           <div class="settings-item">
             <label class="settings-label">
               <input type="checkbox" v-model="settings.enableTranslation" /> 启用句子翻译
+            </label>
+          </div>
+          <div class="settings-item">
+            <label class="settings-label">
+              <input type="checkbox" v-model="settings.enableParagraphTranslation" /> 启用段落翻译
             </label>
           </div>
           <div class="settings-item">

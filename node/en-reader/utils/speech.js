@@ -36,8 +36,8 @@ export async function speakSentence(sentences, sentenceIndex, rate, pitch, creat
     return;
   }
 
-  // Get current sentence from sentences array
-  const currentSentence = sentences[sentenceIndex];
+  // Get current sentence by global sentenceIndex
+  const currentSentence = sentences.find(s => s.sentenceIndex === sentenceIndex);
   
   // Check if current sentence exists
   if (!currentSentence) {
