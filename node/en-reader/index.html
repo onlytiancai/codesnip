@@ -720,78 +720,18 @@
           </div>
         </div>
 
-        <!-- Word Information Panel -->
-        <div v-if="isLoadingWord" class="loading-indicator mt-4">
-          <div class="notice-content">
-            <div class="flex-1">
-              <div class="font-semibold">正在加载单词信息...</div>
-            </div>
-          </div>
-        </div>
-        <div v-else-if="wordInfo" class="word-info-panel mt-4">
-          <div class="word-info-header">
-            <h2 class="word-info-word">{{ wordInfo.word }}</h2>
-            <span v-if="wordInfo.phonetic" class="word-info-phonetic">{{ wordInfo.phonetic }}</span>
-          </div>
-          
-          <div v-if="wordInfo.translation" class="word-info-section">
-            <div class="word-info-label">翻译</div>
-            <div class="word-info-content">{{ wordInfo.translation }}</div>
-          </div>
-          
-          <div v-if="wordInfo.exchange" class="word-info-section">
-            <div class="word-info-label">变化形式</div>
-            <div class="word-info-content">{{ wordInfo.exchange }}</div>
-          </div>
-        </div>
-        <div v-else-if="selectedWord" class="warning-notice mt-4">
-          <div class="notice-content">
-            <div class="flex-1">
-              <div class="font-semibold">单词未找到</div>
-              <div class="text-sm mt-1">未能在词典中找到单词 "{{ selectedWord }}" 的信息。</div>
-            </div>
-          </div>
-        </div>
-        <div v-else class="mt-4">
-          <span class="text-sm text-slate-400">点击单词查看详细信息</span>
-        </div>
+        <!-- Word information is now displayed in tooltip only -->
       </div>
     </div>
 
-    <!-- Word tooltip -->
-    <div 
-      class="word-tooltip" 
-      :class="{ 'hidden': !tooltipVisible }"
-      :style="{ left: tooltipPosition.x + 'px', top: tooltipPosition.y + 'px' }"
-      @mouseenter="handleTooltipMouseEnter"
-      @mouseleave="handleTooltipMouseLeave"
-    >
-      <button class="tooltip-close-btn" @click="closeTooltip">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-      <div v-if="isLoadingWord" class="loading-spinner">
-        <div class="spinner"></div>
-      </div>
-      <div v-else-if="wordInfo">
-        <div class="word-info-header">
-          <h2 class="word-info-word">{{ wordInfo.word }}</h2>
-          <span v-if="wordInfo.phonetic" class="word-info-phonetic">{{ wordInfo.phonetic }}</span>
-        </div>
-        
-        <div v-if="wordInfo.translation" class="word-info-section">
-          <div class="word-info-label">翻译</div>
-          <div class="word-info-content">{{ wordInfo.translation }}</div>
-        </div>
-        
-        <div v-if="wordInfo.exchange" class="word-info-section">
-          <div class="word-info-label">变化形式</div>
-          <div class="word-info-content">{{ wordInfo.exchange }}</div>
-        </div>
-      </div>
-    </div>
+    <!-- Word tooltip component -->
+    <word-tooltip
+      :visible="tooltipVisible"
+      :position="tooltipPosition"
+      :is-loading="isLoadingWord"
+      :word-info="wordInfo"
+      @close="closeTooltip"
+    />
 
     <!-- 抽屉式设置面板 -->
     <div class="settings-overlay" v-if="isSettingsOpen" @click="toggleSettings"></div>

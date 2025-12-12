@@ -3,6 +3,7 @@ import { createApp, ref, reactive, computed, onMounted, onUnmounted, watchEffect
 // Import components
 import WordBlock from './components/WordBlock.js';
 import Sentence from './components/Sentence.js';
+import WordTooltip from './components/WordTooltip.js';
 // Import utilities
 import { loadOfflineIPA, fetchIPA } from './utils/ipa.js';
 import { analyzeText } from './utils/tokenizer.js';
@@ -13,7 +14,8 @@ import { translateSentence as translateSentenceApi } from './utils/translation.j
 createApp({
   components: {
     WordBlock,
-    Sentence
+    Sentence,
+    WordTooltip
   },
   setup() {
     // Application state
@@ -39,7 +41,6 @@ He studied hard and passed the exam.`);
     const tooltipWordIndex = ref(null);
     const tooltipSentenceIndex = ref(null);
     const tooltipWordIdx = ref(null);
-    const isTooltipHovered = ref(false);
     // Translation state
     const currentSentenceTranslation = ref('');
     const isLoadingTranslation = ref(false);
@@ -141,17 +142,6 @@ He studied hard and passed the exam.`);
       // Don't close tooltip when mouse leaves word
     }
 
-    // Handle tooltip mouse enter
-    function handleTooltipMouseEnter() {
-      isTooltipHovered.value = true;
-    }
-
-    // Handle tooltip mouse leave
-    function handleTooltipMouseLeave() {
-      isTooltipHovered.value = false;
-      // Don't close tooltip when mouse leaves tooltip
-    }
-
     // Close tooltip function
     function closeTooltip() {
       tooltipVisible.value = false;
@@ -187,20 +177,16 @@ He studied hard and passed the exam.`);
       try {
         const info = await lookupWord(wordWithoutPunctuation);
         wordInfo.value = info;
-        
-        // Show tooltip after getting word info
-        if (wordInfo.value) {
-          tooltipVisible.value = true;
-          tooltipWordIndex.value = index;
-          tooltipSentenceIndex.value = sentenceIdx;
-          tooltipWordIdx.value = wordIdx;
-        }
       } catch (error) {
         console.error('Failed to get word info:', error);
         wordInfo.value = null;
-        closeTooltip();
       } finally {
         isLoadingWord.value = false;
+        // Show tooltip regardless of whether word was found or not
+        tooltipVisible.value = true;
+        tooltipWordIndex.value = index;
+        tooltipSentenceIndex.value = sentenceIdx;
+        tooltipWordIdx.value = wordIdx;
       }
     }
     
@@ -341,12 +327,6 @@ He studied hard and passed the exam.`);
 
     // Keyboard event handler
     function handleKeyDown(event) {
-      // Handle ESC key to close tooltip
-      if (event.code === 'Escape' && tooltipVisible.value) {
-        closeTooltip();
-        return;
-      }
-      
       // Only handle other keys if speech is supported
       if (!speechSupported.value) return;
 
@@ -380,26 +360,11 @@ He studied hard and passed the exam.`);
       }
     }
 
-    // Handle click outside tooltip to close it
-    function handleClickOutside(event) {
-      if (tooltipVisible.value) {
-        const tooltipElement = document.querySelector('.word-tooltip:not(.hidden)');
-        const wordElement = tooltipSentenceIndex.value !== null && tooltipWordIdx.value !== null 
-          ? document.getElementById(`word-${tooltipSentenceIndex.value}-${tooltipWordIdx.value}`)
-          : null;
-        
-        // Check if click is outside tooltip and outside the associated word
-        if (tooltipElement && !tooltipElement.contains(event.target) && 
-            (!wordElement || !wordElement.contains(event.target))) {
-          closeTooltip();
-        }
-      }
-    }
+
 
     // Setup keyboard event listener
     onMounted(async () => {
       window.addEventListener('keydown', handleKeyDown);
-      document.addEventListener('click', handleClickOutside);
       // Load offline IPA map
       await loadOfflineIPA(isLoadingIPA);
       // Load settings from localStorage
@@ -450,7 +415,6 @@ He studied hard and passed the exam.`);
 
     onUnmounted(() => {
       window.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('click', handleClickOutside);
     });
 
     // Return reactive data and methods
@@ -486,9 +450,6 @@ He studied hard and passed the exam.`);
       // Tooltip related state and methods
       tooltipVisible,
       tooltipPosition,
-      isTooltipHovered,
-      handleTooltipMouseEnter,
-      handleTooltipMouseLeave,
       handleWordMouseEnter,
       handleWordMouseLeave,
       closeTooltip
