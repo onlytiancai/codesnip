@@ -667,7 +667,7 @@
             <div class="sentence-container">
               <Sentence v-for="(sentence, sentenceIdx) in sentences" :key="sentenceIdx" :sentence="sentence"
               :show-ipa="settings.showIpa" :sentence-index="sentenceIdx" :is-current="currentSentenceIndex === sentenceIdx"
-              :on-word-click="(index, sentenceIdx, wordIdx) => getWordInfo(sentence.words[wordIdx].word, index, sentenceIdx, wordIdx)"
+              :on-word-click="(index, sentenceIdx, wordIdx) => { getWordInfo(sentence.words[wordIdx].word, index, sentenceIdx, wordIdx); speakWord(index); }"
               :on-word-mouse-enter="handleWordMouseEnter"
               :on-word-mouse-leave="handleWordMouseLeave" />
             </div>

@@ -23,7 +23,7 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     const isHovered = ref(false);
-    const showDefinition = ref(false);
+    const showDefinition = ref(true);
 
     // Handle tooltip mouse enter
     function handleMouseEnter() {
