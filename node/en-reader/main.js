@@ -34,6 +34,8 @@ He studied hard and passed the exam.`);
     const isLoadingWord = ref(false);
     const selectedWord = ref(null);
     const wordInfo = ref(null);
+    // Track current selected word index for keyboard navigation
+    const currentWordIndex = ref(null);
     
     // Tooltip state
     const tooltipVisible = ref(false);
@@ -221,6 +223,9 @@ Translate to chinese (output translation only):
       if (!word || word.trim() === '') {
         return;
       }
+      
+      // Update current word index for keyboard navigation
+      currentWordIndex.value = index;
       
       // Remove punctuation from word for lookup
       const wordWithoutPunctuation = word.replace(/[.,!?;:()"'’]$/g, '');
@@ -472,6 +477,44 @@ Translate to chinese (output translation only):
       }
     }
 
+    // Select previous word function
+    async function selectPreviousWord() {
+      if (!wordBlocks.length) return;
+      
+      if (currentWordIndex.value === null) {
+        // Start from the last word if no word is selected
+        currentWordIndex.value = wordBlocks.length - 1;
+      } else {
+        // Move to previous word
+        currentWordIndex.value = (currentWordIndex.value - 1 + wordBlocks.length) % wordBlocks.length;
+      }
+      
+      // Highlight the selected word
+      highlightIndex(currentWordIndex.value);
+      
+      // Speak the selected word
+      await handleSpeakWord(currentWordIndex.value);
+    }
+    
+    // Select next word function
+    async function selectNextWord() {
+      if (!wordBlocks.length) return;
+      
+      if (currentWordIndex.value === null) {
+        // Start from the first word if no word is selected
+        currentWordIndex.value = 0;
+      } else {
+        // Move to next word
+        currentWordIndex.value = (currentWordIndex.value + 1) % wordBlocks.length;
+      }
+      
+      // Highlight the selected word
+      highlightIndex(currentWordIndex.value);
+      
+      // Speak the selected word
+      await handleSpeakWord(currentWordIndex.value);
+    }
+    
     // Keyboard event handler
     function handleKeyDown(event) {
       // Only handle other keys if speech is supported
@@ -488,6 +531,14 @@ Translate to chinese (output translation only):
           break;
         case 'ArrowRight':
           speakNextSentence();
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          selectPreviousWord();
+          break;
+        case 'ArrowDown':
+          event.preventDefault();
+          selectNextWord();
           break;
         case 'Space':
           // Allow space in input fields
