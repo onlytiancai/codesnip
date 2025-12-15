@@ -2,12 +2,16 @@
 
 // Tokenize but preserve original punctuation and special characters
 export function tokenizePreserve(textStr) {
-  // Match sequences of letters, digits, ASCII apostrophe ' , Unicode right single quote ’,
-  // hyphen (to keep n-gram / hyphenated words intact), or any single non-space character.
-  // Also match common abbreviations like e.g., i.e., etc. and preserve newlines
-  // Modified to include common punctuation (.,!?;:,()) with preceding words
-  const re = /(?:[A-Za-z]\.){2,}|[A-Za-z0-9\u2019'-]+[.,!?;:()"'’]*|\n+|[^\s\w]/gu;
-  return Array.from(textStr.matchAll(re), m => m[0]);
+  // Main tokenization regex with clear parts
+  // - (?:[A-Za-z]\.){2,}   : Abbreviations (e.g., U.S., Dr.)
+  // - [A-Za-z0-9\u2019'-]+ : Words with letters, numbers, apostrophes, and hyphens
+  // - [.,!?;:()"'’]+       : Punctuation marks
+  // - \n+                  : Newline sequences
+  // - [^\s\w]+            : Other special characters not covered by previous patterns
+  const tokenRegex = /(?:[A-Za-z]\.){2,}|[A-Za-z0-9\u2019'-]+|[.,!?;:()"'’]+|\n+|[^\s\w]/gu;
+  
+  // Find all matches and return them as an array
+  return Array.from(textStr.matchAll(tokenRegex), match => match[0]);
 }
 
 // Analyze text and populate wordBlocks and sentences

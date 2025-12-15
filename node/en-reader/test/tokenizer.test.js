@@ -10,13 +10,13 @@ describe('tokenizePreserve', () => {
   it('should tokenize simple text correctly', () => {
     const text = 'Hello world! This is a test.';
     const tokens = tokenizePreserve(text);
-    expect(tokens).to.deep.equal(['Hello', 'world!', 'This', 'is', 'a', 'test.']);
+    expect(tokens).to.deep.equal(['Hello', 'world', '!', 'This', 'is', 'a', 'test', '.']);
   });
 
   it('should preserve punctuation', () => {
     const text = 'Hello, world! How are you?';
     const tokens = tokenizePreserve(text);
-    expect(tokens).to.deep.equal(['Hello,', 'world!', 'How', 'are', 'you?']);
+    expect(tokens).to.deep.equal(['Hello', ',', 'world', '!', 'How', 'are', 'you', '?']);
   });
 
   it('should handle hyphenated words', () => {
@@ -34,7 +34,7 @@ describe('tokenizePreserve', () => {
   it('should handle abbreviations', () => {
     const text = 'e.g., i.e., etc.';
     const tokens = tokenizePreserve(text);
-    expect(tokens).to.deep.equal(['e.g.,', 'i.e.,', 'etc.']);
+    expect(tokens).to.deep.equal(['e.g.', ',', 'i.e.',',', 'etc','.']);
   });
 
   it('should handle special characters', () => {
@@ -53,13 +53,15 @@ describe('analyzeText', () => {
 
     await analyzeText(text, wordBlocks, sentences, fetchIPA);
 
-    expect(wordBlocks).to.have.lengthOf(2);
+    expect(wordBlocks).to.have.lengthOf(3);
     expect(wordBlocks[0].word).to.equal('Hello');
     expect(wordBlocks[0].ipa).to.equal('/hello/');
-    expect(wordBlocks[1].word).to.equal('world!');
+    expect(wordBlocks[1].word).to.equal('world');
     expect(wordBlocks[1].ipa).to.equal('/world/');
+    expect(wordBlocks[2].word).to.equal('!');
+    expect(wordBlocks[2].ipa).to.equal(null);
     expect(sentences.value).to.have.lengthOf(1);
-    expect(sentences.value[0].words).to.have.lengthOf(2);
+    expect(sentences.value[0].words).to.have.lengthOf(3);
   });
 
   it('should handle multiple sentences', async () => {
@@ -70,10 +72,10 @@ describe('analyzeText', () => {
 
     await analyzeText(text, wordBlocks, sentences, fetchIPA);
 
-    expect(wordBlocks).to.have.lengthOf(6);
+    expect(wordBlocks).to.have.lengthOf(8);
     expect(sentences.value).to.have.lengthOf(2);
-    expect(sentences.value[0].words).to.have.lengthOf(2);
-    expect(sentences.value[1].words).to.have.lengthOf(4);
+    expect(sentences.value[0].words).to.have.lengthOf(3); // Hello, world, !
+    expect(sentences.value[1].words).to.have.lengthOf(5); // This, is, a, test, .
   });
 
   it('should handle hyphenated words', async () => {
