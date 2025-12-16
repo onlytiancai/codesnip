@@ -1,5 +1,5 @@
-// 引入 Mocha 和 Chai
-import { expect } from 'chai';
+// 引入 Mocha 和 Chai (通过代理模块动态选择导入源)
+import { expect } from './chai-proxy.js';
 
 // 引入要测试的模块
 import { tokenizePreserve, analyzeText } from '../utils/tokenizer.js';
