@@ -14,14 +14,14 @@ export function tokenizePreserve(textStr) {
   return Array.from(textStr.matchAll(tokenRegex), match => match[0]);
 }
 
-// Analyze text and populate wordBlocks and sentences
-export async function analyzeText(text, wordBlocks, sentences, fetchIPA) {
+// Analyze text and return wordBlocks, sentences and paragraphs
+export function analyzeText(text) {
   // Use tokenizer to split text into tokens
   const matches = tokenizePreserve(text || "");
 
-  // Clear existing data
-  wordBlocks.splice(0, wordBlocks.length);
-  sentences.value = [];
+  // Initialize data structures
+  const wordBlocks = [];
+  const sentences = [];
 
   // Build tokens and sentences simultaneously
   const sentenceSplitRe = /[.!?！;]/; // only use sentence-ending punctuation (excluding commas)
@@ -45,7 +45,7 @@ export async function analyzeText(text, wordBlocks, sentences, fetchIPA) {
       
       // If current sentence has content, add it to sentences
       if (currentSentence.words.length > 0) {
-        sentences.value.push(currentSentence);
+        sentences.push(currentSentence);
       }
       
       // Create newline sentence
@@ -57,7 +57,7 @@ export async function analyzeText(text, wordBlocks, sentences, fetchIPA) {
         sentenceIndex: globalSentenceIndex,
         paragraphIndex: paragraphIndex
       };
-      sentences.value.push(newlineSentence);
+      sentences.push(newlineSentence);
       globalSentenceIndex++;
       
       // Check if this is a paragraph break (2 or more newlines)
@@ -76,47 +76,16 @@ export async function analyzeText(text, wordBlocks, sentences, fetchIPA) {
       continue;
     }
     
-    let wordBlock;
-    // Handle hyphenated words
-    if (w.includes('-') && /^[A-Za-z0-9\u2019'-]+$/.test(w)) {
-      // Split into parts
-      const parts = w.split('-');
-      const ipas = [];
-      
-      // Query IPA for each part
-      for (let part of parts) {
-        const lookup = part.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
-        const ipa = lookup ? await fetchIPA(lookup) : null;
-        ipas.push(ipa);
-      }
-      
-      // Combine IPA with hyphens
-      const combinedIpa = ipas.join('-');
-      
-      wordBlock = {
-        word: w,
-        ipa: combinedIpa || null,
-        highlight: false,
-        sentenceHighlight: false,
-        sentenceIndex: currentSentence.sentenceIndex,
-        isNewline: false,
-        wordIndex: wordIndex
-      };
-    } else {
-      // Regular words: For IPA lookup, normalize to letters only (remove digits and apostrophes).
-      const lookup = w.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
-      const ipa = lookup ? await fetchIPA(lookup) : null;
-      
-      wordBlock = {
-        word: w,
-        ipa,
-        highlight: false,
-        sentenceHighlight: false,
-        sentenceIndex: currentSentence.sentenceIndex,
-        isNewline: false,
-        wordIndex: wordIndex
-      };
-    }
+    // Create word block without IPA
+    const wordBlock = {
+      word: w,
+      ipa: null, // Will be set later
+      highlight: false,
+      sentenceHighlight: false,
+      sentenceIndex: currentSentence.sentenceIndex,
+      isNewline: false,
+      wordIndex: wordIndex
+    };
     
     // Add to wordBlocks and current sentence
     wordBlocks.push(wordBlock);
@@ -126,7 +95,7 @@ export async function analyzeText(text, wordBlocks, sentences, fetchIPA) {
     // If token is a sentence-ending punctuation mark (not part of a word like version number),
     // add current sentence to sentences
     if (sentenceSplitRe.test(w) && /^[.!?！;]+$/.test(w)) {
-      sentences.value.push(currentSentence);
+      sentences.push(currentSentence);
       globalSentenceIndex++;
       
       // Reset current sentence with correct sentenceIndex and paragraphIndex
@@ -142,9 +111,75 @@ export async function analyzeText(text, wordBlocks, sentences, fetchIPA) {
   
   // If the last sentence has content but wasn't added, add it manually
   if (currentSentence.words.length > 0) {
-    sentences.value.push(currentSentence);
+    sentences.push(currentSentence);
   }
 
-  // Reset current sentence index
-  return { wordBlocks, sentences };
+  // Build paragraphs from sentences
+  const paragraphs = buildParagraphs(sentences);
+
+  return { wordBlocks, sentences, paragraphs };
+}
+
+// Helper function to build paragraphs from sentences
+function buildParagraphs(sentences) {
+  const paraMap = new Map();
+  
+  sentences.forEach(sentence => {
+    const paraIndex = sentence.paragraphIndex;
+    if (!paraMap.has(paraIndex)) {
+      paraMap.set(paraIndex, {
+        sentences: [],
+        translation: '',
+        isLoading: false,
+        error: null
+      });
+    }
+    paraMap.get(paraIndex).sentences.push(sentence);
+  });
+  
+  // Convert map to array and sort by paragraph index
+  return Array.from(paraMap.entries())
+    .sort((a, b) => a[0] - b[0])
+    .map(([index, para]) => {
+      return {
+        index,
+        ...para
+      };
+    });
+}
+
+// Set IPA for word blocks
+export async function setWordBlocksIPA(wordBlocks, fetchIPA) {
+  for (let wordBlock of wordBlocks) {
+    const { word } = wordBlock;
+    
+    // Skip punctuation and non-alphanumeric tokens
+    if (/^[^a-zA-Z0-9]+$/.test(word)) {
+      wordBlock.ipa = null;
+      continue;
+    }
+    
+    // Handle hyphenated words
+    if (word.includes('-') && /^[A-Za-z0-9\u2019'-]+$/.test(word)) {
+      // Split into parts
+      const parts = word.split('-');
+      const ipas = [];
+      
+      // Query IPA for each part
+      for (let part of parts) {
+        const lookup = part.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
+        const ipa = lookup ? await fetchIPA(lookup) : null;
+        ipas.push(ipa);
+      }
+      
+      // Combine IPA with hyphens
+      wordBlock.ipa = ipas.join('-');
+    } else {
+      // Regular words: For IPA lookup, normalize to letters only (remove digits and apostrophes)
+      const lookup = word.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
+      wordBlock.ipa = lookup ? await fetchIPA(lookup) : null;
+    }
+  }
+  
+  return wordBlocks;
 }

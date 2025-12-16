@@ -6,7 +6,7 @@ import Sentence from './components/Sentence.js';
 import WordTooltip from './components/WordTooltip.js';
 // Import utilities
 import { loadOfflineIPA, fetchIPA } from './utils/ipa.js';
-import { analyzeText } from './utils/tokenizer.js';
+import { analyzeText, setWordBlocksIPA } from './utils/tokenizer.js';
 import { speakWord, speakSentence, stopSpeech, isSpeechSupported } from './utils/speech.js';
 import { lookupWord } from './utils/dictionary.js';
 import { translateSentence as translateSentenceApi } from './utils/translation.js';
@@ -143,7 +143,16 @@ Translate to chinese (output translation only):
       wordInfo.value = null;
       stopRequested = false;
       
-      const result = await analyzeText(text.value, wordBlocks, sentences, fetchIPA);
+      // Use the new analyzeText function
+      const { wordBlocks: newWordBlocks, sentences: newSentences, paragraphs: newParagraphs } = analyzeText(text.value);
+      
+      // Set IPA for word blocks
+      await setWordBlocksIPA(newWordBlocks, fetchIPA);
+      
+      // Update reactive data
+      wordBlocks.splice(0, wordBlocks.length, ...newWordBlocks);
+      sentences.value = newSentences;
+      paragraphs.value = newParagraphs;
       
       // Wait for DOM updates and computed properties to recalculate
       await nextTick();
