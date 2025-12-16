@@ -87,7 +87,7 @@
               <div class="sentence-container">
                 <Sentence v-for="sentence in paragraph.sentences" :key="sentence.sentenceIndex" :sentence="sentence"
                 :show-ipa="settings.showIpa" :sentence-index="sentence.sentenceIndex" :is-current="currentSentenceIndex === sentence.sentenceIndex"
-                :on-word-click="(index, sentenceIdx, wordIdx) => { getWordInfo(sentence.words[wordIdx].word, index, sentence.sentenceIndex, wordIdx); speakWord(index); }"
+                :on-word-click="(index, sentenceIdx, wordIdx) => { currentSentenceIndex = sentence.sentenceIndex; getWordInfo(sentence.words[wordIdx].word, index, sentence.sentenceIndex, wordIdx); speakWord(index); }"
                 :on-word-mouse-enter="handleWordMouseEnter"
                 :on-word-mouse-leave="handleWordMouseLeave" />
               </div>
