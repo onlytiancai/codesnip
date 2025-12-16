@@ -1,5 +1,5 @@
 // 引入 Mocha 和 Chai
-import { expect } from 'https://cdn.jsdelivr.net/npm/chai@4.3.7/+esm';
+import { expect } from 'chai';
 
 // 引入要测试的模块
 import { tokenizePreserve, analyzeText } from '../utils/tokenizer.js';
