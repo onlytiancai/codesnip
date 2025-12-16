@@ -42,6 +42,16 @@ describe('tokenizePreserve', () => {
     const tokens = tokenizePreserve(text);
     expect(tokens).to.deep.equal(['Hello\'world', 'it\’s', 'a', 'test']);
   });
+
+  it('should handle version numbers and complex words', () => {
+    const text = 'Today we released GPT-5.2 in the API and ChatGPT—our most advanced frontier model yet and our best model for real-world agentic work.';
+    const tokens = tokenizePreserve(text);
+    expect(tokens).to.deep.equal([
+      'Today', 'we', 'released', 'GPT-5.2', 'in', 'the', 'API', 'and', 'ChatGPT', '—',
+      'our', 'most', 'advanced', 'frontier', 'model', 'yet', 'and', 'our', 'best',
+      'model', 'for', 'real-world', 'agentic', 'work', '.'
+    ]);
+  });
 });
 
 describe('analyzeText', () => {

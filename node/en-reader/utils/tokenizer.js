@@ -3,12 +3,12 @@
 // Tokenize but preserve original punctuation and special characters
 export function tokenizePreserve(textStr) {
   // Main tokenization regex with clear parts
-  // - (?:[A-Za-z]\.){2,}   : Abbreviations (e.g., U.S., Dr.)
-  // - [A-Za-z0-9\u2019'-]+ : Words with letters, numbers, apostrophes, and hyphens
-  // - [.,!?;:()"'’]+       : Punctuation marks
-  // - \n+                  : Newline sequences
-  // - [^\s\w]+            : Other special characters not covered by previous patterns
-  const tokenRegex = /(?:[A-Za-z]\.){2,}|[A-Za-z0-9\u2019'-]+|[.,!?;:()"'’]+|\n+|[^\s\w]/gu;
+  // - (?:[A-Za-z]\.){2,}                 : Abbreviations (e.g., U.S., Dr.)
+  // - [A-Za-z0-9]+(?:[\u2019'-./][A-Za-z0-9.]+)* : Words with apostrophes, hyphens, dots, and slashes (e.g., GPT-5.2, v2.0.1, example.com, docs/v1.2.3, real-world)
+  // - [.,!?;:()"'’]+                      : Punctuation marks
+  // - \n+                                 : Newline sequences
+  // - [^\s\w]+                           : Other special characters not covered by previous patterns
+  const tokenRegex = /(?:[A-Za-z]\.){2,}|[A-Za-z0-9]+(?:[\u2019'-./][A-Za-z0-9.]+)*|[.,!?;:()"'’]+|\n+|[^\s\w]/gu;
   
   // Find all matches and return them as an array
   return Array.from(textStr.matchAll(tokenRegex), match => match[0]);
@@ -123,8 +123,9 @@ export async function analyzeText(text, wordBlocks, sentences, fetchIPA) {
     currentSentence.words.push(wordBlock);
     wordIndex++;
 
-    // If token matches a split character, add current sentence to sentences
-    if (sentenceSplitRe.test(w)) {
+    // If token is a sentence-ending punctuation mark (not part of a word like version number),
+    // add current sentence to sentences
+    if (sentenceSplitRe.test(w) && /^[.!?！;]+$/.test(w)) {
       sentences.value.push(currentSentence);
       globalSentenceIndex++;
       
