@@ -1,4 +1,4 @@
-// utils/translation.js - Translation utilities using Ollama API
+// utils/translation.js - Translation utilities using Ollama API and Google Translate
 
 /**
  * Translate a sentence using Ollama API
@@ -14,7 +14,7 @@
  * @param {AbortController} [abortController] - AbortController for cancellation
  * @returns {Promise<string>} The translated sentence
  */
-export async function translateSentence(sentence, options = {}, config = {}, abortController = null) {
+export async function translateWithOllama(sentence, options = {}, config = {}, abortController = null) {
   if (!sentence) {
     options.onProgress?.('');
     options.onComplete?.('');
@@ -98,5 +98,83 @@ export async function translateSentence(sentence, options = {}, config = {}, abo
     console.error('Translation error:', error);
     onError?.(error.message);
     throw error;
+  }
+}
+
+/**
+ * Translate a sentence using Google Translate API
+ * @param {string} sentence - The sentence to translate
+ * @param {Object} options - Translation options
+ * @param {Function} options.onProgress - Callback for progress updates
+ * @param {Function} options.onComplete - Callback for translation completion
+ * @param {Function} options.onError - Callback for translation errors
+ * @param {Object} [config] - API configuration
+ * @param {AbortController} [abortController] - AbortController for cancellation
+ * @returns {Promise<string>} The translated sentence
+ */
+export async function translateWithGoogle(sentence, options = {}, config = {}, abortController = null) {
+  if (!sentence) {
+    options.onProgress?.('');
+    options.onComplete?.('');
+    return '';
+  }
+
+  const { onProgress, onComplete, onError } = options;
+
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-CN&dt=t&q=${encodeURIComponent(sentence)}`;
+    
+    // Update progress with empty string initially
+    onProgress?.('');
+    
+    const response = await fetch(url, {
+      signal: abortController?.signal
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Google Translate API error: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    const translation = data[0].map(item => item[0]).join('');
+    
+    // Update progress with full translation since Google doesn't support streaming
+    onProgress?.(translation);
+    onComplete?.(translation);
+    
+    return translation;
+  } catch (error) {
+    // Ignore AbortError since it's expected when canceling
+    if (error.name === 'AbortError') {
+      return '';
+    }
+    console.error('Google translation error:', error);
+    onError?.(error.message);
+    throw error;
+  }
+}
+
+/**
+ * Translate a sentence using the specified translation service
+ * @param {string} sentence - The sentence to translate
+ * @param {Object} options - Translation options
+ * @param {Function} options.onProgress - Callback for progress updates
+ * @param {Function} options.onComplete - Callback for translation completion
+ * @param {Function} options.onError - Callback for translation errors
+ * @param {Object} [config] - API configuration
+ * @param {string} [config.translationService] - Translation service to use ('ollama' or 'google')
+ * @param {string} [config.ollamaApiUrl] - Ollama API URL
+ * @param {string} [config.modelName] - Model name to use
+ * @param {string} [config.translationPrompt] - Translation prompt template
+ * @param {AbortController} [abortController] - AbortController for cancellation
+ * @returns {Promise<string>} The translated sentence
+ */
+export async function translateSentence(sentence, options = {}, config = {}, abortController = null) {
+  const translationService = config.translationService || 'ollama';
+  
+  if (translationService === 'google') {
+    return translateWithGoogle(sentence, options, config, abortController);
+  } else {
+    return translateWithOllama(sentence, options, config, abortController);
   }
 }

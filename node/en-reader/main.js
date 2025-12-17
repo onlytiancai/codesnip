@@ -75,6 +75,7 @@ He studied hard and passed the exam.`);
     const settings = reactive({
       enableTranslation: true,
       enableParagraphTranslation: true,
+      translationService: 'google', // 'ollama' or 'google'
       ollamaApiUrl: 'http://localhost:11434/api/generate',
       modelName: 'gemma3:4b',
       translationPrompt: `
@@ -417,7 +418,9 @@ Translate to chinese (output translation only):
           },
           onError: (error) => {
             console.error('Paragraph translation error:', error);
-            paragraph.error = '翻译失败，请检查Ollama服务是否正常运行';
+            paragraph.error = translationSettings.translationService === 'ollama' 
+              ? '翻译失败，请检查Ollama服务是否正常运行' 
+              : '翻译失败，请检查网络连接或Google Translate服务';
             paragraph.translation = '';
             paragraph.isLoading = false;
             paragraphAbortControllers.delete(paragraphIndex);
@@ -427,7 +430,9 @@ Translate to chinese (output translation only):
         // Ignore AbortError since it's expected when canceling
         if (error.name !== 'AbortError') {
           console.error('Paragraph translation error:', error);
-          paragraph.error = '翻译失败，请检查Ollama服务是否正常运行';
+          paragraph.error = translationSettings.translationService === 'ollama' 
+            ? '翻译失败，请检查Ollama服务是否正常运行' 
+            : '翻译失败，请检查网络连接或Google Translate服务';
           paragraph.translation = '';
         }
         paragraph.isLoading = false;
@@ -469,7 +474,9 @@ Translate to chinese (output translation only):
         },
         onError: (error) => {
           console.error('Translation error:', error);
-          translationError.value = '翻译失败，请检查Ollama服务是否正常运行';
+          translationError.value = translationSettings.translationService === 'ollama' 
+            ? '翻译失败，请检查Ollama服务是否正常运行' 
+            : '翻译失败，请检查网络连接或Google Translate服务';
           currentSentenceTranslation.value = '';
           isLoadingTranslation.value = false;
           translationAbortController = null;
@@ -479,7 +486,9 @@ Translate to chinese (output translation only):
         // Ignore AbortError since it's expected when canceling
         if (error.name !== 'AbortError') {
           console.error('Translation error:', error);
-          translationError.value = '翻译失败，请检查Ollama服务是否正常运行';
+          translationError.value = translationSettings.translationService === 'ollama' 
+            ? '翻译失败，请检查Ollama服务是否正常运行' 
+            : '翻译失败，请检查网络连接或Google Translate服务';
           currentSentenceTranslation.value = '';
         }
         isLoadingTranslation.value = false;

@@ -201,14 +201,21 @@
             </label>
           </div>
           <div class="settings-item">
+            <label class="settings-label">翻译服务</label>
+            <select class="settings-input" v-model="settings.translationService">
+              <option value="ollama">Ollama API</option>
+              <option value="google">Google Translate</option>
+            </select>
+          </div>
+          <div class="settings-item" v-if="settings.translationService === 'ollama'">
             <label class="settings-label">Ollama API URL</label>
             <input type="text" class="settings-input" v-model="settings.ollamaApiUrl" placeholder="http://localhost:11434/api/generate" />
           </div>
-          <div class="settings-item">
+          <div class="settings-item" v-if="settings.translationService === 'ollama'">
             <label class="settings-label">模型名称</label>
             <input type="text" class="settings-input" v-model="settings.modelName" placeholder="gemma3:4b" />
           </div>
-          <div class="settings-item">
+          <div class="settings-item" v-if="settings.translationService === 'ollama'">
             <label class="settings-label">翻译提示词</label>
             <textarea class="settings-textarea" v-model="settings.translationPrompt" rows="3"></textarea>
           </div>
