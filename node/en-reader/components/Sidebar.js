@@ -105,6 +105,26 @@ export default {
       });
     }
     
+    // 删除单条历史记录
+    async function deleteText(id) {
+      if (!db) {
+        await initDB();
+      }
+      
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['recentTexts'], 'readwrite');
+        const objectStore = transaction.objectStore('recentTexts');
+        const request = objectStore.delete(id);
+        
+        request.onerror = (event) => reject(event.target.error);
+        request.onsuccess = () => {
+          // 删除成功后重新加载列表
+          loadRecentTexts();
+          resolve();
+        };
+      });
+    }
+    
     // 加载最近使用的文本
     async function loadRecentTexts() {
       isLoading.value = true;
@@ -146,6 +166,7 @@ export default {
       handleSelectText,
       saveText,
       loadRecentTexts,
+      deleteText,
       formatDate
     };
   },
@@ -159,7 +180,7 @@ export default {
       </div>
       <div class="sidebar-content">
         <div class="sidebar-header">
-          <h2>最近使用</h2>
+          <h2>Wawa English Reader</h2>
         </div>
         <div class="sidebar-body">
           <div v-if="isLoading" class="loading">
@@ -177,6 +198,18 @@ export default {
         >
           <div class="text-preview">{{ item.text.substring(0, 100) }}{{ item.text.length > 100 ? '...' : '' }}</div>
           <div class="text-time">{{ formatDate(item.timestamp) }}</div>
+          <button 
+            class="delete-btn"
+            @click.stop="deleteText(item.id)"
+            title="删除此记录"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </button>
         </div>
       </div>
         </div>

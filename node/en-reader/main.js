@@ -40,6 +40,19 @@ He studied hard and passed the exam.`);
     const currentWordIndex = ref(null);
     // Sidebar state
     const isSidebarOpen = ref(true);
+    
+    // Load sidebar state from localStorage
+    function loadSidebarState() {
+      const savedState = localStorage.getItem('isSidebarOpen');
+      if (savedState !== null) {
+        isSidebarOpen.value = JSON.parse(savedState);
+      }
+    }
+    
+    // Save sidebar state to localStorage
+    function saveSidebarState() {
+      localStorage.setItem('isSidebarOpen', JSON.stringify(isSidebarOpen.value));
+    }
     // Sidebar component reference
     const sidebarRef = ref(null);
     
@@ -137,6 +150,7 @@ Translate to chinese (output translation only):
     // Sidebar methods
     function toggleSidebar() {
       isSidebarOpen.value = !isSidebarOpen.value;
+      saveSidebarState();
     }
     
     function handleSelectText(selectedText) {
@@ -611,6 +625,8 @@ Translate to chinese (output translation only):
       await loadOfflineIPA(isLoadingIPA);
       // Load settings from localStorage
       loadSettings();
+      // Load sidebar state from localStorage
+      loadSidebarState();
       
       console.log('Before analyze - text value:', text.value);
       console.log('Before analyze - text length:', text.value.length);

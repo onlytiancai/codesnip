@@ -111,6 +111,7 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
   background-color: #f8fafc;
+  position: relative;
 }
 
 .recent-text-item:hover {
@@ -134,6 +135,37 @@ body {
   font-size: 0.75rem;
   color: #94a3b8;
   text-align: right;
+}
+
+/* 删除按钮样式 */
+.delete-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.recent-text-item:hover .delete-btn {
+  opacity: 1;
+  visibility: visible;
+}
+
+.delete-btn:hover {
+  color: #ef4444;
+  background-color: #fee2e2;
+}
+
+.delete-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 /* 主容器需要留出侧边栏的空间 */
