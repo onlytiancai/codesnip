@@ -158,6 +158,21 @@ Translate to chinese (output translation only):
       analyze();
     }
     
+    // Clear text function
+    function clearText() {
+      text.value = '';
+    }
+    
+    // Paste text function
+    async function pasteText() {
+      try {
+        const clipboardText = await navigator.clipboard.readText();
+        text.value = clipboardText;
+      } catch (err) {
+        console.error('Failed to read clipboard:', err);
+      }
+    }
+    
     // Save current text to recent texts
     async function saveTextToRecent() {
       if (sidebarRef.value && text.value) {
@@ -715,6 +730,8 @@ Translate to chinese (output translation only):
       handleSelectText,
       // Other methods
       analyze,
+      clearText,
+      pasteText,
       speakSentences,
       speakPreviousSentence,
       speakNextSentence,

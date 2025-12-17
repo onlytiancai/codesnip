@@ -24,8 +24,16 @@
       <div class="left-panel">
         <textarea class="text-input" v-model="text" rows="4"></textarea>
 
-        <div class="btn-container">
-          <button @click="analyze" class="analyze-btn">分析</button>
+        <div class="action-container">
+          <div class="btn-container">
+            <button @click="analyze" class="analyze-btn primary">分析</button>
+            <button @click="clearText" class="analyze-btn secondary">清空</button>
+            <button @click="pasteText" class="analyze-btn secondary">粘贴</button>
+          </div>
+          <div class="checkbox-container">
+            <input type="checkbox" v-model="settings.showIpa" id="showIpa" />
+            <label for="showIpa">显示音标</label>
+          </div>
         </div>
 
         <!-- 悬浮控制栏 -->
@@ -219,15 +227,7 @@
           </div>
         </div>
         
-        <!-- 显示设置 -->
-        <div class="settings-section">
-          <h3>显示设置</h3>
-          <div class="settings-item">
-            <label class="settings-label">
-              <input type="checkbox" v-model="settings.showIpa" /> 显示音标
-            </label>
-          </div>
-        </div>
+
       </div>
       
       <div class="settings-footer">
