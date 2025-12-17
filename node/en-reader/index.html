@@ -13,6 +13,12 @@
 <body>
 
   <div id="app">
+    <Sidebar 
+      ref="sidebarRef"
+      :is-open="isSidebarOpen" 
+      @toggle="toggleSidebar" 
+      @select-text="handleSelectText" 
+    ></Sidebar>
     <div class="main-container">
       <!-- 左侧面板 -->
       <div class="left-panel">
@@ -118,7 +124,7 @@
       <!-- 右侧面板 -->
       <div class="right-panel">
         <!-- 当前句子显示 -->
-        <div v-if="wordBlocks.length" class="current-sentence-section">
+        <div  class="current-sentence-section">
           <h2 class="word-info-label">当前句子</h2>
           <div v-if="currentSentenceIndex >= 0 && currentSentenceIndex < sentences.length && !sentences[currentSentenceIndex].isNewline" class="sentence-container">
             <span class="sentence">

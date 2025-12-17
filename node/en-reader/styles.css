@@ -5,30 +5,179 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   margin: 0;
   padding: 0;
+  transition: margin-left 0.3s ease;
 }
 
-/* App容器 */
-#app {
-  min-height: 100vh;
+/* 侧边栏样式 */
+.sidebar-container {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  background-color: white;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  transition: width 0.3s ease;
+  display: flex;
+}
+
+.sidebar-container:not(.open) {
+  width: 50px;
+}
+
+.sidebar-container.open {
+  width: 300px;
+}
+
+.sidebar-toggle {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background-color: #f1f5f9;
+  border: none;
+  color: #475569;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-toggle:hover {
+  background-color: #e2e8f0;
+}
+
+.sidebar-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: opacity 0.3s ease, width 0.3s ease;
+}
+
+.sidebar-container:not(.open) .sidebar-content {
+  width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sidebar-container.open .sidebar-content {
+  width: 250px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.sidebar-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 2rem;
 }
 
-/* 主内容容器 */
+.empty-text {
+  text-align: center;
+  color: #6b7280;
+  padding: 2rem;
+  font-size: 0.875rem;
+}
+
+.recent-texts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.recent-text-item {
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #f8fafc;
+}
+
+.recent-text-item:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.text-preview {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+  color: #374151;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.text-time {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-align: right;
+}
+
+/* 主容器需要留出侧边栏的空间 */
 .main-container {
-  max-width: 96rem;
-  margin: 0 auto;
+  transition: margin-left 0.3s ease;
+  max-width: none;
   background-color: white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border-radius: 0.5rem;
   padding: 1.5rem;
   display: flex;
   gap: 2rem;
+  flex: 1;
+  width: 100%;
+}
+
+.sidebar-container.open + .main-container {
+  margin-left: 300px;
+  width: calc(100% - 300px);
+}
+
+.sidebar-container:not(.open) + .main-container {
+  margin-left: 50px;
+  width: calc(100% - 50px);
+}
+
+/* App容器 */
+#app {
+  min-height: 100vh;
+  padding: 2rem;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* 左侧内容区域 */
 .left-panel {
   flex: 1;
-  min-width: 0;
+  min-width: 20rem;
+  width: 0; /* 确保占据剩余空间 */
+  display: flex;
+  flex-direction: column;
 }
 
 /* 右侧内容区域 */
@@ -36,6 +185,50 @@ body {
   width: 30rem;
   border-left: 1px solid #e2e8f0;
   padding-left: 2rem;
+  flex-shrink: 0; /* 防止右侧面板收缩 */
+}
+
+/* 输入区域样式 */
+.input-section {
+  margin-bottom: 2rem;
+}
+
+.input-section .text-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.input-section .text-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-section .btn-container {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.input-section .analyze-btn {
+  padding: 0.75rem 1.5rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.input-section .analyze-btn:hover {
+  background-color: #2563eb;
 }
 
 /* 当前句子部分样式 */

@@ -4,6 +4,7 @@ import { createApp, ref, reactive, computed, onMounted, onUnmounted, watchEffect
 import WordBlock from './components/WordBlock.js';
 import Sentence from './components/Sentence.js';
 import WordTooltip from './components/WordTooltip.js';
+import Sidebar from './components/Sidebar.js';
 // Import utilities
 import { loadOfflineIPA, fetchIPA } from './utils/ipa.js';
 import { analyzeText, setWordBlocksIPA } from './utils/tokenizer.js';
@@ -15,7 +16,8 @@ createApp({
   components: {
     WordBlock,
     Sentence,
-    WordTooltip
+    WordTooltip,
+    Sidebar
   },
   setup() {
     // Application state
@@ -36,6 +38,10 @@ He studied hard and passed the exam.`);
     const wordInfo = ref(null);
     // Track current selected word index for keyboard navigation
     const currentWordIndex = ref(null);
+    // Sidebar state
+    const isSidebarOpen = ref(true);
+    // Sidebar component reference
+    const sidebarRef = ref(null);
     
     // Tooltip state
     const tooltipVisible = ref(false);
@@ -128,6 +134,24 @@ Translate to chinese (output translation only):
     // Check SpeechSynthesis support
     speechSupported.value = isSpeechSupported();
 
+    // Sidebar methods
+    function toggleSidebar() {
+      isSidebarOpen.value = !isSidebarOpen.value;
+    }
+    
+    function handleSelectText(selectedText) {
+      text.value = selectedText;
+      analyze();
+    }
+    
+    // Save current text to recent texts
+    async function saveTextToRecent() {
+      if (sidebarRef.value && text.value) {
+        await sidebarRef.value.saveText(text.value);
+        await sidebarRef.value.loadRecentTexts();
+      }
+    }
+    
     // Analyze text function
     async function analyze() {
       // Stop any ongoing speech
@@ -143,8 +167,16 @@ Translate to chinese (output translation only):
       wordInfo.value = null;
       stopRequested = false;
       
+      console.log('=== Starting analyze() ===');
+      console.log('Text value:', text.value);
+      console.log('Initial wordBlocks length:', wordBlocks.length);
+      
       // Use the new analyzeText function
       const { wordBlocks: newWordBlocks, sentences: newSentences, paragraphs: newParagraphs } = analyzeText(text.value);
+      
+      console.log('newWordBlocks length:', newWordBlocks.length);
+      console.log('newSentences length:', newSentences.length);
+      console.log('newWordBlocks sample:', newWordBlocks.slice(0, 5));
       
       // Set IPA for word blocks
       await setWordBlocksIPA(newWordBlocks, fetchIPA);
@@ -181,6 +213,9 @@ Translate to chinese (output translation only):
       // Reset flags
       isAnalyzing.value = false;
       isSettingInitialIndex.value = false;
+      
+      // Save current text to recent texts
+      await saveTextToRecent();
     }
 
     // Highlight functions
@@ -576,6 +611,15 @@ Translate to chinese (output translation only):
       await loadOfflineIPA(isLoadingIPA);
       // Load settings from localStorage
       loadSettings();
+      
+      console.log('Before analyze - text value:', text.value);
+      console.log('Before analyze - text length:', text.value.length);
+      
+      // Analyze default text on mount
+      await analyze();
+      
+      console.log('After analyze - wordBlocks length:', wordBlocks.length);
+      console.log('After analyze - sentences length:', sentences.value.length);
     });
 
     // Watch for changes in currentSentenceIndex and translate the new sentence
@@ -648,6 +692,12 @@ Translate to chinese (output translation only):
       settings,
       toggleSettings,
       saveSettings,
+      // Sidebar related state and methods
+      isSidebarOpen,
+      sidebarRef,
+      toggleSidebar,
+      handleSelectText,
+      // Other methods
       analyze,
       speakSentences,
       speakPreviousSentence,

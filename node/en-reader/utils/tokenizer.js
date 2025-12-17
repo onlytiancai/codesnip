@@ -18,6 +18,7 @@ export function tokenizePreserve(textStr) {
 export function analyzeText(text) {
   // Use tokenizer to split text into tokens
   const matches = tokenizePreserve(text || "");
+  console.log('Tokenizer matches:', matches);
 
   // Initialize data structures
   const wordBlocks = [];
@@ -60,8 +61,8 @@ export function analyzeText(text) {
       sentences.push(newlineSentence);
       globalSentenceIndex++;
       
-      // Check if this is a paragraph break (2 or more newlines)
-      if (newlineCount >= 2) {
+      // Check if this is a paragraph break (1 or more newlines)
+      if (newlineCount >= 1) {
         paragraphIndex++;
       }
       
@@ -159,25 +160,30 @@ export async function setWordBlocksIPA(wordBlocks, fetchIPA) {
       continue;
     }
     
-    // Handle hyphenated words
-    if (word.includes('-') && /^[A-Za-z0-9\u2019'-]+$/.test(word)) {
-      // Split into parts
-      const parts = word.split('-');
-      const ipas = [];
-      
-      // Query IPA for each part
-      for (let part of parts) {
-        const lookup = part.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
-        const ipa = lookup ? await fetchIPA(lookup) : null;
-        ipas.push(ipa);
+    try {
+      // Handle hyphenated words
+      if (word.includes('-') && /^[A-Za-z0-9\u2019'-]+$/.test(word)) {
+        // Split into parts
+        const parts = word.split('-');
+        const ipas = [];
+        
+        // Query IPA for each part
+        for (let part of parts) {
+          const lookup = part.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
+          const ipa = lookup ? await fetchIPA(lookup) : null;
+          ipas.push(ipa);
+        }
+        
+        // Combine IPA with hyphens
+        wordBlock.ipa = ipas.join('-');
+      } else {
+        // Regular words: For IPA lookup, normalize to letters only (remove digits and apostrophes)
+        const lookup = word.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
+        wordBlock.ipa = lookup ? await fetchIPA(lookup) : null;
       }
-      
-      // Combine IPA with hyphens
-      wordBlock.ipa = ipas.join('-');
-    } else {
-      // Regular words: For IPA lookup, normalize to letters only (remove digits and apostrophes)
-      const lookup = word.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
-      wordBlock.ipa = lookup ? await fetchIPA(lookup) : null;
+    } catch (error) {
+      console.error('Error setting IPA for word:', word, error);
+      wordBlock.ipa = null;
     }
   }
   
