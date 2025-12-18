@@ -5,7 +5,7 @@ import sys
 import re
 from paddlespeech.cli.tts import TTSExecutor
 
-OUTPUT_DIR = "audio"
+OUTPUT_DIR = "/Users/huhao/src/codesnip/python/english_word/wawa-word-pod/public/audio/"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ⚠️ 这里仍然是“基础名”，不带 -en / -zh
