@@ -7,6 +7,7 @@ def convert_txt_to_json(file_path):
     
     result = {}
     current_unit = None
+    unit_counters = {}  # 用于跟踪每个单元的编号计数器
     
     # 定义正则表达式模式
     unit_pattern = re.compile(r'^Unit\s+(\d+)$')
@@ -24,6 +25,7 @@ def convert_txt_to_json(file_path):
             unit_num = unit_match.group(1)
             current_unit = f"Unit {unit_num}"
             result[current_unit] = []
+            unit_counters[current_unit] = 1  # 初始化单元计数器为1
             continue
         
         if current_unit is None:
@@ -40,11 +42,13 @@ def convert_txt_to_json(file_path):
                 chinese = word_match.group(4).strip()
                 
                 result[current_unit].append({
+                    "id": unit_counters[current_unit],
                     "word": word,
                     "phonetic": phonetic,
                     "part_of_speech": part_of_speech,
                     "chinese": chinese
                 })
+                unit_counters[current_unit] += 1  # 递增计数器
             else:
                 # 处理包含音标但格式不符合标准的行
                 try:
@@ -66,23 +70,29 @@ def convert_txt_to_json(file_path):
                         chinese = remaining[pos_end+1:].strip()
                         
                         result[current_unit].append({
+                            "id": unit_counters[current_unit],
                             "word": word_phrase,
                             "phonetic": phonetic,
                             "part_of_speech": part_of_speech,
                             "chinese": chinese
                         })
+                        unit_counters[current_unit] += 1  # 递增计数器
                     else:
                         # 没有明显的词性标记
                         result[current_unit].append({
+                            "id": unit_counters[current_unit],
                             "phrase": word_phrase,
                             "phonetic": phonetic,
                             "chinese": remaining
                         })
+                        unit_counters[current_unit] += 1  # 递增计数器
                 except:
                     # 如果解析失败，作为特殊行处理
                     result[current_unit].append({
+                        "id": unit_counters[current_unit],
                         "special": line
                     })
+                    unit_counters[current_unit] += 1  # 递增计数器
         else:
             # 不包含音标，检查是否是特殊行（如人名、书名等）
             if any(keyword in line for keyword in ['/', '（', '）', '(', ')', '《', '》']):
@@ -102,19 +112,25 @@ def convert_txt_to_json(file_path):
                     
                     if phrase:
                         result[current_unit].append({
+                            "id": unit_counters[current_unit],
                             "phrase": phrase,
                             "chinese": chinese
                         })
+                        unit_counters[current_unit] += 1  # 递增计数器
                     else:
                         # 如果短语部分为空，作为特殊行处理
                         result[current_unit].append({
+                            "id": unit_counters[current_unit],
                             "special": line
                         })
+                        unit_counters[current_unit] += 1  # 递增计数器
                 else:
                     # 没有找到中文字符，作为特殊行处理
                     result[current_unit].append({
+                        "id": unit_counters[current_unit],
                         "special": line
                     })
+                    unit_counters[current_unit] += 1  # 递增计数器
             else:
                 # 处理普通短语行
                 # 尝试识别中文释义的位置
@@ -131,19 +147,25 @@ def convert_txt_to_json(file_path):
                     
                     if phrase:
                         result[current_unit].append({
+                            "id": unit_counters[current_unit],
                             "phrase": phrase,
                             "chinese": chinese
                         })
+                        unit_counters[current_unit] += 1  # 递增计数器
                     else:
                         result[current_unit].append({
+                            "id": unit_counters[current_unit],
                             "special": line
                         })
+                        unit_counters[current_unit] += 1  # 递增计数器
                 else:
                     # 没有找到中文字符，可能是纯英文行
                     result[current_unit].append({
+                        "id": unit_counters[current_unit],
                         "word": line,
                         "chinese": ""
                     })
+                    unit_counters[current_unit] += 1  # 递增计数器
     
     return result
 
