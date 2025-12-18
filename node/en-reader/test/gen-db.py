@@ -103,7 +103,7 @@ def make_kv_file_from_sqlite(db_path, output_file):
     print(f"{output_file} created from {db_path}")
 
 # -------- Example usage --------
-db_path = "/Users/huhao/src/ECDICT-master/ecdict.db"
+db_path = "/Users/huhao/Downloads/stardict.db"
 output_file = "dict.db"
 
 make_kv_file_from_sqlite(db_path, output_file)
