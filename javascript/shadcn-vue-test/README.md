@@ -57,3 +57,59 @@ src/style.css
     @tailwind components;
     @tailwind utilities;
 
+shadcn-vue
+
+    pnpm add -D shadcn-vue
+
+    git diff vite.config.ts 
+    @@ -1,7 +1,13 @@
+    +import { fileURLToPath, URL } from 'node:url'
+    import { defineConfig } from 'vite'
+    import vue from '@vitejs/plugin-vue'
+    
+    // https://vite.dev/config/
+    export default defineConfig({
+    plugins: [vue()],
+    +  resolve: {
+    +    alias: {
+    +      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    +    },
+    +  },
+    })
+
+    git diff tsconfig.json
+    @@ -3,5 +3,13 @@
+    "references": [
+        { "path": "./tsconfig.app.json" },
+        { "path": "./tsconfig.node.json" }
+    -  ]
+    +  ],
+    +  "compilerOptions": {
+    +    "baseUrl": ".",
+    +    "paths": {
+    +      "@/*": [
+    +        "src/*"
+    +      ]
+    +    }
+    +  }
+    }
+
+    git diff tsconfig.app.json 
+    @@ -10,7 +10,13 @@
+        "noUnusedParameters": true,
+        "erasableSyntaxOnly": true,
+        "noFallthroughCasesInSwitch": true,
+    -    "noUncheckedSideEffectImports": true
+    +    "noUncheckedSideEffectImports": true,
+    +    "baseUrl": ".",
+    +    "paths": {
+    +      "@/*": [
+    +        "src/*"
+    +      ]
+    +    }    
+    },
+    "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
+    }
+
+    pnpm shadcn-vue init
+
