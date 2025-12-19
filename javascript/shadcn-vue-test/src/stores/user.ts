@@ -15,4 +15,8 @@ export const useUserStore = defineStore('user', {
       this.loggedIn = false
     },
   },
+  persist: {
+    key: 'user',
+    storage: localStorage,
+  },  
 })
