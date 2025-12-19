@@ -1,60 +1,37 @@
 <script setup>
-import { reactiveOmit } from "@vueuse/core";
-import {
-  SliderRange,
-  SliderRoot,
-  SliderThumb,
-  SliderTrack,
-  useForwardPropsEmits,
-} from "reka-ui";
+import { watch } from "vue";
 import { cn } from "@/lib/utils";
 
 const props = defineProps({
-  defaultValue: { type: Array, required: false },
-  modelValue: { type: [Array, null], required: false },
-  disabled: { type: Boolean, required: false },
-  orientation: { type: String, required: false },
-  dir: { type: String, required: false },
-  inverted: { type: Boolean, required: false },
-  min: { type: Number, required: false },
-  max: { type: Number, required: false },
-  step: { type: Number, required: false },
-  minStepsBetweenThumbs: { type: Number, required: false },
-  thumbAlignment: { type: String, required: false },
-  asChild: { type: Boolean, required: false },
-  as: { type: null, required: false },
-  name: { type: String, required: false },
-  required: { type: Boolean, required: false },
-  class: { type: null, required: false },
+  modelValue: { type: Array, required: true },
+  min: { type: Number, required: false, default: 0 },
+  max: { type: Number, required: false, default: 100 },
+  step: { type: Number, required: false, default: 1 },
+  disabled: { type: Boolean, required: false, default: false },
+  class: { type: [String, Object, Array], required: false, default: "" },
 });
-const emits = defineEmits(["update:modelValue", "valueCommit"]);
 
-const delegatedProps = reactiveOmit(props, "class");
+const emits = defineEmits(["update:modelValue"]);
 
-const forwarded = useForwardPropsEmits(delegatedProps, emits);
+// 处理滑块值变化
+const handleInput = (event) => {
+  const newValue = [...props.modelValue];
+  newValue[0] = Number(event.target.value);
+  emits("update:modelValue", newValue);
+};
 </script>
 
 <template>
-  <SliderRoot
-    :class="
-      cn(
-        'relative flex w-full touch-none select-none items-center data-[orientation=vertical]:flex-col data-[orientation=vertical]:w-1.5 data-[orientation=vertical]:h-full',
-        props.class,
-      )
-    "
-    v-bind="forwarded"
-  >
-    <SliderTrack
-      class="relative h-1.5 w-full data-[orientation=vertical]:w-1.5 grow overflow-hidden rounded-full bg-primary/20"
-    >
-      <SliderRange
-        class="absolute h-full data-[orientation=vertical]:w-full bg-primary"
-      />
-    </SliderTrack>
-    <SliderThumb
-      v-for="(_, key) in modelValue"
-      :key="key"
-      class="block h-5 w-5 rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+  <div :class="cn('w-full', props.class)">
+    <input
+      type="range"
+      :min="props.min"
+      :max="props.max"
+      :step="props.step"
+      :value="props.modelValue[0]"
+      :disabled="props.disabled"
+      @input="handleInput"
+      class="w-full h-2 bg-primary/20 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
     />
-  </SliderRoot>
+  </div>
 </template>

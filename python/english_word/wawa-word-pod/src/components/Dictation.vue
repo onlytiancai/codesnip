@@ -9,16 +9,19 @@ const props = defineProps({
   words: {
     type: Array,
     required: true
+  },
+  settings: {
+    type: Object,
+    default: () => ({
+      repeatCount: [2],
+      pauseBetweenWords: [3000]
+    })
   }
 })
 
 const emit = defineEmits(['finish'])
 
-// 设置
-const settings = ref({
-  repeatCount: 2,
-  pauseBetweenWords: 3000
-})
+
 
 // 状态
 const currentWordIndex = ref(0)
@@ -71,7 +74,7 @@ const playAudio = () => {
 const handleAudioEnd = () => {
   currentRepeat.value++
   
-  if (currentRepeat.value < settings.value.repeatCount) {
+  if (currentRepeat.value < props.settings.repeatCount[0]) {
     // 继续重复播放当前单词
     playTimer = setTimeout(() => {
       playAudio()
@@ -85,7 +88,7 @@ const handleAudioEnd = () => {
       // 在下一个单词播放前等待指定时间
       pauseTimer = setTimeout(() => {
         playAudio()
-      }, settings.value.pauseBetweenWords)
+      }, props.settings.pauseBetweenWords[0])
     } else {
       // 听写完成
       isPlaying.value = false
@@ -172,6 +175,11 @@ watch(isPlaying, (newVal) => {
   }
 })
 
+// 组件挂载时自动开始听写
+onMounted(() => {
+  startDictation()
+})
+
 // 组件卸载时清理
 onUnmounted(() => {
   pauseDictation()
@@ -180,70 +188,42 @@ onUnmounted(() => {
 
 <template>
   <div class="container mx-auto p-4">
-    <Card class="max-w-2xl mx-auto">
+    <Card class="max-w-2xl mx-auto" :class="{'bg-white dark:bg-neutral-800': true}">
       <CardHeader class="flex flex-row items-center justify-between pb-6">
-        <CardTitle class="text-2xl font-bold text-neutral-800">听写界面</CardTitle>
+        <CardTitle class="text-2xl font-bold" :class="{'text-neutral-800 dark:text-white': true}">听写界面</CardTitle>
         <Button variant="secondary" @click="goBack">返回</Button>
       </CardHeader>
       <CardContent>
-        <!-- 设置区域 -->
-        <div class="bg-neutral-50 p-4 rounded-lg border mb-6" v-if="!isPlaying && !dictationComplete">
-          <h3 class="text-lg font-semibold mb-4 text-neutral-800">听写设置</h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label for="repeatCount" class="block text-sm font-medium text-neutral-700 mb-1">每个单词读取次数:</label>
-              <Input 
-                id="repeatCount" 
-                type="number" 
-                v-model.number="settings.repeatCount" 
-                min="1" 
-                max="5"
-                class="w-full"
-              />
-            </div>
-            <div>
-              <label for="pauseBetweenWords" class="block text-sm font-medium text-neutral-700 mb-1">单词间停顿(毫秒):</label>
-              <Input 
-                id="pauseBetweenWords" 
-                type="number" 
-                v-model.number="settings.pauseBetweenWords" 
-                min="1000" 
-                max="10000"
-                step="500"
-                class="w-full"
-              />
-            </div>
-          </div>
-        </div>
+
 
         <!-- 听写进度 -->
         <div class="mb-6" v-if="!dictationComplete">
-          <div class="flex justify-between text-sm text-neutral-600 mb-2">
+          <div class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300 mb-2">
             <div>当前单词: {{ currentWordIndex + 1 }} / {{ words.length }}</div>
             <div v-if="currentWordIndex < words.length">
-              当前重复: {{ currentRepeat + 1 }} / {{ settings.repeatCount }}
+              当前重复: {{ currentRepeat + 1 }} / {{ props.settings.repeatCount[0] }}
             </div>
           </div>
-          <div class="w-full h-2 bg-neutral-200 rounded-full overflow-hidden">
+          <div class="w-full h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
             <div 
-              class="h-full bg-green-500 transition-all duration-300 ease-in-out"
-              :style="{ width: `${((currentWordIndex + (currentRepeat / settings.repeatCount)) / words.length) * 100}%` }"
+              class="h-full bg-primary-500 transition-all duration-300 ease-in-out"
+              :style="{ width: `${((currentWordIndex + (currentRepeat / props.settings.repeatCount[0])) / words.length) * 100}%` }"
             ></div>
           </div>
         </div>
 
         <!-- 听写内容 -->
         <div class="text-center mb-8">
-          <div v-if="dictationComplete" class="bg-green-50 p-6 rounded-lg border border-green-200 text-green-800">
+          <div v-if="dictationComplete" class="bg-green-50 dark:bg-green-900/20 p-6 rounded-lg border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300">
             <h3 class="text-xl font-bold mb-2">恭喜您完成听写！</h3>
             <p>您总共听写了 {{ words.length }} 个单词/短语。</p>
           </div>
-          <div v-else-if="currentWordIndex < words.length" class="bg-neutral-50 p-6 rounded-lg border">
+          <div v-else-if="currentWordIndex < words.length" class="bg-neutral-50 dark:bg-neutral-800 p-6 rounded-lg border">
             <div class="inline-block text-left">
-              <div class="text-2xl font-bold text-neutral-800 mb-2">
+              <div class="text-2xl font-bold mb-2" :class="{'text-neutral-800 dark:text-white': true}">
                 {{ words[currentWordIndex].word || words[currentWordIndex].phrase }}
               </div>
-              <div class="text-lg text-neutral-600">
+              <div class="text-lg text-neutral-600 dark:text-neutral-300">
                 {{ words[currentWordIndex].chinese }}
               </div>
             </div>
@@ -281,7 +261,7 @@ onUnmounted(() => {
               @click="goBack"
               class="ml-2"
             >
-              返回单词列表
+              返回确认页
             </Button>
           </div>
         </div>
