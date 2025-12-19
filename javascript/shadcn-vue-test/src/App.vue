@@ -8,16 +8,16 @@ import { Button } from '@/components/ui/button'
     <!-- 顶部导航 -->
     <nav class="flex gap-2 p-4 border-b">
 
-    <RouterLink to="/" custom v-slot="{ isExactActive, navigate, href }">
-      <a :href="href" @click="navigate">
-        <Button
-          variant="ghost"
-          :class="isExactActive ? 'bg-muted underline' : ''"
-        >
-          首页
-        </Button>
-      </a>
-    </RouterLink>
+      <RouterLink to="/" custom v-slot="{ isExactActive, navigate, href }">
+        <a :href="href" @click="navigate">
+          <Button
+            variant="ghost"
+            :class="isExactActive ? 'bg-muted underline' : ''"
+          >
+            首页
+          </Button>
+        </a>
+      </RouterLink>
 
 
       <Button as-child variant="ghost" >

@@ -2,15 +2,36 @@
 import HelloWorld from '../components/HelloWorld.vue'
 import { Button } from '@/components/ui/button'
 import  ThemeToggle  from '@/components/ThemeToggle.vue'
+import { useUserStore } from '@/stores/user'
+
+const user = useUserStore()
+
+function handleLogin() {
+  user.login('Huhao')
+}
+
 </script>
 
 <template>
   <div>
+    
     <header class="flex items-center justify-end p-4">
       <ThemeToggle />
     </header>
     <div class="text-6xl font-black underline">
-      Tailwind v4 OK
+         <p class="text-muted-foreground">
+          当前用户：<span class="font-medium">{{ user.name }}</span>
+        </p>
+
+        <p>
+          登录状态：
+          <span v-if="user.loggedIn">✅ 已登录</span>
+          <span v-else>❌ 未登录</span>
+        </p>
+
+        <Button @click="handleLogin">
+          登录
+        </Button>
     </div>
     <div class="text-primary">333</div>
     <div class="text-destructive">444</div>
