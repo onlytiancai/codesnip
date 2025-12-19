@@ -1,5 +1,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Slider } from '@/components/ui/slider'
 
 const props = defineProps({
   words: {
@@ -175,103 +179,114 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="dictation">
-    <div class="header">
-      <h2>听写界面</h2>
-      <button @click="goBack" class="btn btn-secondary">返回</button>
-    </div>
-
-    <!-- 设置区域 -->
-    <div class="settings" v-if="!isPlaying && !dictationComplete">
-      <h3>听写设置</h3>
-      <div class="setting-item">
-        <label for="repeatCount">每个单词读取次数:</label>
-        <input 
-          id="repeatCount" 
-          type="number" 
-          v-model.number="settings.repeatCount" 
-          min="1" 
-          max="5"
-        />
-      </div>
-      <div class="setting-item">
-        <label for="pauseBetweenWords">单词间停顿(毫秒):</label>
-        <input 
-          id="pauseBetweenWords" 
-          type="number" 
-          v-model.number="settings.pauseBetweenWords" 
-          min="1000" 
-          max="10000"
-          step="500"
-        />
-      </div>
-    </div>
-
-    <!-- 听写进度 -->
-    <div class="progress" v-if="!dictationComplete">
-      <div class="progress-info">
-        <div>当前单词: {{ currentWordIndex + 1 }} / {{ words.length }}</div>
-        <div v-if="currentWordIndex < words.length">
-          当前重复: {{ currentRepeat + 1 }} / {{ settings.repeatCount }}
-        </div>
-      </div>
-      <div class="progress-bar">
-        <div 
-          class="progress-fill" 
-          :style="{ width: `${((currentWordIndex + (currentRepeat / settings.repeatCount)) / words.length) * 100}%` }"
-        ></div>
-      </div>
-    </div>
-
-    <!-- 听写内容 -->
-    <div class="dictation-content">
-      <div v-if="dictationComplete" class="complete-message">
-        <h3>恭喜您完成听写！</h3>
-        <p>您总共听写了 {{ words.length }} 个单词/短语。</p>
-      </div>
-      <div v-else-if="currentWordIndex < words.length" class="current-word">
-        <div class="word-info">
-          <div class="word-text">
-            {{ words[currentWordIndex].word || words[currentWordIndex].phrase }}
-          </div>
-          <div class="word-chinese">
-            {{ words[currentWordIndex].chinese }}
+  <div class="container mx-auto p-4">
+    <Card class="max-w-2xl mx-auto">
+      <CardHeader class="flex flex-row items-center justify-between pb-6">
+        <CardTitle class="text-2xl font-bold text-neutral-800">听写界面</CardTitle>
+        <Button variant="secondary" @click="goBack">返回</Button>
+      </CardHeader>
+      <CardContent>
+        <!-- 设置区域 -->
+        <div class="bg-neutral-50 p-4 rounded-lg border mb-6" v-if="!isPlaying && !dictationComplete">
+          <h3 class="text-lg font-semibold mb-4 text-neutral-800">听写设置</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="repeatCount" class="block text-sm font-medium text-neutral-700 mb-1">每个单词读取次数:</label>
+              <Input 
+                id="repeatCount" 
+                type="number" 
+                v-model.number="settings.repeatCount" 
+                min="1" 
+                max="5"
+                class="w-full"
+              />
+            </div>
+            <div>
+              <label for="pauseBetweenWords" class="block text-sm font-medium text-neutral-700 mb-1">单词间停顿(毫秒):</label>
+              <Input 
+                id="pauseBetweenWords" 
+                type="number" 
+                v-model.number="settings.pauseBetweenWords" 
+                min="1000" 
+                max="10000"
+                step="500"
+                class="w-full"
+              />
+            </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- 控制按钮 -->
-    <div class="controls">
-      <div v-if="!dictationComplete">
-        <button 
-          @click="!isPlaying ? startDictation() : (isPaused ? resumeDictation() : pauseDictation())"
-          class="btn btn-primary"
-        >
-          {{ !isPlaying ? '开始听写' : (isPaused ? '继续' : '暂停') }}
-        </button>
-        <button 
-          @click="restartDictation"
-          class="btn btn-secondary"
-        >
-          重新开始
-        </button>
-      </div>
-      <div v-else>
-        <button 
-          @click="restartDictation"
-          class="btn btn-primary"
-        >
-          再次听写
-        </button>
-        <button 
-          @click="goBack"
-          class="btn btn-secondary"
-        >
-          返回单词列表
-        </button>
-      </div>
-    </div>
+        <!-- 听写进度 -->
+        <div class="mb-6" v-if="!dictationComplete">
+          <div class="flex justify-between text-sm text-neutral-600 mb-2">
+            <div>当前单词: {{ currentWordIndex + 1 }} / {{ words.length }}</div>
+            <div v-if="currentWordIndex < words.length">
+              当前重复: {{ currentRepeat + 1 }} / {{ settings.repeatCount }}
+            </div>
+          </div>
+          <div class="w-full h-2 bg-neutral-200 rounded-full overflow-hidden">
+            <div 
+              class="h-full bg-green-500 transition-all duration-300 ease-in-out"
+              :style="{ width: `${((currentWordIndex + (currentRepeat / settings.repeatCount)) / words.length) * 100}%` }"
+            ></div>
+          </div>
+        </div>
+
+        <!-- 听写内容 -->
+        <div class="text-center mb-8">
+          <div v-if="dictationComplete" class="bg-green-50 p-6 rounded-lg border border-green-200 text-green-800">
+            <h3 class="text-xl font-bold mb-2">恭喜您完成听写！</h3>
+            <p>您总共听写了 {{ words.length }} 个单词/短语。</p>
+          </div>
+          <div v-else-if="currentWordIndex < words.length" class="bg-neutral-50 p-6 rounded-lg border">
+            <div class="inline-block text-left">
+              <div class="text-2xl font-bold text-neutral-800 mb-2">
+                {{ words[currentWordIndex].word || words[currentWordIndex].phrase }}
+              </div>
+              <div class="text-lg text-neutral-600">
+                {{ words[currentWordIndex].chinese }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 控制按钮 -->
+        <div class="flex justify-center gap-4">
+          <div v-if="!dictationComplete">
+            <Button 
+              variant="default" 
+              @click="!isPlaying ? startDictation() : (isPaused ? resumeDictation() : pauseDictation())"
+              class="px-6 py-2"
+            >
+              {{ !isPlaying ? '开始听写' : (isPaused ? '继续' : '暂停') }}
+            </Button>
+            <Button 
+              variant="secondary" 
+              @click="restartDictation"
+              class="ml-2"
+            >
+              重新开始
+            </Button>
+          </div>
+          <div v-else>
+            <Button 
+              variant="default" 
+              @click="restartDictation"
+              class="px-6 py-2"
+            >
+              再次听写
+            </Button>
+            <Button 
+              variant="secondary" 
+              @click="goBack"
+              class="ml-2"
+            >
+              返回单词列表
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
 
     <!-- 隐藏的音频元素 -->
     <audio 
@@ -282,157 +297,3 @@ onUnmounted(() => {
   </div>
 </template>
 
-<style scoped>
-.dictation {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.header h2 {
-  margin: 0;
-  color: #333;
-}
-
-.settings {
-  margin: 20px 0;
-  padding: 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background-color: #f8f9fa;
-}
-
-.settings h3 {
-  margin-top: 0;
-  margin-bottom: 16px;
-  color: #333;
-}
-
-.setting-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.setting-item:last-child {
-  margin-bottom: 0;
-}
-
-.setting-item input {
-  width: 100px;
-  padding: 6px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.progress {
-  margin: 20px 0;
-}
-
-.progress-info {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: #666;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background-color: #e0e0e0;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background-color: #42b983;
-  transition: width 0.3s ease;
-}
-
-.dictation-content {
-  text-align: center;
-  margin: 40px 0;
-}
-
-.complete-message {
-  padding: 30px;
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  border-radius: 8px;
-  color: #155724;
-}
-
-.complete-message h3 {
-  margin-top: 0;
-}
-
-.current-word {
-  padding: 30px;
-  background-color: #f8f9fa;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-}
-
-.word-info {
-  display: inline-block;
-  text-align: left;
-}
-
-.word-text {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 8px;
-}
-
-.word-chinese {
-  font-size: 18px;
-  color: #666;
-}
-
-.controls {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 30px;
-}
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s;
-}
-
-.btn-primary {
-  background-color: #42b983;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #359f70;
-}
-
-.btn-secondary {
-  background-color: #f0f0f0;
-  color: #333;
-}
-
-.btn-secondary:hover {
-  background-color: #e0e0e0;
-}
-</style>

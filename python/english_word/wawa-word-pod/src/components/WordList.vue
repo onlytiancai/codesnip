@@ -1,5 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 
 const props = defineProps({
   wordData: {
@@ -65,195 +68,61 @@ const handleStartDictation = () => {
 </script>
 
 <template>
-  <div class="word-list">
-    <div class="header">
-      <h2>英语单词听写</h2>
-      <div class="selection-controls">
-        <button @click="selectAllWords" class="btn btn-secondary">全选</button>
-        <button @click="clearSelection" class="btn btn-secondary">清空</button>
-        <button 
-          @click="handleStartDictation" 
-          class="btn btn-primary"
-          :disabled="selectedWords.length === 0"
-        >
-          开始听写 ({{ selectedWords.length }})
-        </button>
-      </div>
-    </div>
-
-    <div class="units">
-      <div 
-        v-for="(items, unit) in wordData" 
-        :key="unit"
-        class="unit"
-      >
-        <div class="unit-header" @click="toggleUnit(unit)">
-          <h3>{{ unit }}</h3>
-          <span class="unit-toggle">{{ isUnitExpanded(unit) ? '▼' : '▶' }}</span>
-        </div>
-        
-        <div v-if="isUnitExpanded(unit)" class="unit-words">
-          <div 
-            v-for="item in items" 
-            :key="item.id"
-            class="word-item"
-            :class="{ 'selected': isWordSelected(item) }"
-            @click="toggleWordSelection(item)"
+  <div class="container mx-auto p-4">
+    <Card class="max-w-4xl mx-auto">
+      <CardHeader class="flex flex-row items-center justify-between pb-6">
+        <CardTitle class="text-2xl font-bold text-neutral-800">英语单词听写</CardTitle>
+        <div class="flex gap-2">
+          <Button variant="secondary" @click="selectAllWords">全选</Button>
+          <Button variant="secondary" @click="clearSelection">清空</Button>
+          <Button 
+            variant="default" 
+            @click="handleStartDictation"
+            :disabled="selectedWords.length === 0"
           >
-            <div class="word-content">
-              <div class="word-text">
-                {{ item.word || item.phrase }}
-              </div>
-              <div class="word-chinese">
-                {{ item.chinese }}
-              </div>
+            开始听写 ({{ selectedWords.length }})
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div class="space-y-3">
+          <div 
+            v-for="(items, unit) in wordData" 
+            :key="unit"
+            class="border rounded-lg overflow-hidden"
+          >
+            <div 
+              class="flex items-center justify-between p-4 bg-neutral-50 cursor-pointer hover:bg-neutral-100 transition-colors"
+              @click="toggleUnit(unit)"
+            >
+              <h3 class="font-semibold text-neutral-800">{{ unit }}</h3>
+              <span class="text-neutral-500">{{ isUnitExpanded(unit) ? '▼' : '▶' }}</span>
             </div>
-            <div class="word-select">
-              <input 
-                type="checkbox"
-                :checked="isWordSelected(item)"
-                @change="toggleWordSelection(item)"
-              />
+            
+            <div v-if="isUnitExpanded(unit)" class="p-3">
+              <div 
+                v-for="item in items" 
+                :key="item.id"
+                class="flex items-center justify-between p-3 rounded-md cursor-pointer hover:bg-neutral-50 transition-colors"
+                :class="{ 'bg-green-50 border-l-4 border-green-500': isWordSelected(item) }"
+                @click="toggleWordSelection(item)"
+              >
+                <div class="flex-1">
+                  <div class="font-medium text-neutral-800">{{ item.word || item.phrase }}</div>
+                  <div class="text-sm text-neutral-600 mt-1">{{ item.chinese }}</div>
+                </div>
+                <div class="ml-4">
+                  <Checkbox 
+                    :checked="isWordSelected(item)"
+                    @change="toggleWordSelection(item)"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   </div>
 </template>
 
-<style scoped>
-.word-list {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.header h2 {
-  margin: 0;
-  color: #333;
-}
-
-.selection-controls {
-  display: flex;
-  gap: 10px;
-}
-
-.btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.btn-primary {
-  background-color: #42b983;
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: #359f70;
-}
-
-.btn-primary:disabled {
-  background-color: #a3d9c0;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background-color: #f0f0f0;
-  color: #333;
-}
-
-.btn-secondary:hover {
-  background-color: #e0e0e0;
-}
-
-.units {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.unit {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.unit-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background-color: #f8f9fa;
-  cursor: pointer;
-  font-weight: bold;
-  color: #333;
-}
-
-.unit-toggle {
-  font-size: 12px;
-  color: #666;
-}
-
-.unit-words {
-  padding: 8px;
-}
-
-.word-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 12px;
-  margin: 4px 0;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.word-item:hover {
-  background-color: #f0f0f0;
-}
-
-.word-item.selected {
-  background-color: #e8f5e9;
-  border-left: 4px solid #42b983;
-}
-
-.word-content {
-  flex: 1;
-}
-
-.word-text {
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
-}
-
-.word-chinese {
-  font-size: 14px;
-  color: #666;
-  margin-top: 2px;
-}
-
-.word-select {
-  margin-left: 16px;
-}
-
-.word-select input {
-  width: 18px;
-  height: 18px;
-}
-</style>

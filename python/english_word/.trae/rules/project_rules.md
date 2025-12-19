@@ -1,0 +1,1 @@
+wawa-word-pod项目使用的技术栈是 pnpm+vite+vue3+shadcn-vue
