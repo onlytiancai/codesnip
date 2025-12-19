@@ -8,9 +8,10 @@
     │
     ◇  Select a variant:
     │  TypeScript
-    │
-    ◇  Use rolldown-vite (Experimental)?:
-    │  No
-    │
-    ◇  Install with pnpm and start now?
-    │  Yes
+
+    cd shadcn-vue-test
+    pnpm install
+    pnpm dev
+
+    pnpm add -D tailwindcss postcss autoprefixer
+
