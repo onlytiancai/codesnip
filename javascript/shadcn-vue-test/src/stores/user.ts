@@ -10,5 +10,9 @@ export const useUserStore = defineStore('user', {
       this.name = name
       this.loggedIn = true
     },
+    logout() {
+      this.name = 'Guest'
+      this.loggedIn = false
+    },
   },
 })
