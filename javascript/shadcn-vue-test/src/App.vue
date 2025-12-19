@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import HelloWorld from './components/HelloWorld.vue'
 import { Button } from '@/components/ui/button'
+import { toggleDark } from '@/lib/theme'
 </script>
 
 <template>
@@ -11,7 +12,7 @@ import { Button } from '@/components/ui/button'
     <div class="text-primary">333</div>
     <div class="text-destructive">444</div>
     <div class="bg-muted text-muted-foreground">555</div>
-    <Button>Hello shadcn-vue</Button>
+    <Button @click="toggleDark">Hello shadcn-vue</Button>
     <a href="https://vite.dev" target="_blank">
       <img src="/vite.svg" class="logo" alt="Vite logo" />
     </a>
