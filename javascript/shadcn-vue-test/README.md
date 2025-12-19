@@ -113,3 +113,11 @@ shadcn-vue
 
     pnpm shadcn-vue init
 
+add button
+
+    pnpm shadcn-vue add button
+    pnpm add -D @tailwindcss/postcss
+    pnpm add -D tw-animate-css
+
+
+

@@ -1,9 +1,17 @@
 <script setup lang="ts">
 import HelloWorld from './components/HelloWorld.vue'
+import { Button } from '@/components/ui/button'
 </script>
 
 <template>
   <div>
+    <div class="text-6xl font-black underline">
+      Tailwind v4 OK
+    </div>
+    <div class="text-primary">333</div>
+    <div class="text-destructive">444</div>
+    <div class="bg-muted text-muted-foreground">555</div>
+    <Button>Hello shadcn-vue</Button>
     <a href="https://vite.dev" target="_blank">
       <img src="/vite.svg" class="logo" alt="Vite logo" />
     </a>
