@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Slider } from '@/components/ui/slider'
@@ -13,11 +13,33 @@ const props = defineProps({
 
 const emit = defineEmits(['confirm', 'cancel', 'remove-word'])
 
+// 从localStorage加载设置，默认值为repeatCount: 2, pauseBetweenWords: 3000
+const loadSettingsFromLocalStorage = () => {
+  try {
+    const savedSettings = localStorage.getItem('dictationSettings')
+    if (savedSettings) {
+      return JSON.parse(savedSettings)
+    }
+  } catch (error) {
+    console.error('Failed to load settings from localStorage:', error)
+  }
+  return {
+    repeatCount: [2],
+    pauseBetweenWords: [3000]
+  }
+}
+
 // 设置
-const settings = ref({
-  repeatCount: [2], // 包装成数组以适配Slider组件
-  pauseBetweenWords: [3000] // 包装成数组以适配Slider组件
-})
+const settings = ref(loadSettingsFromLocalStorage())
+
+// 监听设置变化，保存到localStorage
+watch(settings, (newSettings) => {
+  try {
+    localStorage.setItem('dictationSettings', JSON.stringify(newSettings))
+  } catch (error) {
+    console.error('Failed to save settings to localStorage:', error)
+  }
+}, { deep: true })
 
 // 移除单词
 const removeWord = (wordId) => {
@@ -56,7 +78,7 @@ const handleCancel = () => {
             <Button 
               variant="ghost" 
               size="icon" 
-              class="h-5 w-5 p-0"
+              class="h-5 w-5 p-0 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-all"
               @click="removeWord(word.uniqueId)"
             >
               ✕
@@ -110,12 +132,12 @@ const handleCancel = () => {
 
         <!-- 控制按钮 -->
         <div class="flex justify-end gap-4">
-          <Button variant="secondary" @click="handleCancel">返回</Button>
+          <Button variant="secondary" @click="handleCancel" class="transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-md">返回</Button>
           <Button 
             variant="default" 
             @click="handleConfirm"
             :disabled="words.length === 0"
-            class="bg-primary-500 hover:bg-primary-600"
+            class="bg-primary-500 hover:bg-primary-600 transition-all hover:shadow-lg"
           >
             开始听写
           </Button>

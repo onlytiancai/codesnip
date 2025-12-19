@@ -30,7 +30,7 @@ onMounted(() => {
 })
 
 // 最大选择单词数
-const MAX_SELECTION = 20
+const MAX_SELECTION = 50
 
 // 监听父组件选中状态变化
 watch(() => props.selectedWords, (newVal) => {
@@ -96,6 +96,38 @@ const clearSelection = () => {
   emit('update:selectedWords', localSelectedWords.value)
 }
 
+// 全选当前单元的所有单词
+const selectAllInUnit = (unit) => {
+  const unitWords = props.wordData[unit]
+  // 检查是否会超过选择上限
+  const selectedCount = localSelectedWords.value.length
+  const availableSlots = MAX_SELECTION - selectedCount
+  const unitWordsCount = unitWords.length
+  
+  if (availableSlots < unitWordsCount) {
+    alert(`选择该单元会超过 ${MAX_SELECTION} 个单词的限制，最多只能再选择 ${availableSlots} 个单词。`)
+    return
+  }
+  
+  // 添加该单元的所有单词
+  unitWords.forEach(wordItem => {
+    if (!isWordSelected(wordItem)) {
+      localSelectedWords.value.push(wordItem)
+    }
+  })
+  emit('update:selectedWords', localSelectedWords.value)
+}
+
+// 清空当前单元的所有已选单词
+const clearAllInUnit = (unit) => {
+  const unitWords = props.wordData[unit]
+  // 过滤掉该单元的所有已选单词
+  localSelectedWords.value = localSelectedWords.value.filter(item => {
+    return !unitWords.some(wordItem => wordItem.uniqueId === item.uniqueId)
+  })
+  emit('update:selectedWords', localSelectedWords.value)
+}
+
 const handleStartDictation = () => {
   if (localSelectedWords.value.length > 0) {
     emit('start-dictation', localSelectedWords.value)
@@ -109,8 +141,8 @@ const handleStartDictation = () => {
       <CardHeader class="flex flex-row items-center justify-between pb-6">
         <CardTitle class="text-2xl font-bold">单词列表</CardTitle>
         <div class="flex gap-2 flex-wrap">
-          <Button variant="secondary" @click="selectAllWords">全选</Button>
-          <Button variant="secondary" @click="clearSelection">清空</Button>
+          <Button variant="secondary" @click="selectAllWords" class="transition-all hover:bg-green-100 dark:hover:bg-green-900/30 hover:text-green-600 dark:hover:text-green-400 hover:shadow-md">全选</Button>
+          <Button variant="secondary" @click="clearSelection" class="transition-all hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 hover:shadow-md">清空</Button>
         </div>
       </CardHeader>
       <CardContent>
@@ -127,9 +159,29 @@ const handleStartDictation = () => {
               @click="toggleUnit(unit)"
             >
               <h3 class="font-semibold">{{ unit }}</h3>
-              <span :class="{ 'text-neutral-500 dark:text-neutral-400': true }">
-                {{ isUnitExpanded(unit) ? '▼' : '▶' }}
-              </span>
+              <div class="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  class="h-8 w-8 p-0 hover:bg-green-100 dark:hover:bg-green-900/30 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                  @click.stop="selectAllInUnit(unit)"
+                  title="全选本单元"
+                >
+                  ✓
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  class="h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                  @click.stop="clearAllInUnit(unit)"
+                  title="清空本单元"
+                >
+                  ✕
+                </Button>
+                <span :class="{'text-neutral-500 dark:text-neutral-400': true }">
+                  {{ isUnitExpanded(unit) ? '▼' : '▶' }}
+                </span>
+              </div>
             </div>
             
             <div v-if="isUnitExpanded(unit)" class="p-3">

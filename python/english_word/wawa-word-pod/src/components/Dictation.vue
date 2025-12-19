@@ -191,7 +191,7 @@ onUnmounted(() => {
     <Card class="max-w-2xl mx-auto" :class="{'bg-white dark:bg-neutral-800': true}">
       <CardHeader class="flex flex-row items-center justify-between pb-6">
         <CardTitle class="text-2xl font-bold" :class="{'text-neutral-800 dark:text-white': true}">听写界面</CardTitle>
-        <Button variant="secondary" @click="goBack">返回</Button>
+        <Button variant="secondary" @click="goBack" class="transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-md">返回</Button>
       </CardHeader>
       <CardContent>
 
@@ -236,14 +236,14 @@ onUnmounted(() => {
             <Button 
               variant="default" 
               @click="!isPlaying ? startDictation() : (isPaused ? resumeDictation() : pauseDictation())"
-              class="px-6 py-2"
+              class="px-6 py-2 transition-all hover:shadow-lg hover:bg-primary-600 dark:hover:bg-primary-700"
             >
               {{ !isPlaying ? '开始听写' : (isPaused ? '继续' : '暂停') }}
             </Button>
             <Button 
               variant="secondary" 
               @click="restartDictation"
-              class="ml-2"
+              class="ml-2 transition-all hover:bg-yellow-100 dark:hover:bg-yellow-900/30 hover:text-yellow-600 dark:hover:text-yellow-400 hover:shadow-md"
             >
               重新开始
             </Button>
@@ -252,14 +252,14 @@ onUnmounted(() => {
             <Button 
               variant="default" 
               @click="restartDictation"
-              class="px-6 py-2"
+              class="px-6 py-2 transition-all hover:shadow-lg hover:bg-green-600 dark:hover:bg-green-700"
             >
               再次听写
             </Button>
             <Button 
               variant="secondary" 
               @click="goBack"
-              class="ml-2"
+              class="ml-2 transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-md"
             >
               返回确认页
             </Button>

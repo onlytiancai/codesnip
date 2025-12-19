@@ -15,8 +15,8 @@ EN_VOC = "pwgan_ljspeech"
 
 words = [
     ['amusement', '娱乐；游戏'],
-    ['amusement park', '游乐场'],
-    ['apple', '苹果'],
+    ['pass', '给; 递; 走过; 通过'],
+    ['as soon as', '一......就......; 尽快'],
 ]
 
 
