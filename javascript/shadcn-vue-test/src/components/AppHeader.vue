@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { Button } from '@/components/ui/button'
-import { useUserStore } from '@/stores/user'
 import ThemeToggle from '@/components/ThemeToggle.vue'
-import { RouterLink } from 'vue-router'
+import { Button } from '@/components/ui/button'
+import { useAuth } from '@/composables/useAuth'
 
-const user = useUserStore()
+const { isLoggedIn, username, logout } = useAuth()
 </script>
 
 <template>
@@ -23,14 +22,14 @@ const user = useUserStore()
 
     <div class="flex items-center gap-2">
       <span class="text-sm text-muted-foreground">
-        {{ user.loggedIn ? user.name : '未登录' }}
+       {{ isLoggedIn ? `👋 ${username}` : '未登录' }}
       </span>
 
       <Button
-        v-if="user.loggedIn"
+        v-if="isLoggedIn"
         size="sm"
         variant="outline"
-        @click="user.logout"
+        @click="logout"
       >
         退出
       </Button>

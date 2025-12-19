@@ -1,47 +1,29 @@
 <script setup lang="ts">
 import HelloWorld from '../components/HelloWorld.vue'
 import { Button } from '@/components/ui/button'
-import  ThemeToggle  from '@/components/ThemeToggle.vue'
-import { useUserStore } from '@/stores/user'
-
-const user = useUserStore()
-
-function handleLogin() {
-  user.login('Huhao')
-}
 
 </script>
 
 <template>
   <div>
-    
-    <header class="flex items-center justify-end p-4">
-      <ThemeToggle />
-    </header>
-    <div class="text-6xl font-black underline">
-         <p class="text-muted-foreground">
-          当前用户：<span class="font-medium">{{ user.name }}</span>
-        </p>
 
-        <p>
-          登录状态：
-          <span v-if="user.loggedIn">✅ 已登录</span>
-          <span v-else>❌ 未登录</span>
-        </p>
-
-        <Button @click="handleLogin">
-          登录
-        </Button>
+    <div class="p-4 m-4 border rounded-lg">
+      <Button variant="ghost" >Hello</Button>
     </div>
-    <div class="text-primary">333</div>
-    <div class="text-destructive">444</div>
-    <div class="bg-muted text-muted-foreground">555</div>
-    <Button >Hello shadcn-vue</Button>
+
+    <div class="p-4 m-4 border rounded-lg bg-muted">
+      <div class="text-green-500 text-2xl font-bold">
+        Tailwind OK
+      </div>
+    </div>
+
+
+    
     <a href="https://vite.dev" target="_blank">
       <img src="/vite.svg" class="logo" alt="Vite logo" />
     </a>
     <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
+      <img src="@/assets/vue.svg" class="logo vue" alt="Vue logo" />
     </a>
   </div>
   <HelloWorld msg="Vite + Vue" />

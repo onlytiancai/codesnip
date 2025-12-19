@@ -1,16 +1,8 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button'
-import { useUserStore } from '@/stores/user'
-import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 
-const user = useUserStore()
-const router = useRouter()
-
-function handleLogout() {
-  user.logout()
-  router.replace('/login')
-}
-
+const { logout } = useAuth()
 </script>
 
 <template>
@@ -19,7 +11,7 @@ function handleLogout() {
 
     <p>只有登录后才能看到这个页面</p>
 
-    <Button variant="destructive" @click="handleLogout">
+    <Button variant="destructive" @click="logout">
       退出登录
     </Button>
   </div>

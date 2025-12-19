@@ -642,3 +642,272 @@ import { Card, CardContent } from '@/components/ui/card'
 
 这已经是 **中高级前端工程师水准** 了。
 
+===
+
+下面给你一份 **「面向 Vue / shadcn 使用场景的 Tailwind CSS 快速入门」**。
+不讲历史、不讲废话，**只讲你现在项目里立刻用得到的**。
+
+---
+
+# Tailwind CSS 快速入门（工程实战版）
+
+> 适用：Tailwind v4 + Vite + Vue 3 + shadcn-vue
+
+---
+
+## 一、Tailwind 是什么（一句话）
+
+> **Tailwind = 原子类 + 组合样式 + 设计系统思维**
+
+你不再写：
+
+```css
+.card { ... }
+```
+
+而是：
+
+```html
+<div class="p-6 rounded-lg border bg-background">
+```
+
+---
+
+## 二、最常用的 10 类（你先记住它们）
+
+### 1️⃣ 布局（每天都在用）
+
+```html
+flex items-center justify-between
+grid grid-cols-2 gap-4
+```
+
+---
+
+### 2️⃣ 间距（最常见）
+
+```html
+p-4 px-6 py-2
+m-4 mt-2
+gap-2 space-y-4
+```
+
+---
+
+### 3️⃣ 字体
+
+```html
+text-sm text-lg text-2xl
+font-medium font-bold
+leading-tight
+```
+
+---
+
+### 4️⃣ 颜色（⚠️ shadcn 推荐）
+
+```html
+bg-background
+text-foreground
+text-muted-foreground
+bg-primary text-primary-foreground
+```
+
+❌ 少用：
+
+```html
+text-green-500
+bg-slate-800
+```
+
+---
+
+### 5️⃣ 边框 & 圆角
+
+```html
+border rounded-md rounded-lg
+border-muted
+```
+
+---
+
+### 6️⃣ 阴影
+
+```html
+shadow-sm shadow-md
+```
+
+---
+
+### 7️⃣ 尺寸
+
+```html
+w-full h-screen
+max-w-md
+```
+
+---
+
+### 8️⃣ 对齐（Flex）
+
+```html
+items-center justify-center
+```
+
+---
+
+### 9️⃣ 响应式（移动端必备）
+
+```html
+md:flex
+lg:grid-cols-3
+hidden md:block
+```
+
+---
+
+### 🔟 状态（你已经用过了）
+
+```html
+hover:bg-muted
+focus:ring-2
+disabled:opacity-50
+router-link-exact-active:bg-muted
+```
+
+---
+
+## 三、Tailwind 的“冒号语法”核心规则（你一定要懂）
+
+### 基本格式
+
+```txt
+条件:样式
+```
+
+### 常见条件
+
+| 写法                            | 含义      |
+| ----------------------------- | ------- |
+| `hover:bg-muted`              | 悬停      |
+| `focus:ring-2`                | 聚焦      |
+| `dark:bg-background`          | 暗黑      |
+| `md:flex`                     | ≥ md    |
+| `router-link-active:bg-muted` | 路由激活    |
+| `data-[state=open]:bg-muted`  | data 属性 |
+
+---
+
+## 四、Tailwind v4 的重要变化（你项目里已体现）
+
+### ❌ 不再 `tailwindcss init`
+
+你已经踩过坑了 ✔
+
+### ✅ PostCSS 插件改成：
+
+```js
+'@tailwindcss/postcss'
+```
+
+---
+
+## 五、shadcn-vue + Tailwind 的正确用法 ⭐
+
+### ❌ 错误（像写 Bootstrap）
+
+```vue
+<Button class="bg-blue-500 text-white">
+```
+
+---
+
+### ✅ 正确（设计系统）
+
+```vue
+<Button variant="default">
+<Button variant="destructive">
+<Button variant="outline">
+<Button variant="ghost">
+```
+
+---
+
+## 六、一个完整组件示例（你照这个写）
+
+```vue
+<template>
+  <div class="max-w-md mx-auto p-6 border rounded-lg space-y-4">
+    <h2 class="text-lg font-semibold">
+      用户信息
+    </h2>
+
+    <p class="text-muted-foreground">
+      当前登录用户
+    </p>
+
+    <Button class="w-full">
+      操作
+    </Button>
+  </div>
+</template>
+```
+
+✔ 没有写颜色
+✔ 暗黑模式自动适配
+✔ shadcn 风格统一
+
+---
+
+## 七、常见误区（你一定要避开）
+
+### ❌ 写太多 class？
+
+> Tailwind 的哲学是：
+>
+> **样式就在组件里**
+
+这是优点，不是缺点。
+
+---
+
+### ❌ 什么都用 Tailwind？
+
+不是。
+
+| 场景           | 推荐           |
+| ------------ | ------------ |
+| 布局 / 间距 / 状态 | Tailwind     |
+| 复杂动画         | CSS / Motion |
+| 主题变量         | CSS 变量       |
+
+---
+
+## 八、你现在该怎么练习（最有效）
+
+### 练 3 个组件就够了：
+
+1. 卡片（Card）
+2. 表单（Form）
+3. 列表（List）
+
+---
+
+## 九、学习顺序（不走弯路）
+
+1. **Flex / Grid**
+2. **Spacing**
+3. **Typography**
+4. **State（hover / dark）**
+5. **Responsive**
+6. **Variant（你已经在用了）**
+
+---
+
+## 十、你现在已经在哪个阶段？
+
+从我们整个对话来看，你已经：
+
+* ✅ 掌握 Tailwind 基本语法
+* ✅ 会和 Vue Router / shadcn 组合
+* ✅ 理解变体系统（不是死记）
