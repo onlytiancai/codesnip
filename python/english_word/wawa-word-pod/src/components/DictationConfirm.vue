@@ -16,7 +16,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['confirm', 'cancel', 'remove-word'])
+const emit = defineEmits(['confirm', 'cancel'])
 
 // 从localStorage加载设置
 const loadSettingsFromLocalStorage = () => {
@@ -52,10 +52,7 @@ watch(settings, (newSettings) => {
   }
 }, { deep: true })
 
-// 移除单词
-const removeWord = (wordId) => {
-  emit('remove-word', wordId)
-}
+
 
 // 确认听写
 const handleConfirm = () => {
@@ -76,41 +73,7 @@ onMounted(() => {
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-6">
 
-          <!-- 所选单词 -->
-          <div class="mb-8">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg md:text-xl font-semibold text-slate-800 dark:text-white">
-                <BookOpen class="h-5 w-5 inline mr-2" />
-                你已选择 {{ words.length }} 个单词
-              </h3>
-              <div v-if="words.length > 0" class="text-xs px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full text-green-700 dark:text-green-300">
-                数量: {{ words.length }}
-              </div>
-            </div>
-            
-            <!-- 单词标签 -->
-            <div class="flex flex-wrap gap-2 max-h-80 overflow-y-auto p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700">
-              <div 
-                v-for="(word, index) in words" 
-                :key="word.uniqueId"
-                class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200"
-                :class="{'bg-primary-500 text-white': true}"
-              >
-                <span>{{ word.word || word.phrase }}</span>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  class="h-6 w-6 p-0 hover:bg-red-100/80 hover:text-red-600 transition-all rounded-full"
-                  @click="removeWord(word.uniqueId)"
-                >
-                  <XCircle class="h-4 w-4" />
-                </Button>
-              </div>
-              <div v-if="words.length === 0" class="flex-1 text-center text-slate-400 dark:text-slate-500 py-4">
-                暂无选择的单词
-              </div>
-            </div>
-          </div>
+
 
           <!-- 设置区域 -->
           <div class="mb-8 p-6 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 border border-slate-200 dark:border-slate-700 shadow-sm">

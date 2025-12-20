@@ -258,18 +258,17 @@ const handleStartDictation = () => {
           v-if="isUnitExpanded(unit)" 
           class="p-4 bg-slate-50 dark:bg-slate-900/50 border-t"
         >
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          <div class="flex flex-wrap gap-2 max-h-96 overflow-y-auto p-2">
             <div 
               v-for="item in items" 
               :key="item.id"
-              class="group relative p-4 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-105"
+              class="group px-4 py-2 rounded-full text-sm font-medium cursor-pointer transition-all duration-200"
               :class="isWordSelected(item) 
                 ? 'bg-primary-500 text-white shadow-lg hover:bg-primary-600' 
                 : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'"
               @click="toggleWordSelection(item)"
             >
-              <div class="font-semibold text-lg mb-2">{{ item.word || item.phrase }}</div>
-              <div class="text-sm opacity-90 line-clamp-2">{{ item.chinese }}</div>
+              {{ item.word || item.phrase }}
             </div>
           </div>
         </div>

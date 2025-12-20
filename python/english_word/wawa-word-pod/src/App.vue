@@ -86,14 +86,11 @@ const handleFinishDictation = () => {
   isConfirmActive.value = true
 }
 
-// 移除单词
-const handleRemoveWord = (wordId) => {
-  selectedWords.value = selectedWords.value.filter(word => word.uniqueId !== wordId)
-}
+
 </script>
 
 <template>
-  <div :class="['min-h-screen', isDarkMode ? 'bg-neutral-900 text-neutral-100' : 'bg-neutral-50 text-neutral-900']">
+  <div class="max-w-2xl mx-auto" :class="['min-h-screen', isDarkMode ? 'bg-neutral-900 text-neutral-100' : 'bg-neutral-50 text-neutral-900']">
 
         <div v-if="!isDictationActive && !isConfirmActive && Object.keys(wordData).length > 0">
         <WordList 
@@ -107,7 +104,6 @@ const handleRemoveWord = (wordId) => {
           :words="selectedWords" 
           @confirm="handleConfirmDictation"
           @cancel="handleCancelConfirm"
-          @remove-word="handleRemoveWord"
         />
       </div>
       <div v-else-if="isDictationActive">

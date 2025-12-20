@@ -301,7 +301,7 @@ onUnmounted(() => {
         <CardHeader class="bg-gradient-to-r from-primary-500 to-primary-600 text-white">
           <div class="flex items-center gap-3">
             <PlayCircle class="h-8 w-8" />
-            <CardTitle class="text-2xl md:text-3xl font-bold">听写界面</CardTitle>
+            <CardTitle class="text-2xl md:text-3xl font-bold">单词听写</CardTitle>
           </div>
         </CardHeader>
         <CardContent class="pt-6">
