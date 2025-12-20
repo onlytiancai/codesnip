@@ -18,7 +18,9 @@ const props = defineProps({
       playChinese: true,
       playEnglish: false,
       showEnglish: true,
-      showChinese: true
+      showChinese: true,
+      showPhonetic: false,
+      shuffle: false
     })
   }
 })
@@ -33,6 +35,7 @@ const currentRepeat = ref(0)
 const isPlaying = ref(false)
 const isPaused = ref(false)
 const dictationComplete = ref(false)
+const processedWords = ref([])
 
 // 音频元素
 const audioElement = ref(null)
@@ -61,8 +64,8 @@ const getAudioPath = (wordItem, language = 'cn') => {
 
 // 播放当前音频
 const playAudio = () => {
-  if (audioElement.value && currentWordIndex.value < props.words.length) {
-    const currentWord = props.words[currentWordIndex.value]
+  if (audioElement.value && currentWordIndex.value < processedWords.value.length) {
+    const currentWord = processedWords.value[currentWordIndex.value]
     const languagesToPlay = []
     
     // 根据设置确定要播放的语言
@@ -125,7 +128,7 @@ const handleAudioEnd = () => {
     currentWordIndex.value++
     currentRepeat.value = 0
     
-    if (currentWordIndex.value < props.words.length) {
+    if (currentWordIndex.value < processedWords.value.length) {
       // 在下一个单词播放前等待指定时间
       pauseTimer = setTimeout(() => {
         playAudio()
@@ -141,6 +144,15 @@ const handleAudioEnd = () => {
 // 开始听写
 const startDictation = () => {
   if (!isPlaying.value && !dictationComplete.value) {
+    // 处理单词列表，根据设置决定是否随机排序
+    processedWords.value = [...props.words]
+    if (props.settings.shuffle) {
+      // 使用Fisher-Yates洗牌算法随机化单词顺序
+      for (let i = processedWords.value.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[processedWords.value[i], processedWords.value[j]] = [processedWords.value[j], processedWords.value[i]]
+      }
+    }
     isPlaying.value = true
     isPaused.value = false
     playAudio()
@@ -240,15 +252,15 @@ onUnmounted(() => {
         <!-- 听写进度 -->
         <div class="mb-6" v-if="!dictationComplete">
           <div class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300 mb-2">
-            <div>当前单词: {{ currentWordIndex + 1 }} / {{ words.length }}</div>
-            <div v-if="currentWordIndex < words.length">
+            <div>当前单词: {{ currentWordIndex + 1 }} / {{ processedWords.length }}</div>
+            <div v-if="currentWordIndex < processedWords.length">
               当前重复: {{ currentRepeat + 1 }} / {{ props.settings.repeatCount[0] }}
             </div>
           </div>
           <div class="w-full h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
             <div 
               class="h-full bg-primary-500 transition-all duration-300 ease-in-out"
-              :style="{ width: `${((currentWordIndex + (currentRepeat / props.settings.repeatCount[0])) / words.length) * 100}%` }"
+              :style="{ width: `${((currentWordIndex + (currentRepeat / props.settings.repeatCount[0])) / processedWords.length) * 100}%` }"
             ></div>
           </div>
         </div>
@@ -257,15 +269,18 @@ onUnmounted(() => {
         <div class="text-center mb-8">
           <div v-if="dictationComplete" class="bg-green-50 dark:bg-green-900/20 p-6 rounded-lg border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300">
             <h3 class="text-xl font-bold mb-2">恭喜您完成听写！</h3>
-            <p>您总共听写了 {{ words.length }} 个单词/短语。</p>
+            <p>您总共听写了 {{ processedWords.length }} 个单词/短语。</p>
           </div>
-          <div v-else-if="currentWordIndex < words.length" class="bg-neutral-50 dark:bg-neutral-800 p-6 rounded-lg border">
+          <div v-else-if="currentWordIndex < processedWords.length" class="bg-neutral-50 dark:bg-neutral-800 p-6 rounded-lg border">
             <div class="inline-block text-left">
-              <div v-if="props.settings.showEnglish" class="text-2xl font-bold mb-2" :class="{'text-neutral-800 dark:text-white': true}">
-                {{ words[currentWordIndex].word || words[currentWordIndex].phrase }}
+              <div v-if="props.settings.showEnglish" class="text-2xl font-bold mb-1" :class="{'text-neutral-800 dark:text-white': true}">
+                {{ processedWords[currentWordIndex].word || processedWords[currentWordIndex].phrase }}
+              </div>
+              <div v-if="props.settings.showPhonetic && (processedWords[currentWordIndex].phonetic || processedWords[currentWordIndex].phonetic_uk)" class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">
+                {{ processedWords[currentWordIndex].phonetic || processedWords[currentWordIndex].phonetic_uk }}
               </div>
               <div v-if="props.settings.showChinese" class="text-lg text-neutral-600 dark:text-neutral-300">
-                {{ words[currentWordIndex].chinese }}
+                {{ processedWords[currentWordIndex].chinese }}
               </div>
             </div>
           </div>

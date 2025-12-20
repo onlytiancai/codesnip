@@ -30,7 +30,9 @@ const loadSettingsFromLocalStorage = () => {
     playChinese: true,
     playEnglish: false,
     showEnglish: true,
-    showChinese: true
+    showChinese: true,
+    showPhonetic: false,
+    shuffle: false
   }
 }
 
@@ -94,69 +96,82 @@ const handleCancel = () => {
 
         <!-- 设置区域 -->
         <div class="bg-neutral-50 dark:bg-neutral-800 p-4 rounded-lg border mb-6">
-          <h3 class="text-lg font-semibold mb-4">听写设置</h3>
+          <h3 class="text-base font-semibold mb-3">听写设置</h3>
           
-          <!-- 单词朗读次数滑杆 -->
-          <div class="mb-4">
-            <label class="block text-sm font-medium mb-2">每个单词朗读次数: {{ settings.repeatCount[0] }}</label>
-            <Slider 
-              v-model="settings.repeatCount" 
-              :min="1" 
-              :max="5" 
-              :step="1"
-              class="mb-2"
-            />
-            <div class="flex justify-between text-xs text-neutral-500 dark:text-neutral-400">
-              <span>1次</span>
-              <span>2次</span>
-              <span>3次</span>
-              <span>4次</span>
-              <span>5次</span>
-            </div>
-          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- 左侧设置 -->
+            <div>
+              <!-- 单词朗读次数 -->
+              <div class="mb-3">
+                <label class="block text-xs font-medium mb-1">播放次数</label>
+                <select 
+                  v-model="settings.repeatCount[0]" 
+                  class="w-full px-2 py-1.5 text-sm border rounded-md bg-white dark:bg-neutral-700 dark:border-neutral-600 dark:text-white"
+                >
+                  <option :value="1">1次</option>
+                  <option :value="2">2次</option>
+                  <option :value="3">3次</option>
+                  <option :value="4">4次</option>
+                  <option :value="5">5次</option>
+                </select>
+              </div>
 
-          <!-- 单词停顿滑杆 -->
-          <div class="mb-6">
-            <label class="block text-sm font-medium mb-2">单词间停顿: {{ settings.pauseBetweenWords[0] / 1000 }}秒</label>
-            <Slider 
-              v-model="settings.pauseBetweenWords" 
-              :min="1000" 
-              :max="10000" 
-              :step="500"
-              class="mb-2"
-            />
-            <div class="flex justify-between text-xs text-neutral-500 dark:text-neutral-400">
-              <span>1秒</span>
-              <span>2.5秒</span>
-              <span>5秒</span>
-              <span>7.5秒</span>
-              <span>10秒</span>
+              <!-- 单词停顿间隔 -->
+              <div class="mb-3">
+                <label class="block text-xs font-medium mb-1">播放间隔</label>
+                <select 
+                  v-model="settings.pauseBetweenWords[0]" 
+                  class="w-full px-2 py-1.5 text-sm border rounded-md bg-white dark:bg-neutral-700 dark:border-neutral-600 dark:text-white"
+                >
+                  <option :value="1000">1秒</option>
+                  <option :value="2000">2秒</option>
+                  <option :value="3000">3秒</option>
+                  <option :value="4000">4秒</option>
+                  <option :value="5000">5秒</option>
+                  <option :value="6000">6秒</option>
+                  <option :value="7000">7秒</option>
+                  <option :value="8000">8秒</option>
+                  <option :value="9000">9秒</option>
+                  <option :value="10000">10秒</option>
+                </select>
+              </div>
             </div>
-          </div>
 
-          <!-- 音频播放设置 -->
-          <div class="mb-6">
-            <h4 class="text-sm font-semibold mb-3">音频播放选项</h4>
-            <div class="flex items-center space-x-4 mb-3">
-              <Checkbox id="play-chinese" v-model="settings.playChinese" />
-              <label for="play-chinese" class="text-sm font-medium">播放中文</label>
-            </div>
-            <div class="flex items-center space-x-4">
-              <Checkbox id="play-english" v-model="settings.playEnglish" />
-              <label for="play-english" class="text-sm font-medium">播放英文</label>
-            </div>
-          </div>
+            <!-- 右侧设置 -->
+            <div>
+              <!-- 音频播放设置 -->
+              <div class="mb-3">
+                <h4 class="text-xs font-semibold mb-2">音频播放选项</h4>
+                <div class="flex items-center space-x-3 mb-2">
+                  <Checkbox id="play-chinese" v-model="settings.playChinese" />
+                  <label for="play-chinese" class="text-xs font-medium">播放中文</label>
+                </div>
+                <div class="flex items-center space-x-3 mb-2">
+                  <Checkbox id="play-english" v-model="settings.playEnglish" />
+                  <label for="play-english" class="text-xs font-medium">播放英文</label>
+                </div>
+                <div class="flex items-center space-x-3">
+                  <Checkbox id="shuffle" v-model="settings.shuffle" />
+                  <label for="shuffle" class="text-xs font-medium">随机播放</label>
+                </div>
+              </div>
 
-          <!-- 文本显示设置 -->
-          <div>
-            <h4 class="text-sm font-semibold mb-3">文本显示选项</h4>
-            <div class="flex items-center space-x-4 mb-3">
-              <Checkbox id="show-english" v-model="settings.showEnglish" />
-              <label for="show-english" class="text-sm font-medium">显示英文</label>
-            </div>
-            <div class="flex items-center space-x-4">
-              <Checkbox id="show-chinese" v-model="settings.showChinese" />
-              <label for="show-chinese" class="text-sm font-medium">显示中文</label>
+              <!-- 文本显示设置 -->
+              <div>
+                <h4 class="text-xs font-semibold mb-2">文本显示选项</h4>
+                <div class="flex items-center space-x-3 mb-2">
+                  <Checkbox id="show-english" v-model="settings.showEnglish" />
+                  <label for="show-english" class="text-xs font-medium">显示英文</label>
+                </div>
+                <div class="flex items-center space-x-3 mb-2">
+                  <Checkbox id="show-chinese" v-model="settings.showChinese" />
+                  <label for="show-chinese" class="text-xs font-medium">显示中文</label>
+                </div>
+                <div class="flex items-center space-x-3">
+                  <Checkbox id="show-phonetic" v-model="settings.showPhonetic" />
+                  <label for="show-phonetic" class="text-xs font-medium">显示音标</label>
+                </div>
+              </div>
             </div>
           </div>
         </div>

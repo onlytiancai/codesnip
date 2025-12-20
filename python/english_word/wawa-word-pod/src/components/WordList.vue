@@ -30,7 +30,7 @@ onMounted(() => {
 })
 
 // 最大选择单词数
-const MAX_SELECTION = 50
+const MAX_SELECTION = 100
 
 // 监听父组件选中状态变化
 watch(() => props.selectedWords, (newVal) => {
