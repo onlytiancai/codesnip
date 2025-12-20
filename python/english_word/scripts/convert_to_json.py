@@ -11,8 +11,8 @@ def convert_txt_to_json(file_path):
     
     # 定义正则表达式模式
     unit_pattern = re.compile(r'^Unit\s+(\d+)$')
-    # 匹配单词行的模式：单词 [音标] 词性. 中文释义
-    word_pattern = re.compile(r'^([a-zA-Z\s\'\-]+?)\s+\[(.+?)\]\s+([a-zA-Z.]+)\.\s+(.+)$')
+    # 匹配单词行的模式：单词 [音标] 词性. 中文释义，移除词性捕获
+    word_pattern = re.compile(r'^([a-zA-Z\s\'\-]+?)\s+\[(.+?)\]\s+(.+)$')
     
     for line in lines:
         line = line.strip()
@@ -38,14 +38,12 @@ def convert_txt_to_json(file_path):
             if word_match:
                 word = word_match.group(1).strip()
                 phonetic = word_match.group(2).strip()
-                part_of_speech = word_match.group(3).strip()
-                chinese = word_match.group(4).strip()
+                chinese = word_match.group(3).strip()
                 
                 result[current_unit].append({
                     "id": unit_counters[current_unit],
                     "word": word,
                     "phonetic": phonetic,
-                    "part_of_speech": part_of_speech,
                     "chinese": chinese
                 })
                 unit_counters[current_unit] += 1  # 递增计数器
@@ -60,32 +58,16 @@ def convert_txt_to_json(file_path):
                     word_phrase = line[:start_phonetic].strip()
                     # 提取音标部分
                     phonetic = line[start_phonetic+1:end_phonetic].strip()
-                    # 提取剩余部分
-                    remaining = line[end_phonetic+1:].strip()
+                    # 提取剩余部分（直接作为中文）
+                    chinese = line[end_phonetic+1:].strip()
                     
-                    if '.' in remaining:
-                        # 尝试提取词性和中文释义
-                        pos_end = remaining.index('.')
-                        part_of_speech = remaining[:pos_end].strip()
-                        chinese = remaining[pos_end+1:].strip()
-                        
-                        result[current_unit].append({
-                            "id": unit_counters[current_unit],
-                            "word": word_phrase,
-                            "phonetic": phonetic,
-                            "part_of_speech": part_of_speech,
-                            "chinese": chinese
-                        })
-                        unit_counters[current_unit] += 1  # 递增计数器
-                    else:
-                        # 没有明显的词性标记
-                        result[current_unit].append({
-                            "id": unit_counters[current_unit],
-                            "phrase": word_phrase,
-                            "phonetic": phonetic,
-                            "chinese": remaining
-                        })
-                        unit_counters[current_unit] += 1  # 递增计数器
+                    result[current_unit].append({
+                        "id": unit_counters[current_unit],
+                        "word": word_phrase,
+                        "phonetic": phonetic,
+                        "chinese": chinese
+                    })
+                    unit_counters[current_unit] += 1  # 递增计数器
                 except:
                     # 如果解析失败，作为特殊行处理
                     result[current_unit].append({
@@ -100,8 +82,8 @@ def convert_txt_to_json(file_path):
                 # 尝试识别中文释义的位置（通常中文释义在末尾）
                 chinese_start = -1
                 for i, char in enumerate(line):
-                    # 检查是否是中文字符
-                    if '\u4e00' <= char <= '\u9fff':
+                    # 检查是否是中文字符或中文标点符号
+                    if ('\u4e00' <= char <= '\u9fff') or char in ['《', '》', '（', '）', '：', '；']:
                         chinese_start = i
                         break
                 
@@ -113,7 +95,8 @@ def convert_txt_to_json(file_path):
                     if phrase:
                         result[current_unit].append({
                             "id": unit_counters[current_unit],
-                            "phrase": phrase,
+                            "word": phrase,  # 使用统一的word字段
+                            "phonetic": "",  # 没有音标
                             "chinese": chinese
                         })
                         unit_counters[current_unit] += 1  # 递增计数器
@@ -136,7 +119,8 @@ def convert_txt_to_json(file_path):
                 # 尝试识别中文释义的位置
                 chinese_start = -1
                 for i, char in enumerate(line):
-                    if '\u4e00' <= char <= '\u9fff':
+                    # 检查是否是中文字符或中文标点符号
+                    if ('\u4e00' <= char <= '\u9fff') or char in ['《', '》', '（', '）', '：', '；']:
                         chinese_start = i
                         break
                 
@@ -148,7 +132,8 @@ def convert_txt_to_json(file_path):
                     if phrase:
                         result[current_unit].append({
                             "id": unit_counters[current_unit],
-                            "phrase": phrase,
+                            "word": phrase,  # 使用统一的word字段
+                            "phonetic": "",  # 没有音标
                             "chinese": chinese
                         })
                         unit_counters[current_unit] += 1  # 递增计数器

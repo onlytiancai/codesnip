@@ -4,252 +4,227 @@
       "id": 1,
       "word": "rubbish",
       "phonetic": "'rʌbɪʃ/",
-      "part_of_speech": "n",
-      "chinese": "垃圾; 废弃物"
+      "chinese": "n. 垃圾; 废弃物"
     },
     {
       "id": 2,
-      "phrase": "take out the rubbish",
+      "word": "take out the rubbish",
+      "phonetic": "",
       "chinese": "倒垃圾"
     },
     {
       "id": 3,
       "word": "fold",
       "phonetic": "fəʊld/",
-      "part_of_speech": "v",
-      "chinese": "折叠; 对折"
+      "chinese": "v. 折叠; 对折"
     },
     {
       "id": 4,
       "word": "sweep",
       "phonetic": "swi:p/",
-      "part_of_speech": "v",
-      "chinese": "(swept /swept/ ) 扫; 打扫"
+      "chinese": "v. (swept /swept/ ) 扫; 打扫"
     },
     {
       "id": 5,
       "word": "floor",
       "phonetic": "flɔ:(r)/",
-      "part_of_speech": "n",
-      "chinese": "地板"
+      "chinese": "n. 地板"
     },
     {
       "id": 6,
       "word": "mess",
       "phonetic": "mes/",
-      "part_of_speech": "n",
-      "chinese": "杂乱; 不整洁"
+      "chinese": "n. 杂乱; 不整洁"
     },
     {
       "id": 7,
       "word": "throw",
       "phonetic": "θrəʊ/",
-      "part_of_speech": "v",
-      "chinese": "(threw /θru:/ ) 扔; 掷"
+      "chinese": "v. (threw /θru:/ ) 扔; 掷"
     },
     {
       "id": 8,
-      "phrase": "all the time",
+      "word": "all the time",
+      "phonetic": "",
       "chinese": "频繁; 反复"
     },
     {
       "id": 9,
       "word": "neither",
       "phonetic": "'naɪðə/, /'ni:ðə(r)/",
-      "part_of_speech": "adv",
-      "chinese": "也不"
+      "chinese": "adv. 也不"
     },
     {
       "id": 10,
       "word": "shirt",
       "phonetic": "ʃɜ:(r)t/",
-      "part_of_speech": "n",
-      "chinese": "衬衫"
+      "chinese": "n. 衬衫"
     },
     {
       "id": 11,
-      "phrase": "as soon as",
+      "word": "as soon as",
+      "phonetic": "",
       "chinese": "一......就......; 尽快"
     },
     {
       "id": 12,
       "word": "pass",
       "phonetic": "pɑ:s/, /pæs/",
-      "part_of_speech": "v",
-      "chinese": "给; 递; 走过; 通过"
+      "chinese": "v. 给; 递; 走过; 通过"
     },
     {
       "id": 13,
       "word": "borrow",
       "phonetic": "'bɒrəʊ/, /'bɑ:rəʊ",
-      "part_of_speech": "v",
-      "chinese": "借; 借用"
+      "chinese": "v. 借; 借用"
     },
     {
       "id": 14,
       "word": "lend",
       "phonetic": "lend/",
-      "part_of_speech": "v",
-      "chinese": "(lent /lent/ ) 借给; 借出"
+      "chinese": "v. (lent /lent/ ) 借给; 借出"
     },
     {
       "id": 15,
       "word": "finger",
       "phonetic": "'fɪŋgə(r)/",
-      "part_of_speech": "n",
-      "chinese": "手指"
+      "chinese": "n. 手指"
     },
     {
       "id": 16,
       "word": "hate",
       "phonetic": "heɪt/",
-      "part_of_speech": "v",
-      "chinese": "厌恶; 讨厌"
+      "chinese": "v. 厌恶; 讨厌"
     },
     {
       "id": 17,
       "word": "chore",
       "phonetic": "tʃɔ:(r)/",
-      "part_of_speech": "n",
-      "chinese": "杂务; 乏味无聊的工作"
+      "chinese": "n. 杂务; 乏味无聊的工作"
     },
     {
       "id": 18,
       "word": "while",
       "phonetic": "waɪl/",
-      "part_of_speech": "conj",
-      "chinese": "与......同时; 当......的时候; 而; 然而"
+      "chinese": "conj. 与......同时; 当......的时候; 而; 然而"
     },
     {
       "id": 19,
       "word": "snack",
       "phonetic": "snæk/",
-      "part_of_speech": "n",
-      "chinese": "点心; 小吃; 快餐"
+      "chinese": "n. 点心; 小吃; 快餐"
     },
     {
       "id": 20,
       "word": "stress",
       "phonetic": "stres/",
-      "part_of_speech": "n",
-      "chinese": "精神压力; 心理负担"
+      "chinese": "n. 精神压力; 心理负担"
     },
     {
       "id": 21,
       "word": "waste",
       "phonetic": "weɪst/",
-      "part_of_speech": "n",
-      "chinese": "浪费; 垃圾 v. 浪费; 滥用"
+      "chinese": "n. 浪费; 垃圾 v. 浪费; 滥用"
     },
     {
       "id": 22,
-      "phrase": "in order to",
+      "word": "in order to",
+      "phonetic": "",
       "chinese": "目的是; 为了"
     },
     {
       "id": 23,
       "word": "provide",
       "phonetic": "prə'vaɪd/",
-      "part_of_speech": "v",
-      "chinese": "提供; 供应"
+      "chinese": "v. 提供; 供应"
     },
     {
       "id": 24,
       "word": "anyway",
       "phonetic": "'eniweɪ/",
-      "part_of_speech": "adv",
-      "chinese": "而且; 加之"
+      "chinese": "adv. 而且; 加之"
     },
     {
       "id": 25,
       "word": "depend",
       "phonetic": "dɪ'pend/",
-      "part_of_speech": "v",
-      "chinese": "依靠; 信赖"
+      "chinese": "v. 依靠; 信赖"
     },
     {
       "id": 26,
-      "phrase": "depend on",
+      "word": "depend on",
+      "phonetic": "",
       "chinese": "依靠; 信赖"
     },
     {
       "id": 27,
       "word": "develop",
       "phonetic": "dɪ'veləp/",
-      "part_of_speech": "v",
-      "chinese": "发展; 壮大"
+      "chinese": "v. 发展; 壮大"
     },
     {
       "id": 28,
       "word": "independence",
       "phonetic": "ɪndɪ'pendəns/",
-      "part_of_speech": "n",
-      "chinese": "独立"
+      "chinese": "n. 独立"
     },
     {
       "id": 29,
       "word": "fairness",
       "phonetic": "'feənəs/ , /'fernəs",
-      "part_of_speech": "n",
-      "chinese": "公正性; 合理性"
+      "chinese": "n. 公正性; 合理性"
     },
     {
       "id": 30,
       "word": "since",
       "phonetic": "sɪns/",
-      "part_of_speech": "conj",
-      "chinese": "因为; 既然 prep.,conj. & adv. 从......以后; 自......以来"
+      "chinese": "conj. 因为; 既然 prep.,conj. & adv. 从......以后; 自......以来"
     },
     {
       "id": 31,
       "word": "neighbor (=neighbour)",
       "phonetic": "'neɪbə(r)",
-      "part_of_speech": "n",
-      "chinese": "邻居"
+      "chinese": "n. 邻居"
     },
     {
       "id": 32,
-      "phrase": "take care of",
+      "word": "take care of",
+      "phonetic": "",
       "chinese": "照顾; 处理"
     },
     {
       "id": 33,
       "word": "ill",
       "phonetic": "ɪl/",
-      "part_of_speech": "adj",
-      "chinese": "有病; 不舒服"
+      "chinese": "adj. 有病; 不舒服"
     },
     {
       "id": 34,
       "word": "drop",
       "phonetic": "drɒp/, /drɑ:p",
-      "part_of_speech": "v",
-      "chinese": "落下; 掉下"
+      "chinese": "v. 落下; 掉下"
     },
     {
       "id": 35,
       "word": "independent",
       "phonetic": "ɪndɪ'pendənt/",
-      "part_of_speech": "adj",
-      "chinese": "独立的; 自主的"
+      "chinese": "adj. 独立的; 自主的"
     },
     {
       "id": 36,
       "word": "fair",
       "phonetic": "feə/, /fer/",
-      "part_of_speech": "adj",
-      "chinese": "合理的; 公正的"
+      "chinese": "adj. 合理的; 公正的"
     },
     {
       "id": 37,
       "word": "unfair",
       "phonetic": "ʌn'feə/, /ʌn'fer/",
-      "part_of_speech": "adj",
-      "chinese": "不合理的; 不公正的"
+      "chinese": "adj. 不合理的; 不公正的"
     },
     {
       "id": 38,
-      "phrase": "Sandy",
+      "word": "Sandy",
       "phonetic": "'sændi/",
       "chinese": "桑迪（女名）"
     }
@@ -259,317 +234,287 @@
       "id": 1,
       "word": "allow",
       "phonetic": "ə'laʊ/",
-      "part_of_speech": "v",
-      "chinese": "允许; 准许"
+      "chinese": "v. 允许; 准许"
     },
     {
       "id": 2,
       "word": "wrong",
       "phonetic": "rɒŋ/, /rɔ:ŋ",
-      "part_of_speech": "adj",
-      "chinese": "有毛病; 错误的"
+      "chinese": "adj. 有毛病; 错误的"
     },
     {
       "id": 3,
-      "phrase": "What' s wrong?",
+      "word": "What' s wrong?",
+      "phonetic": "",
       "chinese": "哪儿不舒服?"
     },
     {
       "id": 4,
       "word": "midnight",
       "phonetic": "'mɪdnaɪt/",
-      "part_of_speech": "n",
-      "chinese": "午夜; 子夜"
+      "chinese": "n. 午夜; 子夜"
     },
     {
       "id": 5,
-      "phrase": "look through",
+      "word": "look through",
+      "phonetic": "",
       "chinese": "快速查看; 浏览"
     },
     {
       "id": 6,
       "word": "guess",
       "phonetic": "ges/",
-      "part_of_speech": "v",
-      "chinese": "猜测; 估计"
+      "chinese": "v. 猜测; 估计"
     },
     {
       "id": 7,
       "word": "deal",
       "phonetic": "di:l/",
-      "part_of_speech": "n",
-      "chinese": "协议; 交易"
+      "chinese": "n. 协议; 交易"
     },
     {
       "id": 8,
-      "phrase": "big deal",
+      "word": "big deal",
+      "phonetic": "",
       "chinese": "重要的事"
     },
     {
       "id": 9,
-      "phrase": "work out",
+      "word": "work out",
+      "phonetic": "",
       "chinese": "成功地发展; 解决"
     },
     {
       "id": 10,
-      "phrase": "get on with",
+      "word": "get on with",
+      "phonetic": "",
       "chinese": "和睦相处; 关系良好"
     },
     {
       "id": 11,
       "word": "relation",
       "phonetic": "rɪ'leɪʃn/",
-      "part_of_speech": "n",
-      "chinese": "关系; 联系; 交往"
+      "chinese": "n. 关系; 联系; 交往"
     },
     {
       "id": 12,
       "word": "communication",
       "phonetic": "kə,mju:nɪ'keɪʃn/",
-      "part_of_speech": "n",
-      "chinese": "交流; 沟通"
+      "chinese": "n. 交流; 沟通"
     },
     {
       "id": 13,
       "word": "argue",
       "phonetic": "'ɑ:(r)gju:/",
-      "part_of_speech": "v",
-      "chinese": "争吵; 争论"
+      "chinese": "v. 争吵; 争论"
     },
     {
       "id": 14,
       "word": "cloud",
       "phonetic": "klaʊd/",
-      "part_of_speech": "n",
-      "chinese": "云; 云朵"
+      "chinese": "n. 云; 云朵"
     },
     {
       "id": 15,
       "word": "elder",
       "phonetic": "'eldə(r)/",
-      "part_of_speech": "adj",
-      "chinese": "年纪较长的"
+      "chinese": "adj. 年纪较长的"
     },
     {
       "id": 16,
       "word": "instead",
       "phonetic": "ɪn'sted/",
-      "part_of_speech": "adv",
-      "chinese": "代替; 反而; 却"
+      "chinese": "adv. 代替; 反而; 却"
     },
     {
       "id": 17,
       "word": "whatever",
       "phonetic": "wɒt'evə/, /wɑ:t'evər/",
-      "part_of_speech": "pron",
-      "chinese": "任何; 每一"
+      "chinese": "pron. 任何; 每一"
     },
     {
       "id": 18,
       "word": "nervous",
       "phonetic": "'nɜ:(r)vəs/",
-      "part_of_speech": "adj",
-      "chinese": "焦虑的; 担忧的"
+      "chinese": "adj. 焦虑的; 担忧的"
     },
     {
       "id": 19,
       "word": "offer",
       "phonetic": "'ɒfə/, /'ɑ:fər/",
-      "part_of_speech": "v",
-      "chinese": "主动提出; 自愿给予"
+      "chinese": "v. 主动提出; 自愿给予"
     },
     {
       "id": 20,
       "word": "proper",
       "phonetic": "'prɒpə/, /'prɑ:pər",
-      "part_of_speech": "adj",
-      "chinese": "正确的; 恰当的"
+      "chinese": "adj. 正确的; 恰当的"
     },
     {
       "id": 21,
       "word": "secondly",
       "phonetic": "'sekəndli/",
-      "part_of_speech": "adv",
-      "chinese": "第二; 其次"
+      "chinese": "adv. 第二; 其次"
     },
     {
       "id": 22,
       "word": "communicate",
       "phonetic": "kə'mju:nɪkeɪt/",
-      "part_of_speech": "v",
-      "chinese": "交流; 沟通"
+      "chinese": "v. 交流; 沟通"
     },
     {
       "id": 23,
       "word": "explain",
       "phonetic": "ɪks'pleɪn/",
-      "part_of_speech": "v",
-      "chinese": "解释; 说明"
+      "chinese": "v. 解释; 说明"
     },
     {
       "id": 24,
       "word": "clear",
       "phonetic": "klɪə/ , /klɪr",
-      "part_of_speech": "adj",
-      "chinese": "清楚易懂的; 晴朗的"
+      "chinese": "adj. 清楚易懂的; 晴朗的"
     },
     {
       "id": 25,
       "word": "copy",
       "phonetic": "'kɒpi/, /'kɑ:pi/",
-      "part_of_speech": "v",
-      "chinese": "抄袭; 模仿; 复制; 复印"
+      "chinese": "v. 抄袭; 模仿; 复制; 复印"
     },
     {
       "id": 26,
       "word": "return",
       "phonetic": "rɪ'tɜ:(r)n/",
-      "part_of_speech": "v",
-      "chinese": "归还; 回来; 返回"
+      "chinese": "v. 归还; 回来; 返回"
     },
     {
       "id": 27,
       "word": "anymore",
       "phonetic": "eni'mɔ:(r)",
-      "part_of_speech": "adv",
-      "chinese": "（常用于否定句和疑问句末）再也（不）;"
+      "chinese": "adv. （常用于否定句和疑问句末）再也（不）;"
     },
     {
       "id": 28,
       "word": "member",
       "phonetic": "'membə(r)/",
-      "part_of_speech": "n",
-      "chinese": "成员; 分子"
+      "chinese": "n. 成员; 分子"
     },
     {
       "id": 29,
       "word": "pressure",
       "phonetic": "'preʃə(r)/",
-      "part_of_speech": "n",
-      "chinese": "压力"
+      "chinese": "n. 压力"
     },
     {
       "id": 30,
       "word": "compete",
       "phonetic": "kəm'pi:t/",
-      "part_of_speech": "v",
-      "chinese": "竞争; 对抗"
+      "chinese": "v. 竞争; 对抗"
     },
     {
       "id": 31,
       "word": "opinion",
       "phonetic": "ə'pɪnjən/",
-      "part_of_speech": "n",
-      "chinese": "意见; 想法; 看法"
+      "chinese": "n. 意见; 想法; 看法"
     },
     {
       "id": 32,
       "word": "skill",
       "phonetic": "skɪl/",
-      "part_of_speech": "n",
-      "chinese": "技艺; 技巧"
+      "chinese": "n. 技艺; 技巧"
     },
     {
       "id": 33,
       "word": "typical",
       "phonetic": "'tɪpɪkl/",
-      "part_of_speech": "adj",
-      "chinese": "典型的"
+      "chinese": "adj. 典型的"
     },
     {
       "id": 34,
       "word": "football",
       "phonetic": "'fʊtbɔ:l/",
-      "part_of_speech": "n",
-      "chinese": "（美式）橄榄球; 足球"
+      "chinese": "n. （美式）橄榄球; 足球"
     },
     {
       "id": 35,
-      "phrase": "cut out",
+      "word": "cut out",
+      "phonetic": "",
       "chinese": "删除; 删去"
     },
     {
       "id": 36,
       "word": "quick",
       "phonetic": "kwɪk/",
-      "part_of_speech": "adj",
-      "chinese": "快的; 迅速的; 时间短暂的"
+      "chinese": "adj. 快的; 迅速的; 时间短暂的"
     },
     {
       "id": 37,
       "word": "continue",
       "phonetic": "kən'tɪnju:/",
-      "part_of_speech": "v",
-      "chinese": "持续; 继续存在"
+      "chinese": "v. 持续; 继续存在"
     },
     {
       "id": 38,
       "word": "compare",
       "phonetic": "kəm'peə/, /kəm'per",
-      "part_of_speech": "v",
-      "chinese": "比较"
+      "chinese": "v. 比较"
     },
     {
       "id": 39,
-      "phrase": "compare … with",
+      "word": "compare … with",
+      "phonetic": "",
       "chinese": "比较；对比"
     },
     {
       "id": 40,
       "word": "crazy",
       "phonetic": "'kreɪzi/",
-      "part_of_speech": "adj",
-      "chinese": "不理智的; 疯狂的"
+      "chinese": "adj. 不理智的; 疯狂的"
     },
     {
       "id": 41,
       "word": "push",
       "phonetic": "pʊʃ/",
-      "part_of_speech": "v",
-      "chinese": "鞭策; 督促; 推动"
+      "chinese": "v. 鞭策; 督促; 推动"
     },
     {
       "id": 42,
       "word": "development",
       "phonetic": "dɪ'veləpmənt/",
-      "part_of_speech": "n",
-      "chinese": "发展; 发育; 成长"
+      "chinese": "n. 发展; 发育; 成长"
     },
     {
       "id": 43,
       "word": "cause",
       "phonetic": "kɔ:z/",
-      "part_of_speech": "v",
-      "chinese": "造成; 引起"
+      "chinese": "v. 造成; 引起"
     },
     {
       "id": 44,
       "word": "usual",
       "phonetic": "'ju:ʒuəl/",
-      "part_of_speech": "adj",
-      "chinese": "通常的; 寻常的"
+      "chinese": "adj. 通常的; 寻常的"
     },
     {
       "id": 45,
-      "phrase": "in one' s opinion",
+      "word": "in one' s opinion",
+      "phonetic": "",
       "chinese": "依......看"
     },
     {
       "id": 46,
       "word": "perhaps",
       "phonetic": "pə(r)'hæps/",
-      "part_of_speech": "adv",
-      "chinese": "可能; 大概; 也许"
+      "chinese": "adv. 可能; 大概; 也许"
     },
     {
       "id": 47,
-      "phrase": "Cathy",
+      "word": "Cathy",
       "phonetic": "'kæθi",
       "chinese": "凯茜 （女名）"
     },
     {
       "id": 48,
-      "phrase": "Taylor",
+      "word": "Taylor",
       "phonetic": "'teɪlə(r)",
       "chinese": "泰勒（姓）"
     }
@@ -579,312 +524,288 @@
       "id": 1,
       "word": "rainstorm",
       "phonetic": "'reɪnstɔ:(r)m/",
-      "part_of_speech": "n",
-      "chinese": "暴风雨"
+      "chinese": "n. 暴风雨"
     },
     {
       "id": 2,
       "word": "alarm",
       "phonetic": "ə'lɑ:(r)m/",
-      "part_of_speech": "n",
-      "chinese": "闹钟"
+      "chinese": "n. 闹钟"
     },
     {
       "id": 3,
-      "phrase": "go off （",
-      "chinese": "闹钟）发出响声"
+      "word": "go off",
+      "phonetic": "",
+      "chinese": "（闹钟）发出响声"
     },
     {
       "id": 4,
       "word": "begin",
       "phonetic": "bɪ'gɪn/",
-      "part_of_speech": "v",
-      "chinese": "(began /bɪ'gæn/ ) 开始"
+      "chinese": "v. (began /bɪ'gæn/ ) 开始"
     },
     {
       "id": 5,
       "word": "heavily",
       "phonetic": "'hevɪli/",
-      "part_of_speech": "adv",
-      "chinese": "在很大程度上; 大量地"
+      "chinese": "adv. 在很大程度上; 大量地"
     },
     {
       "id": 6,
       "word": "suddenly",
       "phonetic": "'sʌdənli/",
-      "part_of_speech": "adv",
-      "chinese": "突然; 忽然"
+      "chinese": "adv. 突然; 忽然"
     },
     {
       "id": 7,
-      "phrase": "pick up (=pick up the phone)",
+      "word": "pick up (=pick up the phone)",
+      "phonetic": "",
       "chinese": "接电话"
     },
     {
       "id": 8,
       "word": "strange",
       "phonetic": "streɪndʒ/",
-      "part_of_speech": "adj",
-      "chinese": "奇特的;奇怪的"
+      "chinese": "adj. 奇特的;奇怪的"
     },
     {
       "id": 9,
       "word": "storm",
       "phonetic": "stɔ:(r)m/",
-      "part_of_speech": "n",
-      "chinese": "暴风雨"
+      "chinese": "n. 暴风雨"
     },
     {
       "id": 10,
       "word": "wind",
       "phonetic": "wɪnd/",
-      "part_of_speech": "n",
-      "chinese": "风"
+      "chinese": "n. 风"
     },
     {
       "id": 11,
       "word": "light",
       "phonetic": "laɪt/",
-      "part_of_speech": "n",
-      "chinese": "光; 光线; 光亮"
+      "chinese": "n. 光; 光线; 光亮"
     },
     {
       "id": 12,
       "word": "report",
       "phonetic": "rɪ'pɔ:(r)t",
-      "part_of_speech": "v",
-      "chinese": "& n. 报道; 公布"
+      "chinese": "v. & n. 报道; 公布"
     },
     {
       "id": 13,
       "word": "area",
       "phonetic": "'eəriə/ , /'eriə",
-      "part_of_speech": "n",
-      "chinese": "地域; 地区"
+      "chinese": "n. 地域; 地区"
     },
     {
       "id": 14,
       "word": "wood",
       "phonetic": "wʊd/",
-      "part_of_speech": "n",
-      "chinese": "木; 木头"
+      "chinese": "n. 木; 木头"
     },
     {
       "id": 15,
       "word": "window",
       "phonetic": "'wɪndəʊ/",
-      "part_of_speech": "n",
-      "chinese": "窗; 窗户"
+      "chinese": "n. 窗; 窗户"
     },
     {
       "id": 16,
       "word": "flashlight",
       "phonetic": "'flæʃlaɪt/",
-      "part_of_speech": "n",
-      "chinese": "手电筒; 火炬"
+      "chinese": "n. 手电筒; 火炬"
     },
     {
       "id": 17,
       "word": "match",
       "phonetic": "mætʃ/",
-      "part_of_speech": "n",
-      "chinese": "火柴"
+      "chinese": "n. 火柴"
     },
     {
       "id": 18,
       "word": "beat",
       "phonetic": "bi:t/",
-      "part_of_speech": "v",
-      "chinese": "敲打; 打败"
+      "chinese": "v. 敲打; 打败"
     },
     {
       "id": 19,
       "word": "against",
       "phonetic": "ə'genst/",
-      "part_of_speech": "prep",
-      "chinese": "倚; 碰; 撞"
+      "chinese": "prep. 倚; 碰; 撞"
     },
     {
       "id": 20,
       "word": "asleep",
       "phonetic": "ə'sli:p/",
-      "part_of_speech": "adj",
-      "chinese": "睡着"
+      "chinese": "adj. 睡着"
     },
     {
       "id": 21,
-      "phrase": "fall asleep",
+      "word": "fall asleep",
+      "phonetic": "",
       "chinese": "进入梦乡; 睡着"
     },
     {
       "id": 22,
-      "phrase": "die down",
+      "word": "die down",
+      "phonetic": "",
       "chinese": "逐渐变弱; 逐渐消失"
     },
     {
       "id": 23,
       "word": "rise",
       "phonetic": "raiz",
-      "part_of_speech": "v",
-      "chinese": "& n. 升起; 增加; 提高"
+      "chinese": "v. & n. 升起; 增加; 提高"
     },
     {
       "id": 24,
       "word": "fallen",
       "phonetic": "'fɔ:lən/",
-      "part_of_speech": "adj",
-      "chinese": "倒下的; 落下的"
+      "chinese": "adj. 倒下的; 落下的"
     },
     {
       "id": 25,
       "word": "apart",
       "phonetic": "ə'pɑ:(r)t/",
-      "part_of_speech": "adv",
-      "chinese": "分离; 分开"
+      "chinese": "adv. 分离; 分开"
     },
     {
       "id": 26,
-      "phrase": "have a look",
+      "word": "have a look",
+      "phonetic": "",
       "chinese": "看一看"
     },
     {
       "id": 27,
       "word": "icy",
       "phonetic": "'aɪsi/",
-      "part_of_speech": "adj",
-      "chinese": "覆盖着冰的; 冰冷的"
+      "chinese": "adj. 覆盖着冰的; 冰冷的"
     },
     {
       "id": 28,
       "word": "kid",
       "phonetic": "kɪd/",
-      "part_of_speech": "v",
-      "chinese": "开玩笑; 欺骗"
+      "chinese": "v. 开玩笑; 欺骗"
     },
     {
       "id": 29,
       "word": "realize",
       "phonetic": "'rɪəlaɪz/, /'ri:əlaɪz",
-      "part_of_speech": "v",
-      "chinese": "理解; 领会; 认识到"
+      "chinese": "v. 理解; 领会; 认识到"
     },
     {
       "id": 30,
-      "phrase": "make one' s way",
+      "word": "make one' s way",
+      "phonetic": "",
       "chinese": "前往; 费力地前进"
     },
     {
       "id": 31,
       "word": "passage",
       "phonetic": "'pæsɪdʒ/",
-      "part_of_speech": "n",
-      "chinese": "章节; 段落"
+      "chinese": "n. 章节; 段落"
     },
     {
       "id": 32,
       "word": "pupil",
       "phonetic": "'pju:pl/",
-      "part_of_speech": "n",
-      "chinese": "学生"
+      "chinese": "n. 学生"
     },
     {
       "id": 33,
       "word": "completely",
       "phonetic": "kəm'pli:tli/",
-      "part_of_speech": "adv",
-      "chinese": "彻底地; 完全地"
+      "chinese": "adv. 彻底地; 完全地"
     },
     {
       "id": 34,
       "word": "shocked",
       "phonetic": "ʃɒkt/, /ʃɑ:kt",
-      "part_of_speech": "adj",
-      "chinese": "惊愕的; 受震惊的"
+      "chinese": "adj. 惊愕的; 受震惊的"
     },
     {
       "id": 35,
       "word": "silence",
       "phonetic": "'saɪləns/",
-      "part_of_speech": "n",
-      "chinese": "沉默; 缄默; 无声"
+      "chinese": "n. 沉默; 缄默; 无声"
     },
     {
       "id": 36,
-      "phrase": "in silence",
+      "word": "in silence",
+      "phonetic": "",
       "chinese": "沉默; 无声"
     },
     {
       "id": 37,
       "word": "recently",
       "phonetic": "'ri:sntli",
-      "part_of_speech": "adv",
-      "chinese": "不久前; 最近"
+      "chinese": "adv. 不久前; 最近"
     },
     {
       "id": 38,
-      "phrase": "take down",
+      "word": "take down",
+      "phonetic": "",
       "chinese": "拆除; 往下拽; 记录"
     },
     {
       "id": 39,
       "word": "terrorist",
       "phonetic": "'terərɪst/",
-      "part_of_speech": "n",
-      "chinese": "恐怖主义者; 恐怖分子"
+      "chinese": "n. 恐怖主义者; 恐怖分子"
     },
     {
       "id": 40,
       "word": "date",
       "phonetic": "'deɪt/",
-      "part_of_speech": "n",
-      "chinese": "日期; 日子"
+      "chinese": "n. 日期; 日子"
     },
     {
       "id": 41,
       "word": "tower",
       "phonetic": "'taʊə(r)/",
-      "part_of_speech": "n",
-      "chinese": "塔; 塔楼"
+      "chinese": "n. 塔; 塔楼"
     },
     {
       "id": 42,
-      "phrase": "at first",
+      "word": "at first",
+      "phonetic": "",
       "chinese": "首先; 最初"
     },
     {
       "id": 43,
       "word": "truth",
       "phonetic": "tru:θ/",
-      "part_of_speech": "n",
-      "chinese": "实情; 事实"
+      "chinese": "n.实情; 事实"
     },
     {
       "id": 44,
-      "phrase": "Allen",
+      "word": "Allen",
       "phonetic": "'ælən/",
       "chinese": "艾伦（姓）"
     },
     {
       "id": 45,
-      "phrase": "Martin Luther King",
+      "word": "Martin Luther King",
       "phonetic": "'mɑ:(r)tɪn/ /'lu:θə(r)/ /kɪŋ",
       "chinese": "马丁·路德·金"
     },
     {
       "id": 46,
-      "phrase": "Alabama",
+      "word": "Alabama",
       "phonetic": "'ælə'bɑ:mə/",
       "chinese": "阿拉巴马州（美国）"
     },
     {
       "id": 47,
-      "phrase": "Animal Helpline",
+      "word": "Animal Helpline",
       "phonetic": "'helplaɪn",
       "chinese": "动物保护热线"
     },
     {
       "id": 48,
-      "phrase": "World Trade Center",
+      "word": "World Trade Center",
+      "phonetic": "",
       "chinese": "世贸大楼（美国纽约）"
     }
   ],
@@ -893,341 +814,313 @@
       "id": 1,
       "word": "shoot",
       "phonetic": "ʃu:t/",
-      "part_of_speech": "v",
-      "chinese": "(shot /ʃɒt/, /ʃɑ:t/) 射击; 发射"
+      "chinese": "v. (shot /ʃɒt/, /ʃɑ:t/) 射击; 发射"
     },
     {
       "id": 2,
       "word": "stone",
       "phonetic": "stəʊn/",
-      "part_of_speech": "n",
-      "chinese": "石头"
+      "chinese": "n. 石头"
     },
     {
       "id": 3,
       "word": "weak",
       "phonetic": "wi:k/",
-      "part_of_speech": "adj",
-      "chinese": "虚弱的; 无力的"
+      "chinese": "adj. 虚弱的; 无力的"
     },
     {
       "id": 4,
       "word": "god",
       "phonetic": "gɒd/, /gɑ:d",
-      "part_of_speech": "n",
-      "chinese": "神; 上帝"
+      "chinese": "n. 神; 上帝"
     },
     {
       "id": 5,
       "word": "remind",
       "phonetic": "rɪ'maɪnd/",
-      "part_of_speech": "v",
-      "chinese": "提醒; 使想起"
+      "chinese": "v. 提醒; 使想起"
     },
     {
       "id": 6,
       "word": "bit",
       "phonetic": "bɪt/",
-      "part_of_speech": "n",
-      "chinese": "一点; 小块"
+      "chinese": "n. 一点; 小块"
     },
     {
       "id": 7,
-      "phrase": "a little bit",
+      "word": "a little bit",
+      "phonetic": "",
       "chinese": "有点儿; 稍微"
     },
     {
       "id": 8,
       "word": "silly",
       "phonetic": "'sɪli/",
-      "part_of_speech": "adj",
-      "chinese": "愚蠢的; 不明事理的"
+      "chinese": "adj. 愚蠢的; 不明事理的"
     },
     {
       "id": 9,
-      "phrase": "instead of",
+      "word": "instead of",
+      "phonetic": "",
       "chinese": "代替; 反而"
     },
     {
       "id": 10,
-      "phrase": "turn…into",
+      "word": "turn…into",
+      "phonetic": "",
       "chinese": "变成"
     },
     {
       "id": 11,
       "word": "object",
       "phonetic": "'ɒbdʒɪkt/，/'ɑ:bdʒɪkt/",
-      "part_of_speech": "n",
-      "chinese": "物体; 物品"
+      "chinese": "n. 物体; 物品"
     },
     {
       "id": 12,
       "word": "hide",
       "phonetic": "haɪd/",
-      "part_of_speech": "v",
-      "chinese": "隐藏; 隐蔽"
+      "chinese": "v. 隐藏; 隐蔽"
     },
     {
       "id": 13,
       "word": "tail",
       "phonetic": "teɪl/",
-      "part_of_speech": "n",
-      "chinese": "尾巴"
+      "chinese": "n. 尾巴"
     },
     {
       "id": 14,
       "word": "magic",
       "phonetic": "'mædʒɪk/",
-      "part_of_speech": "adj",
-      "chinese": "有魔力的; 有神奇力量的"
+      "chinese": "adj. 有魔力的; 有神奇力量的"
     },
     {
       "id": 15,
       "word": "stick",
       "phonetic": "stɪk/",
-      "part_of_speech": "n",
-      "chinese": "棍; 条"
+      "chinese": "n. 棍; 条"
     },
     {
       "id": 16,
       "word": "excite",
       "phonetic": "ɪk'saɪt/",
-      "part_of_speech": "v",
-      "chinese": "使激动; 使兴奋"
+      "chinese": "v. 使激动; 使兴奋"
     },
     {
       "id": 17,
       "word": "Western",
       "phonetic": "'westə(r)n/",
-      "part_of_speech": "adj",
-      "chinese": "西方国家的; （尤指）欧美的; 西方的(w 可以小写)"
+      "chinese": "adj. 西方国家的; （尤指）欧美的; 西方的(w 可以小写)"
     },
     {
       "id": 18,
-      "phrase": "once upon a time",
+      "word": "once upon a time",
+      "phonetic": "",
       "chinese": "从前"
     },
     {
       "id": 19,
       "word": "stepsister",
       "phonetic": "'stepsɪstə(r)/",
-      "part_of_speech": "n",
-      "chinese": "继姐（妹）"
+      "chinese": "n. 继姐（妹）"
     },
     {
       "id": 20,
       "word": "prince",
       "phonetic": "'prɪns/",
-      "part_of_speech": "n",
-      "chinese": "王子"
+      "chinese": "n. 王子"
     },
     {
       "id": 21,
-      "phrase": "fall in love",
+      "word": "fall in love",
+      "phonetic": "",
       "chinese": "爱上; 喜欢上"
     },
     {
       "id": 22,
       "word": "fit",
       "phonetic": "fɪt/",
-      "part_of_speech": "v",
-      "chinese": "适合; 合身"
+      "chinese": "v. 适合; 合身"
     },
     {
       "id": 23,
       "word": "couple",
       "phonetic": "'kʌpl/",
-      "part_of_speech": "n",
-      "chinese": "（尤指）夫妻; 两人; 两件事物"
+      "chinese": "n.（尤指）夫妻; 两人; 两件事物"
     },
     {
       "id": 24,
       "word": "smile",
       "phonetic": "smaɪl",
-      "part_of_speech": "v",
-      "chinese": "& n. 笑; 微笑"
+      "chinese": "v. & n. 笑; 微笑"
     },
     {
       "id": 25,
       "word": "marry",
       "phonetic": "'mæri/",
-      "part_of_speech": "v",
-      "chinese": "结婚"
+      "chinese": "v.结婚"
     },
     {
       "id": 26,
-      "phrase": "get married",
+      "word": "get married",
+      "phonetic": "",
       "chinese": "结婚"
     },
     {
       "id": 27,
       "word": "gold",
       "phonetic": "gəʊld/",
-      "part_of_speech": "n",
-      "chinese": "金子; 金币 adj.金色的"
+      "chinese": "n. 金子; 金币 adj.金色的"
     },
     {
       "id": 28,
       "word": "emperor",
       "phonetic": "'empərə(r)/",
-      "part_of_speech": "n",
-      "chinese": "国王"
+      "chinese": "n. 国王"
     },
     {
       "id": 29,
       "word": "silk",
       "phonetic": "sɪlk/",
-      "part_of_speech": "n",
-      "chinese": "丝绸; 丝织物"
+      "chinese": "n. 丝绸; 丝织物"
     },
     {
       "id": 30,
       "word": "underwear",
       "phonetic": "'ʌndəweə/, /'ʌndərwer",
-      "part_of_speech": "n",
-      "chinese": "内衣"
+      "chinese": "n. 内衣"
     },
     {
       "id": 31,
       "word": "nobody",
       "phonetic": "'nəʊbədi/",
-      "part_of_speech": "pron",
-      "chinese": "没有人 n. 小人物"
+      "chinese": "pron. 没有人 n. 小人物"
     },
     {
       "id": 32,
       "word": "stupid",
       "phonetic": "'stju:pɪd/, /'stu:pɪd/",
-      "part_of_speech": "adj",
-      "chinese": "愚蠢的"
+      "chinese": "adj. 愚蠢的"
     },
     {
       "id": 33,
       "word": "cheat",
       "phonetic": "tʃi:t/",
-      "part_of_speech": "v",
-      "chinese": "欺骗; 蒙骗 n. 骗子"
+      "chinese": "v. 欺骗; 蒙骗 n. 骗子"
     },
     {
       "id": 34,
       "word": "stepmother",
       "phonetic": "'stepmʌðə(r)/",
-      "part_of_speech": "n",
-      "chinese": "继母"
+      "chinese": "n. 继母"
     },
     {
       "id": 35,
       "word": "wife",
       "phonetic": "waɪf/",
-      "part_of_speech": "n",
-      "chinese": "妻子; 太太"
+      "chinese": "n. 妻子; 太太"
     },
     {
       "id": 36,
       "word": "husband",
       "phonetic": "'hʌzbənd/",
-      "part_of_speech": "n",
-      "chinese": "丈夫"
+      "chinese": "n. 丈夫"
     },
     {
       "id": 37,
       "word": "whole",
       "phonetic": "həʊl/",
-      "part_of_speech": "adj",
-      "chinese": "全部的; 整体的"
+      "chinese": "adj. 全部的; 整体的"
     },
     {
       "id": 38,
       "word": "scene",
       "phonetic": "si:n/",
-      "part_of_speech": "n",
-      "chinese": "（戏剧或歌剧的）场; 场景"
+      "chinese": "n.（戏剧或歌剧的）场; 场景"
     },
     {
       "id": 39,
       "word": "moonlight",
       "phonetic": "'mu:nlaɪt/",
-      "part_of_speech": "n",
-      "chinese": "月光"
+      "chinese": "n. 月光"
     },
     {
       "id": 40,
       "word": "shine",
       "phonetic": "ʃaɪn/",
-      "part_of_speech": "v",
-      "chinese": "(shone /ʃɒn/ ) 发光; 照耀"
+      "chinese": "v. (shone /ʃɒn/ ) 发光; 照耀"
     },
     {
       "id": 41,
       "word": "bright",
       "phonetic": "braɪt/",
-      "part_of_speech": "adv",
-      "chinese": "光亮地; , 明亮地 adj. 明亮的; 光线充足的"
+      "chinese": "adv. 光亮地; , 明亮地 adj. 明亮的; 光线充足的"
     },
     {
       "id": 42,
       "word": "ground",
       "phonetic": "graʊnd/",
-      "part_of_speech": "n",
-      "chinese": "地; 地面"
+      "chinese": "n. 地; 地面"
     },
     {
       "id": 43,
       "word": "lead",
       "phonetic": "li:d",
-      "part_of_speech": "v",
-      "chinese": "(led /led/)带路; 领路"
+      "chinese": "v.(led /led/)带路; 领路"
     },
     {
       "id": 44,
       "word": "voice",
       "phonetic": "vɔɪs/",
-      "part_of_speech": "n",
-      "chinese": "声音"
+      "chinese": "n. 声音"
     },
     {
       "id": 45,
       "word": "brave",
       "phonetic": "breɪv/",
-      "part_of_speech": "adj",
-      "chinese": "勇敢的; 无畏的"
+      "chinese": "adj. 勇敢的; 无畏的"
     },
     {
       "id": 46,
-      "phrase": "Claudia",
+      "word": "Claudia",
       "phonetic": "'klɔ:diə/, /'klaʊdiə",
       "chinese": "克劳迪娅（女名）"
     },
     {
       "id": 47,
-      "phrase": "Journey to the West 《",
-      "chinese": "西游记》"
+      "word": "Journey to the West",
+      "phonetic": "",
+      "chinese": "《西游记》"
     },
     {
       "id": 48,
-      "phrase": "the Monkey King 《",
-      "chinese": "美猴王》"
+      "word": "the Monkey King",
+      "phonetic": "",
+      "chinese": "《美猴王》"
     },
     {
       "id": 49,
-      "phrase": "Sleeping Beauty 《",
-      "chinese": "睡美人》"
+      "word": "Sleeping Beauty",
+      "phonetic": "",
+      "chinese": "《睡美人》"
     },
     {
       "id": 50,
-      "phrase": "Cinderella",
+      "word": "Cinderella",
       "phonetic": "sɪndə'relə/",
       "chinese": "《灰姑娘》"
     },
     {
       "id": 51,
-      "phrase": "Little red Riding Hood 《",
-      "chinese": "小红帽》"
+      "word": "Little red Riding Hood",
+      "phonetic": "",
+      "chinese": "《小红帽》"
     },
     {
       "id": 52,
-      "phrase": "Hansel and Gretel 《",
-      "chinese": "韩塞尔与葛雷特》（《糖果屋》）"
+      "word": "Hansel and Gretel",
+      "phonetic": "",
+      "chinese": "《韩塞尔与葛雷特》（《糖果屋》）"
     }
   ],
   "Unit 5": [
@@ -1235,210 +1128,191 @@
       "id": 1,
       "word": "square",
       "phonetic": "skweə/, /skwer/",
-      "part_of_speech": "n",
-      "chinese": "平方; 正方形"
+      "chinese": "n. 平方; 正方形"
     },
     {
       "id": 2,
       "word": "meter (=metre)",
       "phonetic": "'mi:tə(r)",
-      "part_of_speech": "n",
-      "chinese": "米; 公尺"
+      "chinese": "n. 米; 公尺"
     },
     {
       "id": 3,
       "word": "deep",
       "phonetic": "di:p/",
-      "part_of_speech": "adj",
-      "chinese": "深的; 纵深的"
+      "chinese": "adj. 深的; 纵深的"
     },
     {
       "id": 4,
       "word": "desert",
       "phonetic": "'dezə(r)t/",
-      "part_of_speech": "n",
-      "chinese": "沙漠"
+      "chinese": "n. 沙漠"
     },
     {
       "id": 5,
       "word": "population",
       "phonetic": "'pɒpju'leɪʃn/",
-      "part_of_speech": "n",
-      "chinese": "人口; 人口数量"
+      "chinese": "n. 人口; 人口数量"
     },
     {
       "id": 6,
       "word": "Asia",
       "phonetic": "'eɪʒə/, /'eɪʃə/",
-      "part_of_speech": "n",
-      "chinese": "亚洲"
+      "chinese": "n. 亚洲"
     },
     {
       "id": 7,
-      "phrase": "feel free （",
-      "chinese": "可以）随便（做某事）"
+      "word": "feel free",
+      "phonetic": "",
+      "chinese": "（可以）随便（做某事）"
     },
     {
       "id": 8,
       "word": "tour",
       "phonetic": "tʊə/, /tʊr",
-      "part_of_speech": "n",
-      "chinese": "&v.旅行; 旅游"
+      "chinese": "n. &v.旅行; 旅游"
     },
     {
       "id": 9,
       "word": "tourist",
       "phonetic": "'tʊərɪst/, /'tʊrɪst/",
-      "part_of_speech": "n",
-      "chinese": "旅行者; 观光者"
+      "chinese": "n. 旅行者; 观光者"
     },
     {
       "id": 10,
       "word": "wall",
       "phonetic": "wɔ:l/",
-      "part_of_speech": "n",
-      "chinese": "墙"
+      "chinese": "n. 墙"
     },
     {
       "id": 11,
       "word": "amazing",
       "phonetic": "ə'meɪzɪŋ/",
-      "part_of_speech": "adj",
-      "chinese": "令人大为惊奇的; 令人惊喜（或惊叹）的"
+      "chinese": "adj. 令人大为惊奇的; 令人惊喜（或惊叹）的"
     },
     {
       "id": 12,
       "word": "ancient",
       "phonetic": "'eɪnʃənt/",
-      "part_of_speech": "adj",
-      "chinese": "古代的; 古老的"
+      "chinese": "adj. 古代的; 古老的"
     },
     {
       "id": 13,
       "word": "protect",
       "phonetic": "prə'tekt/",
-      "part_of_speech": "v",
-      "chinese": "保护; 防护"
+      "chinese": "v. 保护; 防护"
     },
     {
       "id": 14,
       "word": "wide",
       "phonetic": "waɪd/",
-      "part_of_speech": "adj",
-      "chinese": "宽的; 宽阔的"
+      "chinese": "adj. 宽的; 宽阔的"
     },
     {
       "id": 15,
-      "phrase": "as far as I know",
+      "word": "as far as I know",
+      "phonetic": "",
       "chinese": "就我所知"
     },
     {
       "id": 16,
       "word": "achievement",
       "phonetic": "ə'tʃi:vmənt/",
-      "part_of_speech": "n",
-      "chinese": "成就; 成绩"
+      "chinese": "n. 成就; 成绩"
     },
     {
       "id": 17,
       "word": "southwestern",
       "phonetic": "saʊθ'westə(r)n",
-      "part_of_speech": "adj",
-      "chinese": "西南的; 西南方向的"
+      "chinese": "adj. 西南的; 西南方向的"
     },
     {
       "id": 18,
       "word": "thick",
       "phonetic": "θɪk/",
-      "part_of_speech": "adj",
-      "chinese": "厚的; 浓的"
+      "chinese": "adj. 厚的; 浓的"
     },
     {
       "id": 19,
       "word": "include",
       "phonetic": "ɪn'klu:d/",
-      "part_of_speech": "v",
-      "chinese": "包括; 包含"
+      "chinese": "v. 包括; 包含"
     },
     {
       "id": 20,
       "word": "freezing",
       "phonetic": "'fri:zɪŋ/",
-      "part_of_speech": "adj",
-      "chinese": "极冷的; 冰冻的"
+      "chinese": "adj. 极冷的; 冰冻的"
     },
     {
       "id": 21,
       "word": "condition",
       "phonetic": "kən'dɪʃn/",
-      "part_of_speech": "n",
-      "chinese": "条件; 状况"
+      "chinese": "n. 条件; 状况"
     },
     {
       "id": 22,
-      "phrase": "take in",
+      "word": "take in",
+      "phonetic": "",
       "chinese": "吸入; 吞入（体内）"
     },
     {
       "id": 23,
       "word": "succeed",
       "phonetic": "sək'si:d/",
-      "part_of_speech": "v",
-      "chinese": "实现目标; 成功"
+      "chinese": "v. 实现目标; 成功"
     },
     {
       "id": 24,
       "word": "challenge",
       "phonetic": "'tʃælɪndʒ",
-      "part_of_speech": "v",
-      "chinese": "& n. 挑战; 考验"
+      "chinese": "v. & n. 挑战; 考验"
     },
     {
       "id": 25,
-      "phrase": "in the face of",
+      "word": "in the face of",
+      "phonetic": "",
       "chinese": "面对（问题、困难等）"
     },
     {
       "id": 26,
       "word": "achieve",
       "phonetic": "ə'tʃi:v/",
-      "part_of_speech": "v",
-      "chinese": "达到; 完成; 成功"
+      "chinese": "v. 达到; 完成; 成功"
     },
     {
       "id": 27,
       "word": "force",
       "phonetic": "fɔ:(r)s/",
-      "part_of_speech": "n",
-      "chinese": "力; 力量"
+      "chinese": "n. 力; 力量"
     },
     {
       "id": 28,
       "word": "nature",
       "phonetic": "'neɪtʃə(r)/",
-      "part_of_speech": "n",
-      "chinese": "自然界; 大自然"
+      "chinese": "n. 自然界; 大自然"
     },
     {
       "id": 29,
-      "phrase": "even though (=even if)",
+      "word": "even though (=even if)",
+      "phonetic": "",
       "chinese": "即使; 虽然"
     },
     {
       "id": 30,
       "word": "ocean",
       "phonetic": "'əʊʃn/",
-      "part_of_speech": "n",
-      "chinese": "大海; 海洋"
+      "chinese": "n. 大海; 海洋"
     },
     {
       "id": 31,
-      "phrase": "the Pacific Ocean",
+      "word": "the Pacific Ocean",
+      "phonetic": "",
       "chinese": "太平洋"
     },
     {
       "id": 32,
-      "phrase": "cm (=centimeter/ centimetre)",
+      "word": "cm (centimeter/ centimetre)",
       "phonetic": "'sentɪmi:tə(r)",
       "chinese": "厘米"
     },
@@ -1446,232 +1320,221 @@
       "id": 33,
       "word": "weigh",
       "phonetic": "weɪ/",
-      "part_of_speech": "v",
-      "chinese": "重量是......; 称......的重量"
+      "chinese": "v.重量是......; 称......的重量"
     },
     {
       "id": 34,
       "word": "birth",
       "phonetic": "bɜ:(r)θ/",
-      "part_of_speech": "n",
-      "chinese": "出生; 诞生"
+      "chinese": "n. 出生; 诞生"
     },
     {
       "id": 35,
-      "phrase": "at birth",
+      "word": "at birth",
+      "phonetic": "",
       "chinese": "出生时"
     },
     {
       "id": 36,
-      "phrase": "up to",
+      "word": "up to",
+      "phonetic": "",
       "chinese": "到达（某数量、程度等）; 至多有; 不多于"
     },
     {
       "id": 37,
       "word": "adult",
       "phonetic": "'ædʌlt/, /ə'dʌlt",
-      "part_of_speech": "adj",
-      "chinese": "成年的; 成人的 n. 成人; 成年动物"
+      "chinese": "adj. 成年的; 成人的 n. 成人; 成年动物"
     },
     {
       "id": 38,
       "word": "bamboo",
       "phonetic": "bæm'bu:/",
-      "part_of_speech": "n",
-      "chinese": "竹子"
+      "chinese": "n. 竹子"
     },
     {
       "id": 39,
       "word": "endangered",
       "phonetic": "ɪn'deɪndʒə(r)d",
-      "part_of_speech": "adj",
-      "chinese": "濒危的"
+      "chinese": "adj. 濒危的"
     },
     {
       "id": 40,
       "word": "research",
       "phonetic": "rɪ'sɜ:(r)tʃ",
-      "part_of_speech": "n",
-      "chinese": "& v. 研究; 调查（用作名词时, 重音可放在第一个音节）"
+      "chinese": "n. & v. 研究; 调查（用作名词时, 重音可放在第一个音节）"
     },
     {
       "id": 41,
       "word": "keeper",
       "phonetic": "'ki:pə(r)/",
-      "part_of_speech": "n",
-      "chinese": "饲养员; 保管人"
+      "chinese": "n. 饲养员; 保管人"
     },
     {
       "id": 42,
       "word": "awake",
       "phonetic": "ə'weɪk/",
-      "part_of_speech": "adj",
-      "chinese": "醒着"
+      "chinese": "adj. 醒着"
     },
     {
       "id": 43,
       "word": "excitement",
       "phonetic": "ɪk'saɪtmənt/",
-      "part_of_speech": "n",
-      "chinese": "激动; 兴奋"
+      "chinese": "n. 激动; 兴奋"
     },
     {
       "id": 44,
-      "phrase": "walk into",
+      "word": "walk into",
+      "phonetic": "",
       "chinese": "走路时撞着"
     },
     {
       "id": 45,
-      "phrase": "fall over",
+      "word": "fall over",
+      "phonetic": "",
       "chinese": "绊倒"
     },
     {
       "id": 46,
       "word": "illness",
       "phonetic": "'ɪlnəs/",
-      "part_of_speech": "n",
-      "chinese": "疾病; 病"
+      "chinese": "n. 疾病; 病"
     },
     {
       "id": 47,
       "word": "remaining",
       "phonetic": "rɪ'meɪnɪŋ",
-      "part_of_speech": "adj",
-      "chinese": "遗留的; 剩余的"
+      "chinese": "adj. 遗留的; 剩余的"
     },
     {
       "id": 48,
-      "phrase": "or so",
+      "word": "or so",
+      "phonetic": "",
       "chinese": "大约"
     },
     {
       "id": 49,
       "word": "artwork",
       "phonetic": "'ɑ:(r)twɜ:(r)k",
-      "part_of_speech": "n",
-      "chinese": "图片; 插图"
+      "chinese": "n. 图片; 插图"
     },
     {
       "id": 50,
       "word": "wild",
       "phonetic": "waɪld/",
-      "part_of_speech": "adj",
-      "chinese": "野生的"
+      "chinese": "adj. 野生的"
     },
     {
       "id": 51,
       "word": "government",
       "phonetic": "'gʌvə(r)nmənt/",
-      "part_of_speech": "n",
-      "chinese": "政府; 内阁"
+      "chinese": "n. 政府; 内阁"
     },
     {
       "id": 52,
       "word": "whale",
       "phonetic": "weɪl/",
-      "part_of_speech": "n",
-      "chinese": "鲸"
+      "chinese": "n. 鲸"
     },
     {
       "id": 53,
       "word": "oil",
       "phonetic": "ɔɪl/",
-      "part_of_speech": "n",
-      "chinese": "油; 食用油; 石油"
+      "chinese": "n. 油; 食用油; 石油"
     },
     {
       "id": 54,
       "word": "protection",
       "phonetic": "prə'tekʃn/",
-      "part_of_speech": "n",
-      "chinese": "保护; 保卫"
+      "chinese": "n. 保护; 保卫"
     },
     {
       "id": 55,
       "word": "huge",
       "phonetic": "hju:dʒ/",
-      "part_of_speech": "adj",
-      "chinese": "巨大的; 极多的"
+      "chinese": "adj. 巨大的; 极多的"
     },
     {
       "id": 56,
-      "phrase": "Tenzing Norgay",
+      "word": "Tenzing Norgay",
       "phonetic": "'tenzɪŋ/ /'nɒrgeɪ",
       "chinese": "丹增·诺尔盖"
     },
     {
       "id": 57,
-      "phrase": "Edmund Hillary",
+      "word": "Edmund Hillary",
       "phonetic": "'edmənd/ /'hɪləri",
       "chinese": "埃德蒙·希拉里"
     },
     {
       "id": 58,
-      "phrase": "Junko Tabei",
+      "word": "Junko Tabei",
       "phonetic": "'dʒu:ŋəʊ/ /tɑ:'beɪ",
       "chinese": "田部井淳子"
     },
     {
       "id": 59,
-      "phrase": "Qomolangma",
+      "word": "Qomolangma",
       "phonetic": "'tʃəʊməʊ,lɑ:ŋmə",
       "chinese": "珠穆朗玛峰"
     },
     {
       "id": 60,
-      "phrase": "the Nile",
+      "word": "the Nile",
       "phonetic": "naɪl",
       "chinese": "尼罗河"
     },
     {
       "id": 61,
-      "phrase": "the Caspian Sea",
+      "word": "the Caspian Sea",
       "phonetic": "'kæspiən",
       "chinese": "里海（世界最大的咸水湖）"
     },
     {
       "id": 62,
-      "phrase": "the Sahara",
+      "word": "the Sahara",
       "phonetic": "sə'hɑ:rə",
       "chinese": "撒哈拉沙漠"
     },
     {
       "id": 63,
-      "phrase": "the Yangtze River",
+      "word": "the Yangtze River",
       "phonetic": "'jæŋtsi",
       "chinese": "长江"
     },
     {
       "id": 64,
-      "phrase": "the Yellow River",
+      "word": "the Yellow River",
+      "phonetic": "",
       "chinese": "黄河"
     },
     {
       "id": 65,
-      "phrase": "the Ming Dynasty",
+      "word": "the Ming Dynasty",
       "phonetic": "'dɪnəsti/, /'daɪnəsti",
       "chinese": "明朝"
     },
     {
       "id": 66,
-      "phrase": "the Ming Great Wall",
+      "word": "the Ming Great Wall",
+      "phonetic": "",
       "chinese": "明长城"
     },
     {
       "id": 67,
-      "phrase": "the Himalayas",
+      "word": "the Himalayas",
       "phonetic": "hɪmə'leɪəz",
       "chinese": "喜马拉雅山脉"
     },
     {
       "id": 68,
-      "phrase": "the Amazon River",
+      "word": "the Amazon River",
       "phonetic": "'æməzən/, /'æməzɑ:n",
       "chinese": "亚马逊河"
     },
     {
       "id": 69,
-      "phrase": "Chengdu Research Base",
+      "word": "Chengdu Research Base",
       "phonetic": "beɪs",
       "chinese": "成都研究基地"
     }
@@ -1681,259 +1544,233 @@
       "id": 1,
       "word": "treasure",
       "phonetic": "'treʒə(r)/",
-      "part_of_speech": "n",
-      "chinese": "珠宝; 财富"
+      "chinese": "n. 珠宝; 财富"
     },
     {
       "id": 2,
       "word": "island",
       "phonetic": "'aɪlənd/",
-      "part_of_speech": "n",
-      "chinese": "岛"
+      "chinese": "n. 岛"
     },
     {
       "id": 3,
-      "phrase": "full of",
+      "word": "full of",
+      "phonetic": "",
       "chinese": "满是......的; （有）大量的; （有）丰富的"
     },
     {
       "id": 4,
       "word": "classic",
       "phonetic": "'klæsɪk/",
-      "part_of_speech": "n",
-      "chinese": "经典作品; 名著"
+      "chinese": "n. 经典作品; 名著"
     },
     {
       "id": 5,
       "word": "page",
       "phonetic": "peɪdʒ/",
-      "part_of_speech": "n",
-      "chinese": "（书刊或纸张的）页, 面, 张"
+      "chinese": "n. （书刊或纸张的）页, 面, 张"
     },
     {
       "id": 6,
       "word": "hurry",
       "phonetic": "'hʌri/",
-      "part_of_speech": "v",
-      "chinese": "匆忙; 赶快"
+      "chinese": "v. 匆忙; 赶快"
     },
     {
       "id": 7,
-      "phrase": "hurry up",
+      "word": "hurry up",
+      "phonetic": "",
       "chinese": "赶快; 急忙（做某事）"
     },
     {
       "id": 8,
       "word": "due",
       "phonetic": "dju:/,/du:/",
-      "part_of_speech": "adj",
-      "chinese": "预期; 预定"
+      "chinese": "adj. 预期; 预定"
     },
     {
       "id": 9,
       "word": "ship",
       "phonetic": "ʃɪp/",
-      "part_of_speech": "n",
-      "chinese": "船"
+      "chinese": "n. 船"
     },
     {
       "id": 10,
       "word": "tool",
       "phonetic": "tu:l/",
-      "part_of_speech": "n",
-      "chinese": "工具"
+      "chinese": "n. 工具"
     },
     {
       "id": 11,
       "word": "gun",
       "phonetic": "gʌn/",
-      "part_of_speech": "n",
-      "chinese": "枪; 炮"
+      "chinese": "n. 枪; 炮"
     },
     {
       "id": 12,
       "word": "mark",
       "phonetic": "mɑ:(r)k/",
-      "part_of_speech": "n",
-      "chinese": "迹象; 记号; 分数 v. 做记号; 打分"
+      "chinese": "n. 迹象; 记号; 分数 v. 做记号; 打分"
     },
     {
       "id": 13,
       "word": "sand",
       "phonetic": "sænd/",
-      "part_of_speech": "n",
-      "chinese": "沙滩; 沙"
+      "chinese": "n. 沙滩; 沙"
     },
     {
       "id": 14,
       "word": "cannibal",
       "phonetic": "'kænɪbl/",
-      "part_of_speech": "n",
-      "chinese": "食人肉者"
+      "chinese": "n. 食人肉者"
     },
     {
       "id": 15,
       "word": "towards",
       "phonetic": "tə'wɔ:dz/, /tɔ:rdz/",
-      "part_of_speech": "prep",
-      "chinese": "朝; 向; 对着"
+      "chinese": "prep. 朝; 向; 对着"
     },
     {
       "id": 16,
       "word": "land",
       "phonetic": "lænd/",
-      "part_of_speech": "n",
-      "chinese": "陆地; 大地"
+      "chinese": "n. 陆地; 大地"
     },
     {
       "id": 17,
       "word": "fiction",
       "phonetic": "'fɪkʃn/",
-      "part_of_speech": "n",
-      "chinese": "小说"
+      "chinese": "n. 小说"
     },
     {
       "id": 18,
-      "phrase": "science fiction",
+      "word": "science fiction",
+      "phonetic": "",
       "chinese": "科幻小说（或影片等）"
     },
     {
       "id": 19,
       "word": "technology",
       "phonetic": "tek'nɒlədʒi/, /tek'nɑ:lədʒi/",
-      "part_of_speech": "n",
-      "chinese": "科技; 工艺"
+      "chinese": "n. 科技; 工艺"
     },
     {
       "id": 20,
       "word": "French",
       "phonetic": "frentʃ/",
-      "part_of_speech": "n",
-      "chinese": "法语"
+      "chinese": "n.法语"
     },
     {
       "id": 21,
       "word": "pop",
       "phonetic": "pɒp/, /pɑ:p/",
-      "part_of_speech": "n",
-      "chinese": "流行音乐; 流行乐曲"
+      "chinese": "n. 流行音乐; 流行乐曲"
     },
     {
       "id": 22,
       "word": "rock",
       "phonetic": "rɒk/, /rɑ:k/",
-      "part_of_speech": "n",
-      "chinese": "摇滚乐"
+      "chinese": "n. 摇滚乐"
     },
     {
       "id": 23,
       "word": "band",
       "phonetic": "bænd/",
-      "part_of_speech": "n",
-      "chinese": "乐队"
+      "chinese": "n. 乐队"
     },
     {
       "id": 24,
-      "phrase": "country music (country)",
+      "word": "country music (country)",
+      "phonetic": "",
       "chinese": "乡村音乐"
     },
     {
       "id": 25,
       "word": "forever",
       "phonetic": "fər'evə(r)/",
-      "part_of_speech": "adv",
-      "chinese": "永远"
+      "chinese": "adv. 永远"
     },
     {
       "id": 26,
       "word": "abroad",
       "phonetic": "ə'brɔ:d/",
-      "part_of_speech": "adv",
-      "chinese": "在国外; 到国外"
+      "chinese": "adv. 在国外; 到国外"
     },
     {
       "id": 27,
       "word": "actually",
       "phonetic": "'æktʃuəli/",
-      "part_of_speech": "adv",
-      "chinese": "真实地; 事实上"
+      "chinese": "adv. 真实地; 事实上"
     },
     {
       "id": 28,
-      "phrase": "ever since",
+      "word": "ever since",
+      "phonetic": "",
       "chinese": "自从"
     },
     {
       "id": 29,
       "word": "fan",
       "phonetic": "fæn/",
-      "part_of_speech": "n",
-      "chinese": "迷; 狂热爱好者"
+      "chinese": "n. 迷; 狂热爱好者"
     },
     {
       "id": 30,
       "word": "southern",
       "phonetic": "'sʌðə(r)n/",
-      "part_of_speech": "adj",
-      "chinese": "南方的"
+      "chinese": "adj. 南方的"
     },
     {
       "id": 31,
       "word": "modern",
       "phonetic": "'mɒdn/, /'mɑ:dərn",
-      "part_of_speech": "adj",
-      "chinese": "现代的; 当代的"
+      "chinese": "adj. 现代的; 当代的"
     },
     {
       "id": 32,
       "word": "success",
       "phonetic": "sək'ses/",
-      "part_of_speech": "n",
-      "chinese": "成功"
+      "chinese": "n. 成功"
     },
     {
       "id": 33,
       "word": "belong",
       "phonetic": "bɪ'lɒŋ/, /bɪ'lɔ:ŋ",
-      "part_of_speech": "v",
-      "chinese": "属于; 归属"
+      "chinese": "v. 属于; 归属"
     },
     {
       "id": 34,
-      "phrase": "one another",
+      "word": "one another",
+      "phonetic": "",
       "chinese": "互相"
     },
     {
       "id": 35,
       "word": "laughter",
       "phonetic": "'lɑ:ftə/,/'læftə(r)/",
-      "part_of_speech": "n",
-      "chinese": "笑; 笑声"
+      "chinese": "n. 笑; 笑声"
     },
     {
       "id": 36,
       "word": "beauty",
       "phonetic": "'bju:ti/",
-      "part_of_speech": "n",
-      "chinese": "美; 美丽"
+      "chinese": "n. 美; 美丽"
     },
     {
       "id": 37,
       "word": "million",
       "phonetic": "'mɪljən/",
-      "part_of_speech": "num",
-      "chinese": "一百万"
+      "chinese": "num. 一百万"
     },
     {
       "id": 38,
       "word": "record",
       "phonetic": "'rekɔ:d/, /'rekərd/, /rɪ'kɔ:(r)d/",
-      "part_of_speech": "n",
-      "chinese": "唱片; 记录 v. 录制; 录（音）"
+      "chinese": "n. 唱片; 记录 v. 录制; 录（音）"
     },
     {
       "id": 39,
-      "phrase": "introduce",
+      "word": "introduce",
       "phonetic": "ɪntrə'dju:s/, /ɪntrə'du:s/",
       "chinese": "介绍"
     },
@@ -1941,82 +1778,84 @@
       "id": 40,
       "word": "line",
       "phonetic": "laɪn/",
-      "part_of_speech": "n",
-      "chinese": "行; 排"
+      "chinese": "n. 行; 排"
     },
     {
       "id": 41,
-      "phrase": "Alex",
+      "word": "Alex",
       "phonetic": "'æleks/",
       "chinese": "亚历克斯（男名）"
     },
     {
       "id": 42,
-      "phrase": "Garth Brooks",
+      "word": "Garth Brooks",
       "phonetic": "gɑ:(r)θ/ /brʊks",
       "chinese": "加思·布鲁克斯"
     },
     {
       "id": 43,
-      "phrase": "the Beatles",
+      "word": "the Beatles",
       "phonetic": "'bi:tlz",
       "chinese": "披头士乐队（英国）"
     },
     {
       "id": 44,
-      "phrase": "Treasure Island 《",
-      "chinese": "金银岛》"
+      "word": "Treasure Island",
+      "phonetic": "",
+      "chinese": "《金银岛》"
     },
     {
       "id": 45,
-      "phrase": "Alice in Wonderland",
+      "word": "Alice in Wonderland",
       "phonetic": "'wʌndə(r)lænd",
       "chinese": "《爱丽丝梦游仙境》"
     },
     {
       "id": 46,
-      "phrase": "Little Woman 《",
-      "chinese": "小妇人》"
+      "word": "Little Woman",
+      "phonetic": "",
+      "chinese": "《小妇人》"
     },
     {
       "id": 47,
-      "phrase": "Oliver Twist",
+      "word": "Oliver Twist",
       "phonetic": "'ɒlɪv/, /'ɑ:lɪv/ /twɪst",
       "chinese": "《雾都孤儿》"
     },
     {
       "id": 48,
-      "phrase": "Robinson Crusoe",
+      "word": "Robinson Crusoe",
       "phonetic": "'kru:səʊ",
       "chinese": "《鲁滨逊漂流记》"
     },
     {
       "id": 49,
-      "phrase": "Tom Sawyer",
+      "word": "Tom Sawyer",
       "phonetic": "'sɔ:jə(r)",
       "chinese": "《汤姆·索娅历险记》"
     },
     {
       "id": 50,
-      "phrase": "Harry Potter",
+      "word": "Harry Potter",
       "phonetic": "'pɒtə(r)/, /'pɑ:tər",
       "chinese": "《哈利·波特》"
     },
     {
       "id": 51,
-      "phrase": "Nashville",
+      "word": "Nashville",
       "phonetic": "'næʃvɪl/",
       "chinese": "纳什维尔（美国田纳西州府）"
     },
     {
       "id": 52,
-      "phrase": "Tennessee",
+      "word": "Tennessee",
       "phonetic": "tenə'si:/",
       "chinese": "田纳西州（美国）"
     },
     {
       "id": 53,
-      "phrase": "Country Music Hall of Fame Museum",
+      "word": "Country Music Hall of Fame Museum",
+      "phonetic": "",
       "chinese": "乡村音乐名人堂博物馆"
     }
   ],
@@ -2025,336 +1864,311 @@
       "id": 1,
       "word": "amusement",
       "phonetic": "ə'mju:zmənt/",
-      "part_of_speech": "n",
-      "chinese": "娱乐; 游戏"
+      "chinese": "n. 娱乐; 游戏"
     },
     {
       "id": 2,
-      "phrase": "amusement park",
+      "word": "amusement park",
+      "phonetic": "",
       "chinese": "游乐场"
     },
     {
       "id": 3,
       "word": "somewhere",
       "phonetic": "'sʌmweə/, /'sʌmwer",
-      "part_of_speech": "adv",
-      "chinese": "在某处; 到某处"
+      "chinese": "adv. 在某处; 到某处"
     },
     {
       "id": 4,
       "word": "camera",
       "phonetic": "'kæmərə/",
-      "part_of_speech": "n",
-      "chinese": "照相机; 摄影机; 摄像机"
+      "chinese": "n. 照相机; 摄影机; 摄像机"
     },
     {
       "id": 5,
       "word": "invention",
       "phonetic": "ɪn'venʃn/",
-      "part_of_speech": "n",
-      "chinese": "发明;发明物"
+      "chinese": "n. 发明;发明物"
     },
     {
       "id": 6,
       "word": "invent",
       "phonetic": "ɪn'vent/",
-      "part_of_speech": "v",
-      "chinese": "发明; 创造"
+      "chinese": "v. 发明; 创造"
     },
     {
       "id": 7,
       "word": "unbelievable",
       "phonetic": "ʌnbɪ'li:vəbl/",
-      "part_of_speech": "adj",
-      "chinese": "难以置信的; 不真实的"
+      "chinese": "adj. 难以置信的; 不真实的"
     },
     {
       "id": 8,
       "word": "progress",
       "phonetic": "'prəʊgres/, /'prɑ:gres/",
-      "part_of_speech": "v",
-      "chinese": "&n. 进步; 进展"
+      "chinese": "v.&n. 进步; 进展"
     },
     {
       "id": 9,
       "word": "rapid",
       "phonetic": "'ræpɪd/",
-      "part_of_speech": "adj",
-      "chinese": "迅速的; 快速的"
+      "chinese": "adj. 迅速的; 快速的"
     },
     {
       "id": 10,
       "word": "unusual",
       "phonetic": "ʌn'ju:ʒʊəl/",
-      "part_of_speech": "adj",
-      "chinese": "特别的; 不寻常的"
+      "chinese": "adj. 特别的; 不寻常的"
     },
     {
       "id": 11,
       "word": "toilet",
       "phonetic": "'tɔɪlət/",
-      "part_of_speech": "n",
-      "chinese": "坐便器; 厕所"
+      "chinese": "n. 坐便器; 厕所"
     },
     {
       "id": 12,
       "word": "encourage",
       "phonetic": "ɪn'kʌrɪdʒ/, /ɪn'kɜ:rɪdʒ/",
-      "part_of_speech": "v",
-      "chinese": "鼓励"
+      "chinese": "v. 鼓励"
     },
     {
       "id": 13,
       "word": "social",
       "phonetic": "'səʊʃl/",
-      "part_of_speech": "adj",
-      "chinese": "社会的"
+      "chinese": "adj. 社会的"
     },
     {
       "id": 14,
       "word": "peaceful",
       "phonetic": "'pi:sfl/",
-      "part_of_speech": "adj",
-      "chinese": "和平的; 安宁的"
+      "chinese": "adj. 和平的; 安宁的"
     },
     {
       "id": 15,
-      "phrase": "tea art",
+      "word": "tea art",
+      "phonetic": "",
       "chinese": "茶艺"
     },
     {
       "id": 16,
       "word": "performance",
       "phonetic": "pə(r)'fɔ:(r)məns/",
-      "part_of_speech": "n",
-      "chinese": "表演; 演出"
+      "chinese": "n. 表演; 演出"
     },
     {
       "id": 17,
       "word": "perfect",
       "phonetic": "'pɜ:(r)fɪkt/",
-      "part_of_speech": "adj",
-      "chinese": "完美的; 完全的"
+      "chinese": "adj. 完美的; 完全的"
     },
     {
       "id": 18,
-      "phrase": "tea set",
+      "word": "tea set",
+      "phonetic": "",
       "chinese": "茶具"
     },
     {
       "id": 19,
       "word": "itself",
       "phonetic": "ɪt'self/",
-      "part_of_speech": "pron",
-      "chinese": "(it 的反身代词) 它自己"
+      "chinese": "pron. (it 的反身代词) 它自己"
     },
     {
       "id": 20,
       "word": "collect",
       "phonetic": "kə'lekt/",
-      "part_of_speech": "v",
-      "chinese": "收集; 采集"
+      "chinese": "v. 收集; 采集"
     },
     {
       "id": 21,
-      "phrase": "a couple of",
+      "word": "a couple of",
+      "phonetic": "",
       "chinese": "两个; 一对; 几个"
     },
     {
       "id": 22,
       "word": "German",
       "phonetic": "'dʒə:(r)mən/",
-      "part_of_speech": "adj",
-      "chinese": "德国的; 德语的; 德国人的 n. 德语; 德国人"
+      "chinese": "adj. 德国的; 德语的; 德国人的 n. 德语; 德国人"
     },
     {
       "id": 23,
       "word": "theme",
       "phonetic": "θi:m/",
-      "part_of_speech": "n",
-      "chinese": "主题"
+      "chinese": "n. 主题"
     },
     {
       "id": 24,
       "word": "ride",
       "phonetic": "raɪd/",
-      "part_of_speech": "n",
-      "chinese": "供乘骑的游乐设施; 短途旅程"
+      "chinese": "n. 供乘骑的游乐设施; 短途旅程"
     },
     {
       "id": 25,
       "word": "province",
       "phonetic": "'prɒvɪns/, /'prɑ:vɪns/",
-      "part_of_speech": "n",
-      "chinese": "省份"
+      "chinese": "n. 省份"
     },
     {
       "id": 26,
       "word": "thousand",
       "phonetic": "'θaʊznd/",
-      "part_of_speech": "num",
-      "chinese": "一千"
+      "chinese": "num. 一千"
     },
     {
       "id": 27,
-      "phrase": "thousands of",
+      "word": "thousands of",
+      "phonetic": "",
       "chinese": "数以千计的; 许许多多的"
     },
     {
       "id": 28,
-      "phrase": "on the one hand...on the other hand...",
+      "word": "on the one hand...on the other hand...",
+      "phonetic": "",
       "chinese": "一方面......另一方面......"
     },
     {
       "id": 29,
       "word": "safe",
       "phonetic": "seɪf/",
-      "part_of_speech": "adj",
-      "chinese": "安全的; 无危险的"
+      "chinese": "adj. 安全的; 无危险的"
     },
     {
       "id": 30,
       "word": "simply",
       "phonetic": "'sɪmpli/",
-      "part_of_speech": "adv",
-      "chinese": "仅仅; 只; 不过"
+      "chinese": "adv. 仅仅; 只; 不过"
     },
     {
       "id": 31,
       "word": "fear",
       "phonetic": "fɪə/, /fɪr",
-      "part_of_speech": "v",
-      "chinese": "& n. 害怕; 惧怕"
+      "chinese": "v. & n. 害怕; 惧怕"
     },
     {
       "id": 32,
       "word": "whether",
       "phonetic": "'weðə(r)/",
-      "part_of_speech": "conj",
-      "chinese": "不管......（还是）; 或者......（或者）; 是否"
+      "chinese": "conj. 不管......（还是）; 或者......（或者）; 是否"
     },
     {
       "id": 33,
       "word": "Indian",
       "phonetic": "'ɪndiən/",
-      "part_of_speech": "adj",
-      "chinese": "印度的 n. 印度人"
+      "chinese": "adj.印度的 n. 印度人"
     },
     {
       "id": 34,
       "word": "Japanese",
       "phonetic": "dʒæpə'ni:z/",
-      "part_of_speech": "adj",
-      "chinese": "日本的; 日本人的; 日语的 n. 日本人; 日语"
+      "chinese": "adj.日本的; 日本人的; 日语的 n. 日本人; 日语"
     },
     {
       "id": 35,
       "word": "fox",
       "phonetic": "fɒks/, /fɑ:ks/",
-      "part_of_speech": "n",
-      "chinese": "狐狸"
+      "chinese": "n. 狐狸"
     },
     {
       "id": 36,
-      "phrase": "all year round",
+      "word": "all year round",
+      "phonetic": "",
       "chinese": "全年"
     },
     {
       "id": 37,
       "word": "equator",
       "phonetic": "ɪ'kweɪtə(r)/",
-      "part_of_speech": "n",
-      "chinese": "赤道"
+      "chinese": "n. 赤道"
     },
     {
       "id": 38,
       "word": "whenever",
       "phonetic": "wen'evə(r)/",
-      "part_of_speech": "conj",
-      "chinese": "在任何......时候; 无论何时"
+      "chinese": "conj. 在任何......时候; 无论何时"
     },
     {
       "id": 39,
       "word": "spring",
       "phonetic": "sprɪŋ/",
-      "part_of_speech": "n",
-      "chinese": "春天"
+      "chinese": "n. 春天"
     },
     {
       "id": 40,
       "word": "mostly",
       "phonetic": "'məʊstli/",
-      "part_of_speech": "adv",
-      "chinese": "主要地; 通常"
+      "chinese": "adv. 主要地; 通常"
     },
     {
       "id": 41,
       "word": "location",
       "phonetic": "ləʊ'keɪʃn/",
-      "part_of_speech": "n",
-      "chinese": "地点; 位置"
+      "chinese": "n. 地点; 位置"
     },
     {
       "id": 42,
-      "phrase": "National Science Museum",
+      "word": "National Science Museum",
       "phonetic": "'næʃnəl",
       "chinese": "国家科学博物馆"
     },
     {
       "id": 43,
-      "phrase": "International Museum of Toile",
+      "word": "International Museum of Toile",
       "phonetic": "ɪntə(r)'næʃnəl",
       "chinese": "国际厕所博物馆"
     },
     {
       "id": 44,
-      "phrase": "Hangzhou National Tea Museum",
+      "word": "Hangzhou National Tea Museum",
+      "phonetic": "",
       "chinese": "杭州国家茶博物馆"
     },
     {
       "id": 45,
-      "phrase": "Donald Duck",
+      "word": "Donald Duck",
       "phonetic": "'dɒnəld/ , /'dɑ:nəld",
       "chinese": "唐老鸭"
     },
     {
       "id": 46,
-      "phrase": "Disneyland",
+      "word": "Disneyland",
       "phonetic": "'dɪznilænd/",
       "chinese": "迪斯尼乐园"
     },
     {
       "id": 47,
-      "phrase": "Disney Cruise",
+      "word": "Disney Cruise",
       "phonetic": "kru:z",
       "chinese": "迪斯尼游轮"
     },
     {
       "id": 48,
-      "phrase": "the Terracotta Army",
+      "word": "the Terracotta Army",
       "phonetic": "terə'kɒtə/, /terə'kɑ:tə",
       "chinese": "兵马俑"
     },
     {
       "id": 49,
-      "phrase": "the Bird' s Nest",
+      "word": "the Bird' s Nest",
       "phonetic": "nest",
       "chinese": "鸟巢"
     },
     {
       "id": 50,
-      "phrase": "Singapore",
+      "word": "Singapore",
       "phonetic": "sɪŋgə'pɔ:(r)",
       "chinese": "新加坡"
     },
     {
       "id": 51,
-      "phrase": "Southeast Asia",
+      "word": "Southeast Asia",
+      "phonetic": "",
       "chinese": "东南亚"
     },
     {
       "id": 52,
-      "phrase": "Night Safari",
+      "word": "Night Safari",
       "phonetic": "sə'fɑ:ri",
       "chinese": "夜间动物园"
     }
@@ -2364,270 +2178,251 @@
       "id": 1,
       "word": "yard",
       "phonetic": "jɑ:(r)d/",
-      "part_of_speech": "n",
-      "chinese": "院子"
+      "chinese": "n. 院子"
     },
     {
       "id": 2,
-      "phrase": "yard sale",
+      "word": "yard sale",
+      "phonetic": "",
       "chinese": "庭院拍卖会"
     },
     {
       "id": 3,
       "word": "sweet",
       "phonetic": "swi:t/",
-      "part_of_speech": "adj",
-      "chinese": "甜蜜的; 甜的; 含糖的"
+      "chinese": "adj. 甜蜜的; 甜的; 含糖的"
     },
     {
       "id": 4,
       "word": "memory",
       "phonetic": "'meməri/",
-      "part_of_speech": "n",
-      "chinese": "记忆; 回忆"
+      "chinese": "n. 记忆; 回忆"
     },
     {
       "id": 5,
       "word": "cent",
       "phonetic": "sent/",
-      "part_of_speech": "n",
-      "chinese": "分; 分币"
+      "chinese": "n. 分; 分币"
     },
     {
       "id": 6,
       "word": "toy",
       "phonetic": "tɔɪ/",
-      "part_of_speech": "n",
-      "chinese": "玩具"
+      "chinese": "n. 玩具"
     },
     {
       "id": 7,
       "word": "bear",
       "phonetic": "beə/, /ber/",
-      "part_of_speech": "n",
-      "chinese": "熊"
+      "chinese": "n. 熊"
     },
     {
       "id": 8,
       "word": "maker",
       "phonetic": "'meɪkə(r)/",
-      "part_of_speech": "n",
-      "chinese": "生产者; 制订者"
+      "chinese": "n. 生产者; 制订者"
     },
     {
       "id": 9,
-      "phrase": "bread maker",
+      "word": "bread maker",
+      "phonetic": "",
       "chinese": "面包机"
     },
     {
       "id": 10,
       "word": "scarf",
       "phonetic": "skɑ:(r)f/",
-      "part_of_speech": "n",
-      "chinese": "围巾; 披巾; 头巾"
+      "chinese": "n. 围巾; 披巾; 头巾"
     },
     {
       "id": 11,
       "word": "soft",
       "phonetic": "sɒft/, /sɔ:ft/",
-      "part_of_speech": "adj",
-      "chinese": "软的; 柔软的"
+      "chinese": "adj. 软的; 柔软的"
     },
     {
       "id": 12,
-      "phrase": "soft toy",
+      "word": "soft toy",
+      "phonetic": "",
       "chinese": "软体玩具; 布绒玩具"
     },
     {
       "id": 13,
       "word": "check",
       "phonetic": "tʃek",
-      "part_of_speech": "v",
-      "chinese": "& n. 检查; 审查"
+      "chinese": "v. & n. 检查; 审查"
     },
     {
       "id": 14,
-      "phrase": "check out",
+      "word": "check out",
+      "phonetic": "",
       "chinese": "察看; 观察"
     },
     {
       "id": 15,
       "word": "board",
       "phonetic": "bɔ:(r)d/",
-      "part_of_speech": "n",
-      "chinese": "板; 木板"
+      "chinese": "n. 板; 木板"
     },
     {
       "id": 16,
-      "phrase": "board game",
+      "word": "board game",
+      "phonetic": "",
       "chinese": "棋类游戏"
     },
     {
       "id": 17,
       "word": "junior",
       "phonetic": "'dʒu:niə(r)/",
-      "part_of_speech": "adj",
-      "chinese": "地位（或职位、级别）低下的"
+      "chinese": "adj. 地位（或职位、级别）低下的"
     },
     {
       "id": 18,
-      "phrase": "junior high school",
+      "word": "junior high school",
+      "phonetic": "",
       "chinese": "初级中学"
     },
     {
       "id": 19,
       "word": "clear",
       "phonetic": "klɪə/, /klɪr/",
-      "part_of_speech": "v",
-      "chinese": "清理; 清除"
+      "chinese": "v. 清理; 清除"
     },
     {
       "id": 20,
-      "phrase": "clear out",
+      "word": "clear out",
+      "phonetic": "",
       "chinese": "清理; 丢掉"
     },
     {
       "id": 21,
       "word": "bedroom",
       "phonetic": "'bedru:m/",
-      "part_of_speech": "n",
-      "chinese": "卧室"
+      "chinese": "n. 卧室"
     },
     {
       "id": 22,
-      "phrase": "no longer",
+      "word": "no longer",
+      "phonetic": "",
       "chinese": "不再; 不复"
     },
     {
       "id": 23,
       "word": "own",
       "phonetic": "əʊn/",
-      "part_of_speech": "v",
-      "chinese": "拥有; 有"
+      "chinese": "v. 拥有; 有"
     },
     {
       "id": 24,
       "word": "railway",
       "phonetic": "'reɪlweɪ/",
-      "part_of_speech": "n",
-      "chinese": "铁路; 铁道"
+      "chinese": "n. 铁路; 铁道"
     },
     {
       "id": 25,
       "word": "part",
       "phonetic": "pɑ:(r)t/",
-      "part_of_speech": "v",
-      "chinese": "离开; 分开"
+      "chinese": "v. 离开; 分开"
     },
     {
       "id": 26,
-      "phrase": "part with",
+      "word": "part with",
+      "phonetic": "",
       "chinese": "放弃; 交出（尤指不舍得的东西）"
     },
     {
       "id": 27,
       "word": "certain",
       "phonetic": "'sɜ:(r)tn/",
-      "part_of_speech": "adj",
-      "chinese": "某种; 某事; 某人"
+      "chinese": "adj. 某种; 某事; 某人"
     },
     {
       "id": 28,
-      "phrase": "as for",
+      "word": "as for",
+      "phonetic": "",
       "chinese": "至于; 关于"
     },
     {
       "id": 29,
       "word": "honest",
       "phonetic": "'ɒnɪst/,/'ɑ:nɪst/",
-      "part_of_speech": "adj",
-      "chinese": "诚实的; 老实的"
+      "chinese": "adj. 诚实的; 老实的"
     },
     {
       "id": 30,
-      "phrase": "to be honest",
+      "word": "to be honest",
+      "phonetic": "",
       "chinese": "说实在的"
     },
     {
       "id": 31,
       "word": "while",
       "phonetic": "waɪl/",
-      "part_of_speech": "n",
-      "chinese": "一段时间; 一会儿"
+      "chinese": "n. 一段时间; 一会儿"
     },
     {
       "id": 32,
       "word": "truthful",
       "phonetic": "'tru:θfl/",
-      "part_of_speech": "adj",
-      "chinese": "诚实的; 真实的"
+      "chinese": "adj. 诚实的; 真实的"
     },
     {
       "id": 33,
       "word": "hometown",
       "phonetic": "'həʊmtaʊn/",
-      "part_of_speech": "n",
-      "chinese": "家乡; 故乡"
+      "chinese": "n. 家乡; 故乡"
     },
     {
       "id": 34,
       "word": "nowadays",
       "phonetic": "'naʊədeɪz/",
-      "part_of_speech": "adv",
-      "chinese": "现今; 现在; 目前"
+      "chinese": "adv. 现今; 现在; 目前"
     },
     {
       "id": 35,
       "word": "search",
       "phonetic": "sɜ:(r)tʃ",
-      "part_of_speech": "v",
-      "chinese": "& n. 搜索; 搜查"
+      "chinese": "v. & n. 搜索; 搜查"
     },
     {
       "id": 36,
       "word": "among",
       "phonetic": "ə'mʌŋ/",
-      "part_of_speech": "prep",
-      "chinese": "在（其）中; ......之一"
+      "chinese": "prep. 在（其）中; ......之一"
     },
     {
       "id": 37,
       "word": "crayon",
       "phonetic": "'kreɪən/",
-      "part_of_speech": "n",
-      "chinese": "彩色铅笔（或粉笔、蜡笔）"
+      "chinese": "n. 彩色铅笔（或粉笔、蜡笔）"
     },
     {
       "id": 38,
       "word": "shame",
       "phonetic": "ʃeɪm/",
-      "part_of_speech": "n",
-      "chinese": "羞耻; 羞愧; 惭愧"
+      "chinese": "n. 羞耻; 羞愧; 惭愧"
     },
     {
       "id": 39,
       "word": "regard",
       "phonetic": "rɪ'gɑ:(r)d/",
-      "part_of_speech": "v",
-      "chinese": "将......认为; 把......视为"
+      "chinese": "v.将......认为; 把......视为"
     },
     {
       "id": 40,
       "word": "count",
       "phonetic": "kaʊnt/",
-      "part_of_speech": "v",
-      "chinese": "数数"
+      "chinese": "v. 数数"
     },
     {
       "id": 41,
       "word": "century",
       "phonetic": "'sentʃəri/",
-      "part_of_speech": "n",
-      "chinese": "百年; 世纪"
+      "chinese": "n. 百年; 世纪"
     },
     {
       "id": 42,
-      "phrase": "according to",
+      "word": "according to",
       "phonetic": "ə'kɔ:(r)dɪŋ",
       "chinese": "依据; 按照"
     },
@@ -2635,41 +2430,37 @@
       "id": 43,
       "word": "opposite",
       "phonetic": "'ɒpəzɪt/, /'ɑ:pəzət",
-      "part_of_speech": "prep",
-      "chinese": ";与......相对; 在......对面 adj. 对面的; 另一边的"
+      "chinese": "prep.;与......相对; 在......对面 adj. 对面的; 另一边的"
     },
     {
       "id": 44,
       "word": "especially",
       "phonetic": "ɪ'speʃəli/",
-      "part_of_speech": "adv",
-      "chinese": "尤其; 特别; 格外"
+      "chinese": "adv. 尤其; 特别; 格外"
     },
     {
       "id": 45,
       "word": "childhood",
       "phonetic": "'tʃaɪldhʊd/",
-      "part_of_speech": "n",
-      "chinese": "童年; 幼年"
+      "chinese": "n. 童年; 幼年"
     },
     {
       "id": 46,
       "word": "consider",
       "phonetic": "kən'sɪdə(r)/",
-      "part_of_speech": "v",
-      "chinese": "注视; 仔细考虑"
+      "chinese": "v. 注视; 仔细考虑"
     },
     {
       "id": 47,
-      "phrase": "close to",
+      "word": "close to",
+      "phonetic": "",
       "chinese": "几乎; 接近"
     },
     {
       "id": 48,
       "word": "hold",
       "phonetic": "həʊld",
-      "part_of_speech": "v",
-      "chinese": "(held /held/, held) 拥有; 抓住"
+      "chinese": "v. (held /held/, held) 拥有; 抓住"
     }
   ]
 }

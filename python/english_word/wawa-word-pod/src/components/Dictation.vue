@@ -78,7 +78,7 @@ const handleAudioEnd = () => {
     // 继续重复播放当前单词
     playTimer = setTimeout(() => {
       playAudio()
-    }, 500) // 每次重复之间的短暂停顿
+    }, 1500) // 每次重复之间的短暂停顿
   } else {
     // 进入下一个单词
     currentWordIndex.value++
