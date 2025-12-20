@@ -2,7 +2,6 @@
 import { ref, onMounted, computed } from 'vue'
 import WordList from './components/WordList.vue'
 import Dictation from './components/Dictation.vue'
-import DictationConfirm from './components/DictationConfirm.vue'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
@@ -62,28 +61,15 @@ const toggleTheme = () => {
   updateTheme()
 }
 
-// 开始听写确认
+// 开始听写
 const handleStartDictation = (words) => {
   selectedWords.value = words
-  isConfirmActive.value = true
-}
-
-// 确认听写
-const handleConfirmDictation = (settings) => {
-  dictationSettings.value = settings
-  isConfirmActive.value = false
   isDictationActive.value = true
-}
-
-// 取消确认
-const handleCancelConfirm = () => {
-  isConfirmActive.value = false
 }
 
 // 完成听写返回
 const handleFinishDictation = () => {
   isDictationActive.value = false
-  isConfirmActive.value = true
 }
 
 
@@ -99,13 +85,7 @@ const handleFinishDictation = () => {
           @start-dictation="handleStartDictation"
         />
       </div>
-      <div v-else-if="isConfirmActive">
-        <DictationConfirm 
-          :words="selectedWords" 
-          @confirm="handleConfirmDictation"
-          @cancel="handleCancelConfirm"
-        />
-      </div>
+
       <div v-else-if="isDictationActive">
         <Dictation 
           :words="selectedWords" 
