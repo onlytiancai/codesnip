@@ -14,9 +14,7 @@ EN_AM  = "fastspeech2_ljspeech"
 EN_VOC = "pwgan_ljspeech"
 
 words = [
-    ['amusement', '娱乐；游戏'],
-    ['pass', '给; 递; 走过; 通过'],
-    ['as soon as', '一......就......; 尽快'],
+    ['amusement', '面对（问题、困难等）'],
 ]
 
 

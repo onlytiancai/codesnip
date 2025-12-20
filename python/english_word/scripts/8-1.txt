@@ -2,17 +2,17 @@ Unit 1
 rubbish ['rʌbɪʃ/] n. 垃圾; 废弃物
 take out the rubbish 倒垃圾
 fold [fəʊld/] v. 折叠; 对折
-sweep [swi:p/] v. (swept /swept/ ) 扫; 打扫
+sweep [swi:p/] v. 扫; 打扫
 floor[flɔ:(r)/] n. 地板
 mess [mes/] n. 杂乱; 不整洁
-throw [θrəʊ/] v. (threw /θru:/ ) 扔; 掷
+throw [θrəʊ/] v. 扔; 掷
 all the time 频繁; 反复
 neither ['naɪðə/, /'ni:ðə(r)/]adv. 也不
 shirt [ʃɜ:(r)t/] n. 衬衫
 as soon as 一......就......; 尽快
 pass [pɑ:s/, /pæs/] v. 给; 递; 走过; 通过
 borrow ['bɒrəʊ/, /'bɑ:rəʊ] v. 借; 借用
-lend [lend/] v. (lent /lent/ ) 借给; 借出
+lend [lend/] v. 借给; 借出
 finger ['fɪŋgə(r)/] n. 手指
 hate [heɪt/] v. 厌恶; 讨厌
 chore [tʃɔ:(r)/] n. 杂务; 乏味无聊的工作
@@ -29,7 +29,7 @@ develop [dɪ'veləp/] v. 发展; 壮大
 independence [ɪndɪ'pendəns/] n. 独立
 fairness ['feənəs/ , /'fernəs] n. 公正性; 合理性
 since [sɪns/] conj. 因为; 既然 prep.,conj. & adv. 从......以后; 自......以来
-neighbor (=neighbour) ['neɪbə(r)] n. 邻居
+neighbor (neighbour) ['neɪbə(r)] n. 邻居
 take care of 照顾; 处理
 ill [ɪl/] adj. 有病; 不舒服
 drop[drɒp/, /drɑ:p]v. 落下; 掉下
@@ -90,10 +90,10 @@ Unit 3
 rainstorm['reɪnstɔ:(r)m/]n. 暴风雨
 alarm [ə'lɑ:(r)m/] n. 闹钟
 go off （闹钟）发出响声
-begin [bɪ'gɪn/] v. (began /bɪ'gæn/ ) 开始
+begin [bɪ'gɪn/] v. 开始
 heavily ['hevɪli/] adv. 在很大程度上; 大量地
 suddenly ['sʌdənli/] adv. 突然; 忽然
-pick up (=pick up the phone) 接电话
+pick up 接电话
 strange [streɪndʒ/] adj. 奇特的;奇怪的
 storm [stɔ:(r)m/] n. 暴风雨
 wind[wɪnd/] n. 风
@@ -136,7 +136,7 @@ Alabama ['ælə'bɑ:mə/] 阿拉巴马州（美国）
 Animal Helpline ['helplaɪn] 动物保护热线
 World Trade Center 世贸大楼（美国纽约）
 Unit 4
-shoot [ʃu:t/] v. (shot /ʃɒt/, /ʃɑ:t/) 射击; 发射
+shoot [ʃu:t/] v. 射击; 发射
 stone [stəʊn/] n. 石头
 weak [wi:k/] adj. 虚弱的; 无力的
 god [gɒd/, /gɑ:d] n. 神; 上帝
@@ -152,7 +152,7 @@ tail [teɪl/] n. 尾巴
 magic ['mædʒɪk/] adj. 有魔力的; 有神奇力量的
 stick [stɪk/] n. 棍; 条
 excite [ɪk'saɪt/] v. 使激动; 使兴奋
-Western ['westə(r)n/] adj. 西方国家的; （尤指）欧美的; 西方的(w 可以小写)
+Western ['westə(r)n/] adj. 西方国家的; （尤指）欧美的; 西方
 once upon a time 从前
 stepsister['stepsɪstə(r)/] n. 继姐（妹）
 prince ['prɪns/] n. 王子
@@ -162,7 +162,7 @@ couple ['kʌpl/] n.（尤指）夫妻; 两人; 两件事物
 smile [smaɪl] v. & n. 笑; 微笑
 marry ['mæri/] v.结婚
 get married 结婚
-gold [gəʊld/] n. 金子; 金币 adj.金色的
+gold [gəʊld/] n. 金子; 金币 adj. 金色的
 emperor ['empərə(r)/] n. 国王
 silk [sɪlk/] n. 丝绸; 丝织物
 underwear ['ʌndəweə/, /'ʌndərwer]n. 内衣
@@ -175,10 +175,10 @@ husband ['hʌzbənd/] n. 丈夫
 whole [həʊl/] adj. 全部的; 整体的
 scene [si:n/] n.（戏剧或歌剧的）场; 场景
 moonlight ['mu:nlaɪt/] n. 月光
-shine [ʃaɪn/] v. (shone /ʃɒn/ ) 发光; 照耀
+shine [ʃaɪn/] v.  发光; 照耀
 bright [braɪt/] adv. 光亮地; , 明亮地 adj. 明亮的; 光线充足的
 ground [graʊnd/] n. 地; 地面
-lead [li:d] v.(led /led/)带路; 领路
+lead [li:d] v. 带路; 领路
 voice [vɔɪs/] n. 声音
 brave [breɪv/] adj. 勇敢的; 无畏的
 Claudia ['klɔ:diə/, /'klaʊdiə]克劳迪娅（女名）
@@ -190,7 +190,7 @@ Little red Riding Hood 《小红帽》
 Hansel and Gretel 《韩塞尔与葛雷特》（《糖果屋》）
 Unit 5
 square [skweə/, /skwer/] n. 平方; 正方形
-meter (=metre) ['mi:tə(r)]n. 米; 公尺
+meter ['mi:tə(r)]n. 米; 公尺
 deep [di:p/] adj. 深的; 纵深的
 desert ['dezə(r)t/] n. 沙漠
 population ['pɒpju'leɪʃn/] n. 人口; 人口数量
@@ -217,10 +217,10 @@ in the face of 面对（问题、困难等）
 achieve [ə'tʃi:v/] v. 达到; 完成; 成功
 force [fɔ:(r)s/] n. 力; 力量
 nature ['neɪtʃə(r)/] n. 自然界; 大自然
-even though (=even if) 即使; 虽然
+even though  即使; 虽然
 ocean ['əʊʃn/] n. 大海; 海洋
 the Pacific Ocean 太平洋
-cm (centimeter/ centimetre) ['sentɪmi:tə(r)]厘米
+centimeter ['sentɪmi:tə(r)]厘米
 weigh [weɪ/] v.重量是......; 称......的重量
 birth[bɜ:(r)θ/] n. 出生; 诞生
 at birth 出生时
@@ -228,7 +228,7 @@ up to 到达（某数量、程度等）; 至多有; 不多于
 adult ['ædʌlt/, /ə'dʌlt] adj. 成年的; 成人的 n. 成人; 成年动物
 bamboo [bæm'bu:/] n. 竹子
 endangered [ɪn'deɪndʒə(r)d] adj. 濒危的
-research [rɪ'sɜ:(r)tʃ] n. & v. 研究; 调查（用作名词时, 重音可放在第一个音节）
+research [rɪ'sɜ:(r)tʃ] n. & v. 研究; 调查
 keeper ['ki:pə(r)/] n. 饲养员; 保管人
 awake [ə'weɪk/] adj. 醒着
 excitement [ɪk'saɪtmənt/] n. 激动; 兴奋
@@ -331,7 +331,7 @@ tea art 茶艺
 performance [pə(r)'fɔ:(r)məns/] n. 表演; 演出
 perfect ['pɜ:(r)fɪkt/] adj. 完美的; 完全的
 tea set 茶具
-itself[ɪt'self/] pron. (it 的反身代词) 它自己
+itself[ɪt'self/] pron. 它自己
 collect [kə'lekt/] v. 收集; 采集
 a couple of 两个; 一对; 几个
 German ['dʒə:(r)mən/] adj. 德国的; 德语的; 德国人的 n. 德语; 德国人
@@ -408,9 +408,9 @@ regard [rɪ'gɑ:(r)d/] v.将......认为; 把......视为
 count [kaʊnt/] v. 数数
 century ['sentʃəri/] n. 百年; 世纪
 according to [ə'kɔ:(r)dɪŋ] 依据; 按照
-opposite ['ɒpəzɪt/, /'ɑ:pəzət] prep.;与......相对; 在......对面 adj. 对面的; 另一边的
+opposite ['ɒpəzɪt/, /'ɑ:pəzət] prep. 与......相对; 在......对面 adj. 对面的; 另一边的
 especially[ɪ'speʃəli/] adv. 尤其; 特别; 格外
 childhood ['tʃaɪldhʊd/] n. 童年; 幼年
 consider [kən'sɪdə(r)/] v. 注视; 仔细考虑
 close to 几乎; 接近
-hold [həʊld] v. (held /held/, held) 拥有; 抓住
+hold [həʊld] v. 拥有; 抓住
