@@ -135,7 +135,7 @@ const handleCancel = () => {
                   <div class="relative">
                     <select 
                       v-model="settings.repeatCount[0]" 
-                      class="w-full px-4 py-3 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                      class="w-full px-4 py-3 pr-10 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all appearance-none"
                     >
                       <option :value="1">1次</option>
                       <option :value="2">2次</option>
@@ -163,7 +163,7 @@ const handleCancel = () => {
                   <div class="relative">
                     <select 
                       v-model="settings.pauseBetweenWords[0]" 
-                      class="w-full px-4 py-3 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                      class="w-full px-4 py-3 pr-10 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all appearance-none"
                     >
                       <option :value="1000">1秒</option>
                       <option :value="2000">2秒</option>

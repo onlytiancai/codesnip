@@ -282,8 +282,9 @@ watch(isPlaying, (newVal) => {
   }
 })
 
-// 组件挂载时自动开始听写
+// 组件挂载时自动开始听写并滚动到页面顶部
 onMounted(() => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
   startDictation()
 })
 
@@ -358,14 +359,14 @@ onUnmounted(() => {
                 <SkipBack class="h-6 w-6 group-hover:scale-110 transition-transform" />
               </Button>
               <Button 
-                variant="default" 
-                @click="!isPlaying ? startDictation() : (isPaused ? resumeDictation() : pauseDictation())"
-                class="group h-18 w-18 p-0 flex items-center justify-center rounded-full transition-all hover:shadow-xl hover:scale-105 hover:bg-primary-600 dark:hover:bg-primary-700"
-                :title="!isPlaying ? '开始听写' : (isPaused ? '继续' : '暂停')"
-              >
-                <PlayCircle v-if="!isPlaying || isPaused" class="h-10 w-10 group-hover:scale-110 transition-transform" />
-                <PauseCircle v-else class="h-10 w-10 group-hover:scale-110 transition-transform" />
-              </Button>
+              variant="default" 
+              @click="!isPlaying ? startDictation() : (isPaused ? resumeDictation() : pauseDictation())"
+              class="group h-18 w-18 p-0 flex items-center justify-center rounded-full transition-all hover:shadow-xl hover:scale-105 hover:bg-primary-600 dark:hover:bg-primary-700"
+              :title="!isPlaying ? '开始听写' : (isPaused ? '继续' : '暂停')"
+            >
+              <PlayCircle v-if="!isPlaying || isPaused" class="!h-10 !w-10 group-hover:scale-110 transition-transform" />
+              <PauseCircle v-else class="!h-10 !w-10 group-hover:scale-110 transition-transform" />
+            </Button>
               <Button 
                 variant="outline" 
                 @click="nextWord"
