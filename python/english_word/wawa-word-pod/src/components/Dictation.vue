@@ -2,8 +2,10 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Slider } from '@/components/ui/slider'
+import { 
+  PlayCircle, PauseCircle, SkipBack, SkipForward, 
+  ArrowLeft, RefreshCw, CheckCircle2
+} from 'lucide-vue-next'
 
 const props = defineProps({
   words: {
@@ -292,139 +294,138 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="container mx-auto p-4">
-    <Card class="max-w-2xl mx-auto" :class="{'bg-white dark:bg-neutral-800': true}">
-      <CardHeader class="flex flex-row items-center justify-between pb-6">
-        <CardTitle class="text-2xl font-bold" :class="{'text-neutral-800 dark:text-white': true}">听写界面</CardTitle>
-      </CardHeader>
-      <CardContent>
-
-
-        <!-- 听写进度 -->
-        <div class="mb-6" v-if="!dictationComplete">
-          <div class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300 mb-2">
-            <div>当前单词: {{ currentWordIndex + 1 }} / {{ processedWords.length }}</div>
-            <div v-if="currentWordIndex < processedWords.length">
-              当前重复: {{ currentRepeat + 1 }} / {{ props.settings.repeatCount[0] }}
-            </div>
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-6">
+    <div class="max-w-2xl mx-auto">
+      <Card class="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
+        <CardHeader class="bg-gradient-to-r from-primary-500 to-primary-600 text-white">
+          <div class="flex items-center gap-3">
+            <PlayCircle class="h-8 w-8" />
+            <CardTitle class="text-2xl md:text-3xl font-bold">听写界面</CardTitle>
           </div>
-          <div class="w-full h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-            <div 
-              class="h-full bg-primary-500 transition-all duration-300 ease-in-out"
-              :style="{ width: `${((currentWordIndex + (currentRepeat / props.settings.repeatCount[0])) / processedWords.length) * 100}%` }"
-            ></div>
-          </div>
-        </div>
-
-        <!-- 听写内容 -->
-        <div class="text-center mb-8">
-          <div v-if="dictationComplete" class="bg-green-50 dark:bg-green-900/20 p-6 rounded-lg border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300">
-            <h3 class="text-xl font-bold mb-2">恭喜您完成听写！</h3>
-            <p>您总共听写了 {{ processedWords.length }} 个单词/短语。</p>
-          </div>
-          <div v-else-if="currentWordIndex < processedWords.length" class="bg-neutral-50 dark:bg-neutral-800 p-6 rounded-lg border">
-            <div class="inline-block text-left">
-              <div v-if="props.settings.showEnglish" class="text-2xl font-bold mb-1" :class="{'text-neutral-800 dark:text-white': true}">
-                {{ processedWords[currentWordIndex].word || processedWords[currentWordIndex].phrase }}
+        </CardHeader>
+        <CardContent class="pt-6">
+          <!-- 听写进度 -->
+          <div class="mb-6" v-if="!dictationComplete">
+            <div class="flex justify-between text-sm text-slate-700 dark:text-slate-300 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="font-medium">当前单词:</span> {{ currentWordIndex + 1 }} / {{ processedWords.length }}
               </div>
-              <div v-if="props.settings.showPhonetic && (processedWords[currentWordIndex].phonetic || processedWords[currentWordIndex].phonetic_uk)" class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">
-                {{ processedWords[currentWordIndex].phonetic || processedWords[currentWordIndex].phonetic_uk }}
-              </div>
-              <div v-if="props.settings.showChinese" class="text-lg text-neutral-600 dark:text-neutral-300">
-                {{ processedWords[currentWordIndex].chinese }}
+              <div v-if="currentWordIndex < processedWords.length" class="flex items-center gap-2">
+                <span class="font-medium">当前重复:</span> {{ currentRepeat + 1 }} / {{ props.settings.repeatCount[0] }}
               </div>
             </div>
+            <div class="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner">
+              <div 
+                class="h-full bg-gradient-to-r from-primary-500 to-primary-600 transition-all duration-300 ease-in-out rounded-full shadow-md"
+                :style="{ width: `${((currentWordIndex + (currentRepeat / props.settings.repeatCount[0])) / processedWords.length) * 100}%` }"
+              ></div>
+            </div>
           </div>
-        </div>
 
-        <!-- 控制按钮 -->
-        <div class="flex flex-col items-center gap-4">
-          <!-- 上一个、播放/暂停、下一个按钮 -->
-          <div v-if="!dictationComplete" class="flex justify-center gap-4">
-            <Button 
-              variant="outline" 
-              @click="previousWord"
-              :disabled="currentWordIndex <= 0"
-              class="h-12 w-12 p-0 flex items-center justify-center rounded-full transition-all hover:shadow-md"
-              title="上一个"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="19 20 9 12 19 4 19 20"/>
-                <path d="M5 19 5 5"/>
-              </svg>
-            </Button>
-            <Button 
-              variant="default" 
-              @click="!isPlaying ? startDictation() : (isPaused ? resumeDictation() : pauseDictation())"
-              class="h-14 w-14 p-0 flex items-center justify-center rounded-full transition-all hover:shadow-lg hover:bg-primary-600 dark:hover:bg-primary-700"
-              :title="!isPlaying ? '开始听写' : (isPaused ? '继续' : '暂停')"
-            >
-              <svg v-if="!isPlaying || isPaused" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="5 3 19 12 5 21 5 3"/>
-              </svg>
-              <svg v-else xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="6" y="4" width="4" height="16"/>
-                <rect x="14" y="4" width="4" height="16"/>
-              </svg>
-            </Button>
-            <Button 
-              variant="outline" 
-              @click="nextWord"
-              :disabled="currentWordIndex >= processedWords.length - 1"
-              class="h-12 w-12 p-0 flex items-center justify-center rounded-full transition-all hover:shadow-md"
-              title="下一个"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="5 20 15 12 5 4 5 20"/>
-                <path d="M19 19 19 5"/>
-              </svg>
-            </Button>
+          <!-- 听写内容 -->
+          <div class="text-center mb-8">
+            <div v-if="dictationComplete" class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 p-8 rounded-xl border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300 shadow-lg transition-all duration-300 hover:shadow-xl">
+              <CheckCircle2 class="w-12 h-12 mx-auto mb-4 text-green-500 dark:text-green-400" />
+              <h3 class="text-2xl font-bold mb-3">恭喜您完成听写！</h3>
+              <p class="text-lg">您总共听写了 {{ processedWords.length }} 个单词/短语。</p>
+            </div>
+            <div v-else-if="currentWordIndex < processedWords.length" class="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-700/50 p-8 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg transition-all duration-300 hover:shadow-xl">
+              <div class="inline-block text-left max-w-full">
+                <div v-if="props.settings.showEnglish" class="text-3xl font-bold mb-3 text-slate-800 dark:text-white">
+                  {{ processedWords[currentWordIndex].word || processedWords[currentWordIndex].phrase }}
+                </div>
+                <div v-if="props.settings.showPhonetic && (processedWords[currentWordIndex].phonetic || processedWords[currentWordIndex].phonetic_uk)" class="text-sm text-slate-500 dark:text-slate-400 mb-2 italic">
+                  {{ processedWords[currentWordIndex].phonetic || processedWords[currentWordIndex].phonetic_uk }}
+                </div>
+                <div v-if="props.settings.showChinese" class="text-xl text-slate-600 dark:text-slate-300">
+                  {{ processedWords[currentWordIndex].chinese }}
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <!-- 重新开始和返回按钮 -->
-          <div v-if="!dictationComplete" class="flex justify-center gap-4">
-            <Button 
-              variant="secondary" 
-              @click="restartDictation"
-              class="transition-all hover:bg-yellow-100 dark:hover:bg-yellow-900/30 hover:text-yellow-600 dark:hover:text-yellow-400 hover:shadow-md"
-            >
-              重新开始
-            </Button>
-            <Button 
-              variant="secondary" 
-              @click="goBack"
-              class="transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-md"
-            >
-              返回
-            </Button>
-          </div>
-          
-          <!-- 听写完成后的按钮 -->
-          <div v-else class="flex justify-center gap-4">
-            <Button 
-              variant="default" 
-              @click="restartDictation"
-              class="px-6 py-2 transition-all hover:shadow-lg hover:bg-green-600 dark:hover:bg-green-700"
-            >
-              再次听写
-            </Button>
-            <Button 
-              variant="secondary" 
-              @click="goBack"
-              class="transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-md"
-            >
-              返回确认页
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
 
-    <!-- 隐藏的音频元素 -->
-    <audio 
-      ref="audioElement"
-      preload="auto"
-    ></audio>
+          <!-- 控制按钮 -->
+          <div class="flex flex-col items-center gap-6">
+            <!-- 上一个、播放/暂停、下一个按钮 -->
+            <div v-if="!dictationComplete" class="flex justify-center gap-6">
+              <Button 
+                variant="outline" 
+                @click="previousWord"
+                :disabled="currentWordIndex <= 0"
+                class="group h-14 w-14 p-0 flex items-center justify-center rounded-full transition-all hover:shadow-lg hover:scale-105 hover:border-primary-400 dark:hover:border-primary-500"
+                title="上一个"
+              >
+                <SkipBack class="h-6 w-6 group-hover:scale-110 transition-transform" />
+              </Button>
+              <Button 
+                variant="default" 
+                @click="!isPlaying ? startDictation() : (isPaused ? resumeDictation() : pauseDictation())"
+                class="group h-18 w-18 p-0 flex items-center justify-center rounded-full transition-all hover:shadow-xl hover:scale-105 hover:bg-primary-600 dark:hover:bg-primary-700"
+                :title="!isPlaying ? '开始听写' : (isPaused ? '继续' : '暂停')"
+              >
+                <PlayCircle v-if="!isPlaying || isPaused" class="h-10 w-10 group-hover:scale-110 transition-transform" />
+                <PauseCircle v-else class="h-10 w-10 group-hover:scale-110 transition-transform" />
+              </Button>
+              <Button 
+                variant="outline" 
+                @click="nextWord"
+                :disabled="currentWordIndex >= processedWords.length - 1"
+                class="group h-14 w-14 p-0 flex items-center justify-center rounded-full transition-all hover:shadow-lg hover:scale-105 hover:border-primary-400 dark:hover:border-primary-500"
+                title="下一个"
+              >
+                <SkipForward class="h-6 w-6 group-hover:scale-110 transition-transform" />
+              </Button>
+            </div>
+            
+            <!-- 重新开始和返回按钮 -->
+            <div v-if="!dictationComplete" class="flex flex-wrap justify-center gap-4">
+              <Button 
+                variant="secondary" 
+                @click="restartDictation"
+                class="group flex items-center gap-2 px-6 py-2.5 text-base font-medium transition-all hover:shadow-md hover:bg-yellow-100 dark:hover:bg-yellow-900/30 hover:text-yellow-600 dark:hover:text-yellow-400"
+              >
+                <RefreshCw class="h-4 w-4 group-hover:rotate-180 transition-transform" />
+                重新开始
+              </Button>
+              <Button 
+                variant="secondary" 
+                @click="goBack"
+                class="group flex items-center gap-2 px-6 py-2.5 text-base font-medium transition-all hover:shadow-md hover:bg-slate-100 dark:hover:bg-slate-700"
+              >
+                <ArrowLeft class="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+                返回
+              </Button>
+            </div>
+            
+            <!-- 听写完成后的按钮 -->
+            <div v-else class="flex flex-wrap justify-center gap-4">
+              <Button 
+                variant="default" 
+                @click="restartDictation"
+                class="group flex items-center gap-2 px-8 py-3 text-base font-semibold shadow-lg hover:bg-green-600 hover:shadow-2xl hover:scale-105 transition-all duration-300"
+              >
+                <RefreshCw class="h-5 w-5 group-hover:rotate-180 transition-transform" />
+                再次听写
+              </Button>
+              <Button 
+                variant="secondary" 
+                @click="goBack"
+                class="group flex items-center gap-2 px-8 py-3 text-base font-medium transition-all hover:shadow-md hover:bg-slate-100 dark:hover:bg-slate-700"
+              >
+                <ArrowLeft class="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+                返回确认页
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- 隐藏的音频元素 -->
+      <audio 
+        ref="audioElement"
+        preload="auto"
+      />
+    </div>
   </div>
 </template>
 
