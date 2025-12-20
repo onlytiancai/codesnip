@@ -4,6 +4,7 @@ import json
 import sys
 import re
 from paddlespeech.cli.tts import TTSExecutor
+from pydub import AudioSegment
 
 OUTPUT_DIR = "/Users/huhao/src/codesnip/python/english_word/wawa-word-pod/public/audio/"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -101,10 +102,10 @@ for unit, items in data.items():
     for item in items:
         if 'word' in item:
             en = item['word']
-            cn = item['chinese']
+            cn_parts = item['cn_mp3_txt']
         elif 'phrase' in item:
             en = item['phrase']
-            cn = item['chinese']
+            cn_parts = item['cn_mp3_txt']
         else:
             continue
         
@@ -117,28 +118,49 @@ for unit, items in data.items():
         
         # 检查mp3文件是否已存在，如果存在则跳过
         if os.path.exists(cn_mp3):
-            print(f"✓ 中文文件已存在，跳过: {cn} -> {name}_cn.mp3")
+            print(f"✓ 中文文件已存在，跳过: {en} -> {name}_cn.mp3")
             continue
         
         try:
-            # 处理中文文本，将非中文字符替换为空格
-            tts_cn_text = re.sub(r'[^\u4e00-\u9fa5\s]', ' ', cn)
-            # 移除连续的空格
-            tts_cn_text = re.sub(r'\s+', ' ', tts_cn_text).strip()
+            segments = []
+            silence = AudioSegment.silent(duration=500)  # 500毫秒停顿
             
-            tts(
-                text=tts_cn_text,
-                output=cn_wav,
-                am=ZH_AM,
-                voc=ZH_VOC,
-                lang="zh"
-            )
+            for i, part in enumerate(cn_parts):
+                # 生成临时音频文件
+                temp_wav = os.path.join(OUTPUT_DIR, f"temp_{name}_{i}.wav")
+                
+                tts(
+                    text=part,
+                    output=temp_wav,
+                    am=ZH_AM,
+                    voc=ZH_VOC,
+                    lang="zh"
+                )
+                
+                # 读取临时音频文件
+                audio = AudioSegment.from_wav(temp_wav)
+                segments.append(audio)
+                
+                # 删除临时音频文件
+                os.remove(temp_wav)
+            
+            # 合并音频文件，在每个项之间添加500ms停顿
+            final_audio = AudioSegment.empty()
+            for i, seg in enumerate(segments):
+                final_audio += seg
+                if i != len(segments) - 1:
+                    final_audio += silence
+            
+            # 导出合并后的音频文件
+            final_audio.export(cn_wav, format="wav")
+            
+            # 转换为MP3格式
             wav_to_mp3(cn_wav, cn_mp3)
             os.remove(cn_wav)
             
-            print(f"✓ 中文生成完成: {cn} -> {name}_cn.mp3")
+            print(f"✓ 中文生成完成: {en} -> {name}_cn.mp3")
         except Exception as e:
-            print(f"✗ 中文生成失败: {cn}, 错误: {str(e)}")
+            print(f"✗ 中文生成失败: {en}, 错误: {str(e)}")
             sys.exit(1)
 
 print("\n所有音频生成完成！")
