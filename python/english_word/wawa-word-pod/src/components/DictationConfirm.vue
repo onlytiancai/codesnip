@@ -3,6 +3,7 @@ import { ref, onMounted, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Slider } from '@/components/ui/slider'
+import { Checkbox } from '@/components/ui/checkbox'
 
 const props = defineProps({
   words: {
@@ -13,7 +14,7 @@ const props = defineProps({
 
 const emit = defineEmits(['confirm', 'cancel', 'remove-word'])
 
-// 从localStorage加载设置，默认值为repeatCount: 2, pauseBetweenWords: 3000
+// 从localStorage加载设置
 const loadSettingsFromLocalStorage = () => {
   try {
     const savedSettings = localStorage.getItem('dictationSettings')
@@ -25,7 +26,11 @@ const loadSettingsFromLocalStorage = () => {
   }
   return {
     repeatCount: [2],
-    pauseBetweenWords: [3000]
+    pauseBetweenWords: [3000],
+    playChinese: true,
+    playEnglish: false,
+    showEnglish: true,
+    showChinese: true
   }
 }
 
@@ -111,7 +116,7 @@ const handleCancel = () => {
           </div>
 
           <!-- 单词停顿滑杆 -->
-          <div>
+          <div class="mb-6">
             <label class="block text-sm font-medium mb-2">单词间停顿: {{ settings.pauseBetweenWords[0] / 1000 }}秒</label>
             <Slider 
               v-model="settings.pauseBetweenWords" 
@@ -126,6 +131,32 @@ const handleCancel = () => {
               <span>5秒</span>
               <span>7.5秒</span>
               <span>10秒</span>
+            </div>
+          </div>
+
+          <!-- 音频播放设置 -->
+          <div class="mb-6">
+            <h4 class="text-sm font-semibold mb-3">音频播放选项</h4>
+            <div class="flex items-center space-x-4 mb-3">
+              <Checkbox id="play-chinese" v-model="settings.playChinese" />
+              <label for="play-chinese" class="text-sm font-medium">播放中文</label>
+            </div>
+            <div class="flex items-center space-x-4">
+              <Checkbox id="play-english" v-model="settings.playEnglish" />
+              <label for="play-english" class="text-sm font-medium">播放英文</label>
+            </div>
+          </div>
+
+          <!-- 文本显示设置 -->
+          <div>
+            <h4 class="text-sm font-semibold mb-3">文本显示选项</h4>
+            <div class="flex items-center space-x-4 mb-3">
+              <Checkbox id="show-english" v-model="settings.showEnglish" />
+              <label for="show-english" class="text-sm font-medium">显示英文</label>
+            </div>
+            <div class="flex items-center space-x-4">
+              <Checkbox id="show-chinese" v-model="settings.showChinese" />
+              <label for="show-chinese" class="text-sm font-medium">显示中文</label>
             </div>
           </div>
         </div>

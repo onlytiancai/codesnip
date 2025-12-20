@@ -14,7 +14,11 @@ const props = defineProps({
     type: Object,
     default: () => ({
       repeatCount: [2],
-      pauseBetweenWords: [3000]
+      pauseBetweenWords: [3000],
+      playChinese: true,
+      playEnglish: false,
+      showEnglish: true,
+      showChinese: true
     })
   }
 })
@@ -49,25 +53,62 @@ const normalizeFilename = (text) => {
 }
 
 // 获取音频文件路径
-const getAudioPath = (wordItem) => {
+const getAudioPath = (wordItem, language = 'cn') => {
   const text = wordItem.word || wordItem.phrase
   const filename = normalizeFilename(text)
-  return `/audio/${filename}_cn.mp3`
+  return `/audio/${filename}_${language}.mp3`
 }
 
-// 播放当前中文音频
+// 播放当前音频
 const playAudio = () => {
   if (audioElement.value && currentWordIndex.value < props.words.length) {
     const currentWord = props.words[currentWordIndex.value]
-    const audioPath = getAudioPath(currentWord)
+    const languagesToPlay = []
     
-    audioElement.value.src = audioPath
-    audioElement.value.play().catch(error => {
-      console.error('音频播放失败:', error)
-      // 自动继续到下一个播放
-      handleAudioEnd()
-    })
+    // 根据设置确定要播放的语言
+    if (props.settings.playChinese) {
+      languagesToPlay.push('cn')
+    }
+    if (props.settings.playEnglish) {
+      languagesToPlay.push('en')
+    }
+    
+    // 如果没有选择任何语言，默认播放中文
+    if (languagesToPlay.length === 0) {
+      languagesToPlay.push('cn')
+    }
+    
+    // 播放音频序列
+    playAudioSequence(currentWord, languagesToPlay, 0)
   }
+}
+
+// 播放音频序列
+const playAudioSequence = (word, languages, index) => {
+  if (index >= languages.length) {
+    // 序列播放完成
+    return handleAudioEnd()
+  }
+  
+  const audioPath = getAudioPath(word, languages[index])
+  
+  audioElement.value.src = audioPath
+  audioElement.value.play().catch(error => {
+    console.error('音频播放失败:', error)
+    // 播放失败时继续下一个音频
+    playAudioSequence(word, languages, index + 1)
+  })
+  
+  // 监听当前音频播放结束
+  const onAudioEnd = () => {
+    audioElement.value.removeEventListener('ended', onAudioEnd)
+    // 短暂停顿后播放下一个语言的音频
+    setTimeout(() => {
+      playAudioSequence(word, languages, index + 1)
+    }, 500)
+  }
+  
+  audioElement.value.addEventListener('ended', onAudioEnd)
 }
 
 // 音频播放结束处理
@@ -220,10 +261,10 @@ onUnmounted(() => {
           </div>
           <div v-else-if="currentWordIndex < words.length" class="bg-neutral-50 dark:bg-neutral-800 p-6 rounded-lg border">
             <div class="inline-block text-left">
-              <div class="text-2xl font-bold mb-2" :class="{'text-neutral-800 dark:text-white': true}">
+              <div v-if="props.settings.showEnglish" class="text-2xl font-bold mb-2" :class="{'text-neutral-800 dark:text-white': true}">
                 {{ words[currentWordIndex].word || words[currentWordIndex].phrase }}
               </div>
-              <div class="text-lg text-neutral-600 dark:text-neutral-300">
+              <div v-if="props.settings.showChinese" class="text-lg text-neutral-600 dark:text-neutral-300">
                 {{ words[currentWordIndex].chinese }}
               </div>
             </div>
@@ -271,7 +312,6 @@ onUnmounted(() => {
     <!-- 隐藏的音频元素 -->
     <audio 
       ref="audioElement"
-      @ended="handleAudioEnd"
       preload="auto"
     ></audio>
   </div>
