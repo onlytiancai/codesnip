@@ -141,11 +141,13 @@ const handleStartDictation = () => {
       <CardHeader class="flex flex-row items-center justify-between pb-6">
         <CardTitle class="text-2xl font-bold">单词列表</CardTitle>
         <div class="flex gap-2 flex-wrap">
-          <Button variant="secondary" @click="selectAllWords" class="transition-all hover:bg-green-100 dark:hover:bg-green-900/30 hover:text-green-600 dark:hover:text-green-400 hover:shadow-md">全选</Button>
           <Button variant="secondary" @click="clearSelection" class="transition-all hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 hover:shadow-md">清空</Button>
         </div>
       </CardHeader>
       <CardContent>
+        <div class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-700 dark:text-blue-300 text-sm">
+          <span class="font-medium">提示：</span>点击单词选择要听写的单词，然后点击底部的"开始听写"按钮
+        </div>
         <div class="space-y-4">
           <div 
             v-for="(items, unit) in wordData" 
@@ -167,7 +169,9 @@ const handleStartDictation = () => {
                   @click.stop="selectAllInUnit(unit)"
                   title="全选本单元"
                 >
-                  ✓
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6 9 17l-5-5"/>
+                  </svg>
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -176,7 +180,10 @@ const handleStartDictation = () => {
                   @click.stop="clearAllInUnit(unit)"
                   title="清空本单元"
                 >
-                  ✕
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
                 </Button>
                 <span :class="{'text-neutral-500 dark:text-neutral-400': true }">
                   {{ isUnitExpanded(unit) ? '▼' : '▶' }}

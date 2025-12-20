@@ -296,7 +296,6 @@ onUnmounted(() => {
     <Card class="max-w-2xl mx-auto" :class="{'bg-white dark:bg-neutral-800': true}">
       <CardHeader class="flex flex-row items-center justify-between pb-6">
         <CardTitle class="text-2xl font-bold" :class="{'text-neutral-800 dark:text-white': true}">听写界面</CardTitle>
-        <Button variant="secondary" @click="goBack" class="transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-md">返回</Button>
       </CardHeader>
       <CardContent>
 
@@ -339,40 +338,69 @@ onUnmounted(() => {
         </div>
 
         <!-- 控制按钮 -->
-        <div class="flex justify-center gap-4">
-          <div v-if="!dictationComplete">
+        <div class="flex flex-col items-center gap-4">
+          <!-- 上一个、播放/暂停、下一个按钮 -->
+          <div v-if="!dictationComplete" class="flex justify-center gap-4">
             <Button 
               variant="outline" 
               @click="previousWord"
               :disabled="currentWordIndex <= 0"
-              class="px-4 py-2 transition-all hover:shadow-md"
+              class="h-12 w-12 p-0 flex items-center justify-center rounded-full transition-all hover:shadow-md"
+              title="上一个"
             >
-              上一个
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="19 20 9 12 19 4 19 20"/>
+                <path d="M5 19 5 5"/>
+              </svg>
             </Button>
             <Button 
               variant="default" 
               @click="!isPlaying ? startDictation() : (isPaused ? resumeDictation() : pauseDictation())"
-              class="px-6 py-2 transition-all hover:shadow-lg hover:bg-primary-600 dark:hover:bg-primary-700"
+              class="h-14 w-14 p-0 flex items-center justify-center rounded-full transition-all hover:shadow-lg hover:bg-primary-600 dark:hover:bg-primary-700"
+              :title="!isPlaying ? '开始听写' : (isPaused ? '继续' : '暂停')"
             >
-              {{ !isPlaying ? '开始听写' : (isPaused ? '继续' : '暂停') }}
+              <svg v-if="!isPlaying || isPaused" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="6" y="4" width="4" height="16"/>
+                <rect x="14" y="4" width="4" height="16"/>
+              </svg>
             </Button>
             <Button 
               variant="outline" 
               @click="nextWord"
               :disabled="currentWordIndex >= processedWords.length - 1"
-              class="px-4 py-2 transition-all hover:shadow-md"
+              class="h-12 w-12 p-0 flex items-center justify-center rounded-full transition-all hover:shadow-md"
+              title="下一个"
             >
-              下一个
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 20 15 12 5 4 5 20"/>
+                <path d="M19 19 19 5"/>
+              </svg>
             </Button>
+          </div>
+          
+          <!-- 重新开始和返回按钮 -->
+          <div v-if="!dictationComplete" class="flex justify-center gap-4">
             <Button 
               variant="secondary" 
               @click="restartDictation"
-              class="ml-2 transition-all hover:bg-yellow-100 dark:hover:bg-yellow-900/30 hover:text-yellow-600 dark:hover:text-yellow-400 hover:shadow-md"
+              class="transition-all hover:bg-yellow-100 dark:hover:bg-yellow-900/30 hover:text-yellow-600 dark:hover:text-yellow-400 hover:shadow-md"
             >
               重新开始
             </Button>
+            <Button 
+              variant="secondary" 
+              @click="goBack"
+              class="transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-md"
+            >
+              返回
+            </Button>
           </div>
-          <div v-else>
+          
+          <!-- 听写完成后的按钮 -->
+          <div v-else class="flex justify-center gap-4">
             <Button 
               variant="default" 
               @click="restartDictation"
@@ -383,7 +411,7 @@ onUnmounted(() => {
             <Button 
               variant="secondary" 
               @click="goBack"
-              class="ml-2 transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-md"
+              class="transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-md"
             >
               返回确认页
             </Button>
