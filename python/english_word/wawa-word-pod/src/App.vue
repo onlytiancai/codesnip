@@ -94,26 +94,8 @@ const handleRemoveWord = (wordId) => {
 
 <template>
   <div :class="['min-h-screen', isDarkMode ? 'bg-neutral-900 text-neutral-100' : 'bg-neutral-50 text-neutral-900']">
-    <!-- Header -->
-    <header class="sticky top-0 z-50 backdrop-blur-md" :class="isDarkMode ? 'bg-neutral-900/90 border-b border-neutral-800' : 'bg-neutral-50/90 border-b border-neutral-200'">
-      <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <div class="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-            WW
-          </div>
-          <div>
-            <h1 class="text-xl font-bold">英语单词听写</h1>
-            <p class="text-xs text-muted-foreground">你的单词听写小助手</p>
-          </div>
-        </div>
-        <Button variant="ghost" size="icon" @click="toggleTheme">
-          {{ isDarkMode ? '☀️' : '🌙' }}
-        </Button>
-      </div>
-    </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-8">
-      <div v-if="!isDictationActive && !isConfirmActive && Object.keys(wordData).length > 0">
+        <div v-if="!isDictationActive && !isConfirmActive && Object.keys(wordData).length > 0">
         <WordList 
           :word-data="wordData" 
           v-model:selected-words="selectedWords"
@@ -145,8 +127,6 @@ const handleRemoveWord = (wordId) => {
           </CardContent>
         </Card>
       </div>
-    </main>
-
     <!-- Footer -->
     <footer class="mt-auto py-6" :class="isDarkMode ? 'border-t border-neutral-800' : 'border-t border-neutral-200'">
       <div class="max-w-7xl mx-auto px-4 text-center text-sm" :class="isDarkMode ? 'text-neutral-400' : 'text-neutral-600'">

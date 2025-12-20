@@ -66,20 +66,16 @@ const handleConfirm = () => {
 const handleCancel = () => {
   emit('cancel')
 }
+
+// 组件挂载时自动开始听写并滚动到页面顶部
+onMounted(() => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+})
 </script>
 
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-6">
-    <div class="max-w-4xl mx-auto">
-      <!-- 主卡片 -->
-      <Card class="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
-        <CardHeader class="bg-gradient-to-r from-primary-500 to-primary-600 text-white">
-          <div class="flex items-center gap-3">
-            <Settings class="h-8 w-8" />
-            <CardTitle class="text-2xl md:text-3xl font-bold">确认听写</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent class="pt-6">
+
           <!-- 所选单词 -->
           <div class="mb-8">
             <div class="flex items-center justify-between mb-4">
@@ -93,7 +89,7 @@ const handleCancel = () => {
             </div>
             
             <!-- 单词标签 -->
-            <div class="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700">
+            <div class="flex flex-wrap gap-2 max-h-80 overflow-y-auto p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700">
               <div 
                 v-for="(word, index) in words" 
                 :key="word.uniqueId"
@@ -123,7 +119,7 @@ const handleCancel = () => {
               <h3 class="text-lg font-semibold text-slate-800 dark:text-white">听写设置</h3>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-2 gap-6">
               <!-- 左侧设置 -->
               <div class="space-y-6">
                 <!-- 单词朗读次数 -->
@@ -274,9 +270,7 @@ const handleCancel = () => {
               <PlayCircle class="h-5 w-5 group-hover:scale-110 transition-transform" />
               开始听写
             </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          </div>    
+
   </div>
 </template>

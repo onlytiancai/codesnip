@@ -358,15 +358,17 @@ onUnmounted(() => {
               >
                 <SkipBack class="h-6 w-6 group-hover:scale-110 transition-transform" />
               </Button>
+              
               <Button 
-              variant="default" 
-              @click="!isPlaying ? startDictation() : (isPaused ? resumeDictation() : pauseDictation())"
-              class="group h-18 w-18 p-0 flex items-center justify-center rounded-full transition-all hover:shadow-xl hover:scale-105 hover:bg-primary-600 dark:hover:bg-primary-700"
-              :title="!isPlaying ? '开始听写' : (isPaused ? '继续' : '暂停')"
-            >
-              <PlayCircle v-if="!isPlaying || isPaused" class="!h-10 !w-10 group-hover:scale-110 transition-transform" />
-              <PauseCircle v-else class="!h-10 !w-10 group-hover:scale-110 transition-transform" />
-            </Button>
+                variant="outline" 
+                @click="!isPlaying ? startDictation() : (isPaused ? resumeDictation() : pauseDictation())"
+                class="group h-14 w-14 p-0 flex items-center justify-center rounded-full transition-all hover:shadow-lg hover:scale-105 hover:border-primary-400 dark:hover:border-primary-500"
+                :title="!isPlaying ? '开始听写' : (isPaused ? '继续' : '暂停')"
+              >
+                <PlayCircle v-if="!isPlaying || isPaused" class="h-6 w-6 group-hover:scale-110 transition-transform" />
+                <PauseCircle v-else class="h-6 w-6 group-hover:scale-110 transition-transform" />
+              </Button>
+
               <Button 
                 variant="outline" 
                 @click="nextWord"
@@ -376,6 +378,7 @@ onUnmounted(() => {
               >
                 <SkipForward class="h-6 w-6 group-hover:scale-110 transition-transform" />
               </Button>
+
             </div>
             
             <!-- 重新开始和返回按钮 -->
