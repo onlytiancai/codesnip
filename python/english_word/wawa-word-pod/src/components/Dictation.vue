@@ -95,23 +95,41 @@ const playAudioSequence = (word, languages, index) => {
   
   const audioPath = getAudioPath(word, languages[index])
   
-  audioElement.value.src = audioPath
-  audioElement.value.play().catch(error => {
-    console.error('音频播放失败:', error)
-    // 播放失败时继续下一个音频
-    playAudioSequence(word, languages, index + 1)
-  })
+  // 先暂停当前音频并重置播放位置，避免竞态条件
+  if (audioElement.value) {
+    audioElement.value.pause()
+    audioElement.value.currentTime = 0
+    // 移除之前的事件监听器
+    audioElement.value.removeEventListener('ended', playAudioSequence.onAudioEnd)
+    audioElement.value.removeEventListener('canplaythrough', playAudioSequence.onCanPlay)
+  }
   
-  // 监听当前音频播放结束
-  const onAudioEnd = () => {
-    audioElement.value.removeEventListener('ended', onAudioEnd)
+  // 设置新的音频源
+  audioElement.value.src = audioPath
+  
+  // 定义事件处理函数
+  playAudioSequence.onAudioEnd = () => {
+    audioElement.value.removeEventListener('ended', playAudioSequence.onAudioEnd)
+    audioElement.value.removeEventListener('canplaythrough', playAudioSequence.onCanPlay)
     // 短暂停顿后播放下一个语言的音频
     setTimeout(() => {
       playAudioSequence(word, languages, index + 1)
     }, 500)
   }
   
-  audioElement.value.addEventListener('ended', onAudioEnd)
+  playAudioSequence.onCanPlay = () => {
+    audioElement.value.removeEventListener('canplaythrough', playAudioSequence.onCanPlay)
+    // 音频加载完成后再播放
+    audioElement.value.play().catch(error => {
+      console.error('音频播放失败:', error)
+      // 播放失败时继续下一个音频
+      playAudioSequence(word, languages, index + 1)
+    })
+  }
+  
+  // 监听音频事件
+  audioElement.value.addEventListener('ended', playAudioSequence.onAudioEnd)
+  audioElement.value.addEventListener('canplaythrough', playAudioSequence.onCanPlay)
 }
 
 // 音频播放结束处理
@@ -188,6 +206,40 @@ const resumeDictation = () => {
     isPaused.value = false
     isPlaying.value = true
     playAudio()
+  }
+}
+
+// 上一个单词
+const previousWord = () => {
+  if (currentWordIndex.value > 0) {
+    // 暂停当前播放和定时器
+    pauseDictation()
+    
+    // 切换到上一个单词
+    currentWordIndex.value--
+    currentRepeat.value = 0
+    
+    // 如果之前是播放状态，继续播放
+    if (isPaused.value) {
+      resumeDictation()
+    }
+  }
+}
+
+// 下一个单词
+const nextWord = () => {
+  if (currentWordIndex.value < processedWords.value.length - 1) {
+    // 暂停当前播放和定时器
+    pauseDictation()
+    
+    // 切换到下一个单词
+    currentWordIndex.value++
+    currentRepeat.value = 0
+    
+    // 如果之前是播放状态，继续播放
+    if (isPaused.value) {
+      resumeDictation()
+    }
   }
 }
 
@@ -290,11 +342,27 @@ onUnmounted(() => {
         <div class="flex justify-center gap-4">
           <div v-if="!dictationComplete">
             <Button 
+              variant="outline" 
+              @click="previousWord"
+              :disabled="currentWordIndex <= 0"
+              class="px-4 py-2 transition-all hover:shadow-md"
+            >
+              上一个
+            </Button>
+            <Button 
               variant="default" 
               @click="!isPlaying ? startDictation() : (isPaused ? resumeDictation() : pauseDictation())"
               class="px-6 py-2 transition-all hover:shadow-lg hover:bg-primary-600 dark:hover:bg-primary-700"
             >
               {{ !isPlaying ? '开始听写' : (isPaused ? '继续' : '暂停') }}
+            </Button>
+            <Button 
+              variant="outline" 
+              @click="nextWord"
+              :disabled="currentWordIndex >= processedWords.length - 1"
+              class="px-4 py-2 transition-all hover:shadow-md"
+            >
+              下一个
             </Button>
             <Button 
               variant="secondary" 
