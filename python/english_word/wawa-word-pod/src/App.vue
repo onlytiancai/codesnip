@@ -103,7 +103,7 @@ const handleRemoveWord = (wordId) => {
           </div>
           <div>
             <h1 class="text-xl font-bold">英语单词听写</h1>
-            <p class="text-xs text-muted-foreground">提高你的英语听力和拼写能力</p>
+            <p class="text-xs text-muted-foreground">你的单词听写小助手</p>
           </div>
         </div>
         <Button variant="ghost" size="icon" @click="toggleTheme">
@@ -150,7 +150,7 @@ const handleRemoveWord = (wordId) => {
     <!-- Footer -->
     <footer class="mt-auto py-6" :class="isDarkMode ? 'border-t border-neutral-800' : 'border-t border-neutral-200'">
       <div class="max-w-7xl mx-auto px-4 text-center text-sm" :class="isDarkMode ? 'text-neutral-400' : 'text-neutral-600'">
-        <p>© 2025 英语单词听写 | 设计精美，功能完善的英语学习工具</p>
+        <p>© 2025 英语单词听写</p>
       </div>
     </footer>
   </div>
