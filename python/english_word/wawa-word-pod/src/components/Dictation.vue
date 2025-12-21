@@ -429,9 +429,9 @@ onUnmounted(() => {
               
               <Button 
                 variant="outline" 
-                @click="!isPlaying ? startDictation() : (isPaused ? resumeDictation() : pauseDictation())"
+                @click="isPaused ? resumeDictation() : pauseDictation()"
                 class="group h-14 w-14 p-0 flex items-center justify-center rounded-full transition-all hover:shadow-lg hover:scale-105 hover:border-primary-400 dark:hover:border-primary-500"
-                :title="!isPlaying ? '开始听写' : (isPaused ? '继续' : '暂停')"
+                :title="isPaused ? '继续' : '暂停'"
               >
                 <PlayCircle v-if="!isPlaying || isPaused" class="h-6 w-6 group-hover:scale-110 transition-transform" />
                 <PauseCircle v-else class="h-6 w-6 group-hover:scale-110 transition-transform" />

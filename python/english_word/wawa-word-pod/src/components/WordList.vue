@@ -212,9 +212,8 @@ const handleStartDictation = () => {
           @click="toggleUnit(unit)"
         >
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 font-semibold">
-              {{ unit.replace(/[^0-9]/g, '') }}
-            </div>
+            {{ unit }}
+
       
             <span class="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-full text-slate-600 dark:text-slate-300">
               {{ items.length }} 
@@ -258,7 +257,7 @@ const handleStartDictation = () => {
           v-if="isUnitExpanded(unit)" 
           class="p-4 bg-slate-50 dark:bg-slate-900/50 border-t"
         >
-          <div class="flex flex-wrap gap-2 max-h-96 overflow-y-auto p-2">
+          <div class="flex flex-wrap gap-2  p-2">
             <div 
               v-for="item in items" 
               :key="item.id"
