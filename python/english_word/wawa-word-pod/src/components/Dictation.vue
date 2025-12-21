@@ -22,7 +22,7 @@ const props = defineProps({
       playEnglish: false,
       showEnglish: true,
       showChinese: true,
-      showPhonetic: false,
+      showPhonetic: true,
       shuffle: false
     })
   }
@@ -30,6 +30,18 @@ const props = defineProps({
 
 // 从localStorage加载设置
 const loadSettingsFromLocalStorage = () => {
+  // 获取默认设置
+  const defaultSettings = {
+    repeatCount: [2],
+    pauseBetweenWords: [3000],
+    playChinese: true,
+    playEnglish: false,
+    showEnglish: true,
+    showChinese: true,
+    showPhonetic: true,
+    shuffle: false
+  }
+  
   try {
     const savedSettings = localStorage.getItem('dictationSettings')
     if (savedSettings) {
@@ -41,12 +53,13 @@ const loadSettingsFromLocalStorage = () => {
       if (typeof parsed.pauseBetweenWords === 'number') {
         parsed.pauseBetweenWords = [parsed.pauseBetweenWords]
       }
-      return parsed
+      // 将加载的设置与默认设置合并，确保所有必要属性都存在
+      return { ...defaultSettings, ...parsed }
     }
   } catch (error) {
     console.error('Failed to load settings from localStorage:', error)
   }
-  return props.settings
+  return defaultSettings
 }
 
 // 本地设置变量
