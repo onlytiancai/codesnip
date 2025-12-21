@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { CheckSquare, ListChecks } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -10,6 +11,14 @@ const props = defineProps({
   },
   textbooks: {
     type: Array,
+    required: true
+  },
+  isDarkMode: {
+    type: Boolean,
+    required: true
+  },
+  onToggleTheme: {
+    type: Function,
     required: true
   }
 })
@@ -47,14 +56,17 @@ const handleSelectTextbook = (textbook) => {
       </svg>
       <span class="font-semibold text-purple-800 dark:text-purple-200">{{ currentTextbook.name }}</span>
     </div>
-    <Button 
-      variant="secondary" 
-      @click="showTextbookModal = true"
-      class="transition-all hover:bg-purple-100 hover:text-purple-600 dark:hover:bg-purple-900/30 dark:hover:text-purple-400 hover:shadow-md"
-    >
-      <ListChecks class="h-3.5 w-3.5 mr-1" />
-      切换
-    </Button>
+    <div class="flex items-center gap-2">
+      <Button 
+        variant="secondary" 
+        @click="showTextbookModal = true"
+        class="transition-all hover:bg-purple-100 hover:text-purple-600 dark:hover:bg-purple-900/30 dark:hover:text-purple-400 hover:shadow-md"
+      >
+        <ListChecks class="h-3.5 w-3.5 mr-1" />
+        切换
+      </Button>
+      <ThemeToggle :is-dark-mode="isDarkMode" :on-toggle="onToggleTheme" />
+    </div>
   </div>
 
   <!-- 课本选择弹窗 -->

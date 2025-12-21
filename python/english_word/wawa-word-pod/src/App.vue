@@ -134,6 +134,8 @@ const handleFinishDictation = () => {
 <template>
   <div class="max-w-2xl mx-auto" :class="['min-h-screen', isDarkMode ? 'bg-neutral-900 text-neutral-100' : 'bg-neutral-50 text-neutral-900']">
 
+
+
         <div v-if="!isDictationActive && !isConfirmActive && Object.keys(wordData).length > 0">
         <WordList 
           :word-data="wordData" 
@@ -141,6 +143,8 @@ const handleFinishDictation = () => {
           @start-dictation="handleStartDictation"
           :current-textbook="currentTextbook"
           :textbooks="textbooks"
+          :is-dark-mode="isDarkMode"
+          :on-toggle-theme="toggleTheme"
           @switch-textbook="switchTextbook"
         />
       </div>
@@ -149,6 +153,8 @@ const handleFinishDictation = () => {
         <Dictation 
           :words="selectedWords" 
           :settings="dictationSettings"
+          :is-dark-mode="isDarkMode"
+          :on-toggle-theme="toggleTheme"
           @finish="handleFinishDictation"
         />
       </div>

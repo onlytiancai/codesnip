@@ -25,6 +25,14 @@ const props = defineProps({
   textbooks: {
     type: Array,
     required: true
+  },
+  isDarkMode: {
+    type: Boolean,
+    required: true
+  },
+  onToggleTheme: {
+    type: Function,
+    required: true
   }
 })
 
@@ -178,6 +186,8 @@ const handleStartDictation = () => {
     <TextbookSelector 
       :current-textbook="currentTextbook" 
       :textbooks="textbooks" 
+      :is-dark-mode="isDarkMode"
+      :on-toggle-theme="onToggleTheme"
       @switch-textbook="emit('switch-textbook', $event)" 
     />
 
