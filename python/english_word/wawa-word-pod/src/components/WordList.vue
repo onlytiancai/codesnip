@@ -192,7 +192,7 @@ const handleStartDictation = () => {
     />
           
     <!-- 选择统计 -->
-    <div class="sticky top-4 z-30 mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg text-green-700 dark:text-green-300 text-sm flex items-center justify-between shadow-md">
+    <div class="sticky top-4 z-30 mb-4 p-3 bg-green-50 dark:bg-green-900/60 rounded-lg text-green-700 dark:text-green-300 text-sm flex items-center justify-between shadow-md">
       <div class="flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500">
           <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
