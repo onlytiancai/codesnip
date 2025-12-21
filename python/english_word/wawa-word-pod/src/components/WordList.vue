@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { 
   CheckSquare, Square, ChevronDown, ChevronRight, Trash2, 
-  PlayCircle, ListChecks, XCircle 
+  PlayCircle, XCircle 
 } from 'lucide-vue-next'
+import TextbookSelector from './TextbookSelector.vue'
 
 const props = defineProps({
   wordData: {
@@ -16,10 +17,21 @@ const props = defineProps({
   selectedWords: {
     type: Array,
     default: () => []
+  },
+  currentTextbook: {
+    type: Object,
+    required: true
+  },
+  textbooks: {
+    type: Array,
+    required: true
   }
 })
 
-const emit = defineEmits(['select-word', 'start-dictation', 'update:selectedWords'])
+// 解构 props 以方便使用
+const { currentTextbook, textbooks } = props
+
+const emit = defineEmits(['select-word', 'start-dictation', 'update:selectedWords', 'switch-textbook'])
 
 const localSelectedWords = ref([])
 const expandedUnits = ref([])
@@ -137,6 +149,8 @@ const handleStartDictation = () => {
     emit('start-dictation', localSelectedWords.value)
   }
 }
+
+
 </script>
 
 <template>
@@ -159,6 +173,13 @@ const handleStartDictation = () => {
         </span>
       </Button>
     </div>
+
+    <!-- 课本选择区域 -->
+    <TextbookSelector 
+      :current-textbook="currentTextbook" 
+      :textbooks="textbooks" 
+      @switch-textbook="emit('switch-textbook', $event)" 
+    />
 
     <div class="mt-4 mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-700 dark:text-blue-300 text-sm flex items-start gap-2">
           <div class="flex-shrink-0 mt-0.5">
@@ -268,6 +289,8 @@ const handleStartDictation = () => {
         </div>
       </div>
     </div>
+
+
   </div>
 </template>
 

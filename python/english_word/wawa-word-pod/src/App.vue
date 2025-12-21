@@ -15,34 +15,90 @@ const dictationSettings = ref({
   pauseBetweenWords: [3000]
 })
 
-// 加载单词数据
-  onMounted(async () => {
-    // 检查用户偏好的主题
-    const savedTheme = localStorage.getItem('theme')
-    if (savedTheme) {
-      isDarkMode.value = savedTheme === 'dark'
-    } else {
-      isDarkMode.value = window.matchMedia('(prefers-color-scheme: dark)').matches
-    }
-    updateTheme()
+// 课本切换相关状态
+const currentTextbook = ref({
+  id: 'lu-jiao-ban-old-8a',
+  name: '鲁教版（旧版）八年级上册',
+  file: '8-1.json'
+})
 
-    try {
-      const response = await fetch('/8-1.json')
-      const data = await response.json()
-      
-      // 为每个单词生成唯一id
-      Object.keys(data).forEach(unit => {
-        data[unit].forEach((word, index) => {
-          // 使用单元名和索引生成唯一id
-          word.uniqueId = `${unit}_${word.id}`
-        })
+const textbooks = ref([
+  {
+    id: 'lu-jiao-ban-old-8a',
+    name: '鲁教版（旧版）八年级上册',
+    file: '8-1.json',
+    available: true
+  },
+  {
+    id: 'lu-jiao-ban-old-8b',
+    name: '鲁教版（旧版）八年级下册',
+    file: '8-2.json',
+    available: false
+  },
+  {
+    id: 'lu-jiao-ban-old-9a',
+    name: '鲁教版（旧版）九年级上册',
+    file: '9-1.json',
+    available: false
+  },
+  {
+    id: 'lu-jiao-ban-old-9b',
+    name: '鲁教版（旧版）九年级下册',
+    file: '9-2.json',
+    available: false
+  }
+])
+
+// 切换课本
+const switchTextbook = async (textbook) => {
+  if (!textbook.available) {
+    alert('该课本正在开发中，敬请期待！')
+    return
+  }
+  
+  // 清除当前选择的单词
+  selectedWords.value = []
+  
+  // 更新当前课本
+  currentTextbook.value = textbook
+  
+  // 加载新课本的单词数据
+  await loadWordData(textbook.file)
+}
+
+// 加载单词数据
+const loadWordData = async (file) => {
+  try {
+    const response = await fetch(`/${file}`)
+    const data = await response.json()
+    
+    // 为每个单词生成唯一id
+    Object.keys(data).forEach(unit => {
+      data[unit].forEach((word, index) => {
+        // 使用单元名和索引生成唯一id
+        word.uniqueId = `${unit}_${word.id}`
       })
-      
-      wordData.value = data
-    } catch (error) {
-      console.error('加载单词数据失败:', error)
-    }
-  })
+    })
+    
+    wordData.value = data
+  } catch (error) {
+    console.error('加载单词数据失败:', error)
+  }
+}
+
+onMounted(async () => {
+  // 检查用户偏好的主题
+  const savedTheme = localStorage.getItem('theme')
+  if (savedTheme) {
+    isDarkMode.value = savedTheme === 'dark'
+  } else {
+    isDarkMode.value = window.matchMedia('(prefers-color-scheme: dark)').matches
+  }
+  updateTheme()
+
+  // 加载当前课本的单词数据
+  await loadWordData(currentTextbook.value.file)
+})
 
 // 更新主题
 const updateTheme = () => {
@@ -83,6 +139,9 @@ const handleFinishDictation = () => {
           :word-data="wordData" 
           v-model:selected-words="selectedWords"
           @start-dictation="handleStartDictation"
+          :current-textbook="currentTextbook"
+          :textbooks="textbooks"
+          @switch-textbook="switchTextbook"
         />
       </div>
 
