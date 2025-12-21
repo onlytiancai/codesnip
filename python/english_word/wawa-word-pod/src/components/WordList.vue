@@ -190,19 +190,6 @@ const handleStartDictation = () => {
       :on-toggle-theme="onToggleTheme"
       @switch-textbook="emit('switch-textbook', $event)" 
     />
-
-    <div class="mt-4 mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-700 dark:text-blue-300 text-sm flex items-start gap-2">
-          <div class="flex-shrink-0 mt-0.5">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-              <path d="M12 17h.01" />
-            </svg>
-          </div>
-          <div>
-            <span class="font-medium">提示：</span>点击单词选择要听写的单词，然后点击底部的"开始听写"按钮
-          </div>
-    </div>
           
     <!-- 选择统计 -->
     <div class="sticky top-4 z-30 mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg text-green-700 dark:text-green-300 text-sm flex items-center justify-between shadow-md">

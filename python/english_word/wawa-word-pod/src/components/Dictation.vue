@@ -362,15 +362,8 @@ onUnmounted(() => {
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-6">
     <div class="max-w-2xl mx-auto">
-      <Card class="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm relative">
-        <CardHeader class="bg-gradient-to-r from-primary-500 to-primary-600 text-white flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <PlayCircle class="h-8 w-8" />
-            <CardTitle class="text-2xl md:text-3xl font-bold">单词听写</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent class="pt-6">
-          <!-- 听写设置组件 -->
+
+         <!-- 听写设置组件 -->
           <DictationSettings :settings="settings" :is-open="showSettings" @update:is-open="showSettings = $event" />
           
           <!-- 听写进度 -->
@@ -489,20 +482,6 @@ onUnmounted(() => {
               </Button>
             </div>
           </div>
-        </CardContent>
-          <!-- 右下角设置按钮 -->
-          <div class="absolute bottom-4 right-4">
-            <Button
-              variant="default"
-              @click="showSettings = !showSettings"
-              class="h-12 w-12 p-0 rounded-full shadow-lg hover:shadow-xl transition-all"
-              title="设置"
-            >
-              <Settings class="h-6 w-6" />
-            </Button>
-          </div>
-      </Card>
-
       <!-- 隐藏的音频元素 -->
       <audio 
         ref="audioElement"
