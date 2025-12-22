@@ -18,7 +18,7 @@ tailwind 练习
     vi src/style.css
     @import "tailwindcss";
 
-    pnpm dev 
+    pnpm dev
 
     vi index.html
     <!doctype html>
@@ -33,4 +33,21 @@ tailwind 练习
         Hello world!
     </h1>
     </body>
-    </html>    
+    </html>
+
+样式格式化
+
+    pnpm add --save-dev --save-exact prettier
+    node --eval "fs.writeFileSync('.prettierrc','{}\n')"
+    node --eval "fs.writeFileSync('.prettierignore','# Ignore artifacts:\nbuild\ncoverage\n')"
+
+    pnpm add -D prettier prettier-plugin-tailwindcss
+    vi .prettierrc
+    {
+    "plugins": ["prettier-plugin-tailwindcss"]
+    }
+    npx prettier . --check
+    pnpm exec prettier . --write
+
+    vs code
+    Format Document With / Prettier

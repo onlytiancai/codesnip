@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "prettier": "3.7.4",
+    "prettier-plugin-tailwindcss": "^0.7.2",
     "vite": "^7.2.4"
   },
   "dependencies": {
