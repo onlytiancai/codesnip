@@ -1,13 +1,41 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="/src/style.css" rel="stylesheet" />
-    <title>Hello tailwind</title>
-  </head>
 
-  <body>
-    <h1 class="text-3xl font-bold underline">Hello world!</h1>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="/src/style.css" rel="stylesheet" />
+  <title>Hello tailwind</title>
+</head>
+
+<body>
+  <h1 class="text-3xl font-bold underline">Hello world!</h1>
+  <div class="p-4 rounded-xl shadow bg-white">
+    hello world
+  </div>
+  <div class="max-w-sm p-6 bg-white rounded-xl shadow">
+    <h2 class="text-lg font-semibold">Tailwind Card</h2>
+    <p class="mt-2 text-gray-600 text-sm">
+      This is a simple card built with Tailwind CSS.
+    </p>
+    <button class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg">
+      Action
+    </button>
+  </div>
+  <div class="p-4">
+    <button class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+      Primary
+    </button>
+    <input class="w-full 
+      px-3 
+      py-2 
+      border 
+      rounded-lg 
+      focus:outline-none 
+      focus:ring-2
+    focus:ring-blue-500" />    
+  </div>
+
+</body>
+
 </html>

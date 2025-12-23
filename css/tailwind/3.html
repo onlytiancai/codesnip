@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+
+  <body>
+    <div class="flex h-screen bg-gray-100">
+      <aside class="w-64 border-r bg-white">
+        <div class="flex h-16 items-center px-6 text-lg font-semibold">
+          My Dashboard
+        </div>
+
+        <nav class="flex-1 space-y-1 px-4">
+          <div
+            active
+            class="cursor-pointer rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium"
+          >
+            Dashboard
+          </div>
+          <div
+            class="cursor-pointer rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+          >
+            Users
+          </div>
+          <div
+            class="cursor-pointer rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+          >
+            Settings
+          </div>
+        </nav>
+      </aside>
+
+      <main class="flex flex-1 flex-col">
+        <header
+          class="flex h-16 items-center justify-between border-b bg-white px-6"
+        >
+          <h1 class="text-xl font-semibold">Dashboard</h1>
+
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-600">Tom</span>
+            <div class="h-8 w-8 rounded-full bg-gray-300" />
+          </div>
+        </header>
+        <div class="space-y-6 p-6">
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div class="rounded-xl border bg-white p-6">
+              <p class="text-sm text-gray-500">Users</p>
+              <p class="mt-2 text-2xl font-semibold">1,234</p>
+            </div>
+            <div class="rounded-xl border bg-white p-6">
+              <p class="text-sm text-gray-500">Revenue</p>
+              <p class="mt-2 text-2xl font-semibold">$12,340</p>
+            </div>
+            <div class="rounded-xl border bg-white p-6">
+              <p class="text-sm text-gray-500">Orders</p>
+              <p class="mt-2 text-2xl font-semibold">320</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="m-4 rounded-xl border bg-white p-4">
+          <table class="w-full text-sm">
+            <thead class="border-b bg-gray-50 text-gray-600">
+              <tr>
+                <th class="px-6 py-3 text-left">Name</th>
+                <th class="px-6 py-3 text-left">Email</th>
+                <th class="px-6 py-3 text-left">Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b hover:bg-gray-50">
+                <td class="px-6 py-3">Tom</td>
+                <td class="px-6 py-3">tom@test.com</td>
+                <td class="px-6 py-3">Admin</td>
+              </tr>
+              <tr class="border-b hover:bg-gray-50">
+                <td class="px-6 py-3">Tom</td>
+                <td class="px-6 py-3">tom@test.com</td>
+                <td class="px-6 py-3">Admin</td>
+              </tr>
+              <tr class="border-b hover:bg-gray-50">
+                <td class="px-6 py-3">Tom</td>
+                <td class="px-6 py-3">tom@test.com</td>
+                <td class="px-6 py-3">Admin</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
