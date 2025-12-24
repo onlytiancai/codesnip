@@ -7,24 +7,41 @@
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body class="p-4">
-    <div class="flex  bg-amber-50 w-xl space-x-4 space-y-4 h-75 content-start">
-        <div class=" h-12 bg-amber-100">1</div>
-        <div class=" h-12 bg-amber-100 grow-0">1</div>
-        <div class=" h-12 bg-amber-100 -order-1">0000</div>
-        <div class=" h-12 bg-amber-100 grow">666</div>
-        <div class=" h-12 bg-amber-100 grow">777</div>
-        <div class=" h-12 bg-amber-100">1</div>
-        <div class=" h-12 bg-amber-100">1</div>
-        <div class=" h-12 bg-amber-100">1</div>
-        <div class=" h-12 bg-amber-100">1</div>
+    <p>其中一个占1/2，另外两个各占1/4</p>
+    <div class="mb-4 flex w-xl space-x-4 bg-amber-50">
+      <div class="grow-2 bg-amber-100">1</div>
+      <div class="grow bg-amber-100">2</div>
+      <div class="grow bg-amber-100">3</div>
+    </div>
+    <p>宽度太大时，某一个增长，其余的由各自内容撑开</p>
+    <div class="mb-4 flex w-xl space-x-4 bg-amber-50">
+      <div class="grow bg-amber-100">1</div>
+      <div class="bg-amber-100">2</div>
+      <div class="bg-amber-100">3333</div>
+    </div>
+    <p>空间不足时，一个缩小，其它均分剩余空间</p>
+    <div class="mb-4 flex w-xl space-x-4 bg-amber-50">
+      <div class="shrink-0 bg-amber-100">
+        hello world hello world hello world
+      </div>
+      <div class="bg-amber-100">hello world hello world hello world</div>
+      <div class="bg-amber-100">hello world hello world hello world</div>
+    </div>
+    <p>空间太宽时，其中2个占满剩余空间；有flex-wrap 时，centent-cent才会生效，无论是否换行</p>
+    <div
+      class="flex h-75 w-xl flex-wrap content-end space-y-4 space-x-4 bg-amber-50"
+    >
+      <div class="h-12 bg-amber-100">1</div>
+      <div class="h-12 grow-0 bg-amber-100">1</div>
+      <div class="-order-1 h-12 bg-amber-100">0000</div>
+      <div class="h-12 grow bg-amber-100">666</div>
+      <div class="h-12 grow bg-amber-100">777</div>
     </div>
     <div
       class="grid grid-cols-3 gap-4 font-mono text-sm leading-6 font-bold text-white"
     >
-      <div class="grid ">
-        <div
-          class="col-start-1 row-start-1 border text-black/10"
-        ></div>
+      <div class="grid">
+        <div class="col-start-1 row-start-1 border text-black/10"></div>
         <div
           class="col-start-1 row-start-1 flex size-14 items-center justify-center justify-self-center bg-sky-500"
         >
@@ -33,7 +50,7 @@
       </div>
       <div class="grid rounded-lg">
         <div
-          class="col-start-1 row-start-1 rounded-lg border  bg-top-left text-black/10 dark:text-white/12.5"
+          class="col-start-1 row-start-1 rounded-lg border bg-top-left text-black/10 dark:text-white/12.5"
         ></div>
         <div
           class="col-start-1 row-start-1 flex size-14 items-center justify-center justify-self-start rounded-lg bg-sky-500"
@@ -43,7 +60,7 @@
       </div>
       <div class="grid rounded-lg">
         <div
-          class="col-start-1 row-start-1 rounded-lg border  bg-top-left text-black/10 dark:text-white/12.5"
+          class="col-start-1 row-start-1 rounded-lg border bg-top-left text-black/10 dark:text-white/12.5"
         ></div>
         <div
           class="col-start-1 row-start-1 flex size-14 items-center justify-center justify-self-start rounded-lg bg-sky-500"
@@ -53,7 +70,7 @@
       </div>
       <div class="grid rounded-lg">
         <div
-          class="col-start-1 row-start-1 rounded-lg border  bg-top-left text-black/10 dark:text-white/12.5"
+          class="col-start-1 row-start-1 rounded-lg border bg-top-left text-black/10 dark:text-white/12.5"
         ></div>
         <div
           class="col-start-1 row-start-1 flex size-14 items-center justify-center justify-self-start rounded-lg bg-sky-500"
@@ -63,7 +80,7 @@
       </div>
       <div class="grid rounded-lg">
         <div
-          class="col-start-1 row-start-1 rounded-lg border  bg-top-left text-black/10 dark:text-white/12.5"
+          class="col-start-1 row-start-1 rounded-lg border bg-top-left text-black/10 dark:text-white/12.5"
         ></div>
         <div
           class="col-start-1 row-start-1 flex size-14 items-center justify-center justify-self-start rounded-lg bg-sky-500"
@@ -73,7 +90,7 @@
       </div>
       <div class="grid rounded-lg">
         <div
-          class="col-start-1 row-start-1 rounded-lg border  bg-top-left text-black/10 dark:text-white/12.5"
+          class="col-start-1 row-start-1 rounded-lg border bg-top-left text-black/10 dark:text-white/12.5"
         ></div>
         <div
           class="col-start-1 row-start-1 flex size-14 items-center justify-center justify-self-start rounded-lg bg-sky-500"
