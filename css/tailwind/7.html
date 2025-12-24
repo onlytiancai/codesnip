@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body class="p-4">
+    <div class="flex w-xl gap-4 bg-amber-50">
+      <div class="grow bg-amber-100">1</div>
+      <div class="w-100 basis-0 bg-amber-100">222</div>
+    </div>
     <p>其中一个占1/2，另外两个各占1/4</p>
     <div class="mb-4 flex w-xl space-x-4 bg-amber-50">
       <div class="grow-2 bg-amber-100">1</div>
@@ -27,7 +31,10 @@
       <div class="bg-amber-100">hello world hello world hello world</div>
       <div class="bg-amber-100">hello world hello world hello world</div>
     </div>
-    <p>空间太宽时，其中2个占满剩余空间；有flex-wrap 时，centent-cent才会生效，无论是否换行</p>
+    <p>
+      空间太宽时，其中2个占满剩余空间；有flex-wrap
+      时，centent-cent才会生效，无论是否换行
+    </p>
     <div
       class="flex h-75 w-xl flex-wrap content-end space-y-4 space-x-4 bg-amber-50"
     >
