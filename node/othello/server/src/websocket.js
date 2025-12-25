@@ -1,11 +1,14 @@
-const setupWebSocket = (wss, roomManager) => {
+const setupWebSocket = (wss, roomManager, activeConnections) => {
   wss.on('connection', (ws) => {
     console.log('New client connected');
+    
+    // 记录新的活跃连接
+    activeConnections.add(ws);
 
     ws.on('message', (message) => {
       try {
         const parsedMessage = JSON.parse(message);
-        handleMessage(ws, parsedMessage, roomManager);
+        handleMessage(ws, parsedMessage, roomManager, activeConnections);
       } catch (error) {
         console.error('Error parsing message:', error);
         ws.send(JSON.stringify({
@@ -17,12 +20,19 @@ const setupWebSocket = (wss, roomManager) => {
 
     ws.on('close', () => {
       console.log('Client disconnected');
+      
+      // 从活跃连接集合中移除
+      activeConnections.delete(ws);
+      
       // 清理断开连接的客户端
       roomManager.removePlayerBySocket(ws);
     });
 
     ws.on('error', (error) => {
       console.error('WebSocket error:', error);
+      
+      // 发生错误时也移除连接
+      activeConnections.delete(ws);
     });
   });
 };
@@ -69,8 +79,12 @@ const handleReconnectRoom = (ws, payload, roomManager) => {
   // 检查该颜色是否已经有玩家在房间中
   const existingPlayer = room.players.find(p => p.color === playerColor && !p.isSpectator);
   if (existingPlayer) {
-    // 如果玩家仍然在房间中，更新其socket
+    // 如果玩家仍然在房间中，更新其socket和名字（可能用户在掉线期间改了名字）
     existingPlayer.socket = ws;
+    existingPlayer.name = playerName;
+    // 更新房间最后活动时间
+    room.lastActivityTime = Date.now();
+    
     console.log(`Player ${playerName} reconnected to room ${roomId} successfully`);
     ws.send(JSON.stringify({
       type: 'JOINED_ROOM',
@@ -81,15 +95,17 @@ const handleReconnectRoom = (ws, payload, roomManager) => {
         room: room.getPublicInfo()
       }
     }));
-    // 广播玩家重新连接通知给房间内所有玩家
+    
+    // 广播玩家重新连接通知给房间内其他玩家
     roomManager.broadcastToRoom(roomId, JSON.stringify({
       type: 'PLAYER_JOINED',
       payload: {
         playerName: playerName,
         playerColor: playerColor,
-        isSpectator: false
+        isSpectator: false,
+        isReconnect: true // 标记这是重连
       }
-    }));
+    }), [ws]); // 不给自己发送重连通知
   } else {
     // 如果玩家已经离开房间，作为新玩家加入
     const result = room.addPlayer(ws, playerName);
@@ -122,7 +138,7 @@ const handleReconnectRoom = (ws, payload, roomManager) => {
   }
 };
 
-const handleMessage = (ws, message, roomManager) => {
+const handleMessage = (ws, message, roomManager, activeConnections) => {
   const { type, payload } = message;
   console.log(`Received message type: ${type}`);
 
@@ -143,7 +159,7 @@ const handleMessage = (ws, message, roomManager) => {
       handleGetRoomInfo(ws, payload, roomManager);
       break;
     case 'GET_STATS':
-      handleGetStats(ws, roomManager);
+      handleGetStats(ws, roomManager, activeConnections);
       break;
     case 'SEND_CHAT':
       handleSendChat(ws, payload, roomManager);
@@ -252,6 +268,9 @@ const handleGetRoomInfo = (ws, payload, roomManager) => {
   const room = roomManager.getRoom(roomId);
   
   if (room) {
+    // 更新房间活动时间，防止在用户输入昵称期间被清理
+    room.updateLastActivityTime();
+    
     ws.send(JSON.stringify({
       type: 'ROOM_INFO',
       payload: { room }
@@ -265,10 +284,10 @@ const handleGetRoomInfo = (ws, payload, roomManager) => {
 };
 
 // 处理获取统计信息请求
-const handleGetStats = (ws, roomManager) => {
+const handleGetStats = (ws, roomManager, activeConnections) => {
   const stats = {
     roomCount: roomManager.getRoomCount(),
-    onlinePlayerCount: roomManager.getOnlinePlayerCount()
+    onlinePlayerCount: activeConnections.size // 使用活跃连接数，而不是房间内玩家数
   };
   
   ws.send(JSON.stringify({

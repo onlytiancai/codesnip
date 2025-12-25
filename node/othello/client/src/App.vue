@@ -91,10 +91,15 @@
           <div>
             <h2 class="text-2xl font-bold">房间ID: {{ currentRoomId }}</h2>
             <p class="text-gray-600">当前回合: {{ currentPlayer === 1 ? '黑棋' : '白棋' }}</p>
-            <p class="text-gray-500 text-sm" v-if="!gameOver">游戏状态: {{ roomInfo?.gameStarted ? '已开始' : '等待玩家加入' }}</p>
+            <p class="text-gray-500 text-sm" v-if="!gameOver">
+              游戏状态: {{ getGameStatus() }}
+            </p>
             <p class="text-gray-500 text-sm" v-if="isSpectator">您是: 游客</p>
             <p class="text-gray-500 text-sm" v-else-if="playerColor">您是: {{ playerColor === 1 ? '黑方' : '白方' }}</p>
-            <p class="text-yellow-500 text-sm" :class="{ 'invisible': gameOver || currentPlayer === playerColor }">
+            <p class="text-red-500 text-sm" v-if="isOpponentOffline">
+              等待对方加入...
+            </p>
+            <p class="text-yellow-500 text-sm" :class="{ 'invisible': gameOver || currentPlayer === playerColor || isOpponentOffline }">
               等待对方落子: {{ waitTime }}秒
             </p>
             <!-- 房间邀请URL -->
@@ -229,7 +234,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import Board from './components/Board.vue';
 
 // 游戏状态
@@ -241,6 +246,8 @@ const isSpectator = ref(false); // 添加游客标识
 
 // 心跳计时器
 let heartbeatTimer: number | null = null;
+// 昵称输入期间的心跳计时器
+let nameInputHeartbeatTimer: number | null = null;
 // 初始化8x8空棋盘
 const board = ref<number[][]>(Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => 0)));
 const currentPlayer = ref(1);
@@ -282,10 +289,14 @@ const showRulesInJoin = ref(true);
 const waitTime = ref(0);
 let waitTimer: number | null = null;
 
-// WebSocket连接
+// 掉线检测
+const opponentOffline = ref(false);
+let offlineDetectionTimer: number | null = null;
+
+// 计时器
 const ws = ref<WebSocket | null>(null);
 // 使用全局配置的WebSocket URL
-const wsUrl = window.wsUrl || 'ws://localhost:3001';
+const wsUrl = (window as any).wsUrl || 'ws://localhost:3001';
 
 // 创建WebSocket连接
 const connectWebSocket = () => {
@@ -301,7 +312,7 @@ const connectWebSocket = () => {
     const roomIdFromUrl = urlParams.get('roomId');
     
     // 检查是否需要重连
-    if (reconnectInfo.value.isReconnecting && reconnectInfo.value.roomId) {
+    if (reconnectInfo.value.isReconnecting && reconnectInfo.value.roomId && ws.value) {
       // 自动重连到之前的房间
       console.log('尝试重连到房间:', reconnectInfo.value.roomId);
       ws.value.send(JSON.stringify({
@@ -312,9 +323,14 @@ const connectWebSocket = () => {
           playerColor: reconnectInfo.value.playerColor
         }
       }));
+      
+      // 显示重连提示
+      showNotification('正在尝试重新连接到游戏...', 'join');
     } else if (roomIdFromUrl) {
       pendingRoomId.value = roomIdFromUrl;
       showNameInput.value = true;
+      // 启动昵称输入期间的心跳保护
+      startNameInputHeartbeat();
     }
   };
   
@@ -346,6 +362,8 @@ const handleWebSocketMessage = (message: any) => {
       console.log('Room created:', message.payload.roomId);
       pendingRoomId.value = message.payload.roomId;
       showNameInput.value = true;
+      // 启动昵称输入期间的心跳保护
+      startNameInputHeartbeat();
       break;
       
     case 'JOINED_ROOM':
@@ -413,12 +431,25 @@ const handleWebSocketMessage = (message: any) => {
         ? `${message.payload.playerName} 作为游客加入了房间`
         : `${message.payload.playerName} (${message.payload.playerColor === 1 ? '黑方' : '白方'}) 加入了房间`;
       showNotification(joinMessage, 'join');
+      
+      // 检查是否是对手重新加入，清除离线状态
+      if (playerColor.value && message.payload.playerColor === (playerColor.value === 1 ? 2 : 1)) {
+        opponentOffline.value = false;
+        stopOfflineDetectionTimer();
+      }
       break;
       
     case 'PLAYER_LEFT':
       console.log('Player left:', message.payload);
       const leaveMessage = `${message.payload.playerName} (${message.payload.playerColor === 1 ? '黑方' : '白方'}) 离开了房间`;
       showNotification(leaveMessage, 'leave');
+      
+      // 检查是否是对手离开，更新离线状态
+      if (playerColor.value && message.payload.playerColor === (playerColor.value === 1 ? 2 : 1)) {
+        opponentOffline.value = true;
+        startOfflineDetectionTimer();
+      }
+      
       // 将离开通知添加到聊天历史
       chatMessages.value.push({
         playerName: '系统',
@@ -494,6 +525,9 @@ const updateGameState = (gameState: any) => {
   // 控制计时器
   if (gameOver.value) {
     stopWaitTimer();
+  } else if (opponentOffline.value) {
+    // 对方离线，停止计时器
+    stopWaitTimer();
   } else if (playerColor.value && currentPlayer.value !== playerColor.value) {
     // 对方回合，启动计时器
     startWaitTimer();
@@ -530,6 +564,103 @@ const showNotification = (message: string, type: 'join' | 'leave') => {
   }, 3000);
 };
 
+// 获取游戏状态描述
+const getGameStatus = () => {
+  if (!roomInfo.value?.gameStarted) {
+    return '等待玩家加入';
+  }
+  
+  if (gameOver.value) {
+    return '游戏已结束';
+  }
+  
+  if (isOpponentOffline.value) {
+    return '等待对方重新加入';
+  }
+  
+  if (isSpectator.value) {
+    return '观战模式';
+  }
+  
+  return '游戏进行中';
+};
+
+// 检测对方是否离线
+const isOpponentOffline = computed(() => {
+  if (!roomInfo.value?.players || isSpectator.value || !playerColor.value) {
+    return false;
+  }
+  
+  // 获取对手颜色
+  const opponentColor = playerColor.value === 1 ? 2 : 1;
+  const opponent = roomInfo.value.players.find((p: any) => p.color === opponentColor);
+  
+  // 如果没有对手玩家，或者对手是游客，说明对方离线
+  if (!opponent || opponent.isSpectator) {
+    return true;
+  }
+  
+  return opponentOffline.value;
+});
+
+// 启动掉线检测计时器
+const startOfflineDetectionTimer = () => {
+  stopOfflineDetectionTimer();
+  // 30秒后如果对方还没有重新加入，显示更强的离线提示
+  offlineDetectionTimer = window.setTimeout(() => {
+    if (opponentOffline.value) {
+      showNotification('对方可能已离线，请耐心等待或考虑寻找新对手', 'leave');
+    }
+  }, 30000);
+};
+
+// 停止掉线检测计时器
+const stopOfflineDetectionTimer = () => {
+  if (offlineDetectionTimer) {
+    clearTimeout(offlineDetectionTimer);
+    offlineDetectionTimer = null;
+  }
+};
+
+// 房间验证函数（仅用于确认加入时）
+const validateRoom = async (roomIdToValidate: string) => {
+  if (!roomIdToValidate.trim() || !ws.value || ws.value.readyState !== WebSocket.OPEN) {
+    return false;
+  }
+
+  return new Promise<boolean>((resolve) => {
+    const timeoutId = setTimeout(() => {
+      resolve(false);
+    }, 5000);
+
+    const checkRoom = (event: MessageEvent) => {
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === 'ROOM_INFO') {
+          clearTimeout(timeoutId);
+          ws.value!.removeEventListener('message', checkRoom);
+          resolve(true);
+        } else if (message.type === 'ERROR' && message.payload.message === 'Room not found') {
+          clearTimeout(timeoutId);
+          ws.value!.removeEventListener('message', checkRoom);
+          resolve(false);
+        }
+      } catch (error) {
+        console.error('Error parsing room validation message:', error);
+      }
+    };
+
+    // 监听响应
+    ws.value!.addEventListener('message', checkRoom);
+
+    // 发送验证请求
+    ws.value!.send(JSON.stringify({
+      type: 'GET_ROOM_INFO',
+      payload: { roomId: roomIdToValidate }
+    }));
+  });
+};
+
 // 创建房间
 const createRoom = () => {
   console.log('Creating new room');
@@ -548,8 +679,11 @@ const joinRoom = () => {
     return;
   }
   
+  // 直接进入昵称输入界面，不做实时验证
   pendingRoomId.value = roomId.value;
   showNameInput.value = true;
+  // 启动昵称输入期间的心跳保护
+  startNameInputHeartbeat();
 };
 
 // 确认加入房间
@@ -560,23 +694,36 @@ const confirmJoinRoom = () => {
   }
   
   console.log('Joining room:', pendingRoomId.value, 'as', playerName.value);
-  if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-    ws.value.send(JSON.stringify({
-      type: 'JOIN_ROOM',
-      payload: {
-        roomId: pendingRoomId.value,
-        playerName: playerName.value
+  
+  // 在开始游戏时验证房间是否存在
+  validateRoom(pendingRoomId.value).then((isValid) => {
+    if (isValid) {
+      if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+        ws.value.send(JSON.stringify({
+          type: 'JOIN_ROOM',
+          payload: {
+            roomId: pendingRoomId.value,
+            playerName: playerName.value
+          }
+        }));
+        
+        // 停止昵称输入期间的心跳保护
+        stopNameInputHeartbeat();
+        // 重置状态
+        playerName.value = '';
+        showNameInput.value = false;
       }
-    }));
-    
-    // 重置状态
-    playerName.value = '';
-    showNameInput.value = false;
-  }
+    } else {
+      showNotification('房间不存在或已被清理，请检查房间ID', 'leave');
+      // 保持在昵称输入界面，允许用户重新输入
+    }
+  });
 };
 
 // 取消加入房间
 const cancelJoinRoom = () => {
+  // 停止昵称输入期间的心跳保护
+  stopNameInputHeartbeat();
   showNameInput.value = false;
   playerName.value = '';
   // 清除URL中的roomId参数，返回到首页
@@ -596,15 +743,16 @@ const leaveRoom = () => {
       }
     }));
   }
-  // 停止计时器
+  // 停止所有计时器
   stopWaitTimer();
-  // 停止心跳计时器
   stopHeartbeatTimer();
+  stopOfflineDetectionTimer();
   // 重置游戏状态
   isInRoom.value = false;
   currentRoomId.value = '';
   playerColor.value = null;
   roomInfo.value = null;
+  opponentOffline.value = false;
   // 清空聊天记录
   chatMessages.value = [];
   // 重置游戏板和分数
@@ -703,13 +851,107 @@ const sendHeartbeat = () => {
   }
 };
 
+// 发送房间验证心跳消息
+const sendRoomValidationHeartbeat = () => {
+  if (ws.value && ws.value.readyState === WebSocket.OPEN && isInRoom.value && currentRoomId.value) {
+    console.log(`发送房间验证心跳到房间 ${currentRoomId.value}`);
+    
+    // 设置超时检测
+    const timeoutId = setTimeout(() => {
+      showNotification('房间可能已被清理，请考虑重建房间', 'leave');
+      // 尝试离开当前房间
+      if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+        ws.value.send(JSON.stringify({
+          type: 'LEAVE_ROOM',
+          payload: {
+            roomId: currentRoomId.value
+          }
+        }));
+      }
+    }, 5000);
+    
+    // 监听响应
+    const handleHeartbeatResponse = (event: MessageEvent) => {
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === 'HEARTBEAT_RESPONSE' && message.payload.roomId === currentRoomId.value) {
+          clearTimeout(timeoutId);
+          ws.value!.removeEventListener('message', handleHeartbeatResponse);
+          console.log('房间验证心跳成功');
+        } else if (message.type === 'ROOM_CLOSED') {
+          clearTimeout(timeoutId);
+          ws.value!.removeEventListener('message', handleHeartbeatResponse);
+          console.log('房间已被关闭');
+        } else if (message.type === 'ERROR' && message.payload.message === 'Room not found') {
+          clearTimeout(timeoutId);
+          ws.value!.removeEventListener('message', handleHeartbeatResponse);
+          showNotification('房间已被清理，请重建房间', 'leave');
+          // 自动离开无效房间
+          if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+            ws.value.send(JSON.stringify({
+              type: 'LEAVE_ROOM',
+              payload: {
+                roomId: currentRoomId.value
+              }
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing heartbeat response:', error);
+      }
+    };
+    
+    ws.value.addEventListener('message', handleHeartbeatResponse);
+    
+    ws.value.send(JSON.stringify({
+      type: 'HEARTBEAT',
+      payload: {
+        roomId: currentRoomId.value,
+        validateRoom: true // 添加验证标志
+      }
+    }));
+  }
+};
+
+// 发送昵称输入期间的心跳保护消息
+const sendNameInputHeartbeat = () => {
+  if (ws.value && ws.value.readyState === WebSocket.OPEN && showNameInput.value && pendingRoomId.value) {
+    console.log(`发送昵称输入心跳保护到房间 ${pendingRoomId.value}`);
+    
+    ws.value.send(JSON.stringify({
+      type: 'GET_ROOM_INFO',
+      payload: { roomId: pendingRoomId.value }
+    }));
+  }
+};
+
+// 启动昵称输入期间的心跳保护
+const startNameInputHeartbeat = () => {
+  stopNameInputHeartbeat();
+  // 每30秒发送一次心跳保护
+  nameInputHeartbeatTimer = window.setInterval(() => {
+    sendNameInputHeartbeat();
+  }, 30 * 1000); // 30秒
+};
+
+// 停止昵称输入期间的心跳保护
+const stopNameInputHeartbeat = () => {
+  if (nameInputHeartbeatTimer) {
+    clearInterval(nameInputHeartbeatTimer);
+    nameInputHeartbeatTimer = null;
+  }
+};
+
 // 启动心跳计时器
 const startHeartbeatTimer = () => {
   // 每1分钟发送一次心跳，确保房间不会因为用户没有操作而被误清理
   if (heartbeatTimer) {
     clearInterval(heartbeatTimer);
   }
-  heartbeatTimer = window.setInterval(sendHeartbeat, 60 * 1000); // 1分钟
+  heartbeatTimer = window.setInterval(() => {
+    // 使用房间验证心跳功能
+    sendRoomValidationHeartbeat();
+  }, 60 * 1000); // 1分钟
 };
 
 // 停止心跳计时器
@@ -758,6 +1000,11 @@ onMounted(() => {
 
   onBeforeUnmount(() => {
     window.removeEventListener('beforeunload', handleBeforeUnload);
+    // 清理所有计时器
+    stopNameInputHeartbeat();
+    stopHeartbeatTimer();
+    stopWaitTimer();
+    stopOfflineDetectionTimer();
   });
 });
 

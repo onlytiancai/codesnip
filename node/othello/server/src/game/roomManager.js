@@ -53,7 +53,7 @@ class RoomManager {
         room.broadcast(message);
       }
       // 如果房间为空，删除房间
-      if (room.players.length === 0) {
+      if (room.isEmpty()) {
         this.deleteRoom(roomId);
       }
     }
@@ -74,7 +74,7 @@ class RoomManager {
         });
         room.broadcast(message);
         // 如果房间为空，删除房间
-        if (room.players.length === 0) {
+        if (room.isEmpty()) {
           this.deleteRoom(room.id);
         }
         return true;
@@ -167,7 +167,7 @@ class RoomManager {
   getOnlinePlayerCount() {
     let count = 0;
     for (const room of this.rooms.values()) {
-      count += room.players.length;
+      count += room.getActivePlayerCount();
     }
     return count;
   }
