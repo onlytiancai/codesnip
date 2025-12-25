@@ -52,6 +52,76 @@ const handleSendChat = (ws, payload, roomManager) => {
   }
 };
 
+// 处理玩家重连
+const handleReconnectRoom = (ws, payload, roomManager) => {
+  const { roomId, playerName, playerColor } = payload;
+  console.log(`Player ${playerName} trying to reconnect to room ${roomId} with color ${playerColor}`);
+  const room = roomManager.getRoom(roomId);
+  
+  if (!room) {
+    ws.send(JSON.stringify({
+      type: 'ERROR',
+      payload: { message: 'Room not found' }
+    }));
+    return;
+  }
+  
+  // 检查该颜色是否已经有玩家在房间中
+  const existingPlayer = room.players.find(p => p.color === playerColor && !p.isSpectator);
+  if (existingPlayer) {
+    // 如果玩家仍然在房间中，更新其socket
+    existingPlayer.socket = ws;
+    console.log(`Player ${playerName} reconnected to room ${roomId} successfully`);
+    ws.send(JSON.stringify({
+      type: 'JOINED_ROOM',
+      payload: {
+        roomId: roomId,
+        playerId: existingPlayer.id,
+        playerColor: existingPlayer.color,
+        room: room.getPublicInfo()
+      }
+    }));
+    // 广播玩家重新连接通知给房间内所有玩家
+    roomManager.broadcastToRoom(roomId, JSON.stringify({
+      type: 'PLAYER_JOINED',
+      payload: {
+        playerName: playerName,
+        playerColor: playerColor,
+        isSpectator: false
+      }
+    }));
+  } else {
+    // 如果玩家已经离开房间，作为新玩家加入
+    const result = room.addPlayer(ws, playerName);
+    if (result.success) {
+      console.log(`Player ${playerName} reconnected to room ${roomId} as new player`);
+      ws.send(JSON.stringify({
+        type: 'JOINED_ROOM',
+        payload: {
+          roomId: roomId,
+          playerId: result.player.id,
+          playerColor: result.player.color,
+          room: result.room
+        }
+      }));
+      // 广播玩家加入通知给房间内所有玩家
+      roomManager.broadcastToRoom(roomId, JSON.stringify({
+        type: 'PLAYER_JOINED',
+        payload: {
+          playerName: playerName,
+          playerColor: result.player.color,
+          isSpectator: result.player.isSpectator
+        }
+      }));
+    } else {
+      ws.send(JSON.stringify({
+        type: 'ERROR',
+        payload: { message: result.message }
+      }));
+    }
+  }
+};
+
 const handleMessage = (ws, message, roomManager) => {
   const { type, payload } = message;
   console.log(`Received message type: ${type}`);
@@ -80,6 +150,12 @@ const handleMessage = (ws, message, roomManager) => {
       break;
     case 'RESTART_GAME':
       handleRestartGame(ws, payload, roomManager);
+      break;
+    case 'HEARTBEAT':
+      handleHeartbeat(ws, payload, roomManager);
+      break;
+    case 'RECONNECT_ROOM':
+      handleReconnectRoom(ws, payload, roomManager);
       break;
     default:
       ws.send(JSON.stringify({
@@ -212,6 +288,23 @@ const handleRestartGame = (ws, payload, roomManager) => {
       type: 'ERROR',
       payload: { message: 'Failed to reset game' }
     }));
+  }
+};
+
+// 处理心跳消息
+const handleHeartbeat = (ws, payload, roomManager) => {
+  const { roomId } = payload;
+  if (roomId) {
+    const room = roomManager.getRoom(roomId);
+    if (room) {
+      // 更新房间最后活动时间
+      room.lastActivityTime = Date.now();
+      // 可以选择性地回应心跳请求
+      ws.send(JSON.stringify({
+        type: 'HEARTBEAT_RESPONSE',
+        payload: { roomId: roomId, timestamp: Date.now() }
+      }));
+    }
   }
 };
 

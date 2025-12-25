@@ -238,6 +238,9 @@ const roomId = ref('');
 const currentRoomId = ref('');
 const playerColor = ref<number | null>(null);
 const isSpectator = ref(false); // 添加游客标识
+
+// 心跳计时器
+let heartbeatTimer: number | null = null;
 // 初始化8x8空棋盘
 const board = ref<number[][]>(Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => 0)));
 const currentPlayer = ref(1);
@@ -296,7 +299,20 @@ const connectWebSocket = () => {
     // 解析URL参数中的roomId，在连接建立后自动加入房间
     const urlParams = new URLSearchParams(window.location.search);
     const roomIdFromUrl = urlParams.get('roomId');
-    if (roomIdFromUrl) {
+    
+    // 检查是否需要重连
+    if (reconnectInfo.value.isReconnecting && reconnectInfo.value.roomId) {
+      // 自动重连到之前的房间
+      console.log('尝试重连到房间:', reconnectInfo.value.roomId);
+      ws.value.send(JSON.stringify({
+        type: 'RECONNECT_ROOM',
+        payload: {
+          roomId: reconnectInfo.value.roomId,
+          playerName: reconnectInfo.value.playerName,
+          playerColor: reconnectInfo.value.playerColor
+        }
+      }));
+    } else if (roomIdFromUrl) {
       pendingRoomId.value = roomIdFromUrl;
       showNameInput.value = true;
     }
@@ -307,10 +323,14 @@ const connectWebSocket = () => {
     handleWebSocketMessage(message);
   };
   
-  ws.value.onclose = () => {
-    console.log('WebSocket disconnected');
-    // 尝试重连
-    setTimeout(connectWebSocket, 3000);
+  ws.value.onclose = (event) => {
+    console.log('WebSocket disconnected:', event.code, event.reason);
+    
+    // 如果是正常关闭（1000）或离开房间操作，不自动重连
+    if (event.code !== 1000 || isInRoom.value) {
+      // 尝试重连
+      setTimeout(connectWebSocket, 3000);
+    }
   };
   
   ws.value.onerror = (error) => {
@@ -339,6 +359,8 @@ const handleWebSocketMessage = (message: any) => {
       updateGameState(room.gameState);
       // 更新房间URL
       roomUrl.value = `${window.location.origin}${window.location.pathname}?roomId=${currentRoomId.value}`;
+      // 启动心跳计时器
+      startHeartbeatTimer();
       break;
       
     case 'ROOM_UPDATED':
@@ -377,6 +399,7 @@ const handleWebSocketMessage = (message: any) => {
       currentRoomId.value = '';
       playerColor.value = null;
       stopWaitTimer();
+      stopHeartbeatTimer(); // 停止心跳计时器
       break;
       
     case 'STATS':
@@ -575,6 +598,8 @@ const leaveRoom = () => {
   }
   // 停止计时器
   stopWaitTimer();
+  // 停止心跳计时器
+  stopHeartbeatTimer();
   // 重置游戏状态
   isInRoom.value = false;
   currentRoomId.value = '';
@@ -665,6 +690,44 @@ const requestStats = () => {
   }
 };
 
+// 发送心跳消息
+const sendHeartbeat = () => {
+  if (ws.value && ws.value.readyState === WebSocket.OPEN && isInRoom.value && currentRoomId.value) {
+    console.log(`发送心跳消息到房间 ${currentRoomId.value}`);
+    ws.value.send(JSON.stringify({
+      type: 'HEARTBEAT',
+      payload: {
+        roomId: currentRoomId.value
+      }
+    }));
+  }
+};
+
+// 启动心跳计时器
+const startHeartbeatTimer = () => {
+  // 每1分钟发送一次心跳，确保房间不会因为用户没有操作而被误清理
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer);
+  }
+  heartbeatTimer = window.setInterval(sendHeartbeat, 60 * 1000); // 1分钟
+};
+
+// 停止心跳计时器
+const stopHeartbeatTimer = () => {
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+  }
+};
+
+// 重连状态保存
+const reconnectInfo = ref({
+  roomId: '',
+  playerName: '',
+  playerColor: null as number | null,
+  isReconnecting: false
+});
+
 // 生命周期钩子
 onMounted(() => {
   connectWebSocket();
@@ -677,12 +740,41 @@ onMounted(() => {
   onBeforeUnmount(() => {
     clearInterval(statsInterval);
   });
+
+  // 监听页面卸载前事件，尝试发送离开消息
+  const handleBeforeUnload = () => {
+    if (ws.value && ws.value.readyState === WebSocket.OPEN && isInRoom.value) {
+      // 发送离开房间消息
+      ws.value.send(JSON.stringify({
+        type: 'LEAVE_ROOM',
+        payload: {
+          roomId: currentRoomId.value
+        }
+      }));
+    }
+  };
+
+  window.addEventListener('beforeunload', handleBeforeUnload);
+
+  onBeforeUnmount(() => {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+  });
 });
 
 onBeforeUnmount(() => {
+  if (ws.value && ws.value.readyState === WebSocket.OPEN && isInRoom.value) {
+    // 保存重连信息
+    reconnectInfo.value = {
+      roomId: currentRoomId.value,
+      playerName: roomInfo.value?.players?.find((p: any) => p.color === playerColor.value)?.name || '',
+      playerColor: playerColor.value,
+      isReconnecting: true
+    };
+  }
   if (ws.value) {
     ws.value.close();
   }
   stopWaitTimer();
+  stopHeartbeatTimer(); // 停止心跳计时器
 });
 </script>
