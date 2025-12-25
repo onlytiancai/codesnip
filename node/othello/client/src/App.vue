@@ -1148,7 +1148,7 @@ const startHeartbeatTimer = () => {
   heartbeatTimer = window.setInterval(() => {
     // 使用房间验证心跳功能
     sendRoomValidationHeartbeat();
-  }, 60 * 1000); // 1分钟
+  }, 10 * 1000); // 1分钟
 };
 
 // 停止心跳计时器
