@@ -9,6 +9,9 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+// 记录所有活跃的WebSocket连接
+const activeConnections = new Set();
+
 // 配置CORS
 app.use(cors({
   origin: '*',
@@ -19,9 +22,12 @@ app.use(cors({
 const roomManager = new RoomManager();
 
 // 设置WebSocket服务器
-setupWebSocket(wss, roomManager);
+setupWebSocket(wss, roomManager, activeConnections);
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+// 导出活跃连接集合，供其他模块使用
+module.exports = { activeConnections };

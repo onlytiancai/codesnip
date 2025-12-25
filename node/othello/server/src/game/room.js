@@ -106,12 +106,20 @@ class Room {
 
   // 检查房间是否为空
   isEmpty() {
-    return this.players.length === 0;
+    return this.getActivePlayerCount() === 0;
   }
 
   // 通过socket获取玩家
   getPlayerBySocket(ws) {
     return this.players.find(p => p.socket === ws);
+  }
+
+  // 获取活跃玩家数量（WebSocket连接有效的玩家）
+  getActivePlayerCount() {
+    return this.players.filter(player => 
+      player.socket && 
+      player.socket.readyState === player.socket.OPEN
+    ).length;
   }
 
   // 玩家落子
