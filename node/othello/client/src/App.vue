@@ -299,7 +299,20 @@ const connectWebSocket = () => {
     // 解析URL参数中的roomId，在连接建立后自动加入房间
     const urlParams = new URLSearchParams(window.location.search);
     const roomIdFromUrl = urlParams.get('roomId');
-    if (roomIdFromUrl) {
+    
+    // 检查是否需要重连
+    if (reconnectInfo.value.isReconnecting && reconnectInfo.value.roomId) {
+      // 自动重连到之前的房间
+      console.log('尝试重连到房间:', reconnectInfo.value.roomId);
+      ws.value.send(JSON.stringify({
+        type: 'RECONNECT_ROOM',
+        payload: {
+          roomId: reconnectInfo.value.roomId,
+          playerName: reconnectInfo.value.playerName,
+          playerColor: reconnectInfo.value.playerColor
+        }
+      }));
+    } else if (roomIdFromUrl) {
       pendingRoomId.value = roomIdFromUrl;
       showNameInput.value = true;
     }
@@ -310,10 +323,14 @@ const connectWebSocket = () => {
     handleWebSocketMessage(message);
   };
   
-  ws.value.onclose = () => {
-    console.log('WebSocket disconnected');
-    // 尝试重连
-    setTimeout(connectWebSocket, 3000);
+  ws.value.onclose = (event) => {
+    console.log('WebSocket disconnected:', event.code, event.reason);
+    
+    // 如果是正常关闭（1000）或离开房间操作，不自动重连
+    if (event.code !== 1000 || isInRoom.value) {
+      // 尝试重连
+      setTimeout(connectWebSocket, 3000);
+    }
   };
   
   ws.value.onerror = (error) => {
@@ -703,6 +720,14 @@ const stopHeartbeatTimer = () => {
   }
 };
 
+// 重连状态保存
+const reconnectInfo = ref({
+  roomId: '',
+  playerName: '',
+  playerColor: null as number | null,
+  isReconnecting: false
+});
+
 // 生命周期钩子
 onMounted(() => {
   connectWebSocket();
@@ -715,9 +740,37 @@ onMounted(() => {
   onBeforeUnmount(() => {
     clearInterval(statsInterval);
   });
+
+  // 监听页面卸载前事件，尝试发送离开消息
+  const handleBeforeUnload = () => {
+    if (ws.value && ws.value.readyState === WebSocket.OPEN && isInRoom.value) {
+      // 发送离开房间消息
+      ws.value.send(JSON.stringify({
+        type: 'LEAVE_ROOM',
+        payload: {
+          roomId: currentRoomId.value
+        }
+      }));
+    }
+  };
+
+  window.addEventListener('beforeunload', handleBeforeUnload);
+
+  onBeforeUnmount(() => {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+  });
 });
 
 onBeforeUnmount(() => {
+  if (ws.value && ws.value.readyState === WebSocket.OPEN && isInRoom.value) {
+    // 保存重连信息
+    reconnectInfo.value = {
+      roomId: currentRoomId.value,
+      playerName: roomInfo.value?.players?.find((p: any) => p.color === playerColor.value)?.name || '',
+      playerColor: playerColor.value,
+      isReconnecting: true
+    };
+  }
   if (ws.value) {
     ws.value.close();
   }
