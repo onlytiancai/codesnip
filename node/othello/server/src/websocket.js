@@ -81,6 +81,9 @@ const handleMessage = (ws, message, roomManager) => {
     case 'RESTART_GAME':
       handleRestartGame(ws, payload, roomManager);
       break;
+    case 'HEARTBEAT':
+      handleHeartbeat(ws, payload, roomManager);
+      break;
     default:
       ws.send(JSON.stringify({
         type: 'ERROR',
@@ -212,6 +215,23 @@ const handleRestartGame = (ws, payload, roomManager) => {
       type: 'ERROR',
       payload: { message: 'Failed to reset game' }
     }));
+  }
+};
+
+// 处理心跳消息
+const handleHeartbeat = (ws, payload, roomManager) => {
+  const { roomId } = payload;
+  if (roomId) {
+    const room = roomManager.getRoom(roomId);
+    if (room) {
+      // 更新房间最后活动时间
+      room.lastActivityTime = Date.now();
+      // 可以选择性地回应心跳请求
+      ws.send(JSON.stringify({
+        type: 'HEARTBEAT_RESPONSE',
+        payload: { roomId: roomId, timestamp: Date.now() }
+      }));
+    }
   }
 };
 

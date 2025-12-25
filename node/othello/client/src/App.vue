@@ -238,6 +238,9 @@ const roomId = ref('');
 const currentRoomId = ref('');
 const playerColor = ref<number | null>(null);
 const isSpectator = ref(false); // 添加游客标识
+
+// 心跳计时器
+let heartbeatTimer: number | null = null;
 // 初始化8x8空棋盘
 const board = ref<number[][]>(Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => 0)));
 const currentPlayer = ref(1);
@@ -339,6 +342,8 @@ const handleWebSocketMessage = (message: any) => {
       updateGameState(room.gameState);
       // 更新房间URL
       roomUrl.value = `${window.location.origin}${window.location.pathname}?roomId=${currentRoomId.value}`;
+      // 启动心跳计时器
+      startHeartbeatTimer();
       break;
       
     case 'ROOM_UPDATED':
@@ -377,6 +382,7 @@ const handleWebSocketMessage = (message: any) => {
       currentRoomId.value = '';
       playerColor.value = null;
       stopWaitTimer();
+      stopHeartbeatTimer(); // 停止心跳计时器
       break;
       
     case 'STATS':
@@ -575,6 +581,8 @@ const leaveRoom = () => {
   }
   // 停止计时器
   stopWaitTimer();
+  // 停止心跳计时器
+  stopHeartbeatTimer();
   // 重置游戏状态
   isInRoom.value = false;
   currentRoomId.value = '';
@@ -665,6 +673,36 @@ const requestStats = () => {
   }
 };
 
+// 发送心跳消息
+const sendHeartbeat = () => {
+  if (ws.value && ws.value.readyState === WebSocket.OPEN && isInRoom.value && currentRoomId.value) {
+    console.log(`发送心跳消息到房间 ${currentRoomId.value}`);
+    ws.value.send(JSON.stringify({
+      type: 'HEARTBEAT',
+      payload: {
+        roomId: currentRoomId.value
+      }
+    }));
+  }
+};
+
+// 启动心跳计时器
+const startHeartbeatTimer = () => {
+  // 每1分钟发送一次心跳，确保房间不会因为用户没有操作而被误清理
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer);
+  }
+  heartbeatTimer = window.setInterval(sendHeartbeat, 60 * 1000); // 1分钟
+};
+
+// 停止心跳计时器
+const stopHeartbeatTimer = () => {
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+  }
+};
+
 // 生命周期钩子
 onMounted(() => {
   connectWebSocket();
@@ -684,5 +722,6 @@ onBeforeUnmount(() => {
     ws.value.close();
   }
   stopWaitTimer();
+  stopHeartbeatTimer(); // 停止心跳计时器
 });
 </script>
