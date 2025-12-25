@@ -1,80 +1,147 @@
 <template>
-  <div class="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-    <h1 class="text-4xl font-bold text-gray-800 mb-4">奥赛罗棋</h1>
-    
-    <!-- 统计信息 -->
-    <div v-if="!isInRoom" class="mb-6 text-center">
-      <p class="text-gray-600 mb-2">当前房间数: {{ stats.roomCount }}</p>
-      <p class="text-gray-600">当前在线人数: {{ stats.onlinePlayerCount }}</p>
+  <div class="min-h-screen bg-gray-100">
+    <!-- 顶部标题栏 -->
+    <header v-if="!isInRoom" class="bg-white shadow-sm border-b border-gray-200 hidden md:block">
+      <div class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+          <h1 class="text-2xl md:text-3xl font-bold text-gray-800 ">奥赛罗棋</h1>
+          <div class="text-sm text-gray-600">
+            <span class="mr-4">房间: {{ stats.roomCount }}</span>
+            <span>在线: {{ stats.onlinePlayerCount }}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 等待对方落子计时器 - 固定在顶部 -->
+    <div v-if="isInRoom && !gameOver && !opponentOffline && playerColor && currentPlayer !== playerColor" 
+         class="fixed top-0 left-1/2 transform -translate-x-1/2 z-50 bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-2 rounded-lg shadow-lg max-w-sm">
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span class="font-medium">等待对方落子: {{ waitTime }}秒</span>
+      </div>
     </div>
     
-
-    
-    <!-- 房间创建/加入界面 -->
-    <div v-if="!isInRoom && !showNameInput" class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-      <div class="mb-6">
-        <button 
-          @click="createRoom" 
-          class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300"
-        >
-          创建新房间
-        </button>
-      </div>
-      
-      <div class="border-t border-gray-200 pt-6">
-        <h2 class="text-xl font-semibold mb-4">加入房间</h2>
-        <div class="flex gap-3">
-          <input
-            v-model="roomId"
-            type="text"
-            placeholder="房间ID"
-            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            @click="joinRoom"
-            class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
-          >
-            加入
-          </button>
+    <!-- 房间创建/加入界面 - 响应式布局 -->
+    <div v-if="!isInRoom && !showNameInput" class="container mx-auto px-4 py-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <!-- 左侧：创建/加入房间 -->
+        <div class="lg:col-span-2">
+          <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
+            <div class="mb-6">
+              <button 
+                @click="createRoom" 
+                class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300"
+              >
+                创建新房间
+              </button>
+            </div>
+            
+            <div class="border-t border-gray-200 pt-6">
+              <h2 class="text-xl font-semibold mb-4">加入房间</h2>
+              <div class="flex gap-3">
+                <input
+                  v-model="roomId"
+                  type="text"
+                  placeholder="房间ID"
+                  class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  @click="joinRoom"
+                  class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
+                >
+                  加入
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 右侧：游戏规则 -->
+        <div class="lg:col-span-1">
+          <div class="bg-white p-6 rounded-lg shadow-lg">
+            <div class="flex justify-between items-center cursor-pointer" @click="showRules = !showRules">
+              <h2 class="text-xl font-semibold text-gray-800">游戏规则</h2>
+              <svg :class="{'transform rotate-180': showRules}" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <div v-if="showRules" class="mt-4 text-gray-700 space-y-3">
+              <p>1. 游戏在8x8的棋盘上进行，黑白双方交替落子</p>
+              <p>2. 每一步必须翻转至少一个对方的棋子（夹在自己的棋子之间）</p>
+              <p>3. 如果某一方无法落子，则跳过该回合</p>
+              <p>4. 当双方都无法落子或棋盘填满时，游戏结束</p>
+              <p>5. 棋盘上棋子数量多的一方获胜</p>
+              <p>6. 黑方先行，初始时棋盘中心放置2黑2白四个棋子</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
     
-    <!-- 房间介绍和昵称输入界面 -->
-    <div v-if="showNameInput" class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-      <h2 class="text-2xl font-bold text-gray-800 mb-4">加入游戏</h2>
-      <div class="bg-blue-50 p-4 rounded-lg mb-6">
-        <h3 class="font-semibold text-gray-800 mb-2">房间信息</h3>
-        <p class="text-gray-600">房间ID: <span class="font-mono bg-white px-2 py-1 rounded">{{ pendingRoomId }}</span></p>
-        <p class="text-gray-600 mt-2">欢迎加入奥赛罗棋游戏！请输入您的昵称开始游戏。</p>
-      </div>
-      
-
-      <div class="mb-4">
-        <label for="playerName" class="block text-sm font-medium text-gray-700 mb-1">昵称</label>
-        <input
-          id="playerName"
-          v-model="playerName"
-          type="text"
-          placeholder="请输入您的昵称（2-10个字符）"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          maxlength="10"
-        />
-      </div>
-      <div class="flex gap-4">
-        <button
-          @click="confirmJoinRoom"
-          class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300"
-          :disabled="!playerName.trim()"
-        >
-          开始游戏
-        </button>
-        <button
-          @click="cancelJoinRoom"
-          class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-lg transition duration-300"
-        >
-          取消
-        </button>
+    <!-- 房间介绍和昵称输入界面 - 响应式布局 -->
+    <div v-if="showNameInput" class="container mx-auto px-4 py-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <!-- 左侧：房间信息和昵称输入 -->
+        <div class="lg:col-span-2">
+          <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">加入游戏</h2>
+            <div class="bg-blue-50 p-4 rounded-lg mb-6">
+              <h3 class="font-semibold text-gray-800 mb-2">房间信息</h3>
+              <p class="text-gray-600">房间ID: <span class="font-mono bg-white px-2 py-1 rounded">{{ pendingRoomId }}</span></p>
+              <p class="text-gray-600 mt-2">欢迎加入奥赛罗棋游戏！请输入您的昵称开始游戏。</p>
+            </div>
+            
+            <div class="mb-6">
+              <label for="playerName" class="block text-sm font-medium text-gray-700 mb-2">昵称</label>
+              <input
+                id="playerName"
+                v-model="playerName"
+                type="text"
+                placeholder="请输入您的昵称（2-10个字符）"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                maxlength="10"
+              />
+            </div>
+            <div class="flex gap-4">
+              <button
+                @click="confirmJoinRoom"
+                class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300"
+                :disabled="!playerName.trim()"
+              >
+                开始游戏
+              </button>
+              <button
+                @click="cancelJoinRoom"
+                class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-lg transition duration-300"
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 右侧：游戏规则 -->
+        <div class="lg:col-span-1">
+          <div class="bg-white p-6 rounded-lg shadow-lg">
+            <div class="flex justify-between items-center cursor-pointer" @click="showRulesInJoin = !showRulesInJoin">
+              <h2 class="text-xl font-semibold text-gray-800">游戏规则</h2>
+              <svg :class="{'transform rotate-180': showRulesInJoin}" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <div v-if="showRulesInJoin" class="mt-4 text-gray-700 space-y-3">
+              <p>1. 游戏在8x8的棋盘上进行，黑白双方交替落子</p>
+              <p>2. 每一步必须翻转至少一个对方的棋子（夹在自己的棋子之间）</p>
+              <p>3. 如果某一方无法落子，则跳过该回合</p>
+              <p>4. 当双方都无法落子或棋盘填满时，游戏结束</p>
+              <p>5. 棋盘上棋子数量多的一方获胜</p>
+              <p>6. 黑方先行，初始时棋盘中心放置2黑2白四个棋子</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     
@@ -83,151 +150,273 @@
       <p class="font-bold text-lg text-gray-900">{{ notification.message }}</p>
     </div>
     
-    <!-- 游戏界面 -->
-    <div v-if="isInRoom" class="w-full max-w-4xl">
-      
-      <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-          <div>
-            <h2 class="text-2xl font-bold">房间ID: {{ currentRoomId }}</h2>
-            <p class="text-gray-600">当前回合: {{ currentPlayer === 1 ? '黑棋' : '白棋' }}</p>
-            <p class="text-gray-500 text-sm" v-if="!gameOver">
-              游戏状态: {{ getGameStatus() }}
-            </p>
-            <p class="text-gray-500 text-sm" v-if="isSpectator">您是: 游客</p>
-            <p class="text-gray-500 text-sm" v-else-if="playerColor">您是: {{ playerColor === 1 ? '黑方' : '白方' }}</p>
-            <p class="text-red-500 text-sm" v-if="isOpponentOffline">
-              等待对方加入...
-            </p>
-            <p class="text-yellow-500 text-sm" :class="{ 'invisible': gameOver || currentPlayer === playerColor || isOpponentOffline }">
-              等待对方落子: {{ waitTime }}秒
-            </p>
-            <!-- 房间邀请URL -->
-            <div class="mt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-              <input 
-                type="text" 
-                :value="roomUrl" 
-                readonly 
-                class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded bg-gray-100"
+    <!-- 游戏界面 - 响应式布局 -->
+    <div v-if="isInRoom" class="container mx-auto px-4 py-4 lg:py-8">
+      <!-- 窄屏布局：垂直堆叠 -->
+      <div class="lg:hidden space-y-4">
+        <!-- 比分显示 - 紧凑一行 -->
+        <div class="bg-white p-3 rounded-lg shadow-lg">
+          <div class="flex justify-between items-center">
+            <div class="text-center">
+              <div class="font-semibold text-sm">黑棋 {{ getPlayerName(1) }}</div>
+              <div class="text-xl font-bold text-gray-800">{{ scores.black }}</div>
+            </div>
+            <div class="text-2xl font-bold text-gray-600">VS</div>
+            <div class="text-center">
+              <div class="font-semibold text-sm">白棋 {{ getPlayerName(2) }}</div>
+              <div class="text-xl font-bold text-gray-800">{{ scores.white }}</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 棋盘区域 -->
+        <div class="bg-white p-4 rounded-lg shadow-lg">
+          <div class="w-full flex justify-center">
+            <div class="w-full max-w-sm">
+              <Board 
+                :board="board" 
+                :currentPlayer="currentPlayer" 
+                :validMoves="validMoves" 
+                :playerColor="playerColor"
+                :gameOver="gameOver"
+                :flippedPieces="flippedPieces"
+                @makeMove="makeMove"
               />
-              <button 
-                @click="copyRoomUrl" 
-                class="px-4 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-              >
-                复制邀请链接
-              </button>
             </div>
           </div>
-          <div class="flex flex-wrap items-center gap-3 sm:gap-6">
-            <div class="text-center">
-              <p class="font-semibold">黑棋</p>
-              <p class="text-xs sm:text-sm text-gray-600">{{ getPlayerName(1) }}</p>
-              <p class="text-xl sm:text-2xl font-bold text-gray-800">{{ scores.black }}</p>
-            </div>
-            <div class="text-center">
-              <p class="font-semibold">白棋</p>
-              <p class="text-xs sm:text-sm text-gray-600">{{ getPlayerName(2) }}</p>
-              <p class="text-xl sm:text-2xl font-bold text-gray-800">{{ scores.white }}</p>
-            </div>
-            <div class="mt-2 sm:mt-0">
-              <button 
-                @click="leaveRoom" 
-                class="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
-              >
-                退出房间
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 棋盘组件 -->
-        <Board 
-          :board="board" 
-          :currentPlayer="currentPlayer" 
-          :validMoves="validMoves" 
-          :playerColor="playerColor"
-          :gameOver="gameOver"
-          :flippedPieces="flippedPieces"
-          @makeMove="makeMove"
-        />
-        
-        <!-- 游戏结束信息 -->
-        <div v-if="gameOver" class="mt-6 text-center">
-          <h3 class="text-2xl font-bold mb-2">游戏结束</h3>
-          <p class="text-xl" :class="winner === playerColor ? 'text-green-600' : winner ? 'text-red-600' : 'text-gray-600'">
-            {{ winner ? (winner === playerColor ? '你赢了！' : '你输了！') : '平局！' }}
-          </p>
-          <button
-            @click="restartGame"
-            class="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-          >
-            重新开始游戏
-          </button>
-        </div>
-        
-        <!-- 聊天系统 -->
-        <div class="mt-6">
-          <h3 class="text-lg font-semibold mb-3">聊天</h3>
-          <!-- 聊天消息列表 -->
-          <div 
-            id="chat-messages"
-            class="h-40 overflow-y-auto p-3 bg-gray-50 rounded-lg border border-gray-200 mb-3"
-          >
-            <div 
-              v-for="(msg, index) in chatMessages" 
-              :key="index"
-              class="mb-2 p-2 rounded"
-              :class="msg.playerColor === playerColor ? 'bg-blue-50' : 'bg-gray-100'"
+          
+          <!-- 游戏结束信息 -->
+          <div v-if="gameOver" class="mt-4 text-center">
+            <h3 class="text-lg font-bold mb-2">游戏结束</h3>
+            <p class="text-lg" :class="winner === playerColor ? 'text-green-600' : winner ? 'text-red-600' : 'text-gray-600'">
+              {{ winner ? (winner === playerColor ? '你赢了！' : '你输了！') : '平局！' }}
+            </p>
+            <button
+              @click="restartGame"
+              class="mt-3 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
             >
-              <div class="flex items-center gap-2 text-sm">
-                <span 
-                  class="font-medium"
-                  :class="msg.playerColor === 1 ? 'text-gray-800' : msg.playerColor === 2 ? 'text-gray-800' : 'text-gray-600'"
-                >
-                  {{ msg.playerName }} ({{ msg.playerColor === 1 ? '黑' : msg.playerColor === 2 ? '白' : '游客' }})
-                </span>
-                <span class="text-xs text-gray-500">
-                  {{ new Date(msg.timestamp).toLocaleTimeString() }}
-                </span>
-              </div>
-              <div class="text-sm mt-1">
-                {{ msg.message }}
-              </div>
+              重新开始游戏
+            </button>
+          </div>
+        </div>
+        
+        <!-- 房间信息 - 紧凑两行 -->
+        <div class="bg-white p-3 rounded-lg shadow-lg">
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <span class="text-gray-600">房间ID:</span>
+              <div class="font-mono text-xs bg-gray-100 px-2 py-1 rounded">{{ currentRoomId }}</div>
             </div>
-            <div v-if="chatMessages.length === 0" class="text-center text-gray-500 py-8">
-              暂无聊天记录
+            <div>
+              <span class="text-gray-600">当前回合:</span>
+              <div class="font-semibold">{{ currentPlayer === 1 ? '黑棋' : '白棋' }}</div>
+            </div>
+            <div>
+              <span class="text-gray-600">玩家身份:</span>
+              <div class="text-xs" v-if="isSpectator">游客</div>
+              <div class="text-xs" v-else-if="playerColor">{{ playerColor === 1 ? '黑方' : '白方' }}</div>
+            </div>
+            <div>
+              <span class="text-gray-600">游戏状态:</span>
+              <div class="text-xs" v-if="!gameOver">{{ getGameStatus() }}</div>
+              <div class="text-xs text-gray-500" v-else>游戏结束</div>
             </div>
           </div>
-          <!-- 常用语发送按钮 -->
-          <div class="flex flex-wrap gap-2 justify-start">
+          <div v-if="opponentOffline" class="mt-2 text-red-500 text-xs">
+            等待对方加入...
+          </div>
+        </div>
+        
+        <!-- 常用语 -->
+        <div class="bg-white p-3 rounded-lg shadow-lg">
+          <h3 class="text-sm font-semibold mb-2">常用语</h3>
+          <div class="flex flex-wrap gap-1 justify-start">
             <button
               v-for="(msg, index) in commonMessages"
               :key="index"
               @click="sendChat(msg)"
-              class="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 rounded transition whitespace-nowrap"
+              class="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 text-gray-800 rounded transition whitespace-nowrap"
             >
               {{ msg }}
             </button>
           </div>
         </div>
+        
+        <!-- 邀请好友和退出房间 -->
+        <div class="space-y-3">
+          <!-- 房间邀请 -->
+          <div class="bg-white p-3 rounded-lg shadow-lg">
+            <h3 class="text-sm font-semibold mb-2">邀请好友</h3>
+            <div class="space-y-2">
+              <input 
+                type="text" 
+                :value="roomUrl" 
+                readonly 
+                class="w-full px-2 py-1 text-xs border border-gray-300 rounded bg-gray-100"
+              />
+              <button 
+                @click="copyRoomUrl" 
+                class="w-full px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+              >
+                复制邀请链接
+              </button>
+            </div>
+          </div>
+          
+          <!-- 退出房间按钮 -->
+          <div class="bg-white p-3 rounded-lg shadow-lg">
+            <button 
+              @click="leaveRoom" 
+              class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 text-sm"
+            >
+              退出房间
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
-    
-    <!-- 游戏规则介绍 -->
-    <div v-if="!isInRoom" class="mt-10 bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-      <div class="flex justify-between items-center cursor-pointer" @click="showRules = !showRules">
-        <h2 class="text-xl font-semibold text-gray-800">游戏规则</h2>
-        <svg :class="{'transform rotate-180': showRules}" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
-      </div>
-      <div v-if="showRules" class="mt-4 text-gray-700 space-y-3">
-        <p>1. 游戏在8x8的棋盘上进行，黑白双方交替落子</p>
-        <p>2. 每一步必须翻转至少一个对方的棋子（夹在自己的棋子之间）</p>
-        <p>3. 如果某一方无法落子，则跳过该回合</p>
-        <p>4. 当双方都无法落子或棋盘填满时，游戏结束</p>
-        <p>5. 棋盘上棋子数量多的一方获胜</p>
-        <p>6. 黑方先行，初始时棋盘中心放置2黑2白四个棋子</p>
+      
+      <!-- 宽屏布局：保持原三列布局 -->
+      <div class="hidden lg:grid lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+        
+        <!-- 左侧：房间信息 -->
+        <div class="lg:col-span-1 space-y-6">
+          <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-bold mb-4">房间信息</h2>
+            <div class="space-y-3">
+              <div>
+                <label class="text-sm text-gray-600">房间ID:</label>
+                <div class="font-mono text-sm bg-gray-100 px-2 py-1 rounded">{{ currentRoomId }}</div>
+              </div>
+              
+              <div>
+                <label class="text-sm text-gray-600">当前回合:</label>
+                <div class="font-semibold">{{ currentPlayer === 1 ? '黑棋' : '白棋' }}</div>
+              </div>
+              
+              <div>
+                <label class="text-sm text-gray-600">游戏状态:</label>
+                <div class="text-sm" v-if="!gameOver">{{ getGameStatus() }}</div>
+                <div class="text-sm text-gray-500" v-else>游戏结束</div>
+              </div>
+              
+              <div>
+                <label class="text-sm text-gray-600">玩家身份:</label>
+                <div class="text-sm" v-if="isSpectator">游客</div>
+                <div class="text-sm" v-else-if="playerColor">{{ playerColor === 1 ? '黑方' : '白方' }}</div>
+              </div>
+              
+              <div v-if="opponentOffline" class="text-red-500 text-sm">
+                等待对方加入...
+              </div>
+            </div>
+          </div>
+          
+          <!-- 分数显示 -->
+          <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4">比分</h3>
+            <div class="space-y-4">
+              <div class="flex justify-between items-center">
+                <div class="text-center">
+                  <div class="font-semibold">黑棋</div>
+                  <div class="text-xs text-gray-600">{{ getPlayerName(1) }}</div>
+                </div>
+                <div class="text-2xl font-bold text-gray-800">{{ scores.black }}</div>
+              </div>
+              <div class="flex justify-between items-center">
+                <div class="text-center">
+                  <div class="font-semibold">白棋</div>
+                  <div class="text-xs text-gray-600">{{ getPlayerName(2) }}</div>
+                </div>
+                <div class="text-2xl font-bold text-gray-800">{{ scores.white }}</div>
+              </div>
+            </div>
+          </div>
+          
+
+        </div>
+        
+        <!-- 中间：棋盘区域 -->
+        <div class="lg:col-span-2">
+          <div class="bg-white p-4 lg:p-6 rounded-lg shadow-lg">
+            <!-- 棋盘组件 - 响应式尺寸 -->
+            <div class="w-full flex justify-center">
+              <div class="w-full max-w-md lg:max-w-lg xl:max-w-xl">
+                <Board 
+                  :board="board" 
+                  :currentPlayer="currentPlayer" 
+                  :validMoves="validMoves" 
+                  :playerColor="playerColor"
+                  :gameOver="gameOver"
+                  :flippedPieces="flippedPieces"
+                  @makeMove="makeMove"
+                />
+              </div>
+            </div>
+            
+            <!-- 游戏结束信息 -->
+            <div v-if="gameOver" class="mt-6 text-center">
+              <h3 class="text-2xl font-bold mb-2">游戏结束</h3>
+              <p class="text-xl" :class="winner === playerColor ? 'text-green-600' : winner ? 'text-red-600' : 'text-gray-600'">
+                {{ winner ? (winner === playerColor ? '你赢了！' : '你输了！') : '平局！' }}
+              </p>
+              <button
+                @click="restartGame"
+                class="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+              >
+                重新开始游戏
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 右侧：常用语和操作面板 -->
+        <div class="lg:col-span-1 space-y-6">
+          <!-- 房间邀请 -->
+          <div class="bg-white p-4 lg:p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4">邀请好友</h3>
+            <div class="space-y-3">
+              <input 
+                type="text" 
+                :value="roomUrl" 
+                readonly 
+                class="w-full px-3 py-2 text-sm border border-gray-300 rounded bg-gray-100"
+              />
+              <button 
+                @click="copyRoomUrl" 
+                class="w-full px-4 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+              >
+                复制邀请链接
+              </button>
+            </div>
+          </div>
+          
+          <!-- 常用语面板 -->
+          <div class="bg-white p-4 lg:p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4">常用语</h3>
+            
+            <!-- 常用语按钮 -->
+            <div class="flex flex-wrap gap-2 justify-start">
+              <button
+                v-for="(msg, index) in commonMessages"
+                :key="index"
+                @click="sendChat(msg)"
+                class="px-3 py-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 rounded transition whitespace-nowrap"
+              >
+                {{ msg }}
+              </button>
+            </div>
+          </div>
+          
+          <!-- 退出房间按钮 -->
+          <div class="bg-white p-4 lg:p-6 rounded-lg shadow-lg">
+            <button 
+              @click="leaveRoom" 
+              class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300"
+            >
+              退出房间
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -267,6 +456,7 @@ const playerName = ref('');
 
 // 聊天系统
 const chatMessages = ref<{ playerName: string; playerColor: number | null; message: string; timestamp: number }[]>([]);
+
 const commonMessages = [
   '快点下呀',
   '下的不错',
@@ -516,6 +706,8 @@ const sendChat = (message: string) => {
     }));
   }
 };
+
+
 
 // 更新游戏状态
 const updateGameState = (gameState: any) => {
