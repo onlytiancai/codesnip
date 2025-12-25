@@ -13,6 +13,7 @@ class RoomManager {
     const roomId = this.generateRoomId();
     const room = new Room(roomId);
     this.rooms.set(roomId, room);
+    console.log(`🏠 创建新房间 ${roomId}, 当前总房间数: ${this.rooms.size}`);
     return room;
   }
 
@@ -23,7 +24,11 @@ class RoomManager {
 
   // 删除房间
   deleteRoom(roomId) {
-    return this.rooms.delete(roomId);
+    const deleted = this.rooms.delete(roomId);
+    if (deleted) {
+      console.log(`🗑️  从房间管理器中删除房间 ${roomId}, 剩余房间数: ${this.rooms.size}`);
+    }
+    return deleted;
   }
 
   // 添加玩家到房间
@@ -123,8 +128,14 @@ class RoomManager {
     const roomsToRemove = [];
 
     for (const [roomId, room] of this.rooms.entries()) {
-      if (now - room.getLastActivityTime() > this.roomTimeout) {
+      const inactiveTime = now - room.getLastActivityTime();
+      const inactiveMinutes = Math.round(inactiveTime / 1000 / 60);
+      
+      console.log(`房间 ${roomId}: 最后活动时间 ${inactiveMinutes} 分钟前, 超时限制 ${this.roomTimeout / 1000 / 60} 分钟`);
+      
+      if (inactiveTime > this.roomTimeout) {
         roomsToRemove.push(roomId);
+        console.log(`🗑️  清理房间 ${roomId} (已空闲 ${inactiveMinutes} 分钟, 超过 ${this.roomTimeout / 1000 / 60} 分钟限制)`);
       }
     }
 
@@ -132,9 +143,10 @@ class RoomManager {
     for (const roomId of roomsToRemove) {
       const room = this.rooms.get(roomId);
       if (room) {
+        console.log(`正在关闭房间 ${roomId}...`);
         room.closeRoom();
         this.deleteRoom(roomId);
-        console.log(`Room ${roomId} closed due to inactivity`);
+        console.log(`✅ 房间 ${roomId} 已成功清理`);
       }
     }
   }

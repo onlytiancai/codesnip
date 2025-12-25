@@ -342,11 +342,16 @@ const connectWebSocket = () => {
   ws.value.onclose = (event) => {
     console.log('WebSocket disconnected:', event.code, event.reason);
     
-    // 如果是正常关闭（1000）或离开房间操作，不自动重连
-    if (event.code !== 1000 || isInRoom.value) {
-      // 尝试重连
-      setTimeout(connectWebSocket, 3000);
+    // 停止所有心跳计时器
+    stopHeartbeatTimer();
+    stopNameInputHeartbeat();
+    
+    // 显示重连提示
+    if (isInRoom.value) {
+      showNotification('连接已断开，请刷新页面重新加入房间', 'leave');
     }
+    
+    // 不再自动重连，让用户手动处理
   };
   
   ws.value.onerror = (error) => {
