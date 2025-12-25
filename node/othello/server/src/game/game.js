@@ -239,9 +239,9 @@ class OthelloGame {
   }
 
   // 重置游戏
-  reset() {
+  reset(firstPlayer = this.BLACK) {
     this.board = this.initializeBoard();
-    this.currentPlayer = this.BLACK;
+    this.currentPlayer = firstPlayer;
     this.gameOver = false;
     this.winner = null;
     this.scores = { black: 2, white: 2 };

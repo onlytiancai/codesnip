@@ -9,6 +9,7 @@ class Room {
     this.maxPlayers = 2;
     this.gameStarted = false;
     this.lastActivityTime = Date.now();
+    this.previousFirstPlayer = this.game.BLACK; // 跟踪上一局的先手玩家
   }
 
   // 添加玩家到房间
@@ -71,9 +72,15 @@ class Room {
     // 更新最后活动时间
     this.lastActivityTime = Date.now();
     
-    // 重置游戏
-    this.game.reset();
+    // 计算新一局的先手玩家（与上一局相反）
+    const newFirstPlayer = this.previousFirstPlayer === this.game.BLACK ? this.game.WHITE : this.game.BLACK;
+    
+    // 重置游戏，传入新的先手玩家
+    this.game.reset(newFirstPlayer);
     this.gameStarted = true; // 保持游戏开始状态
+    
+    // 更新上一局的先手玩家记录
+    this.previousFirstPlayer = newFirstPlayer;
     
     // 广播游戏重置消息给所有玩家
     const message = JSON.stringify({
