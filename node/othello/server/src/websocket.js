@@ -43,7 +43,7 @@ const handleSendChat = (ws, payload, roomManager) => {
         type: 'CHAT_MESSAGE',
         payload: {
           playerName: player.name,
-          playerColor: player.color,
+          playerColor: player.isSpectator ? null : player.color,
           message: message,
           timestamp: Date.now()
         }

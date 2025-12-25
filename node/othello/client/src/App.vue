@@ -46,46 +46,47 @@
       </div>
       
       <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
-        <div class="flex justify-between items-center mb-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
           <div>
             <h2 class="text-2xl font-bold">房间ID: {{ currentRoomId }}</h2>
             <p class="text-gray-600">当前回合: {{ currentPlayer === 1 ? '黑棋' : '白棋' }}</p>
             <p class="text-gray-500 text-sm" v-if="!gameOver">游戏状态: {{ roomInfo?.gameStarted ? '已开始' : '等待玩家加入' }}</p>
-            <p class="text-gray-500 text-sm" v-if="playerColor">您是: {{ playerColor === 1 ? '黑方' : '白方' }}</p>
+            <p class="text-gray-500 text-sm" v-if="isSpectator">您是: 游客</p>
+            <p class="text-gray-500 text-sm" v-else-if="playerColor">您是: {{ playerColor === 1 ? '黑方' : '白方' }}</p>
             <p class="text-yellow-500 text-sm" v-if="!gameOver && currentPlayer !== playerColor">
               等待对方落子: {{ waitTime }}秒
             </p>
             <!-- 房间邀请URL -->
-            <div class="mt-2 flex items-center gap-2">
+            <div class="mt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <input 
                 type="text" 
                 :value="roomUrl" 
                 readonly 
-                class="flex-1 px-3 py-1 text-sm border border-gray-300 rounded bg-gray-100"
+                class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded bg-gray-100"
               />
               <button 
                 @click="copyRoomUrl" 
-                class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                class="px-4 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition"
               >
                 复制邀请链接
               </button>
             </div>
           </div>
-          <div class="flex gap-6">
+          <div class="flex flex-wrap items-center gap-3 sm:gap-6">
             <div class="text-center">
               <p class="font-semibold">黑棋</p>
-              <p class="text-sm text-gray-600">{{ getPlayerName(1) }}</p>
-              <p class="text-2xl font-bold text-gray-800">{{ scores.black }}</p>
+              <p class="text-xs sm:text-sm text-gray-600">{{ getPlayerName(1) }}</p>
+              <p class="text-xl sm:text-2xl font-bold text-gray-800">{{ scores.black }}</p>
             </div>
             <div class="text-center">
               <p class="font-semibold">白棋</p>
-              <p class="text-sm text-gray-600">{{ getPlayerName(2) }}</p>
-              <p class="text-2xl font-bold text-gray-800">{{ scores.white }}</p>
+              <p class="text-xs sm:text-sm text-gray-600">{{ getPlayerName(2) }}</p>
+              <p class="text-xl sm:text-2xl font-bold text-gray-800">{{ scores.white }}</p>
             </div>
-            <div>
+            <div class="mt-2 sm:mt-0">
               <button 
                 @click="leaveRoom" 
-                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
+                class="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
               >
                 退出房间
               </button>
@@ -128,9 +129,9 @@
               <div class="flex items-center gap-2 text-sm">
                 <span 
                   class="font-medium"
-                  :class="msg.playerColor === 1 ? 'text-gray-800' : 'text-white'"
+                  :class="msg.playerColor === 1 ? 'text-gray-800' : msg.playerColor === 2 ? 'text-gray-800' : 'text-gray-600'"
                 >
-                  {{ msg.playerName }} ({{ msg.playerColor === 1 ? '黑' : '白' }})
+                  {{ msg.playerName }} ({{ msg.playerColor === 1 ? '黑' : msg.playerColor === 2 ? '白' : '游客' }})
                 </span>
                 <span class="text-xs text-gray-500">
                   {{ new Date(msg.timestamp).toLocaleTimeString() }}
@@ -145,12 +146,12 @@
             </div>
           </div>
           <!-- 常用语发送按钮 -->
-          <div class="flex flex-wrap gap-2">
+          <div class="flex flex-wrap gap-2 justify-start">
             <button
               v-for="(msg, index) in commonMessages"
               :key="index"
               @click="sendChat(msg)"
-              class="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 rounded transition"
+              class="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 rounded transition whitespace-nowrap"
             >
               {{ msg }}
             </button>
@@ -170,6 +171,7 @@ const isInRoom = ref(false);
 const roomId = ref('');
 const currentRoomId = ref('');
 const playerColor = ref<number | null>(null);
+const isSpectator = ref(false); // 添加游客标识
 const board = ref<number[][]>([]);
 const currentPlayer = ref(1);
 const scores = ref({ black: 2, white: 2 });
@@ -180,11 +182,11 @@ const roomInfo = ref<any>(null);
 const notification = ref<{ message: string; type: 'join' | 'leave' } | null>(null);
 
 // 聊天系统
-const chatMessages = ref<{ playerName: string; playerColor: number; message: string; timestamp: number }[]>([]);
+const chatMessages = ref<{ playerName: string; playerColor: number | null; message: string; timestamp: number }[]>([]);
 const commonMessages = [
-  '催对方快点落子',
-  '夸对方下的不错',
-  '有事要离开',
+  '快点下呀',
+  '下的不错',
+  '不会意思，我有事要离开',
   '好的',
   '请稍等',
   '这一步很妙',
@@ -261,6 +263,7 @@ const handleWebSocketMessage = (message: any) => {
       isInRoom.value = true;
       currentRoomId.value = message.payload.roomId;
       playerColor.value = message.payload.playerColor;
+      isSpectator.value = playerColor.value === null; // 设置游客标识
       const room = message.payload.room;
       roomInfo.value = room;
       updateGameState(room.gameState);
