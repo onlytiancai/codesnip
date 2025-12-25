@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-green-700 p-2 rounded-lg shadow-lg w-full max-w-2xl mx-auto">
+  <div class="bg-green-700 p-1 sm:p-2 rounded-lg shadow-lg w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl mx-auto">
     <div class="grid grid-cols-8 gap-0.5">
       <!-- 棋盘格子 -->
       <div
@@ -27,7 +27,7 @@
               'animate-flip': isFlipping(rowIndex, colIndex)
             }"
           >
-            <span class="text-2xl font-bold">{{ board[rowIndex][colIndex] === 1 ? '●' : '○' }}</span>
+            <span class="text-xs sm:text-sm md:text-lg lg:text-xl xl:text-2xl font-bold">{{ board[rowIndex][colIndex] === 1 ? '●' : '○' }}</span>
           </div>
           <!-- 有效落子标记 -->
           <div
