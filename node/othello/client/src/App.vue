@@ -91,10 +91,15 @@
           <div>
             <h2 class="text-2xl font-bold">房间ID: {{ currentRoomId }}</h2>
             <p class="text-gray-600">当前回合: {{ currentPlayer === 1 ? '黑棋' : '白棋' }}</p>
-            <p class="text-gray-500 text-sm" v-if="!gameOver">游戏状态: {{ roomInfo?.gameStarted ? '已开始' : '等待玩家加入' }}</p>
+            <p class="text-gray-500 text-sm" v-if="!gameOver">
+              游戏状态: {{ getGameStatus() }}
+            </p>
             <p class="text-gray-500 text-sm" v-if="isSpectator">您是: 游客</p>
             <p class="text-gray-500 text-sm" v-else-if="playerColor">您是: {{ playerColor === 1 ? '黑方' : '白方' }}</p>
-            <p class="text-yellow-500 text-sm" :class="{ 'invisible': gameOver || currentPlayer === playerColor }">
+            <p class="text-red-500 text-sm" v-if="isOpponentOffline()">
+              对方已离线，等待重新加入...
+            </p>
+            <p class="text-yellow-500 text-sm" :class="{ 'invisible': gameOver || currentPlayer === playerColor || isOpponentOffline() }">
               等待对方落子: {{ waitTime }}秒
             </p>
             <!-- 房间邀请URL -->
@@ -282,6 +287,10 @@ const showRulesInJoin = ref(true);
 const waitTime = ref(0);
 let waitTimer: number | null = null;
 
+// 掉线检测
+const opponentOffline = ref(false);
+let offlineDetectionTimer: number | null = null;
+
 // WebSocket连接
 const ws = ref<WebSocket | null>(null);
 // 使用全局配置的WebSocket URL
@@ -312,6 +321,9 @@ const connectWebSocket = () => {
           playerColor: reconnectInfo.value.playerColor
         }
       }));
+      
+      // 显示重连提示
+      showNotification('正在尝试重新连接到游戏...', 'join');
     } else if (roomIdFromUrl) {
       pendingRoomId.value = roomIdFromUrl;
       showNameInput.value = true;
@@ -413,12 +425,25 @@ const handleWebSocketMessage = (message: any) => {
         ? `${message.payload.playerName} 作为游客加入了房间`
         : `${message.payload.playerName} (${message.payload.playerColor === 1 ? '黑方' : '白方'}) 加入了房间`;
       showNotification(joinMessage, 'join');
+      
+      // 检查是否是对手重新加入，清除离线状态
+      if (playerColor.value && message.payload.playerColor === (playerColor.value === 1 ? 2 : 1)) {
+        opponentOffline.value = false;
+        stopOfflineDetectionTimer();
+      }
       break;
       
     case 'PLAYER_LEFT':
       console.log('Player left:', message.payload);
       const leaveMessage = `${message.payload.playerName} (${message.payload.playerColor === 1 ? '黑方' : '白方'}) 离开了房间`;
       showNotification(leaveMessage, 'leave');
+      
+      // 检查是否是对手离开，更新离线状态
+      if (playerColor.value && message.payload.playerColor === (playerColor.value === 1 ? 2 : 1)) {
+        opponentOffline.value = true;
+        startOfflineDetectionTimer();
+      }
+      
       // 将离开通知添加到聊天历史
       chatMessages.value.push({
         playerName: '系统',
@@ -494,6 +519,9 @@ const updateGameState = (gameState: any) => {
   // 控制计时器
   if (gameOver.value) {
     stopWaitTimer();
+  } else if (opponentOffline.value) {
+    // 对方离线，停止计时器
+    stopWaitTimer();
   } else if (playerColor.value && currentPlayer.value !== playerColor.value) {
     // 对方回合，启动计时器
     startWaitTimer();
@@ -528,6 +556,64 @@ const showNotification = (message: string, type: 'join' | 'leave') => {
   setTimeout(() => {
     notification.value = null;
   }, 3000);
+};
+
+// 获取游戏状态描述
+const getGameStatus = () => {
+  if (!roomInfo.value?.gameStarted) {
+    return '等待玩家加入';
+  }
+  
+  if (gameOver.value) {
+    return '游戏已结束';
+  }
+  
+  if (isOpponentOffline.value) {
+    return '等待对方重新加入';
+  }
+  
+  if (isSpectator.value) {
+    return '观战模式';
+  }
+  
+  return '游戏进行中';
+};
+
+// 检测对方是否离线
+const isOpponentOffline = () => {
+  if (!roomInfo.value?.players || isSpectator.value || !playerColor.value) {
+    return false;
+  }
+  
+  // 获取对手颜色
+  const opponentColor = playerColor.value === 1 ? 2 : 1;
+  const opponent = roomInfo.value.players.find((p: any) => p.color === opponentColor);
+  
+  // 如果没有对手玩家，或者对手是游客，说明对方离线
+  if (!opponent || opponent.isSpectator) {
+    return true;
+  }
+  
+  return opponentOffline.value;
+};
+
+// 启动掉线检测计时器
+const startOfflineDetectionTimer = () => {
+  stopOfflineDetectionTimer();
+  // 30秒后如果对方还没有重新加入，显示更强的离线提示
+  offlineDetectionTimer = window.setTimeout(() => {
+    if (opponentOffline.value) {
+      showNotification('对方可能已离线，请耐心等待或考虑寻找新对手', 'leave');
+    }
+  }, 30000);
+};
+
+// 停止掉线检测计时器
+const stopOfflineDetectionTimer = () => {
+  if (offlineDetectionTimer) {
+    clearTimeout(offlineDetectionTimer);
+    offlineDetectionTimer = null;
+  }
 };
 
 // 创建房间
@@ -596,15 +682,16 @@ const leaveRoom = () => {
       }
     }));
   }
-  // 停止计时器
+  // 停止所有计时器
   stopWaitTimer();
-  // 停止心跳计时器
   stopHeartbeatTimer();
+  stopOfflineDetectionTimer();
   // 重置游戏状态
   isInRoom.value = false;
   currentRoomId.value = '';
   playerColor.value = null;
   roomInfo.value = null;
+  opponentOffline.value = false;
   // 清空聊天记录
   chatMessages.value = [];
   // 重置游戏板和分数
