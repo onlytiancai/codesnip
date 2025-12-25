@@ -8,6 +8,8 @@
       <p class="text-gray-600">当前在线人数: {{ stats.onlinePlayerCount }}</p>
     </div>
     
+
+    
     <!-- 房间创建/加入界面 -->
     <div v-if="!isInRoom && !showNameInput" class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
       <div class="mb-6">
@@ -46,6 +48,8 @@
         <p class="text-gray-600">房间ID: <span class="font-mono bg-white px-2 py-1 rounded">{{ pendingRoomId }}</span></p>
         <p class="text-gray-600 mt-2">欢迎加入奥赛罗棋游戏！请输入您的昵称开始游戏。</p>
       </div>
+      
+
       <div class="mb-4">
         <label for="playerName" class="block text-sm font-medium text-gray-700 mb-1">昵称</label>
         <input
@@ -202,6 +206,24 @@
         </div>
       </div>
     </div>
+    
+    <!-- 游戏规则介绍 -->
+    <div v-if="!isInRoom" class="mt-10 bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+      <div class="flex justify-between items-center cursor-pointer" @click="showRules = !showRules">
+        <h2 class="text-xl font-semibold text-gray-800">游戏规则</h2>
+        <svg :class="{'transform rotate-180': showRules}" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+      <div v-if="showRules" class="mt-4 text-gray-700 space-y-3">
+        <p>1. 游戏在8x8的棋盘上进行，黑白双方交替落子</p>
+        <p>2. 每一步必须翻转至少一个对方的棋子（夹在自己的棋子之间）</p>
+        <p>3. 如果某一方无法落子，则跳过该回合</p>
+        <p>4. 当双方都无法落子或棋盘填满时，游戏结束</p>
+        <p>5. 棋盘上棋子数量多的一方获胜</p>
+        <p>6. 黑方先行，初始时棋盘中心放置2黑2白四个棋子</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -247,6 +269,10 @@ const commonMessages = [
 
 // 统计信息
 const stats = ref({ roomCount: 0, onlinePlayerCount: 0 });
+
+// 游戏规则显示控制
+const showRules = ref(true);
+const showRulesInJoin = ref(true);
 
 // 计时器
 const waitTime = ref(0);
@@ -523,11 +549,10 @@ const confirmJoinRoom = () => {
 const cancelJoinRoom = () => {
   showNameInput.value = false;
   playerName.value = '';
-  // 如果是从URL参数进入的，清除pendingRoomId
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('roomId')) {
-    // 不直接修改URL，保持当前状态
-  }
+  // 清除URL中的roomId参数，返回到首页
+  const url = new URL(window.location.href);
+  url.searchParams.delete('roomId');
+  window.history.replaceState({}, '', url);
 };
 
 // 退出房间
@@ -554,6 +579,10 @@ const leaveRoom = () => {
   gameOver.value = false;
   winner.value = null;
   validMoves.value = [];
+  // 清除URL中的roomId参数，返回到首页
+  const url = new URL(window.location.href);
+  url.searchParams.delete('roomId');
+  window.history.replaceState({}, '', url);
 };
 
 // 根据颜色获取玩家昵称
