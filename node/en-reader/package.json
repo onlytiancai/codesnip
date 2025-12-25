@@ -1,0 +1,21 @@
+{
+  "name": "en-reader",
+  "version": "1.0.0",
+  "description": "这是一个功能丰富的英语阅读器应用，使用 Vue 3 和浏览器 Speech Synthesis API 开发，提供以下核心功能：",
+  "type": "module",
+  "main": "main.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha test/tokenizer.test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^6.2.1",
+    "mocha": "^11.7.5"
+  }
+}

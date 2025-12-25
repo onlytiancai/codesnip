@@ -1,0 +1,147 @@
+// 引入 Mocha 和 Chai (通过代理模块动态选择导入源)
+import { expect } from './chai-proxy.js';
+
+// 引入要测试的模块
+import { tokenizePreserve, analyzeText, setWordBlocksIPA } from '../utils/tokenizer.js';
+console.log('tokenizer 模块加载成功', { tokenizePreserve, analyzeText, setWordBlocksIPA });
+
+// 测试用例
+describe('tokenizePreserve', () => {
+  it('should tokenize simple text correctly', () => {
+    const text = 'Hello world! This is a test.';
+    const tokens = tokenizePreserve(text);
+    expect(tokens).to.deep.equal(['Hello', 'world', '!', 'This', 'is', 'a', 'test', '.']);
+  });
+
+  it('should preserve punctuation', () => {
+    const text = 'Hello, world! How are you?';
+    const tokens = tokenizePreserve(text);
+    expect(tokens).to.deep.equal(['Hello', ',', 'world', '!', 'How', 'are', 'you', '?']);
+  });
+
+  it('should handle hyphenated words', () => {
+    const text = 'well-known person';
+    const tokens = tokenizePreserve(text);
+    expect(tokens).to.deep.equal(['well-known', 'person']);
+  });
+
+  it('should handle newlines', () => {
+    const text = 'Hello\nworld';
+    const tokens = tokenizePreserve(text);
+    expect(tokens).to.deep.equal(['Hello', '\n', 'world']);
+  });
+
+  it('should handle abbreviations', () => {
+    const text = 'e.g., i.e., etc.';
+    const tokens = tokenizePreserve(text);
+    expect(tokens).to.deep.equal(['e.g.', ',', 'i.e.',',', 'etc','.']);
+  });
+
+  it('should handle special characters', () => {
+    const text = 'Hello\'world it\’s a test';
+    const tokens = tokenizePreserve(text);
+    expect(tokens).to.deep.equal(['Hello\'world', 'it\’s', 'a', 'test']);
+  });
+
+  it('should handle version numbers and complex words', () => {
+    const text = 'Today we released GPT-5.2 in the API and ChatGPT—our most advanced frontier model yet and our best model for real-world agentic work.';
+    const tokens = tokenizePreserve(text);
+    expect(tokens).to.deep.equal([
+      'Today', 'we', 'released', 'GPT-5.2', 'in', 'the', 'API', 'and', 'ChatGPT', '—',
+      'our', 'most', 'advanced', 'frontier', 'model', 'yet', 'and', 'our', 'best',
+      'model', 'for', 'real-world', 'agentic', 'work', '.'
+    ]);
+  });
+});
+
+describe('analyzeText', () => {
+  it('should analyze simple text', async () => {
+    const text = 'Hello world!';
+    const fetchIPA = async (word) => `/${word}/`;
+
+    // Use the new analyzeText function
+    const { wordBlocks, sentences, paragraphs } = analyzeText(text);
+    
+    // Set IPA for word blocks
+    await setWordBlocksIPA(wordBlocks, fetchIPA);
+
+    expect(wordBlocks).to.have.lengthOf(3);
+    expect(wordBlocks[0].word).to.equal('Hello');
+    expect(wordBlocks[0].ipa).to.equal('/hello/');
+    expect(wordBlocks[1].word).to.equal('world');
+    expect(wordBlocks[1].ipa).to.equal('/world/');
+    expect(wordBlocks[2].word).to.equal('!');
+    expect(wordBlocks[2].ipa).to.equal(null);
+    expect(sentences).to.have.lengthOf(1);
+    expect(sentences[0].words).to.have.lengthOf(3);
+    expect(paragraphs).to.have.lengthOf(1);
+  });
+
+  it('should handle multiple sentences', async () => {
+    const text = 'Hello world! This is a test.';
+    const fetchIPA = async (word) => `/${word}/`;
+
+    // Use the new analyzeText function
+    const { wordBlocks, sentences, paragraphs } = analyzeText(text);
+    
+    // Set IPA for word blocks
+    await setWordBlocksIPA(wordBlocks, fetchIPA);
+
+    expect(wordBlocks).to.have.lengthOf(8);
+    expect(sentences).to.have.lengthOf(2);
+    expect(sentences[0].words).to.have.lengthOf(3); // Hello, world, !
+    expect(sentences[1].words).to.have.lengthOf(5); // This, is, a, test, .
+    expect(paragraphs).to.have.lengthOf(1);
+  });
+
+  it('should handle hyphenated words', async () => {
+    const text = 'well-known person';
+    const fetchIPA = async (word) => `/${word}/`;
+
+    // Use the new analyzeText function
+    const { wordBlocks, sentences, paragraphs } = analyzeText(text);
+    
+    // Set IPA for word blocks
+    await setWordBlocksIPA(wordBlocks, fetchIPA);
+
+    expect(wordBlocks).to.have.lengthOf(2);
+    expect(wordBlocks[0].word).to.equal('well-known');
+    expect(wordBlocks[0].ipa).to.equal('/well/-/known/');
+    expect(wordBlocks[1].word).to.equal('person');
+    expect(wordBlocks[1].ipa).to.equal('/person/');
+    expect(sentences).to.have.lengthOf(1);
+    expect(paragraphs).to.have.lengthOf(1);
+  });
+
+  it('should handle empty text', async () => {
+    const text = '';
+    const fetchIPA = async (word) => `/${word}/`;
+
+    // Use the new analyzeText function
+    const { wordBlocks, sentences, paragraphs } = analyzeText(text);
+    
+    // Set IPA for word blocks
+    await setWordBlocksIPA(wordBlocks, fetchIPA);
+
+    expect(wordBlocks).to.have.lengthOf(0);
+    expect(sentences).to.have.lengthOf(0);
+    expect(paragraphs).to.have.lengthOf(0);
+  });
+
+  it('should handle paragraphs with newlines', async () => {
+    const text = 'First paragraph.\n\nSecond paragraph.';
+    const fetchIPA = async (word) => `/${word}/`;
+
+    // Use the new analyzeText function
+    const { wordBlocks, sentences, paragraphs } = analyzeText(text);
+    
+    // Set IPA for word blocks
+    await setWordBlocksIPA(wordBlocks, fetchIPA);
+
+    expect(wordBlocks).to.have.lengthOf(6);
+    expect(sentences).to.have.lengthOf(3); // 两个段落 + 一个换行句子
+    expect(sentences[0].paragraphIndex).to.equal(0);
+    expect(sentences[2].paragraphIndex).to.equal(1);
+    expect(paragraphs).to.have.lengthOf(2);
+  });
+});

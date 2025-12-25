@@ -1,0 +1,4000 @@
+{
+  "Unit 1": [
+    {
+      "id": 1,
+      "word": "rubbish",
+      "phonetic": "'rʌbɪʃ/",
+      "chinese": "n. 垃圾; 废弃物",
+      "cn_mp3_txt": [
+        "垃圾",
+        "废弃物"
+      ]
+    },
+    {
+      "id": 2,
+      "word": "take out the rubbish",
+      "phonetic": "",
+      "chinese": "倒垃圾",
+      "cn_mp3_txt": [
+        "倒垃圾"
+      ]
+    },
+    {
+      "id": 3,
+      "word": "fold",
+      "phonetic": "fəʊld/",
+      "chinese": "v. 折叠; 对折",
+      "cn_mp3_txt": [
+        "折叠",
+        "对折"
+      ]
+    },
+    {
+      "id": 4,
+      "word": "sweep",
+      "phonetic": "swi:p/",
+      "chinese": "v. 扫; 打扫",
+      "cn_mp3_txt": [
+        "扫",
+        "打扫"
+      ]
+    },
+    {
+      "id": 5,
+      "word": "floor",
+      "phonetic": "flɔ:(r)/",
+      "chinese": "n. 地板",
+      "cn_mp3_txt": [
+        "地板"
+      ]
+    },
+    {
+      "id": 6,
+      "word": "mess",
+      "phonetic": "mes/",
+      "chinese": "n. 杂乱; 不整洁",
+      "cn_mp3_txt": [
+        "杂乱",
+        "不整洁"
+      ]
+    },
+    {
+      "id": 7,
+      "word": "throw",
+      "phonetic": "θrəʊ/",
+      "chinese": "v. 扔; 掷",
+      "cn_mp3_txt": [
+        "扔",
+        "掷"
+      ]
+    },
+    {
+      "id": 8,
+      "word": "all the time",
+      "phonetic": "",
+      "chinese": "频繁; 反复",
+      "cn_mp3_txt": [
+        "频繁",
+        "反复"
+      ]
+    },
+    {
+      "id": 9,
+      "word": "neither",
+      "phonetic": "'naɪðə/, /'ni:ðə(r)/",
+      "chinese": "adv. 也不",
+      "cn_mp3_txt": [
+        "也不"
+      ]
+    },
+    {
+      "id": 10,
+      "word": "shirt",
+      "phonetic": "ʃɜ:(r)t/",
+      "chinese": "n. 衬衫",
+      "cn_mp3_txt": [
+        "衬衫"
+      ]
+    },
+    {
+      "id": 11,
+      "word": "as soon as",
+      "phonetic": "",
+      "chinese": "一......就......; 尽快",
+      "cn_mp3_txt": [
+        "一什么什么就什么什么",
+        "尽快"
+      ]
+    },
+    {
+      "id": 12,
+      "word": "pass",
+      "phonetic": "pɑ:s/, /pæs/",
+      "chinese": "v. 给; 递; 走过; 通过",
+      "cn_mp3_txt": [
+        "给",
+        "递",
+        "走过",
+        "通过"
+      ]
+    },
+    {
+      "id": 13,
+      "word": "borrow",
+      "phonetic": "'bɒrəʊ/, /'bɑ:rəʊ",
+      "chinese": "v. 借; 借用",
+      "cn_mp3_txt": [
+        "借",
+        "借用"
+      ]
+    },
+    {
+      "id": 14,
+      "word": "lend",
+      "phonetic": "lend/",
+      "chinese": "v. 借给; 借出",
+      "cn_mp3_txt": [
+        "借给",
+        "借出"
+      ]
+    },
+    {
+      "id": 15,
+      "word": "finger",
+      "phonetic": "'fɪŋgə(r)/",
+      "chinese": "n. 手指",
+      "cn_mp3_txt": [
+        "手指"
+      ]
+    },
+    {
+      "id": 16,
+      "word": "hate",
+      "phonetic": "heɪt/",
+      "chinese": "v. 厌恶; 讨厌",
+      "cn_mp3_txt": [
+        "厌恶",
+        "讨厌"
+      ]
+    },
+    {
+      "id": 17,
+      "word": "chore",
+      "phonetic": "tʃɔ:(r)/",
+      "chinese": "n. 杂务; 乏味无聊的工作",
+      "cn_mp3_txt": [
+        "杂务",
+        "乏味无聊的工作"
+      ]
+    },
+    {
+      "id": 18,
+      "word": "while",
+      "phonetic": "waɪl/",
+      "chinese": "conj. 与......同时; 当......的时候; 而; 然而",
+      "cn_mp3_txt": [
+        "与什么什么同时",
+        "当什么什么的时候",
+        "而",
+        "然而"
+      ]
+    },
+    {
+      "id": 19,
+      "word": "snack",
+      "phonetic": "snæk/",
+      "chinese": "n. 点心; 小吃; 快餐",
+      "cn_mp3_txt": [
+        "点心",
+        "小吃",
+        "快餐"
+      ]
+    },
+    {
+      "id": 20,
+      "word": "stress",
+      "phonetic": "stres/",
+      "chinese": "n. 精神压力; 心理负担",
+      "cn_mp3_txt": [
+        "精神压力",
+        "心理负担"
+      ]
+    },
+    {
+      "id": 21,
+      "word": "waste",
+      "phonetic": "weɪst/",
+      "chinese": "n. 浪费; 垃圾 v. 浪费; 滥用",
+      "cn_mp3_txt": [
+        "浪费",
+        "垃圾",
+        "浪费",
+        "滥用"
+      ]
+    },
+    {
+      "id": 22,
+      "word": "in order to",
+      "phonetic": "",
+      "chinese": "目的是; 为了",
+      "cn_mp3_txt": [
+        "目的是",
+        "为了"
+      ]
+    },
+    {
+      "id": 23,
+      "word": "provide",
+      "phonetic": "prə'vaɪd/",
+      "chinese": "v. 提供; 供应",
+      "cn_mp3_txt": [
+        "提供",
+        "供应"
+      ]
+    },
+    {
+      "id": 24,
+      "word": "anyway",
+      "phonetic": "'eniweɪ/",
+      "chinese": "adv. 而且; 加之",
+      "cn_mp3_txt": [
+        "而且",
+        "加之"
+      ]
+    },
+    {
+      "id": 25,
+      "word": "depend",
+      "phonetic": "dɪ'pend/",
+      "chinese": "v. 依靠; 信赖",
+      "cn_mp3_txt": [
+        "依靠",
+        "信赖"
+      ]
+    },
+    {
+      "id": 26,
+      "word": "depend on",
+      "phonetic": "",
+      "chinese": "依靠; 信赖",
+      "cn_mp3_txt": [
+        "依靠",
+        "信赖"
+      ]
+    },
+    {
+      "id": 27,
+      "word": "develop",
+      "phonetic": "dɪ'veləp/",
+      "chinese": "v. 发展; 壮大",
+      "cn_mp3_txt": [
+        "发展",
+        "壮大"
+      ]
+    },
+    {
+      "id": 28,
+      "word": "independence",
+      "phonetic": "ɪndɪ'pendəns/",
+      "chinese": "n. 独立",
+      "cn_mp3_txt": [
+        "独立"
+      ]
+    },
+    {
+      "id": 29,
+      "word": "fairness",
+      "phonetic": "'feənəs/ , /'fernəs",
+      "chinese": "n. 公正性; 合理性",
+      "cn_mp3_txt": [
+        "公正性",
+        "合理性"
+      ]
+    },
+    {
+      "id": 30,
+      "word": "since",
+      "phonetic": "sɪns/",
+      "chinese": "conj. 因为; 既然 prep.,conj. & adv. 从......以后; 自......以来",
+      "cn_mp3_txt": [
+        "因为",
+        "既然",
+        "从什么什么以后",
+        "自什么什么以来"
+      ]
+    },
+    {
+      "id": 31,
+      "word": "neighbor (neighbour)",
+      "phonetic": "'neɪbə(r)",
+      "chinese": "n. 邻居",
+      "cn_mp3_txt": [
+        "邻居"
+      ]
+    },
+    {
+      "id": 32,
+      "word": "take care of",
+      "phonetic": "",
+      "chinese": "照顾; 处理",
+      "cn_mp3_txt": [
+        "照顾",
+        "处理"
+      ]
+    },
+    {
+      "id": 33,
+      "word": "ill",
+      "phonetic": "ɪl/",
+      "chinese": "adj. 有病; 不舒服",
+      "cn_mp3_txt": [
+        "有病",
+        "不舒服"
+      ]
+    },
+    {
+      "id": 34,
+      "word": "drop",
+      "phonetic": "drɒp/, /drɑ:p",
+      "chinese": "v. 落下; 掉下",
+      "cn_mp3_txt": [
+        "落下",
+        "掉下"
+      ]
+    },
+    {
+      "id": 35,
+      "word": "independent",
+      "phonetic": "ɪndɪ'pendənt/",
+      "chinese": "adj. 独立的; 自主的",
+      "cn_mp3_txt": [
+        "独立的",
+        "自主的"
+      ]
+    },
+    {
+      "id": 36,
+      "word": "fair",
+      "phonetic": "feə/, /fer/",
+      "chinese": "adj. 合理的; 公正的",
+      "cn_mp3_txt": [
+        "合理的",
+        "公正的"
+      ]
+    },
+    {
+      "id": 37,
+      "word": "unfair",
+      "phonetic": "ʌn'feə/, /ʌn'fer/",
+      "chinese": "adj. 不合理的; 不公正的",
+      "cn_mp3_txt": [
+        "不合理的",
+        "不公正的"
+      ]
+    },
+    {
+      "id": 38,
+      "word": "Sandy",
+      "phonetic": "'sændi/",
+      "chinese": "桑迪（女名）",
+      "cn_mp3_txt": [
+        "桑迪（女名）"
+      ]
+    }
+  ],
+  "Unit 2": [
+    {
+      "id": 1,
+      "word": "allow",
+      "phonetic": "ə'laʊ/",
+      "chinese": "v. 允许; 准许",
+      "cn_mp3_txt": [
+        "允许",
+        "准许"
+      ]
+    },
+    {
+      "id": 2,
+      "word": "wrong",
+      "phonetic": "rɒŋ/, /rɔ:ŋ",
+      "chinese": "adj. 有毛病; 错误的",
+      "cn_mp3_txt": [
+        "有毛病",
+        "错误的"
+      ]
+    },
+    {
+      "id": 3,
+      "word": "What' s wrong?",
+      "phonetic": "",
+      "chinese": "哪儿不舒服?",
+      "cn_mp3_txt": [
+        "哪儿不舒服?"
+      ]
+    },
+    {
+      "id": 4,
+      "word": "midnight",
+      "phonetic": "'mɪdnaɪt/",
+      "chinese": "n. 午夜; 子夜",
+      "cn_mp3_txt": [
+        "午夜",
+        "子夜"
+      ]
+    },
+    {
+      "id": 5,
+      "word": "look through",
+      "phonetic": "",
+      "chinese": "快速查看; 浏览",
+      "cn_mp3_txt": [
+        "快速查看",
+        "浏览"
+      ]
+    },
+    {
+      "id": 6,
+      "word": "guess",
+      "phonetic": "ges/",
+      "chinese": "v. 猜测; 估计",
+      "cn_mp3_txt": [
+        "猜测",
+        "估计"
+      ]
+    },
+    {
+      "id": 7,
+      "word": "deal",
+      "phonetic": "di:l/",
+      "chinese": "n. 协议; 交易",
+      "cn_mp3_txt": [
+        "协议",
+        "交易"
+      ]
+    },
+    {
+      "id": 8,
+      "word": "big deal",
+      "phonetic": "",
+      "chinese": "重要的事",
+      "cn_mp3_txt": [
+        "重要的事"
+      ]
+    },
+    {
+      "id": 9,
+      "word": "work out",
+      "phonetic": "",
+      "chinese": "成功地发展; 解决",
+      "cn_mp3_txt": [
+        "成功地发展",
+        "解决"
+      ]
+    },
+    {
+      "id": 10,
+      "word": "get on with",
+      "phonetic": "",
+      "chinese": "和睦相处; 关系良好",
+      "cn_mp3_txt": [
+        "和睦相处",
+        "关系良好"
+      ]
+    },
+    {
+      "id": 11,
+      "word": "relation",
+      "phonetic": "rɪ'leɪʃn/",
+      "chinese": "n. 关系; 联系; 交往",
+      "cn_mp3_txt": [
+        "关系",
+        "联系",
+        "交往"
+      ]
+    },
+    {
+      "id": 12,
+      "word": "communication",
+      "phonetic": "kə,mju:nɪ'keɪʃn/",
+      "chinese": "n. 交流; 沟通",
+      "cn_mp3_txt": [
+        "交流",
+        "沟通"
+      ]
+    },
+    {
+      "id": 13,
+      "word": "argue",
+      "phonetic": "'ɑ:(r)gju:/",
+      "chinese": "v. 争吵; 争论",
+      "cn_mp3_txt": [
+        "争吵",
+        "争论"
+      ]
+    },
+    {
+      "id": 14,
+      "word": "cloud",
+      "phonetic": "klaʊd/",
+      "chinese": "n. 云; 云朵",
+      "cn_mp3_txt": [
+        "云",
+        "云朵"
+      ]
+    },
+    {
+      "id": 15,
+      "word": "elder",
+      "phonetic": "'eldə(r)/",
+      "chinese": "adj. 年纪较长的",
+      "cn_mp3_txt": [
+        "年纪较长的"
+      ]
+    },
+    {
+      "id": 16,
+      "word": "instead",
+      "phonetic": "ɪn'sted/",
+      "chinese": "adv. 代替; 反而; 却",
+      "cn_mp3_txt": [
+        "代替",
+        "反而",
+        "却"
+      ]
+    },
+    {
+      "id": 17,
+      "word": "whatever",
+      "phonetic": "wɒt'evə/, /wɑ:t'evər/",
+      "chinese": "pron. 任何; 每一",
+      "cn_mp3_txt": [
+        "任何",
+        "每一"
+      ]
+    },
+    {
+      "id": 18,
+      "word": "nervous",
+      "phonetic": "'nɜ:(r)vəs/",
+      "chinese": "adj. 焦虑的; 担忧的",
+      "cn_mp3_txt": [
+        "焦虑的",
+        "担忧的"
+      ]
+    },
+    {
+      "id": 19,
+      "word": "offer",
+      "phonetic": "'ɒfə/, /'ɑ:fər/",
+      "chinese": "v. 主动提出; 自愿给予",
+      "cn_mp3_txt": [
+        "主动提出",
+        "自愿给予"
+      ]
+    },
+    {
+      "id": 20,
+      "word": "proper",
+      "phonetic": "'prɒpə/, /'prɑ:pər",
+      "chinese": "adj. 正确的; 恰当的",
+      "cn_mp3_txt": [
+        "正确的",
+        "恰当的"
+      ]
+    },
+    {
+      "id": 21,
+      "word": "secondly",
+      "phonetic": "'sekəndli/",
+      "chinese": "adv. 第二; 其次",
+      "cn_mp3_txt": [
+        "第二",
+        "其次"
+      ]
+    },
+    {
+      "id": 22,
+      "word": "communicate",
+      "phonetic": "kə'mju:nɪkeɪt/",
+      "chinese": "v. 交流; 沟通",
+      "cn_mp3_txt": [
+        "交流",
+        "沟通"
+      ]
+    },
+    {
+      "id": 23,
+      "word": "explain",
+      "phonetic": "ɪks'pleɪn/",
+      "chinese": "v. 解释; 说明",
+      "cn_mp3_txt": [
+        "解释",
+        "说明"
+      ]
+    },
+    {
+      "id": 24,
+      "word": "clear",
+      "phonetic": "klɪə/ , /klɪr",
+      "chinese": "adj. 清楚易懂的; 晴朗的",
+      "cn_mp3_txt": [
+        "清楚易懂的",
+        "晴朗的"
+      ]
+    },
+    {
+      "id": 25,
+      "word": "copy",
+      "phonetic": "'kɒpi/, /'kɑ:pi/",
+      "chinese": "v. 抄袭; 模仿; 复制; 复印",
+      "cn_mp3_txt": [
+        "抄袭",
+        "模仿",
+        "复制",
+        "复印"
+      ]
+    },
+    {
+      "id": 26,
+      "word": "return",
+      "phonetic": "rɪ'tɜ:(r)n/",
+      "chinese": "v. 归还; 回来; 返回",
+      "cn_mp3_txt": [
+        "归还",
+        "回来",
+        "返回"
+      ]
+    },
+    {
+      "id": 27,
+      "word": "anymore",
+      "phonetic": "eni'mɔ:(r)",
+      "chinese": "adv. （常用于否定句和疑问句末）再也（不）;",
+      "cn_mp3_txt": [
+        "（常用于否定句和疑问句末）再也（不）"
+      ]
+    },
+    {
+      "id": 28,
+      "word": "member",
+      "phonetic": "'membə(r)/",
+      "chinese": "n. 成员; 分子",
+      "cn_mp3_txt": [
+        "成员",
+        "分子"
+      ]
+    },
+    {
+      "id": 29,
+      "word": "pressure",
+      "phonetic": "'preʃə(r)/",
+      "chinese": "n. 压力",
+      "cn_mp3_txt": [
+        "压力"
+      ]
+    },
+    {
+      "id": 30,
+      "word": "compete",
+      "phonetic": "kəm'pi:t/",
+      "chinese": "v. 竞争; 对抗",
+      "cn_mp3_txt": [
+        "竞争",
+        "对抗"
+      ]
+    },
+    {
+      "id": 31,
+      "word": "opinion",
+      "phonetic": "ə'pɪnjən/",
+      "chinese": "n. 意见; 想法; 看法",
+      "cn_mp3_txt": [
+        "意见",
+        "想法",
+        "看法"
+      ]
+    },
+    {
+      "id": 32,
+      "word": "skill",
+      "phonetic": "skɪl/",
+      "chinese": "n. 技艺; 技巧",
+      "cn_mp3_txt": [
+        "技艺",
+        "技巧"
+      ]
+    },
+    {
+      "id": 33,
+      "word": "typical",
+      "phonetic": "'tɪpɪkl/",
+      "chinese": "adj. 典型的",
+      "cn_mp3_txt": [
+        "典型的"
+      ]
+    },
+    {
+      "id": 34,
+      "word": "football",
+      "phonetic": "'fʊtbɔ:l/",
+      "chinese": "n. （美式）橄榄球; 足球",
+      "cn_mp3_txt": [
+        "（美式）橄榄球",
+        "足球"
+      ]
+    },
+    {
+      "id": 35,
+      "word": "cut out",
+      "phonetic": "",
+      "chinese": "删除; 删去",
+      "cn_mp3_txt": [
+        "删除",
+        "删去"
+      ]
+    },
+    {
+      "id": 36,
+      "word": "quick",
+      "phonetic": "kwɪk/",
+      "chinese": "adj. 快的; 迅速的; 时间短暂的",
+      "cn_mp3_txt": [
+        "快的",
+        "迅速的",
+        "时间短暂的"
+      ]
+    },
+    {
+      "id": 37,
+      "word": "continue",
+      "phonetic": "kən'tɪnju:/",
+      "chinese": "v. 持续; 继续存在",
+      "cn_mp3_txt": [
+        "持续",
+        "继续存在"
+      ]
+    },
+    {
+      "id": 38,
+      "word": "compare",
+      "phonetic": "kəm'peə/, /kəm'per",
+      "chinese": "v. 比较",
+      "cn_mp3_txt": [
+        "比较"
+      ]
+    },
+    {
+      "id": 39,
+      "word": "compare … with",
+      "phonetic": "",
+      "chinese": "比较；对比",
+      "cn_mp3_txt": [
+        "比较",
+        "对比"
+      ]
+    },
+    {
+      "id": 40,
+      "word": "crazy",
+      "phonetic": "'kreɪzi/",
+      "chinese": "adj. 不理智的; 疯狂的",
+      "cn_mp3_txt": [
+        "不理智的",
+        "疯狂的"
+      ]
+    },
+    {
+      "id": 41,
+      "word": "push",
+      "phonetic": "pʊʃ/",
+      "chinese": "v. 鞭策; 督促; 推动",
+      "cn_mp3_txt": [
+        "鞭策",
+        "督促",
+        "推动"
+      ]
+    },
+    {
+      "id": 42,
+      "word": "development",
+      "phonetic": "dɪ'veləpmənt/",
+      "chinese": "n. 发展; 发育; 成长",
+      "cn_mp3_txt": [
+        "发展",
+        "发育",
+        "成长"
+      ]
+    },
+    {
+      "id": 43,
+      "word": "cause",
+      "phonetic": "kɔ:z/",
+      "chinese": "v. 造成; 引起",
+      "cn_mp3_txt": [
+        "造成",
+        "引起"
+      ]
+    },
+    {
+      "id": 44,
+      "word": "usual",
+      "phonetic": "'ju:ʒuəl/",
+      "chinese": "adj. 通常的; 寻常的",
+      "cn_mp3_txt": [
+        "通常的",
+        "寻常的"
+      ]
+    },
+    {
+      "id": 45,
+      "word": "in one' s opinion",
+      "phonetic": "",
+      "chinese": "依......看",
+      "cn_mp3_txt": [
+        "依什么什么看"
+      ]
+    },
+    {
+      "id": 46,
+      "word": "perhaps",
+      "phonetic": "pə(r)'hæps/",
+      "chinese": "adv. 可能; 大概; 也许",
+      "cn_mp3_txt": [
+        "可能",
+        "大概",
+        "也许"
+      ]
+    },
+    {
+      "id": 47,
+      "word": "Cathy",
+      "phonetic": "'kæθi",
+      "chinese": "凯茜 （女名）",
+      "cn_mp3_txt": [
+        "凯茜（女名）"
+      ]
+    },
+    {
+      "id": 48,
+      "word": "Taylor",
+      "phonetic": "'teɪlə(r)",
+      "chinese": "泰勒（姓）",
+      "cn_mp3_txt": [
+        "泰勒（姓）"
+      ]
+    }
+  ],
+  "Unit 3": [
+    {
+      "id": 1,
+      "word": "rainstorm",
+      "phonetic": "'reɪnstɔ:(r)m/",
+      "chinese": "n. 暴风雨",
+      "cn_mp3_txt": [
+        "暴风雨"
+      ]
+    },
+    {
+      "id": 2,
+      "word": "alarm",
+      "phonetic": "ə'lɑ:(r)m/",
+      "chinese": "n. 闹钟",
+      "cn_mp3_txt": [
+        "闹钟"
+      ]
+    },
+    {
+      "id": 3,
+      "word": "go off",
+      "phonetic": "",
+      "chinese": "（闹钟）发出响声",
+      "cn_mp3_txt": [
+        "（闹钟）发出响声"
+      ]
+    },
+    {
+      "id": 4,
+      "word": "begin",
+      "phonetic": "bɪ'gɪn/",
+      "chinese": "v. 开始",
+      "cn_mp3_txt": [
+        "开始"
+      ]
+    },
+    {
+      "id": 5,
+      "word": "heavily",
+      "phonetic": "'hevɪli/",
+      "chinese": "adv. 在很大程度上; 大量地",
+      "cn_mp3_txt": [
+        "在很大程度上",
+        "大量地"
+      ]
+    },
+    {
+      "id": 6,
+      "word": "suddenly",
+      "phonetic": "'sʌdənli/",
+      "chinese": "adv. 突然; 忽然",
+      "cn_mp3_txt": [
+        "突然",
+        "忽然"
+      ]
+    },
+    {
+      "id": 7,
+      "word": "pick up",
+      "phonetic": "",
+      "chinese": "接电话",
+      "cn_mp3_txt": [
+        "接电话"
+      ]
+    },
+    {
+      "id": 8,
+      "word": "strange",
+      "phonetic": "streɪndʒ/",
+      "chinese": "adj. 奇特的;奇怪的",
+      "cn_mp3_txt": [
+        "奇特的",
+        "奇怪的"
+      ]
+    },
+    {
+      "id": 9,
+      "word": "storm",
+      "phonetic": "stɔ:(r)m/",
+      "chinese": "n. 暴风雨",
+      "cn_mp3_txt": [
+        "暴风雨"
+      ]
+    },
+    {
+      "id": 10,
+      "word": "wind",
+      "phonetic": "wɪnd/",
+      "chinese": "n. 风",
+      "cn_mp3_txt": [
+        "风"
+      ]
+    },
+    {
+      "id": 11,
+      "word": "light",
+      "phonetic": "laɪt/",
+      "chinese": "n. 光; 光线; 光亮",
+      "cn_mp3_txt": [
+        "光",
+        "光线",
+        "光亮"
+      ]
+    },
+    {
+      "id": 12,
+      "word": "report",
+      "phonetic": "rɪ'pɔ:(r)t",
+      "chinese": "v. & n. 报道; 公布",
+      "cn_mp3_txt": [
+        "报道",
+        "公布"
+      ]
+    },
+    {
+      "id": 13,
+      "word": "area",
+      "phonetic": "'eəriə/ , /'eriə",
+      "chinese": "n. 地域; 地区",
+      "cn_mp3_txt": [
+        "地域",
+        "地区"
+      ]
+    },
+    {
+      "id": 14,
+      "word": "wood",
+      "phonetic": "wʊd/",
+      "chinese": "n. 木; 木头",
+      "cn_mp3_txt": [
+        "木",
+        "木头"
+      ]
+    },
+    {
+      "id": 15,
+      "word": "window",
+      "phonetic": "'wɪndəʊ/",
+      "chinese": "n. 窗; 窗户",
+      "cn_mp3_txt": [
+        "窗",
+        "窗户"
+      ]
+    },
+    {
+      "id": 16,
+      "word": "flashlight",
+      "phonetic": "'flæʃlaɪt/",
+      "chinese": "n. 手电筒; 火炬",
+      "cn_mp3_txt": [
+        "手电筒",
+        "火炬"
+      ]
+    },
+    {
+      "id": 17,
+      "word": "match",
+      "phonetic": "mætʃ/",
+      "chinese": "n. 火柴",
+      "cn_mp3_txt": [
+        "火柴"
+      ]
+    },
+    {
+      "id": 18,
+      "word": "beat",
+      "phonetic": "bi:t/",
+      "chinese": "v. 敲打; 打败",
+      "cn_mp3_txt": [
+        "敲打",
+        "打败"
+      ]
+    },
+    {
+      "id": 19,
+      "word": "against",
+      "phonetic": "ə'genst/",
+      "chinese": "prep. 倚; 碰; 撞",
+      "cn_mp3_txt": [
+        "倚",
+        "碰",
+        "撞"
+      ]
+    },
+    {
+      "id": 20,
+      "word": "asleep",
+      "phonetic": "ə'sli:p/",
+      "chinese": "adj. 睡着",
+      "cn_mp3_txt": [
+        "睡着"
+      ]
+    },
+    {
+      "id": 21,
+      "word": "fall asleep",
+      "phonetic": "",
+      "chinese": "进入梦乡; 睡着",
+      "cn_mp3_txt": [
+        "进入梦乡",
+        "睡着"
+      ]
+    },
+    {
+      "id": 22,
+      "word": "die down",
+      "phonetic": "",
+      "chinese": "逐渐变弱; 逐渐消失",
+      "cn_mp3_txt": [
+        "逐渐变弱",
+        "逐渐消失"
+      ]
+    },
+    {
+      "id": 23,
+      "word": "rise",
+      "phonetic": "raiz",
+      "chinese": "v. & n. 升起; 增加; 提高",
+      "cn_mp3_txt": [
+        "升起",
+        "增加",
+        "提高"
+      ]
+    },
+    {
+      "id": 24,
+      "word": "fallen",
+      "phonetic": "'fɔ:lən/",
+      "chinese": "adj. 倒下的; 落下的",
+      "cn_mp3_txt": [
+        "倒下的",
+        "落下的"
+      ]
+    },
+    {
+      "id": 25,
+      "word": "apart",
+      "phonetic": "ə'pɑ:(r)t/",
+      "chinese": "adv. 分离; 分开",
+      "cn_mp3_txt": [
+        "分离",
+        "分开"
+      ]
+    },
+    {
+      "id": 26,
+      "word": "have a look",
+      "phonetic": "",
+      "chinese": "看一看",
+      "cn_mp3_txt": [
+        "看一看"
+      ]
+    },
+    {
+      "id": 27,
+      "word": "icy",
+      "phonetic": "'aɪsi/",
+      "chinese": "adj. 覆盖着冰的; 冰冷的",
+      "cn_mp3_txt": [
+        "覆盖着冰的",
+        "冰冷的"
+      ]
+    },
+    {
+      "id": 28,
+      "word": "kid",
+      "phonetic": "kɪd/",
+      "chinese": "v. 开玩笑; 欺骗",
+      "cn_mp3_txt": [
+        "开玩笑",
+        "欺骗"
+      ]
+    },
+    {
+      "id": 29,
+      "word": "realize",
+      "phonetic": "'rɪəlaɪz/, /'ri:əlaɪz",
+      "chinese": "v. 理解; 领会; 认识到",
+      "cn_mp3_txt": [
+        "理解",
+        "领会",
+        "认识到"
+      ]
+    },
+    {
+      "id": 30,
+      "word": "make one' s way",
+      "phonetic": "",
+      "chinese": "前往; 费力地前进",
+      "cn_mp3_txt": [
+        "前往",
+        "费力地前进"
+      ]
+    },
+    {
+      "id": 31,
+      "word": "passage",
+      "phonetic": "'pæsɪdʒ/",
+      "chinese": "n. 章节; 段落",
+      "cn_mp3_txt": [
+        "章节",
+        "段落"
+      ]
+    },
+    {
+      "id": 32,
+      "word": "pupil",
+      "phonetic": "'pju:pl/",
+      "chinese": "n. 学生",
+      "cn_mp3_txt": [
+        "学生"
+      ]
+    },
+    {
+      "id": 33,
+      "word": "completely",
+      "phonetic": "kəm'pli:tli/",
+      "chinese": "adv. 彻底地; 完全地",
+      "cn_mp3_txt": [
+        "彻底地",
+        "完全地"
+      ]
+    },
+    {
+      "id": 34,
+      "word": "shocked",
+      "phonetic": "ʃɒkt/, /ʃɑ:kt",
+      "chinese": "adj. 惊愕的; 受震惊的",
+      "cn_mp3_txt": [
+        "惊愕的",
+        "受震惊的"
+      ]
+    },
+    {
+      "id": 35,
+      "word": "silence",
+      "phonetic": "'saɪləns/",
+      "chinese": "n. 沉默; 缄默; 无声",
+      "cn_mp3_txt": [
+        "沉默",
+        "缄默",
+        "无声"
+      ]
+    },
+    {
+      "id": 36,
+      "word": "in silence",
+      "phonetic": "",
+      "chinese": "沉默; 无声",
+      "cn_mp3_txt": [
+        "沉默",
+        "无声"
+      ]
+    },
+    {
+      "id": 37,
+      "word": "recently",
+      "phonetic": "'ri:sntli",
+      "chinese": "adv. 不久前; 最近",
+      "cn_mp3_txt": [
+        "不久前",
+        "最近"
+      ]
+    },
+    {
+      "id": 38,
+      "word": "take down",
+      "phonetic": "",
+      "chinese": "拆除; 往下拽; 记录",
+      "cn_mp3_txt": [
+        "拆除",
+        "往下拽",
+        "记录"
+      ]
+    },
+    {
+      "id": 39,
+      "word": "terrorist",
+      "phonetic": "'terərɪst/",
+      "chinese": "n. 恐怖主义者; 恐怖分子",
+      "cn_mp3_txt": [
+        "恐怖主义者",
+        "恐怖分子"
+      ]
+    },
+    {
+      "id": 40,
+      "word": "date",
+      "phonetic": "'deɪt/",
+      "chinese": "n. 日期; 日子",
+      "cn_mp3_txt": [
+        "日期",
+        "日子"
+      ]
+    },
+    {
+      "id": 41,
+      "word": "tower",
+      "phonetic": "'taʊə(r)/",
+      "chinese": "n. 塔; 塔楼",
+      "cn_mp3_txt": [
+        "塔",
+        "塔楼"
+      ]
+    },
+    {
+      "id": 42,
+      "word": "at first",
+      "phonetic": "",
+      "chinese": "首先; 最初",
+      "cn_mp3_txt": [
+        "首先",
+        "最初"
+      ]
+    },
+    {
+      "id": 43,
+      "word": "truth",
+      "phonetic": "tru:θ/",
+      "chinese": "n.实情; 事实",
+      "cn_mp3_txt": [
+        "实情",
+        "事实"
+      ]
+    },
+    {
+      "id": 44,
+      "word": "Allen",
+      "phonetic": "'ælən/",
+      "chinese": "艾伦（姓）",
+      "cn_mp3_txt": [
+        "艾伦（姓）"
+      ]
+    },
+    {
+      "id": 45,
+      "word": "Martin Luther King",
+      "phonetic": "'mɑ:(r)tɪn/ /'lu:θə(r)/ /kɪŋ",
+      "chinese": "马丁·路德·金",
+      "cn_mp3_txt": [
+        "马丁·路德·金"
+      ]
+    },
+    {
+      "id": 46,
+      "word": "Alabama",
+      "phonetic": "'ælə'bɑ:mə/",
+      "chinese": "阿拉巴马州（美国）",
+      "cn_mp3_txt": [
+        "阿拉巴马州（美国）"
+      ]
+    },
+    {
+      "id": 47,
+      "word": "Animal Helpline",
+      "phonetic": "'helplaɪn",
+      "chinese": "动物保护热线",
+      "cn_mp3_txt": [
+        "动物保护热线"
+      ]
+    },
+    {
+      "id": 48,
+      "word": "World Trade Center",
+      "phonetic": "",
+      "chinese": "世贸大楼（美国纽约）",
+      "cn_mp3_txt": [
+        "世贸大楼（美国纽约）"
+      ]
+    }
+  ],
+  "Unit 4": [
+    {
+      "id": 1,
+      "word": "shoot",
+      "phonetic": "ʃu:t/",
+      "chinese": "v. 射击; 发射",
+      "cn_mp3_txt": [
+        "射击",
+        "发射"
+      ]
+    },
+    {
+      "id": 2,
+      "word": "stone",
+      "phonetic": "stəʊn/",
+      "chinese": "n. 石头",
+      "cn_mp3_txt": [
+        "石头"
+      ]
+    },
+    {
+      "id": 3,
+      "word": "weak",
+      "phonetic": "wi:k/",
+      "chinese": "adj. 虚弱的; 无力的",
+      "cn_mp3_txt": [
+        "虚弱的",
+        "无力的"
+      ]
+    },
+    {
+      "id": 4,
+      "word": "god",
+      "phonetic": "gɒd/, /gɑ:d",
+      "chinese": "n. 神; 上帝",
+      "cn_mp3_txt": [
+        "神",
+        "上帝"
+      ]
+    },
+    {
+      "id": 5,
+      "word": "remind",
+      "phonetic": "rɪ'maɪnd/",
+      "chinese": "v. 提醒; 使想起",
+      "cn_mp3_txt": [
+        "提醒",
+        "使想起"
+      ]
+    },
+    {
+      "id": 6,
+      "word": "bit",
+      "phonetic": "bɪt/",
+      "chinese": "n. 一点; 小块",
+      "cn_mp3_txt": [
+        "一点",
+        "小块"
+      ]
+    },
+    {
+      "id": 7,
+      "word": "a little bit",
+      "phonetic": "",
+      "chinese": "有点儿; 稍微",
+      "cn_mp3_txt": [
+        "有点儿",
+        "稍微"
+      ]
+    },
+    {
+      "id": 8,
+      "word": "silly",
+      "phonetic": "'sɪli/",
+      "chinese": "adj. 愚蠢的; 不明事理的",
+      "cn_mp3_txt": [
+        "愚蠢的",
+        "不明事理的"
+      ]
+    },
+    {
+      "id": 9,
+      "word": "instead of",
+      "phonetic": "",
+      "chinese": "代替; 反而",
+      "cn_mp3_txt": [
+        "代替",
+        "反而"
+      ]
+    },
+    {
+      "id": 10,
+      "word": "turn…into",
+      "phonetic": "",
+      "chinese": "变成",
+      "cn_mp3_txt": [
+        "变成"
+      ]
+    },
+    {
+      "id": 11,
+      "word": "object",
+      "phonetic": "'ɒbdʒɪkt/，/'ɑ:bdʒɪkt/",
+      "chinese": "n. 物体; 物品",
+      "cn_mp3_txt": [
+        "物体",
+        "物品"
+      ]
+    },
+    {
+      "id": 12,
+      "word": "hide",
+      "phonetic": "haɪd/",
+      "chinese": "v. 隐藏; 隐蔽",
+      "cn_mp3_txt": [
+        "隐藏",
+        "隐蔽"
+      ]
+    },
+    {
+      "id": 13,
+      "word": "tail",
+      "phonetic": "teɪl/",
+      "chinese": "n. 尾巴",
+      "cn_mp3_txt": [
+        "尾巴"
+      ]
+    },
+    {
+      "id": 14,
+      "word": "magic",
+      "phonetic": "'mædʒɪk/",
+      "chinese": "adj. 有魔力的; 有神奇力量的",
+      "cn_mp3_txt": [
+        "有魔力的",
+        "有神奇力量的"
+      ]
+    },
+    {
+      "id": 15,
+      "word": "stick",
+      "phonetic": "stɪk/",
+      "chinese": "n. 棍; 条",
+      "cn_mp3_txt": [
+        "棍",
+        "条"
+      ]
+    },
+    {
+      "id": 16,
+      "word": "excite",
+      "phonetic": "ɪk'saɪt/",
+      "chinese": "v. 使激动; 使兴奋",
+      "cn_mp3_txt": [
+        "使激动",
+        "使兴奋"
+      ]
+    },
+    {
+      "id": 17,
+      "word": "Western",
+      "phonetic": "'westə(r)n/",
+      "chinese": "adj. 西方国家的; （尤指）欧美的; 西方",
+      "cn_mp3_txt": [
+        "西方国家的",
+        "（尤指）欧美的",
+        "西方"
+      ]
+    },
+    {
+      "id": 18,
+      "word": "once upon a time",
+      "phonetic": "",
+      "chinese": "从前",
+      "cn_mp3_txt": [
+        "从前"
+      ]
+    },
+    {
+      "id": 19,
+      "word": "stepsister",
+      "phonetic": "'stepsɪstə(r)/",
+      "chinese": "n. 继姐（妹）",
+      "cn_mp3_txt": [
+        "继姐（妹）"
+      ]
+    },
+    {
+      "id": 20,
+      "word": "prince",
+      "phonetic": "'prɪns/",
+      "chinese": "n. 王子",
+      "cn_mp3_txt": [
+        "王子"
+      ]
+    },
+    {
+      "id": 21,
+      "word": "fall in love",
+      "phonetic": "",
+      "chinese": "爱上; 喜欢上",
+      "cn_mp3_txt": [
+        "爱上",
+        "喜欢上"
+      ]
+    },
+    {
+      "id": 22,
+      "word": "fit",
+      "phonetic": "fɪt/",
+      "chinese": "v. 适合; 合身",
+      "cn_mp3_txt": [
+        "适合",
+        "合身"
+      ]
+    },
+    {
+      "id": 23,
+      "word": "couple",
+      "phonetic": "'kʌpl/",
+      "chinese": "n.（尤指）夫妻; 两人; 两件事物",
+      "cn_mp3_txt": [
+        "（尤指）夫妻",
+        "两人",
+        "两件事物"
+      ]
+    },
+    {
+      "id": 24,
+      "word": "smile",
+      "phonetic": "smaɪl",
+      "chinese": "v. & n. 笑; 微笑",
+      "cn_mp3_txt": [
+        "笑",
+        "微笑"
+      ]
+    },
+    {
+      "id": 25,
+      "word": "marry",
+      "phonetic": "'mæri/",
+      "chinese": "v.结婚",
+      "cn_mp3_txt": [
+        "结婚"
+      ]
+    },
+    {
+      "id": 26,
+      "word": "get married",
+      "phonetic": "",
+      "chinese": "结婚",
+      "cn_mp3_txt": [
+        "结婚"
+      ]
+    },
+    {
+      "id": 27,
+      "word": "gold",
+      "phonetic": "gəʊld/",
+      "chinese": "n. 金子; 金币 adj. 金色的",
+      "cn_mp3_txt": [
+        "金子",
+        "金币",
+        "金色的"
+      ]
+    },
+    {
+      "id": 28,
+      "word": "emperor",
+      "phonetic": "'empərə(r)/",
+      "chinese": "n. 国王",
+      "cn_mp3_txt": [
+        "国王"
+      ]
+    },
+    {
+      "id": 29,
+      "word": "silk",
+      "phonetic": "sɪlk/",
+      "chinese": "n. 丝绸; 丝织物",
+      "cn_mp3_txt": [
+        "丝绸",
+        "丝织物"
+      ]
+    },
+    {
+      "id": 30,
+      "word": "underwear",
+      "phonetic": "'ʌndəweə/, /'ʌndərwer",
+      "chinese": "n. 内衣",
+      "cn_mp3_txt": [
+        "内衣"
+      ]
+    },
+    {
+      "id": 31,
+      "word": "nobody",
+      "phonetic": "'nəʊbədi/",
+      "chinese": "pron. 没有人 n. 小人物",
+      "cn_mp3_txt": [
+        "没有人",
+        "小人物"
+      ]
+    },
+    {
+      "id": 32,
+      "word": "stupid",
+      "phonetic": "'stju:pɪd/, /'stu:pɪd/",
+      "chinese": "adj. 愚蠢的",
+      "cn_mp3_txt": [
+        "愚蠢的"
+      ]
+    },
+    {
+      "id": 33,
+      "word": "cheat",
+      "phonetic": "tʃi:t/",
+      "chinese": "v. 欺骗; 蒙骗 n. 骗子",
+      "cn_mp3_txt": [
+        "欺骗",
+        "蒙骗",
+        "骗子"
+      ]
+    },
+    {
+      "id": 34,
+      "word": "stepmother",
+      "phonetic": "'stepmʌðə(r)/",
+      "chinese": "n. 继母",
+      "cn_mp3_txt": [
+        "继母"
+      ]
+    },
+    {
+      "id": 35,
+      "word": "wife",
+      "phonetic": "waɪf/",
+      "chinese": "n. 妻子; 太太",
+      "cn_mp3_txt": [
+        "妻子",
+        "太太"
+      ]
+    },
+    {
+      "id": 36,
+      "word": "husband",
+      "phonetic": "'hʌzbənd/",
+      "chinese": "n. 丈夫",
+      "cn_mp3_txt": [
+        "丈夫"
+      ]
+    },
+    {
+      "id": 37,
+      "word": "whole",
+      "phonetic": "həʊl/",
+      "chinese": "adj. 全部的; 整体的",
+      "cn_mp3_txt": [
+        "全部的",
+        "整体的"
+      ]
+    },
+    {
+      "id": 38,
+      "word": "scene",
+      "phonetic": "si:n/",
+      "chinese": "n.（戏剧或歌剧的）场; 场景",
+      "cn_mp3_txt": [
+        "（戏剧或歌剧的）场",
+        "场景"
+      ]
+    },
+    {
+      "id": 39,
+      "word": "moonlight",
+      "phonetic": "'mu:nlaɪt/",
+      "chinese": "n. 月光",
+      "cn_mp3_txt": [
+        "月光"
+      ]
+    },
+    {
+      "id": 40,
+      "word": "shine",
+      "phonetic": "ʃaɪn/",
+      "chinese": "v.  发光; 照耀",
+      "cn_mp3_txt": [
+        "发光",
+        "照耀"
+      ]
+    },
+    {
+      "id": 41,
+      "word": "bright",
+      "phonetic": "braɪt/",
+      "chinese": "adv. 光亮地; , 明亮地 adj. 明亮的; 光线充足的",
+      "cn_mp3_txt": [
+        "光亮地",
+        "明亮地",
+        "明亮的",
+        "光线充足的"
+      ]
+    },
+    {
+      "id": 42,
+      "word": "ground",
+      "phonetic": "graʊnd/",
+      "chinese": "n. 地; 地面",
+      "cn_mp3_txt": [
+        "地",
+        "地面"
+      ]
+    },
+    {
+      "id": 43,
+      "word": "lead",
+      "phonetic": "li:d",
+      "chinese": "v. 带路; 领路",
+      "cn_mp3_txt": [
+        "带路",
+        "领路"
+      ]
+    },
+    {
+      "id": 44,
+      "word": "voice",
+      "phonetic": "vɔɪs/",
+      "chinese": "n. 声音",
+      "cn_mp3_txt": [
+        "声音"
+      ]
+    },
+    {
+      "id": 45,
+      "word": "brave",
+      "phonetic": "breɪv/",
+      "chinese": "adj. 勇敢的; 无畏的",
+      "cn_mp3_txt": [
+        "勇敢的",
+        "无畏的"
+      ]
+    },
+    {
+      "id": 46,
+      "word": "Claudia",
+      "phonetic": "'klɔ:diə/, /'klaʊdiə",
+      "chinese": "克劳迪娅（女名）",
+      "cn_mp3_txt": [
+        "克劳迪娅（女名）"
+      ]
+    },
+    {
+      "id": 47,
+      "word": "Journey to the West",
+      "phonetic": "",
+      "chinese": "《西游记》",
+      "cn_mp3_txt": [
+        "《西游记》"
+      ]
+    },
+    {
+      "id": 48,
+      "word": "the Monkey King",
+      "phonetic": "",
+      "chinese": "《美猴王》",
+      "cn_mp3_txt": [
+        "《美猴王》"
+      ]
+    },
+    {
+      "id": 49,
+      "word": "Sleeping Beauty",
+      "phonetic": "",
+      "chinese": "《睡美人》",
+      "cn_mp3_txt": [
+        "《睡美人》"
+      ]
+    },
+    {
+      "id": 50,
+      "word": "Cinderella",
+      "phonetic": "sɪndə'relə/",
+      "chinese": "《灰姑娘》",
+      "cn_mp3_txt": [
+        "《灰姑娘》"
+      ]
+    },
+    {
+      "id": 51,
+      "word": "Little red Riding Hood",
+      "phonetic": "",
+      "chinese": "《小红帽》",
+      "cn_mp3_txt": [
+        "《小红帽》"
+      ]
+    },
+    {
+      "id": 52,
+      "word": "Hansel and Gretel",
+      "phonetic": "",
+      "chinese": "《韩塞尔与葛雷特》（《糖果屋》）",
+      "cn_mp3_txt": [
+        "《韩塞尔与葛雷特》（《糖果屋》）"
+      ]
+    }
+  ],
+  "Unit 5": [
+    {
+      "id": 1,
+      "word": "square",
+      "phonetic": "skweə/, /skwer/",
+      "chinese": "n. 平方; 正方形",
+      "cn_mp3_txt": [
+        "平方",
+        "正方形"
+      ]
+    },
+    {
+      "id": 2,
+      "word": "meter",
+      "phonetic": "'mi:tə(r)",
+      "chinese": "n. 米; 公尺",
+      "cn_mp3_txt": [
+        "米",
+        "公尺"
+      ]
+    },
+    {
+      "id": 3,
+      "word": "deep",
+      "phonetic": "di:p/",
+      "chinese": "adj. 深的; 纵深的",
+      "cn_mp3_txt": [
+        "深的",
+        "纵深的"
+      ]
+    },
+    {
+      "id": 4,
+      "word": "desert",
+      "phonetic": "'dezə(r)t/",
+      "chinese": "n. 沙漠",
+      "cn_mp3_txt": [
+        "沙漠"
+      ]
+    },
+    {
+      "id": 5,
+      "word": "population",
+      "phonetic": "'pɒpju'leɪʃn/",
+      "chinese": "n. 人口; 人口数量",
+      "cn_mp3_txt": [
+        "人口",
+        "人口数量"
+      ]
+    },
+    {
+      "id": 6,
+      "word": "Asia",
+      "phonetic": "'eɪʒə/, /'eɪʃə/",
+      "chinese": "n. 亚洲",
+      "cn_mp3_txt": [
+        "亚洲"
+      ]
+    },
+    {
+      "id": 7,
+      "word": "feel free",
+      "phonetic": "",
+      "chinese": "（可以）随便（做某事）",
+      "cn_mp3_txt": [
+        "（可以）随便（做某事）"
+      ]
+    },
+    {
+      "id": 8,
+      "word": "tour",
+      "phonetic": "tʊə/, /tʊr",
+      "chinese": "n. &v.旅行; 旅游",
+      "cn_mp3_txt": [
+        "旅行",
+        "旅游"
+      ]
+    },
+    {
+      "id": 9,
+      "word": "tourist",
+      "phonetic": "'tʊərɪst/, /'tʊrɪst/",
+      "chinese": "n. 旅行者; 观光者",
+      "cn_mp3_txt": [
+        "旅行者",
+        "观光者"
+      ]
+    },
+    {
+      "id": 10,
+      "word": "wall",
+      "phonetic": "wɔ:l/",
+      "chinese": "n. 墙",
+      "cn_mp3_txt": [
+        "墙"
+      ]
+    },
+    {
+      "id": 11,
+      "word": "amazing",
+      "phonetic": "ə'meɪzɪŋ/",
+      "chinese": "adj. 令人大为惊奇的; 令人惊喜（或惊叹）的",
+      "cn_mp3_txt": [
+        "令人大为惊奇的",
+        "令人惊喜（或惊叹）的"
+      ]
+    },
+    {
+      "id": 12,
+      "word": "ancient",
+      "phonetic": "'eɪnʃənt/",
+      "chinese": "adj. 古代的; 古老的",
+      "cn_mp3_txt": [
+        "古代的",
+        "古老的"
+      ]
+    },
+    {
+      "id": 13,
+      "word": "protect",
+      "phonetic": "prə'tekt/",
+      "chinese": "v. 保护; 防护",
+      "cn_mp3_txt": [
+        "保护",
+        "防护"
+      ]
+    },
+    {
+      "id": 14,
+      "word": "wide",
+      "phonetic": "waɪd/",
+      "chinese": "adj. 宽的; 宽阔的",
+      "cn_mp3_txt": [
+        "宽的",
+        "宽阔的"
+      ]
+    },
+    {
+      "id": 15,
+      "word": "as far as I know",
+      "phonetic": "",
+      "chinese": "就我所知",
+      "cn_mp3_txt": [
+        "就我所知"
+      ]
+    },
+    {
+      "id": 16,
+      "word": "achievement",
+      "phonetic": "ə'tʃi:vmənt/",
+      "chinese": "n. 成就; 成绩",
+      "cn_mp3_txt": [
+        "成就",
+        "成绩"
+      ]
+    },
+    {
+      "id": 17,
+      "word": "southwestern",
+      "phonetic": "saʊθ'westə(r)n",
+      "chinese": "adj. 西南的; 西南方向的",
+      "cn_mp3_txt": [
+        "西南的",
+        "西南方向的"
+      ]
+    },
+    {
+      "id": 18,
+      "word": "thick",
+      "phonetic": "θɪk/",
+      "chinese": "adj. 厚的; 浓的",
+      "cn_mp3_txt": [
+        "厚的",
+        "浓的"
+      ]
+    },
+    {
+      "id": 19,
+      "word": "include",
+      "phonetic": "ɪn'klu:d/",
+      "chinese": "v. 包括; 包含",
+      "cn_mp3_txt": [
+        "包括",
+        "包含"
+      ]
+    },
+    {
+      "id": 20,
+      "word": "freezing",
+      "phonetic": "'fri:zɪŋ/",
+      "chinese": "adj. 极冷的; 冰冻的",
+      "cn_mp3_txt": [
+        "极冷的",
+        "冰冻的"
+      ]
+    },
+    {
+      "id": 21,
+      "word": "condition",
+      "phonetic": "kən'dɪʃn/",
+      "chinese": "n. 条件; 状况",
+      "cn_mp3_txt": [
+        "条件",
+        "状况"
+      ]
+    },
+    {
+      "id": 22,
+      "word": "take in",
+      "phonetic": "",
+      "chinese": "吸入; 吞入（体内）",
+      "cn_mp3_txt": [
+        "吸入",
+        "吞入（体内）"
+      ]
+    },
+    {
+      "id": 23,
+      "word": "succeed",
+      "phonetic": "sək'si:d/",
+      "chinese": "v. 实现目标; 成功",
+      "cn_mp3_txt": [
+        "实现目标",
+        "成功"
+      ]
+    },
+    {
+      "id": 24,
+      "word": "challenge",
+      "phonetic": "'tʃælɪndʒ",
+      "chinese": "v. & n. 挑战; 考验",
+      "cn_mp3_txt": [
+        "挑战",
+        "考验"
+      ]
+    },
+    {
+      "id": 25,
+      "word": "in the face of",
+      "phonetic": "",
+      "chinese": "面对（问题、困难等）",
+      "cn_mp3_txt": [
+        "面对（问题困难等）"
+      ]
+    },
+    {
+      "id": 26,
+      "word": "achieve",
+      "phonetic": "ə'tʃi:v/",
+      "chinese": "v. 达到; 完成; 成功",
+      "cn_mp3_txt": [
+        "达到",
+        "完成",
+        "成功"
+      ]
+    },
+    {
+      "id": 27,
+      "word": "force",
+      "phonetic": "fɔ:(r)s/",
+      "chinese": "n. 力; 力量",
+      "cn_mp3_txt": [
+        "力",
+        "力量"
+      ]
+    },
+    {
+      "id": 28,
+      "word": "nature",
+      "phonetic": "'neɪtʃə(r)/",
+      "chinese": "n. 自然界; 大自然",
+      "cn_mp3_txt": [
+        "自然界",
+        "大自然"
+      ]
+    },
+    {
+      "id": 29,
+      "word": "even though",
+      "phonetic": "",
+      "chinese": "即使; 虽然",
+      "cn_mp3_txt": [
+        "即使",
+        "虽然"
+      ]
+    },
+    {
+      "id": 30,
+      "word": "ocean",
+      "phonetic": "'əʊʃn/",
+      "chinese": "n. 大海; 海洋",
+      "cn_mp3_txt": [
+        "大海",
+        "海洋"
+      ]
+    },
+    {
+      "id": 31,
+      "word": "the Pacific Ocean",
+      "phonetic": "",
+      "chinese": "太平洋",
+      "cn_mp3_txt": [
+        "太平洋"
+      ]
+    },
+    {
+      "id": 32,
+      "word": "centimeter",
+      "phonetic": "'sentɪmi:tə(r)",
+      "chinese": "厘米",
+      "cn_mp3_txt": [
+        "厘米"
+      ]
+    },
+    {
+      "id": 33,
+      "word": "weigh",
+      "phonetic": "weɪ/",
+      "chinese": "v.重量是......; 称......的重量",
+      "cn_mp3_txt": [
+        "重量是什么什么",
+        "称什么什么的重量"
+      ]
+    },
+    {
+      "id": 34,
+      "word": "birth",
+      "phonetic": "bɜ:(r)θ/",
+      "chinese": "n. 出生; 诞生",
+      "cn_mp3_txt": [
+        "出生",
+        "诞生"
+      ]
+    },
+    {
+      "id": 35,
+      "word": "at birth",
+      "phonetic": "",
+      "chinese": "出生时",
+      "cn_mp3_txt": [
+        "出生时"
+      ]
+    },
+    {
+      "id": 36,
+      "word": "up to",
+      "phonetic": "",
+      "chinese": "到达（某数量、程度等）; 至多有; 不多于",
+      "cn_mp3_txt": [
+        "到达（某数量程度等）",
+        "至多有",
+        "不多于"
+      ]
+    },
+    {
+      "id": 37,
+      "word": "adult",
+      "phonetic": "'ædʌlt/, /ə'dʌlt",
+      "chinese": "adj. 成年的; 成人的 n. 成人; 成年动物",
+      "cn_mp3_txt": [
+        "成年的",
+        "成人的",
+        "成人",
+        "成年动物"
+      ]
+    },
+    {
+      "id": 38,
+      "word": "bamboo",
+      "phonetic": "bæm'bu:/",
+      "chinese": "n. 竹子",
+      "cn_mp3_txt": [
+        "竹子"
+      ]
+    },
+    {
+      "id": 39,
+      "word": "endangered",
+      "phonetic": "ɪn'deɪndʒə(r)d",
+      "chinese": "adj. 濒危的",
+      "cn_mp3_txt": [
+        "濒危的"
+      ]
+    },
+    {
+      "id": 40,
+      "word": "research",
+      "phonetic": "rɪ'sɜ:(r)tʃ",
+      "chinese": "n. & v. 研究; 调查",
+      "cn_mp3_txt": [
+        "研究",
+        "调查"
+      ]
+    },
+    {
+      "id": 41,
+      "word": "keeper",
+      "phonetic": "'ki:pə(r)/",
+      "chinese": "n. 饲养员; 保管人",
+      "cn_mp3_txt": [
+        "饲养员",
+        "保管人"
+      ]
+    },
+    {
+      "id": 42,
+      "word": "awake",
+      "phonetic": "ə'weɪk/",
+      "chinese": "adj. 醒着",
+      "cn_mp3_txt": [
+        "醒着"
+      ]
+    },
+    {
+      "id": 43,
+      "word": "excitement",
+      "phonetic": "ɪk'saɪtmənt/",
+      "chinese": "n. 激动; 兴奋",
+      "cn_mp3_txt": [
+        "激动",
+        "兴奋"
+      ]
+    },
+    {
+      "id": 44,
+      "word": "walk into",
+      "phonetic": "",
+      "chinese": "走路时撞着",
+      "cn_mp3_txt": [
+        "走路时撞着"
+      ]
+    },
+    {
+      "id": 45,
+      "word": "fall over",
+      "phonetic": "",
+      "chinese": "绊倒",
+      "cn_mp3_txt": [
+        "绊倒"
+      ]
+    },
+    {
+      "id": 46,
+      "word": "illness",
+      "phonetic": "'ɪlnəs/",
+      "chinese": "n. 疾病; 病",
+      "cn_mp3_txt": [
+        "疾病",
+        "病"
+      ]
+    },
+    {
+      "id": 47,
+      "word": "remaining",
+      "phonetic": "rɪ'meɪnɪŋ",
+      "chinese": "adj. 遗留的; 剩余的",
+      "cn_mp3_txt": [
+        "遗留的",
+        "剩余的"
+      ]
+    },
+    {
+      "id": 48,
+      "word": "or so",
+      "phonetic": "",
+      "chinese": "大约",
+      "cn_mp3_txt": [
+        "大约"
+      ]
+    },
+    {
+      "id": 49,
+      "word": "artwork",
+      "phonetic": "'ɑ:(r)twɜ:(r)k",
+      "chinese": "n. 图片; 插图",
+      "cn_mp3_txt": [
+        "图片",
+        "插图"
+      ]
+    },
+    {
+      "id": 50,
+      "word": "wild",
+      "phonetic": "waɪld/",
+      "chinese": "adj. 野生的",
+      "cn_mp3_txt": [
+        "野生的"
+      ]
+    },
+    {
+      "id": 51,
+      "word": "government",
+      "phonetic": "'gʌvə(r)nmənt/",
+      "chinese": "n. 政府; 内阁",
+      "cn_mp3_txt": [
+        "政府",
+        "内阁"
+      ]
+    },
+    {
+      "id": 52,
+      "word": "whale",
+      "phonetic": "weɪl/",
+      "chinese": "n. 鲸",
+      "cn_mp3_txt": [
+        "鲸"
+      ]
+    },
+    {
+      "id": 53,
+      "word": "oil",
+      "phonetic": "ɔɪl/",
+      "chinese": "n. 油; 食用油; 石油",
+      "cn_mp3_txt": [
+        "油",
+        "食用油",
+        "石油"
+      ]
+    },
+    {
+      "id": 54,
+      "word": "protection",
+      "phonetic": "prə'tekʃn/",
+      "chinese": "n. 保护; 保卫",
+      "cn_mp3_txt": [
+        "保护",
+        "保卫"
+      ]
+    },
+    {
+      "id": 55,
+      "word": "huge",
+      "phonetic": "hju:dʒ/",
+      "chinese": "adj. 巨大的; 极多的",
+      "cn_mp3_txt": [
+        "巨大的",
+        "极多的"
+      ]
+    },
+    {
+      "id": 56,
+      "word": "Tenzing Norgay",
+      "phonetic": "'tenzɪŋ/ /'nɒrgeɪ",
+      "chinese": "丹增·诺尔盖",
+      "cn_mp3_txt": [
+        "丹增·诺尔盖"
+      ]
+    },
+    {
+      "id": 57,
+      "word": "Edmund Hillary",
+      "phonetic": "'edmənd/ /'hɪləri",
+      "chinese": "埃德蒙·希拉里",
+      "cn_mp3_txt": [
+        "埃德蒙·希拉里"
+      ]
+    },
+    {
+      "id": 58,
+      "word": "Junko Tabei",
+      "phonetic": "'dʒu:ŋəʊ/ /tɑ:'beɪ",
+      "chinese": "田部井淳子",
+      "cn_mp3_txt": [
+        "田部井淳子"
+      ]
+    },
+    {
+      "id": 59,
+      "word": "Qomolangma",
+      "phonetic": "'tʃəʊməʊ,lɑ:ŋmə",
+      "chinese": "珠穆朗玛峰",
+      "cn_mp3_txt": [
+        "珠穆朗玛峰"
+      ]
+    },
+    {
+      "id": 60,
+      "word": "the Nile",
+      "phonetic": "naɪl",
+      "chinese": "尼罗河",
+      "cn_mp3_txt": [
+        "尼罗河"
+      ]
+    },
+    {
+      "id": 61,
+      "word": "the Caspian Sea",
+      "phonetic": "'kæspiən",
+      "chinese": "里海（世界最大的咸水湖）",
+      "cn_mp3_txt": [
+        "里海（世界最大的咸水湖）"
+      ]
+    },
+    {
+      "id": 62,
+      "word": "the Sahara",
+      "phonetic": "sə'hɑ:rə",
+      "chinese": "撒哈拉沙漠",
+      "cn_mp3_txt": [
+        "撒哈拉沙漠"
+      ]
+    },
+    {
+      "id": 63,
+      "word": "the Yangtze River",
+      "phonetic": "'jæŋtsi",
+      "chinese": "长江",
+      "cn_mp3_txt": [
+        "长江"
+      ]
+    },
+    {
+      "id": 64,
+      "word": "the Yellow River",
+      "phonetic": "",
+      "chinese": "黄河",
+      "cn_mp3_txt": [
+        "黄河"
+      ]
+    },
+    {
+      "id": 65,
+      "word": "the Ming Dynasty",
+      "phonetic": "'dɪnəsti/, /'daɪnəsti",
+      "chinese": "明朝",
+      "cn_mp3_txt": [
+        "明朝"
+      ]
+    },
+    {
+      "id": 66,
+      "word": "the Ming Great Wall",
+      "phonetic": "",
+      "chinese": "明长城",
+      "cn_mp3_txt": [
+        "明长城"
+      ]
+    },
+    {
+      "id": 67,
+      "word": "the Himalayas",
+      "phonetic": "hɪmə'leɪəz",
+      "chinese": "喜马拉雅山脉",
+      "cn_mp3_txt": [
+        "喜马拉雅山脉"
+      ]
+    },
+    {
+      "id": 68,
+      "word": "the Amazon River",
+      "phonetic": "'æməzən/, /'æməzɑ:n",
+      "chinese": "亚马逊河",
+      "cn_mp3_txt": [
+        "亚马逊河"
+      ]
+    },
+    {
+      "id": 69,
+      "word": "Chengdu Research Base",
+      "phonetic": "beɪs",
+      "chinese": "成都研究基地",
+      "cn_mp3_txt": [
+        "成都研究基地"
+      ]
+    }
+  ],
+  "Unit 6": [
+    {
+      "id": 1,
+      "word": "treasure",
+      "phonetic": "'treʒə(r)/",
+      "chinese": "n. 珠宝; 财富",
+      "cn_mp3_txt": [
+        "珠宝",
+        "财富"
+      ]
+    },
+    {
+      "id": 2,
+      "word": "island",
+      "phonetic": "'aɪlənd/",
+      "chinese": "n. 岛",
+      "cn_mp3_txt": [
+        "岛"
+      ]
+    },
+    {
+      "id": 3,
+      "word": "full of",
+      "phonetic": "",
+      "chinese": "满是......的; （有）大量的; （有）丰富的",
+      "cn_mp3_txt": [
+        "满是什么什么的",
+        "（有）大量的",
+        "（有）丰富的"
+      ]
+    },
+    {
+      "id": 4,
+      "word": "classic",
+      "phonetic": "'klæsɪk/",
+      "chinese": "n. 经典作品; 名著",
+      "cn_mp3_txt": [
+        "经典作品",
+        "名著"
+      ]
+    },
+    {
+      "id": 5,
+      "word": "page",
+      "phonetic": "peɪdʒ/",
+      "chinese": "n. （书刊或纸张的）页, 面, 张",
+      "cn_mp3_txt": [
+        "（书刊或纸张的）页面张"
+      ]
+    },
+    {
+      "id": 6,
+      "word": "hurry",
+      "phonetic": "'hʌri/",
+      "chinese": "v. 匆忙; 赶快",
+      "cn_mp3_txt": [
+        "匆忙",
+        "赶快"
+      ]
+    },
+    {
+      "id": 7,
+      "word": "hurry up",
+      "phonetic": "",
+      "chinese": "赶快; 急忙（做某事）",
+      "cn_mp3_txt": [
+        "赶快",
+        "急忙（做某事）"
+      ]
+    },
+    {
+      "id": 8,
+      "word": "due",
+      "phonetic": "dju:/,/du:/",
+      "chinese": "adj. 预期; 预定",
+      "cn_mp3_txt": [
+        "预期",
+        "预定"
+      ]
+    },
+    {
+      "id": 9,
+      "word": "ship",
+      "phonetic": "ʃɪp/",
+      "chinese": "n. 船",
+      "cn_mp3_txt": [
+        "船"
+      ]
+    },
+    {
+      "id": 10,
+      "word": "tool",
+      "phonetic": "tu:l/",
+      "chinese": "n. 工具",
+      "cn_mp3_txt": [
+        "工具"
+      ]
+    },
+    {
+      "id": 11,
+      "word": "gun",
+      "phonetic": "gʌn/",
+      "chinese": "n. 枪; 炮",
+      "cn_mp3_txt": [
+        "枪",
+        "炮"
+      ]
+    },
+    {
+      "id": 12,
+      "word": "mark",
+      "phonetic": "mɑ:(r)k/",
+      "chinese": "n. 迹象; 记号; 分数 v. 做记号; 打分",
+      "cn_mp3_txt": [
+        "迹象",
+        "记号",
+        "分数",
+        "做记号",
+        "打分"
+      ]
+    },
+    {
+      "id": 13,
+      "word": "sand",
+      "phonetic": "sænd/",
+      "chinese": "n. 沙滩; 沙",
+      "cn_mp3_txt": [
+        "沙滩",
+        "沙"
+      ]
+    },
+    {
+      "id": 14,
+      "word": "cannibal",
+      "phonetic": "'kænɪbl/",
+      "chinese": "n. 食人肉者",
+      "cn_mp3_txt": [
+        "食人肉者"
+      ]
+    },
+    {
+      "id": 15,
+      "word": "towards",
+      "phonetic": "tə'wɔ:dz/, /tɔ:rdz/",
+      "chinese": "prep. 朝; 向; 对着",
+      "cn_mp3_txt": [
+        "朝",
+        "向",
+        "对着"
+      ]
+    },
+    {
+      "id": 16,
+      "word": "land",
+      "phonetic": "lænd/",
+      "chinese": "n. 陆地; 大地",
+      "cn_mp3_txt": [
+        "陆地",
+        "大地"
+      ]
+    },
+    {
+      "id": 17,
+      "word": "fiction",
+      "phonetic": "'fɪkʃn/",
+      "chinese": "n. 小说",
+      "cn_mp3_txt": [
+        "小说"
+      ]
+    },
+    {
+      "id": 18,
+      "word": "science fiction",
+      "phonetic": "",
+      "chinese": "科幻小说（或影片等）",
+      "cn_mp3_txt": [
+        "科幻小说（或影片等）"
+      ]
+    },
+    {
+      "id": 19,
+      "word": "technology",
+      "phonetic": "tek'nɒlədʒi/, /tek'nɑ:lədʒi/",
+      "chinese": "n. 科技; 工艺",
+      "cn_mp3_txt": [
+        "科技",
+        "工艺"
+      ]
+    },
+    {
+      "id": 20,
+      "word": "French",
+      "phonetic": "frentʃ/",
+      "chinese": "n.法语",
+      "cn_mp3_txt": [
+        "法语"
+      ]
+    },
+    {
+      "id": 21,
+      "word": "pop",
+      "phonetic": "pɒp/, /pɑ:p/",
+      "chinese": "n. 流行音乐; 流行乐曲",
+      "cn_mp3_txt": [
+        "流行音乐",
+        "流行乐曲"
+      ]
+    },
+    {
+      "id": 22,
+      "word": "rock",
+      "phonetic": "rɒk/, /rɑ:k/",
+      "chinese": "n. 摇滚乐",
+      "cn_mp3_txt": [
+        "摇滚乐"
+      ]
+    },
+    {
+      "id": 23,
+      "word": "band",
+      "phonetic": "bænd/",
+      "chinese": "n. 乐队",
+      "cn_mp3_txt": [
+        "乐队"
+      ]
+    },
+    {
+      "id": 24,
+      "word": "country music (country)",
+      "phonetic": "",
+      "chinese": "乡村音乐",
+      "cn_mp3_txt": [
+        "乡村音乐"
+      ]
+    },
+    {
+      "id": 25,
+      "word": "forever",
+      "phonetic": "fər'evə(r)/",
+      "chinese": "adv. 永远",
+      "cn_mp3_txt": [
+        "永远"
+      ]
+    },
+    {
+      "id": 26,
+      "word": "abroad",
+      "phonetic": "ə'brɔ:d/",
+      "chinese": "adv. 在国外; 到国外",
+      "cn_mp3_txt": [
+        "在国外",
+        "到国外"
+      ]
+    },
+    {
+      "id": 27,
+      "word": "actually",
+      "phonetic": "'æktʃuəli/",
+      "chinese": "adv. 真实地; 事实上",
+      "cn_mp3_txt": [
+        "真实地",
+        "事实上"
+      ]
+    },
+    {
+      "id": 28,
+      "word": "ever since",
+      "phonetic": "",
+      "chinese": "自从",
+      "cn_mp3_txt": [
+        "自从"
+      ]
+    },
+    {
+      "id": 29,
+      "word": "fan",
+      "phonetic": "fæn/",
+      "chinese": "n. 迷; 狂热爱好者",
+      "cn_mp3_txt": [
+        "迷",
+        "狂热爱好者"
+      ]
+    },
+    {
+      "id": 30,
+      "word": "southern",
+      "phonetic": "'sʌðə(r)n/",
+      "chinese": "adj. 南方的",
+      "cn_mp3_txt": [
+        "南方的"
+      ]
+    },
+    {
+      "id": 31,
+      "word": "modern",
+      "phonetic": "'mɒdn/, /'mɑ:dərn",
+      "chinese": "adj. 现代的; 当代的",
+      "cn_mp3_txt": [
+        "现代的",
+        "当代的"
+      ]
+    },
+    {
+      "id": 32,
+      "word": "success",
+      "phonetic": "sək'ses/",
+      "chinese": "n. 成功",
+      "cn_mp3_txt": [
+        "成功"
+      ]
+    },
+    {
+      "id": 33,
+      "word": "belong",
+      "phonetic": "bɪ'lɒŋ/, /bɪ'lɔ:ŋ",
+      "chinese": "v. 属于; 归属",
+      "cn_mp3_txt": [
+        "属于",
+        "归属"
+      ]
+    },
+    {
+      "id": 34,
+      "word": "one another",
+      "phonetic": "",
+      "chinese": "互相",
+      "cn_mp3_txt": [
+        "互相"
+      ]
+    },
+    {
+      "id": 35,
+      "word": "laughter",
+      "phonetic": "'lɑ:ftə/,/'læftə(r)/",
+      "chinese": "n. 笑; 笑声",
+      "cn_mp3_txt": [
+        "笑",
+        "笑声"
+      ]
+    },
+    {
+      "id": 36,
+      "word": "beauty",
+      "phonetic": "'bju:ti/",
+      "chinese": "n. 美; 美丽",
+      "cn_mp3_txt": [
+        "美",
+        "美丽"
+      ]
+    },
+    {
+      "id": 37,
+      "word": "million",
+      "phonetic": "'mɪljən/",
+      "chinese": "num. 一百万",
+      "cn_mp3_txt": [
+        "一百万"
+      ]
+    },
+    {
+      "id": 38,
+      "word": "record",
+      "phonetic": "'rekɔ:d/, /'rekərd/, /rɪ'kɔ:(r)d/",
+      "chinese": "n. 唱片; 记录 v. 录制; 录（音）",
+      "cn_mp3_txt": [
+        "唱片",
+        "记录",
+        "录制",
+        "录（音）"
+      ]
+    },
+    {
+      "id": 39,
+      "word": "introduce",
+      "phonetic": "ɪntrə'dju:s/, /ɪntrə'du:s/",
+      "chinese": "介绍",
+      "cn_mp3_txt": [
+        "介绍"
+      ]
+    },
+    {
+      "id": 40,
+      "word": "line",
+      "phonetic": "laɪn/",
+      "chinese": "n. 行; 排",
+      "cn_mp3_txt": [
+        "行",
+        "排"
+      ]
+    },
+    {
+      "id": 41,
+      "word": "Alex",
+      "phonetic": "'æleks/",
+      "chinese": "亚历克斯（男名）",
+      "cn_mp3_txt": [
+        "亚历克斯（男名）"
+      ]
+    },
+    {
+      "id": 42,
+      "word": "Garth Brooks",
+      "phonetic": "gɑ:(r)θ/ /brʊks",
+      "chinese": "加思·布鲁克斯",
+      "cn_mp3_txt": [
+        "加思·布鲁克斯"
+      ]
+    },
+    {
+      "id": 43,
+      "word": "the Beatles",
+      "phonetic": "'bi:tlz",
+      "chinese": "披头士乐队（英国）",
+      "cn_mp3_txt": [
+        "披头士乐队（英国）"
+      ]
+    },
+    {
+      "id": 44,
+      "word": "Treasure Island",
+      "phonetic": "",
+      "chinese": "《金银岛》",
+      "cn_mp3_txt": [
+        "《金银岛》"
+      ]
+    },
+    {
+      "id": 45,
+      "word": "Alice in Wonderland",
+      "phonetic": "'wʌndə(r)lænd",
+      "chinese": "《爱丽丝梦游仙境》",
+      "cn_mp3_txt": [
+        "《爱丽丝梦游仙境》"
+      ]
+    },
+    {
+      "id": 46,
+      "word": "Little Woman",
+      "phonetic": "",
+      "chinese": "《小妇人》",
+      "cn_mp3_txt": [
+        "《小妇人》"
+      ]
+    },
+    {
+      "id": 47,
+      "word": "Oliver Twist",
+      "phonetic": "'ɒlɪv/, /'ɑ:lɪv/ /twɪst",
+      "chinese": "《雾都孤儿》",
+      "cn_mp3_txt": [
+        "《雾都孤儿》"
+      ]
+    },
+    {
+      "id": 48,
+      "word": "Robinson Crusoe",
+      "phonetic": "'kru:səʊ",
+      "chinese": "《鲁滨逊漂流记》",
+      "cn_mp3_txt": [
+        "《鲁滨逊漂流记》"
+      ]
+    },
+    {
+      "id": 49,
+      "word": "Tom Sawyer",
+      "phonetic": "'sɔ:jə(r)",
+      "chinese": "《汤姆·索娅历险记》",
+      "cn_mp3_txt": [
+        "《汤姆·索娅历险记》"
+      ]
+    },
+    {
+      "id": 50,
+      "word": "Harry Potter",
+      "phonetic": "'pɒtə(r)/, /'pɑ:tər",
+      "chinese": "《哈利·波特》",
+      "cn_mp3_txt": [
+        "《哈利·波特》"
+      ]
+    },
+    {
+      "id": 51,
+      "word": "Nashville",
+      "phonetic": "'næʃvɪl/",
+      "chinese": "纳什维尔（美国田纳西州府）",
+      "cn_mp3_txt": [
+        "纳什维尔（美国田纳西州府）"
+      ]
+    },
+    {
+      "id": 52,
+      "word": "Tennessee",
+      "phonetic": "tenə'si:/",
+      "chinese": "田纳西州（美国）",
+      "cn_mp3_txt": [
+        "田纳西州（美国）"
+      ]
+    },
+    {
+      "id": 53,
+      "word": "Country Music Hall of Fame Museum",
+      "phonetic": "",
+      "chinese": "乡村音乐名人堂博物馆",
+      "cn_mp3_txt": [
+        "乡村音乐名人堂博物馆"
+      ]
+    }
+  ],
+  "Unit 7": [
+    {
+      "id": 1,
+      "word": "amusement",
+      "phonetic": "ə'mju:zmənt/",
+      "chinese": "n. 娱乐; 游戏",
+      "cn_mp3_txt": [
+        "娱乐",
+        "游戏"
+      ]
+    },
+    {
+      "id": 2,
+      "word": "amusement park",
+      "phonetic": "",
+      "chinese": "游乐场",
+      "cn_mp3_txt": [
+        "游乐场"
+      ]
+    },
+    {
+      "id": 3,
+      "word": "somewhere",
+      "phonetic": "'sʌmweə/, /'sʌmwer",
+      "chinese": "adv. 在某处; 到某处",
+      "cn_mp3_txt": [
+        "在某处",
+        "到某处"
+      ]
+    },
+    {
+      "id": 4,
+      "word": "camera",
+      "phonetic": "'kæmərə/",
+      "chinese": "n. 照相机; 摄影机; 摄像机",
+      "cn_mp3_txt": [
+        "照相机",
+        "摄影机",
+        "摄像机"
+      ]
+    },
+    {
+      "id": 5,
+      "word": "invention",
+      "phonetic": "ɪn'venʃn/",
+      "chinese": "n. 发明;发明物",
+      "cn_mp3_txt": [
+        "发明",
+        "发明物"
+      ]
+    },
+    {
+      "id": 6,
+      "word": "invent",
+      "phonetic": "ɪn'vent/",
+      "chinese": "v. 发明; 创造",
+      "cn_mp3_txt": [
+        "发明",
+        "创造"
+      ]
+    },
+    {
+      "id": 7,
+      "word": "unbelievable",
+      "phonetic": "ʌnbɪ'li:vəbl/",
+      "chinese": "adj. 难以置信的; 不真实的",
+      "cn_mp3_txt": [
+        "难以置信的",
+        "不真实的"
+      ]
+    },
+    {
+      "id": 8,
+      "word": "progress",
+      "phonetic": "'prəʊgres/, /'prɑ:gres/",
+      "chinese": "v.&n. 进步; 进展",
+      "cn_mp3_txt": [
+        "进步",
+        "进展"
+      ]
+    },
+    {
+      "id": 9,
+      "word": "rapid",
+      "phonetic": "'ræpɪd/",
+      "chinese": "adj. 迅速的; 快速的",
+      "cn_mp3_txt": [
+        "迅速的",
+        "快速的"
+      ]
+    },
+    {
+      "id": 10,
+      "word": "unusual",
+      "phonetic": "ʌn'ju:ʒʊəl/",
+      "chinese": "adj. 特别的; 不寻常的",
+      "cn_mp3_txt": [
+        "特别的",
+        "不寻常的"
+      ]
+    },
+    {
+      "id": 11,
+      "word": "toilet",
+      "phonetic": "'tɔɪlət/",
+      "chinese": "n. 坐便器; 厕所",
+      "cn_mp3_txt": [
+        "坐便器",
+        "厕所"
+      ]
+    },
+    {
+      "id": 12,
+      "word": "encourage",
+      "phonetic": "ɪn'kʌrɪdʒ/, /ɪn'kɜ:rɪdʒ/",
+      "chinese": "v. 鼓励",
+      "cn_mp3_txt": [
+        "鼓励"
+      ]
+    },
+    {
+      "id": 13,
+      "word": "social",
+      "phonetic": "'səʊʃl/",
+      "chinese": "adj. 社会的",
+      "cn_mp3_txt": [
+        "社会的"
+      ]
+    },
+    {
+      "id": 14,
+      "word": "peaceful",
+      "phonetic": "'pi:sfl/",
+      "chinese": "adj. 和平的; 安宁的",
+      "cn_mp3_txt": [
+        "和平的",
+        "安宁的"
+      ]
+    },
+    {
+      "id": 15,
+      "word": "tea art",
+      "phonetic": "",
+      "chinese": "茶艺",
+      "cn_mp3_txt": [
+        "茶艺"
+      ]
+    },
+    {
+      "id": 16,
+      "word": "performance",
+      "phonetic": "pə(r)'fɔ:(r)məns/",
+      "chinese": "n. 表演; 演出",
+      "cn_mp3_txt": [
+        "表演",
+        "演出"
+      ]
+    },
+    {
+      "id": 17,
+      "word": "perfect",
+      "phonetic": "'pɜ:(r)fɪkt/",
+      "chinese": "adj. 完美的; 完全的",
+      "cn_mp3_txt": [
+        "完美的",
+        "完全的"
+      ]
+    },
+    {
+      "id": 18,
+      "word": "tea set",
+      "phonetic": "",
+      "chinese": "茶具",
+      "cn_mp3_txt": [
+        "茶具"
+      ]
+    },
+    {
+      "id": 19,
+      "word": "itself",
+      "phonetic": "ɪt'self/",
+      "chinese": "pron. 它自己",
+      "cn_mp3_txt": [
+        "它自己"
+      ]
+    },
+    {
+      "id": 20,
+      "word": "collect",
+      "phonetic": "kə'lekt/",
+      "chinese": "v. 收集; 采集",
+      "cn_mp3_txt": [
+        "收集",
+        "采集"
+      ]
+    },
+    {
+      "id": 21,
+      "word": "a couple of",
+      "phonetic": "",
+      "chinese": "两个; 一对; 几个",
+      "cn_mp3_txt": [
+        "两个",
+        "一对",
+        "几个"
+      ]
+    },
+    {
+      "id": 22,
+      "word": "German",
+      "phonetic": "'dʒə:(r)mən/",
+      "chinese": "adj. 德国的; 德语的; 德国人的 n. 德语; 德国人",
+      "cn_mp3_txt": [
+        "德国的",
+        "德语的",
+        "德国人的",
+        "德语",
+        "德国人"
+      ]
+    },
+    {
+      "id": 23,
+      "word": "theme",
+      "phonetic": "θi:m/",
+      "chinese": "n. 主题",
+      "cn_mp3_txt": [
+        "主题"
+      ]
+    },
+    {
+      "id": 24,
+      "word": "ride",
+      "phonetic": "raɪd/",
+      "chinese": "n. 供乘骑的游乐设施; 短途旅程",
+      "cn_mp3_txt": [
+        "供乘骑的游乐设施",
+        "短途旅程"
+      ]
+    },
+    {
+      "id": 25,
+      "word": "province",
+      "phonetic": "'prɒvɪns/, /'prɑ:vɪns/",
+      "chinese": "n. 省份",
+      "cn_mp3_txt": [
+        "省份"
+      ]
+    },
+    {
+      "id": 26,
+      "word": "thousand",
+      "phonetic": "'θaʊznd/",
+      "chinese": "num. 一千",
+      "cn_mp3_txt": [
+        "一千"
+      ]
+    },
+    {
+      "id": 27,
+      "word": "thousands of",
+      "phonetic": "",
+      "chinese": "数以千计的; 许许多多的",
+      "cn_mp3_txt": [
+        "数以千计的",
+        "许许多多的"
+      ]
+    },
+    {
+      "id": 28,
+      "word": "on the one hand...on the other hand...",
+      "phonetic": "",
+      "chinese": "一方面......另一方面......",
+      "cn_mp3_txt": [
+        "一方面什么什么另一方面什么什么"
+      ]
+    },
+    {
+      "id": 29,
+      "word": "safe",
+      "phonetic": "seɪf/",
+      "chinese": "adj. 安全的; 无危险的",
+      "cn_mp3_txt": [
+        "安全的",
+        "无危险的"
+      ]
+    },
+    {
+      "id": 30,
+      "word": "simply",
+      "phonetic": "'sɪmpli/",
+      "chinese": "adv. 仅仅; 只; 不过",
+      "cn_mp3_txt": [
+        "仅仅",
+        "只",
+        "不过"
+      ]
+    },
+    {
+      "id": 31,
+      "word": "fear",
+      "phonetic": "fɪə/, /fɪr",
+      "chinese": "v. & n. 害怕; 惧怕",
+      "cn_mp3_txt": [
+        "害怕",
+        "惧怕"
+      ]
+    },
+    {
+      "id": 32,
+      "word": "whether",
+      "phonetic": "'weðə(r)/",
+      "chinese": "conj. 不管......（还是）; 或者......（或者）; 是否",
+      "cn_mp3_txt": [
+        "不管什么什么（还是）",
+        "或者什么什么（或者）",
+        "是否"
+      ]
+    },
+    {
+      "id": 33,
+      "word": "Indian",
+      "phonetic": "'ɪndiən/",
+      "chinese": "adj.印度的 n. 印度人",
+      "cn_mp3_txt": [
+        "印度人"
+      ]
+    },
+    {
+      "id": 34,
+      "word": "Japanese",
+      "phonetic": "dʒæpə'ni:z/",
+      "chinese": "adj.日本的; 日本人的; 日语的 n. 日本人; 日语",
+      "cn_mp3_txt": [
+        "日本人",
+        "日语"
+      ]
+    },
+    {
+      "id": 35,
+      "word": "fox",
+      "phonetic": "fɒks/, /fɑ:ks/",
+      "chinese": "n. 狐狸",
+      "cn_mp3_txt": [
+        "狐狸"
+      ]
+    },
+    {
+      "id": 36,
+      "word": "all year round",
+      "phonetic": "",
+      "chinese": "全年",
+      "cn_mp3_txt": [
+        "全年"
+      ]
+    },
+    {
+      "id": 37,
+      "word": "equator",
+      "phonetic": "ɪ'kweɪtə(r)/",
+      "chinese": "n. 赤道",
+      "cn_mp3_txt": [
+        "赤道"
+      ]
+    },
+    {
+      "id": 38,
+      "word": "whenever",
+      "phonetic": "wen'evə(r)/",
+      "chinese": "conj. 在任何......时候; 无论何时",
+      "cn_mp3_txt": [
+        "在任何什么什么时候",
+        "无论何时"
+      ]
+    },
+    {
+      "id": 39,
+      "word": "spring",
+      "phonetic": "sprɪŋ/",
+      "chinese": "n. 春天",
+      "cn_mp3_txt": [
+        "春天"
+      ]
+    },
+    {
+      "id": 40,
+      "word": "mostly",
+      "phonetic": "'məʊstli/",
+      "chinese": "adv. 主要地; 通常",
+      "cn_mp3_txt": [
+        "主要地",
+        "通常"
+      ]
+    },
+    {
+      "id": 41,
+      "word": "location",
+      "phonetic": "ləʊ'keɪʃn/",
+      "chinese": "n. 地点; 位置",
+      "cn_mp3_txt": [
+        "地点",
+        "位置"
+      ]
+    },
+    {
+      "id": 42,
+      "word": "National Science Museum",
+      "phonetic": "'næʃnəl",
+      "chinese": "国家科学博物馆",
+      "cn_mp3_txt": [
+        "国家科学博物馆"
+      ]
+    },
+    {
+      "id": 43,
+      "word": "International Museum of Toile",
+      "phonetic": "ɪntə(r)'næʃnəl",
+      "chinese": "国际厕所博物馆",
+      "cn_mp3_txt": [
+        "国际厕所博物馆"
+      ]
+    },
+    {
+      "id": 44,
+      "word": "Hangzhou National Tea Museum",
+      "phonetic": "",
+      "chinese": "杭州国家茶博物馆",
+      "cn_mp3_txt": [
+        "杭州国家茶博物馆"
+      ]
+    },
+    {
+      "id": 45,
+      "word": "Donald Duck",
+      "phonetic": "'dɒnəld/ , /'dɑ:nəld",
+      "chinese": "唐老鸭",
+      "cn_mp3_txt": [
+        "唐老鸭"
+      ]
+    },
+    {
+      "id": 46,
+      "word": "Disneyland",
+      "phonetic": "'dɪznilænd/",
+      "chinese": "迪斯尼乐园",
+      "cn_mp3_txt": [
+        "迪斯尼乐园"
+      ]
+    },
+    {
+      "id": 47,
+      "word": "Disney Cruise",
+      "phonetic": "kru:z",
+      "chinese": "迪斯尼游轮",
+      "cn_mp3_txt": [
+        "迪斯尼游轮"
+      ]
+    },
+    {
+      "id": 48,
+      "word": "the Terracotta Army",
+      "phonetic": "terə'kɒtə/, /terə'kɑ:tə",
+      "chinese": "兵马俑",
+      "cn_mp3_txt": [
+        "兵马俑"
+      ]
+    },
+    {
+      "id": 49,
+      "word": "the Bird' s Nest",
+      "phonetic": "nest",
+      "chinese": "鸟巢",
+      "cn_mp3_txt": [
+        "鸟巢"
+      ]
+    },
+    {
+      "id": 50,
+      "word": "Singapore",
+      "phonetic": "sɪŋgə'pɔ:(r)",
+      "chinese": "新加坡",
+      "cn_mp3_txt": [
+        "新加坡"
+      ]
+    },
+    {
+      "id": 51,
+      "word": "Southeast Asia",
+      "phonetic": "",
+      "chinese": "东南亚",
+      "cn_mp3_txt": [
+        "东南亚"
+      ]
+    },
+    {
+      "id": 52,
+      "word": "Night Safari",
+      "phonetic": "sə'fɑ:ri",
+      "chinese": "夜间动物园",
+      "cn_mp3_txt": [
+        "夜间动物园"
+      ]
+    }
+  ],
+  "Unit 8": [
+    {
+      "id": 1,
+      "word": "yard",
+      "phonetic": "jɑ:(r)d/",
+      "chinese": "n. 院子",
+      "cn_mp3_txt": [
+        "院子"
+      ]
+    },
+    {
+      "id": 2,
+      "word": "yard sale",
+      "phonetic": "",
+      "chinese": "庭院拍卖会",
+      "cn_mp3_txt": [
+        "庭院拍卖会"
+      ]
+    },
+    {
+      "id": 3,
+      "word": "sweet",
+      "phonetic": "swi:t/",
+      "chinese": "adj. 甜蜜的; 甜的; 含糖的",
+      "cn_mp3_txt": [
+        "甜蜜的",
+        "甜的",
+        "含糖的"
+      ]
+    },
+    {
+      "id": 4,
+      "word": "memory",
+      "phonetic": "'meməri/",
+      "chinese": "n. 记忆; 回忆",
+      "cn_mp3_txt": [
+        "记忆",
+        "回忆"
+      ]
+    },
+    {
+      "id": 5,
+      "word": "cent",
+      "phonetic": "sent/",
+      "chinese": "n. 分; 分币",
+      "cn_mp3_txt": [
+        "分",
+        "分币"
+      ]
+    },
+    {
+      "id": 6,
+      "word": "toy",
+      "phonetic": "tɔɪ/",
+      "chinese": "n. 玩具",
+      "cn_mp3_txt": [
+        "玩具"
+      ]
+    },
+    {
+      "id": 7,
+      "word": "bear",
+      "phonetic": "beə/, /ber/",
+      "chinese": "n. 熊",
+      "cn_mp3_txt": [
+        "熊"
+      ]
+    },
+    {
+      "id": 8,
+      "word": "maker",
+      "phonetic": "'meɪkə(r)/",
+      "chinese": "n. 生产者; 制订者",
+      "cn_mp3_txt": [
+        "生产者",
+        "制订者"
+      ]
+    },
+    {
+      "id": 9,
+      "word": "bread maker",
+      "phonetic": "",
+      "chinese": "面包机",
+      "cn_mp3_txt": [
+        "面包机"
+      ]
+    },
+    {
+      "id": 10,
+      "word": "scarf",
+      "phonetic": "skɑ:(r)f/",
+      "chinese": "n. 围巾; 披巾; 头巾",
+      "cn_mp3_txt": [
+        "围巾",
+        "披巾",
+        "头巾"
+      ]
+    },
+    {
+      "id": 11,
+      "word": "soft",
+      "phonetic": "sɒft/, /sɔ:ft/",
+      "chinese": "adj. 软的; 柔软的",
+      "cn_mp3_txt": [
+        "软的",
+        "柔软的"
+      ]
+    },
+    {
+      "id": 12,
+      "word": "soft toy",
+      "phonetic": "",
+      "chinese": "软体玩具; 布绒玩具",
+      "cn_mp3_txt": [
+        "软体玩具",
+        "布绒玩具"
+      ]
+    },
+    {
+      "id": 13,
+      "word": "check",
+      "phonetic": "tʃek",
+      "chinese": "v. & n. 检查; 审查",
+      "cn_mp3_txt": [
+        "检查",
+        "审查"
+      ]
+    },
+    {
+      "id": 14,
+      "word": "check out",
+      "phonetic": "",
+      "chinese": "察看; 观察",
+      "cn_mp3_txt": [
+        "察看",
+        "观察"
+      ]
+    },
+    {
+      "id": 15,
+      "word": "board",
+      "phonetic": "bɔ:(r)d/",
+      "chinese": "n. 板; 木板",
+      "cn_mp3_txt": [
+        "板",
+        "木板"
+      ]
+    },
+    {
+      "id": 16,
+      "word": "board game",
+      "phonetic": "",
+      "chinese": "棋类游戏",
+      "cn_mp3_txt": [
+        "棋类游戏"
+      ]
+    },
+    {
+      "id": 17,
+      "word": "junior",
+      "phonetic": "'dʒu:niə(r)/",
+      "chinese": "adj. 地位（或职位、级别）低下的",
+      "cn_mp3_txt": [
+        "地位（或职位级别）低下的"
+      ]
+    },
+    {
+      "id": 18,
+      "word": "junior high school",
+      "phonetic": "",
+      "chinese": "初级中学",
+      "cn_mp3_txt": [
+        "初级中学"
+      ]
+    },
+    {
+      "id": 19,
+      "word": "clear",
+      "phonetic": "klɪə/, /klɪr/",
+      "chinese": "v. 清理; 清除",
+      "cn_mp3_txt": [
+        "清理",
+        "清除"
+      ]
+    },
+    {
+      "id": 20,
+      "word": "clear out",
+      "phonetic": "",
+      "chinese": "清理; 丢掉",
+      "cn_mp3_txt": [
+        "清理",
+        "丢掉"
+      ]
+    },
+    {
+      "id": 21,
+      "word": "bedroom",
+      "phonetic": "'bedru:m/",
+      "chinese": "n. 卧室",
+      "cn_mp3_txt": [
+        "卧室"
+      ]
+    },
+    {
+      "id": 22,
+      "word": "no longer",
+      "phonetic": "",
+      "chinese": "不再; 不复",
+      "cn_mp3_txt": [
+        "不再",
+        "不复"
+      ]
+    },
+    {
+      "id": 23,
+      "word": "own",
+      "phonetic": "əʊn/",
+      "chinese": "v. 拥有; 有",
+      "cn_mp3_txt": [
+        "拥有",
+        "有"
+      ]
+    },
+    {
+      "id": 24,
+      "word": "railway",
+      "phonetic": "'reɪlweɪ/",
+      "chinese": "n. 铁路; 铁道",
+      "cn_mp3_txt": [
+        "铁路",
+        "铁道"
+      ]
+    },
+    {
+      "id": 25,
+      "word": "part",
+      "phonetic": "pɑ:(r)t/",
+      "chinese": "v. 离开; 分开",
+      "cn_mp3_txt": [
+        "离开",
+        "分开"
+      ]
+    },
+    {
+      "id": 26,
+      "word": "part with",
+      "phonetic": "",
+      "chinese": "放弃; 交出（尤指不舍得的东西）",
+      "cn_mp3_txt": [
+        "放弃",
+        "交出（尤指不舍得的东西）"
+      ]
+    },
+    {
+      "id": 27,
+      "word": "certain",
+      "phonetic": "'sɜ:(r)tn/",
+      "chinese": "adj. 某种; 某事; 某人",
+      "cn_mp3_txt": [
+        "某种",
+        "某事",
+        "某人"
+      ]
+    },
+    {
+      "id": 28,
+      "word": "as for",
+      "phonetic": "",
+      "chinese": "至于; 关于",
+      "cn_mp3_txt": [
+        "至于",
+        "关于"
+      ]
+    },
+    {
+      "id": 29,
+      "word": "honest",
+      "phonetic": "'ɒnɪst/,/'ɑ:nɪst/",
+      "chinese": "adj. 诚实的; 老实的",
+      "cn_mp3_txt": [
+        "诚实的",
+        "老实的"
+      ]
+    },
+    {
+      "id": 30,
+      "word": "to be honest",
+      "phonetic": "",
+      "chinese": "说实在的",
+      "cn_mp3_txt": [
+        "说实在的"
+      ]
+    },
+    {
+      "id": 31,
+      "word": "while",
+      "phonetic": "waɪl/",
+      "chinese": "n. 一段时间; 一会儿",
+      "cn_mp3_txt": [
+        "一段时间",
+        "一会儿"
+      ]
+    },
+    {
+      "id": 32,
+      "word": "truthful",
+      "phonetic": "'tru:θfl/",
+      "chinese": "adj. 诚实的; 真实的",
+      "cn_mp3_txt": [
+        "诚实的",
+        "真实的"
+      ]
+    },
+    {
+      "id": 33,
+      "word": "hometown",
+      "phonetic": "'həʊmtaʊn/",
+      "chinese": "n. 家乡; 故乡",
+      "cn_mp3_txt": [
+        "家乡",
+        "故乡"
+      ]
+    },
+    {
+      "id": 34,
+      "word": "nowadays",
+      "phonetic": "'naʊədeɪz/",
+      "chinese": "adv. 现今; 现在; 目前",
+      "cn_mp3_txt": [
+        "现今",
+        "现在",
+        "目前"
+      ]
+    },
+    {
+      "id": 35,
+      "word": "search",
+      "phonetic": "sɜ:(r)tʃ",
+      "chinese": "v. & n. 搜索; 搜查",
+      "cn_mp3_txt": [
+        "搜索",
+        "搜查"
+      ]
+    },
+    {
+      "id": 36,
+      "word": "among",
+      "phonetic": "ə'mʌŋ/",
+      "chinese": "prep. 在（其）中; ......之一",
+      "cn_mp3_txt": [
+        "在（其）中",
+        "什么什么之一"
+      ]
+    },
+    {
+      "id": 37,
+      "word": "crayon",
+      "phonetic": "'kreɪən/",
+      "chinese": "n. 彩色铅笔（或粉笔、蜡笔）",
+      "cn_mp3_txt": [
+        "彩色铅笔（或粉笔蜡笔）"
+      ]
+    },
+    {
+      "id": 38,
+      "word": "shame",
+      "phonetic": "ʃeɪm/",
+      "chinese": "n. 羞耻; 羞愧; 惭愧",
+      "cn_mp3_txt": [
+        "羞耻",
+        "羞愧",
+        "惭愧"
+      ]
+    },
+    {
+      "id": 39,
+      "word": "regard",
+      "phonetic": "rɪ'gɑ:(r)d/",
+      "chinese": "v.将......认为; 把......视为",
+      "cn_mp3_txt": [
+        "将什么什么认为",
+        "把什么什么视为"
+      ]
+    },
+    {
+      "id": 40,
+      "word": "count",
+      "phonetic": "kaʊnt/",
+      "chinese": "v. 数数",
+      "cn_mp3_txt": [
+        "数数"
+      ]
+    },
+    {
+      "id": 41,
+      "word": "century",
+      "phonetic": "'sentʃəri/",
+      "chinese": "n. 百年; 世纪",
+      "cn_mp3_txt": [
+        "百年",
+        "世纪"
+      ]
+    },
+    {
+      "id": 42,
+      "word": "according to",
+      "phonetic": "ə'kɔ:(r)dɪŋ",
+      "chinese": "依据; 按照",
+      "cn_mp3_txt": [
+        "依据",
+        "按照"
+      ]
+    },
+    {
+      "id": 43,
+      "word": "opposite",
+      "phonetic": "'ɒpəzɪt/, /'ɑ:pəzət",
+      "chinese": "prep. 与......相对; 在......对面 adj. 对面的; 另一边的",
+      "cn_mp3_txt": [
+        "与什么什么相对",
+        "在什么什么对面",
+        "对面的",
+        "另一边的"
+      ]
+    },
+    {
+      "id": 44,
+      "word": "especially",
+      "phonetic": "ɪ'speʃəli/",
+      "chinese": "adv. 尤其; 特别; 格外",
+      "cn_mp3_txt": [
+        "尤其",
+        "特别",
+        "格外"
+      ]
+    },
+    {
+      "id": 45,
+      "word": "childhood",
+      "phonetic": "'tʃaɪldhʊd/",
+      "chinese": "n. 童年; 幼年",
+      "cn_mp3_txt": [
+        "童年",
+        "幼年"
+      ]
+    },
+    {
+      "id": 46,
+      "word": "consider",
+      "phonetic": "kən'sɪdə(r)/",
+      "chinese": "v. 注视; 仔细考虑",
+      "cn_mp3_txt": [
+        "注视",
+        "仔细考虑"
+      ]
+    },
+    {
+      "id": 47,
+      "word": "close to",
+      "phonetic": "",
+      "chinese": "几乎; 接近",
+      "cn_mp3_txt": [
+        "几乎",
+        "接近"
+      ]
+    },
+    {
+      "id": 48,
+      "word": "hold",
+      "phonetic": "həʊld",
+      "chinese": "v. 拥有; 抓住",
+      "cn_mp3_txt": [
+        "拥有",
+        "抓住"
+      ]
+    }
+  ]
+}

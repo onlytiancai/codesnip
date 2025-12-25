@@ -1,0 +1,1 @@
+wawa-word-pod目录是一个使用pnpm+vite+vue3+shadcn-vue的项目

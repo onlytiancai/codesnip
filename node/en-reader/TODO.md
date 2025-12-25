@@ -1,0 +1,2 @@
+- 括号里有小数点的时候断句断的不对
+    - These supercapacitors are nice, but way too large. After searching on Mouser, I found FM0H473ZF, 47000 mF (0.047F) capacitors in a rectangular case that is only 5mm thick.

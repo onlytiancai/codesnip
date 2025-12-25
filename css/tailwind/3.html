@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+
+  <body>
+    <div class="flex h-screen bg-gray-100 dark:bg-gray-900">
+      <aside
+        class="w-64 border-r bg-white dark:border-gray-800 dark:bg-gray-900"
+      >
+        <div
+          class="flex h-16 items-center px-6 text-lg font-semibold dark:text-gray-100"
+        >
+          My Dashboard
+        </div>
+
+        <nav class="flex-1 space-y-1 px-4">
+          <div
+            active
+            class="cursor-pointer rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium dark:bg-gray-800 dark:text-gray-100"
+          >
+            Dashboard
+          </div>
+          <div
+            class="cursor-pointer rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800"
+          >
+            Users
+          </div>
+          <div
+            class="cursor-pointer rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800"
+          >
+            Settings
+          </div>
+        </nav>
+      </aside>
+
+      <main class="flex flex-1 flex-col">
+        <header
+          class="flex h-16 items-center justify-between border-b bg-white px-6 dark:border-gray-800 dark:bg-gray-900"
+        >
+          <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            Dashboard
+          </h1>
+
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-600 dark:text-gray-300">Tom</span>
+            <div class="h-8 w-8 rounded-full bg-gray-300" />
+          </div>
+          <button
+            onClick="toggleTheme()"
+            class="rounded-lg px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            🌙
+          </button>
+        </header>
+        <div class="space-y-6 p-6">
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div
+              class="rounded-xl border bg-white p-6 dark:border-gray-800 dark:bg-gray-900"
+            >
+              <p class="text-sm text-gray-500 dark:text-gray-400">Users</p>
+              <p
+                class="mt-2 text-2xl font-semibold text-gray-900 dark:text-white"
+              >
+                1,234
+              </p>
+            </div>
+            <div
+              class="rounded-xl border bg-white p-6 dark:border-gray-800 dark:bg-gray-900"
+            >
+              <p class="text-sm text-gray-500 dark:text-gray-400">Revenue</p>
+              <p
+                class="mt-2 text-2xl font-semibold text-gray-900 dark:text-white"
+              >
+                $12,340
+              </p>
+            </div>
+            <div
+              class="rounded-xl border bg-white p-6 dark:border-gray-800 dark:bg-gray-900"
+            >
+              <p class="text-sm text-gray-500 dark:text-gray-400">Orders</p>
+              <p
+                class="mt-2 text-2xl font-semibold text-gray-900 dark:text-white"
+              >
+                320
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="m-4 rounded-xl border bg-white p-4 dark:bg-gray-900">
+          <table class="w-full text-sm text-gray-700 dark:text-gray-300">
+            <thead
+              class="border-b bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+            >
+              <tr>
+                <th class="px-6 py-3 text-left">Name</th>
+                <th class="px-6 py-3 text-left">Email</th>
+                <th class="px-6 py-3 text-left">Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                class="border-bdark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                <td class="px-6 py-3">Tom</td>
+                <td class="px-6 py-3">tom@test.com</td>
+                <td class="px-6 py-3">Admin</td>
+              </tr>
+              <tr
+                class="border-bdark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                <td class="px-6 py-3">Tom</td>
+                <td class="px-6 py-3">tom@test.com</td>
+                <td class="px-6 py-3">Admin</td>
+              </tr>
+              <tr
+                class="border-b hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
+              >
+                <td class="px-6 py-3">Tom</td>
+                <td class="px-6 py-3">tom@test.com</td>
+                <td class="px-6 py-3">Admin</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+    <script>
+      const root = document.documentElement;
+
+      // 启动时读取用户偏好
+      if (localStorage.theme === "dark") {
+        root.classList.add("dark");
+      }
+      const toggleTheme = () => {
+        const root = document.documentElement;
+        const isDark = root.classList.contains("dark");
+
+        if (isDark) {
+          root.classList.remove("dark");
+          localStorage.theme = "light";
+        } else {
+          root.classList.add("dark");
+          localStorage.theme = "dark";
+        }
+      };
+    </script>
+  </body>
+</html>

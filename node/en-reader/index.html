@@ -1,245 +1,258 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8" />
-<title>Vue3 + Speech + IPA (fixed highlight)</title>
+  <meta charset="utf-8" />
+  <title>Wawa English Reader</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
-
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-
-<style>
-  .sentence {
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    align-items: flex-start;
-  }
-  .word-block {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    white-space: nowrap;
-  }
-  .word-top {
-    font-weight: 600;
-    font-size: 1.125rem;
-    line-height: 1;
-  cursor: pointer;
-  }
-  .ipa {
-    font-size: 0.95rem;
-    color: #6b7280;
-  }
-  .hl {
-    background: linear-gradient(90deg, rgba(250,204,21,0.95), rgba(250,204,21,0.6));
-    padding: 0.125rem 0.35rem;
-    border-radius: 0.25rem;
-  }
-</style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 
-<body class="bg-slate-50 text-slate-800">
+<body>
 
-<div id="app" class="min-h-screen p-8">
-  <div class="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6">
+  <div id="app">
+    <Sidebar 
+      ref="sidebarRef"
+      :is-open="isSidebarOpen" 
+      @toggle="toggleSidebar" 
+      @select-text="handleSelectText" 
+    ></Sidebar>
+    <div class="main-container">
+      <!-- 左侧面板 -->
+      <div class="left-panel">
+        <textarea class="text-input" v-model="text" rows="4"></textarea>
 
-    <h1 class="text-2xl font-bold">Speech + IPA Demo</h1>
+        <div class="action-container">
+          <div class="btn-container">
+            <button @click="analyze" class="analyze-btn primary">分析</button>
+            <button @click="clearText" class="analyze-btn secondary">清空</button>
+            <button @click="pasteText" class="analyze-btn secondary">粘贴</button>
+          </div>
+          <div class="checkbox-container">
+            <input type="checkbox" v-model="settings.showIpa" id="showIpa" />
+            <label for="showIpa">显示音标</label>
+          </div>
+        </div>
 
-    <textarea v-model="text"
-              class="mt-4 w-full rounded-md border border-slate-200 p-3"
-              rows="4"></textarea>
+        <!-- 悬浮控制栏 -->
+        <div class="floating-controls">
+          <button @click="speakPreviousSentence" :disabled="!speechSupported || currentSentenceIndex === 0" :title="speechSupported ? (currentSentenceIndex === 0 ? '这是第一句' : '') : '当前浏览器不支持语音朗读'"
+            class="control-btn bg-blue-600 text-white">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button v-if="!isSpeaking" @click="speakSentences" :disabled="!speechSupported"
+            :title="speechSupported ? '' : '当前浏览器不支持语音朗读'" class="control-btn bg-emerald-600 text-white">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          </button>
+          <button v-else @click="stop" :disabled="!speechSupported" :title="speechSupported ? '' : '当前浏览器不支持语音朗读'"
+            class="control-btn bg-red-500 text-white">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="6" y="6" width="12" height="12"></rect>
+            </svg>
+          </button>
+          <button @click="speakNextSentence" :disabled="!speechSupported || currentSentenceIndex >= sortedKeys.length - 1"
+            :title="speechSupported ? (currentSentenceIndex >= sortedKeys.length - 1 ? '这是最后一句' : '') : '当前浏览器不支持语音朗读'"
+            class="control-btn bg-blue-600 text-white">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+          <button @click="toggleSettings" :title="'打开设置'" class="control-btn bg-purple-600 text-white">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+        </div>
 
-    <div class="mt-3 flex flex-wrap gap-3">
-      <button @click="analyze" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500">分析</button>
-      <button @click="speak" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500">朗读</button>
-      <button @click="stop" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-400">停止</button>
-    </div>
 
-    <div class="mt-3 flex gap-3 items-center">
-      <label class="text-sm">语速</label>
-      <input type="range" min="0.5" max="2" step="0.1" v-model="rate" class="w-36" />
-      <label class="text-sm">音调</label>
-      <input type="range" min="0.5" max="2" step="0.1" v-model="pitch" class="w-36" />
-    </div>
 
-    <!-- 句子呈现 -->
-    <div class="mt-6">
-      <div class="sentence">
-        <template v-if="wordBlocks.length">
-          <span class="word-block" v-for="(w, idx) in wordBlocks" :key="idx">
-            <span :id="'word-'+idx" class="word-top" :class="w.highlight ? 'hl' : ''"
-                  @click="speakWord(idx)">
-              {{ w.word }}
+        <!-- 句子呈现 -->
+        <!-- Loading indicator for IPA rules -->
+        <div v-if="isLoadingIPA" class="loading-indicator">
+          <div class="notice-content">
+            <div class="flex-1">
+              <div class="font-semibold">正在加载音标规则...</div>
+            </div>
+          </div>
+        </div>
+        <!-- Friendly notice when speech not supported -->
+        <div v-if="!speechSupported" class="warning-notice">
+          <div class="notice-content">
+            <div class="flex-1">
+              <div class="font-semibold">语音朗读不可用</div>
+              <div class="text-sm mt-1">当前浏览器似乎不支持 Web Speech API 的 SpeechSynthesis（语音朗读）。建议使用最新版本的 Chrome、Edge、Safari 或
+                Firefox（部分版本）以获得更好的体验。</div>
+            </div>
+          </div>
+        </div>
+        <div class="sentences-container">
+          <template v-if="wordBlocks.length">
+            <!-- 按段落分组显示 -->
+            <div v-for="paragraph in paragraphs" :key="paragraph.index" class="paragraph-container">
+              <div class="sentence-container">
+                <Sentence v-for="sentence in paragraph.sentences" :key="sentence.sentenceIndex" :sentence="sentence"
+                :show-ipa="settings.showIpa" :sentence-index="sentence.sentenceIndex" :is-current="currentSentenceIndex === sentence.sentenceIndex"
+                :on-word-click="(index, sentenceIdx, wordIdx) => { currentSentenceIndex = sentence.sentenceIndex; getWordInfo(sentence.words[wordIdx].word, index, sentence.sentenceIndex, wordIdx); speakWord(index); }"
+                :on-word-mouse-enter="handleWordMouseEnter"
+                :on-word-mouse-leave="handleWordMouseLeave" />
+              </div>
+              <!-- 段落翻译显示 -->
+              <div v-if="settings.enableParagraphTranslation && paragraph.sentences.some(sent => !sent.isNewline)">
+                <!-- 错误信息始终优先显示 -->
+                <div v-if="paragraph.error" class="warning-notice">
+                  <div class="notice-content">
+                    <div class="flex-1">
+                      <div class="font-semibold">翻译错误</div>
+                      <div class="text-sm mt-1">{{ paragraph.error }}</div>
+                    </div>
+                  </div>
+                </div>
+                <!-- 翻译内容 -->
+                <p v-else class="paragraph-translation">
+                  {{ paragraph.translation || '（翻译进行中...）' }}
+                </p>
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <span class="text-sm text-slate-400">（点击“分析 & 显示音标”生成对齐的单词与音标）</span>
+          </template>
+        </div>
+      </div>
+
+      <!-- 右侧面板 -->
+      <div class="right-panel">
+        <!-- 当前句子显示 -->
+        <div  class="current-sentence-section">
+          <h2 class="word-info-label">当前句子</h2>
+          <div v-if="currentSentenceIndex >= 0 && currentSentenceIndex < sentences.length && !sentences[currentSentenceIndex].isNewline" class="sentence-container">
+            <span class="sentence">
+              {{ sentences[currentSentenceIndex].words.map(word => word.word).join(' ') }}
             </span>
-            <span class="ipa">{{ w.ipa || '—' }}</span>
-          </span>
-        </template>
-        <template v-else>
-          <span class="text-sm text-slate-400">（点击“分析 & 显示音标”生成对齐的单词与音标）</span>
-        </template>
+          </div>
+          <div v-else class="text-sm text-slate-400">选择一个句子开始学习</div>
+        </div>
+
+        <!-- 句子翻译显示 -->
+        <div v-if="wordBlocks.length && settings.enableTranslation" class="current-sentence-section">
+          <h2 class="word-info-label">句子翻译</h2>
+          <!-- 错误信息始终优先显示 -->
+          <div v-if="translationError" class="warning-notice">
+            <div class="notice-content">
+              <div class="flex-1">
+                <div class="font-semibold">翻译错误</div>
+                <div class="text-sm mt-1">{{ translationError }}</div>
+              </div>
+            </div>
+          </div>
+          <!-- 翻译内容区域 -->
+          <div v-else>
+            <!-- 显示翻译内容（流式更新） -->
+            <div class="word-info-panel">
+              <pre class="word-info-content">{{ currentSentenceTranslation || '（翻译进行中...）' }}</pre>
+            </div>
+            <!-- 加载指示器：只在没有翻译内容且正在加载时显示 -->
+            <div v-if="isLoadingTranslation && !currentSentenceTranslation" class="loading-indicator mt-2">
+              <div class="notice-content">
+                <div class="flex-1">
+                  <div class="font-semibold">正在翻译...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Word information is now displayed in tooltip only -->
       </div>
     </div>
 
+    <!-- 抽屉式设置面板 -->
+    <div class="settings-overlay" v-if="isSettingsOpen" @click="toggleSettings"></div>
+    <div class="settings-drawer" :class="{ 'open': isSettingsOpen }">
+      <div class="settings-header">
+        <h2>设置</h2>
+        <button class="settings-close-btn" @click="toggleSettings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="settings-content">
+        <!-- 翻译设置 -->
+        <div class="settings-section">
+          <h3>翻译设置</h3>
+          <div class="settings-item">
+            <label class="settings-label">
+              <input type="checkbox" v-model="settings.enableTranslation" /> 启用句子翻译
+            </label>
+          </div>
+          <div class="settings-item">
+            <label class="settings-label">
+              <input type="checkbox" v-model="settings.enableParagraphTranslation" /> 启用段落翻译
+            </label>
+          </div>
+          <div class="settings-item">
+            <label class="settings-label">翻译服务</label>
+            <select class="settings-input" v-model="settings.translationService">
+              <option value="ollama">Ollama API</option>
+              <option value="google">Google Translate</option>
+            </select>
+          </div>
+          <div class="settings-item" v-if="settings.translationService === 'ollama'">
+            <label class="settings-label">Ollama API URL</label>
+            <input type="text" class="settings-input" v-model="settings.ollamaApiUrl" placeholder="http://localhost:11434/api/generate" />
+          </div>
+          <div class="settings-item" v-if="settings.translationService === 'ollama'">
+            <label class="settings-label">模型名称</label>
+            <input type="text" class="settings-input" v-model="settings.modelName" placeholder="gemma3:4b" />
+          </div>
+          <div class="settings-item" v-if="settings.translationService === 'ollama'">
+            <label class="settings-label">翻译提示词</label>
+            <textarea class="settings-textarea" v-model="settings.translationPrompt" rows="3"></textarea>
+          </div>
+        </div>
+        
+        <!-- 语音设置 -->
+        <div class="settings-section">
+          <h3>语音设置</h3>
+          <div class="settings-item">
+            <label class="settings-label">语速: {{ settings.rate }}</label>
+            <input type="range" min="0.5" max="2" step="0.1" v-model="settings.rate" />
+          </div>
+          <div class="settings-item">
+            <label class="settings-label">音调: {{ settings.pitch }}</label>
+            <input type="range" min="0.5" max="2" step="0.1" v-model="settings.pitch" />
+          </div>
+        </div>
+        
+
+      </div>
+      
+      <div class="settings-footer">
+        <button class="settings-save-btn" @click="saveSettings">保存设置</button>
+      </div>
+    </div>
+    
+    <!-- Word tooltip component -->
+    <word-tooltip
+      :visible="tooltipVisible"
+      :position="tooltipPosition"
+      :is-loading="isLoadingWord"
+      :word-info="wordInfo"
+      @close="closeTooltip"
+    />
   </div>
-</div>
 
-<script>
-const { createApp, ref, reactive } = Vue;
-
-createApp({
-  setup() {
-    const text = ref("Language modeling is a long-standing research topic, dating back to the 1950s with Shannon’s application of information theory to human language, where he measured how well simple n-gram language models predict or compress natural language text");
-    const rate = ref(1.0);
-    const pitch = ref(1.0);
-
-  const wordBlocks = reactive([]);
-  let utter = null;
-  let stopRequested = false;
-
-    const offlineIPA = {
-      "this":"ðɪs","is":"ɪz","a":"ə","test":"tɛst",
-      "hello":"həˈloʊ","world":"wɜːrld","good":"ɡʊd","morning":"ˈmɔːrnɪŋ"
-    };
-
-    const CACHE_KEY = "ipa_cache_v1";
-
-    const getCache = () => JSON.parse(localStorage.getItem(CACHE_KEY) || "{}");
-    const saveCache = (obj) => localStorage.setItem(CACHE_KEY, JSON.stringify(obj));
-
-    async function fetchIPA(word) {
-      if (!word) return null;
-
-      const cache = getCache();
-      if (cache[word]) return cache[word];
-
-      try {
-        const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-        if (!res.ok) throw 0;
-        const json = await res.json();
-        const ipa = json?.[0]?.phonetics?.find(p => p.text)?.text?.trim() || null;
-        const finalIPA = ipa || offlineIPA[word] || null;
-        cache[word] = finalIPA; saveCache(cache);
-        return finalIPA;
-      } catch (err) {
-        const fallback = offlineIPA[word] || null;
-        cache[word] = fallback; saveCache(cache);
-        return fallback;
-      }
-    }
-
-    // Tokenize but preserve original punctuation and special characters
-    function tokenizePreserve(textStr) {
-      // Match sequences of letters, digits, ASCII apostrophe ' , Unicode right single quote ’,
-      // and hyphen (to keep n-gram / hyphenated words intact), or any single non-space character.
-      const re = /[A-Za-z0-9\u2019'-]+|[^\s]/gu;
-      return Array.from(textStr.matchAll(re), m => m[0]);
-    }
-
-    async function analyze() {
-      // 使用保留标点的分词规则：保留原文中的数字与撇号（例如 1950s, Shannon’s）
-      const matches = tokenizePreserve(text.value || "");
-
-      wordBlocks.splice(0, wordBlocks.length);
-
-      for (let w of matches) {
-        // For IPA lookup, normalize to letters only (remove digits and apostrophes).
-        const lookup = w.toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z]/g, "");
-        const ipa = lookup ? await fetchIPA(lookup) : null;
-        wordBlocks.push({ word: w, ipa, highlight:false });
-      }
-    }
-
-    function highlightIndex(index) {
-      for (let i = 0; i < wordBlocks.length; i++) {
-        wordBlocks[i].highlight = (i === index);
-      }
-    }
-
-    async function speak() {
-      // Speak one token at a time to strictly synchronize highlight
-      stop();
-      if (!text.value) return;
-
-      stopRequested = false;
-
-      const tokens = tokenizePreserve(text.value);
-
-
-      for (let i = 0; i < tokens.length; i++) {
-        if (stopRequested) break;
-
-        const w = tokens[i];
-        // If token doesn't contain any letter or digit, treat it as punctuation and skip speaking/highlighting
-        if (!/[A-Za-z0-9]/.test(w)) continue;
-
-        // Prepare a cleaned version for speech: normalize curly apostrophe to ASCII and keep letters/digits/apostrophe/hyphen
-        let speakText = w.replace(/[\u2019]/g, "'").replace(/[^A-Za-z0-9'\-]/g, "");
-        if (!speakText) speakText = w; // fallback to original if nothing left after cleaning
-
-        utter = new SpeechSynthesisUtterance(speakText);
-        utter.lang = "en-US";
-        utter.rate = rate.value;
-        utter.pitch = pitch.value;
-
-        // Promise that resolves when this utterance ends or errors
-        await new Promise((resolve) => {
-          utter.onstart = () => {
-            highlightIndex(i);
-          };
-          utter.onend = () => {
-            highlightIndex(-1);
-            resolve();
-          };
-          utter.onerror = () => {
-            highlightIndex(-1);
-            resolve();
-          };
-
-          speechSynthesis.speak(utter);
-        });
-      }
-
-      highlightIndex(-1);
-      utter = null;
-      stopRequested = false;
-    }
-
-    function speakWord(i) {
-      stop();
-      if (i < 0 || i >= wordBlocks.length) return;
-
-      const w = wordBlocks[i].word;
-      // Skip punctuation-only tokens
-      if (!/[A-Za-z0-9]/.test(w)) return;
-
-      let speakText = w.replace(/[\u2019]/g, "'").replace(/[^A-Za-z0-9'\-]/g, "");
-      if (!speakText) speakText = w;
-
-      utter = new SpeechSynthesisUtterance(speakText);
-      utter.lang = "en-US";
-      utter.rate = rate.value;
-      utter.pitch = pitch.value;
-
-      utter.onstart = () => highlightIndex(i);
-      utter.onend = () => highlightIndex(-1);
-
-      speechSynthesis.speak(utter);
-    }
-
-    function stop() {
-      stopRequested = true;
-      speechSynthesis.cancel();
-      highlightIndex(-1);
-      utter = null;
-    }
-
-    return { text, rate, pitch, analyze, speak, stop, wordBlocks, speakWord };
-  }
-}).mount("#app");
-</script>
-
+  <script type="module" src="main.js"></script>
 </body>
+
 </html>
