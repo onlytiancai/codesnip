@@ -77,6 +77,9 @@ const handleMessage = (ws, message, roomManager) => {
     case 'SEND_CHAT':
       handleSendChat(ws, payload, roomManager);
       break;
+    case 'RESTART_GAME':
+      handleRestartGame(ws, payload, roomManager);
+      break;
     default:
       ws.send(JSON.stringify({
         type: 'ERROR',
@@ -195,6 +198,20 @@ const handleGetStats = (ws, roomManager) => {
     type: 'STATS',
     payload: stats
   }));
+};
+
+// 处理游戏重置请求
+const handleRestartGame = (ws, payload, roomManager) => {
+  const { roomId } = payload;
+  console.log(`Restarting game in room ${roomId}`);
+  const result = roomManager.resetGame(roomId);
+  
+  if (!result) {
+    ws.send(JSON.stringify({
+      type: 'ERROR',
+      payload: { message: 'Failed to reset game' }
+    }));
+  }
 };
 
 module.exports = { setupWebSocket };

@@ -101,6 +101,7 @@
           :validMoves="validMoves" 
           :playerColor="playerColor"
           :gameOver="gameOver"
+          :flippedPieces="flippedPieces"
           @makeMove="makeMove"
         />
         
@@ -110,6 +111,12 @@
           <p class="text-xl" :class="winner === playerColor ? 'text-green-600' : winner ? 'text-red-600' : 'text-gray-600'">
             {{ winner ? (winner === playerColor ? '你赢了！' : '你输了！') : '平局！' }}
           </p>
+          <button
+            @click="restartGame"
+            class="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+          >
+            重新开始游戏
+          </button>
         </div>
         
         <!-- 聊天系统 -->
@@ -180,6 +187,8 @@ const winner = ref<number | null>(null);
 const validMoves = ref<{ row: number; col: number }[]>([]);
 const roomInfo = ref<any>(null);
 const notification = ref<{ message: string; type: 'join' | 'leave' } | null>(null);
+// 翻转的棋子，用于动画效果
+const flippedPieces = ref<{ row: number; col: number }[]>([]);
 
 // 聊天系统
 const chatMessages = ref<{ playerName: string; playerColor: number | null; message: string; timestamp: number }[]>([]);
@@ -281,6 +290,14 @@ const handleWebSocketMessage = (message: any) => {
     case 'MOVE_MADE':
       console.log('Move made:', message.payload);
       if (message.payload.success) {
+        // 记录翻转的棋子
+        if (message.payload.flipped) {
+          flippedPieces.value = message.payload.flipped;
+          // 300ms后清除翻转状态（与动画时间匹配）
+          setTimeout(() => {
+            flippedPieces.value = [];
+          }, 300);
+        }
         updateGameState({
           board: message.payload.board,
           currentPlayer: message.payload.currentPlayer,
@@ -294,7 +311,7 @@ const handleWebSocketMessage = (message: any) => {
       
     case 'ROOM_CLOSED':
       console.log('Room closed:', message.payload.message);
-      alert(message.payload.message);
+      showNotification(message.payload.message, 'leave');
       isInRoom.value = false;
       currentRoomId.value = '';
       playerColor.value = null;
@@ -336,7 +353,7 @@ const handleWebSocketMessage = (message: any) => {
       
     case 'ERROR':
       console.error('WebSocket error:', message.payload.message);
-      alert(message.payload.message);
+      showNotification(message.payload.message, 'leave');
       break;
       
     case 'CHAT_MESSAGE':
@@ -349,6 +366,14 @@ const handleWebSocketMessage = (message: any) => {
           chatContainer.scrollTop = chatContainer.scrollHeight;
         }
       }, 100);
+      break;
+      
+    case 'GAME_RESET':
+      console.log('Game reset:', message.payload);
+      const resetRoom = message.payload.room;
+      roomInfo.value = resetRoom;
+      updateGameState(resetRoom.gameState);
+      showNotification('游戏已重新开始！', 'join');
       break;
   }
 };
@@ -430,7 +455,7 @@ const createRoom = () => {
 // 加入房间
 const joinRoom = () => {
   if (!roomId.value.trim()) {
-    alert('请输入房间ID');
+    showNotification('请输入房间ID', 'leave');
     return;
   }
   
@@ -493,12 +518,24 @@ onMounted(() => {
 const copyRoomUrl = () => {
   navigator.clipboard.writeText(roomUrl.value)
     .then(() => {
-      alert('邀请链接已复制到剪贴板！');
+      showNotification('邀请链接已复制到剪贴板！', 'join');
     })
     .catch(err => {
       console.error('复制失败:', err);
-      alert('复制失败，请手动复制！');
+      showNotification('复制失败，请手动复制！', 'leave');
     });
+};
+
+// 重新开始游戏
+const restartGame = () => {
+  if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+    ws.value.send(JSON.stringify({
+      type: 'RESTART_GAME',
+      payload: {
+        roomId: currentRoomId.value
+      }
+    }));
+  }
 };
 
 // 落子

@@ -66,6 +66,27 @@ class Room {
     return true;
   }
 
+  // 重置游戏
+  resetGame() {
+    // 更新最后活动时间
+    this.lastActivityTime = Date.now();
+    
+    // 重置游戏
+    this.game.reset();
+    this.gameStarted = true; // 保持游戏开始状态
+    
+    // 广播游戏重置消息给所有玩家
+    const message = JSON.stringify({
+      type: 'GAME_RESET',
+      payload: {
+        room: this.getPublicInfo()
+      }
+    });
+    this.broadcast(message);
+    
+    return true;
+  }
+
   // 获取最后活动时间
   getLastActivityTime() {
     return this.lastActivityTime;

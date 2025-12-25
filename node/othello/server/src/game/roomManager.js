@@ -147,6 +147,14 @@ class RoomManager {
       this.deleteRoom(roomId);
       return true;
     }
+  }
+
+  // 重置游戏
+  resetGame(roomId) {
+    const room = this.rooms.get(roomId);
+    if (room) {
+      return room.resetGame();
+    }
     return false;
   }
 

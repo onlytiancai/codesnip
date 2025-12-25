@@ -20,10 +20,11 @@
           <!-- 棋子 -->
           <div
             v-if="board[rowIndex][colIndex] !== 0"
-            class="w-full h-full rounded-full shadow-lg flex items-center justify-center"
+            class="w-full h-full rounded-full shadow-lg flex items-center justify-center transition-transform duration-300"
             :class="{
               'bg-black text-white': board[rowIndex][colIndex] === 1,
-              'bg-white text-black': board[rowIndex][colIndex] === 2
+              'bg-white text-black': board[rowIndex][colIndex] === 2,
+              'animate-flip': isFlipping(rowIndex, colIndex)
             }"
           >
             <span class="text-2xl font-bold">{{ board[rowIndex][colIndex] === 1 ? '●' : '○' }}</span>
@@ -47,6 +48,7 @@ interface Props {
   validMoves: { row: number; col: number }[];
   playerColor: number | null;
   gameOver: boolean;
+  flippedPieces: { row: number; col: number }[];
 }
 
 // 定义emit类型
@@ -63,6 +65,11 @@ const isValidMove = (row: number, col: number): boolean => {
   return props.validMoves.some((move: { row: number; col: number }) => move.row === row && move.col === col);
 };
 
+// 检查棋子是否正在翻转
+const isFlipping = (row: number, col: number): boolean => {
+  return props.flippedPieces.some((piece: { row: number; col: number }) => piece.row === row && piece.col === col);
+};
+
 // 处理格子点击
 const handleCellClick = (row: number, col: number) => {
   // 如果游戏结束，或者不是当前玩家的回合，或者不是有效落子，则不处理
@@ -74,3 +81,21 @@ const handleCellClick = (row: number, col: number) => {
   emit('makeMove', row, col);
 };
 </script>
+
+<style scoped>
+@keyframes flip {
+  0% {
+    transform: rotateY(0deg);
+  }
+  50% {
+    transform: rotateY(90deg);
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+.animate-flip {
+  animation: flip 300ms ease-in-out;
+}
+</style>
