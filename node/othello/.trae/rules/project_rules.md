@@ -1,0 +1,2 @@
+一个多人在线对战的黑白棋游戏
+技术栈：pnpm+vue3+tailwindcss3
