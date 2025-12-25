@@ -40,7 +40,18 @@ class RoomManager {
   removePlayerFromRoom(roomId, ws) {
     const room = this.getRoom(roomId);
     if (room) {
-      room.removePlayer(ws);
+      const removedPlayer = room.removePlayer(ws);
+      if (removedPlayer) {
+        // 广播玩家离开通知给房间内所有玩家
+        const message = JSON.stringify({
+          type: 'PLAYER_LEFT',
+          payload: {
+            playerName: removedPlayer.name,
+            playerColor: removedPlayer.color
+          }
+        });
+        room.broadcast(message);
+      }
       // 如果房间为空，删除房间
       if (room.players.length === 0) {
         this.deleteRoom(roomId);
@@ -51,7 +62,17 @@ class RoomManager {
   // 通过socket移除玩家
   removePlayerBySocket(ws) {
     for (const room of this.rooms.values()) {
-      if (room.removePlayer(ws)) {
+      const removedPlayer = room.removePlayer(ws);
+      if (removedPlayer) {
+        // 广播玩家离开通知给房间内所有玩家
+        const message = JSON.stringify({
+          type: 'PLAYER_LEFT',
+          payload: {
+            playerName: removedPlayer.name,
+            playerColor: removedPlayer.color
+          }
+        });
+        room.broadcast(message);
         // 如果房间为空，删除房间
         if (room.players.length === 0) {
           this.deleteRoom(room.id);

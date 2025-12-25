@@ -40,6 +40,11 @@
     
     <!-- 游戏界面 -->
     <div v-else class="w-full max-w-4xl">
+      <!-- 通知提示 -->
+      <div v-if="notification" :class="['fixed top-4 right-4 p-4 rounded-lg shadow-lg transition-all duration-500', notification.type === 'join' ? 'bg-green-100 border-l-4 border-green-500' : 'bg-red-100 border-l-4 border-red-500']">
+        <p class="font-medium text-gray-800">{{ notification.message }}</p>
+      </div>
+      
       <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
         <div class="flex justify-between items-center mb-4">
           <div>
@@ -50,14 +55,31 @@
             <p class="text-yellow-500 text-sm" v-if="!gameOver && currentPlayer !== playerColor">
               等待对方落子: {{ waitTime }}秒
             </p>
+            <!-- 房间邀请URL -->
+            <div class="mt-2 flex items-center gap-2">
+              <input 
+                type="text" 
+                :value="roomUrl" 
+                readonly 
+                class="flex-1 px-3 py-1 text-sm border border-gray-300 rounded bg-gray-100"
+              />
+              <button 
+                @click="copyRoomUrl" 
+                class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+              >
+                复制邀请链接
+              </button>
+            </div>
           </div>
           <div class="flex gap-6">
             <div class="text-center">
               <p class="font-semibold">黑棋</p>
+              <p class="text-sm text-gray-600">{{ getPlayerName(1) }}</p>
               <p class="text-2xl font-bold text-gray-800">{{ scores.black }}</p>
             </div>
             <div class="text-center">
               <p class="font-semibold">白棋</p>
+              <p class="text-sm text-gray-600">{{ getPlayerName(2) }}</p>
               <p class="text-2xl font-bold text-gray-800">{{ scores.white }}</p>
             </div>
             <div>
@@ -88,6 +110,52 @@
             {{ winner ? (winner === playerColor ? '你赢了！' : '你输了！') : '平局！' }}
           </p>
         </div>
+        
+        <!-- 聊天系统 -->
+        <div class="mt-6">
+          <h3 class="text-lg font-semibold mb-3">聊天</h3>
+          <!-- 聊天消息列表 -->
+          <div 
+            id="chat-messages"
+            class="h-40 overflow-y-auto p-3 bg-gray-50 rounded-lg border border-gray-200 mb-3"
+          >
+            <div 
+              v-for="(msg, index) in chatMessages" 
+              :key="index"
+              class="mb-2 p-2 rounded"
+              :class="msg.playerColor === playerColor ? 'bg-blue-50' : 'bg-gray-100'"
+            >
+              <div class="flex items-center gap-2 text-sm">
+                <span 
+                  class="font-medium"
+                  :class="msg.playerColor === 1 ? 'text-gray-800' : 'text-white'"
+                >
+                  {{ msg.playerName }} ({{ msg.playerColor === 1 ? '黑' : '白' }})
+                </span>
+                <span class="text-xs text-gray-500">
+                  {{ new Date(msg.timestamp).toLocaleTimeString() }}
+                </span>
+              </div>
+              <div class="text-sm mt-1">
+                {{ msg.message }}
+              </div>
+            </div>
+            <div v-if="chatMessages.length === 0" class="text-center text-gray-500 py-8">
+              暂无聊天记录
+            </div>
+          </div>
+          <!-- 常用语发送按钮 -->
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="(msg, index) in commonMessages"
+              :key="index"
+              @click="sendChat(msg)"
+              class="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 rounded transition"
+            >
+              {{ msg }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -109,6 +177,20 @@ const gameOver = ref(false);
 const winner = ref<number | null>(null);
 const validMoves = ref<{ row: number; col: number }[]>([]);
 const roomInfo = ref<any>(null);
+const notification = ref<{ message: string; type: 'join' | 'leave' } | null>(null);
+
+// 聊天系统
+const chatMessages = ref<{ playerName: string; playerColor: number; message: string; timestamp: number }[]>([]);
+const commonMessages = [
+  '催对方快点落子',
+  '夸对方下的不错',
+  '有事要离开',
+  '好的',
+  '请稍等',
+  '这一步很妙',
+  '我想想',
+  '加油'
+];
 
 // 统计信息
 const stats = ref({ roomCount: 0, onlinePlayerCount: 0 });
@@ -127,6 +209,26 @@ const connectWebSocket = () => {
   
   ws.value.onopen = () => {
     console.log('WebSocket connected');
+    // WebSocket连接建立后立即请求统计信息
+    requestStats();
+    
+    // 解析URL参数中的roomId，在连接建立后自动加入房间
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomIdFromUrl = urlParams.get('roomId');
+    if (roomIdFromUrl) {
+      const playerName = prompt('请输入您的名字:');
+      if (playerName && ws.value && ws.value.readyState === WebSocket.OPEN) {
+        roomId.value = roomIdFromUrl;
+        console.log('Joining room from URL:', roomIdFromUrl, 'as', playerName);
+        ws.value.send(JSON.stringify({
+          type: 'JOIN_ROOM',
+          payload: {
+            roomId: roomIdFromUrl,
+            playerName: playerName
+          }
+        }));
+      }
+    }
   };
   
   ws.value.onmessage = (event) => {
@@ -162,6 +264,8 @@ const handleWebSocketMessage = (message: any) => {
       const room = message.payload.room;
       roomInfo.value = room;
       updateGameState(room.gameState);
+      // 更新房间URL
+      roomUrl.value = `${window.location.origin}${window.location.pathname}?roomId=${currentRoomId.value}`;
       break;
       
     case 'ROOM_UPDATED':
@@ -199,10 +303,64 @@ const handleWebSocketMessage = (message: any) => {
       stats.value = message.payload;
       break;
       
+    case 'PLAYER_JOINED':
+      console.log('Player joined:', message.payload);
+      const joinMessage = message.payload.isSpectator 
+        ? `${message.payload.playerName} 作为游客加入了房间`
+        : `${message.payload.playerName} (${message.payload.playerColor === 1 ? '黑方' : '白方'}) 加入了房间`;
+      showNotification(joinMessage, 'join');
+      break;
+      
+    case 'PLAYER_LEFT':
+      console.log('Player left:', message.payload);
+      const leaveMessage = `${message.payload.playerName} (${message.payload.playerColor === 1 ? '黑方' : '白方'}) 离开了房间`;
+      showNotification(leaveMessage, 'leave');
+      // 将离开通知添加到聊天历史
+      chatMessages.value.push({
+        playerName: '系统',
+        playerColor: 0, // 使用0表示系统消息
+        message: leaveMessage,
+        timestamp: Date.now()
+      });
+      // 保持最新消息可见
+      setTimeout(() => {
+        const chatContainer = document.getElementById('chat-messages');
+        if (chatContainer) {
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      }, 100);
+      break;
+      
     case 'ERROR':
       console.error('WebSocket error:', message.payload.message);
       alert(message.payload.message);
       break;
+      
+    case 'CHAT_MESSAGE':
+      console.log('Chat message received:', message.payload);
+      chatMessages.value.push(message.payload);
+      // 保持最新消息可见
+      setTimeout(() => {
+        const chatContainer = document.getElementById('chat-messages');
+        if (chatContainer) {
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      }, 100);
+      break;
+  }
+};
+
+// 发送聊天消息
+const sendChat = (message: string) => {
+  if (!message.trim()) return;
+  if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+    ws.value.send(JSON.stringify({
+      type: 'SEND_CHAT',
+      payload: {
+        roomId: currentRoomId.value,
+        message: message
+      }
+    }));
   }
 };
 
@@ -244,6 +402,15 @@ const stopWaitTimer = () => {
     waitTimer = null;
   }
   waitTime.value = 0;
+};
+
+// 显示通知提示
+const showNotification = (message: string, type: 'join' | 'leave') => {
+  notification.value = { message, type };
+  // 3秒后自动隐藏通知
+  setTimeout(() => {
+    notification.value = null;
+  }, 3000);
 };
 
 // 创建房间
@@ -305,6 +472,32 @@ const leaveRoom = () => {
   validMoves.value = [];
 };
 
+// 根据颜色获取玩家昵称
+const getPlayerName = (color: number) => {
+  if (!roomInfo.value?.players) return '未加入';
+  const player = roomInfo.value.players.find((p: any) => p.color === color);
+  return player ? player.name : '未加入';
+};
+
+// 生成房间邀请URL
+const roomUrl = ref('');
+onMounted(() => {
+  // 设置初始URL
+  roomUrl.value = `${window.location.origin}${window.location.pathname}?roomId=${currentRoomId.value}`;
+});
+
+// 复制房间URL到剪贴板
+const copyRoomUrl = () => {
+  navigator.clipboard.writeText(roomUrl.value)
+    .then(() => {
+      alert('邀请链接已复制到剪贴板！');
+    })
+    .catch(err => {
+      console.error('复制失败:', err);
+      alert('复制失败，请手动复制！');
+    });
+};
+
 // 落子
 const makeMove = (row: number, col: number) => {
   if (gameOver.value || playerColor.value !== currentPlayer.value) {
@@ -324,14 +517,20 @@ const makeMove = (row: number, col: number) => {
   }
 };
 
+// 请求统计信息的函数
+const requestStats = () => {
+  if (ws.value && ws.value.readyState === WebSocket.OPEN && !isInRoom.value) {
+    ws.value.send(JSON.stringify({ type: 'GET_STATS', payload: {} }));
+  }
+};
+
 // 生命周期钩子
 onMounted(() => {
   connectWebSocket();
+  
   // 每30秒更新一次统计信息
   const statsInterval = setInterval(() => {
-    if (ws.value && ws.value.readyState === WebSocket.OPEN && !isInRoom.value) {
-      ws.value.send(JSON.stringify({ type: 'GET_STATS', payload: {} }));
-    }
+    requestStats();
   }, 30000);
 
   onBeforeUnmount(() => {

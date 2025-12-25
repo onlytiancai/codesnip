@@ -46,12 +46,13 @@ class Room {
   removePlayer(ws) {
     const index = this.players.findIndex(p => p.socket === ws);
     if (index !== -1) {
+      const removedPlayer = this.players[index];
       this.players.splice(index, 1);
       // 更新最后活动时间
       this.lastActivityTime = Date.now();
-      return true;
+      return removedPlayer;
     }
-    return false;
+    return null;
   }
 
   // 关闭房间

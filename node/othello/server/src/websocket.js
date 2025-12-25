@@ -27,6 +27,31 @@ const setupWebSocket = (wss, roomManager) => {
   });
 };
 
+// 处理发送聊天消息
+const handleSendChat = (ws, payload, roomManager) => {
+  const { roomId, message } = payload;
+  const room = roomManager.getRoom(roomId);
+  
+  if (room) {
+    const player = room.getPlayerBySocket(ws);
+    if (player) {
+      // 更新房间最后活动时间
+      room.lastActivityTime = Date.now();
+      
+      // 广播聊天消息给房间内所有玩家
+      roomManager.broadcastToRoom(roomId, JSON.stringify({
+        type: 'CHAT_MESSAGE',
+        payload: {
+          playerName: player.name,
+          playerColor: player.color,
+          message: message,
+          timestamp: Date.now()
+        }
+      }));
+    }
+  }
+};
+
 const handleMessage = (ws, message, roomManager) => {
   const { type, payload } = message;
 
@@ -48,6 +73,9 @@ const handleMessage = (ws, message, roomManager) => {
       break;
     case 'GET_STATS':
       handleGetStats(ws, roomManager);
+      break;
+    case 'SEND_CHAT':
+      handleSendChat(ws, payload, roomManager);
       break;
     default:
       ws.send(JSON.stringify({
@@ -80,6 +108,15 @@ const handleJoinRoom = (ws, payload, roomManager) => {
         playerId: result.player.id,
         playerColor: result.player.color,
         room: result.room
+      }
+    }));
+    // 广播玩家加入通知给房间内所有玩家
+    roomManager.broadcastToRoom(roomId, JSON.stringify({
+      type: 'PLAYER_JOINED',
+      payload: {
+        playerName: playerName,
+        playerColor: result.player.color,
+        isSpectator: result.player.isSpectator
       }
     }));
     // 广播房间更新给其他玩家
