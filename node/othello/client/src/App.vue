@@ -415,19 +415,9 @@ const handleWebSocketMessage = (message: any) => {
     case 'ERROR':
       console.error('WebSocket error:', message.payload.message);
       // 添加详细的调试信息
-      console.log('Error message details:', message.payload.message);
-      console.log('Error message lowercased:', message.payload.message.toLowerCase());
-      console.log('Contains "room":', message.payload.message.toLowerCase().includes('room'));
-      console.log('Contains "not found":', message.payload.message.toLowerCase().includes('not found'));
       
       showNotification(message.payload.message, 'leave');
       
-      // 更宽松的条件，只要包含room相关错误就重置界面
-      if (message.payload.message.toLowerCase().includes('room')) {
-        console.log('Resetting join interface due to room error');
-        showNameInput.value = false;
-        pendingRoomId.value = '';
-      }
       break;
       
     case 'CHAT_MESSAGE':
