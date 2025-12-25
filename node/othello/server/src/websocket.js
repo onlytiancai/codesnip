@@ -54,6 +54,7 @@ const handleSendChat = (ws, payload, roomManager) => {
 
 const handleMessage = (ws, message, roomManager) => {
   const { type, payload } = message;
+  console.log(`Received message type: ${type}`);
 
   switch (type) {
     case 'CREATE_ROOM':

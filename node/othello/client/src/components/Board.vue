@@ -19,7 +19,7 @@
         >
           <!-- 棋子 -->
           <div
-            v-if="board[rowIndex][colIndex] !== 0"
+            v-if="board && board[rowIndex] && board[rowIndex][colIndex] !== 0"
             class="w-full h-full rounded-full shadow-lg flex items-center justify-center transition-transform duration-300"
             :class="{
               'bg-black text-white': board[rowIndex][colIndex] === 1,

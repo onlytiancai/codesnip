@@ -9,7 +9,7 @@
     </div>
     
     <!-- 房间创建/加入界面 -->
-    <div v-if="!isInRoom" class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+    <div v-if="!isInRoom && !showNameInput" class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
       <div class="mb-6">
         <button 
           @click="createRoom" 
@@ -38,8 +38,44 @@
       </div>
     </div>
     
+    <!-- 房间介绍和昵称输入界面 -->
+    <div v-if="showNameInput" class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">加入游戏</h2>
+      <div class="bg-blue-50 p-4 rounded-lg mb-6">
+        <h3 class="font-semibold text-gray-800 mb-2">房间信息</h3>
+        <p class="text-gray-600">房间ID: <span class="font-mono bg-white px-2 py-1 rounded">{{ pendingRoomId }}</span></p>
+        <p class="text-gray-600 mt-2">欢迎加入奥赛罗棋游戏！请输入您的昵称开始游戏。</p>
+      </div>
+      <div class="mb-4">
+        <label for="playerName" class="block text-sm font-medium text-gray-700 mb-1">昵称</label>
+        <input
+          id="playerName"
+          v-model="playerName"
+          type="text"
+          placeholder="请输入您的昵称（2-10个字符）"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          maxlength="10"
+        />
+      </div>
+      <div class="flex gap-4">
+        <button
+          @click="confirmJoinRoom"
+          class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300"
+          :disabled="!playerName.trim()"
+        >
+          开始游戏
+        </button>
+        <button
+          @click="cancelJoinRoom"
+          class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-lg transition duration-300"
+        >
+          取消
+        </button>
+      </div>
+    </div>
+    
     <!-- 游戏界面 -->
-    <div v-else class="w-full max-w-4xl">
+    <div v-if="isInRoom" class="w-full max-w-4xl">
       <!-- 通知提示 -->
       <div v-if="notification" :class="['fixed top-4 right-4 p-4 rounded-lg shadow-lg transition-all duration-500', notification.type === 'join' ? 'bg-green-100 border-l-4 border-green-500' : 'bg-red-100 border-l-4 border-red-500']">
         <p class="font-medium text-gray-800">{{ notification.message }}</p>
@@ -53,7 +89,7 @@
             <p class="text-gray-500 text-sm" v-if="!gameOver">游戏状态: {{ roomInfo?.gameStarted ? '已开始' : '等待玩家加入' }}</p>
             <p class="text-gray-500 text-sm" v-if="isSpectator">您是: 游客</p>
             <p class="text-gray-500 text-sm" v-else-if="playerColor">您是: {{ playerColor === 1 ? '黑方' : '白方' }}</p>
-            <p class="text-yellow-500 text-sm" v-if="!gameOver && currentPlayer !== playerColor">
+            <p class="text-yellow-500 text-sm" :class="{ 'invisible': gameOver || currentPlayer === playerColor }">
               等待对方落子: {{ waitTime }}秒
             </p>
             <!-- 房间邀请URL -->
@@ -179,7 +215,8 @@ const roomId = ref('');
 const currentRoomId = ref('');
 const playerColor = ref<number | null>(null);
 const isSpectator = ref(false); // 添加游客标识
-const board = ref<number[][]>([]);
+// 初始化8x8空棋盘
+const board = ref<number[][]>(Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => 0)));
 const currentPlayer = ref(1);
 const scores = ref({ black: 2, white: 2 });
 const gameOver = ref(false);
@@ -189,6 +226,11 @@ const roomInfo = ref<any>(null);
 const notification = ref<{ message: string; type: 'join' | 'leave' } | null>(null);
 // 翻转的棋子，用于动画效果
 const flippedPieces = ref<{ row: number; col: number }[]>([]);
+
+// 昵称输入界面控制
+const showNameInput = ref(false);
+const pendingRoomId = ref('');
+const playerName = ref('');
 
 // 聊天系统
 const chatMessages = ref<{ playerName: string; playerColor: number | null; message: string; timestamp: number }[]>([]);
@@ -227,18 +269,8 @@ const connectWebSocket = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const roomIdFromUrl = urlParams.get('roomId');
     if (roomIdFromUrl) {
-      const playerName = prompt('请输入您的名字:');
-      if (playerName && ws.value && ws.value.readyState === WebSocket.OPEN) {
-        roomId.value = roomIdFromUrl;
-        console.log('Joining room from URL:', roomIdFromUrl, 'as', playerName);
-        ws.value.send(JSON.stringify({
-          type: 'JOIN_ROOM',
-          payload: {
-            roomId: roomIdFromUrl,
-            playerName: playerName
-          }
-        }));
-      }
+      pendingRoomId.value = roomIdFromUrl;
+      showNameInput.value = true;
     }
   };
   
@@ -264,7 +296,8 @@ const handleWebSocketMessage = (message: any) => {
   switch (message.type) {
     case 'ROOM_CREATED':
       console.log('Room created:', message.payload.roomId);
-      roomId.value = message.payload.roomId;
+      pendingRoomId.value = message.payload.roomId;
+      showNameInput.value = true;
       break;
       
     case 'JOINED_ROOM':
@@ -459,18 +492,41 @@ const joinRoom = () => {
     return;
   }
   
-  const playerName = prompt('请输入您的名字:');
-  if (!playerName) return;
+  pendingRoomId.value = roomId.value;
+  showNameInput.value = true;
+};
+
+// 确认加入房间
+const confirmJoinRoom = () => {
+  if (!playerName.value.trim()) {
+    showNotification('请输入昵称', 'leave');
+    return;
+  }
   
-  console.log('Joining room:', roomId.value, 'as', playerName);
+  console.log('Joining room:', pendingRoomId.value, 'as', playerName.value);
   if (ws.value && ws.value.readyState === WebSocket.OPEN) {
     ws.value.send(JSON.stringify({
       type: 'JOIN_ROOM',
       payload: {
-        roomId: roomId.value,
-        playerName: playerName
+        roomId: pendingRoomId.value,
+        playerName: playerName.value
       }
     }));
+    
+    // 重置状态
+    playerName.value = '';
+    showNameInput.value = false;
+  }
+};
+
+// 取消加入房间
+const cancelJoinRoom = () => {
+  showNameInput.value = false;
+  playerName.value = '';
+  // 如果是从URL参数进入的，清除pendingRoomId
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('roomId')) {
+    // 不直接修改URL，保持当前状态
   }
 };
 
@@ -493,7 +549,7 @@ const leaveRoom = () => {
   playerColor.value = null;
   roomInfo.value = null;
   // 重置游戏板和分数
-  board.value = [];
+  board.value = Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => 0));
   scores.value = { black: 2, white: 2 };
   gameOver.value = false;
   winner.value = null;
@@ -528,13 +584,20 @@ const copyRoomUrl = () => {
 
 // 重新开始游戏
 const restartGame = () => {
+  console.log('restartGame function called');
+  console.log('WebSocket state:', ws.value?.readyState);
+  console.log('Current room ID:', currentRoomId.value);
   if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-    ws.value.send(JSON.stringify({
+    const message = JSON.stringify({
       type: 'RESTART_GAME',
       payload: {
         roomId: currentRoomId.value
       }
-    }));
+    });
+    console.log('Sending restart game message:', message);
+    ws.value.send(message);
+  } else {
+    console.error('WebSocket not open or not initialized');
   }
 };
 
