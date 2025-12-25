@@ -3,7 +3,7 @@ const { Room } = require('./room');
 class RoomManager {
   constructor() {
     this.rooms = new Map();
-    this.roomTimeout = 30 * 60 * 1000; // 30分钟超时
+    this.roomTimeout = 10 * 60 * 1000; // 10分钟超时
     this.checkInterval = 5 * 60 * 1000; // 每5分钟检查一次
     this.startTimeoutChecker();
   }
@@ -57,10 +57,8 @@ class RoomManager {
         });
         room.broadcast(message);
       }
-      // 如果房间为空，删除房间
-      if (room.isEmpty()) {
-        this.deleteRoom(roomId);
-      }
+      // 注意：现在不立即删除空房间，由超时清理器处理
+      // 这样可以保留空房间10分钟，给玩家重新加入的机会
     }
   }
 
@@ -78,10 +76,7 @@ class RoomManager {
           }
         });
         room.broadcast(message);
-        // 如果房间为空，删除房间
-        if (room.isEmpty()) {
-          this.deleteRoom(room.id);
-        }
+        // 注意：现在不立即删除空房间，由超时清理器处理
         return true;
       }
     }
@@ -128,14 +123,20 @@ class RoomManager {
     const roomsToRemove = [];
 
     for (const [roomId, room] of this.rooms.entries()) {
+      const activePlayerCount = room.getActivePlayerCount();
       const inactiveTime = now - room.getLastActivityTime();
       const inactiveMinutes = Math.round(inactiveTime / 1000 / 60);
       
-      console.log(`房间 ${roomId}: 最后活动时间 ${inactiveMinutes} 分钟前, 超时限制 ${this.roomTimeout / 1000 / 60} 分钟`);
-      
-      if (inactiveTime > this.roomTimeout) {
-        roomsToRemove.push(roomId);
-        console.log(`🗑️  清理房间 ${roomId} (已空闲 ${inactiveMinutes} 分钟, 超过 ${this.roomTimeout / 1000 / 60} 分钟限制)`);
+      // 只有空房间（没有玩家）才检查超时
+      if (activePlayerCount === 0) {
+        console.log(`房间 ${roomId}: 空房间, 最后活动时间 ${inactiveMinutes} 分钟前, 超时限制 ${this.roomTimeout / 1000 / 60} 分钟`);
+        
+        if (inactiveTime > this.roomTimeout) {
+          roomsToRemove.push(roomId);
+          console.log(`🗑️  清理房间 ${roomId} (已空闲 ${inactiveMinutes} 分钟, 超过 ${this.roomTimeout / 1000 / 60} 分钟限制)`);
+        }
+      } else {
+        console.log(`房间 ${roomId}: 有 ${activePlayerCount} 个玩家, 跳过清理检查`);
       }
     }
 
