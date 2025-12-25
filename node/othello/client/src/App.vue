@@ -574,6 +574,9 @@ const handleWebSocketMessage = (message: any) => {
       roomUrl.value = `${window.location.origin}${window.location.pathname}?roomId=${currentRoomId.value}`;
       // 启动心跳计时器
       startHeartbeatTimer();
+      // 成功加入房间后，清除localStorage中的重连信息
+      localStorage.removeItem('othello_reconnect_info');
+      reconnectInfo.value.isReconnecting = false;
       break;
       
     case 'ROOM_UPDATED':
@@ -890,6 +893,9 @@ const confirmJoinRoom = () => {
     return;
   }
   
+  // 保存玩家昵称到localStorage
+  localStorage.setItem('othello_player_name', playerName.value);
+  
   console.log('Joining room:', pendingRoomId.value, 'as', playerName.value);
   
   // 在开始游戏时验证房间是否存在
@@ -958,6 +964,8 @@ const leaveRoom = () => {
   gameOver.value = false;
   winner.value = null;
   validMoves.value = [];
+  // 清除localStorage中的重连信息
+  localStorage.removeItem('othello_reconnect_info');
   // 清除URL中的roomId参数，返回到首页
   const url = new URL(window.location.href);
   url.searchParams.delete('roomId');
@@ -1169,6 +1177,23 @@ const reconnectInfo = ref({
 
 // 生命周期钩子
 onMounted(() => {
+  // 从localStorage读取玩家昵称
+  const savedName = localStorage.getItem('othello_player_name');
+  if (savedName) {
+    playerName.value = savedName;
+  }
+  
+  // 从localStorage读取重连信息
+  const savedReconnectInfo = localStorage.getItem('othello_reconnect_info');
+  if (savedReconnectInfo) {
+    try {
+      reconnectInfo.value = JSON.parse(savedReconnectInfo);
+    } catch (error) {
+      console.error('Failed to parse reconnect info:', error);
+      localStorage.removeItem('othello_reconnect_info');
+    }
+  }
+  
   connectWebSocket();
   
   // 每30秒更新一次统计信息
@@ -1214,6 +1239,9 @@ onBeforeUnmount(() => {
       playerColor: playerColor.value,
       isReconnecting: true
     };
+    
+    // 将重连信息保存到localStorage
+    localStorage.setItem('othello_reconnect_info', JSON.stringify(reconnectInfo.value));
   }
   if (ws.value) {
     ws.value.close();
