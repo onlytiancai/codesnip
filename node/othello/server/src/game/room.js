@@ -99,6 +99,11 @@ class Room {
     return this.lastActivityTime;
   }
 
+  // 更新最后活动时间
+  updateLastActivityTime() {
+    this.lastActivityTime = Date.now();
+  }
+
   // 检查房间是否为空
   isEmpty() {
     return this.players.length === 0;

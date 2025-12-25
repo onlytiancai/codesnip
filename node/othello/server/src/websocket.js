@@ -258,6 +258,9 @@ const handleGetRoomInfo = (ws, payload, roomManager) => {
   const room = roomManager.getRoom(roomId);
   
   if (room) {
+    // 更新房间活动时间，防止在用户输入昵称期间被清理
+    room.updateLastActivityTime();
+    
     ws.send(JSON.stringify({
       type: 'ROOM_INFO',
       payload: { room }
