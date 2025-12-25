@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-100">
     <!-- 顶部标题栏 -->
-    <header v-if="!isInRoom" class="bg-white shadow-sm border-b border-gray-200 hidden md:block">
+    <header v-if="!isInRoom" class="bg-white shadow-sm border-b border-gray-200">
       <div class="container mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
           <h1 class="text-2xl md:text-3xl font-bold text-gray-800 ">奥赛罗棋</h1>
