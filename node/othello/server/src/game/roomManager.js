@@ -3,6 +3,9 @@ const { Room } = require('./room');
 class RoomManager {
   constructor() {
     this.rooms = new Map();
+    this.roomTimeout = 30 * 60 * 1000; // 30分钟超时
+    this.checkInterval = 5 * 60 * 1000; // 每5分钟检查一次
+    this.startTimeoutChecker();
   }
 
   // 创建新房间
@@ -84,6 +87,60 @@ class RoomManager {
       roomId = Math.random().toString(36).substr(2, 6).toUpperCase();
     } while (this.rooms.has(roomId));
     return roomId;
+  }
+
+  // 启动超时检查器
+  startTimeoutChecker() {
+    setInterval(() => {
+      this.checkRoomTimeouts();
+    }, this.checkInterval);
+  }
+
+  // 检查房间超时
+  checkRoomTimeouts() {
+    const now = Date.now();
+    const roomsToRemove = [];
+
+    for (const [roomId, room] of this.rooms.entries()) {
+      if (now - room.getLastActivityTime() > this.roomTimeout) {
+        roomsToRemove.push(roomId);
+      }
+    }
+
+    // 关闭并移除超时的房间
+    for (const roomId of roomsToRemove) {
+      const room = this.rooms.get(roomId);
+      if (room) {
+        room.closeRoom();
+        this.deleteRoom(roomId);
+        console.log(`Room ${roomId} closed due to inactivity`);
+      }
+    }
+  }
+
+  // 关闭房间
+  closeRoom(roomId) {
+    const room = this.rooms.get(roomId);
+    if (room) {
+      room.closeRoom();
+      this.deleteRoom(roomId);
+      return true;
+    }
+    return false;
+  }
+
+  // 获取当前房间数
+  getRoomCount() {
+    return this.rooms.size;
+  }
+
+  // 获取当前在线人数
+  getOnlinePlayerCount() {
+    let count = 0;
+    for (const room of this.rooms.values()) {
+      count += room.players.length;
+    }
+    return count;
   }
 }
 

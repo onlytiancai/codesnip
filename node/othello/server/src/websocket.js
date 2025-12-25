@@ -46,6 +46,9 @@ const handleMessage = (ws, message, roomManager) => {
     case 'GET_ROOM_INFO':
       handleGetRoomInfo(ws, payload, roomManager);
       break;
+    case 'GET_STATS':
+      handleGetStats(ws, roomManager);
+      break;
     default:
       ws.send(JSON.stringify({
         type: 'ERROR',
@@ -56,6 +59,7 @@ const handleMessage = (ws, message, roomManager) => {
 
 const handleCreateRoom = (ws, payload, roomManager) => {
   const room = roomManager.createRoom();
+  console.log(`Room ${room.id} created`);
   ws.send(JSON.stringify({
     type: 'ROOM_CREATED',
     payload: { roomId: room.id }
@@ -64,9 +68,11 @@ const handleCreateRoom = (ws, payload, roomManager) => {
 
 const handleJoinRoom = (ws, payload, roomManager) => {
   const { roomId, playerName } = payload;
+  console.log(`Player ${playerName} trying to join room ${roomId}`);
   const result = roomManager.addPlayerToRoom(roomId, ws, playerName);
   
   if (result.success) {
+    console.log(`Player ${playerName} joined room ${roomId} successfully`);
     ws.send(JSON.stringify({
       type: 'JOINED_ROOM',
       payload: {
@@ -82,6 +88,7 @@ const handleJoinRoom = (ws, payload, roomManager) => {
       payload: { room: result.room }
     }), [ws]);
   } else {
+    console.log(`Player ${playerName} failed to join room ${roomId}: ${result.message}`);
     ws.send(JSON.stringify({
       type: 'ERROR',
       payload: { message: result.message }
@@ -96,15 +103,26 @@ const handleLeaveRoom = (ws, payload, roomManager) => {
 
 const handleMakeMove = (ws, payload, roomManager) => {
   const { roomId, row, col } = payload;
+  console.log(`Player making move in room ${roomId} at (${row}, ${col})`);
   const result = roomManager.makeMove(roomId, ws, row, col);
   
   if (result.success) {
+    console.log(`Move successful in room ${roomId} at (${row}, ${col})`);
     // 广播移动结果给所有玩家
     roomManager.broadcastToRoom(roomId, JSON.stringify({
       type: 'MOVE_MADE',
       payload: result
     }));
+    // 广播房间更新，包含最新的游戏状态和有效落子
+    const room = roomManager.getRoom(roomId);
+    if (room) {
+      roomManager.broadcastToRoom(roomId, JSON.stringify({
+        type: 'ROOM_UPDATED',
+        payload: { room: room.getPublicInfo() }
+      }));
+    }
   } else {
+    console.log(`Move failed in room ${roomId} at (${row}, ${col}): ${result.message}`);
     ws.send(JSON.stringify({
       type: 'ERROR',
       payload: { message: result.message }
@@ -127,6 +145,19 @@ const handleGetRoomInfo = (ws, payload, roomManager) => {
       payload: { message: 'Room not found' }
     }));
   }
+};
+
+// 处理获取统计信息请求
+const handleGetStats = (ws, roomManager) => {
+  const stats = {
+    roomCount: roomManager.getRoomCount(),
+    onlinePlayerCount: roomManager.getOnlinePlayerCount()
+  };
+  
+  ws.send(JSON.stringify({
+    type: 'STATS',
+    payload: stats
+  }));
 };
 
 module.exports = { setupWebSocket };
