@@ -78,12 +78,13 @@
       </div>
     </div>
     
+    <!-- 通知提示 -->
+    <div v-if="notification" :class="['fixed bottom-8 left-1/2 transform -translate-x-1/2 p-6 rounded-lg shadow-2xl transition-all duration-500 z-50 opacity-100 bg-white border-2', notification.type === 'join' ? 'border-green-500 bg-green-100' : 'border-red-500 bg-red-100']">
+      <p class="font-bold text-lg text-gray-900">{{ notification.message }}</p>
+    </div>
+    
     <!-- 游戏界面 -->
     <div v-if="isInRoom" class="w-full max-w-4xl">
-      <!-- 通知提示 -->
-      <div v-if="notification" :class="['fixed top-4 right-4 p-4 rounded-lg shadow-lg transition-all duration-500', notification.type === 'join' ? 'bg-green-100 border-l-4 border-green-500' : 'bg-red-100 border-l-4 border-red-500']">
-        <p class="font-medium text-gray-800">{{ notification.message }}</p>
-      </div>
       
       <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
@@ -259,7 +260,7 @@ const chatMessages = ref<{ playerName: string; playerColor: number | null; messa
 const commonMessages = [
   '快点下呀',
   '下的不错',
-  '不会意思，我有事要离开',
+  '不好意思，我有事要离开',
   '好的',
   '请稍等',
   '这一步很妙',
@@ -413,12 +414,27 @@ const handleWebSocketMessage = (message: any) => {
       
     case 'ERROR':
       console.error('WebSocket error:', message.payload.message);
+      // 添加详细的调试信息
+      console.log('Error message details:', message.payload.message);
+      console.log('Error message lowercased:', message.payload.message.toLowerCase());
+      console.log('Contains "room":', message.payload.message.toLowerCase().includes('room'));
+      console.log('Contains "not found":', message.payload.message.toLowerCase().includes('not found'));
+      
       showNotification(message.payload.message, 'leave');
+      
+      // 更宽松的条件，只要包含room相关错误就重置界面
+      if (message.payload.message.toLowerCase().includes('room')) {
+        console.log('Resetting join interface due to room error');
+        showNameInput.value = false;
+        pendingRoomId.value = '';
+      }
       break;
       
     case 'CHAT_MESSAGE':
       console.log('Chat message received:', message.payload);
       chatMessages.value.push(message.payload);
+      // 显示聊天消息通知
+      showNotification(`${message.payload.playerName}: ${message.payload.message}`, 'join');
       // 保持最新消息可见
       setTimeout(() => {
         const chatContainer = document.getElementById('chat-messages');
@@ -574,6 +590,8 @@ const leaveRoom = () => {
   currentRoomId.value = '';
   playerColor.value = null;
   roomInfo.value = null;
+  // 清空聊天记录
+  chatMessages.value = [];
   // 重置游戏板和分数
   board.value = Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => 0));
   scores.value = { black: 2, white: 2 };
