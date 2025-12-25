@@ -280,7 +280,8 @@ let waitTimer: number | null = null;
 
 // WebSocket连接
 const ws = ref<WebSocket | null>(null);
-const wsUrl = 'ws://localhost:3001';
+// 使用全局配置的WebSocket URL
+const wsUrl = window.wsUrl || 'ws://localhost:3001';
 
 // 创建WebSocket连接
 const connectWebSocket = () => {
