@@ -600,10 +600,7 @@ const handleWebSocketMessage = (message: any) => {
       startNameInputHeartbeat();
       break;
       
-    case 'ERROR':
-      // 处理其他错误情况
-      console.error('Server error:', message.payload.message);
-      break;
+
       
     case 'JOINED_ROOM':
       console.log('Joined room:', message.payload.roomId);
