@@ -24,6 +24,21 @@
       </div>
     </div>
     
+    <!-- 自己断线永久提示条 - 固定在顶部，在任何页面都显示 -->
+    <div v-if="showOfflineBanner" 
+         class="fixed top-0 left-1/2 transform -translate-x-1/2 z-50 bg-red-100 border-2 border-red-400 text-red-800 px-6 py-3 rounded-lg shadow-lg max-w-md"
+         :class="{ 'mt-16': isInRoom && !gameOver && !opponentOffline && playerColor && currentPlayer !== playerColor }">
+      <div class="flex items-center gap-3">
+        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+        </svg>
+        <div class="flex-1">
+          <div class="font-bold text-sm">连接已断开</div>
+          <div class="text-xs text-red-700">请刷新页面重新连接</div>
+        </div>
+      </div>
+    </div>
+    
     <!-- 房间创建/加入界面 - 响应式布局 -->
     <div v-if="!isInRoom && !showNameInput" class="container mx-auto px-4 py-8">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -483,6 +498,9 @@ let waitTimer: number | null = null;
 const opponentOffline = ref(false);
 let offlineDetectionTimer: number | null = null;
 
+// 自己断线永久提示条控制
+const showOfflineBanner = ref(false);
+
 // 计时器
 const ws = ref<WebSocket | null>(null);
 // 使用全局配置的WebSocket URL
@@ -494,6 +512,9 @@ const connectWebSocket = () => {
   
   ws.value.onopen = () => {
     console.log('WebSocket connected');
+    // 隐藏自己断线的永久提示条
+    showOfflineBanner.value = false;
+    
     // WebSocket连接建立后立即请求统计信息
     requestStats();
     
@@ -536,7 +557,10 @@ const connectWebSocket = () => {
     stopHeartbeatTimer();
     stopNameInputHeartbeat();
     
-    // 显示重连提示
+    // 显示永久断线提示条，无论是否在房间中
+    showOfflineBanner.value = true; // 显示自己断线的永久提示条
+    
+    // 如果在房间中，显示临时通知
     if (isInRoom.value) {
       showNotification('连接已断开，请刷新页面重新加入房间', 'leave');
     }
@@ -956,6 +980,7 @@ const leaveRoom = () => {
   playerColor.value = null;
   roomInfo.value = null;
   opponentOffline.value = false;
+  showOfflineBanner.value = false; // 隐藏自己断线的永久提示条
   // 清空聊天记录
   chatMessages.value = [];
   // 重置游戏板和分数
