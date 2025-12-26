@@ -24,6 +24,31 @@
       </div>
     </div>
     
+    <!-- 自己断线永久提示条 - 固定在顶部，在任何页面都显示 -->
+    <div v-if="showOfflineBanner" 
+         class="fixed top-0 left-1/2 transform -translate-x-1/2 z-50 bg-red-100 border-2 border-red-400 text-red-800 px-6 py-3 rounded-lg shadow-lg max-w-md"
+         :class="{ 'mt-16': isInRoom && !gameOver && !opponentOffline && playerColor && currentPlayer !== playerColor }">
+      <div class="flex items-center gap-3">
+        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+        </svg>
+        <div class="flex-1">
+          <div class="font-bold text-sm">连接已断开</div>
+          <div class="text-xs text-red-700">
+            <span v-if="isInRoom">点击重连按钮保持房间</span>
+            <span v-else>请刷新页面重新连接</span>
+          </div>
+        </div>
+        <button
+          v-if="isInRoom"
+          @click="manualReconnect"
+          class="ml-2 px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded transition duration-300"
+        >
+          重连
+        </button>
+      </div>
+    </div>
+    
     <!-- 房间创建/加入界面 - 响应式布局 -->
     <div v-if="!isInRoom && !showNameInput" class="container mx-auto px-4 py-8">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -483,6 +508,9 @@ let waitTimer: number | null = null;
 const opponentOffline = ref(false);
 let offlineDetectionTimer: number | null = null;
 
+// 自己断线永久提示条控制
+const showOfflineBanner = ref(false);
+
 // 计时器
 const ws = ref<WebSocket | null>(null);
 // 使用全局配置的WebSocket URL
@@ -494,6 +522,9 @@ const connectWebSocket = () => {
   
   ws.value.onopen = () => {
     console.log('WebSocket connected');
+    // 隐藏自己断线的永久提示条
+    showOfflineBanner.value = false;
+    
     // WebSocket连接建立后立即请求统计信息
     requestStats();
     
@@ -536,7 +567,10 @@ const connectWebSocket = () => {
     stopHeartbeatTimer();
     stopNameInputHeartbeat();
     
-    // 显示重连提示
+    // 显示永久断线提示条，无论是否在房间中
+    showOfflineBanner.value = true; // 显示自己断线的永久提示条
+    
+    // 如果在房间中，显示临时通知
     if (isInRoom.value) {
       showNotification('连接已断开，请刷新页面重新加入房间', 'leave');
     }
@@ -557,8 +591,18 @@ const handleWebSocketMessage = (message: any) => {
       console.log('Room created:', message.payload.roomId);
       pendingRoomId.value = message.payload.roomId;
       showNameInput.value = true;
+      // 从localStorage读取保存的昵称
+      const savedNameForCreate = localStorage.getItem('othello_player_name');
+      if (savedNameForCreate) {
+        playerName.value = savedNameForCreate;
+      }
       // 启动昵称输入期间的心跳保护
       startNameInputHeartbeat();
+      break;
+      
+    case 'ERROR':
+      // 处理其他错误情况
+      console.error('Server error:', message.payload.message);
       break;
       
     case 'JOINED_ROOM':
@@ -574,6 +618,9 @@ const handleWebSocketMessage = (message: any) => {
       roomUrl.value = `${window.location.origin}${window.location.pathname}?roomId=${currentRoomId.value}`;
       // 启动心跳计时器
       startHeartbeatTimer();
+      // 成功加入房间后，清除localStorage中的重连信息
+      localStorage.removeItem('othello_reconnect_info');
+      reconnectInfo.value.isReconnecting = false;
       break;
       
     case 'ROOM_UPDATED':
@@ -879,6 +926,11 @@ const joinRoom = () => {
   // 直接进入昵称输入界面，不做实时验证
   pendingRoomId.value = roomId.value;
   showNameInput.value = true;
+  // 从localStorage读取保存的昵称
+  const savedNameForJoin = localStorage.getItem('othello_player_name');
+  if (savedNameForJoin) {
+    playerName.value = savedNameForJoin;
+  }
   // 启动昵称输入期间的心跳保护
   startNameInputHeartbeat();
 };
@@ -890,31 +942,27 @@ const confirmJoinRoom = () => {
     return;
   }
   
+  // 保存玩家昵称到localStorage
+  localStorage.setItem('othello_player_name', playerName.value);
+  
   console.log('Joining room:', pendingRoomId.value, 'as', playerName.value);
   
-  // 在开始游戏时验证房间是否存在
-  validateRoom(pendingRoomId.value).then((isValid) => {
-    if (isValid) {
-      if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-        ws.value.send(JSON.stringify({
-          type: 'JOIN_ROOM',
-          payload: {
-            roomId: pendingRoomId.value,
-            playerName: playerName.value
-          }
-        }));
-        
-        // 停止昵称输入期间的心跳保护
-        stopNameInputHeartbeat();
-        // 重置状态
-        playerName.value = '';
-        showNameInput.value = false;
+  // 直接发送JOIN_ROOM请求，让服务器处理房间不存在的情况（自动创建房间）
+  if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+    ws.value.send(JSON.stringify({
+      type: 'JOIN_ROOM',
+      payload: {
+        roomId: pendingRoomId.value,
+        playerName: playerName.value
       }
-    } else {
-      showNotification('房间不存在或已被清理，请检查房间ID', 'leave');
-      // 保持在昵称输入界面，允许用户重新输入
-    }
-  });
+    }));
+    
+    // 停止昵称输入期间的心跳保护
+    stopNameInputHeartbeat();
+    // 重置状态
+    playerName.value = '';
+    showNameInput.value = false;
+  }
 };
 
 // 取消加入房间
@@ -950,6 +998,7 @@ const leaveRoom = () => {
   playerColor.value = null;
   roomInfo.value = null;
   opponentOffline.value = false;
+  showOfflineBanner.value = false; // 隐藏自己断线的永久提示条
   // 清空聊天记录
   chatMessages.value = [];
   // 重置游戏板和分数
@@ -958,6 +1007,8 @@ const leaveRoom = () => {
   gameOver.value = false;
   winner.value = null;
   validMoves.value = [];
+  // 清除localStorage中的重连信息
+  localStorage.removeItem('othello_reconnect_info');
   // 清除URL中的roomId参数，返回到首页
   const url = new URL(window.location.href);
   url.searchParams.delete('roomId');
@@ -1167,8 +1218,61 @@ const reconnectInfo = ref({
   isReconnecting: false
 });
 
+// 手动重连功能
+const manualReconnect = () => {
+  console.log('尝试手动重连...');
+  
+  // 保存当前房间信息用于重连
+  if (isInRoom.value && currentRoomId.value && playerColor.value !== null) {
+    const playerName = localStorage.getItem('othello_player_name') || '玩家';
+    reconnectInfo.value = {
+      roomId: currentRoomId.value,
+      playerName: playerName,
+      playerColor: playerColor.value,
+      isReconnecting: true
+    };
+    localStorage.setItem('othello_reconnect_info', JSON.stringify(reconnectInfo.value));
+    console.log('保存重连信息:', reconnectInfo.value);
+  }
+  
+  // 关闭现有连接
+  if (ws.value) {
+    ws.value.close();
+  }
+  
+  // 隐藏断线提示条
+  showOfflineBanner.value = false;
+  
+  // 重新连接
+  connectWebSocket();
+  
+  // 显示重连提示
+  if (isInRoom.value) {
+    showNotification('正在重新连接到房间...', 'join');
+  } else {
+    showNotification('正在重新连接...', 'join');
+  }
+};
+
 // 生命周期钩子
 onMounted(() => {
+  // 从localStorage读取玩家昵称
+  const savedName = localStorage.getItem('othello_player_name');
+  if (savedName) {
+    playerName.value = savedName;
+  }
+  
+  // 从localStorage读取重连信息
+  const savedReconnectInfo = localStorage.getItem('othello_reconnect_info');
+  if (savedReconnectInfo) {
+    try {
+      reconnectInfo.value = JSON.parse(savedReconnectInfo);
+    } catch (error) {
+      console.error('Failed to parse reconnect info:', error);
+      localStorage.removeItem('othello_reconnect_info');
+    }
+  }
+  
   connectWebSocket();
   
   // 每30秒更新一次统计信息
@@ -1214,6 +1318,9 @@ onBeforeUnmount(() => {
       playerColor: playerColor.value,
       isReconnecting: true
     };
+    
+    // 将重连信息保存到localStorage
+    localStorage.setItem('othello_reconnect_info', JSON.stringify(reconnectInfo.value));
   }
   if (ws.value) {
     ws.value.close();

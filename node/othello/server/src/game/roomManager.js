@@ -4,7 +4,7 @@ class RoomManager {
   constructor() {
     this.rooms = new Map();
     this.roomTimeout = 30 * 60 * 1000; // 30分钟超时
-    this.checkInterval = 5 * 60 * 1000; // 每5分钟检查一次
+    this.checkInterval = 1 * 60 * 1000; // 每分钟检查一次
     this.startTimeoutChecker();
   }
 
@@ -14,6 +14,21 @@ class RoomManager {
     const room = new Room(roomId);
     this.rooms.set(roomId, room);
     console.log(`🏠 创建新房间 ${roomId}, 当前总房间数: ${this.rooms.size}`);
+    return room;
+  }
+
+  // 创建指定ID的房间（用于重连时自动创建同名房间）
+  createRoomWithId(roomId) {
+    // 检查房间是否已存在
+    if (this.rooms.has(roomId)) {
+      console.log(`⚠️ 房间 ${roomId} 已存在`);
+      return this.rooms.get(roomId);
+    }
+    
+    // 创建新房间并使用指定ID
+    const room = new Room(roomId);
+    this.rooms.set(roomId, room);
+    console.log(`🏠 创建指定ID房间 ${roomId}, 当前总房间数: ${this.rooms.size}`);
     return room;
   }
 
@@ -127,6 +142,7 @@ class RoomManager {
     const now = Date.now();
     const roomsToRemove = [];
 
+    console.log(`开始检查房间超时, 当前总房间数: ${this.rooms.size}`);
     for (const [roomId, room] of this.rooms.entries()) {
       const inactiveTime = now - room.getLastActivityTime();
       const inactiveMinutes = Math.round(inactiveTime / 1000 / 60);
