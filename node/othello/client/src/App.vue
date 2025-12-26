@@ -947,29 +947,22 @@ const confirmJoinRoom = () => {
   
   console.log('Joining room:', pendingRoomId.value, 'as', playerName.value);
   
-  // 在开始游戏时验证房间是否存在
-  validateRoom(pendingRoomId.value).then((isValid) => {
-    if (isValid) {
-      if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-        ws.value.send(JSON.stringify({
-          type: 'JOIN_ROOM',
-          payload: {
-            roomId: pendingRoomId.value,
-            playerName: playerName.value
-          }
-        }));
-        
-        // 停止昵称输入期间的心跳保护
-        stopNameInputHeartbeat();
-        // 重置状态
-        playerName.value = '';
-        showNameInput.value = false;
+  // 直接发送JOIN_ROOM请求，让服务器处理房间不存在的情况（自动创建房间）
+  if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+    ws.value.send(JSON.stringify({
+      type: 'JOIN_ROOM',
+      payload: {
+        roomId: pendingRoomId.value,
+        playerName: playerName.value
       }
-    } else {
-      showNotification('房间不存在或已被清理，请检查房间ID', 'leave');
-      // 保持在昵称输入界面，允许用户重新输入
-    }
-  });
+    }));
+    
+    // 停止昵称输入期间的心跳保护
+    stopNameInputHeartbeat();
+    // 重置状态
+    playerName.value = '';
+    showNameInput.value = false;
+  }
 };
 
 // 取消加入房间

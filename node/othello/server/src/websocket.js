@@ -206,7 +206,43 @@ const handleCreateRoom = (ws, payload, roomManager) => {
 const handleJoinRoom = (ws, payload, roomManager) => {
   const { roomId, playerName } = payload;
   console.log(`Player ${playerName} trying to join room ${roomId}`);
-  const result = roomManager.addPlayerToRoom(roomId, ws, playerName);
+  
+  let result = roomManager.addPlayerToRoom(roomId, ws, playerName);
+  console.log(`Initial addPlayerToRoom result:`, result);
+  
+  if (!result.success) {
+    console.log(`Failed to join room: ${result.message}`);
+    
+    if (result.message === 'Room not found') {
+      console.log(`Room ${roomId} not found, creating new room for ${playerName}`);
+      
+      try {
+        // 房间不存在时，自动创建同名房间
+        const room = roomManager.createRoomWithId(roomId);
+        if (!room) {
+          console.log(`Failed to create room with ID ${roomId}`);
+          ws.send(JSON.stringify({
+            type: 'ERROR',
+            payload: { message: 'Failed to create room' }
+          }));
+          return;
+        }
+        
+        console.log(`Created new room ${roomId} for ${playerName}`);
+        
+        // 重新尝试添加玩家到新房间
+        result = room.addPlayer(ws, playerName);
+        console.log(`Add player to new room result:`, result);
+      } catch (error) {
+        console.error(`Error creating room or adding player:`, error);
+        ws.send(JSON.stringify({
+          type: 'ERROR',
+          payload: { message: 'Failed to create room and add player' }
+        }));
+        return;
+      }
+    }
+  }
   
   if (result.success) {
     console.log(`Player ${playerName} joined room ${roomId} successfully`);
