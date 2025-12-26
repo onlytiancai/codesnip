@@ -66,14 +66,23 @@ const handleSendChat = (ws, payload, roomManager) => {
 const handleReconnectRoom = (ws, payload, roomManager) => {
   const { roomId, playerName, playerColor } = payload;
   console.log(`Player ${playerName} trying to reconnect to room ${roomId} with color ${playerColor}`);
-  const room = roomManager.getRoom(roomId);
+  let room = roomManager.getRoom(roomId);
   
   if (!room) {
-    ws.send(JSON.stringify({
-      type: 'ERROR',
-      payload: { message: 'Room not found' }
-    }));
-    return;
+    console.log(`Room ${roomId} not found, creating new room for reconnect`);
+    
+    // 房间不存在时，自动创建同名房间
+    room = roomManager.createRoomWithId(roomId);
+    if (!room) {
+      console.log(`Failed to create room with ID ${roomId}`);
+      ws.send(JSON.stringify({
+        type: 'ERROR',
+        payload: { message: 'Failed to create room' }
+      }));
+      return;
+    }
+    
+    console.log(`Created new room ${roomId} for reconnect`);
   }
   
   // 检查该颜色是否已经有玩家在房间中
@@ -107,10 +116,12 @@ const handleReconnectRoom = (ws, payload, roomManager) => {
       }
     }), [ws]); // 不给自己发送重连通知
   } else {
-    // 如果玩家已经离开房间，作为新玩家加入
+    // 如果玩家已经离开房间，作为新玩家加入，或者房间是新创建的
     const result = room.addPlayer(ws, playerName);
     if (result.success) {
-      console.log(`Player ${playerName} reconnected to room ${roomId} as new player`);
+      const isNewRoom = room.id === roomId && room.players.length === 1; // 房间只有一个玩家，说明是新创建的
+      console.log(`Player ${playerName} ${isNewRoom ? 'reconnected to new room' : 'reconnected to room'} ${roomId}`);
+      
       ws.send(JSON.stringify({
         type: 'JOINED_ROOM',
         payload: {
@@ -120,13 +131,15 @@ const handleReconnectRoom = (ws, payload, roomManager) => {
           room: result.room
         }
       }));
+      
       // 广播玩家加入通知给房间内所有玩家
       roomManager.broadcastToRoom(roomId, JSON.stringify({
         type: 'PLAYER_JOINED',
         payload: {
           playerName: playerName,
           playerColor: result.player.color,
-          isSpectator: result.player.isSpectator
+          isSpectator: result.player.isSpectator,
+          isReconnect: true // 标记这是重连
         }
       }));
     } else {

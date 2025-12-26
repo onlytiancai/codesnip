@@ -34,8 +34,18 @@
         </svg>
         <div class="flex-1">
           <div class="font-bold text-sm">连接已断开</div>
-          <div class="text-xs text-red-700">请刷新页面重新连接</div>
+          <div class="text-xs text-red-700">
+            <span v-if="isInRoom">点击重连按钮保持房间</span>
+            <span v-else>请刷新页面重新连接</span>
+          </div>
         </div>
+        <button
+          v-if="isInRoom"
+          @click="manualReconnect"
+          class="ml-2 px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded transition duration-300"
+        >
+          重连
+        </button>
       </div>
     </div>
     
@@ -588,6 +598,11 @@ const handleWebSocketMessage = (message: any) => {
       }
       // 启动昵称输入期间的心跳保护
       startNameInputHeartbeat();
+      break;
+      
+    case 'ERROR':
+      // 处理其他错误情况
+      console.error('Server error:', message.payload.message);
       break;
       
     case 'JOINED_ROOM':
@@ -1209,6 +1224,42 @@ const reconnectInfo = ref({
   playerColor: null as number | null,
   isReconnecting: false
 });
+
+// 手动重连功能
+const manualReconnect = () => {
+  console.log('尝试手动重连...');
+  
+  // 保存当前房间信息用于重连
+  if (isInRoom.value && currentRoomId.value && playerColor.value !== null) {
+    const playerName = localStorage.getItem('othello_player_name') || '玩家';
+    reconnectInfo.value = {
+      roomId: currentRoomId.value,
+      playerName: playerName,
+      playerColor: playerColor.value,
+      isReconnecting: true
+    };
+    localStorage.setItem('othello_reconnect_info', JSON.stringify(reconnectInfo.value));
+    console.log('保存重连信息:', reconnectInfo.value);
+  }
+  
+  // 关闭现有连接
+  if (ws.value) {
+    ws.value.close();
+  }
+  
+  // 隐藏断线提示条
+  showOfflineBanner.value = false;
+  
+  // 重新连接
+  connectWebSocket();
+  
+  // 显示重连提示
+  if (isInRoom.value) {
+    showNotification('正在重新连接到房间...', 'join');
+  } else {
+    showNotification('正在重新连接...', 'join');
+  }
+};
 
 // 生命周期钩子
 onMounted(() => {
