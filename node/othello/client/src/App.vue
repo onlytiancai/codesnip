@@ -581,6 +581,11 @@ const handleWebSocketMessage = (message: any) => {
       console.log('Room created:', message.payload.roomId);
       pendingRoomId.value = message.payload.roomId;
       showNameInput.value = true;
+      // 从localStorage读取保存的昵称
+      const savedNameForCreate = localStorage.getItem('othello_player_name');
+      if (savedNameForCreate) {
+        playerName.value = savedNameForCreate;
+      }
       // 启动昵称输入期间的心跳保护
       startNameInputHeartbeat();
       break;
@@ -906,6 +911,11 @@ const joinRoom = () => {
   // 直接进入昵称输入界面，不做实时验证
   pendingRoomId.value = roomId.value;
   showNameInput.value = true;
+  // 从localStorage读取保存的昵称
+  const savedNameForJoin = localStorage.getItem('othello_player_name');
+  if (savedNameForJoin) {
+    playerName.value = savedNameForJoin;
+  }
   // 启动昵称输入期间的心跳保护
   startNameInputHeartbeat();
 };
