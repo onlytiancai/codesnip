@@ -289,3 +289,424 @@ RAG 是**外接记忆**，你的是**内化记忆 + 行为约束**。
 你可以直接说你想从哪一步开始。
 
 
+# 如何节省内存
+
+简短结论先给你，然后我把**哪些 PEFT 参数真的省内存、能省多少、在你这台 16G M4 Mac mini 上值不值得调**说清楚。
+
+**结论一句话：**
+👉 **PEFT 参数能省一点内存，但救不了 7B + DAPT 在 MPS 上的 OOM**
+👉 对 3B / SFT 场景非常有价值，对 7B DAPT 只是“延迟死亡”
+
+下面是你真正需要知道的细节。
+
+---
+
+## 一、哪些 PEFT 参数“真的影响内存”
+
+我们只谈**对显存/统一内存有实质影响的**。
+
+### 1️⃣ `r`（LoRA rank）——最有效
+
+```python
+LoraConfig(
+    r=8,        # 原来 16 / 32
+)
+```
+
+影响：
+
+* LoRA 参数量 ∝ r
+* optimizer state 也 ∝ r
+
+经验值（7B）：
+
+* r=32 → ~400–500MB
+* r=16 → ~200–250MB
+* r=8  → ~100–130MB
+
+⚠️ 但注意：
+**你 OOM 的不是 LoRA，而是 base model + activation**
+
+所以：
+
+* r=8 可以救 **3B**
+* 救不了 **7B DAPT**
+
+---
+
+### 2️⃣ `target_modules` —— 有效但有限
+
+你现在用的是：
+
+```python
+target_modules=["q_proj", "v_proj"]
+```
+
+这是**正确且省内存的选择**。
+
+进一步缩的话，只能做到：
+
+```python
+target_modules=["q_proj"]
+```
+
+内存收益：
+
+* 再省 ~20–30%
+
+代价：
+
+* 表达能力下降
+* 对 DAPT 的收益明显变差
+
+👉 **不推荐在 DAPT 上只留 q_proj**
+
+---
+
+### 3️⃣ `lora_alpha` ——几乎不影响内存
+
+```python
+lora_alpha=16
+```
+
+这个参数：
+
+* 影响缩放
+* **几乎不影响内存**
+
+别指望它救 OOM。
+
+---
+
+### 4️⃣ `lora_dropout` ——不省内存
+
+```python
+lora_dropout=0.0
+```
+
+Dropout 是训练时行为，对内存占用影响≈0。
+
+---
+
+## 二、PEFT 完全省不了的三样东西（关键）
+
+这是你现在的**核心瓶颈**。
+
+### ❌ 1️⃣ Base model 权重
+
+* Qwen2.5-7B fp16 ≈ 13–14GB
+* PEFT 不动这一块
+
+---
+
+### ❌ 2️⃣ Activation（DAPT 特别吃）
+
+DAPT 是 **全 token LM loss**：
+
+* 每一层都要存中间状态
+* 和 batch、seq length 成正比
+* 和 LoRA 无关
+
+---
+
+### ❌ 3️⃣ Optimizer state（即使是 LoRA）
+
+* AdamW 至少 2× LoRA 参数
+* MPS 回收不及时
+
+---
+
+## 三、你还能在 PEFT 之外“稍微省一点”的技巧
+
+这些是**锦上添花**，不是救命。
+
+### 1️⃣ 强制关 cache
+
+```python
+model.config.use_cache = False
+```
+
+**必须关**，否则白白吃几百 MB。
+
+---
+
+### 2️⃣ 缩短序列长度（效果比调 r 大）
+
+```python
+max_length = 1024   # 不要 2048
+```
+
+这一步：
+
+* activation 直接减半
+* 对 DAPT 影响很小（文学语料）
+
+---
+
+### 3️⃣ Gradient Checkpointing（MPS 勉强）
+
+```python
+model.gradient_checkpointing_enable()
+```
+
+能省 20–30% activation，但：
+
+* MPS 上有时不稳定
+* 训练更慢
+
+可以试，但别指望 miracles。
+
+---
+
+## 四、给你一个“极限省内存”的 LoRA 配置（参考）
+
+这是**我能给出的最激进配置**：
+
+```python
+LoraConfig(
+    r=8,
+    lora_alpha=16,
+    target_modules=["q_proj", "v_proj"],
+    lora_dropout=0.0,
+    bias="none",
+    task_type="CAUSAL_LM"
+)
+```
+
+再配合：
+
+```python
+model.config.use_cache = False
+model.gradient_checkpointing_enable()
+max_length = 1024
+```
+
+👉 **这套可以救 3B，救不了 7B DAPT**
+
+---
+
+## 五、非常重要的一句话（经验结论）
+
+> **PEFT 决定的是“多学多少”，不是“能不能跑”**
+
+能不能跑，取决于：
+
+* base model 大小
+* 序列长度
+* backend（MPS vs CUDA）
+
+---
+
+## 六、我给你的“现实工程建议”
+
+如果你目标是：
+
+* 《西游记》问答
+* 防幻觉
+* 可反复实验
+
+👉 **放弃 7B DAPT 是最明智的工程决策**
+
+你现在做的事情，**用 3B + 好数据 + 好拒答**，效果会非常接近，成本却低一个量级。
+
+---
+
+## 七、下一步我可以直接帮你做什么
+
+你可以直接选：
+
+1. 我帮你把 **DAPT 脚本改成 3B 的最稳版**
+2. 我帮你做一个 **“伪 DAPT + 自动 SFT” 的完整 pipeline**
+3. 我帮你设计一个 **内存占用可预测的训练配置表**
+
+你现在不是“做错了”，而是**撞到了真实世界的物理边界**。
+
+# 能在 8bit 量化版本上做微调吗？
+
+可以，但我必须把**现实边界、能不能跑、以及在你这台 16G M4 Mac mini 上到底值不值得**一次性说清楚，不然你很容易又踩坑。
+
+**结论先行：**
+
+👉 **“直接在 8bit 量化模型上做全参数微调”——不行**
+👉 **“在 8bit 量化模型上做 LoRA（QLoRA 思路）”——理论可行，但在 macOS + MPS 上基本不可用**
+👉 **在你的机器上，8bit 并不能解决 7B DAPT 的核心问题**
+
+下面我按你真正关心的点来解释。
+
+---
+
+## 一、先区分三个经常被混在一起的概念
+
+### 1️⃣ 全参数微调 + 8bit 权重
+
+**❌ 不支持**
+
+原因很简单：
+
+* 8bit 权重是 `int8`
+* 反向传播需要 fp16 / fp32
+* PyTorch / transformers **不允许对 int8 权重更新梯度**
+
+所以这条路是死的。
+
+---
+
+### 2️⃣ 8bit base model + LoRA（QLoRA）
+
+这是你真正想问的。
+
+形式上是：
+
+* base model：8bit（冻结）
+* LoRA：fp16（可训练）
+
+**在 CUDA 上这是标准做法**。
+
+---
+
+### 3️⃣ 推理用 8bit / 4bit
+
+这跟训练是两回事，不要混。
+
+---
+
+## 二、关键问题：为什么 QLoRA 在 macOS + MPS 上不可行
+
+### 1️⃣ bitsandbytes 不支持 MPS
+
+QLoRA 依赖：
+
+```text
+bitsandbytes + CUDA
+```
+
+而你现在是：
+
+```text
+macOS + MPS + unified memory
+```
+
+结论是：
+
+* `load_in_8bit=True` 在 MPS 下要么直接报错
+* 要么 silently fallback 到 CPU
+* 要么内存占用反而更高
+
+👉 **这是生态限制，不是你配置问题**
+
+---
+
+### 2️⃣ 即使 CPU-only 8bit，也救不了 DAPT
+
+假设你走极限方案：
+
+* 7B
+* CPU
+* 8bit
+* LoRA
+
+你仍然要付出：
+
+* activation 的内存
+* optimizer state
+* 极慢的训练速度
+
+**最终效果：能跑，但不可用**
+
+---
+
+## 三、一个非常容易被误解的点（重要）
+
+> **8bit 省的是“权重存储”，不是“训练时峰值内存”**
+
+而你现在炸的是：
+
+* activation
+* MPS allocator
+* runtime peak
+
+所以：
+
+* 8bit ≠ 解决 OOM 的银弹
+* 对 DAPT 尤其如此
+
+---
+
+## 四、在你的机器上“真正可行”的量化微调选项
+
+### ✅ 方案 1（推荐）：**3B + fp16 + LoRA**
+
+这是**唯一稳定、可反复实验**的方案。
+
+---
+
+### ⚠️ 方案 2：CPU-only + 4bit QLoRA（实验性质）
+
+只有在你满足以下条件时才考虑：
+
+* 接受训练极慢（step 级分钟）
+* 只是验证方法论
+* 不打算长时间训练
+
+而且仍然**不推荐用于 DAPT**。
+
+---
+
+### ❌ 方案 3：7B + 8bit + MPS
+
+不可行，生态不支持。
+
+---
+
+## 五、你可以用 8bit 的地方，其实在这里
+
+### 推理阶段（非常推荐）
+
+```python
+from transformers import AutoModelForCausalLM
+
+model = AutoModelForCausalLM.from_pretrained(
+    "sft_ckpt/final",
+    torch_dtype=torch.float16,
+    device_map="mps"
+)
+```
+
+然后用：
+
+* llama.cpp / mlx
+* 4bit / 8bit GGUF
+
+**推理用量化，训练不用，这是 mac 上的正确姿势。**
+
+---
+
+## 六、给你一个“现实工程决策表”
+
+| 场景                      | 是否推荐 |
+| ----------------------- | ---- |
+| 7B + DAPT + 8bit + MPS  | ❌    |
+| 7B + SFT + QLoRA + CUDA | ✅    |
+| 3B + SFT + LoRA + MPS   | ✅    |
+| 推理用 4bit                | ✅    |
+
+---
+
+## 七、我给你的最终建议（不兜圈子）
+
+> **别把精力花在“怎么在 mac 上榨干 7B”上**
+> **把精力放在：数据、拒答、推理约束**
+
+你现在的瓶颈不是“量化技巧”，是**硬件和生态的现实边界**。
+
+---
+
+## 八、下一步我可以直接帮你
+
+你可以直接选一个：
+
+1. 我帮你把训练流程**彻底切换到 3B + 稳定版**
+2. 我帮你写一套 **可在 mac 上跑的自动 SFT + 伪 DAPT pipeline**
+3. 我帮你设计 **推理阶段的防幻觉策略（不靠训练）**
+
+你已经在正确的方向上了，只需要把方案压到“现实可执行”的范围。
