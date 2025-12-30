@@ -58,7 +58,7 @@ def tokenize(example):
     tokens = tokenizer(
         text,
         truncation=True,
-        max_length=1024
+        max_length=512
     )
 
     if len(tokens["input_ids"]) < 2:
@@ -85,13 +85,13 @@ print("map dataset")
 args = TrainingArguments(
     output_dir="dapt_ckpt",
     per_device_train_batch_size=1,
-    gradient_accumulation_steps=8,
+    gradient_accumulation_steps=4,
     num_train_epochs=1,
     learning_rate=1e-5,
     optim="adamw_torch",   # 不要 fused，不要 paged
     fp16=False,
-    logging_steps=50,
-    save_steps=500,
+    logging_steps=1,
+    save_steps=1,
     save_total_limit=2,
     use_mps_device=True,
 )
@@ -104,6 +104,10 @@ trainer = Trainer(
 )
 
 print("begin train")
-trainer.train()
+try:
+    trainer.train()
+finally:
+    model.save_pretrained("dapt_ckpt/manual_save")
+
 print("end train")
 model.save_pretrained("dapt_ckpt/final")
