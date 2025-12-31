@@ -27,8 +27,10 @@ dapt_model = dapt_model.to("mps")
 dapt_model.print_trainable_parameters()
 
 gen_kwargs = dict(
-    max_new_tokens=256,
-    do_sample=False,
+     max_new_tokens=256,
+     do_sample=True,
+     temperature=0.7,
+     top_p=0.9,
 )
 
 def ask(model, prompt):
@@ -41,5 +43,7 @@ ask(base_model, "孙悟空第一次大闹天宫发生了什么？")
 
 ask(dapt_model, "孙悟空第一次大闹天宫发生了什么？")
 ask(dapt_model, "孙悟空第一次大闹天宫发生了什么？")
+
 dapt_model.disable_adapter()
+ask(dapt_model, "孙悟空第一次大闹天宫发生了什么？")
 ask(dapt_model, "孙悟空第一次大闹天宫发生了什么？")

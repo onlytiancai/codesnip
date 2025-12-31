@@ -17,8 +17,6 @@
     >>> gen_kwargs = dict(
     ...     max_new_tokens=256,
     ...     do_sample=False,   # 关闭采样
-    ...     temperature=0.0,
-    ...     top_p=1.0
     ... )
     >>> def ask(model, prompt):
     ...     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
