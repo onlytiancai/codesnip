@@ -29,6 +29,6 @@ def ask(model, prompt):
     outputs = model.generate(**inputs, **gen_kwargs)
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-ask(model, "孙悟空第一次大闹天宫发生了什么？")
-ask(model, "孙悟空为何被如来佛祖镇压？")
+print(ask(base, "孙悟空为何被如来佛祖镇压？"))
+print(ask(model, "孙悟空为何被如来佛祖镇压？"))
 
