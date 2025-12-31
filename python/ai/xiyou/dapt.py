@@ -8,7 +8,7 @@ from transformers import (
 )
 from peft import LoraConfig, get_peft_model
 
-model_name = "/Users/huhao/models/Qwen2.5-3B-Instruct"
+model_name = "/Users/huhao/models/Qwen2.5-0.5B-Instruct"
 
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 import torch
