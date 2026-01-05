@@ -4,7 +4,7 @@
 title: 最小二乘法：线性代数、几何与代码
 ---
 
-# 最小二乘法：线性代数、几何与代码
+# 最小二乘法
 
 <div class="pt-8"></div>
 
@@ -12,29 +12,44 @@ title: 最小二乘法：线性代数、几何与代码
 
 
 ---
-layout: center
-class: text-left
----
-
 
 # 目录
 
-- 问题定义与目标
-- 线性代数表述与正规方程
-- 几何直觉（投影与残差）
-- 数值方法（QR / SVD）
-- 正则化与加权
-- 代码实现（NumPy / Scikit-Learn）
-- 评估与诊断
-- 常见问题与陷阱
+<div grid="~ cols-2 gap-4">
+  <div>
+
+  - 1、问题定义与目标
+  - 2、线性代数表述与正规方程
+  - 3、几何直觉（投影与残差）
+  - 4、数值方法（QR / SVD）
+
+  </div>
+
+  <div>
+
+  - 5、正则化与加权
+  - 6、代码实现（NumPy / Scikit-Learn）
+  - 7、评估与诊断
+  - 8、常见问题与陷阱
+
+  </div>
+</div>
+
+<style>
+
+li {
+  @apply m-2 p-6 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 list-none;
+}
+</style>
+
 
 ---
 
 # 问题定义与目标
 
-- 设计矩阵 $X ∈ R^{n×p}$，响应向量 $y ∈ R^n$
-- 模型：$y = Xβ + ε$（ε 为噪声）
-- 目标：最小化平方损失 $L(β) = ||y − Xβ||_2^2$
+- 设计矩阵 $X \in \mathbb{R}^{n \times p}$，响应向量 $y \in \mathbb{R}^n$
+- 模型：$y = X\beta + \varepsilon$（$\varepsilon$ 为噪声）
+- 目标：最小化平方损失 $L(\beta) = \|y - X\beta\|_2^2$
 
 > 建立统一符号与问题背景，为后续线代与几何讨论打下基础
 
@@ -42,9 +57,9 @@ class: text-left
 
 # 线性代数表述与正规方程
 
-- 正规方程：$X^T X β = X^T y$
-- 列满秩 $rank(X)=p$ 时 $X^T X$ 可逆
-- 闭式解：$β̂ = (X^T X)^{-1} X^T y$（满秩情形）
+- 正规方程：$X^T X \\beta = X^T y$
+- 列满秩 $\\mathrm{rank}(X) = p$ 时 $X^T X$ 可逆
+- 闭式解：$\\hat{\\beta} = (X^T X)^{-1} X^T y$（满秩情形）
 
 > 给出核心线代框架与解的存在性条件
 
@@ -52,9 +67,9 @@ class: text-left
 
 # 几何直觉：投影与残差正交
 
-- 列空间 $span(X)$：可表示的向量集合
-- 投影：$Xβ̂$是 $y$ 在 $span(X)$ 上的正交投影
-- 残差 $r = y − Xβ̂$与 $span(X)$ 正交 $X^T r = 0$
+- 列空间 $\\mathrm{span}(X)$：可表示的向量集合
+- 投影：$X\\hat{\\beta}$是 $y$ 在 $\\mathrm{span}(X)$ 上的正交投影
+- 残差 $r = y - X\\hat{\\beta}$与 $\\mathrm{span}(X)$ 正交 $X^T r = 0$
 
 > 以投影与正交性加深理解最小化的几何本质
 
@@ -62,8 +77,8 @@ class: text-left
 
 # 正规方程推导与凸性
 
-- 梯度：$\nabla_β L(β) = −2X^T(y − Xβ) = 0$ ⇒ $X^T X β = X^T y$
-- $L(β)$ 为凸函数；解唯一性与 $rank(X)$、$cond(X^T X)$ 有关
+- 梯度：$\\nabla_{\\beta} L(\\beta) = -2X^T(y - X\\beta) = 0$ ⇒ $X^T X \\beta = X^T y$
+- $L(\\beta)$ 为凸函数；解唯一性与 $\\mathrm{rank}(X)$、$\\mathrm{cond}(X^T X)$ 有关
 
 > 将直觉与公式对应，强调凸性与唯一性
 
@@ -71,7 +86,7 @@ class: text-left
 
 # QR 分解求解与稳定性
 
-- $X = QR（Q 正交，R 上三角）$，解 $Rβ = Q^T y$
+- $X = QR$（$Q$ 正交，$R$ 上三角），解 $R\\beta = Q^T y$
 - 避免直接形成 $(X^T X)$，数值更稳定
 - Householder vs. Gram-Schmidt 的差异与稳定性
 
@@ -81,8 +96,8 @@ class: text-left
 
 # SVD 与伪逆：统一视角
 
-- $X = UΣV^T$，伪逆 $X^+ = VΣ^+U^T$
-- $β̂ = X^+ y$，处理秩亏与病态
+- $X = U\\Sigma V^T$，伪逆 $X^+ = V\\Sigma^+ U^T$
+- $\\hat{\\beta} = X^+ y$，处理秩亏与病态
 - 奇异值刻画尺度与可辨识性
 
 > 通过 SVD 统一理解与稳健解法
@@ -91,7 +106,7 @@ class: text-left
 
 # 数值稳定性与病态性
 
-- 条件数 $κ(X)$ 或 $κ(X^T X)$
+- 条件数 $\\kappa(X)$ 或 $\\kappa(X^T X)$
 - 归一化/标准化改善数值表现
 - 特征缩放与正则化配合
 
@@ -101,9 +116,9 @@ class: text-left
 
 # 正则化：岭回归（Tikhonov）
 
-- $β̂ = (X^T X + λI)^{-1} X^T y$
-- 缓解多重共线性，提高泛化；$λ$ 控制偏差-方差
-- 交叉验证选 $λ$；配合标准化
+- $\\hat{\\beta} = (X^T X + \\lambda I)^{-1} X^T y$
+- 缓解多重共线性，提高泛化；$\\lambda$ 控制偏差-方差
+- 交叉验证选 $\\lambda$；配合标准化
 
 > 在 LS 框架内自然过渡到正则化
 
@@ -111,8 +126,8 @@ class: text-left
 
 # 加权与约束的变体
 
-- 加权最小二乘：$min ||W^{1/2}(y − Xβ)||^2$
-- 一般式：$||y − Xβ||^2 + λ||Γβ||^2$
+- 加权最小二乘：$\\min \\|W^{1/2}(y - X\\beta)\\|^2$
+- 一般式：$\\|y - X\\beta\\|^2 + \\lambda \\|\\Gamma\\beta\\|^2$
 - 简介 LASSO（L1）与稀疏偏好
 
 > 展示 LS 生态的常见扩展
@@ -156,7 +171,7 @@ print('MSE=', mean_squared_error(y, y_pred))
 print('R2=', r2_score(y, y_pred))
 ```
 
-- 常用流程与评估：$R^2 / MSE$
+- 常用流程与评估：$R^2$ / $MSE$
 - 可与标准化、管道、交叉验证结合
 
 ---
