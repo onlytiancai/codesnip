@@ -192,8 +192,8 @@ $X^T X \beta = X^T y$
 
 # 正规方程推导与凸性
 
-- 梯度：$\\nabla_{\\beta} L(\\beta) = -2X^T(y - X\\beta) = 0$ ⇒ $X^T X \\beta = X^T y$
-- $L(\\beta)$ 为凸函数；解唯一性与 $\\mathrm{rank}(X)$、$\\mathrm{cond}(X^T X)$ 有关
+- 梯度：$\nabla_{\beta} L(\beta) = -2X^T(y - X\beta) = 0$ ⇒ $X^T X \beta = X^T y$
+- $L(\beta)$ 为凸函数；解唯一性与 $\mathrm{rank}(X)$、$\mathrm{cond}(X^T X)$ 有关
 
 > 将直觉与公式对应，强调凸性与唯一性
 
@@ -201,7 +201,7 @@ $X^T X \beta = X^T y$
 
 # QR 分解求解与稳定性
 
-- $X = QR$（$Q$ 正交，$R$ 上三角），解 $R\\beta = Q^T y$
+- $X = QR$（$Q$ 正交，$R$ 上三角），解 $R\beta = Q^T y$
 - 避免直接形成 $(X^T X)$，数值更稳定
 - Householder vs. Gram-Schmidt 的差异与稳定性
 
@@ -211,8 +211,8 @@ $X^T X \beta = X^T y$
 
 # SVD 与伪逆：统一视角
 
-- $X = U\\Sigma V^T$，伪逆 $X^+ = V\\Sigma^+ U^T$
-- $\\hat{\\beta} = X^+ y$，处理秩亏与病态
+- $X = U\Sigma V^T$，伪逆 $X^+ = V\Sigma^+ U^T$
+- $\hat{\beta} = X^+ y$，处理秩亏与病态
 - 奇异值刻画尺度与可辨识性
 
 > 通过 SVD 统一理解与稳健解法
@@ -221,7 +221,7 @@ $X^T X \beta = X^T y$
 
 # 数值稳定性与病态性
 
-- 条件数 $\\kappa(X)$ 或 $\\kappa(X^T X)$
+- 条件数 $\kappa(X)$ 或 $\kappa(X^T X)$
 - 归一化/标准化改善数值表现
 - 特征缩放与正则化配合
 
@@ -231,9 +231,9 @@ $X^T X \beta = X^T y$
 
 # 正则化：岭回归（Tikhonov）
 
-- $\\hat{\\beta} = (X^T X + \\lambda I)^{-1} X^T y$
-- 缓解多重共线性，提高泛化；$\\lambda$ 控制偏差-方差
-- 交叉验证选 $\\lambda$；配合标准化
+- $\hat{\beta} = (X^T X + \lambda I)^{-1} X^T y$
+- 缓解多重共线性，提高泛化；$\lambda$ 控制偏差-方差
+- 交叉验证选 $\lambda$；配合标准化
 
 > 在 LS 框架内自然过渡到正则化
 
@@ -241,8 +241,8 @@ $X^T X \beta = X^T y$
 
 # 加权与约束的变体
 
-- 加权最小二乘：$\\min \\|W^{1/2}(y - X\\beta)\\|^2$
-- 一般式：$\\|y - X\\beta\\|^2 + \\lambda \\|\\Gamma\\beta\\|^2$
+- 加权最小二乘：$\min \|W^{1/2}(y - X\beta)\|^2$
+- 一般式：$\|y - X\beta\|^2 + \lambda \|\Gamma\beta\|^2$
 - 简介 LASSO（L1）与稀疏偏好
 
 > 展示 LS 生态的常见扩展
