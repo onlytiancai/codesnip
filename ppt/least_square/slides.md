@@ -1,15 +1,12 @@
 ---
-# Slidev deck meta
-# Learn more: https://sli.dev/guide/syntax.html
 title: 最小二乘法：线性代数、几何与代码
+theme: seriph
+background: https://cover.sli.dev
 ---
 
 # 最小二乘法
 
-<div class="pt-8"></div>
-
-背景：线性代数原理、几何直觉与 Python 实现贯穿全篇
-
+线性代数原理、几何直觉与 Python 实现贯穿全篇
 
 ---
 
@@ -42,16 +39,45 @@ li {
 }
 </style>
 
-
+<!--
+本节课的结构分为四个部分：首先定义问题，然后深入数学原理，接着探讨数值求解方法，最后是实战代码和模型诊断。我们将覆盖从理论推导到工程应用的完整流程。
+-->
 ---
 
 # 问题定义与目标
 
-- 设计矩阵 $X \in \mathbb{R}^{n \times p}$，响应向量 $y \in \mathbb{R}^n$
-- 模型：$y = X\beta + \varepsilon$（$\varepsilon$ 为噪声）
-- 目标：最小化平方损失 $L(\beta) = \|y - X\beta\|_2^2$
+在开始深入算法之前，让我们首先明确我们面临的数据结构、线性假设以及我们的核心优化目标。
 
-> 建立统一符号与问题背景，为后续线代与几何讨论打下基础
+<div grid="~ cols-3 gap-4">
+
+<div>
+
+### 📊 观察数据
+
+我们拥有一个设计矩阵 $X \in \mathbb{R}^{n \times p}$，其中包含 $n$ 个样本和 $p$ 个特征。响应变量被表示为向量 $y \in \mathbb{R}^n$ 。这是所有监督学习问题的起点。
+
+</div>
+
+<div>
+
+### ⚙️ 模型设定
+
+我们假设输入与输出之间存在线性关系，即 $y = X\beta + \varepsilon$。这里 $\beta$ 是我们需要求解的系数向量，而 $\varepsilon$ 代表了不可观测的随机噪声或测量误差。
+
+</div>
+
+<div>
+
+### 🎯 目标函数
+
+我们的目标是找到系数 $\beta$，使得预测值与真实值之间的差异最小化。形式上，我们最小化平方损失函数：$L(\beta) = \|y - X\beta\|^2$，即残差平方和。
+
+</div>
+
+</div>
+
+
+
 
 ---
 
