@@ -110,11 +110,83 @@ $X^T X \beta = X^T y$
 
 # 几何直觉：投影与残差正交
 
-- 列空间 $\\mathrm{span}(X)$：可表示的向量集合
-- 投影：$X\\hat{\\beta}$是 $y$ 在 $\\mathrm{span}(X)$ 上的正交投影
-- 残差 $r = y - X\\hat{\\beta}$与 $\\mathrm{span}(X)$ 正交 $X^T r = 0$
+代数公式背后隐藏着优美的几何结构：最小二乘法本质上是一个正交投影过程。
 
-> 以投影与正交性加深理解最小化的几何本质
+<div class="grid grid-cols-[1fr_300px]">
+  <div class="p-4">
+
+### 1. 列空间 (Column Space)
+
+所有可能的预测值 $X\beta$ 构成了 $X$ 列向量张成的子空间 $\mathrm{span}(X)$。真实值 $y$ 通常不在此空间内。
+
+### 2. 投影观点 (Projection)
+
+最佳估计值 $X\hat{\beta}$ 实际上就是向量 $y$ 在 $\mathrm{span}(X)$ 子空间上的正交投影，距离最近。
+
+### 3. 残差正交 (Orthogonality)
+残差向量 $r = y - X\hat{\beta}$ 垂直于该平面，即 $X^T r = 0$，误差无法再被 $X$ 解释。
+
+  </div>
+  <div>
+
+<svg width="400" height="300" viewBox="0 0 600 400" >
+  
+  <!-- span(X) 平面 -->
+  <polygon points="150,120 450,100 420,300 120,320" 
+           fill="rgba(100, 150, 200, 0.3)" 
+           stroke="#4a90e2" 
+           stroke-width="3"
+           opacity="0.8"/>
+  
+  <!-- 从原点到平面上的投影点 Xβ -->
+  <line x1="150" y1="250" x2="280" y2="180" 
+        stroke="#9d3ce7ff" 
+        stroke-width="4" 
+        marker-end="url(#arrowhead)"/>
+  <text x="290" y="175" font-size="4" font-weight="bold" fill="#9d3ce7ff">Xβ</text>
+  
+  <!-- 从原点到真实数据点 y -->
+  <line x1="150" y1="250" x2="250" y2="10" 
+        stroke="#27ae60" 
+        stroke-width="4" 
+        marker-end="url(#arrowhead)"/>
+  <text x="220" y="100" font-size="4" font-weight="bold" fill="#27ae60">y</text>
+  
+  <!-- 残差向量 r (垂直于平面) -->
+  <line x1="280" y1="180" x2="250" y2="10" 
+        stroke="#f39c12" 
+        stroke-width="3" 
+        stroke-dasharray="5,5"
+        marker-end="url(#arrowhead)"/>
+  <text x="270" y="100" font-size="4" font-weight="bold" fill="#f39c12">r</text>
+   
+  <!-- 平面标签 -->
+  <text x="350" y="280" font-size="4" fill="#4a90e2" font-style="italic">span(X)</text>
+  
+  <!-- 原点 -->
+  <circle cx="150" cy="250" r="4" fill="#000000"/>
+  <text x="155" y="270" font-size="6" fill="#000000">0</text>
+  
+  <!-- 箭头标记定义 -->
+  <defs>
+    <marker id="arrowhead" markerWidth="6" markerHeight="4" 
+            refX="5" refY="2" orient="auto">
+      <polygon points="0 0, 6 2, 0 4" fill="currentColor"/>
+    </marker>
+  </defs>
+  
+</svg>
+
+  </div>
+</div>
+
+
+
+
+
+<!--
+几何上，最小二乘法就是寻找一个正交投影。我们的真实数据 y 往往飘在特征空间之外，我们在平面上寻找一个影 Xβ，使得它离 y 最近。此时，连接它们的残差线垂直于整个平面。
+-->
 
 ---
 
