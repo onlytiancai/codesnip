@@ -126,3 +126,8 @@ gdb -p 523800 -batch -nx -q   -ex "bt"   -ex "detach"   -ex "quit"
 #11 0x0000f8d28f9674d8 in __libc_start_main_impl (main=0xab10b79deb60, argc=15, argv=0xffffd629b3a8, init=<optimized out>, fini=<optimized out>, rtld_fini=<optimized out>, stack_end=<optimized out>) at ../csu/libc-start.c:392
 #12 0x0000ab10b79def30 in _start ()
 [Inferior 1 (process 523800) detached]
+
+
+找出 etime 最大的 php 进程
+
+ps -eo pid=,etime=,cmd= | grep php | sort -t- -k1,1nr -k2,2nr
