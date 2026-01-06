@@ -92,7 +92,7 @@ $X^T X \beta = X^T y$
 
   ### ✅ 可解条件
 
-  当矩阵 $X$ 列满秩 $\\mathrm{rank}(X) = p$ 时，矩阵 $X^T X$ 是正定且可逆的。这是得到唯一解的前提。
+  当矩阵 $X$ 列满秩 $\mathrm{rank}(X) = p$ 时，矩阵 $X^T X$ 是正定且可逆的。这是得到唯一解的前提。
   </div>
   <div class="m-2 p-6 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
 
@@ -180,10 +180,6 @@ $X^T X \beta = X^T y$
   </div>
 </div>
 
-
-
-
-
 <!--
 几何上，最小二乘法就是寻找一个正交投影。我们的真实数据 y 往往飘在特征空间之外，我们在平面上寻找一个影 Xβ，使得它离 y 最近。此时，连接它们的残差线垂直于整个平面。
 -->
@@ -192,10 +188,40 @@ $X^T X \beta = X^T y$
 
 # 正规方程推导与凸性
 
-- 梯度：$\nabla_{\beta} L(\beta) = -2X^T(y - X\beta) = 0$ ⇒ $X^T X \beta = X^T y$
-- $L(\beta)$ 为凸函数；解唯一性与 $\mathrm{rank}(X)$、$\mathrm{cond}(X^T X)$ 有关
+通过简单的微积分推导，我们可以确信局部极值即为全局最优解。
 
-> 将直觉与公式对应，强调凸性与唯一性
+
+<div grid="~ cols-2 gap-4">
+  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+
+### 1. 梯度设为零
+
+$\nabla_{\beta} L(\beta) = -2X^T(y - X\beta) = 0$ 
+
+  </div>
+  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+
+### 2. 整理得到
+
+$X^T X \beta = X^T y$
+
+  </div>
+</div>
+
+<div class="bg-gray-100 m-2 p-4 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+
+### 🔍 凸性分析 (Convexity)
+
+损失函数 $L(\beta)$ 的二阶导数（Hessian 矩阵）为 $2X^T X$。
+这是一个半正定矩阵 (PSD)，意味着 $L(\beta)$ 是一个凸碗状函数，保证了任何临界点都是全局最小值。解的唯一性仅取决于 X 是否满秩。
+
+解唯一性与 $\mathrm{rank}(X)$、$\mathrm{cond}(X^T X)$ 有关
+
+</div>
+
+<!--
+推导过程其实很简单：对Beta求导并令其为0。关键点在于二阶导数 X转置X 是半正定的，这保证了我们的损失函数是凸的，没有局部陷阱，只要梯度为0就是全球最低点。
+-->
 
 ---
 
