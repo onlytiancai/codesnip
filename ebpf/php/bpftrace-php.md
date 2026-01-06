@@ -301,3 +301,53 @@ uprobe:/usr/bin/php8.3:execute_ex
     }
 }
 '
+
+===
+
+bpftrace -e '
+struct zend_class_entry_min {
+    u64 type;
+    void *name;
+};
+uretprobe:/usr/bin/php8.3:zend_get_executed_scope
+/ pid == 3055002 /
+{
+    if (retval == 0) {
+        printf("retval == 0");
+        return;
+    }
+
+    $ce = (struct zend_class_entry_min *)retval;
+    // printf("$ce ===:%r\n", buf($ce, 64));
+    if ($ce->name != 0) {
+
+        $zs = (uint64)$ce->name;
+        // printf("raw: %r\n", buf($zs, 64));
+
+        $len = *(uint64*)($zs + 0x10);
+        $str = str($zs + 0x18, $len);
+
+        printf("zend_string: len=%d, val=%s\n", $len, $str);
+
+    }
+}
+
+uprobe:/usr/bin/php8.3:execute_ex
+/ pid == 3055002 /
+{
+    $ed = (uint64)arg0;
+    $func = *(uint64*)($ed + 0x18);
+
+    if ($func == 0) {
+        return;
+    }
+
+    $fname = *(uint64*)($func + 0x08);
+    if ($fname == 0) {
+        return;
+    }
+
+    $str = $fname + 0x18;
+    printf("func: %s\n", str($str));
+}
+'
