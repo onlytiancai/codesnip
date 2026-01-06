@@ -227,21 +227,84 @@ $X^T X \beta = X^T y$
 
 # QR 分解求解与稳定性
 
-- $X = QR$（$Q$ 正交，$R$ 上三角），解 $R\beta = Q^T y$
-- 避免直接形成 $(X^T X)$，数值更稳定
-- Householder vs. Gram-Schmidt 的差异与稳定性
+在实际工程计算中，为了数值稳定性，我们往往绕过正规方程，转而使用矩阵分解技术。
 
-> 工程上更稳健的求解路径
+<div grid="~ cols-2 gap-4">
+  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
 
+### QR 分解
+
+$X = QR$
+
+<span class="text-gray-400 text-sm">$Q$: 正交矩阵, $R$: 上三角矩阵</span>
+
+  </div>
+  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+
+### 求解方程
+
+$R\beta = Q^T y$
+
+<span class="text-gray-400 text-sm">利用回代法 (Back-substitution) 快速求解</span>
+
+  </div>
+</div>
+
+
+### 🌟 为什么使用 QR？
+
+- **避免数值爆炸**：<span class="text-gray-400">直接计算 $X^T X$ 会导致条件数平方 $κ^2$，极大地放大浮点误差。QR 方法保持了 $κ(X)$ 的量级。</span>
+- **实务建议**：<span class="text-gray-400">Householder 变换通常比 Gram-Schmidt 更稳定，是现代线性代数库（如 LAPACK）的首选实现。</span>
+
+<!--
+直接计算X转置X虽然公式漂亮，但在计算机里是个坏主意，因为它会平方条件数，导致精度丢失。QR分解将矩阵拆分为正交和上三角部分，让我们能更稳定地求解，是工业界的标准做法。
+-->
 ---
 
 # SVD 与伪逆：统一视角
 
-- $X = U\Sigma V^T$，伪逆 $X^+ = V\Sigma^+ U^T$
-- $\hat{\beta} = X^+ y$，处理秩亏与病态
-- 奇异值刻画尺度与可辨识性
+当矩阵秩亏或接近奇异时，奇异值分解 (SVD) 提供了最强大的通用求解工具。
 
-> 通过 SVD 统一理解与稳健解法
+<div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+
+$X = U\Sigma V^T$
+</div>
+
+<div grid="~ cols-3 gap-4">
+<div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+
+**$U$ (左奇异向量)**
+
+<span class="text-gray-400">正交矩阵，数据空间基</span>
+
+</div>
+<div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+
+**$\Sigma$ (奇异值)**
+
+<span class="text-gray-400">对角矩阵，刻画重要性尺度</span>
+
+</div>
+<div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+
+**$V$ (右奇异向量)**
+
+<span class="text-gray-400">正交矩阵，特征空间基</span>
+
+</div>
+</div>
+
+<div class="text-center">
+
+通用接伪逆 $X^+ = V\Sigma^+ U^T$，$\hat{\beta} = X^+ y$
+
+<span class="text-gray-400">能够自动处理 X 不满秩的情况（通过将接近零的奇异值倒数设为零）。</span>
+
+</div>
+
+<!--
+SVD 是矩阵分解的瑞士军刀。无论矩阵多糟糕（秩亏、病态），SVD 都能通过伪逆给出最小范数解。它通过奇异值 Σ 告诉我们哪些方向的数据是重要的，哪些是噪声。
+-->
 
 ---
 
