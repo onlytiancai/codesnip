@@ -169,3 +169,135 @@ retval ===:\x02\x00\x00\x00\x00\x00\x00\x00@92\x85\xe0\xea\x00\x00\x00\x00\x00\x
 $ce ===:\x02\x00\x00\x00\x00\x00\x00\x00@92\x85\xe0\xea\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00H\x13\x04\x00\x02\x00\x00\x00\x00\x00\x00\x00@)\xbf\x85\xe0\xea\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
 $zs ===:\x89\x96\x00\x00v\x00\x00\x00\x12!u\xb4Q\x110\xa8'\x00\x00\x00\x00\x00\x00\x00Symfony\Component\Console\Output\Output\x00
 class =
+
+
+bpftrace -e '
+uprobe:/usr/bin/php8.3:zend_execute
+/ pid == 3055002 /
+{
+    $execute_data = (uint64)arg0;
+    $func = *(uint64*)($execute_data + 0x18);
+    $fname = *(uint64*)($func + 0x08);
+
+    if ($fname != 0) {
+        $str = $fname + 0x18;
+        printf("method: %s\n", str($str));
+    }
+}
+'
+
+从 PHP 8.0 开始，Zend VM 做了非常激进的优化：
+
+- 真实执行入口变成了execute_ex() / ZEND_VM_EXECUTE_EX()
+- zend_execute() 只是一个 冷路径 wrapper
+- 绝大多数用户代码 根本不会走到 zend_execute
+
+
+readelf -Ws /usr/bin/php8.3 | grep execute
+
+
+
+# bpftrace -e '
+uprobe:/usr/bin/php8.3:execute_ex
+/ pid == 3055002 /
+{
+    printf("PID %d hit execute_ex\n", pid);
+}
+'
+Attaching 1 probe...
+PID 3055002 hit execute_ex
+PID 3055002 hit execute_ex
+
+
+bpftrace -e '
+uprobe:/usr/bin/php8.3:zend_execute
+/ pid == 3055002 /
+{
+    printf("PID %d hit zend_execute\n", pid);
+}
+'
+
+bpftrace -e '
+uprobe:/usr/bin/php8.3:execute_ex
+/ pid == 3055002 /
+{
+    $ed = (uint64)arg0;
+    $func = *(uint64*)($ed + 0x18);
+
+    if ($func == 0) {
+        return;
+    }
+
+    $fname = *(uint64*)($func + 0x08);
+    if ($fname == 0) {
+        return;
+    }
+
+    $str = $fname + 0x18;
+    printf("func: %s\n", str($str));
+}
+'
+
+几个非常重要的注意点（实战经验）
+
+1. **一定要先判空**
+   bpftrace 不会帮你兜底，空指针直接炸。
+
+2. `{main}` / include / eval
+   有些 execute_data 没有 `function_name`，这是正常的。
+
+3. ZTS vs non-ZTS
+   如果你发现输出乱码或直接 crash，第一件事就是怀疑 offset。
+
+4. 性能
+   `execute_ex` 是极热路径，真实使用要加采样或过滤。
+
+最后一句话总结你现在的位置
+
+* 你已经找到了 **唯一正确的 hook 点：`execute_ex`**
+* 方法名来自 `execute_data->func->common.function_name`
+* bpftrace 场景下没有 API，**只有结构体解引用**
+* 接下来你已经可以做 profiler / tracer / APM 级别的事情了
+
+
+bpftrace -e '
+uprobe:/usr/bin/php8.3:execute_ex
+/ pid == 3055002 /
+{
+    $ed = (uint64)arg0;
+
+    $func = *(uint64*)($ed + 0x18);
+    if ($func == 0) { return; }
+
+    $fname = *(uint64*)($func + 0x08);
+    if ($fname == 0) { return; }
+
+    // 先尝试从 $this 取运行期类
+    $this_zv = $ed + 0x28;
+    $this_val = *(uint64*)($this_zv + 0x08);
+
+    if ($this_val != 0) {
+        $obj = $this_val;
+        $ce = *(uint64*)($obj + 0x00);
+        $cname = *(uint64*)($ce + 0x00);
+
+        printf("%s::%s\n",
+            str($cname + 0x18),
+            str($fname + 0x18)
+        );
+        return;
+    }
+
+    // fallback：定义作用域
+    $scope = *(uint64*)($func + 0x20);
+    if ($scope != 0) {
+        $cname = *(uint64*)($scope + 0x00);
+        printf("%s::%s\n",
+            str($cname + 0x18),
+            str($fname + 0x18)
+        );
+    } else {
+        printf("%s\n", str($fname + 0x18));
+    }
+}
+'
