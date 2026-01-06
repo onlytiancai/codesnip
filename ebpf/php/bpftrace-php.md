@@ -21,7 +21,27 @@ bpftrace -e '
 uprobe:/usr/bin/php8.3:zend_execute
 {
     printf("PID %d hit zend_execute\n", pid);
-}'
+}
+interval:s:1{
+    exit();
+}
+'
+
+bpftrace -e '
+uretprobe:/usr/bin/php8.3:zend_get_executed_scope
+{
+    if (retval == 0) {
+        return;
+    }
+
+    printf("PID %d scope_ptr=%p\n", pid, retval);
+    printf("%r\n", buf(retval, 64));
+}
+interval:s:1{
+    exit();
+}
+'
+
 
 打印文件名
 
@@ -55,14 +75,14 @@ uretprobe:/usr/bin/php8.3:zend_get_executed_lineno
 过滤 PID
 
 
-    BPFTRACE_STRLEN=200 bpftrace -e '
-    uretprobe:/usr/bin/php8.3:zend_get_executed_filename
-    / pid == 1978752 /
-    {
-        if (retval) {
-            printf("PID %d PHP file: %s\n", pid, str(retval));
-        }
-    }'
+BPFTRACE_STRLEN=200 bpftrace -e '
+uretprobe:/usr/bin/php8.3:zend_get_executed_filename
+/ pid == 1978752 /
+{
+    if (retval) {
+        printf("PID %d PHP file: %s\n", pid, str(retval));
+    }
+}'
 
 
 
@@ -131,3 +151,21 @@ gdb -p 523800 -batch -nx -q   -ex "bt"   -ex "detach"   -ex "quit"
 找出 etime 最大的 php 进程
 
 ps -eo pid=,etime=,cmd= | grep php | sort -t- -k1,1nr -k2,2nr
+
+bpftrace -e '
+uretprobe:/usr/bin/php8.3:zend_get_executed_scope
+/ pid == 1641373 /
+{
+    if (retval == 0) {
+        return;
+    }
+
+    printf("PID %d scope_ptr=%p\n", pid, retval);
+    printf("%r\n", buf(retval, 64));
+}
+'
+
+retval ===:\x02\x00\x00\x00\x00\x00\x00\x00@92\x85\xe0\xea\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00H\x13\x04\x00\x02\x00\x00\x00\x00\x00\x00\x00@)\xbf\x85\xe0\xea\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
+$ce ===:\x02\x00\x00\x00\x00\x00\x00\x00@92\x85\xe0\xea\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00H\x13\x04\x00\x02\x00\x00\x00\x00\x00\x00\x00@)\xbf\x85\xe0\xea\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
+$zs ===:\x89\x96\x00\x00v\x00\x00\x00\x12!u\xb4Q\x110\xa8'\x00\x00\x00\x00\x00\x00\x00Symfony\Component\Console\Output\Output\x00
+class =
