@@ -24,8 +24,8 @@
 			<button id="audio-toggle" class="control-btn audio">🔊 声音</button>
 		</div>
 		
-		<div style="margin: auto; width: 75%;">
-			<canvas id="nes-canvas" width="256" height="240" style="width: 100%"/>
+		<div class="canvas-container">
+			<canvas id="nes-canvas" width="256" height="240"/>
 		</div>
 		
 		<div class="virtual-controller">
@@ -107,6 +107,22 @@
 				padding: 15px;
 				background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
 				margin-bottom: 15px;
+			}
+			
+			.canvas-container {
+				max-width: 700px;
+				width: 100%;
+				overflow: auto;
+				background: #000;
+				padding: 10px;
+				border-radius: 8px;
+				margin: 0 auto 15px;
+			}
+			
+			#nes-canvas {
+				width: 100%;
+				height: auto;
+				display: block;
 			}
 			
 			.control-btn {
