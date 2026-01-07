@@ -107,7 +107,12 @@ function nes_init(canvas_id){
 	var script_processor = audio_ctx.createScriptProcessor(AUDIO_BUFFERING, 0, 2);
 	script_processor.onaudioprocess = audio_callback;
 	script_processor.connect(audio_ctx.destination);
-	audio_started = true;
+	if (audio_ctx.state === 'suspended') {
+		var audioButton = document.getElementById('audio');
+		audioButton.style.display = 'block';
+	} else {
+		audio_started = true;
+	}
 }
 
 function nes_boot(rom_data){
@@ -162,3 +167,13 @@ function nes_reset(){
 
 document.addEventListener('keydown', (event) => {keyboard(nes.buttonDown, event)});
 document.addEventListener('keyup', (event) => {keyboard(nes.buttonUp, event)});
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    var audioButton = document.getElementById('audio');
+    audioButton.addEventListener('click', () => {
+        audio_ctx.resume().then(() => {
+			audio_started = true;
+		});
+        audioButton.style.display = 'none';
+    });
+});
