@@ -1,0 +1,1 @@
+这是一个jsnes项目，主要文件是 index.html 和 js/nes-embed.js

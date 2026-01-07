@@ -3,11 +3,15 @@
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>Embedding Example</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+		<title>NES Emulator with Virtual Controller</title>
 		
 		<script type="text/javascript" src="js/jsnes.min.js"></script>
 		<script type="text/javascript" src="js/nes-embed.js"></script>
-		<script>window.onload = function(){nes_load_url("nes-canvas", "roms/othello.nes");}</script>
+		<script>window.onload = function(){
+			nes_load_url("nes-canvas", "roms/othello.nes");
+			initVirtualController();
+		}</script>
 	</head>
 	<body>
         <button id="audio" style="display: none;">Click to enable audio</button>
@@ -15,5 +19,260 @@
 			<canvas id="nes-canvas" width="256" height="240" style="width: 100%"/>
 		</div>
 		<p>DPad: Arrow keys<br/>Start: Return, Select: Tab<br/>A Button: A, B Button: S</p>
+		
+		<div class="virtual-controller">
+			<div class="controller-section left-section">
+				<div class="dpad">
+					<div class="dpad-row">
+						<button class="dpad-btn up" data-button="up">▲</button>
+					</div>
+					<div class="dpad-row">
+						<button class="dpad-btn left" data-button="left">◀</button>
+						<button class="dpad-btn right" data-button="right">▶</button>
+					</div>
+					<div class="dpad-row">
+						<button class="dpad-btn down" data-button="down">▼</button>
+					</div>
+				</div>
+			</div>
+			
+			<div class="controller-section right-section">
+				<div class="action-buttons">
+					<button class="action-btn select" data-button="select">SELECT</button>
+					<button class="action-btn start" data-button="start">START</button>
+				</div>
+				<div class="ab-buttons">
+					<button class="ab-btn b-btn" data-button="b">B</button>
+					<button class="ab-btn a-btn" data-button="a">A</button>
+				</div>
+			</div>
+		</div>
+		
+		<style>
+			.virtual-controller {
+				display: flex;
+				justify-content: space-between;
+				max-width: 500px;
+				margin: 20px auto;
+				padding: 15px;
+				background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+				border-radius: 15px;
+				box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+			}
+			
+			.controller-section {
+				padding: 10px;
+			}
+			
+			.left-section {
+				flex: 1;
+			}
+			
+			.right-section {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				align-items: flex-end;
+			}
+			
+			.dpad {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
+			
+			.dpad-row {
+				display: flex;
+				justify-content: center;
+			}
+			
+			.dpad-btn {
+				width: 60px;
+				height: 60px;
+				margin: 3px;
+				border: none;
+				border-radius: 10px;
+				background: linear-gradient(145deg, #4a4a4a, #3a3a3a);
+				color: #888;
+				font-size: 20px;
+				font-weight: bold;
+				cursor: pointer;
+				transition: all 0.1s ease;
+				box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+				-webkit-tap-highlight-color: transparent;
+				touch-action: manipulation;
+			}
+			
+			.dpad-btn:active,
+			.dpad-btn.pressed {
+				transform: scale(0.95);
+				background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+				box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+			}
+			
+			.action-buttons {
+				display: flex;
+				gap: 15px;
+				margin-bottom: 15px;
+			}
+			
+			.action-btn {
+				padding: 12px 20px;
+				border: none;
+				border-radius: 8px;
+				background: linear-gradient(145deg, #5a5a5a, #4a4a4a);
+				color: #ccc;
+				font-size: 12px;
+				font-weight: bold;
+				cursor: pointer;
+				transition: all 0.1s ease;
+				box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+				-webkit-tap-highlight-color: transparent;
+				touch-action: manipulation;
+			}
+			
+			.action-btn:active,
+			.action-btn.pressed {
+				transform: scale(0.95);
+				background: linear-gradient(145deg, #4a4a4a, #3a3a3a);
+			}
+			
+			.ab-buttons {
+				display: flex;
+				gap: 20px;
+			}
+			
+			.ab-btn {
+				width: 70px;
+				height: 70px;
+				border: none;
+				border-radius: 50%;
+				font-size: 24px;
+				font-weight: bold;
+				cursor: pointer;
+				transition: all 0.1s ease;
+				box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+				-webkit-tap-highlight-color: transparent;
+				touch-action: manipulation;
+			}
+			
+			.b-btn {
+				background: linear-gradient(145deg, #c0392b, #a93226);
+				color: white;
+			}
+			
+			.a-btn {
+				background: linear-gradient(145deg, #27ae60, #229954);
+				color: white;
+			}
+			
+			.ab-btn:active,
+			.ab-btn.pressed {
+				transform: scale(0.95);
+				box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+			}
+			
+			@media (max-width: 600px) {
+				.virtual-controller {
+					max-width: 95%;
+					padding: 10px;
+				}
+				
+				.dpad-btn {
+					width: 50px;
+					height: 50px;
+					font-size: 16px;
+				}
+				
+				.ab-btn {
+					width: 60px;
+					height: 60px;
+					font-size: 20px;
+				}
+				
+				.action-btn {
+					padding: 10px 15px;
+					font-size: 10px;
+				}
+			}
+			
+			@media (max-width: 400px) {
+				.dpad-btn {
+					width: 45px;
+					height: 45px;
+					font-size: 14px;
+				}
+				
+				.ab-btn {
+					width: 55px;
+					height: 55px;
+					font-size: 18px;
+				}
+			}
+		</style>
+		
+		<script>
+			function initVirtualController(){
+				var buttons = document.querySelectorAll('[data-button]');
+				
+				buttons.forEach(function(button){
+					var buttonName = button.dataset.button;
+					var buttonCode = getButtonCode(buttonName);
+					
+					button.addEventListener('touchstart', function(e){
+						e.preventDefault();
+						nes.buttonDown(1, buttonCode);
+						button.classList.add('pressed');
+					}, {passive: false});
+					
+					button.addEventListener('touchend', function(e){
+						e.preventDefault();
+						nes.buttonUp(1, buttonCode);
+						button.classList.remove('pressed');
+					}, {passive: false});
+					
+					button.addEventListener('mousedown', function(e){
+						e.preventDefault();
+						nes.buttonDown(1, buttonCode);
+						button.classList.add('pressed');
+					});
+					
+					button.addEventListener('mouseup', function(e){
+						e.preventDefault();
+						nes.buttonUp(1, buttonCode);
+						button.classList.remove('pressed');
+					});
+					
+					button.addEventListener('mouseleave', function(e){
+						nes.buttonUp(1, buttonCode);
+						button.classList.remove('pressed');
+					});
+					
+					button.addEventListener('contextmenu', function(e){
+						e.preventDefault();
+					});
+				});
+				
+				document.addEventListener('touchmove', function(e){
+					if(e.target.closest('.virtual-controller')){
+						e.preventDefault();
+					}
+				}, {passive: false});
+			}
+			
+			function getButtonCode(buttonName){
+				switch(buttonName){
+					case 'up': return jsnes.Controller.BUTTON_UP;
+					case 'down': return jsnes.Controller.BUTTON_DOWN;
+					case 'left': return jsnes.Controller.BUTTON_LEFT;
+					case 'right': return jsnes.Controller.BUTTON_RIGHT;
+					case 'a': return jsnes.Controller.BUTTON_A;
+					case 'b': return jsnes.Controller.BUTTON_B;
+					case 'select': return jsnes.Controller.BUTTON_SELECT;
+					case 'start': return jsnes.Controller.BUTTON_START;
+					default: return -1;
+				}
+			}
+		</script>
 	</body>
 </html>
