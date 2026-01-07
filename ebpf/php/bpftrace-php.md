@@ -154,7 +154,7 @@ ps -eo pid=,etime=,cmd= | grep php | sort -t- -k1,1nr -k2,2nr
 
 bpftrace -e '
 uretprobe:/usr/bin/php8.3:zend_get_executed_scope
-/ pid == 1641373 /
+/ pid == 1416081 /
 {
     if (retval == 0) {
         return;
@@ -173,7 +173,7 @@ class =
 
 bpftrace -e '
 uprobe:/usr/bin/php8.3:zend_execute
-/ pid == 3055002 /
+/ pid == 1416081 /
 {
     $execute_data = (uint64)arg0;
     $func = *(uint64*)($execute_data + 0x18);
@@ -310,7 +310,7 @@ struct zend_class_entry_min {
     void *name;
 };
 uretprobe:/usr/bin/php8.3:zend_get_executed_scope
-/ pid == 3055002 /
+/ pid == 1416081 /
 {
     if (retval == 0) {
         printf("retval == 0");
@@ -327,13 +327,13 @@ uretprobe:/usr/bin/php8.3:zend_get_executed_scope
         $len = *(uint64*)($zs + 0x10);
         $str = str($zs + 0x18, $len);
 
-        printf("zend_string: len=%d, val=%s\n", $len, $str);
+        printf("class: len=%d, val=%s\n", $len, $str);
 
     }
 }
 
 uprobe:/usr/bin/php8.3:execute_ex
-/ pid == 3055002 /
+/ pid == 1416081 /
 {
     $ed = (uint64)arg0;
     $func = *(uint64*)($ed + 0x18);
@@ -351,3 +351,45 @@ uprobe:/usr/bin/php8.3:execute_ex
     printf("func: %s\n", str($str));
 }
 '
+
+类名统计
+
+bpftrace -e'
+struct zend_class_entry_min {
+    u64 type;
+    void *name;
+};
+
+uretprobe:/usr/bin/php8.3:zend_get_executed_scope
+/ pid == 1481210 /
+{
+    if (retval == 0) {
+        return;
+    }
+
+    $ce = (struct zend_class_entry_min *)retval;
+    if ($ce->name == 0) {
+        return;
+    }
+
+    $zs = (uint64)$ce->name;
+    $len = *(uint64*)($zs + 0x10);
+
+    // 简单防御，避免异常长度
+    if ($len <= 0 || $len > 256) {
+        return;
+    }
+
+    $class = str($zs + 0x18, $len);
+    @classes[$class] = count();
+}
+
+interval:s:5
+{
+    printf("\n=== Class statistics (5s) ===\n");
+    print(@classes);
+    clear(@classes);
+    exit();
+}
+
+'|sort
