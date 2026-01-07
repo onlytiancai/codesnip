@@ -12,14 +12,20 @@ var audio_samples_L = new Float32Array(SAMPLE_COUNT);
 var audio_samples_R = new Float32Array(SAMPLE_COUNT);
 var audio_write_cursor = 0, audio_read_cursor = 0;
 var audio_started = false;
+var audioEnabled = true;
 
 var nes = new jsnes.NES({
 	onFrame: function(framebuffer_24){
 		for(var i = 0; i < FRAMEBUFFER_SIZE; i++) framebuffer_u32[i] = 0xFF000000 | framebuffer_24[i];
 	},
 	onAudioSample: function(l, r){
-		audio_samples_L[audio_write_cursor] = l;
-		audio_samples_R[audio_write_cursor] = r;
+		if(audioEnabled && audio_started){
+			audio_samples_L[audio_write_cursor] = l;
+			audio_samples_R[audio_write_cursor] = r;
+		} else {
+			audio_samples_L[audio_write_cursor] = 0;
+			audio_samples_R[audio_write_cursor] = 0;
+		}
 		audio_write_cursor = (audio_write_cursor + 1) & SAMPLE_MASK;
 	},
 });
@@ -101,17 +107,17 @@ function nes_init(canvas_id){
 	var script_processor = audio_ctx.createScriptProcessor(AUDIO_BUFFERING, 0, 2);
 	script_processor.onaudioprocess = audio_callback;
 	script_processor.connect(audio_ctx.destination);
-	if (audio_ctx.state === 'suspended') {
-		var audioButton = document.getElementById('audio');
-		audioButton.style.display = 'block';
-	} else {
-		audio_started = true;
-	}
+	audio_started = true;
 }
 
 function nes_boot(rom_data){
 	nes.loadROM(rom_data);
 	window.requestAnimationFrame(onAnimationFrame);
+	
+	// Notify that game is loaded
+	if(window.nes_on_load){
+		window.nes_on_load();
+	}
 }
 
 function nes_load_data(canvas_id, rom_data){
@@ -119,8 +125,12 @@ function nes_load_data(canvas_id, rom_data){
 	nes_boot(rom_data);
 }
 
+var currentRomPath = null;
+var currentRomData = null;
+
 function nes_load_url(canvas_id, path){
 	nes_init(canvas_id);
+	currentRomPath = path;
 	
 	var req = new XMLHttpRequest();
 	req.open("GET", path);
@@ -129,7 +139,8 @@ function nes_load_url(canvas_id, path){
 	
 	req.onload = function() {
 		if (this.status === 200) {
-		nes_boot(this.responseText);
+			currentRomData = this.responseText;
+			nes_boot(currentRomData);
 		} else if (this.status === 0) {
 			// Aborted, so ignore error
 		} else {
@@ -140,15 +151,14 @@ function nes_load_url(canvas_id, path){
 	req.send();
 }
 
+function nes_reset(){
+	if(currentRomData){
+		nes.loadROM(currentRomData);
+		if(window.nes_on_load){
+			window.nes_on_load();
+		}
+	}
+}
+
 document.addEventListener('keydown', (event) => {keyboard(nes.buttonDown, event)});
 document.addEventListener('keyup', (event) => {keyboard(nes.buttonUp, event)});
-
-document.addEventListener('DOMContentLoaded', (event) => {
-    var audioButton = document.getElementById('audio');
-    audioButton.addEventListener('click', () => {
-        audio_ctx.resume().then(() => {
-			audio_started = true;
-		});
-        audioButton.style.display = 'none';
-    });
-});
