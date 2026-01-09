@@ -8,11 +8,24 @@
 		
 		<script type="text/javascript" src="js/jsnes.min.js"></script>
 		<script type="text/javascript" src="js/nes-embed.js"></script>
-		<script>window.onload = function(){
-			nes_load_url("nes-canvas", "roms/othello.nes");
-			initVirtualController();
-			initGameSelection();
-		}</script>
+		<script>
+			// Function to get URL parameter
+			function getUrlParam(name) {
+				const urlParams = new URLSearchParams(window.location.search);
+				return urlParams.get(name);
+			}
+
+			// This variable will hold the game data reference after it's loaded
+			let gameDataRef;
+
+			window.onload = function(){
+				// Get game name from URL parameter, default to 黑白棋
+				const gameName = getUrlParam("name") || "黑白棋";
+				// We'll load the game after gameData is initialized
+				initVirtualController();
+				initGameSelection();
+			}
+		</script>
 	</head>
 	<body>
 		<div id="loading" class="loading">
@@ -848,11 +861,24 @@
 			
 			// Game selection functionality
 			function initGameSelection(){
+				// Store reference to gameData
+				gameDataRef = gameData;
 				const gameSelectBtn = document.getElementById('game-select');
 				const gameModal = document.getElementById('game-modal');
 				const closeModalBtn = document.getElementById('close-modal');
 				const gameCategories = document.getElementById('game-categories');
 				const gameList = document.getElementById('game-list');
+
+				// Load game based on URL parameter
+				function loadGameFromUrl() {
+					const gameName = getUrlParam("name") || "黑白棋";
+					const game = gameDataRef.games.find(g => g.name === gameName);
+					const gamePath = game ? game.path : "roms/othello.nes";
+					nes_load_url("nes-canvas", gamePath);
+				}
+
+				// Call immediately to load game from URL
+				loadGameFromUrl();
 				
 				// Initialize categories
 				function renderCategories(){
@@ -901,8 +927,11 @@
 					document.querySelectorAll('.game-btn').forEach(btn => {
 						btn.addEventListener('click', () => {
 							const gamePath = btn.dataset.gamePath;
-							loadGame(gamePath);
-							gameModal.style.display = 'none';
+							// Get game name from path
+							const game = gameDataRef.games.find(g => g.path === gamePath);
+							const gameName = game ? game.name : "黑白棋";
+							// Refresh page with game name as URL parameter
+							window.location.href = `?name=${encodeURIComponent(gameName)}`;
 						});
 					});
 				}
