@@ -14,24 +14,45 @@ var audio_write_cursor = 0, audio_read_cursor = 0;
 var audio_started = false;
 var audioEnabled = true;
 
-var nes = new jsnes.NES({
-	onFrame: function(framebuffer_24){
-		for(var i = 0; i < FRAMEBUFFER_SIZE; i++) framebuffer_u32[i] = 0xFF000000 | framebuffer_24[i];
-	},
-	onAudioSample: function(l, r){
-		if(audioEnabled && audio_started){
-			audio_samples_L[audio_write_cursor] = l;
-			audio_samples_R[audio_write_cursor] = r;
-		} else {
-			audio_samples_L[audio_write_cursor] = 0;
-			audio_samples_R[audio_write_cursor] = 0;
-		}
-		audio_write_cursor = (audio_write_cursor + 1) & SAMPLE_MASK;
-	},
-});
+var nes;
+var audio_ctx;
+var script_processor;
+var animationFrameId;
+
+// Initialize or reset NES instance
+function initNesInstance() {
+	// Cancel any existing animation frame request
+	if (animationFrameId) {
+		window.cancelAnimationFrame(animationFrameId);
+		animationFrameId = null;
+	}
+	
+	// Clear audio buffers
+	audio_samples_L.fill(0);
+	audio_samples_R.fill(0);
+	audio_write_cursor = 0;
+	audio_read_cursor = 0;
+	
+	// Create new NES instance
+	nes = new jsnes.NES({
+		onFrame: function(framebuffer_24){
+			for(var i = 0; i < FRAMEBUFFER_SIZE; i++) framebuffer_u32[i] = 0xFF000000 | framebuffer_24[i];
+		},
+		onAudioSample: function(l, r){
+			if(audioEnabled && audio_started){
+				audio_samples_L[audio_write_cursor] = l;
+				audio_samples_R[audio_write_cursor] = r;
+			} else {
+				audio_samples_L[audio_write_cursor] = 0;
+				audio_samples_R[audio_write_cursor] = 0;
+			}
+			audio_write_cursor = (audio_write_cursor + 1) & SAMPLE_MASK;
+		},
+	});
+}
 
 function onAnimationFrame(){
-	window.requestAnimationFrame(onAnimationFrame);
+	animationFrameId = window.requestAnimationFrame(onAnimationFrame);
 	if (!audio_started) {
 		nes.frame();
 	}	
@@ -88,7 +109,6 @@ function keyboard(callback, event){
 	}
 }
 
-var audio_ctx;
 function nes_init(canvas_id){
 	var canvas = document.getElementById(canvas_id);
 	canvas_ctx = canvas.getContext("2d");
@@ -102,11 +122,26 @@ function nes_init(canvas_id){
 	framebuffer_u8 = new Uint8ClampedArray(buffer);
 	framebuffer_u32 = new Uint32Array(buffer);
 	
-	// Setup audio.
-	audio_ctx = new window.AudioContext();
-	var script_processor = audio_ctx.createScriptProcessor(AUDIO_BUFFERING, 0, 2);
+	// Setup or reset audio context
+	if (!audio_ctx) {
+		audio_ctx = new window.AudioContext();
+	} else if (audio_ctx.state === 'closed') {
+		audio_ctx = new window.AudioContext();
+	}
+	
+	// Setup or reset script processor
+	if (script_processor) {
+		script_processor.disconnect();
+		script_processor.onaudioprocess = null;
+	}
+	
+	script_processor = audio_ctx.createScriptProcessor(AUDIO_BUFFERING, 0, 2);
 	script_processor.onaudioprocess = audio_callback;
 	script_processor.connect(audio_ctx.destination);
+	
+	// Initialize NES instance
+	initNesInstance();
+	
 	if (audio_ctx.state === 'suspended') {
 		var audioButton = document.getElementById('audio');
 		audioButton.style.display = 'block';
