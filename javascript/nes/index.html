@@ -21,7 +21,7 @@
 		</div>
 		
 		<div class="controls-bar">
-			<button id="game-select" class="control-btn game">🎮 选择游戏</button>
+			<button id="game-select" class="control-btn game">选择游戏</button>
 			<button id="reset-btn" class="control-btn reset">重置游戏</button>
 			<button id="audio-toggle" class="control-btn audio">🔊 声音</button>
 		</div>
@@ -142,7 +142,7 @@
 			}
 			
 			.control-btn {
-				padding: 10px 25px;
+				padding: 10px 10px;
 				border: none;
 				border-radius: 8px;
 				font-size: 14px;
@@ -412,12 +412,14 @@
 			.virtual-controller {
 				display: flex;
 				justify-content: space-between;
-				max-width: 500px;
+				max-width: 800px;
+				width: 100%;
 				margin: 20px auto;
 				padding: 15px;
 				background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
 				border-radius: 15px;
 				box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+				box-sizing: border-box;
 			}
 			
 			.controller-section {
@@ -426,6 +428,8 @@
 			
 			.left-section {
 				flex: 1;
+				display: flex;
+				justify-content: flex-start;
 			}
 			
 			.right-section {
@@ -436,9 +440,9 @@
 			}
 			
 			.dpad {
-				display: flex;
-				flex-direction: column;
-				align-items: center;
+				position: relative;
+				width: 190px;
+				height: 190px;
 			}
 			
 			.dpad-row {
@@ -449,7 +453,6 @@
 			.dpad-btn {
 				width: 60px;
 				height: 60px;
-				margin: 3px 30px;
 				border: none;
 				border-radius: 10px;
 				background: linear-gradient(145deg, #4a4a4a, #3a3a3a);
@@ -461,6 +464,27 @@
 				box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 				-webkit-tap-highlight-color: transparent;
 				touch-action: manipulation;
+				position: absolute;
+			}
+			
+			.dpad-row:nth-child(1) .dpad-btn { /* Up */
+				top: 0;
+				left: 65px;
+			}
+			
+			.dpad-row:nth-child(2) .dpad-btn.left { /* Left */
+				top: 65px;
+				left: 0;
+			}
+			
+			.dpad-row:nth-child(2) .dpad-btn.right { /* Right */
+				top: 65px;
+				right: 0;
+			}
+			
+			.dpad-row:nth-child(3) .dpad-btn { /* Down */
+				bottom: 0;
+				left: 65px;
 			}
 			
 			.dpad-btn:active,
@@ -534,14 +558,36 @@
 			
 			@media (max-width: 600px) {
 				.virtual-controller {
-					max-width: 95%;
+					max-width: 100%;
 					padding: 10px;
+				}
+				
+				.dpad {
+					width: 160px;
+					height: 160px;
 				}
 				
 				.dpad-btn {
 					width: 50px;
 					height: 50px;
 					font-size: 16px;
+					margin: 3px;
+				}
+				
+				.dpad-row:nth-child(1) .dpad-btn { /* Up */
+					left: 55px;
+				}
+				
+				.dpad-row:nth-child(2) .dpad-btn.left { /* Left */
+					top: 55px;
+				}
+				
+				.dpad-row:nth-child(2) .dpad-btn.right { /* Right */
+					top: 55px;
+				}
+				
+				.dpad-row:nth-child(3) .dpad-btn { /* Down */
+					left: 55px;
 				}
 				
 				.ab-btn {
@@ -557,16 +603,47 @@
 			}
 			
 			@media (max-width: 400px) {
+				.dpad {
+					width: 145px;
+					height: 145px;
+				}
+				
 				.dpad-btn {
 					width: 45px;
 					height: 45px;
 					font-size: 14px;
+					margin: 2px;
+				}
+				
+				.dpad-row:nth-child(1) .dpad-btn { /* Up */
+					left: 50px;
+				}
+				
+				.dpad-row:nth-child(2) .dpad-btn.left { /* Left */
+					top: 50px;
+				}
+				
+				.dpad-row:nth-child(2) .dpad-btn.right { /* Right */
+					top: 50px;
+				}
+				
+				.dpad-row:nth-child(3) .dpad-btn { /* Down */
+					left: 50px;
 				}
 				
 				.ab-btn {
 					width: 55px;
 					height: 55px;
 					font-size: 18px;
+				}
+				
+				.ab-buttons {
+					gap: 15px;
+				}
+				
+				.action-buttons {
+					gap: 10px;
+					margin-bottom: 10px;
 				}
 			}
 		</style>
