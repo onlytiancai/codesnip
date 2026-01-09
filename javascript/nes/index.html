@@ -675,20 +675,97 @@
 			// Game categories and list data
 			const gameData = {
 				categories: [
-					{ id: 'strategy', name: '策略类' },
 					{ id: 'action', name: '动作类' },
 					{ id: 'adventure', name: '冒险类' },
-					{ id: 'puzzle', name: '益智类' }
+					{ id: 'strategy', name: '策略类' },
+					{ id: 'puzzle', name: '益智类' },
+					{ id: 'rpg', name: '角色扮演' },
+					{ id: 'sports', name: '体育类' },
+					{ id: 'other', name: '其他' }
 				],
 				games: [
-					{ id: 'othello', name: '黑白棋 (Othello)', category: 'strategy', path: 'roms/othello.nes' },
-					{ id: 'mario', name: '超级马里奥兄弟', category: 'action', path: 'roms/mario.nes' },
-					{ id: 'zelda', name: '塞尔达传说', category: 'adventure', path: 'roms/zelda.nes' },
-					{ id: 'tetris', name: '俄罗斯方块', category: 'puzzle', path: 'roms/tetris.nes' },
-					{ id: 'donkeykong', name: '大金刚', category: 'action', path: 'roms/donkeykong.nes' },
-					{ id: 'pacman', name: '吃豆人', category: 'action', path: 'roms/pacman.nes' },
-					{ id: 'excitebike', name: '越野摩托', category: 'action', path: 'roms/excitebike.nes' },
-					{ id: 'drmario', name: '马里奥医生', category: 'puzzle', path: 'roms/drmario.nes' }
+					// 动作类
+					{ id: 'mario1', name: '超级玛丽1', category: 'action', path: 'roms/超级玛丽1.nes' },
+					{ id: 'mario2', name: '超级玛丽2', category: 'action', path: 'roms/超级玛丽2.nes' },
+					{ id: 'mario1unlimited', name: '超级马里奥兄弟1命数不减', category: 'action', path: 'roms/超级马里奥兄弟1命数不减.nes' },
+					{ id: 'contra1', name: '魂斗罗1', category: 'action', path: 'roms/魂斗罗1.nes' },
+					{ id: 'contra2', name: '魂斗罗2', category: 'action', path: 'roms/魂斗罗2.nes' },
+					{ id: 'contra3', name: '魂斗罗3', category: 'action', path: 'roms/魂斗罗3.nes' },
+					{ id: 'greenberet', name: '绿色兵团', category: 'action', path: 'roms/绿色兵团.nes' },
+					{ id: 'megaman1', name: '洛克人', category: 'action', path: 'roms/洛克人.nes' },
+					{ id: 'megaman2', name: '洛克人2', category: 'action', path: 'roms/洛克人2.nes' },
+					{ id: 'megaman3', name: '洛克人3', category: 'action', path: 'roms/洛克人3.nes' },
+					{ id: 'megaman4', name: '洛克人4', category: 'action', path: 'roms/洛克人4.nes' },
+					{ id: 'megaman5', name: '洛克人5', category: 'action', path: 'roms/洛克人5.nes' },
+					{ id: 'megaman6', name: '洛克人6', category: 'action', path: 'roms/洛克人6.nes' },
+					{ id: 'gokurakucho', name: '魔界村', category: 'action', path: 'roms/魔界村.nes' },
+					{ id: 'ikari1', name: '怒1', category: 'action', path: 'roms/怒1.nes' },
+					{ id: 'ikari2', name: '怒2', category: 'action', path: 'roms/怒2.nes' },
+					{ id: 'ikari3', name: '怒3', category: 'action', path: 'roms/怒3.nes' },
+					{ id: 'double1', name: '双截龙1', category: 'action', path: 'roms/双截龙1.nes' },
+					{ id: 'double2', name: '双截龙2', category: 'action', path: 'roms/双截龙2.nes' },
+					{ id: 'double3', name: '双截龙3', category: 'action', path: 'roms/双截龙3.nes' },
+					{ id: 'double4', name: '双截龙4', category: 'action', path: 'roms/双截龙4.nes' },
+					{ id: '1944', name: '1944', category: 'action', path: 'roms/1944.nes' },
+					{ id: 'galaga', name: '兵蜂', category: 'action', path: 'roms/兵蜂.nes' },
+					{ id: 'tank1990', name: '坦克大战1990', category: 'action', path: 'roms/Tank 1990 (Asia) (En) (Pirate).nes' },
+					{ id: '1990tank', name: '90坦克', category: 'action', path: 'roms/90坦克.nes' },
+					
+					// 冒险类
+					{ id: 'castlevania1', name: '恶魔城', category: 'adventure', path: 'roms/恶魔城.nes' },
+					{ id: 'castlevania2', name: '恶魔城2', category: 'adventure', path: 'roms/恶魔城2.nes' },
+					{ id: 'castlevania3', name: '恶魔城3', category: 'adventure', path: 'roms/恶魔城3.nes' },
+					{ id: 'duckhunt1', name: '荒野大镖客', category: 'adventure', path: 'roms/荒野大镖客.nes' },
+					{ id: 'duckhunt2', name: '荒野大镖客无敌版', category: 'adventure', path: 'roms/荒野大镖客无敌版.nes' },
+					{ id: 'streetfighter', name: '街头霸王', category: 'adventure', path: 'roms/街头霸王.nes' },
+					{ id: 'finalfight', name: '快打旋风', category: 'adventure', path: 'roms/快打旋风.nes' },
+					{ id: 'hudson1', name: '冒险岛1', category: 'adventure', path: 'roms/冒险岛1.nes' },
+					{ id: 'hudson2', name: '冒险岛2', category: 'adventure', path: 'roms/冒险岛2.nes' },
+					{ id: 'hudson3', name: '冒险岛3', category: 'adventure', path: 'roms/冒险岛3.nes' },
+					{ id: 'hudson4', name: '冒险岛4', category: 'adventure', path: 'roms/冒险岛4.nes' },
+					{ id: 'sangokushi', name: '三目童子', category: 'adventure', path: 'roms/三目童子.nes' },
+					{ id: 'captain11', name: '天使之翼2代', category: 'adventure', path: 'roms/天使之翼2代.nes' },
+					{ id: 'kirby', name: '星之卡比', category: 'adventure', path: 'roms/星之卡比.nes' },
+					{ id: 'snowbrothers', name: '雪人兄弟', category: 'adventure', path: 'roms/雪人兄弟.nes' },
+					{ id: 'rainbow', name: '彩虹岛', category: 'adventure', path: 'roms/彩虹岛.nes' },
+					{ id: 'wizard', name: '绿野仙踪', category: 'adventure', path: 'roms/绿野仙踪.nes' },
+					
+					// 策略类
+					{ id: 'othello', name: '黑白棋', category: 'strategy', path: 'roms/othello.nes' },
+					{ id: 'gowei', name: '围棋大战', category: 'strategy', path: 'roms/围棋大战g.nes' },
+					{ id: 'chess', name: '中国象棋', category: 'strategy', path: 'roms/中国象棋.nes' },
+					{ id: 'gomoku', name: '五子棋', category: 'strategy', path: 'roms/五子棋.nes' },
+					
+					// 益智类
+					{ id: 'tetris', name: '俄罗斯方块', category: 'puzzle', path: 'roms/俄罗斯方块.nes' },
+					{ id: 'drmario', name: '马里奥医生', category: 'puzzle', path: 'roms/马里奥医生.nes' },
+					{ id: 'breakout', name: '打砖块', category: 'puzzle', path: 'roms/打砖块.nes' },
+					{ id: 'bubble', name: '泡泡龙', category: 'puzzle', path: 'roms/泡泡龙.nes' },
+					{ id: 'plumber', name: '水管工马里奥', category: 'puzzle', path: 'roms/水管工马里奥.nes' },
+					{ id: 'lode', name: '淘金者(J)', category: 'puzzle', path: 'roms/淘金者(J).nes' },
+					
+					// 角色扮演
+					{ id: 'pokemon', name: '口袋妖怪', category: 'rpg', path: 'roms/口袋妖怪.nes' },
+					{ id: 'tos1', name: '吞食天地1', category: 'rpg', path: 'roms/吞食天地1.nes' },
+					{ id: 'tos2', name: '吞食天地2', category: 'rpg', path: 'roms/吞食天地2.nes' },
+					{ id: 'finalfantasy', name: '最终幻想(银河时代)', category: 'rpg', path: 'roms/最终幻想(银河时代).nes' },
+					
+					// 体育类
+					{ id: 'f1', name: 'F1赛车', category: 'sports', path: 'roms/F1赛车.nes' },
+					{ id: 'tennis', name: '网球', category: 'sports', path: 'roms/网球.nes' },
+					{ id: 'bike', name: '越野摩托', category: 'sports', path: 'roms/越野摩托.nes' },
+					{ id: 'basketball', name: '热血篮球', category: 'sports', path: 'roms/热血篮球.nes' },
+					{ id: 'soccer', name: '热血足球', category: 'sports', path: 'roms/热血足球.nes' },
+					{ id: 'school', name: '热血高校', category: 'sports', path: 'roms/热血高校.nes' },
+					
+					// 其他
+					{ id: 'pacman', name: '吃豆', category: 'other', path: 'roms/吃豆.nes' },
+					{ id: 'circus', name: '马戏团', category: 'other', path: 'roms/马戏团.nes' },
+					{ id: 'rocket', name: '火箭车', category: 'other', path: 'roms/火箭车.nes' },
+					{ id: 'pigs', name: '三只小猪', category: 'other', path: 'roms/三只小猪.nes' },
+					{ id: 'dog', name: '顽皮狗(美版)', category: 'other', path: 'roms/顽皮狗(美版)(U).nes' },
+					{ id: 'bomberman1', name: '炸弹人', category: 'other', path: 'roms/炸弹人.nes' },
+					{ id: 'bomberman2', name: '炸弹人2', category: 'other', path: 'roms/炸弹人2.nes' }
 				]
 			};
 			
