@@ -11,6 +11,7 @@
 		<script>window.onload = function(){
 			nes_load_url("nes-canvas", "roms/othello.nes");
 			initVirtualController();
+			initGameSelection();
 		}</script>
 	</head>
 	<body>
@@ -20,8 +21,23 @@
 		</div>
 		
 		<div class="controls-bar">
+			<button id="game-select" class="control-btn game">🎮 选择游戏</button>
 			<button id="reset-btn" class="control-btn reset">重置游戏</button>
 			<button id="audio-toggle" class="control-btn audio">🔊 声音</button>
+		</div>
+		
+		<!-- Game Selection Modal -->
+		<div id="game-modal" class="game-modal">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h2>选择游戏</h2>
+					<button id="close-modal" class="close-btn">&times;</button>
+				</div>
+				<div class="modal-body">
+					<div id="game-categories"></div>
+					<div id="game-list"></div>
+				</div>
+			</div>
 		</div>
 		<button id="audio" style="display: none;">Click to enable audio</button>
 		<div class="canvas-container">
@@ -146,6 +162,244 @@
 				color: white;
 			}
 			
+			.control-btn.game {
+				background: linear-gradient(145deg, #9b59b6, #8e44ad);
+				color: white;
+			}
+			
+			/* Game Modal Styles */
+			.game-modal {
+				display: none;
+				position: fixed;
+				z-index: 2000;
+				left: 0;
+				top: 0;
+				width: 100%;
+				height: 100%;
+				background-color: rgba(0, 0, 0, 0.8);
+				justify-content: center;
+				align-items: center;
+			}
+			
+			.modal-content {
+				background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+				border-radius: 15px;
+				max-width: 800px;
+				width: 90%;
+				max-height: 80vh;
+				display: flex;
+				flex-direction: column;
+				overflow: hidden;
+				box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+			}
+			
+			.modal-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 20px 25px;
+				background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+				border-bottom: 2px solid #4a4a4a;
+			}
+			
+			.modal-header h2 {
+				color: #fff;
+				margin: 0;
+				font-size: 24px;
+				font-family: Arial, sans-serif;
+			}
+			
+			.close-btn {
+				background: none;
+				border: none;
+				color: #fff;
+				font-size: 32px;
+				cursor: pointer;
+				padding: 0;
+				line-height: 1;
+				transition: color 0.2s ease;
+			}
+			
+			.close-btn:hover {
+				color: #e74c3c;
+			}
+			
+			.modal-body {
+				display: flex;
+				flex: 1;
+				overflow: hidden;
+			}
+			
+			#game-categories {
+				width: 200px;
+				background: linear-gradient(180deg, #3a3a3a, #2a2a2a);
+				padding: 20px;
+				overflow-y: auto;
+				border-right: 1px solid #4a4a4a;
+			}
+			
+			.category-btn {
+				display: block;
+				width: 100%;
+				padding: 12px 16px;
+				margin-bottom: 8px;
+				text-align: left;
+				background: linear-gradient(145deg, #4a4a4a, #3a3a3a);
+				border: none;
+				border-radius: 8px;
+				color: #ccc;
+				font-size: 14px;
+				font-weight: bold;
+				cursor: pointer;
+				transition: all 0.2s ease;
+				box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+			}
+			
+			.category-btn:hover {
+				background: linear-gradient(145deg, #5a5a5a, #4a4a4a);
+				color: #fff;
+				transform: translateX(5px);
+			}
+			
+			.category-btn.active {
+				background: linear-gradient(145deg, #9b59b6, #8e44ad);
+				color: #fff;
+				transform: translateX(5px);
+			}
+			
+			#game-list {
+				flex: 1;
+				padding: 20px;
+				overflow-y: auto;
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+				gap: 15px;
+			}
+			
+			.game-item {
+				transition: transform 0.2s ease;
+			}
+			
+			.game-item:hover {
+				transform: translateY(-5px);
+			}
+			
+			.game-btn {
+				width: 100%;
+				padding: 18px 12px;
+				background: linear-gradient(145deg, #4a4a4a, #3a3a3a);
+				border: none;
+				border-radius: 12px;
+				color: #fff;
+				font-size: 16px;
+				font-weight: bold;
+				cursor: pointer;
+				transition: all 0.2s ease;
+				box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+				white-space: normal;
+				word-wrap: break-word;
+				min-height: 80px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				text-align: center;
+			}
+			
+			.game-btn:hover {
+				background: linear-gradient(145deg, #5a5a5a, #4a4a4a);
+				box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+				transform: scale(1.05);
+			}
+			
+			.game-btn:active {
+				transform: scale(0.98);
+			}
+			
+			.game-name {
+				display: block;
+				font-size: 14px;
+				line-height: 1.4;
+			}
+			
+			/* Scrollbar Styling */
+			#game-categories::-webkit-scrollbar,
+			#game-list::-webkit-scrollbar {
+				width: 8px;
+			}
+			
+			#game-categories::-webkit-scrollbar-track,
+			#game-list::-webkit-scrollbar-track {
+				background: #2a2a2a;
+				border-radius: 4px;
+			}
+			
+			#game-categories::-webkit-scrollbar-thumb,
+			#game-list::-webkit-scrollbar-thumb {
+				background: #5a5a5a;
+				border-radius: 4px;
+			}
+			
+			#game-categories::-webkit-scrollbar-thumb:hover,
+			#game-list::-webkit-scrollbar-thumb:hover {
+				background: #7a7a7a;
+			}
+			
+			/* Responsive Modal */
+			@media (max-width: 768px) {
+				.modal-content {
+					width: 95%;
+					height: 90vh;
+				}
+				
+				.modal-body {
+					flex-direction: column;
+				}
+				
+				#game-categories {
+					width: 100%;
+					height: auto;
+					max-height: 200px;
+					overflow-y: auto;
+					border-right: none;
+					border-bottom: 1px solid #4a4a4a;
+				}
+				
+				#game-list {
+					grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+					gap: 10px;
+				}
+				
+				.game-btn {
+					padding: 12px 8px;
+					min-height: 60px;
+					font-size: 13px;
+				}
+			}
+			
+			@media (max-width: 480px) {
+				.modal-header {
+					padding: 15px 20px;
+				}
+				
+				.modal-header h2 {
+					font-size: 20px;
+				}
+				
+				#game-categories {
+					padding: 15px;
+				}
+				
+				#game-list {
+					padding: 15px;
+					grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+				}
+				
+				.game-btn {
+					font-size: 12px;
+					min-height: 50px;
+				}
+			}
+			
 			.control-btn:hover {
 				transform: translateY(-2px);
 				box-shadow: 0 6px 12px rgba(0,0,0,0.4);
@@ -195,7 +449,7 @@
 			.dpad-btn {
 				width: 60px;
 				height: 60px;
-				margin: 3px;
+				margin: 3px 30px;
 				border: none;
 				border-radius: 10px;
 				background: linear-gradient(145deg, #4a4a4a, #3a3a3a);
@@ -416,6 +670,119 @@
 						audioToggle.innerHTML = '🔇 静音';
 					}
 				}
+			}
+			
+			// Game categories and list data
+			const gameData = {
+				categories: [
+					{ id: 'strategy', name: '策略类' },
+					{ id: 'action', name: '动作类' },
+					{ id: 'adventure', name: '冒险类' },
+					{ id: 'puzzle', name: '益智类' }
+				],
+				games: [
+					{ id: 'othello', name: '黑白棋 (Othello)', category: 'strategy', path: 'roms/othello.nes' },
+					{ id: 'mario', name: '超级马里奥兄弟', category: 'action', path: 'roms/mario.nes' },
+					{ id: 'zelda', name: '塞尔达传说', category: 'adventure', path: 'roms/zelda.nes' },
+					{ id: 'tetris', name: '俄罗斯方块', category: 'puzzle', path: 'roms/tetris.nes' },
+					{ id: 'donkeykong', name: '大金刚', category: 'action', path: 'roms/donkeykong.nes' },
+					{ id: 'pacman', name: '吃豆人', category: 'action', path: 'roms/pacman.nes' },
+					{ id: 'excitebike', name: '越野摩托', category: 'action', path: 'roms/excitebike.nes' },
+					{ id: 'drmario', name: '马里奥医生', category: 'puzzle', path: 'roms/drmario.nes' }
+				]
+			};
+			
+			// Game selection functionality
+			function initGameSelection(){
+				const gameSelectBtn = document.getElementById('game-select');
+				const gameModal = document.getElementById('game-modal');
+				const closeModalBtn = document.getElementById('close-modal');
+				const gameCategories = document.getElementById('game-categories');
+				const gameList = document.getElementById('game-list');
+				
+				// Initialize categories
+				function renderCategories(){
+					gameCategories.innerHTML = '';
+					gameData.categories.forEach(category => {
+						const categoryBtn = document.createElement('button');
+						categoryBtn.className = 'category-btn';
+						categoryBtn.dataset.category = category.id;
+						categoryBtn.textContent = category.name;
+						categoryBtn.addEventListener('click', () => {
+							renderGames(category.id);
+							// Remove active class from all category buttons
+							document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+							// Add active class to clicked button
+							categoryBtn.classList.add('active');
+						});
+						gameCategories.appendChild(categoryBtn);
+					});
+					
+					// Select first category by default
+					if(gameData.categories.length > 0){
+						renderGames(gameData.categories[0].id);
+						if(gameCategories.firstChild){
+							gameCategories.firstChild.classList.add('active');
+						}
+					}
+				}
+				
+				// Render games by category
+				function renderGames(categoryId){
+					gameList.innerHTML = '';
+					const filteredGames = gameData.games.filter(game => game.category === categoryId);
+					
+					filteredGames.forEach(game => {
+						const gameItem = document.createElement('div');
+						gameItem.className = 'game-item';
+						gameItem.innerHTML = `
+							<button class="game-btn" data-game-path="${game.path}">
+								<span class="game-name">${game.name}</span>
+							</button>
+						`;
+						gameList.appendChild(gameItem);
+					});
+					
+					// Add click event listeners to game buttons
+					document.querySelectorAll('.game-btn').forEach(btn => {
+						btn.addEventListener('click', () => {
+							const gamePath = btn.dataset.gamePath;
+							loadGame(gamePath);
+							gameModal.style.display = 'none';
+						});
+					});
+				}
+				
+				// Load selected game
+				function loadGame(gamePath){
+					showLoading();
+					nes_load_url('nes-canvas', gamePath);
+					// Hide loading after a short delay
+					setTimeout(() => {
+						hideLoading();
+					}, 500);
+				}
+				
+				// Modal event listeners
+				gameSelectBtn.addEventListener('click', () => {
+					gameModal.style.display = 'flex';
+					// Re-render in case data changed
+					renderCategories();
+				});
+				
+				closeModalBtn.addEventListener('click', () => {
+					gameModal.style.display = 'none';
+				});
+				
+				// Close modal when clicking outside
+				window.addEventListener('click', (e) => {
+					if(e.target === gameModal){
+						gameModal.style.display = 'none';
+					}
+				});
+				
+				// Initialize
+				renderCategories();
 			}
 			
 			function initControls(){
