@@ -339,7 +339,7 @@ SVD 是矩阵分解的瑞士军刀。无论矩阵多糟糕（秩亏、病态）�
 
 $\kappa(X)$ 或 $\kappa(X^T X)$
 
-<span class="text-gray-400 text-sm text-left">衡量输入微小扰动对输出的影响放大倍数。$\kappa(X) > 1000$ 警惕！ </span>
+<span class="text-gray-400 text-sm">衡量输入微小扰动对输出的影响放大倍数。$\kappa(X) > 1000$ 警惕！ </span>
 
   </div>
 </div>
@@ -381,16 +381,46 @@ $\hat{\beta} = (X^T X + \lambda I)^{-1} X^T y$
 </div>
 </div>
 
+<!--
+岭回归通过在对角线上加一个小常数 Lambda，奇迹般地解决了不可逆问题。这不仅是数学技巧，更是机器学习核心思想——偏差方差权衡的体现。记住，用它之前一定要先做标准化。
+-->
 
 ---
 
 # 加权与约束的变体
 
-- 加权最小二乘：$\min \|W^{1/2}(y - X\beta)\|^2$
-- 一般式：$\|y - X\beta\|^2 + \lambda \|\Gamma\beta\|^2$
-- 简介 LASSO（L1）与稀疏偏好
+基础最小二乘法可以灵活扩展，以适应更复杂的现实场景。
 
-> 展示 LS 生态的常见扩展
+<div grid="~ cols-3 gap-4">
+  <div>
+
+### ⚖️ 加权最小二乘 (WLS)
+
+$$\min \|W^{1/2}(y - X\beta)\|^2$$
+
+<span class="text-gray-400 text-sm">当某些样本比其他样本更重要，或测量误差方差不一致（异方差性）时，给每个误差项赋予不同权重。</span>
+
+  </div>
+  <div>
+
+### ⛓️ 广义 Tikhonov
+
+
+$$\min \|y - X\beta\|^2 + \lambda \|\Gamma\beta\|^2$$
+
+<span class="text-gray-400 text-sm">不仅惩罚系数大小，还可以惩罚系数之间的差异（如平滑约束），通过设计矩阵 $\Gamma$ 实现。</span>
+
+  </div>
+  <div>
+
+### 💎 稀疏偏好 (LASSO)
+
+$$ \min \|y - X\beta\|^2 + \lambda \| \beta \|_1 $$
+
+<span class="text-gray-400 text-sm">使用 L1 范数正则化，能强制使不重要的特征系数变为 0，从而实现自动特征选择。</span>
+
+  </div>
+</div>
 
 ---
 
