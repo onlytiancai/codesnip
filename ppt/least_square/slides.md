@@ -312,8 +312,8 @@ SVD 是矩阵分解的瑞士军刀。无论矩阵多糟糕（秩亏、病态）�
 
 在工程实践中，判断一个线性系统是否“健康”至关重要，这直接决定了结果的可信度。
 
-<div grid="~ cols-2 gap-4">
-  <div>
+<div grid="~ cols-3 gap-4">
+  <div class="col-start-1 col-end-3">
   <div class="m-2 p-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
 
  1. 诊断病态
@@ -333,7 +333,7 @@ SVD 是矩阵分解的瑞士军刀。无论矩阵多糟糕（秩亏、病态）�
 <span class="text-gray-400 text-sm">即使数据已缩放，若特征间存在强相关性，仍需引入正则化来改善数值稳定性。</span>
   </div>
   </div>
-  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+  <div class="col-start-3 col-end-4 m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
 
 ### 条件数 (Condition Number)
 
@@ -422,55 +422,128 @@ $$ \min \|y - X\beta\|^2 + \lambda \| \beta \|_1 $$
   </div>
 </div>
 
+<!--
+LS家族很庞大。如果数据质量不一，用加权LS；如果想要系数平滑，用广义Tikhonov；如果想做特征筛选，LASSO是首选。根据场景灵活变通是关键。
+-->
 ---
 
 # 代码实现：NumPy lstsq 示例
 
+NumPy 提供了基于 SVD 的低级接口，适合深入理解解的细节。
+
+<div class="grid grid-cols-3 gap-4">
+  <div class="col-start-1 col-end-3">
+
 ```py
 import numpy as np
-
-# 合成数据
-data_rng = np.random.default_rng(0)
-n, p = 100, 2
-X = np.c_[np.ones(n), np.linspace(0, 1, n)]
-true_beta = np.array([1.0, 2.0])
-y = X @ true_beta + 0.1 * data_rng.normal(size=n)
-
-# 最小二乘（NumPy）
-beta_hat, residuals, rank, s = np.linalg.lstsq(X, y, rcond=None)
-print(beta_hat, residuals, rank, s)
+# 1. 构造合成数据 (X, y)
+X = np.c_[np.ones(10), np.random.rand(10)]
+y = X @ np.array([2, 5]) + np.random.normal(size=10)
+# 2. 求解 Least Squares
+beta, residuals, rank, s = np.linalg.lstsq(X, y, rcond=None)
+# 3. 输出结果
+print(f"Coefficients: {beta}")
 ```
 
-- 返回值含奇异值与秩信息，便于诊断
-- 可与闭式解/QR 解对比
+  </div>
+  <div class="col-start-3 col-end-4">
+
+  ### 💡 关键点
+
+  **返回值信息丰富：**
+
+  <div class="text-gray-400 text-sm">
+
+  除了系数 beta，它还返回：
+  - residuals: 残差平方和
+  - rank: 矩阵 X 的秩
+  - s: X 的奇异值，用于诊断病态性
+  </div>
+
+  </div>
+</div>
+
+<!--
+NumPy的lstsq函数是底层的强力工具。它不仅给你答案，还告诉你问题的性质（比如秩和奇异值）。注意构造数据时，我们通常需要手动添加一列全1作为截距项。
+-->
 
 ---
 
 # 代码实现：Scikit-Learn 示例
 
+在机器学习工作流中，Sklearn 提供了更加封装和易用的接口。
+
+<div class="grid grid-cols-3 gap-4">
+<div class="col-start-1 col-end-3">
+
 ```py
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
-
+# 1. 初始化模型 (自动处理截距)
 model = LinearRegression(fit_intercept=True)
-model.fit(X[:, 1].reshape(-1, 1), y)
-print(model.coef_, model.intercept_)
-
-y_pred = model.predict(X[:, 1].reshape(-1, 1))
-print('MSE=', mean_squared_error(y, y_pred))
-print('R2=', r2_score(y, y_pred))
+# 2. 拟合数据
+model.fit(X, y)
+# 3. 获取参数与评估
+print(f"Coef: {model.coef_}, Bias: {model.intercept_}")
+print(f"R^2 Score: {model.score(X, y)}")
 ```
+</div>
+<div class="col-start-3 col-end-4">
 
-- 常用流程与评估：$R^2$ / $MSE$
-- 可与标准化、管道、交叉验证结合
+### 🚀 工程优势
 
+Pipeline 集成：
+
+<span class="text-gray-400 text-sm">可以轻松与 StandardScaler 和 PolynomialFeatures 串联，构建完整的机器学习流水线。</span>
+
+标准化接口：
+
+<span class="text-gray-400 text-sm">统一的 fit/predict/score API，方便切换到 Lasso 或 Ridge 回归。</span>
+
+</div>
+</div>
+
+<!--
+Sklearn是生产环境的首选。它自动处理截距项，并且其统一的API设计让你在尝试不同模型（如Ridge或Lasso）时几乎不需要改代码。别忘了用R方分数来快速评估模型好坏。
+-->
 ---
 
 # 评估与诊断：残差与杠杆
 
-- 残差分析：均值接近 0，观察是否有结构性模式
-- Hat 矩阵 $H = X(X^T X)^{-1}X^T$；杠杆点与影响度
-- 评估指标：$MSE$、$MAE$、$R^2$；训练/验证划分
+模型拟合只是第一步，深入的诊断能帮助我们发现数据中的异常和模型的不足。
+
+<div grid="~ cols-3 gap-4">
+<div>
+
+### 📉 残差分析
+
+检查残差图 (Residual Plot)。理想的残差应是围绕 0 随机分布的白噪声。
+
+若出现“喇叭口”形状（异方差）或曲线模式，说明模型假设可能失效。
+
+
+  </div>
+  <div>
+
+### 🏗️ 杠杆与影响点
+
+通过帽子矩阵 (Hat Matrix) H 识别杠杆点 (High Leverage)。
+
+远离中心的点可能对模型产生不成比例的巨大影响 (Cook's Distance)，需要特别关注。
+
+$$H = X(X^T X)^{-1}X^T$$
+
+  </div>
+  <div>
+
+### 📊 评估指标
+
+**$R^2$ (决定系数)**：解释了多大比例的方差。
+
+**MSE (均方误差)**：预测误差的平方期望，对大误差敏感。
+
+  </div>
+</div>
+
 
 > 将理论与实践闭环到质量控制
 
