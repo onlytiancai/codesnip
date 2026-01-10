@@ -53,20 +53,21 @@ li {
 
   ### 📊 观察数据
 
-  我们拥有一个设计矩阵 $X \in \mathbb{R}^{n \times p}$，其中包含 $n$ 个样本和 $p$ 个特征。响应变量被表示为向量 $y \in \mathbb{R}^n$ 。这是所有监督学习问题的起点。
+
+<span class="text-gray-700 dark:text-gray-300 ">我们拥有一个设计矩阵 $X \in \mathbb{R}^{n \times p}$，其中包含 $n$ 个样本和 $p$ 个特征。响应变量被表示为向量 $y \in \mathbb{R}^n$ 。这是所有监督学习问题的起点。</span>
 
   </div>
   <div>
 
   ### ⚙️ 模型设定
 
-  我们假设输入与输出之间存在线性关系，即 $y = X\beta + \varepsilon$。这里 $\beta$ 是我们需要求解的系数向量，而 $\varepsilon$ 代表了不可观测的随机噪声或测量误差。
+<span class="text-gray-700 dark:text-gray-300 ">我们假设输入与输出之间存在线性关系，即 $y = X\beta + \varepsilon$。这里 $\beta$ 是我们需要求解的系数向量，而 $\varepsilon$ 代表了不可观测的随机噪声或测量误差。</span>
   </div>
   <div>
 
   ### 🎯 目标函数
 
-  我们的目标是找到系数 $\beta$，使得预测值与真实值之间的差异最小化。形式上，我们最小化平方损失函数：$L(\beta) = \|y - X\beta\|^2$，即残差平方和。
+<span class="text-gray-700 dark:text-gray-300 ">我们的目标是找到系数 $\beta$，使得预测值与真实值之间的差异最小化。形式上，我们最小化平方损失函数：$L(\beta) = \|y - X\beta\|^2$，即残差平方和。</span>
   </div>
 </div>
 
@@ -79,27 +80,33 @@ li {
 
 明确目标后，我们可以利用矩阵微积分将其转化为一个优雅的线性方程组求解问题。
 
-<div class="m-2 p-6 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+<div class="m-2 p-6 bg-gray-100 dark:bg-gray-800 text-center">
 
 ## 正规方程
 
-$X^T X \beta = X^T y$
+<span class="text-gray-700 dark:text-gray-300 ">$X^T X \beta = X^T y$</span>
 
 </div>
 
 <div grid="~ cols-2 gap-4">
-  <div class="m-2 p-6 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+  <div class="m-2 p-6 bg-gray-100 dark:bg-gray-800">
 
   ### ✅ 可解条件
 
-  当矩阵 $X$ 列满秩 $\mathrm{rank}(X) = p$ 时，矩阵 $X^T X$ 是正定且可逆的。这是得到唯一解的前提。
+<span class="text-gray-700 dark:text-gray-300 ">当矩阵 $X$ 列满秩 $\mathrm{rank}(X) = p$ 时，矩阵 $X^T X$ 是正定且可逆的。这是得到唯一解的前提。</span>
+
   </div>
-  <div class="m-2 p-6 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+  <div class="m-2 p-6 bg-gray-100 dark:bg-gray-800">
 
   ### 🔑 闭式解
-  在满足满秩条件下，我们可以直接写出解析解
 
-  $\hat{\beta} = (X^T X)^{-1} X^T y$
+<div class="text-gray-700 dark:text-gray-300 ">
+
+在满足满秩条件下，我们可以直接写出解析解
+
+$$\hat{\beta} = (X^T X)^{-1} X^T y$$
+
+</div>
   </div>
 </div>
 
@@ -117,14 +124,15 @@ $X^T X \beta = X^T y$
 
 ### 1. 列空间 (Column Space)
 
-所有可能的预测值 $X\beta$ 构成了 $X$ 列向量张成的子空间 $\mathrm{span}(X)$。真实值 $y$ 通常不在此空间内。
+<span class="text-gray-700 dark:text-gray-300 ">所有可能的预测值 $X\beta$ 构成了 $X$ 列向量张成的子空间 $\mathrm{span}(X)$。真实值 $y$ 通常不在此空间内。</span>
 
 ### 2. 投影观点 (Projection)
 
-最佳估计值 $X\hat{\beta}$ 实际上就是向量 $y$ 在 $\mathrm{span}(X)$ 子空间上的正交投影，距离最近。
+<span class="text-gray-700 dark:text-gray-300 ">最佳估计值 $X\hat{\beta}$ 实际上就是向量 $y$ 在 $\mathrm{span}(X)$ 子空间上的正交投影，距离最近。</span>
 
 ### 3. 残差正交 (Orthogonality)
-残差向量 $r = y - X\hat{\beta}$ 垂直于该平面，即 $X^T r = 0$，误差无法再被 $X$ 解释。
+
+<span class="text-gray-700 dark:text-gray-300 ">残差向量 $r = y - X\hat{\beta}$ 垂直于该平面，即 $X^T r = 0$，误差无法再被 $X$ 解释。</span>
 
   </div>
   <div>
@@ -192,30 +200,34 @@ $X^T X \beta = X^T y$
 
 
 <div grid="~ cols-2 gap-4">
-  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-center">
 
 ### 1. 梯度设为零
 
-$\nabla_{\beta} L(\beta) = -2X^T(y - X\beta) = 0$ 
+
+<span class="text-gray-700 dark:text-gray-300 ">$\nabla_{\beta} L(\beta) = -2X^T(y - X\beta) = 0$</span>
 
   </div>
-  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-center">
 
 ### 2. 整理得到
 
-$X^T X \beta = X^T y$
+<span class="text-gray-700 dark:text-gray-300 ">$X^T X \beta = X^T y$</span>
 
   </div>
 </div>
 
-<div class="bg-gray-100 m-2 p-4 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+<div class="bg-gray-100 m-2 p-4 dark:bg-gray-800">
 
 ### 🔍 凸性分析 (Convexity)
+
+<div class="text-gray-700 dark:text-gray-300 ">
 
 损失函数 $L(\beta)$ 的二阶导数（Hessian 矩阵）为 $2X^T X$。
 这是一个半正定矩阵 (PSD)，意味着 $L(\beta)$ 是一个凸碗状函数，保证了任何临界点都是全局最小值。解的唯一性仅取决于 X 是否满秩。
 
 解唯一性与 $\mathrm{rank}(X)$、$\mathrm{cond}(X^T X)$ 有关
+</div>
 
 </div>
 
@@ -230,7 +242,7 @@ $X^T X \beta = X^T y$
 在实际工程计算中，为了数值稳定性，我们往往绕过正规方程，转而使用矩阵分解技术。
 
 <div grid="~ cols-2 gap-4">
-  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800  text-center">
 
 ### QR 分解
 
@@ -239,7 +251,7 @@ $X = QR$
 <span class="text-gray-400 text-sm">$Q$: 正交矩阵, $R$: 上三角矩阵</span>
 
   </div>
-  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800  text-center">
 
 ### 求解方程
 
@@ -271,21 +283,21 @@ $X = U\Sigma V^T$
 </div>
 
 <div grid="~ cols-3 gap-4">
-<div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+<div class="m-2 p-4 bg-gray-100 dark:bg-gray-800  text-center">
 
 **$U$ (左奇异向量)**
 
 <span class="text-gray-400">正交矩阵，数据空间基</span>
 
 </div>
-<div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+<div class="m-2 p-4 bg-gray-100 dark:bg-gray-800  text-center">
 
 **$\Sigma$ (奇异值)**
 
 <span class="text-gray-400">对角矩阵，刻画重要性尺度</span>
 
 </div>
-<div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+<div class="m-2 p-4 bg-gray-100 dark:bg-gray-800  text-center">
 
 **$V$ (右奇异向量)**
 
@@ -314,28 +326,30 @@ SVD 是矩阵分解的瑞士军刀。无论矩阵多糟糕（秩亏、病态）�
 
 <div grid="~ cols-3 gap-4">
   <div class="col-start-1 col-end-3">
-  <div class="m-2 p-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+  <div class="m-2 p-2 bg-gray-100 dark:bg-gray-800 ">
 
  1. 诊断病态
 
 <span class="text-gray-400 text-sm">如果 κ(X) 过大，矩阵被称为“病态”的，求逆计算将极不稳定。</span>
   </div>
-  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 ">
 
 2. 数据标准化 (Normalization)
 
 <span class="text-gray-400 text-sm">对特征进行归一化（如 Z-score 缩放），使其具有相似的尺度，能显著降低条件数。</span>
   </div>
-  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 ">
 
 3. 配合正则化
 
 <span class="text-gray-400 text-sm">即使数据已缩放，若特征间存在强相关性，仍需引入正则化来改善数值稳定性。</span>
   </div>
   </div>
-  <div class="col-start-3 col-end-4 m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+  <div class="col-start-3 col-end-4 m-2 p-4 bg-gray-100 dark:bg-gray-800  text-center">
 
-### 条件数 (Condition Number)
+### 条件数 
+
+(Condition Number)
 
 $\kappa(X)$ 或 $\kappa(X^T X)$
 
@@ -366,18 +380,22 @@ $\hat{\beta} = (X^T X + \lambda I)^{-1} X^T y$
 
 ### 核心作用
 
+<div class="text-gray-700 dark:text-gray-300 ">
+
 - **数学上**：通过给对角线元素加上 $\lambda$，强制矩阵满秩可逆，消除多重共线性带来的奇点。
 - **统计上**：引入偏差以换取方差的大幅降低 (Bias-Variance Tradeoff)，提高模型在未知数据上的泛化能力。
-
+</div>
 </div>
   
 <div>
 
 ### $\lambda$ 的选择
 
+<div class="text-gray-700 dark:text-gray-300 ">
+
 - **经验法则**：使用交叉验证 (Cross-Validation) 扫描对数尺度的 $\lambda$ 值（如 0.01, 0.1, 1, 10）。
 - **前提**：应用岭回归前，必须先对特征进行标准化，否则 $\lambda$ 对不同尺度的特征惩罚力度不均。
-
+</div>
 </div>
 </div>
 
@@ -516,15 +534,19 @@ Sklearn是生产环境的首选。它自动处理截距项，并且其统一的A
 
 ### 📉 残差分析
 
+<div class="text-gray-700 dark:text-gray-300 ">
+
 检查残差图 (Residual Plot)。理想的残差应是围绕 0 随机分布的白噪声。
 
 若出现“喇叭口”形状（异方差）或曲线模式，说明模型假设可能失效。
-
+</div>
 
   </div>
   <div>
 
 ### 🏗️ 杠杆与影响点
+
+<div class="text-gray-700 dark:text-gray-300 ">
 
 通过帽子矩阵 (Hat Matrix) H 识别杠杆点 (High Leverage)。
 
@@ -532,20 +554,94 @@ Sklearn是生产环境的首选。它自动处理截距项，并且其统一的A
 
 $$H = X(X^T X)^{-1}X^T$$
 
+</div>
   </div>
   <div>
 
 ### 📊 评估指标
 
+<div class="text-gray-700 dark:text-gray-300 ">
+
 **$R^2$ (决定系数)**：解释了多大比例的方差。
 
 **MSE (均方误差)**：预测误差的平方期望，对大误差敏感。
-
+</div>
   </div>
 </div>
 
 
 > 将理论与实践闭环到质量控制
+
+---
+
+# 常见问题与对策清单
+
+面对真实世界的脏数据，这里有一份生存指南。
+
+<div grid="~ cols-2 gap-4">
+<div class="p-4 m-4 bg-gray-100 dark:bg-gray-800 ">
+
+### 🚨 多重共线性
+
+
+<div class="text-gray-700 dark:text-gray-300 text-sm">
+
+**症状**：特征高度相关，系数估计极不稳定。
+
+**对策**：使用正则化 (Ridge/Lasso) 或 PCA 降维。
+</div>
+</div>
+<div class="p-4 m-4 bg-gray-100 dark:bg-gray-800 ">
+
+
+### ⚠️ 异方差与离群点
+
+<div class="text-gray-700 dark:text-gray-300 text-sm">
+
+**症状**：残差随预测值发散，或存在极端异常值。
+
+**对策**：加权最小二乘 (WLS) 或稳健回归 (RANSAC)。
+</div>
+</div>
+</div>
+
+<div grid="~ cols-2 gap-4">
+<div class="p-4 m-4 bg-gray-100 dark:bg-gray-800 ">
+
+
+### 📈 非线性关系
+
+
+
+
+<div class="text-gray-700 dark:text-gray-300 text-sm">
+
+**症状**：线性模型欠拟合，残差呈现曲线模式。
+
+**对策**：特征工程 (PolynomialFeatures) 或核方法。
+
+</div>
+</div>
+<div class="p-4 m-4 bg-gray-100 dark:bg-gray-800 ">
+
+
+### 🧹 数据预处理
+
+
+<div class="text-gray-700 dark:text-gray-300 text-sm">
+
+**症状**：数值求解慢或不收敛，系数解释性差。
+
+**对策**：必须进行标准化 (StandardScaler) 和中心化。
+
+
+</div>
+</div>
+</div>
+
+<!--
+如果你遇到问题，先查这份清单：共线性用岭回归，异方差用加权，非线性加特征，还没好？检查一下是不是忘了做标准化。这些是对付线性模型常见病症的特效药。
+-->
 
 ---
 layout: cover
@@ -556,3 +652,6 @@ class: text-center
 
 回顾：线代框架、几何直觉、QR/SVD、实践代码、诊断与正则化
 
+<!--
+感谢大家的时间。希望今天的分享能让你在面对线性问题时，不仅会调包，更懂得背后的数学之美和工程智慧。再见！
+-->
