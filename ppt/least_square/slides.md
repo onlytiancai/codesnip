@@ -310,11 +310,47 @@ SVD 是矩阵分解的瑞士军刀。无论矩阵多糟糕（秩亏、病态）�
 
 # 数值稳定性与病态性
 
-- 条件数 $\kappa(X)$ 或 $\kappa(X^T X)$
+在工程实践中，判断一个线性系统是否“健康”至关重要，这直接决定了结果的可信度。
+
+<div grid="~ cols-2 gap-4">
+  <div>
+  <div class="m-2 p-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+
+ 1. 诊断病态
+
+<span class="text-gray-400 text-sm">如果 κ(X) 过大，矩阵被称为“病态”的，求逆计算将极不稳定。</span>
+  </div>
+  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+
+2. 数据标准化 (Normalization)
+
+<span class="text-gray-400 text-sm">对特征进行归一化（如 Z-score 缩放），使其具有相似的尺度，能显著降低条件数。</span>
+  </div>
+  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+
+3. 配合正则化
+
+<span class="text-gray-400 text-sm">即使数据已缩放，若特征间存在强相关性，仍需引入正则化来改善数值稳定性。</span>
+  </div>
+  </div>
+  <div class="m-2 p-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center">
+
+### 条件数 (Condition Number)
+
+$\kappa(X)$ 或 $\kappa(X^T X)$
+
+<span class="text-gray-400 text-sm text-left">衡量输入微小扰动对输出的影响放大倍数。$\kappa(X) > 1000$ 警惕！ </span>
+
+  </div>
+</div>
+
+- 条件数 或 $
 - 归一化/标准化改善数值表现
 - 特征缩放与正则化配合
 
-> 数值稳定性的诊断与缓解手段
+<!--
+条件数是我们的警报器。当它很大时，意味着矩阵接近奇异，计算结果不可信。最简单的解药是数据预处理：把所有特征缩放到同一尺度。如果这还不够，就得请出正则化了。
+-->
 
 ---
 
