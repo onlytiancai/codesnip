@@ -1,2 +1,3 @@
 - 伪逆
 - 条件数
+- 正则化 $(X^T X + \lambda I)\beta = X^T y$
