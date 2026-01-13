@@ -20,15 +20,12 @@ fn print_arr<T>(arr: &[T])
 }
 
 fn sort_arr<T,F>(arr: &mut [T], mut cmp: F) 
-    where F: FnMut(T, T) -> bool,
-        T: Clone
+    where F: FnMut(&T, &T) -> bool
 {
     for i in 0..arr.len() {
         for j in 0..i {
-            if cmp(arr[j].clone(), arr[i].clone()) {
-                let t = arr[i].clone();
-                arr[i] = arr[j].clone();
-                arr[j] = t;
+            if cmp(&arr[j], &arr[i]) {
+                arr.swap(i, j)                
             }
         }
     }
