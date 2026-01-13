@@ -2,13 +2,15 @@ use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::error::Error;
 use std::fs::File;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use clap::Parser;
 use csv::{ReaderBuilder, StringRecord, WriterBuilder};
 use tempfile::TempDir;
 
 const MAX_OPEN_FILES: usize = 64;
+
+/* ---------- CLI ---------- */
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -21,8 +23,13 @@ struct Args {
     #[arg(long)]
     sort_col: usize,
 
+    /// 是否按排序列去重（只在最后一轮生效）
     #[arg(long, default_value_t = false)]
     dedup: bool,
+
+    /// 指定临时目录（建议放到大磁盘）
+    #[arg(long)]
+    temp_dir: Option<PathBuf>,
 }
 
 /* ---------- heap item ---------- */
@@ -44,7 +51,8 @@ impl PartialEq for HeapItem {
 
 impl Ord for HeapItem {
     fn cmp(&self, other: &Self) -> Ordering {
-        other.key.cmp(&self.key) // min-heap
+        // BinaryHeap 是最大堆，反转实现最小堆
+        other.key.cmp(&self.key)
     }
 }
 
@@ -59,8 +67,8 @@ impl PartialOrd for HeapItem {
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
-    let tempdir = TempDir::new()?;
-    println!("临时目录: {:?}", tempdir.path());
+    let tempdir = prepare_temp_dir(args.temp_dir.as_ref())?;
+    println!("使用临时目录: {:?}", tempdir.path());
 
     let mut rdr = ReaderBuilder::new()
         .has_headers(true)
@@ -116,7 +124,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/* ---------- write chunk ---------- */
+/* ---------- temp dir ---------- */
+
+fn prepare_temp_dir(dir: Option<&PathBuf>) -> Result<TempDir, Box<dyn Error>> {
+    if let Some(p) = dir {
+        std::fs::create_dir_all(p)?;
+        Ok(TempDir::new_in(p)?)
+    } else {
+        Ok(TempDir::new()?)
+    }
+}
+
+/* ---------- write sorted chunk ---------- */
 
 fn write_sorted_chunk(
     records: &[StringRecord],
@@ -144,8 +163,8 @@ fn merge_in_rounds(
     mut chunks: Vec<PathBuf>,
     headers: &StringRecord,
     sort_col: usize,
-    dedup: bool,
-    temp_root: &std::path::Path,
+    final_dedup: bool,
+    temp_root: &Path,
 ) -> Result<PathBuf, Box<dyn Error>> {
     let mut round = 0;
 
@@ -157,12 +176,26 @@ fn merge_in_rounds(
             chunks.len()
         );
 
+        let is_last_round = chunks.len() <= MAX_OPEN_FILES;
+        let dedup_this_round = is_last_round && final_dedup;
+
         let mut next = Vec::new();
 
         for (i, group) in chunks.chunks(MAX_OPEN_FILES).enumerate() {
             let out = temp_root.join(format!("merge_r{}_{}.csv", round, i));
-            merge_group(group, headers, sort_col, dedup, &out)?;
+            merge_group(
+                group,
+                headers,
+                sort_col,
+                dedup_this_round,
+                &out,
+            )?;
             next.push(out);
+        }
+
+        // 👇 删除上一轮 chunk，释放磁盘空间
+        for old in &chunks {
+            let _ = std::fs::remove_file(old);
         }
 
         chunks = next;
