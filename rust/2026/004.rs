@@ -25,7 +25,7 @@ fn sort_arr<T>(arr: &mut [T])
     for i in 0..arr.len() {
         for j in 0..i {
             if arr[j] > arr[i] {
-                arr.swap(i, j)                
+                arr.swap(i, j)
             }
         }
     }
