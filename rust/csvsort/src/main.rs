@@ -1,11 +1,12 @@
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::error::Error;
+use std::fs::File;
 use std::path::PathBuf;
 
 use clap::Parser;
 use csv::{ReaderBuilder, StringRecord, WriterBuilder};
-use tempfile::NamedTempFile;
+use tempfile::TempDir;
 
 const MAX_OPEN_FILES: usize = 64;
 
@@ -24,7 +25,7 @@ struct Args {
     dedup: bool,
 }
 
-/* ---------- Heap item ---------- */
+/* ---------- heap item ---------- */
 
 #[derive(Debug)]
 struct HeapItem {
@@ -43,8 +44,7 @@ impl PartialEq for HeapItem {
 
 impl Ord for HeapItem {
     fn cmp(&self, other: &Self) -> Ordering {
-        // BinaryHeap 是最大堆，这里反转成最小堆
-        other.key.cmp(&self.key)
+        other.key.cmp(&self.key) // min-heap
     }
 }
 
@@ -59,6 +59,9 @@ impl PartialOrd for HeapItem {
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
+    let tempdir = TempDir::new()?;
+    println!("临时目录: {:?}", tempdir.path());
+
     let mut rdr = ReaderBuilder::new()
         .has_headers(true)
         .from_path(&args.input)?;
@@ -67,17 +70,20 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("开始分块排序…");
 
-    let mut chunks = Vec::new();
+    let mut chunks: Vec<PathBuf> = Vec::new();
     let mut buffer = Vec::with_capacity(args.chunk_size);
 
     for (i, row) in rdr.records().enumerate() {
         buffer.push(row?);
 
         if buffer.len() == args.chunk_size {
-            let tmp = write_sorted_chunk(&buffer, &headers, args.sort_col)?;
-            chunks.push(tmp);
+            let path = tempdir
+                .path()
+                .join(format!("chunk_{}.csv", chunks.len()));
+            write_sorted_chunk(&buffer, &headers, args.sort_col, &path)?;
+            chunks.push(path);
             buffer.clear();
-            println!("完成分块 {}", chunks.len());
+            println!("已完成分块 {}", chunks.len());
         }
 
         if (i + 1) % 1_000_000 == 0 {
@@ -86,52 +92,61 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     if !buffer.is_empty() {
-        let tmp = write_sorted_chunk(&buffer, &headers, args.sort_col)?;
-        chunks.push(tmp);
-        println!("完成分块 {}", chunks.len());
+        let path = tempdir
+            .path()
+            .join(format!("chunk_{}.csv", chunks.len()));
+        write_sorted_chunk(&buffer, &headers, args.sort_col, &path)?;
+        chunks.push(path);
+        println!("已完成分块 {}", chunks.len());
     }
 
     println!("分块完成，共 {} 个 chunk", chunks.len());
 
-    let final_chunk = merge_in_rounds(chunks, &headers, args.sort_col, args.dedup)?;
+    let final_path = merge_in_rounds(
+        chunks,
+        &headers,
+        args.sort_col,
+        args.dedup,
+        tempdir.path(),
+    )?;
 
-    println!("写入最终输出 {:?}", args.output);
-    std::fs::copy(final_chunk.path(), &args.output)?;
+    std::fs::copy(&final_path, &args.output)?;
+    println!("排序完成，输出写入 {:?}", args.output);
 
     Ok(())
 }
 
-/* ---------- chunk sort ---------- */
+/* ---------- write chunk ---------- */
 
 fn write_sorted_chunk(
     records: &[StringRecord],
     headers: &StringRecord,
     sort_col: usize,
-) -> Result<NamedTempFile, Box<dyn Error>> {
+    path: &PathBuf,
+) -> Result<(), Box<dyn Error>> {
     let mut data = records.to_vec();
     data.sort_by(|a, b| a[sort_col].cmp(&b[sort_col]));
 
-    let mut tmp = NamedTempFile::new()?;
-    {
-        let mut wtr = WriterBuilder::new().has_headers(true).from_writer(&mut tmp);
+    let file = File::create(path)?;
+    let mut wtr = WriterBuilder::new().has_headers(true).from_writer(file);
 
-        wtr.write_record(headers)?;
-        for r in data {
-            wtr.write_record(&r)?;
-        }
-        wtr.flush()?;
+    wtr.write_record(headers)?;
+    for r in data {
+        wtr.write_record(&r)?;
     }
-    Ok(tmp)
+    wtr.flush()?;
+    Ok(())
 }
 
 /* ---------- multi-pass merge ---------- */
 
 fn merge_in_rounds(
-    mut chunks: Vec<NamedTempFile>,
+    mut chunks: Vec<PathBuf>,
     headers: &StringRecord,
     sort_col: usize,
     dedup: bool,
-) -> Result<NamedTempFile, Box<dyn Error>> {
+    temp_root: &std::path::Path,
+) -> Result<PathBuf, Box<dyn Error>> {
     let mut round = 0;
 
     while chunks.len() > 1 {
@@ -144,9 +159,10 @@ fn merge_in_rounds(
 
         let mut next = Vec::new();
 
-        for group in chunks.chunks(MAX_OPEN_FILES) {
-            let merged = merge_group(group, headers, sort_col, dedup)?;
-            next.push(merged);
+        for (i, group) in chunks.chunks(MAX_OPEN_FILES).enumerate() {
+            let out = temp_root.join(format!("merge_r{}_{}.csv", round, i));
+            merge_group(group, headers, sort_col, dedup, &out)?;
+            next.push(out);
         }
 
         chunks = next;
@@ -158,19 +174,18 @@ fn merge_in_rounds(
 /* ---------- merge one group ---------- */
 
 fn merge_group(
-    group: &[NamedTempFile],
+    group: &[PathBuf],
     headers: &StringRecord,
     sort_col: usize,
     dedup: bool,
-) -> Result<NamedTempFile, Box<dyn Error>> {
-    let mut readers: Vec<_> = group
-        .iter()
-        .map(|f| {
-            ReaderBuilder::new()
-                .has_headers(true)
-                .from_reader(f.reopen().unwrap())
-        })
-        .collect();
+    out_path: &PathBuf,
+) -> Result<(), Box<dyn Error>> {
+    let mut readers = Vec::new();
+
+    for p in group {
+        let f = File::open(p)?;
+        readers.push(ReaderBuilder::new().has_headers(true).from_reader(f));
+    }
 
     let mut heap = BinaryHeap::<HeapItem>::new();
 
@@ -185,37 +200,35 @@ fn merge_group(
         }
     }
 
-    let mut tmp = NamedTempFile::new()?;
-    {
-        let mut wtr = WriterBuilder::new().has_headers(true).from_writer(&mut tmp);
-        wtr.write_record(headers)?;
+    let out_file = File::create(out_path)?;
+    let mut wtr = WriterBuilder::new().has_headers(true).from_writer(out_file);
+    wtr.write_record(headers)?;
 
-        let mut last_key: Option<String> = None;
+    let mut last_key: Option<String> = None;
 
-        while let Some(item) = heap.pop() {
-            let emit = if dedup {
-                last_key.as_deref() != Some(&item.key)
-            } else {
-                true
-            };
+    while let Some(item) = heap.pop() {
+        let emit = if dedup {
+            last_key.as_deref() != Some(&item.key)
+        } else {
+            true
+        };
 
-            if emit {
-                wtr.write_record(&item.record)?;
-                last_key = Some(item.key.clone());
-            }
-
-            let idx = item.chunk_idx;
-            if let Some(r) = readers[idx].records().next() {
-                let rec = r?;
-                heap.push(HeapItem {
-                    key: rec[sort_col].to_string(),
-                    chunk_idx: idx,
-                    record: rec,
-                });
-            }
+        if emit {
+            wtr.write_record(&item.record)?;
+            last_key = Some(item.key.clone());
         }
 
-        wtr.flush()?;
+        let idx = item.chunk_idx;
+        if let Some(r) = readers[idx].records().next() {
+            let rec = r?;
+            heap.push(HeapItem {
+                key: rec[sort_col].to_string(),
+                chunk_idx: idx,
+                record: rec,
+            });
+        }
     }
-    Ok(tmp)
+
+    wtr.flush()?;
+    Ok(())
 }
