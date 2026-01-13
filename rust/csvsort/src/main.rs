@@ -213,8 +213,15 @@ fn merge_group(
     dedup: bool,
     out_path: &PathBuf,
 ) -> Result<(), Box<dyn Error>> {
-    let mut readers = Vec::new();
+    const PRINT_EVERY: usize = 1_000_000;
 
+    println!(
+        "  开始归并 {} 个 chunk -> {:?}",
+        group.len(),
+        out_path.file_name().unwrap()
+    );
+
+    let mut readers = Vec::new();
     for p in group {
         let f = File::open(p)?;
         readers.push(ReaderBuilder::new().has_headers(true).from_reader(f));
@@ -238,8 +245,12 @@ fn merge_group(
     wtr.write_record(headers)?;
 
     let mut last_key: Option<String> = None;
+    let mut processed: usize = 0;
+    let mut emitted: usize = 0;
 
     while let Some(item) = heap.pop() {
+        processed += 1;
+
         let emit = if dedup {
             last_key.as_deref() != Some(&item.key)
         } else {
@@ -249,6 +260,14 @@ fn merge_group(
         if emit {
             wtr.write_record(&item.record)?;
             last_key = Some(item.key.clone());
+            emitted += 1;
+        }
+
+        if processed % PRINT_EVERY == 0 {
+            println!(
+                "    已处理 {:>10} 行，输出 {:>10} 行",
+                processed, emitted
+            );
         }
 
         let idx = item.chunk_idx;
@@ -263,5 +282,13 @@ fn merge_group(
     }
 
     wtr.flush()?;
+
+    println!(
+        "  归并完成：处理 {} 行，输出 {} 行 -> {:?}",
+        processed,
+        emitted,
+        out_path.file_name().unwrap()
+    );
+
     Ok(())
 }
