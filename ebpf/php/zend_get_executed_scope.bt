@@ -1,0 +1,50 @@
+struct zend_class_entry_min {
+    u64 type;
+    void *name;
+};
+
+/*
+struct _zend_string {
+    zend_refcounted_h gc;   // 8 bytes
+    zend_ulong        h;    // 8 bytes
+    size_t            len;  // 8 bytes
+    char              val[];// 紧接着
+};
+
+typedef struct {
+    uint32_t refcount;
+    uint32_t type_info;
+} zend_refcounted_h;
+
+| 偏移   | 大小 | 含义        |
+| ---- | -- | --------- |
+| 0x00 | 4  | refcount  |
+| 0x04 | 4  | type_info |
+| 0x08 | 8  | hash (h)  |
+| 0x10 | 8  | len       |
+| 0x18 | …  | val       |
+
+*/
+
+uretprobe:/usr/bin/php8.3:zend_get_executed_scope
+/ pid == 1641373 /
+{
+    if (retval == 0) {
+        printf("retval == 0");
+        return;
+    }
+
+    $ce = (struct zend_class_entry_min *)retval;
+    // printf("$ce ===:%r\n", buf($ce, 64));
+    if ($ce->name != 0) {
+
+        $zs = (uint64)$ce->name;
+        // printf("raw: %r\n", buf($zs, 64));
+
+        $len = *(uint64*)($zs + 0x10);
+        $str = str($zs + 0x18, $len);
+
+        printf("zend_string: len=%d, val=%s\n", $len, $str);
+
+    }
+}
