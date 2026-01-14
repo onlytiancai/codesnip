@@ -1,4 +1,4 @@
 mod r001;
 fn main() {
-    r001::main();
+    let _ = r001::main();
 }
