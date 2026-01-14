@@ -1,3 +1,4 @@
+mod r001;
 fn main() {
-    println!("Hello, world!");
+    r001::main();
 }
