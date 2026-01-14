@@ -65,7 +65,7 @@ impl PartialOrd for HeapItem {
 /* ---------- main ---------- */
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let args = Args::parse();
+    let args = Args::parse();    
 
     let tempdir = prepare_temp_dir(args.temp_dir.as_ref())?;
     println!("使用临时目录: {:?}", tempdir.path());
