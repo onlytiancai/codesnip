@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.decomposition import PCA
 
-
+# 设置中文显示
 plt.rcParams['font.sans-serif'] = ['Arial Unicode MS']
 plt.rcParams['axes.unicode_minus'] = False
 
@@ -52,22 +52,38 @@ ax.scatter(0, 0, 0, c='k', marker='o', s=50, label='原点')
 
 # 绘制X的列向量（张成子空间的基）
 for i in range(p):
+    # 绘制向量
     ax.quiver(0, 0, 0, X_3d[0, i], X_3d[1, i], X_3d[2, i], 
               arrow_length_ratio=0.1, color=['r', 'g', 'b'][i], linewidth=2, 
               label=f'X的第{i+1}列向量')
+    
+    # 为向量添加标注
+    vector_name = ['截距项列', '面积列', '距离列'][i]
+    ax.text(X_3d[0, i] * 1.1, X_3d[1, i] * 1.1, X_3d[2, i] * 1.1, 
+            f'X_{i+1}: {vector_name}', fontsize=11, 
+            color=['r', 'g', 'b'][i], fontweight='bold')
 
 # 绘制y向量
 ax.quiver(0, 0, 0, y_3d[0], y_3d[1], y_3d[2], 
           arrow_length_ratio=0.1, color='purple', linewidth=3, label='y向量')
+# 为y向量添加标注
+ax.text(y_3d[0] * 1.1, y_3d[1] * 1.1, y_3d[2] * 1.1, 
+        'y: 真实数据向量', fontsize=12, color='purple', fontweight='bold')
 
 # 绘制投影向量Xβ
 ax.quiver(0, 0, 0, proj_3d[0], proj_3d[1], proj_3d[2], 
           arrow_length_ratio=0.1, color='orange', linewidth=3, label='投影向量Xβ')
+# 为投影向量添加标注
+ax.text(proj_3d[0] * 1.1, proj_3d[1] * 1.1, proj_3d[2] * 1.1, 
+        'Xβ: y在span{X}上的投影', fontsize=12, color='orange', fontweight='bold')
 
 # 绘制残差向量r = y - Xβ
 ax.quiver(proj_3d[0], proj_3d[1], proj_3d[2], 
           res_3d[0], res_3d[1], res_3d[2], 
           arrow_length_ratio=0.1, color='cyan', linewidth=3, label='残差向量r = y - Xβ')
+# 为残差向量添加标注
+ax.text(proj_3d[0] + res_3d[0] * 1.1, proj_3d[1] + res_3d[1] * 1.1, proj_3d[2] + res_3d[2] * 1.1, 
+        'r = y - Xβ: 残差向量', fontsize=12, color='cyan', fontweight='bold')
 
 # 绘制span{X}子空间平面
 # 平面由X的列向量张成，我们需要计算平面的方程
@@ -93,9 +109,17 @@ if normal[2] != 0:
     ax.plot_surface(xx, yy, zz, alpha=0.2, color='yellow', 
                     linewidth=0, antialiased=False, 
                     label='span{X}子空间平面')
+    # 为平面添加标注
+    ax.text(0, 0, zz[5, 5] * 0.9, 'span{X}: 由X的列向量张成的子空间', 
+            fontsize=12, color='gold', fontweight='bold', 
+            bbox=dict(facecolor='white', alpha=0.8, boxstyle='round'))
 else:
     # 处理z=0的特殊情况
     ax.plot_wireframe(xx, yy, np.zeros_like(xx), alpha=0.2, color='yellow')
+    # 为平面添加标注
+    ax.text(0, 0, -0.1, 'span{X}: 由X的列向量张成的子空间', 
+            fontsize=12, color='gold', fontweight='bold', 
+            bbox=dict(facecolor='white', alpha=0.8, boxstyle='round'))
 
 # 添加标签和标题
 ax.set_xlabel('PCA维度1', fontsize=12)
