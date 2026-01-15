@@ -1,6 +1,5 @@
-//mod r001;
-mod r002;
+mod grep;
+
 fn main() {
-    //let _ = r001::main();
-    let _ = r002::main();
+    grep::main();
 }
