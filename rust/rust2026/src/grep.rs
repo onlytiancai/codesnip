@@ -57,19 +57,84 @@ pub fn main() {
         }
     };
 
+    // Compile regex for only_matching option (reuse to avoid repeated compilation)
+    let regex_for_matching = Regex::new(&args.pattern).ok();
+
     // Check if we need to search in files or stdin
     if args.files.is_empty() {
         // Read from stdin
-        search_stdin(&args, &regex_set);
+        search_stdin(&args, &regex_set, regex_for_matching.as_ref());
     } else {
         // Search in files
         for file_path in &args.files {
-            search_file(&args, &regex_set, file_path);
+            search_file(&args, &regex_set, regex_for_matching.as_ref(), file_path);
         }
     }
 }
 
-fn search_stdin(args: &Args, regex_set: &regex::RegexSet) {
+fn should_process_line(matches: bool, invert_match: bool) -> bool {
+    if invert_match { !matches } else { matches }
+}
+
+fn format_line_output(
+    line: &str,
+    line_number: Option<usize>,
+    file_prefix: Option<&str>,
+    only_matching: bool,
+    pattern_regex: Option<&Regex>,
+) -> String {
+    let prefix = match file_prefix {
+        Some(fp) => format!("{}:", fp),
+        None => String::new(),
+    };
+
+    if only_matching {
+        if let Some(re) = pattern_regex {
+            let matches: Vec<&str> = re.find_iter(line).map(|m| m.as_str()).collect();
+            matches.join("\n")
+        } else {
+            line.to_string()
+        }
+    } else {
+        match line_number {
+            Some(num) => format!("{}{}:{}", prefix, num, line),
+            None => format!("{}{}", prefix, line),
+        }
+    }
+}
+
+fn process_line(
+    args: &Args,
+    line: &str,
+    regex_set: &regex::RegexSet,
+    regex_for_matching: Option<&Regex>,
+    match_count: &mut usize,
+    line_number: Option<usize>,
+    file_prefix: Option<&str>,
+) {
+    let matches = regex_set.is_match(line);
+    let should_print = should_process_line(matches, args.invert_match);
+
+    if should_print {
+        if args.count {
+            *match_count += 1;
+        } else {
+            let output = format_line_output(
+                line,
+                line_number,
+                file_prefix,
+                args.only_matching,
+                regex_for_matching,
+            );
+            println!("{}", output);
+            *match_count += 1;
+        }
+    } else if line_number.is_some() && args.invert_match {
+        *match_count += 1;
+    }
+}
+
+fn search_stdin(args: &Args, regex_set: &regex::RegexSet, regex_for_matching: Option<&Regex>) {
     let stdin = io::stdin();
     let reader = stdin.lock();
     let mut match_count = 0;
@@ -77,29 +142,16 @@ fn search_stdin(args: &Args, regex_set: &regex::RegexSet) {
     for line_result in reader.lines() {
         match line_result {
             Ok(line) => {
-                let matches = regex_set.is_match(&line);
-                let should_print = if args.invert_match { !matches } else { matches };
-
-                if should_print {
-                    if args.count {
-                        match_count += 1;
-                    } else {
-                        let output = if args.only_matching {
-                            // Find and show only matching parts
-                            let re = Regex::new(&args.pattern).unwrap();
-                            let matches: Vec<&str> = re.find_iter(&line).map(|m| m.as_str()).collect();
-                            matches.join("\n")
-                        } else if args.line_number {
-                            format!("{}\t{}", match_count + 1, line)
-                        } else {
-                            line.clone()
-                        };
-                        println!("{}", output);
-                        match_count += 1;
-                    }
-                } else if args.line_number && args.invert_match {
-                    match_count += 1;
-                }
+                let line_number = if args.line_number { Some(match_count + 1) } else { None };
+                process_line(
+                    args,
+                    &line,
+                    regex_set,
+                    regex_for_matching,
+                    &mut match_count,
+                    line_number,
+                    None,
+                );
             }
             Err(e) => {
                 eprintln!("Error reading from stdin: {}", e);
@@ -112,7 +164,12 @@ fn search_stdin(args: &Args, regex_set: &regex::RegexSet) {
     }
 }
 
-fn search_file(args: &Args, regex_set: &regex::RegexSet, file_path: &str) {
+fn search_file(
+    args: &Args,
+    regex_set: &regex::RegexSet,
+    regex_for_matching: Option<&Regex>,
+    file_path: &str,
+) {
     let path = Path::new(file_path);
 
     if !path.exists() {
@@ -141,33 +198,21 @@ fn search_file(args: &Args, regex_set: &regex::RegexSet, file_path: &str) {
         line_count += 1;
         match line_result {
             Ok(line) => {
-                let matches = regex_set.is_match(&line);
-                let should_print = if args.invert_match { !matches } else { matches };
+                let file_prefix = if args.files.len() > 1 {
+                    Some(file_path)
+                } else {
+                    None
+                };
 
-                if should_print {
-                    if args.count {
-                        match_count += 1;
-                    } else {
-                        let prefix = if args.files.len() > 1 {
-                            format!("{}:", file_path)
-                        } else {
-                            String::new()
-                        };
-
-                        let output = if args.only_matching {
-                            // Find and show only matching parts
-                            let re = Regex::new(&args.pattern).unwrap();
-                            let matches: Vec<&str> = re.find_iter(&line).map(|m| m.as_str()).collect();
-                            matches.join("\n")
-                        } else if args.line_number {
-                            format!("{}{}:{}", prefix, line_count, line)
-                        } else {
-                            format!("{}{}", prefix, line)
-                        };
-                        println!("{}", output);
-                        match_count += 1;
-                    }
-                }
+                process_line(
+                    args,
+                    &line,
+                    regex_set,
+                    regex_for_matching,
+                    &mut match_count,
+                    if args.line_number { Some(line_count) } else { None },
+                    file_prefix,
+                );
             }
             Err(e) => {
                 eprintln!("Error reading line {} in file '{}': {}", line_count, file_path, e);
