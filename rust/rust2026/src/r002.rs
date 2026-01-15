@@ -14,9 +14,25 @@ pub fn main() {
     }
     println!("word count: {}", words.len());
     
+
+    let word = words.entry("hello".to_string()).or_insert(0);
+    *word += 1;
+
+    let value = words.get_mut("hello");
+    match value {
+        Some(v) => *v += 1,
+        None => {words.insert("hello".to_string(), 1);()},
+    }
+
+    if let Some(v) = words.get_mut("hello"){
+        *v += 1;
+    } else {
+        words.insert("hello".to_string(), 1);
+    }
+
     let  mut  items: Vec<(&String, &i32)> = words.iter().collect();
-    items.sort_by(|a, b| a.1.cmp(b.1));
-    for (key, value) in items.iter().take(3)  {
+    items.sort_by(|a, b| b.1.cmp(a.1));
+    for (key, value) in items.iter().take(5)  {
         println!("{}: {}", key, value);
     }
 }
