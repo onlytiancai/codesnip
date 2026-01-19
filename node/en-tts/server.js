@@ -48,8 +48,10 @@ app.post('/api/tts', async (req, res) => {
       },
       "req_params": {
         "text": text,
-        "speaker": "zh_female_shuangkuaisisi_moon_bigtts",
+        "speaker": voiceType,
         "audio_params": {
+          "speech_rate": speedRatio,
+          "loudness_rate": volumeRatio,
           "format": "mp3",
           "sample_rate": 24000
         },
@@ -259,14 +261,14 @@ app.post('/api/tts', async (req, res) => {
 // Get available voices endpoint
 app.get('/api/voices', (req, res) => {
   const voices = [
-    { id: 'zh_female_tianmei_moon_bigtts', name: '天美（女声）', lang: 'zh' },
-    { id: 'zh_male_chunxia_moon_bigtts', name: '春晓（男声）', lang: 'zh' },
-    { id: 'zh_female_doudou_moon_bigtts', name: '豆豆（女声）', lang: 'zh' },
-    { id: 'zh_male_yezi_moon_bigtts', name: '叶子（男声）', lang: 'zh' },
-    { id: 'zh_female_cancan_mars_bigtts', name: '灿灿（女声）', lang: 'zh' },
-    { id: 'zh_female_shuangkuaisisi_moon_bigtts', name: '双快思思（女声）', lang: 'zh' },
-    { id: 'en_female_amy_001', name: 'Amy（女声）', lang: 'en' },
-    { id: 'en_male_jerry_001', name: 'Jerry（男声）', lang: 'en' }
+    { id: 'zh_female_yingyujiaoyu_mars_bigtts', name: 'Tina老师', lang: 'zh' },
+    { id: 'zh_male_jieshuonansheng_mars_bigtts', name: '磁性解说男声/Morgan', lang: 'zh' },
+    { id: 'zh_female_shuangkuaisisi_emo_v2_mars_bigtts', name: '爽快思思（多情感）', lang: 'zh' },
+    { id: 'en_female_candice_emo_v2_mars_bigtts', name: 'Candice', lang: 'zh' },
+    { id: 'zh_male_wennuanahu_moon_bigtts', name: '温暖阿虎/Alvin', lang: 'zh' },
+    { id: 'zh_male_shaonianzixin_moon_bigtts', name: '少年梓辛/Brayan', lang: 'zh' },
+    { id: 'zh_female_tiexinnvsheng_mars_bigtts', name: '贴心女声/Candy', lang: 'en' },
+    { id: 'zh_female_mengyatou_mars_bigtts', name: '萌丫头/Cutey', lang: 'en' }
   ];
   res.json(voices);
 });
