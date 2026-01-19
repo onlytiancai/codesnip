@@ -322,12 +322,14 @@
 
         // Update speed value display
         speedRange.addEventListener('input', () => {
-            speedValue.textContent = parseFloat(speedRange.value).toFixed(1) + 'x';
+            const rate = 1 + (parseInt(speedRange.value) / 100);
+            speedValue.textContent = rate.toFixed(1) + 'x';
         });
 
         // Update volume value display
         volumeRange.addEventListener('input', () => {
-            volumeValue.textContent = parseFloat(volumeRange.value).toFixed(1) + 'x';
+            const rate = 1 + (parseInt(volumeRange.value) / 100);
+            volumeValue.textContent = rate.toFixed(1) + 'x';
         });
 
         // Show status message
@@ -383,8 +385,8 @@
             }
 
             const voiceType = voiceSelect.value;
-            const speedRatio = parseFloat(speedRange.value);
-            const volumeRatio = parseFloat(volumeRange.value);
+            const speedRatio = 1 + (parseInt(speedRange.value) / 100);
+            const volumeRatio = 1 + (parseInt(volumeRange.value) / 100);
 
             // Show loading state
             generateBtn.disabled = true;
