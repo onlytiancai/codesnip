@@ -107,3 +107,6 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+*.wav
+*.mp3
+*.mp4
