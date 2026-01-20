@@ -188,7 +188,9 @@ def make_frame(t, words, paragraph_timings):
     # 竖版视频的边距设置
     LEFT_MARGIN = 50
     RIGHT_MARGIN = WIDTH - 50
-    TOP_MARGIN = 100
+    HEADER_HEIGHT = 120
+    FOOTER_HEIGHT = 80
+    TOP_MARGIN = HEADER_HEIGHT + 20  # 正文顶部边距，在header下方
     LINE_HEIGHT = FONT_SIZE + 16
     PARAGRAPH_SPACING = LINE_HEIGHT * 2  # 段落间的空行高度
     space = 18
@@ -270,8 +272,8 @@ def make_frame(t, words, paragraph_timings):
         highlighted_line = highlighted_word['line']
         highlighted_y = highlighted_word['y']
         
-        # 计算屏幕能显示的行数
-        visible_lines = int((HEIGHT - TOP_MARGIN - 100) / LINE_HEIGHT)  # 减去底部边距
+        # 计算屏幕能显示的行数（减去header和footer的高度）
+        visible_lines = int((HEIGHT - HEADER_HEIGHT - FOOTER_HEIGHT - 40) / LINE_HEIGHT)  # 减去header、footer和额外边距
         middle_line = visible_lines // 2
         
         # 计算总共有多少行
@@ -303,8 +305,8 @@ def make_frame(t, words, paragraph_timings):
         # 如果高亮词在屏幕外，调整滚动偏移量
         if actual_highlight_y < TOP_MARGIN:
             target_offset = highlighted_y - TOP_MARGIN
-        elif actual_highlight_y > HEIGHT - 100:  # 确保在底部边距内
-            target_offset = highlighted_y - (HEIGHT - 100)
+        elif actual_highlight_y > HEIGHT - FOOTER_HEIGHT:  # 确保在footer区域上方
+            target_offset = highlighted_y - (HEIGHT - FOOTER_HEIGHT)
         
         # 平滑滚动：使用插值让当前偏移量逐渐接近目标偏移量
         # 平滑系数控制滚动速度，值越小越平滑（0-1之间）
@@ -332,8 +334,8 @@ def make_frame(t, words, paragraph_timings):
         # 应用滚动偏移（保持浮点数精度）
         draw_y = word_info['y'] - scroll_offset
 
-        # 扩大渲染范围，避免边缘闪烁
-        if -LINE_HEIGHT * 4 <= draw_y <= HEIGHT + LINE_HEIGHT * 3:
+        # 确保正文内容不会覆盖header，只绘制header下方的内容
+        if HEADER_HEIGHT <= draw_y <= HEIGHT - FOOTER_HEIGHT:
             # 使用更平滑的文本渲染
             draw.text(
                 (word_info['x'], draw_y), 
@@ -342,6 +344,37 @@ def make_frame(t, words, paragraph_timings):
                 fill=color,
                 stroke_width=0  # 确保没有额外描边导致闪烁
             )
+
+    # 绘制Header
+    # 使用中文字体Hiragino Sans GB.ttc显示中文标题
+    header_font = ImageFont.truetype("/System/Library/Fonts/Hiragino Sans GB.ttc", 40)
+    header_text = "蛙蛙英语阅读"
+    header_bbox = draw.textbbox((0, 0), header_text, font=header_font)
+    header_text_width = header_bbox[2] - header_bbox[0]
+    header_x = (WIDTH - header_text_width) // 2  # 居中
+    header_y = (HEADER_HEIGHT - (header_bbox[3] - header_bbox[1])) // 2  # 垂直居中
+    draw.text(
+        (header_x, header_y),
+        header_text,
+        font=header_font,
+        fill=(255, 255, 255),
+        stroke_width=0
+    )
+
+    # 绘制Footer
+    footer_font = ImageFont.truetype(FONT_PATH, 18)
+    footer_text = "© 2026 WawaSoft."
+    footer_bbox = draw.textbbox((0, 0), footer_text, font=footer_font)
+    footer_text_width = footer_bbox[2] - footer_bbox[0]
+    footer_x = (WIDTH - footer_text_width) // 2  # 居中
+    footer_y = HEIGHT - FOOTER_HEIGHT + (FOOTER_HEIGHT - (footer_bbox[3] - footer_bbox[1])) // 2  # 垂直居中
+    draw.text(
+        (footer_x, footer_y),
+        footer_text,
+        font=footer_font,
+        fill=(120, 120, 120),  # 灰色小字
+        stroke_width=0
+    )
 
     return np.array(img)
 
