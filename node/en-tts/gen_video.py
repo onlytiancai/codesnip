@@ -1,5 +1,6 @@
 import asyncio
 import numpy as np
+import os
 from moviepy.editor import VideoClip, AudioFileClip
 from PIL import Image, ImageDraw, ImageFont
 import edge_tts
@@ -21,7 +22,7 @@ AUDIO_FILE = "audio.wav"
 VIDEO_FILE = "output.mp4"
 
 WIDTH, HEIGHT = 720, 1280
-FONT_SIZE = 32
+FONT_SIZE = 60
 BG_COLOR = (30, 30, 30)
 NORMAL_COLOR = (180, 180, 180)
 HIGHLIGHT_COLOR = (255, 215, 0)
@@ -87,7 +88,13 @@ def align_words():
 
 
 # ---------- 3. 视频帧 ----------
+# 用于平滑滚动的全局变量
+current_scroll_offset = 0
+
 def make_frame(t, words):
+    # 声明全局变量
+    global current_scroll_offset
+    
     img = Image.new("RGB", (WIDTH, HEIGHT), BG_COLOR)
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype(FONT_PATH, FONT_SIZE)
@@ -137,83 +144,69 @@ def make_frame(t, words):
 
     # 第二步：找到当前高亮的词和它的位置
     highlighted_word_idx = -1
+    
     for i, word_info in enumerate(word_positions):
         if word_info['start'] <= t <= word_info['end']:
             highlighted_word_idx = i
             break
     
-    # 第三步：计算滚动偏移量
-    scroll_offset = 0
-    
+    # 第三步：实现滚动逻辑
     if highlighted_word_idx >= 0 and len(word_positions) > 0:
-        # 计算当前高亮词所在行的中心位置
+        # 获取当前高亮词和它的位置
         highlighted_word = word_positions[highlighted_word_idx]
-        current_line = highlighted_word['line']
+        highlighted_line = highlighted_word['line']
+        highlighted_y = highlighted_word['y']
         
-        # 获取当前行的所有词，计算行的平均y坐标
-        line_words_current = [w for w in word_positions if w['line'] == current_line]
-        line_center_y = sum(w['y'] for w in line_words_current) / len(line_words_current)
+        # 计算屏幕能显示的行数
+        visible_lines = int((HEIGHT - TOP_MARGIN - 100) / LINE_HEIGHT)  # 减去底部边距
+        middle_line = visible_lines // 2
         
-        # 目标是将当前行放在屏幕中央
-        target_y = HEIGHT // 2 - LINE_HEIGHT // 2
-        desired_scroll_offset = line_center_y - target_y
+        # 计算总共有多少行
+        total_lines = max(w['line'] for w in word_positions) + 1
         
-        # 计算最大可滚动距离（文本总高度 - 屏幕高度 + 底部边距）
-        total_text_height = max(w['y'] for w in word_positions) + LINE_HEIGHT
-        max_scroll_offset = max(0, total_text_height - HEIGHT + 100)  # 100px底部边距
+        # 计算最大可滚动距离（最后一行显示在屏幕底部时的偏移量）
+        max_scroll_distance = max(0, (total_lines - visible_lines) * LINE_HEIGHT)
         
-        # 如果已经滚动到底部，不再向上滚动
-        current_scroll_offset = scroll_offset  # 保存当前滚动位置
-        if current_scroll_offset >= max_scroll_offset:
-            # 已经在底部，停止滚动
-            scroll_offset = current_scroll_offset
+        # 计算目标滚动偏移量
+        target_offset = 0
+        
+        # 如果一屏幕能放下所有文字，不需要滚屏
+        if total_lines <= visible_lines:
+            target_offset = 0
         else:
-            # 正常滚动，但限制不超过最大滚动距离
-            scroll_offset = min(desired_scroll_offset, max_scroll_offset)
+            # 当高亮文本到中间行的时候，屏幕向上滚动一行
+            # 计算当前应该滚动的行数
+            scroll_lines = max(0, highlighted_line - middle_line)
+            
+            # 计算对应的滚动偏移量
+            target_offset = scroll_lines * LINE_HEIGHT
+            
+            # 确保滚动不超过最大可滚动距离（最后一行已经显示在屏幕上时停止滚动）
+            target_offset = min(target_offset, max_scroll_distance)
         
-        # 应用顶部边界限制
-        max_scroll_up = line_center_y - TOP_MARGIN
-        if scroll_offset > max_scroll_up:
-            scroll_offset = max_scroll_up
+        # 确保高亮词始终显示在屏幕上
+        actual_highlight_y = highlighted_y - target_offset
         
-        # 确保不会滚动到顶部以下
-        if scroll_offset < 0:
-            scroll_offset = 0
+        # 如果高亮词在屏幕外，调整滚动偏移量
+        if actual_highlight_y < TOP_MARGIN:
+            target_offset = highlighted_y - TOP_MARGIN
+        elif actual_highlight_y > HEIGHT - 100:  # 确保在底部边距内
+            target_offset = highlighted_y - (HEIGHT - 100)
         
-        # 添加行之间的平滑过渡（当切换到新行时）
-        if highlighted_word_idx > 0:
-            prev_word = word_positions[highlighted_word_idx - 1]
-            if prev_word['line'] < current_line:
-                # 计算前一行和当前行之间的过渡
-                prev_line_words = [w for w in word_positions if w['line'] == current_line - 1]
-                if prev_line_words:
-                    prev_line_center_y = sum(w['y'] for w in prev_line_words) / len(prev_line_words)
-                    prev_desired_scroll_offset = prev_line_center_y - target_y
-                    
-                    # 限制前一行滚动也不超过最大滚动距离
-                    prev_scroll_offset = min(prev_desired_scroll_offset, max_scroll_offset)
-                    
-                    # 基于时间在两个偏移量之间进行插值
-                    # 过渡窗口：从上一个词结束到当前词开始
-                    transition_start = prev_word['end']
-                    transition_end = highlighted_word['start']
-                    transition_duration = transition_end - transition_start
-                    
-                    if transition_duration > 0 and t >= transition_start:
-                        # 计算插值因子（0到1）
-                        if t <= transition_end:
-                            transition_progress = (t - transition_start) / transition_duration
-                        else:
-                            transition_progress = 1.0
-                        
-                        # 使用缓动函数（ease-in-out）
-                        if transition_progress < 0.5:
-                            eased_progress = 2 * transition_progress * transition_progress
-                        else:
-                            eased_progress = 1 - 2 * (1 - transition_progress) * (1 - transition_progress)
-                        
-                        # 插值计算
-                        scroll_offset = prev_scroll_offset + eased_progress * (scroll_offset - prev_scroll_offset)
+        # 平滑滚动：使用插值让当前偏移量逐渐接近目标偏移量
+        # 平滑系数控制滚动速度，值越小越平滑（0-1之间）
+        smooth_factor = 0.1
+        current_scroll_offset += (target_offset - current_scroll_offset) * smooth_factor
+        
+        # 确保滚动偏移量在有效范围内
+        current_scroll_offset = max(0, min(current_scroll_offset, max_scroll_distance))
+        
+        # 使用平滑后的滚动偏移量
+        scroll_offset = current_scroll_offset
+    else:
+        # 当前时间没有对应的高亮单词，可能是在句子之间的停顿
+        # 保持当前的滚动偏移量不变
+        scroll_offset = current_scroll_offset
     
     # 第四步：绘制所有词
     for word_info in word_positions:
@@ -223,12 +216,19 @@ def make_frame(t, words):
         else:
             color = NORMAL_COLOR
 
-        # 应用滚动偏移
+        # 应用滚动偏移（保持浮点数精度）
         draw_y = word_info['y'] - scroll_offset
 
         # 扩大渲染范围，避免边缘闪烁
-        if -LINE_HEIGHT * 3 <= draw_y <= HEIGHT + LINE_HEIGHT * 2:
-            draw.text((word_info['x'], draw_y), word_info['word'], font=font, fill=color)
+        if -LINE_HEIGHT * 4 <= draw_y <= HEIGHT + LINE_HEIGHT * 3:
+            # 使用更平滑的文本渲染
+            draw.text(
+                (word_info['x'], draw_y), 
+                word_info['word'], 
+                font=font, 
+                fill=color,
+                stroke_width=0  # 确保没有额外描边导致闪烁
+            )
 
     return np.array(img)
 
@@ -258,7 +258,12 @@ def generate_video(words):
 
 # ---------- 主流程 ----------
 async def main():
-    await generate_audio()
+    # 检查音频文件是否已存在
+    if os.path.exists(AUDIO_FILE):
+        print(f"▶ Audio file {AUDIO_FILE} already exists, skipping TTS generation...")
+    else:
+        await generate_audio()
+    
     words = align_words()
     print("Aligned words:", words)
     generate_video(words)

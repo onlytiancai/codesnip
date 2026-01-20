@@ -1,0 +1,1 @@
+- 运行 python 脚本前要先执行 pyenv activate qlib
