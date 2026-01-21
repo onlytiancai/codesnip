@@ -76,11 +76,20 @@ print(f"XXT shape: {XXT.shape}")
 print(f"XXT rank: {np.linalg.matrix_rank(XXT)}")
 print(f"XXT condition number: {np.linalg.cond(XXT)}")
 
-# 使用更稳定的方法计算伪逆
-XXT_pinv = np.linalg.pinv(XXT)
-W = Y @ X.T @ XXT_pinv
+# 使用最小二乘法直接求解（更稳定）
+# W.T = (X.T)^+ Y.T 或 W = Y @ X^+
+# 使用 lstsq 方法对每一行分别求解
+W_rows = []
+for i in range(Y.shape[0]):
+    y_i = Y[i, :]
+    # 求解 w_i @ X = y_i，即 X.T @ w_i.T = y_i.T
+    w_i, residuals, rank, s = np.linalg.lstsq(X.T, y_i, rcond=None)
+    W_rows.append(w_i)
+
+W = np.array(W_rows)
 
 # 检查结果
+print(f"W shape: {W.shape}")
 print(f"W contains NaN: {np.any(np.isnan(W))}")
 print(f"W contains Inf: {np.any(np.isinf(W))}")
 
@@ -90,7 +99,7 @@ print(f"W contains Inf: {np.any(np.isinf(W))}")
 def predict(w1, w2):
     x = np.concatenate([one_hot(w1), one_hot(w2)])
     y_hat = W @ x
-    idx = np.argmax(y_hat)
+    idx = int(np.argmax(y_hat))
     return id2word[idx]
 
 # ---------------------------
@@ -98,9 +107,11 @@ def predict(w1, w2):
 # ---------------------------
 tests = [
     ("我", "喜欢"),
-    ("机器", "学习"),
-    ("这个", "模型"),
-    ("我们", "用"),
+    ("喜欢", "学习"),
+    ("学习", "是"),
+    ("是", "一个"),
+    ("一个","方法"),
+    ("方法","可以"),    
 ]
 
 for w1, w2 in tests:
