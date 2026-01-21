@@ -87,6 +87,7 @@ for i in range(Y.shape[0]):
     W_rows.append(w_i)
 
 W = np.array(W_rows)
+# W = Y @ X.T @ np.linalg.pinv(XXT) # use pinv
 
 # 检查结果
 print(f"W shape: {W.shape}")
