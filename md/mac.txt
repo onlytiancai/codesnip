@@ -58,3 +58,24 @@ nginx
     orbstack
     pyenv
     ~/src/llama.cpp/build/models
+
+迁移文件
+
+    rsync -avP .cache /Volumes/data
+    mv .cache .cache_bk
+    ln -s /Volumes/data/.cache ~/.cache
+    hf download Qwen/Qwen2.5-3B-Instruct
+    du -sh /Volumes/data/.cache/huggingface/hub/models--Qwen--Qwen2.5-3B-Instruct
+
+    rsync -avP .ollama /Volumes/data
+    mv .ollama .ollama_bk
+    ln -s /Volumes/data/.ollama ~/.ollama
+    ollama list
+    rm -r .ollama_bk
+
+时间机器
+
+    diskutil apfs list
+    diskutil apfs listSnapshots disk3s5
+    tmutil listlocalsnapshots /
+
