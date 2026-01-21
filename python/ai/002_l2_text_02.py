@@ -46,6 +46,7 @@ X = np.stack(X_list, axis=1)   # (2V, T)
 
 XXT = X @ X.T
 
+# 特征值谱
 # Eigenvalues
 eigvals = np.linalg.eigvalsh(XXT)
 eigvals_sorted = np.sort(eigvals)[::-1]
@@ -55,4 +56,23 @@ plt.semilogy(eigvals_sorted)
 plt.xlabel("Eigenvalue index")
 plt.ylabel("Eigenvalue (log scale)")
 plt.title("Eigenvalue spectrum of X X^T")
+plt.show()
+
+# 累计能量曲线
+# ----- Eigenvalues -----
+eigvals = np.linalg.eigvalsh(XXT)
+eigvals = np.sort(eigvals)[::-1]   # descending
+
+# ----- Cumulative energy -----
+energy = eigvals / eigvals.sum()
+cum_energy = np.cumsum(energy)
+
+# ----- Plot -----
+plt.figure()
+plt.plot(cum_energy, marker='o')
+plt.xlabel("k (number of top eigenvalues)")
+plt.ylabel("Cumulative explained energy")
+plt.title("Cumulative energy of eigenvalues of X X^T")
+plt.ylim(0, 1.05)
+plt.grid(True)
 plt.show()
