@@ -42,6 +42,21 @@ mdFiles.forEach(file => {
 <html>
 <head>
   <meta charset="UTF-8">
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    a { text-decoration: none; color: #0366d6; }
+    a:hover { text-decoration: underline; }
+    table {
+      border-collapse: collapse;
+      border: 1px solid #ccc;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 5px;
+    }
+  </style>
+
   <title>${name}</title>
 </head>
 <body>
