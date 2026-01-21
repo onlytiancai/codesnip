@@ -68,7 +68,21 @@ Y = np.stack(Y_list, axis=1)   # (V, T)
 # ---------------------------
 # W = Y X^T (X X^T)^(-1)
 XXT = X @ X.T
-W = Y @ X.T @ np.linalg.pinv(XXT)
+
+# 调试信息：检查矩阵条件
+print(f"X shape: {X.shape}")
+print(f"Y shape: {Y.shape}")
+print(f"XXT shape: {XXT.shape}")
+print(f"XXT rank: {np.linalg.matrix_rank(XXT)}")
+print(f"XXT condition number: {np.linalg.cond(XXT)}")
+
+# 使用更稳定的方法计算伪逆
+XXT_pinv = np.linalg.pinv(XXT)
+W = Y @ X.T @ XXT_pinv
+
+# 检查结果
+print(f"W contains NaN: {np.any(np.isnan(W))}")
+print(f"W contains Inf: {np.any(np.isinf(W))}")
 
 # ---------------------------
 # 6. 预测函数
