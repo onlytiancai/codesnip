@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 
 # ---------------------------
 # 1. 词表
@@ -122,16 +123,73 @@ def predict(w1, w2):
     return id2word[int(np.argmax(y_hat))]
 
 
-tests = [
-    ("我", "喜欢"),
-    ("机器", "学习"),
-    ("这个", "模型"),
-    ("我们", "用"),
-    ("我", "是"),
-    ("是", "一个"),
-    ("一个", "模型"),
-    ("模型", "可以"),
-]
+def generate_sentence(start_word, num_words):
+    """
+    生成以start_word开头，长度为num_words的句子
+    """
+    if num_words < 1:
+        return ""
+    
+    sentence = [start_word]
+    
+    # 如果只需要一个词，直接返回
+    if num_words == 1:
+        return start_word
+    
+    # 需要预测下一个词，但模型需要两个前序词
+    # 如果第一个词不在词表中，随机选择一个词
+    if start_word not in word2id:
+        print(f"警告：起始词'{start_word}'不在词表中，将随机选择")
+        start_word = vocab[np.random.randint(0, V)]
+        sentence = [start_word]
+    
+    # 生成第二个词（随机选择，因为模型需要两个词来预测）
+    second_word = vocab[np.random.randint(0, V)]
+    sentence.append(second_word)
+    
+    # 逐个预测后续的词
+    while len(sentence) < num_words:
+        w1 = sentence[-2]
+        w2 = sentence[-1]
+        next_word = predict(w1, w2)
+        sentence.append(next_word)
+    
+    return " ".join(sentence)
 
-for w1, w2 in tests:
-    print(f"{w1} {w2} -> {predict(w1, w2)}")
+
+# 命令行参数解析
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        tests = [
+            ("我", "喜欢"),
+            ("机器", "学习"),
+            ("这个", "模型"),
+            ("我们", "用"),
+            ("我", "是"),
+            ("是", "一个"),
+            ("一个", "模型"),
+            ("模型", "可以"),
+        ]
+
+        for w1, w2 in tests:
+            print(f"{w1} {w2} -> {predict(w1, w2)}")
+            
+        print("用法: python 002_ls_text.py <起始单词> <句子单词数>")
+        print("示例: python 002_ls_text.py 我 5")
+        print("\n可用词表:", " ".join(vocab))        
+        sys.exit(1)
+    
+    start_word = sys.argv[1]
+    try:
+        num_words = int(sys.argv[2])
+    except ValueError:
+        print("错误：句子单词数必须是整数")
+        sys.exit(1)
+    
+    if num_words < 1:
+        print("错误：句子单词数必须大于0")
+        sys.exit(1)
+    
+    # 生成句子
+    sentence = generate_sentence(start_word, num_words)
+    print(f"生成的句子: {sentence}")
