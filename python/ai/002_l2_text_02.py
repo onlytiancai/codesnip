@@ -76,3 +76,26 @@ plt.title("Cumulative energy of eigenvalues of X X^T")
 plt.ylim(0, 1.05)
 plt.grid(True)
 plt.show()
+
+# ----- Effective rank (entropy-based) -----
+p = eigvals / eigvals.sum()
+p = p[p > 0]
+effective_rank = np.exp(-np.sum(p * np.log(p)))
+print("Effective rank:", effective_rank)
+
+# ----- Compare cumulative energy with ridge -----
+lambdas = [0.0, 1e-3, 1e-1, 1.0]
+
+plt.figure()
+for lam in lambdas:
+    eig_lam = eigvals + lam
+    energy = eig_lam / eig_lam.sum()
+    cum_energy = np.cumsum(energy)
+    plt.plot(cum_energy, label=f"lambda={lam}")
+
+plt.xlabel("k (number of top eigenvalues)")
+plt.ylabel("Cumulative explained energy")
+plt.ylim(0, 1.05)
+plt.legend()
+plt.grid(True)
+plt.show()
