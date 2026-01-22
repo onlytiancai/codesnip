@@ -212,3 +212,30 @@ python 002_ls_text_05_comparison.py
 | 现代应用 | 很少 | 标准方法 |
 
 **推荐：**使用 **Softmax + 交叉熵** 作为现代机器学习的标准方法。它提供更好的理论基础、可解释性和可扩展性。
+
+---
+
+## 🔑 核心差异
+
+### 最小二乘法
+```python
+W = Y @ X.T @ np.linalg.pinv(X @ X.T)  # 直接求解
+y_pred = x @ W.T  # 输出任意实数
+```
+
+### Softmax + 交叉熵
+```python
+logits = x @ W + b
+probs = softmax(logits)  # 输出概率分布
+loss = -sum(y_true * log(probs))  # 交叉熵损失
+dW = X.T @ (probs - Y)  # 梯度简洁优雅
+```
+
+## 📊 实验结果
+
+两种方法在此数据集上的训练准确率都是 **88.46%**，但：
+- ✅ Softmax 输出有意义的概率（0.49 vs 0.5000）
+- ✅ Softmax 有清晰的理论基础
+- ✅ Softmax 易于扩展（可加隐藏层、正则化等）
+
+运行 002_ls_text_05_comparison.py 可以看到完整的对比！
