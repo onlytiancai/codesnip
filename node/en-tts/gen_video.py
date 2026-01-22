@@ -15,7 +15,7 @@ Due to my work, I have long - term communication with overseas partners, almost 
 
 First, you have to think clearly before writing. Second, you have to explain things clearly at one go. Third, it implicitly respects each other's time boundaries.
 
-So you will find a very obvious difference. When collaborating with companies in Hong Kong or other overseas regions, after work, emails naturally stop.No one will urge you, and no one will add a sentence in the middle of the night like "I just forgot to say...".
+So you will find a very obvious difference. When collaborating with companies in Hong Kong or other overseas regions, after work, emails naturally stop. No one will urge you, and no one will add a sentence in the middle of the night like "I just forgot to say...".
 
 It seems that as soon as it's time to get off work, everyone automatically withdraws from their work roles.
 
@@ -27,7 +27,7 @@ It requires you to have basic writing skills, know how to write a title, how to 
 
 # 将文本按空行分割成段落
 PARAGRAPHS = [p.strip() for p in TEXT.split('\n\n') if p.strip()]
-VOICE = "en-US-AriaNeural"
+VOICE = "en-US-ChristopherNeural"
 
 AUDIO_FILE = "audio.wav"
 VIDEO_FILE = "output.mp4"
