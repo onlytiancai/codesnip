@@ -9,19 +9,19 @@ from faster_whisper import WhisperModel
 
 # ================== 配置 ==================
 TEXT = """
-Why has the email never become a mainstream office tool in China?
+Why has email never become a mainstream office tool in China?
 
-Due to my work, I have long - term communication with overseas partners, almost all through emails.The more I use it, the more I feel that one thing is quite counter - intuitive.Emails seem slow, but in fact, they are very efficient.The efficiency of emails does not lie in quick replies, but in three inherent premises.
+Because of my work, I communicate with overseas partners on a long-term basis, almost entirely through email. The more I use it, the more I feel that something about email is quite counter-intuitive. Email seems slow, but in reality, it is highly efficient. Its efficiency does not come from quick replies, but from three built-in assumptions.
 
-First, you have to think clearly before writing. Second, you have to explain things clearly at one go. Third, it implicitly respects each other's time boundaries.
+First, you need to think carefully before you write. Second, you are expected to explain everything clearly in one message. Third, it naturally respects each other’s time boundaries.
 
-So you will find a very obvious difference. When collaborating with companies in Hong Kong or other overseas regions, after work, emails naturally stop. No one will urge you, and no one will add a sentence in the middle of the night like "I just forgot to say...".
+Because of this, a clear difference becomes obvious. When working with companies in Hong Kong or other overseas regions, email communication naturally stops after work hours. No one pushes for immediate replies, and no one suddenly adds a late-night message saying, “I just forgot to mention…”
 
-It seems that as soon as it's time to get off work, everyone automatically withdraws from their work roles.
+Once the workday ends, everyone seems to step out of their work role automatically.
 
-However, emails have never become popular in China.There seem to be many reasons on the surface,but the core one is that emails place too high demands on people.
+However, email has never become truly popular in mainland China. There appear to be many reasons on the surface, but the core reason is simple: email places relatively high demands on people.
 
-It requires you to have basic writing skills, know how to write a title, how to divide paragraphs,and how to clarify the background, problems, and conclusions.And this is precisely the most scarce ability in many workplaces.
+It requires basic writing skills—knowing how to write a subject line, how to organize paragraphs, and how to clearly present background, problems, and conclusions. And this is exactly the kind of ability that is most lacking in many workplaces.
 
 """
 
@@ -60,7 +60,7 @@ async def generate_audio():
             continue
             
         print(f"  - Generating audio for paragraph {i+1}...")
-        tts = edge_tts.Communicate(paragraph, VOICE, rate="-20%")
+        tts = edge_tts.Communicate(paragraph, VOICE, rate="-20%", volume='+50%')
         await tts.save(audio_file)
     
     return paragraph_audio_files
