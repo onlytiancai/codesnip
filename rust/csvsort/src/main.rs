@@ -65,7 +65,7 @@ impl PartialOrd for HeapItem {
 /* ---------- main ---------- */
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let args = Args::parse();    
+    let args = Args::parse();
 
     let tempdir = prepare_temp_dir(args.temp_dir.as_ref())?;
     println!("使用临时目录: {:?}", tempdir.path());
@@ -144,7 +144,7 @@ fn write_sorted_chunk(
     path: &PathBuf,
 ) -> Result<(), Box<dyn Error>> {
     let mut data = records.to_vec();
-    data.sort_by(|a, b| a[sort_col].cmp(&b[sort_col]));
+    data.sort_unstable_by(|a, b| a[sort_col].cmp(&b[sort_col]));
 
     let file = File::create(path)?;
     let mut wtr = WriterBuilder::new().has_headers(true).from_writer(file);
@@ -176,7 +176,9 @@ fn merge_in_rounds(
             chunks.len()
         );
 
-        let is_last_round = chunks.len() <= MAX_OPEN_FILES;
+        // 计算本轮合并后会生成多少个文件
+        let next_chunk_count = chunks.chunks(MAX_OPEN_FILES).count();
+        let is_last_round = next_chunk_count == 1;
         let dedup_this_round = is_last_round && final_dedup;
 
         let mut next = Vec::new();
@@ -213,15 +215,8 @@ fn merge_group(
     dedup: bool,
     out_path: &PathBuf,
 ) -> Result<(), Box<dyn Error>> {
-    const PRINT_EVERY: usize = 1_000_000;
-
-    println!(
-        "  开始归并 {} 个 chunk -> {:?}",
-        group.len(),
-        out_path.file_name().unwrap()
-    );
-
     let mut readers = Vec::new();
+
     for p in group {
         let f = File::open(p)?;
         readers.push(ReaderBuilder::new().has_headers(true).from_reader(f));
@@ -245,29 +240,20 @@ fn merge_group(
     wtr.write_record(headers)?;
 
     let mut last_key: Option<String> = None;
-    let mut processed: usize = 0;
-    let mut emitted: usize = 0;
 
     while let Some(item) = heap.pop() {
-        processed += 1;
-
         let emit = if dedup {
-            last_key.as_deref() != Some(&item.key)
+            match &last_key {
+                None => true,
+                Some(k) => k != &item.key,
+            }
         } else {
             true
         };
 
         if emit {
             wtr.write_record(&item.record)?;
-            last_key = Some(item.key.clone());
-            emitted += 1;
-        }
-
-        if processed % PRINT_EVERY == 0 {
-            println!(
-                "    已处理 {:>10} 行，输出 {:>10} 行",
-                processed, emitted
-            );
+            last_key = Some(item.key);
         }
 
         let idx = item.chunk_idx;
@@ -282,13 +268,5 @@ fn merge_group(
     }
 
     wtr.flush()?;
-
-    println!(
-        "  归并完成：处理 {} 行，输出 {} 行 -> {:?}",
-        processed,
-        emitted,
-        out_path.file_name().unwrap()
-    );
-
     Ok(())
 }
