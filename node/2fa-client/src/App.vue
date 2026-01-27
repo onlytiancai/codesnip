@@ -5,10 +5,12 @@ import type { TwoFAAccount } from './utils/2fa';
 import { hasStoredAccounts, loadAccounts, saveAccounts } from './utils/storage';
 import { addAccount, removeAccount } from './utils/accountManager';
 import { extractSecretFromQRCode } from './utils/qrCode';
+import TestPage from './components/TestPage.vue';
 
 // 状态管理
 const password = ref('');
 const isAuthenticated = ref(false);
+const currentPage = ref('main'); // 'main' 或 'test'
 const accounts = ref<TwoFAAccount[]>([]);
 const currentTime = ref(Date.now());
 const showAddAccountForm = ref(false);
@@ -323,6 +325,15 @@ watchEffect(() => {
         </div>
         <div class="flex items-center space-x-4">
           <button
+            @click="currentPage = 'test'"
+            class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 flex items-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            测试页面
+          </button>
+          <button
             @click="isAuthenticated = false; password = ''; accounts = []"
             class="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 flex items-center"
           >
@@ -593,6 +604,9 @@ watchEffect(() => {
       </div>
     </div>
   </div>
+  
+  <!-- 测试页面 -->
+  <TestPage v-if="isAuthenticated && currentPage === 'test'" @go-back="currentPage = 'main'" />
 </template>
 
 <style>
