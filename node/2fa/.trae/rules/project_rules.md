@@ -1,0 +1,1 @@
+技术栈：pnpm+nuxt3+vue3+tailwind3
