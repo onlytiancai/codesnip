@@ -13,7 +13,7 @@ export function extractSecretFromQRCode(imageData: ImageData): { name: string; s
     // 解析二维码数据（otpauth://totp/...格式）
     const url = new URL(result.data);
     
-    if (url.protocol !== 'otpauth:' || url.pathname.split('/')[1] !== 'totp') {
+    if (url.protocol !== 'otpauth:' || url.hostname !== 'totp') {
       throw new Error('不是有效的谷歌2FA二维码');
     }
     
