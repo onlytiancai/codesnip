@@ -4,8 +4,11 @@ import Dashboard from '../views/Dashboard.vue'
 import TestPage from '../views/TestPage.vue'
 import ExportImportPage from '../views/ExportImportPage.vue'
 
+// 从环境变量获取基础路径
+const basePath = import.meta.env.VITE_BASE_PATH || '/'
+
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(basePath),
   routes: [
     {
       path: '/',
