@@ -9,3 +9,13 @@
 开发
 
     pnpm dev:all
+
+本地测试子目录部署
+
+    pnpm build
+    cd dist
+    mkdir 2fa
+    mv assets 2fa    
+    mv index.html 2fa
+    mv vite.svg 2fa  
+    npx serve        

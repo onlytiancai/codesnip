@@ -1,10 +1,11 @@
 import type { TwoFAAccount } from './2fa';
 import { saveAccounts, loadAccounts } from './storage';
+import { generateUUID } from './common';
 
 // 添加新账户
 export function addAccount(accounts: TwoFAAccount[], name: string, secret: string, issuer?: string): TwoFAAccount[] {
   const newAccount: TwoFAAccount = {
-    id: crypto.randomUUID(),
+    id: generateUUID(),
     name,
     secret,
     issuer

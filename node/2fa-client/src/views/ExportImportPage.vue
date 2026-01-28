@@ -286,6 +286,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { loadAccountList, saveAccountList } from '../utils/accountManager'
 import { encryptData, decryptData, hasStoredAccounts } from '../utils/storage'
+import { generateUUID } from '../utils/common'
 import type { TwoFAAccount } from '../utils/2fa'
 import PasswordInputDialog from '../components/PasswordInputDialog.vue'
 
@@ -536,6 +537,7 @@ const doConfirmImport = async () => {
       return
     }
     
+
     // 合并账户：只添加不存在的账户
     const mergedAccounts = [...accounts.value]
     selectedAccounts.forEach(account => {
@@ -545,7 +547,7 @@ const doConfirmImport = async () => {
       
       if (!exists) {
         mergedAccounts.push({
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           name: account.name,
           secret: account.secret,
           issuer: account.issuer
