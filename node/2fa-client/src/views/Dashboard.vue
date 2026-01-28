@@ -654,8 +654,9 @@ watchEffect(() => {
 })
 
 // 密码输入弹窗相关
-const handlePasswordSubmit = async (password: string) => {
+const handlePasswordSubmit = async () => {
   try {
+    const password = passwordInput.value
     isLoading.value = true
     passwordError.value = ''
     

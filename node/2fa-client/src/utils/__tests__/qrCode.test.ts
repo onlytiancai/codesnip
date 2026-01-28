@@ -8,13 +8,14 @@ vi.mock('jsqr', () => ({
 
 // 导入模拟后的jsQR
 import jsQR from 'jsqr';
-const mockJsQR = jsQR as vi.Mock;
+const mockJsQR = jsQR as any;
 
 // 测试数据
 const mockImageData = {
   data: new Uint8ClampedArray(100 * 100 * 4),
   width: 100,
-  height: 100
+  height: 100,
+  colorSpace: 'srgb' as const
 };
 
 describe('qrCode.ts', () => {
@@ -23,7 +24,7 @@ describe('qrCode.ts', () => {
     vi.clearAllMocks();
     // Mock document object
     if (typeof document === 'undefined') {
-      global.document = {
+      globalThis.document = {
         createElement: vi.fn()
       } as any;
     }
@@ -114,8 +115,8 @@ describe('qrCode.ts', () => {
 
       const mockImage = {
         crossOrigin: '',
-        onload: null,
-        onerror: null,
+        onload: null as ((event: Event) => void) | null,
+        onerror: null as ((event: Event) => void) | null,
         src: ''
       };
 
@@ -126,13 +127,15 @@ describe('qrCode.ts', () => {
       });
 
       // Mock Image constructor
-      global.Image = vi.fn(function() {
+      globalThis.Image = vi.fn(function() {
         return mockImage;
       }) as any;
 
       // 模拟图片加载成功
       const promise = createImageDataFromUrl('https://example.com/qr.png');
-      mockImage.onload?.();
+      if (typeof mockImage.onload === 'function') {
+        mockImage.onload(new Event('load'));
+      }
 
       const result = await promise;
       expect(result).toHaveProperty('data');
@@ -156,8 +159,8 @@ describe('qrCode.ts', () => {
 
       const mockImage = {
         crossOrigin: '',
-        onload: null,
-        onerror: null,
+        onload: null as ((event: Event) => void) | null,
+        onerror: null as ((event: Event) => void) | null,
         src: ''
       };
 
@@ -168,13 +171,15 @@ describe('qrCode.ts', () => {
       });
 
       // Mock Image constructor
-      global.Image = vi.fn(function() {
+      globalThis.Image = vi.fn(function() {
         return mockImage;
       }) as any;
 
       // 模拟图片加载失败
       const promise = createImageDataFromUrl('https://example.com/invalid.png');
-      mockImage.onerror?.();
+      if (typeof mockImage.onerror === 'function') {
+        mockImage.onerror(new Event('error'));
+      }
 
       await expect(promise).rejects.toThrow('图片加载失败');
     });

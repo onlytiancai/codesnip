@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { base32Decode, generateHOTP, generateTOTP, getRemainingTime } from '../2fa';
 
 describe('2fa.ts', () => {

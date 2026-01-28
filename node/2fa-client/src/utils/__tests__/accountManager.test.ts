@@ -10,14 +10,14 @@ vi.mock('../storage', () => ({
 
 // Mock crypto.randomUUID
 if (typeof crypto === 'undefined' || !crypto.randomUUID) {
-  Object.defineProperty(global, 'crypto', {
+  Object.defineProperty(globalThis, 'crypto', {
     value: {
       randomUUID: vi.fn(() => 'mocked-uuid')
     },
     writable: true
   });
 } else {
-  vi.spyOn(crypto, 'randomUUID').mockReturnValue('mocked-uuid');
+  vi.spyOn(crypto, 'randomUUID').mockReturnValue('mocked-uuid' as unknown as `${string}-${string}-${string}-${string}-${string}`);
 }
 
 // 测试数据
@@ -59,7 +59,7 @@ describe('accountManager.ts', () => {
         secret: 'ABCDEFGHIJKLMNOP'
         // issuer should be undefined
       });
-      expect(newAccounts[1].issuer).toBeUndefined();
+      expect(newAccounts[1]?.issuer).toBeUndefined();
     });
   });
 
@@ -105,7 +105,7 @@ describe('accountManager.ts', () => {
 
     it('should call loadAccounts and return its result', () => {
       const mockResult = [{ id: '2', name: 'loaded@example.com', secret: 'SECRET' }];
-      (loadAccounts as vi.Mock).mockReturnValue(mockResult);
+      (loadAccounts as any).mockReturnValue(mockResult);
       
       const result = loadAccountList(testPassword);
       expect(loadAccounts).toHaveBeenCalledWith(testPassword);

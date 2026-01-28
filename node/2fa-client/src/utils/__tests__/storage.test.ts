@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { encryptData, decryptData, saveAccounts, loadAccounts, hasStoredAccounts } from '../storage';
 
 // Mock localStorage
@@ -18,8 +18,8 @@ const localStorageMock = (() => {
   };
 })();
 
-// Mock global localStorage
-global.localStorage = localStorageMock as any;
+// Mock localStorage
+globalThis.localStorage = localStorageMock as any;
 
 // 测试数据
 const testAccounts = [
