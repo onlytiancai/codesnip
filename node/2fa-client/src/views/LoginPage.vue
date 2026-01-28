@@ -74,7 +74,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { hasStoredAccounts, loadAccounts } from '../utils/storage'
+import { hasStoredAccounts, loadAccounts, hasStoredPasswordHash, verifyPasswordHash, storePasswordHash } from '../utils/storage'
 
 const router = useRouter()
 const password = ref('')
@@ -88,20 +88,21 @@ const handleLogin = async () => {
     errorMessage.value = ''
     
     // 检查是否是第一次登录
-    const hasPassword = localStorage.getItem('2fa_password')
+    const hasPasswordHash = hasStoredPasswordHash()
     
-    if (!hasPassword) {
-      // 第一次登录，保存密码
-      localStorage.setItem('2fa_password', password.value)
+    if (!hasPasswordHash) {
+      // 第一次登录，保存密码hash
+      storePasswordHash(password.value)
       successMessage.value = '密码设置成功！'
       
       // 延迟跳转，让用户看到成功信息
       setTimeout(() => {
-        router.push('/dashboard')
+        router.push({ path: '/dashboard', query: { password: password.value } })
       }, 1000)
     } else {
       // 后续登录，验证密码
-      if (password.value !== hasPassword) {
+      const storedHash = localStorage.getItem('2fa_password_hash')
+      if (!storedHash || !verifyPasswordHash(password.value, storedHash)) {
         errorMessage.value = '密码错误，请重试。'
         return
       }
@@ -111,13 +112,13 @@ const handleLogin = async () => {
         try {
           // 尝试加载账户，验证密码是否正确
           loadAccounts(password.value)
-          router.push('/dashboard')
+          router.push({ path: '/dashboard', query: { password: password.value } })
         } catch (error) {
           errorMessage.value = '密码错误，请重试。'
         }
       } else {
         // 没有存储的账户，直接跳转
-        router.push('/dashboard')
+        router.push({ path: '/dashboard', query: { password: password.value } })
       }
     }
   } catch (error) {

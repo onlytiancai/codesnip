@@ -17,6 +17,7 @@
         <div class="flex items-center space-x-4">
           <router-link 
             to="/dashboard" 
+            :query="{ password: currentPassword }"
             class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -268,17 +269,28 @@
         </div>
       </div>
     </main>
+    
+    <!-- 密码输入弹窗组件 -->
+    <PasswordInputDialog
+      :visible="showPasswordDialog"
+      :loading="isLoading"
+      :error="passwordError"
+      @submit="handlePasswordSubmit"
+      @cancel="handlePasswordCancel"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { loadAccountList, saveAccountList } from '../utils/accountManager'
-import { encryptData, decryptData } from '../utils/storage'
+import { encryptData, decryptData, hasStoredAccounts } from '../utils/storage'
 import type { TwoFAAccount } from '../utils/2fa'
+import PasswordInputDialog from '../components/PasswordInputDialog.vue'
 
 const router = useRouter()
+const route = useRoute()
 const accounts = ref<TwoFAAccount[]>([])
 const exportText = ref('')
 const importText = ref('')
@@ -288,6 +300,9 @@ const successMessage = ref('')
 const isLoading = ref(false)
 const showImportConfirm = ref(false)
 const activeTab = ref('export')
+const showPasswordDialog = ref(false)
+const passwordError = ref('')
+const currentPassword = ref('')
 const importAccounts = ref<Array<{
   id?: string
   name: string
@@ -296,8 +311,11 @@ const importAccounts = ref<Array<{
   checked: boolean
   exists: boolean
 }>>([])
+let pendingAction: (() => Promise<void>) | null = null
 
 const handleLogout = () => {
+  // 清除当前密码
+  currentPassword.value = ''
   router.push('/')
 }
 
@@ -329,15 +347,70 @@ const parseImportText = (text: string): Array<{
     .filter(item => item.name && item.encryptedSecret)
 }
 
+// 密码输入弹窗相关
+const handlePasswordSubmit = async (password: string) => {
+  try {
+    isLoading.value = true
+    passwordError.value = ''
+    
+    // 验证密码是否正确
+    if (hasStoredAccounts()) {
+      try {
+        // 尝试加载账户，验证密码是否正确
+        const testAccounts = loadAccountList(password)
+        currentPassword.value = password
+        showPasswordDialog.value = false
+        
+        // 执行待处理的操作
+        if (pendingAction) {
+          await pendingAction()
+        } else {
+          // 如果没有待处理操作，加载账户并生成导出文本
+          accounts.value = testAccounts
+          exportText.value = generateExportText(accounts.value, currentPassword.value)
+        }
+      } catch (error) {
+        passwordError.value = '密码错误，请重试。'
+      }
+    } else {
+      // 没有存储的账户，直接保存密码
+      currentPassword.value = password
+      showPasswordDialog.value = false
+      
+      // 执行待处理的操作
+      if (pendingAction) {
+        await pendingAction()
+      }
+    }
+  } catch (error) {
+    passwordError.value = '验证失败，请重试。'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const handlePasswordCancel = () => {
+  showPasswordDialog.value = false
+  passwordError.value = ''
+}
+
 // 加载账户并生成导出文本
 onMounted(() => {
-  try {
-    const password = localStorage.getItem('2fa_password') || ''
-    accounts.value = loadAccountList(password)
-    exportText.value = generateExportText(accounts.value, password)
-  } catch (error) {
-    console.error('加载账户失败:', error)
-    errorMessage.value = '加载账户失败，请重新登录。'
+  // 检查路由参数中是否有密码
+  const passwordFromRoute = route.query.password as string
+  if (passwordFromRoute) {
+    currentPassword.value = passwordFromRoute
+    // 尝试加载账户
+    try {
+      accounts.value = loadAccountList(passwordFromRoute)
+      exportText.value = generateExportText(accounts.value, currentPassword.value)
+    } catch (error) {
+      // 密码错误，显示弹窗
+      showPasswordDialog.value = true
+    }
+  } else if (hasStoredAccounts()) {
+    // 显示密码输入弹窗
+    showPasswordDialog.value = true
   }
 })
 
@@ -435,11 +508,22 @@ const cancelImport = () => {
 
 // 确认导入并合并保存
 const confirmImport = async () => {
+  // 检查是否有当前密码，如果没有则显示密码输入框
+  if (!currentPassword.value) {
+    pendingAction = async () => {
+      await doConfirmImport()
+    }
+    showPasswordDialog.value = true
+    return
+  }
+  
+  await doConfirmImport()
+}
+
+const doConfirmImport = async () => {
   try {
     isLoading.value = true
     await new Promise(resolve => setTimeout(resolve, 300))
-    
-    const password = localStorage.getItem('2fa_password') || ''
     
     // 过滤出选中的账户
     const selectedAccounts = importAccounts.value.filter(account => account.checked)
@@ -470,11 +554,11 @@ const confirmImport = async () => {
     })
     
     // 保存合并后的账户
-    saveAccountList(mergedAccounts, password)
+    saveAccountList(mergedAccounts, currentPassword.value)
     accounts.value = mergedAccounts
     
     // 更新导出文本
-    exportText.value = generateExportText(accounts.value, password)
+    exportText.value = generateExportText(accounts.value, currentPassword.value)
     
     // 重置导入状态
     cancelImport()
@@ -490,6 +574,7 @@ const confirmImport = async () => {
     }, 3000)
   } finally {
     isLoading.value = false
+    pendingAction = null
   }
 }
 </script>

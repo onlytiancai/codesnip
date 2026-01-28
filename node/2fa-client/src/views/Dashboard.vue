@@ -17,6 +17,7 @@
         <div class="flex items-center space-x-4">
           <router-link 
             to="/export-import" 
+            :query="{ password: currentPassword }"
             class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 flex items-center"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -304,21 +305,114 @@
         </div>
       </div>
     </div>
+    
+    <!-- 密码输入弹窗 -->
+    <div v-if="showPasswordDialog" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md transform transition-all duration-300 animate-fade-in">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-semibold text-gray-900 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            输入密码
+          </h3>
+          <button
+            @click="showPasswordDialog = false"
+            class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="mb-6">
+          <div class="mb-4">
+            <label for="passwordInput" class="block text-sm font-medium text-gray-700 mb-2">
+              请输入主密码
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <input
+                type="password"
+                id="passwordInput"
+                v-model="passwordInput"
+                class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-3 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                placeholder="请输入密码"
+                @keyup.enter="handlePasswordSubmit"
+              />
+            </div>
+          </div>
+          <div v-if="passwordError" class="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 rounded-r-md mb-4">
+            <div class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{{ passwordError }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-3">
+          <button
+            @click="handlePasswordSubmit"
+            :disabled="isLoading"
+            class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+          >
+            <svg v-if="!isLoading" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ isLoading ? '验证中...' : '确认' }}
+          </button>
+          <button
+            @click="showPasswordDialog = false"
+            class="w-full bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            取消
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 密码输入弹窗组件 -->
+    <PasswordInputDialog
+      :visible="showPasswordDialog"
+      :loading="isLoading"
+      :error="passwordError"
+      @submit="handlePasswordSubmit"
+      @cancel="handlePasswordCancel"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, watchEffect } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { loadAccountList, saveAccountList, addAccount, removeAccount } from '../utils/accountManager'
 import { generateTOTP, getRemainingTime } from '../utils/2fa'
 import { extractSecretFromQRCode } from '../utils/qrCode'
+import { hasStoredAccounts } from '../utils/storage'
+import PasswordInputDialog from '../components/PasswordInputDialog.vue'
 
 const router = useRouter()
+const route = useRoute()
 const accounts = ref<any[]>([])
 const currentTime = ref(Date.now())
 const showAddAccountForm = ref(false)
 const showQRCodeScanner = ref(false)
+const showPasswordDialog = ref(false)
+const passwordInput = ref('')
+const passwordError = ref('')
+const currentPassword = ref('')
 const newAccountName = ref('')
 const newAccountSecret = ref('')
 const newAccountIssuer = ref('')
@@ -328,8 +422,11 @@ const isLoading = ref(false)
 const copiedCode = ref('')
 const showCopiedFeedback = ref(false)
 let interval: number | undefined
+let pendingAction: (() => Promise<void>) | null = null
 
 const handleLogout = () => {
+  // 清除当前密码
+  currentPassword.value = ''
   router.push('/')
 }
 
@@ -355,9 +452,8 @@ const updateTime = () => {
 const saveAccounts = async () => {
   try {
     isLoading.value = true
-    const password = localStorage.getItem('2fa_password') || ''
     await new Promise(resolve => setTimeout(resolve, 300))
-    saveAccountList(accounts.value, password)
+    saveAccountList(accounts.value, currentPassword.value)
     successMessage.value = '账户已保存！'
     setTimeout(() => {
       successMessage.value = ''
@@ -379,6 +475,38 @@ const handleAddAccount = async () => {
     setTimeout(() => {
       errorMessage.value = ''
     }, 3000)
+    return
+  }
+  
+  // 检查是否有当前密码，如果没有则显示密码输入框
+  if (!currentPassword.value) {
+    pendingAction = async () => {
+      try {
+        isLoading.value = true
+        await new Promise(resolve => setTimeout(resolve, 300))
+        accounts.value = addAccount(accounts.value, newAccountName.value, newAccountSecret.value, newAccountIssuer.value)
+        await saveAccounts()
+        
+        // 重置表单
+        newAccountName.value = ''
+        newAccountSecret.value = ''
+        newAccountIssuer.value = ''
+        showAddAccountForm.value = false
+        successMessage.value = '账户添加成功！'
+        setTimeout(() => {
+          successMessage.value = ''
+        }, 3000)
+      } catch (err) {
+        errorMessage.value = '添加账户失败，请重试。'
+        setTimeout(() => {
+          errorMessage.value = ''
+        }, 3000)
+      } finally {
+        isLoading.value = false
+        pendingAction = null
+      }
+    }
+    showPasswordDialog.value = true
     return
   }
   
@@ -409,6 +537,32 @@ const handleAddAccount = async () => {
 
 // 删除账户
 const handleRemoveAccount = async (accountId: string) => {
+  // 检查是否有当前密码，如果没有则显示密码输入框
+  if (!currentPassword.value) {
+    pendingAction = async () => {
+      try {
+        isLoading.value = true
+        await new Promise(resolve => setTimeout(resolve, 300))
+        accounts.value = removeAccount(accounts.value, accountId)
+        await saveAccounts()
+        successMessage.value = '账户已删除！'
+        setTimeout(() => {
+          successMessage.value = ''
+        }, 3000)
+      } catch (err) {
+        errorMessage.value = '删除账户失败，请重试。'
+        setTimeout(() => {
+          errorMessage.value = ''
+        }, 3000)
+      } finally {
+        isLoading.value = false
+        pendingAction = null
+      }
+    }
+    showPasswordDialog.value = true
+    return
+  }
+  
   try {
     isLoading.value = true
     await new Promise(resolve => setTimeout(resolve, 300))
@@ -499,16 +653,67 @@ watchEffect(() => {
   initQRCodeScanner()
 })
 
-onMounted(() => {
-  // 从localStorage获取密码
-  const password = localStorage.getItem('2fa_password') || ''
-  
-  // 加载账户
+// 密码输入弹窗相关
+const handlePasswordSubmit = async (password: string) => {
   try {
-    accounts.value = loadAccountList(password)
+    isLoading.value = true
+    passwordError.value = ''
+    
+    // 验证密码是否正确
+    if (hasStoredAccounts()) {
+      try {
+        // 尝试加载账户，验证密码是否正确
+        const testAccounts = loadAccountList(password)
+        currentPassword.value = password
+        showPasswordDialog.value = false
+        
+        // 执行待处理的操作
+        if (pendingAction) {
+          await pendingAction()
+        } else {
+          // 如果没有待处理操作，尝试加载账户
+          accounts.value = testAccounts
+        }
+      } catch (error) {
+        passwordError.value = '密码错误，请重试。'
+      }
+    } else {
+      // 没有存储的账户，直接保存密码
+      currentPassword.value = password
+      showPasswordDialog.value = false
+      
+      // 执行待处理的操作
+      if (pendingAction) {
+        await pendingAction()
+      }
+    }
   } catch (error) {
-    console.error('加载账户失败:', error)
-    errorMessage.value = '加载账户失败，请重新登录。'
+    passwordError.value = '验证失败，请重试。'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const handlePasswordCancel = () => {
+  showPasswordDialog.value = false
+  passwordError.value = ''
+}
+
+onMounted(() => {
+  // 检查路由参数中是否有密码
+  const passwordFromRoute = route.query.password as string
+  if (passwordFromRoute) {
+    currentPassword.value = passwordFromRoute
+    // 尝试加载账户
+    try {
+      accounts.value = loadAccountList(passwordFromRoute)
+    } catch (error) {
+      // 密码错误，显示弹窗
+      showPasswordDialog.value = true
+    }
+  } else if (hasStoredAccounts()) {
+    // 显示密码输入弹窗
+    showPasswordDialog.value = true
   }
   
   // 启动时间更新定时器

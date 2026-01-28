@@ -44,7 +44,33 @@ export function loadAccounts(password: string): TwoFAAccount[] {
   return decryptData(encryptedData, password);
 }
 
+// 生成密码的hash
+export function generatePasswordHash(password: string): string {
+  return CryptoJS.SHA256(password).toString();
+}
+
+// 验证密码hash
+export function verifyPasswordHash(password: string, hash: string): boolean {
+  return generatePasswordHash(password) === hash;
+}
+
 // 检查是否有存储的账户
 export function hasStoredAccounts(): boolean {
   return localStorage.getItem(STORAGE_KEY) !== null;
+}
+
+// 检查是否有存储的密码hash
+export function hasStoredPasswordHash(): boolean {
+  return localStorage.getItem('2fa_password_hash') !== null;
+}
+
+// 获取存储的密码hash
+export function getStoredPasswordHash(): string | null {
+  return localStorage.getItem('2fa_password_hash');
+}
+
+// 存储密码hash
+export function storePasswordHash(password: string): void {
+  const hash = generatePasswordHash(password);
+  localStorage.setItem('2fa_password_hash', hash);
 }
