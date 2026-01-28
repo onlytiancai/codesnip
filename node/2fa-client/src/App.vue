@@ -25,7 +25,11 @@ const copiedCode = ref('');
 const showCopiedFeedback = ref(false);
 
 // 计算属性
-const remainingTime = computed(() => getRemainingTime());
+const remainingTime = computed(() => {
+  // 使用 currentTime 作为依赖，确保每秒更新
+  currentTime.value;
+  return getRemainingTime();
+});
 const totpCodes = computed(() => {
   return accounts.value.map(account => ({
     ...account,

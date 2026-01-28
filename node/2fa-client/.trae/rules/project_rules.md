@@ -1,1 +1,1 @@
-技术栈：typescript+pnpm + vite + vue3 + tailwind4
+技术栈：typescript + pnpm + vite + vue3 + tailwind4
