@@ -16,8 +16,7 @@
         </div>
         <div class="flex items-center space-x-4">
           <router-link 
-            to="/dashboard" 
-            :query="{ password: currentPassword }"
+            to="/dashboard"
             class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
