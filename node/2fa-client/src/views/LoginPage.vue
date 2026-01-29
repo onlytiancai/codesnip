@@ -86,15 +86,7 @@
               <span>查看源码</span>
             </a>
             
-            <!-- 安装PWA链接 -->
-            <button
-              v-if="!isPwaMode"
-              @click="handleInstallPwa"
-              class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
-            >
-              <Icon name="download" size="h-4 w-4" />
-              <span>安装到桌面</span>
-            </button>
+
             
             <!-- 检查更新链接（仅在PWA模式下显示） -->
             <button
@@ -113,7 +105,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { hasStoredAccounts, loadAccounts, hasStoredPasswordHash, verifyPasswordHash, storePasswordHash } from '../utils/storage'
 import { useAuthStore } from '../stores/auth'
@@ -126,37 +118,6 @@ const password = ref('')
 const errorMessage = ref('')
 const successMessage = ref('')
 const isLoading = ref(false)
-let deferredPrompt: any = null
-
-// 检测是否在PWA模式下运行
-const isPwaMode = computed(() => {
-  return window.matchMedia('(display-mode: standalone)').matches || 
-         (window.navigator as any).standalone === true
-})
-
-// 处理PWA安装
-const handleInstallPwa = async () => {
-  if (deferredPrompt) {
-    // 显示安装提示
-    deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
-    
-    if (outcome === 'accepted') {
-      successMessage.value = '应用已成功安装到桌面！'
-      setTimeout(() => {
-        successMessage.value = ''
-      }, 3000)
-    }
-    
-    deferredPrompt = null
-  } else {
-    errorMessage.value = '当前浏览器不支持安装此应用，或应用已安装。'
-    setTimeout(() => {
-      errorMessage.value = ''
-    }, 3000)
-  }
-}
-
 // 检查更新
 const checkForUpdates = async () => {
   if ('serviceWorker' in navigator) {
@@ -200,26 +161,10 @@ const checkForUpdates = async () => {
   }
 }
 
-// 监听安装提示
-const handleBeforeInstallPrompt = (e: Event) => {
-  e.preventDefault()
-  deferredPrompt = e
-}
-
-// 监听应用安装成功
-const handleAppInstalled = () => {
-  deferredPrompt = null
-}
-
-// 组件挂载时添加事件监听器
-onMounted(() => {
-  window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-  window.addEventListener('appinstalled', handleAppInstalled)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-  window.removeEventListener('appinstalled', handleAppInstalled)
+// 检测是否在PWA模式下运行
+const isPwaMode = computed(() => {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         (window.navigator as any).standalone === true
 })
 
 const handleLogin = async () => {
