@@ -9,23 +9,23 @@
           </div>
           <div>
             <h1 class="text-xl font-bold text-gray-900">2FA 客户端</h1>
-            <p class="text-sm text-gray-500">安全管理您的双重认证码</p>
+            <p class="text-sm text-gray-500 sm:block hidden">安全管理您的双重认证码</p>
           </div>
         </div>
         <div class="flex items-center space-x-4">
           <router-link 
             to="/export-import"
-            class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 flex items-center"
+            class="bg-purple-600 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 flex items-center"
           >
-            <Icon name="upload" size="h-4 w-4" class="mr-2" />
-            导出导入
+            <Icon name="upload" size="h-4 w-4" class="mr-1 sm:mr-2" />
+            <span class="text-xs sm:text-sm">导出导入</span>
           </router-link>
           <button
             @click="handleLogout"
-            class="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 flex items-center"
+            class="bg-gray-600 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 flex items-center"
           >
-            <Icon name="logout" size="h-4 w-4" class="mr-2" />
-            退出
+            <Icon name="logout" size="h-4 w-4" class="mr-1 sm:mr-2" />
+            <span class="text-xs sm:text-sm">退出</span>
           </button>
         </div>
       </div>
@@ -71,17 +71,17 @@
         <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
           <button
             @click="showAddAccountForm = !showAddAccountForm"
-            class="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center"
+            class="flex-1 bg-green-600 text-white py-3 px-3 sm:px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center"
           >
-            <Icon name="plus" size="h-5 w-5" class="mr-2" />
-            {{ showAddAccountForm ? '取消' : '添加账户' }}
+            <Icon name="plus" size="h-5 w-5" class="mr-1 sm:mr-2" />
+            <span class="text-xs sm:text-sm">{{ showAddAccountForm ? '取消' : '添加账户' }}</span>
           </button>
           <button
             @click="showQRCodeScanner = true"
-            class="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center"
+            class="flex-1 bg-blue-600 text-white py-3 px-3 sm:px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center"
           >
-            <Icon name="qr-code" size="h-5 w-5" class="mr-2" />
-            扫描二维码
+            <Icon name="qr-code" size="h-5 w-5" class="mr-1 sm:mr-2" />
+            <span class="text-xs sm:text-sm">扫描二维码</span>
           </button>
         </div>
       </div>
