@@ -21,6 +21,6 @@
     vi .env
     VITE_BASE_PATH=/2fa/
 
-    pnpm build      
+    pnpm build
     rsync -avP dist/ ihuhao:/home/ubuntu/src/html/2fa
 

@@ -7,6 +7,7 @@
         </div>
         <h1 class="text-3xl font-bold text-gray-900">2FA 客户端</h1>
         <p class="text-gray-500 mt-2">安全管理您的双重认证码</p>
+        <p class="text-gray-500 mt-2">v202601291653</p>
       </div>
       
       <!-- 错误和成功信息 -->
@@ -87,11 +88,22 @@
             
             <!-- 安装PWA链接 -->
             <button
+              v-if="!isPwaMode"
               @click="handleInstallPwa"
               class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
             >
               <Icon name="download" size="h-4 w-4" />
               <span>安装到桌面</span>
+            </button>
+            
+            <!-- 检查更新链接（仅在PWA模式下显示） -->
+            <button
+              v-if="isPwaMode"
+              @click="checkForUpdates"
+              class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+            >
+              <Icon name="refresh" size="h-4 w-4" />
+              <span>检查更新</span>
             </button>
           </div>
         </div>
@@ -101,7 +113,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { hasStoredAccounts, loadAccounts, hasStoredPasswordHash, verifyPasswordHash, storePasswordHash } from '../utils/storage'
 import { useAuthStore } from '../stores/auth'
@@ -115,6 +127,12 @@ const errorMessage = ref('')
 const successMessage = ref('')
 const isLoading = ref(false)
 let deferredPrompt: any = null
+
+// 检测是否在PWA模式下运行
+const isPwaMode = computed(() => {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         (window.navigator as any).standalone === true
+})
 
 // 处理PWA安装
 const handleInstallPwa = async () => {
@@ -133,6 +151,49 @@ const handleInstallPwa = async () => {
     deferredPrompt = null
   } else {
     errorMessage.value = '当前浏览器不支持安装此应用，或应用已安装。'
+    setTimeout(() => {
+      errorMessage.value = ''
+    }, 3000)
+  }
+}
+
+// 检查更新
+const checkForUpdates = async () => {
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.ready
+      await registration.update()
+      
+      // 检查是否有新的service worker正在等待激活
+      if (registration.waiting) {
+        if (confirm('有新版本可用，是否立即更新？')) {
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+          window.location.reload()
+        }
+      } else if (registration.installing) {
+        // 监听新的service worker安装完成
+        registration.installing.addEventListener('statechange', () => {
+          if (registration.waiting) {
+            if (confirm('有新版本可用，是否立即更新？')) {
+              registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+              window.location.reload()
+            }
+          }
+        })
+      } else {
+        successMessage.value = '当前已是最新版本！'
+        setTimeout(() => {
+          successMessage.value = ''
+        }, 3000)
+      }
+    } catch (error) {
+      errorMessage.value = '检查更新失败，请稍后重试。'
+      setTimeout(() => {
+        errorMessage.value = ''
+      }, 3000)
+    }
+  } else {
+    errorMessage.value = '当前浏览器不支持PWA更新功能。'
     setTimeout(() => {
       errorMessage.value = ''
     }, 3000)
