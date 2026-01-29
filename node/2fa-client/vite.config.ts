@@ -46,7 +46,12 @@ export default defineConfig(({ mode }) => {
           ]
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+          globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+          // 添加消息处理
+          navigateFallbackDenylist: [/^\/api\//],
+          // 确保service worker能够处理SKIP_WAITING消息
+          skipWaiting: false,
+          clientsClaim: true
         }
       })
     ],

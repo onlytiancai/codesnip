@@ -8,7 +8,10 @@
             <Icon name="shield" size="h-5 w-5" color="text-blue-600" />
           </div>
           <div>
-            <h1 class="text-xl font-bold text-gray-900">2FA 客户端</h1>
+            <h1 class="text-xl font-bold text-gray-900">
+              <span class="sm:inline hidden">2FA 客户端</span>
+              <span class="sm:hidden inline">2FA</span>
+            </h1>
             <p class="text-sm text-gray-500 sm:block hidden">安全管理您的双重认证码</p>
           </div>
         </div>
@@ -265,6 +268,17 @@
       @submit="handlePasswordSubmit"
       @cancel="handlePasswordCancel"
     />
+    
+    <!-- 检查更新链接 -->
+    <footer class="container mx-auto px-4 py-4 text-center">
+      <button
+        @click="checkForUpdates"
+        class="text-gray-500 text-sm hover:text-gray-700 focus:outline-none transition-colors duration-200 flex items-center justify-center mx-auto"
+      >
+        <Icon name="refresh" size="h-3 w-3" class="mr-1" />
+        检查更新
+      </button>
+    </footer>
   </div>
 </template>
 
@@ -572,6 +586,49 @@ const handlePasswordSubmit = async (passwordValue: string) => {
 const handlePasswordCancel = () => {
   showPasswordDialog.value = false
   passwordError.value = ''
+}
+
+// 检查更新
+const checkForUpdates = async () => {
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.ready
+      await registration.update()
+      
+      // 检查是否有新的service worker正在等待激活
+      if (registration.waiting) {
+        if (confirm('有新版本可用，是否立即更新？')) {
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+          window.location.reload()
+        }
+      } else if (registration.installing) {
+        // 监听新的service worker安装完成
+        registration.installing.addEventListener('statechange', () => {
+          if (registration.waiting) {
+            if (confirm('有新版本可用，是否立即更新？')) {
+              registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+              window.location.reload()
+            }
+          }
+        })
+      } else {
+        successMessage.value = '当前已是最新版本！'
+        setTimeout(() => {
+          successMessage.value = ''
+        }, 3000)
+      }
+    } catch (error) {
+      errorMessage.value = '检查更新失败，请稍后重试。'
+      setTimeout(() => {
+        errorMessage.value = ''
+      }, 3000)
+    }
+  } else {
+    errorMessage.value = '当前浏览器不支持PWA更新功能。'
+    setTimeout(() => {
+      errorMessage.value = ''
+    }, 3000)
+  }
 }
 
 onMounted(() => {
