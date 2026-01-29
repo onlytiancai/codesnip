@@ -308,22 +308,23 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, watchEffect } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { loadAccountList, saveAccountList, addAccount, removeAccount } from '../utils/accountManager'
 import { generateTOTP, getRemainingTime } from '../utils/2fa'
 import { extractSecretFromQRCode } from '../utils/qrCode'
 import { hasStoredAccounts } from '../utils/storage'
 import PasswordInputDialog from '../components/PasswordInputDialog.vue'
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
-const route = useRoute()
+const authStore = useAuthStore()
+const { password, clearPassword, setPassword } = authStore
 const accounts = ref<any[]>([])
 const currentTime = ref(Date.now())
 const showAddAccountForm = ref(false)
 const showQRCodeScanner = ref(false)
 const showPasswordDialog = ref(false)
 const passwordError = ref('')
-const currentPassword = ref('')
 const newAccountName = ref('')
 const newAccountSecret = ref('')
 const newAccountIssuer = ref('')
@@ -337,7 +338,7 @@ let pendingAction: (() => Promise<void>) | null = null
 
 const handleLogout = () => {
   // 清除当前密码
-  currentPassword.value = ''
+  clearPassword()
   router.push('/')
 }
 
@@ -364,7 +365,7 @@ const saveAccounts = async () => {
   try {
     isLoading.value = true
     await new Promise(resolve => setTimeout(resolve, 300))
-    saveAccountList(accounts.value, currentPassword.value)
+    saveAccountList(accounts.value, password)
     successMessage.value = '账户已保存！'
     setTimeout(() => {
       successMessage.value = ''
@@ -390,7 +391,7 @@ const handleAddAccount = async () => {
   }
   
   // 检查是否有当前密码，如果没有则显示密码输入框
-  if (!currentPassword.value) {
+  if (!password) {
     pendingAction = async () => {
       try {
         isLoading.value = true
@@ -449,7 +450,7 @@ const handleAddAccount = async () => {
 // 删除账户
 const handleRemoveAccount = async (accountId: string) => {
   // 检查是否有当前密码，如果没有则显示密码输入框
-  if (!currentPassword.value) {
+  if (!password) {
     pendingAction = async () => {
       try {
         isLoading.value = true
@@ -565,7 +566,7 @@ watchEffect(() => {
 })
 
 // 密码输入弹窗相关
-const handlePasswordSubmit = async (password: string) => {
+const handlePasswordSubmit = async (passwordValue: string) => {
   try {
     isLoading.value = true
     passwordError.value = ''
@@ -574,8 +575,8 @@ const handlePasswordSubmit = async (password: string) => {
     if (hasStoredAccounts()) {
       try {
         // 尝试加载账户，验证密码是否正确
-        const testAccounts = loadAccountList(password)
-        currentPassword.value = password
+        const testAccounts = loadAccountList(passwordValue)
+        setPassword(passwordValue)
         showPasswordDialog.value = false
         
         // 执行待处理的操作
@@ -590,7 +591,7 @@ const handlePasswordSubmit = async (password: string) => {
       }
     } else {
       // 没有存储的账户，直接保存密码
-      currentPassword.value = password
+      setPassword(passwordValue)
       showPasswordDialog.value = false
       
       // 执行待处理的操作
@@ -611,13 +612,11 @@ const handlePasswordCancel = () => {
 }
 
 onMounted(() => {
-  // 检查路由参数中是否有密码
-  const passwordFromRoute = route.query.password as string
-  if (passwordFromRoute) {
-    currentPassword.value = passwordFromRoute
+  // 检查状态管理中是否有密码
+  if (password) {
     // 尝试加载账户
     try {
-      accounts.value = loadAccountList(passwordFromRoute)
+      accounts.value = loadAccountList(password)
     } catch (error) {
       // 密码错误，显示弹窗
       showPasswordDialog.value = true

@@ -20,6 +20,7 @@
     "express": "^5.2.1",
     "jsqr": "^1.4.0",
     "jssha": "^3.3.1",
+    "pinia": "^3.0.4",
     "speakeasy": "^2.0.0",
     "tailwindcss": "^4.1.18",
     "vue": "^3.5.24",

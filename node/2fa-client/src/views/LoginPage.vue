@@ -75,8 +75,11 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { hasStoredAccounts, loadAccounts, hasStoredPasswordHash, verifyPasswordHash, storePasswordHash } from '../utils/storage'
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
+const { setPassword } = authStore
 const password = ref('')
 const errorMessage = ref('')
 const successMessage = ref('')
@@ -95,9 +98,12 @@ const handleLogin = async () => {
       storePasswordHash(password.value)
       successMessage.value = '密码设置成功！'
       
+      // 保存密码到状态管理
+      setPassword(password.value)
+      
       // 延迟跳转，让用户看到成功信息
       setTimeout(() => {
-        router.push({ path: '/dashboard', query: { password: password.value } })
+        router.push({ path: '/dashboard' })
       }, 1000)
     } else {
       // 后续登录，验证密码
@@ -112,13 +118,17 @@ const handleLogin = async () => {
         try {
           // 尝试加载账户，验证密码是否正确
           loadAccounts(password.value)
-          router.push({ path: '/dashboard', query: { password: password.value } })
+          // 保存密码到状态管理
+          setPassword(password.value)
+          router.push({ path: '/dashboard' })
         } catch (error) {
           errorMessage.value = '密码错误，请重试。'
         }
       } else {
         // 没有存储的账户，直接跳转
-        router.push({ path: '/dashboard', query: { password: password.value } })
+        // 保存密码到状态管理
+        setPassword(password.value)
+        router.push({ path: '/dashboard' })
       }
     }
   } catch (error) {
