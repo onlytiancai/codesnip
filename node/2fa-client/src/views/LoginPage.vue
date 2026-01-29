@@ -56,6 +56,22 @@
             {{ isLoading ? '登录中...' : '登录' }}
           </div>
         </button>
+        
+        <!-- 提示信息 -->
+        <div class="mt-8 space-y-3 text-sm text-gray-600">
+          <div class="flex items-start">
+            <Icon name="shield" size="h-4 w-4" color="text-blue-500" class="mt-0.5 mr-2 flex-shrink-0" />
+            <p>本应用使用纯浏览器实现动态口令管理，所有数据均存储在本地，不会向任何服务端传递数据，代码完全开源</p>
+          </div>
+          <div class="flex items-start">
+            <Icon name="shield" size="h-4 w-4" color="text-blue-500" class="mt-0.5 mr-2 flex-shrink-0" />
+            <p>动态口令的秘钥支持加密导出到本地，您可以自行备份并在多设备间同步使用</p>
+          </div>
+          <div class="flex items-start">
+            <Icon name="shield" size="h-4 w-4" color="text-blue-500" class="mt-0.5 mr-2 flex-shrink-0" />
+            <p>首次使用时需要设置主密码，请务必牢记，后续所有加密解密操作都需要使用此密码</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
