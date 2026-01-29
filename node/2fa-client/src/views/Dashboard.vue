@@ -5,9 +5,7 @@
       <div class="container mx-auto px-4 py-4 flex justify-between items-center">
         <div class="flex items-center">
           <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
+            <Icon name="shield" size="h-5 w-5" color="text-blue-600" />
           </div>
           <div>
             <h1 class="text-xl font-bold text-gray-900">2FA 客户端</h1>
@@ -19,18 +17,14 @@
             to="/export-import"
             class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 flex items-center"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
+            <Icon name="upload" size="h-4 w-4" class="mr-2" />
             导出导入
           </router-link>
           <button
             @click="handleLogout"
             class="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 flex items-center"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l-4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
+            <Icon name="logout" size="h-4 w-4" class="mr-2" />
             退出
           </button>
         </div>
@@ -42,17 +36,13 @@
       <!-- 错误和成功信息 -->
       <div v-if="errorMessage" class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-md mb-6 shadow-sm animate-fade-in max-w-4xl mx-auto">
         <div class="flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+          <Icon name="exclamation-circle" size="h-5 w-5" class="mr-2" />
           <span>{{ errorMessage }}</span>
         </div>
       </div>
       <div v-if="successMessage" class="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-r-md mb-6 shadow-sm animate-fade-in max-w-4xl mx-auto">
         <div class="flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
+          <Icon name="check-circle" size="h-5 w-5" class="mr-2" />
           <span>{{ successMessage }}</span>
         </div>
       </div>
@@ -62,9 +52,7 @@
         <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div class="flex justify-between items-center mb-4">
             <div class="text-sm font-medium text-gray-600 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <Icon name="clock" size="h-4 w-4" class="mr-2 text-blue-600" />
               验证码将在 {{ remainingTime }} 秒后刷新
             </div>
             <div class="text-xs text-gray-500">每30秒更新一次</div>
@@ -85,18 +73,14 @@
             @click="showAddAccountForm = !showAddAccountForm"
             class="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
+            <Icon name="plus" size="h-5 w-5" class="mr-2" />
             {{ showAddAccountForm ? '取消' : '添加账户' }}
           </button>
           <button
             @click="showQRCodeScanner = true"
             class="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <Icon name="qr-code" size="h-5 w-5" class="mr-2" />
             扫描二维码
           </button>
         </div>
@@ -106,9 +90,7 @@
       <div v-if="showAddAccountForm" class="mb-8 max-w-4xl mx-auto">
         <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-fade-in">
           <h3 class="text-xl font-semibold text-gray-700 flex items-center mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
+            <Icon name="user" size="h-5 w-5" class="mr-2 text-blue-600" />
             添加新账户
           </h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -155,9 +137,7 @@
               :disabled="isLoading"
               class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center"
             >
-              <svg v-if="!isLoading" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
+              <Icon v-if="!isLoading" name="check-circle" size="h-5 w-5" class="mr-2" />
               <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -172,16 +152,12 @@
       <div class="max-w-4xl mx-auto">
         <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
           <h2 class="text-xl font-semibold text-gray-700 flex items-center mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
+            <Icon name="user" size="h-5 w-5" class="mr-2 text-blue-600" />
             我的账户
           </h2>
           
           <div v-if="accounts.length === 0" class="text-center text-gray-500 py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
+            <Icon name="plus" size="h-16 w-16" class="mx-auto text-gray-400 mb-4" />
             <p class="text-gray-500">暂无账户，请添加您的第一个2FA账户。</p>
           </div>
           
@@ -197,9 +173,7 @@
                 class="absolute inset-0 bg-green-50 border-2 border-green-500 rounded-xl flex items-center justify-center animate-fade-in z-10"
               >
                 <div class="flex items-center text-green-700">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
+                  <Icon name="check-circle" size="h-6 w-6" class="mr-2" />
                   <span class="font-medium">已复制到剪贴板！</span>
                 </div>
               </div>
@@ -207,9 +181,7 @@
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center">
                   <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+                    <Icon name="user" size="h-5 w-5" color="text-blue-600" />
                   </div>
                   <div>
                     <div class="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">{{ item.name }}</div>
@@ -221,9 +193,7 @@
                   :disabled="isLoading"
                   class="text-gray-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
+                  <Icon name="trash" size="h-5 w-5" />
                 </button>
               </div>
               
@@ -234,9 +204,7 @@
                     @click="copyToClipboard(item.code)"
                     class="text-sm text-blue-500 hover:text-blue-700 inline-flex items-center transition-colors bg-blue-50 px-3 py-1 rounded-full"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
+                    <Icon name="copy" size="h-4 w-4" class="mr-1" />
                     复制
                   </button>
                 </div>
@@ -252,18 +220,14 @@
       <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md transform transition-all duration-300 animate-fade-in">
         <div class="flex justify-between items-center mb-6">
           <h3 class="text-xl font-semibold text-gray-900 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <Icon name="qr-code" size="h-5 w-5" class="mr-2 text-blue-600" />
             扫描二维码
           </h3>
           <button
             @click="showQRCodeScanner = false"
             class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <Icon name="x-circle" size="h-5 w-5" />
           </button>
         </div>
         <div class="mb-6 relative">
@@ -286,9 +250,7 @@
             @click="showQRCodeScanner = false"
             class="w-full bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <Icon name="x-circle" size="h-5 w-5" class="mr-2" />
             取消
           </button>
         </div>
@@ -314,6 +276,7 @@ import { generateTOTP, getRemainingTime } from '../utils/2fa'
 import { extractSecretFromQRCode } from '../utils/qrCode'
 import { hasStoredAccounts } from '../utils/storage'
 import PasswordInputDialog from '../components/PasswordInputDialog.vue'
+import Icon from '../components/Icon.vue'
 import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()

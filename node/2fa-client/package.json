@@ -14,6 +14,7 @@
     "test:verbose": "vitest run --reporter=verbose 2>/dev/null"
   },
   "dependencies": {
+    "@heroicons/vue": "^2.2.0",
     "@tailwindcss/vite": "^4.1.18",
     "@types/express": "^5.0.6",
     "crypto-js": "^4.2.0",
