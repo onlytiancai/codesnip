@@ -8,24 +8,27 @@
             <Icon name="shield" size="h-5 w-5" color="text-blue-600" />
           </div>
           <div>
-            <h1 class="text-xl font-bold text-gray-900">2FA 客户端</h1>
-            <p class="text-sm text-gray-500">安全管理您的双重认证码</p>
+            <h1 class="text-xl font-bold text-gray-900">
+              <span class="sm:inline hidden">2FA 客户端</span>
+              <span class="sm:hidden inline">2FA</span>
+            </h1>
+            <p class="text-sm text-gray-500 sm:block hidden">安全管理您的双重认证码</p>
           </div>
         </div>
         <div class="flex items-center space-x-4">
           <router-link 
             to="/dashboard"
-            class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center"
+            class="bg-blue-600 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center"
           >
-            <Icon name="home" size="h-4 w-4" class="mr-2" />
-            返回首页
+            <Icon name="home" size="h-4 w-4" class="mr-1 sm:mr-2" />
+            <span class="text-xs sm:text-sm">返回首页</span>
           </router-link>
           <button
             @click="handleLogout"
-            class="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 flex items-center"
+            class="bg-gray-600 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 flex items-center"
           >
-            <Icon name="logout" size="h-4 w-4" class="mr-2" />
-            退出
+            <Icon name="logout" size="h-4 w-4" class="mr-1 sm:mr-2" />
+            <span class="text-xs sm:text-sm">退出</span>
           </button>
         </div>
       </div>
