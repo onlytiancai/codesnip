@@ -228,7 +228,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watchEffect } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { loadAccountList, saveAccountList, addAccount, removeAccount } from '../utils/accountManager'
 import { generateTOTP, getRemainingTime } from '../utils/2fa'
