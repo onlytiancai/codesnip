@@ -302,6 +302,33 @@
       @cancel="handlePasswordCancel"
     />
     
+    <!-- 删除确认对话框 -->
+    <div v-if="showDeleteConfirm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
+      <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
+        <div class="text-center mb-6">
+          <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+            <Icon name="trash" size="h-8 w-8" color="text-red-600" />
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">确认删除</h3>
+          <p class="text-gray-600">您确定要删除此账户吗？此操作无法撤销。</p>
+        </div>
+        <div class="flex space-x-4">
+          <button
+            @click="handleDeleteCancel"
+            class="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
+          >
+            取消
+          </button>
+          <button
+            @click="handleDeleteConfirm"
+            :disabled="isLoading"
+            class="flex-1 bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {{ isLoading ? '删除中...' : '删除' }}
+          </button>
+        </div>
+      </div>
+    </div>
 
   </div>
 </template>
@@ -339,6 +366,8 @@ const successMessage = ref('')
 const isLoading = ref(false)
 const copiedCode = ref('')
 const showCopiedFeedback = ref(false)
+const showDeleteConfirm = ref(false)
+const accountIdToDelete = ref('')
 let interval: number | undefined
 let pendingAction: (() => Promise<void>) | null = null
 let html5QrcodeScanner: Html5Qrcode | null = null
@@ -455,7 +484,17 @@ const handleAddAccount = async () => {
 }
 
 // 删除账户
-const handleRemoveAccount = async (accountId: string) => {
+const handleRemoveAccount = (accountId: string) => {
+  // 保存要删除的账户ID并显示确认对话框
+  accountIdToDelete.value = accountId
+  showDeleteConfirm.value = true
+}
+
+// 确认删除
+const handleDeleteConfirm = async () => {
+  const accountId = accountIdToDelete.value
+  showDeleteConfirm.value = false
+  
   // 检查是否有当前密码，如果没有则显示密码输入框
   if (!password) {
     pendingAction = async () => {
@@ -499,6 +538,12 @@ const handleRemoveAccount = async (accountId: string) => {
   } finally {
     isLoading.value = false
   }
+}
+
+// 取消删除
+const handleDeleteCancel = () => {
+  showDeleteConfirm.value = false
+  accountIdToDelete.value = ''
 }
 
 // 复制TOTP码到剪贴板
