@@ -79,7 +79,86 @@
             <Icon name="plus" size="h-5 w-5" class="mr-1 sm:mr-2" />
             <span class="text-xs sm:text-sm">{{ showAddAccountForm ? '取消' : '添加账户' }}</span>
           </button>
-
+          <button
+            @click="showQRScanner = !showQRScanner"
+            class="flex-1 bg-blue-600 text-white py-3 px-3 sm:px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center"
+          >
+            <Icon name="qrcode" size="h-5 w-5" class="mr-1 sm:mr-2" />
+            <span class="text-xs sm:text-sm">{{ showQRScanner ? '取消' : '扫描二维码' }}</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- 二维码扫描区域 -->
+      <div v-if="showQRScanner" class="mb-8 max-w-4xl mx-auto">
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-fade-in">
+          <h3 class="text-xl font-semibold text-gray-700 flex items-center mb-6">
+            <Icon name="qrcode" size="h-5 w-5" class="mr-2 text-blue-600" />
+            扫描二维码添加账户
+          </h3>
+          
+          <!-- 摄像头选择界面 -->
+          <div v-if="showCameraSelection" class="flex flex-col items-center">
+            <div class="mb-6 text-center">
+              <Icon name="camera" size="h-16 w-16" class="mx-auto text-blue-500 mb-4" />
+              <h4 class="text-lg font-medium text-gray-800 mb-2">选择摄像头</h4>
+              <p class="text-sm text-gray-500 mb-4">请选择用于扫描二维码的摄像头</p>
+            </div>
+            
+            <div class="w-full max-w-md mb-6">
+              <div v-if="isLoadingCameras" class="text-center py-8">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="mt-2 text-sm text-gray-500">正在获取摄像头列表...</p>
+              </div>
+              
+              <div v-else-if="cameras.length === 0" class="text-center py-8">
+                <Icon name="exclamation-circle" size="h-8 w-8 mx-auto text-red-500 mb-4" />
+                <p class="text-sm text-gray-500">未检测到可用摄像头</p>
+              </div>
+              
+              <div v-else class="space-y-3">
+                <button
+                  v-for="camera in cameras"
+                  :key="camera.id"
+                  @click="selectCamera(camera.id)"
+                  class="w-full bg-white border border-gray-300 rounded-lg py-3 px-4 text-left hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 flex items-center justify-between"
+                >
+                  <div class="font-medium text-gray-800">{{ camera.label || `摄像头 ${cameras.indexOf(camera) + 1}` }}</div>
+                  <Icon name="chevron-right" size="h-5 w-5" class="text-gray-400" />
+                </button>
+              </div>
+            </div>
+            
+            <button
+              @click="stopQRScanner"
+              class="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
+            >
+              取消
+            </button>
+          </div>
+          
+          <!-- 扫描界面 -->
+          <div v-else class="flex flex-col items-center">
+            <div id="qr-scanner" class="w-full max-w-md h-80 mb-4 bg-gray-100 rounded-lg overflow-hidden"></div>
+            <p class="text-sm text-gray-500 mb-4">请将2FA二维码对准摄像头</p>
+            <div class="flex space-x-4">
+              <button
+                @click="showCameraSelection = true"
+                class="bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
+              >
+                更换摄像头
+              </button>
+              <button
+                @click="stopQRScanner"
+                class="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
+              >
+                关闭扫描
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -228,10 +307,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { loadAccountList, saveAccountList, addAccount, removeAccount } from '../utils/accountManager'
 import { generateTOTP, getRemainingTime } from '../utils/2fa'
+import { Html5Qrcode } from 'html5-qrcode'
 
 import { hasStoredAccounts } from '../utils/storage'
 import PasswordInputDialog from '../components/PasswordInputDialog.vue'
@@ -244,6 +324,11 @@ const { password, clearPassword, setPassword } = authStore
 const accounts = ref<any[]>([])
 const currentTime = ref(Date.now())
 const showAddAccountForm = ref(false)
+const showQRScanner = ref(false)
+const showCameraSelection = ref(true)
+const isLoadingCameras = ref(false)
+const cameras = ref<{ id: string; label: string }[]>([])
+const selectedCameraId = ref<string>('')
 const showPasswordDialog = ref(false)
 const passwordError = ref('')
 const newAccountName = ref('')
@@ -256,6 +341,7 @@ const copiedCode = ref('')
 const showCopiedFeedback = ref(false)
 let interval: number | undefined
 let pendingAction: (() => Promise<void>) | null = null
+let html5QrcodeScanner: Html5Qrcode | null = null
 
 const handleLogout = () => {
   // 清除当前密码
@@ -501,9 +587,223 @@ onMounted(() => {
   interval = window.setInterval(updateTime, 1000)
 })
 
+// 启动二维码扫描器
+const startQRScanner = async () => {
+  try {
+    // 确保之前的扫描器已停止
+    if (html5QrcodeScanner) {
+      await html5QrcodeScanner.stop()
+      html5QrcodeScanner = null
+    }
+    
+    // 重置状态
+    showCameraSelection.value = true
+    isLoadingCameras.value = true
+    cameras.value = []
+    selectedCameraId.value = ''
+    
+    // 获取摄像头列表
+    await getCamerasList()
+  } catch (err) {
+    errorMessage.value = '无法启动摄像头，请检查权限。'
+    setTimeout(() => {
+      errorMessage.value = ''
+    }, 3000)
+    showQRScanner.value = false
+  }
+}
+
+// 获取摄像头列表
+const getCamerasList = async () => {
+  try {
+    isLoadingCameras.value = true
+    
+    // 使用Html5Qrcode的静态方法获取摄像头列表
+    const cameraList = await Html5Qrcode.getCameras()
+    cameras.value = cameraList
+    
+    // 如果只有一个摄像头，直接选择
+    if (cameraList.length === 1 && cameraList[0]) {
+      await selectCamera(cameraList[0].id)
+    }
+  } catch (err) {
+    errorMessage.value = '无法获取摄像头列表，请检查权限。'
+    setTimeout(() => {
+      errorMessage.value = ''
+    }, 3000)
+    showQRScanner.value = false
+  } finally {
+    isLoadingCameras.value = false
+  }
+}
+
+// 选择摄像头
+const selectCamera = async (cameraId: string) => {
+  try {
+    selectedCameraId.value = cameraId
+    showCameraSelection.value = false
+    
+    // 等待DOM更新，确保qr-scanner元素已渲染
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    // 检查DOM元素是否存在
+    const scannerElement = document.getElementById('qr-scanner')
+    if (!scannerElement) {
+      throw new Error('扫描区域元素不存在')
+    }
+    
+    // 创建新的扫描器实例
+    html5QrcodeScanner = new Html5Qrcode('qr-scanner')
+    
+    // 开始扫描
+    await html5QrcodeScanner.start(
+      { deviceId: { exact: cameraId } },
+      {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1
+      },
+      async (decodedText) => {
+        // 处理扫描结果
+        await handleQRCodeResult(decodedText)
+      },
+      (error) => {
+        // 显示扫描错误（可选）
+        console.log('扫描错误:', error)
+      }
+    )
+  } catch (err) {
+    console.error('启动扫描器失败:', err)
+    errorMessage.value = '无法启动摄像头，请检查权限。'
+    setTimeout(() => {
+      errorMessage.value = ''
+    }, 3000)
+    showCameraSelection.value = true
+  }
+}
+
+// 停止二维码扫描器
+const stopQRScanner = async () => {
+  if (html5QrcodeScanner) {
+    try {
+      await html5QrcodeScanner.stop()
+    } catch (err) {
+      // 忽略停止错误
+    } finally {
+      html5QrcodeScanner = null
+    }
+  }
+  // 重置状态
+  showQRScanner.value = false
+  showCameraSelection.value = true
+  isLoadingCameras.value = false
+  cameras.value = []
+  selectedCameraId.value = ''
+}
+
+// 处理二维码扫描结果
+const handleQRCodeResult = async (qrCodeData: string) => {
+  try {
+    // 停止扫描
+    await stopQRScanner()
+    
+    // 解析二维码数据
+    const parsedData = parseTOTPUri(qrCodeData)
+    if (!parsedData) {
+      errorMessage.value = '无效的2FA二维码。'
+      setTimeout(() => {
+        errorMessage.value = ''
+      }, 3000)
+      return
+    }
+    
+    // 填充表单
+    newAccountName.value = parsedData.name
+    newAccountSecret.value = parsedData.secret
+    newAccountIssuer.value = parsedData.issuer || ''
+    showAddAccountForm.value = true
+    
+    successMessage.value = '二维码解析成功！'
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 3000)
+  } catch (err) {
+    errorMessage.value = '处理二维码失败，请重试。'
+    setTimeout(() => {
+      errorMessage.value = ''
+    }, 3000)
+  }
+}
+
+// 解析TOTP URI
+const parseTOTPUri = (uri: string): { name: string; secret: string; issuer?: string } | null => {
+  try {
+    // 检查是否是otpauth://totp/格式
+    if (!uri.startsWith('otpauth://totp/')) {
+      return null
+    }
+    
+    // 解析URI
+    const url = new URL(uri)
+    const path = url.pathname.substring(1) // 移除开头的/
+    
+    // 解析名称和发行者
+    let name = path
+    let issuer = ''
+    
+    // 检查路径中是否包含发行者
+    if (path.includes(':')) {
+      const parts = path.split(':')
+      if (parts[0]) {
+        issuer = decodeURIComponent(parts[0])
+        name = decodeURIComponent(parts.slice(1).join(':'))
+      }
+    } else {
+      // 没有发行者，只解码名称
+      name = decodeURIComponent(name)
+    }
+    
+    // 从查询参数中获取密钥
+    const secret = url.searchParams.get('secret')
+    if (!secret) {
+      return null
+    }
+    
+    // 从查询参数中获取发行者（如果存在）
+    const issuerParam = url.searchParams.get('issuer')
+    if (issuerParam) {
+      issuer = decodeURIComponent(issuerParam)
+    }
+    
+    return {
+      name,
+      secret,
+      issuer
+    }
+  } catch (err) {
+    console.error('解析TOTP URI失败:', err)
+    return null
+  }
+}
+
+// 监听showQRScanner变化
+watch(showQRScanner, async (newValue) => {
+  if (newValue) {
+    // 当显示扫描器时，启动扫描
+    await startQRScanner()
+  } else {
+    // 当隐藏扫描器时，停止扫描
+    await stopQRScanner()
+  }
+})
+
 onUnmounted(() => {
   if (interval) {
     clearInterval(interval)
+  }
+  // 停止扫描器
+  if (html5QrcodeScanner) {
+    html5QrcodeScanner.stop().catch(() => {})
   }
 })
 </script>

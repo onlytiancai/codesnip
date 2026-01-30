@@ -30,11 +30,15 @@ app.post('/api/2fa/generate', (req, res) => {
       name
     });
     
+    // 手动构建包含正确issuer的otpauth URL
+    const issuer = '2FA Client';
+    const otpauthUrl = `otpauth://totp/${encodeURIComponent(name)}?secret=${secret.base32}&issuer=${encodeURIComponent(issuer)}`;
+    
     res.json({
       success: true,
       data: {
         secret: secret.base32,
-        otpauthUrl: secret.otpauth_url || ''
+        otpauthUrl
       }
     });
   } catch (error) {

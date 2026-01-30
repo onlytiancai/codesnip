@@ -7,7 +7,7 @@
         </div>
         <h1 class="text-3xl font-bold text-gray-900">2FA 客户端</h1>
         <p class="text-gray-500 mt-2">安全管理您的双重认证码</p>
-        <p class="text-gray-500 mt-2">v202601291653</p>
+        <p class="text-gray-500 mt-2">v202602301552</p>
       </div>
       
       <!-- 错误和成功信息 -->
