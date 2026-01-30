@@ -79,13 +79,7 @@
             <Icon name="plus" size="h-5 w-5" class="mr-1 sm:mr-2" />
             <span class="text-xs sm:text-sm">{{ showAddAccountForm ? '取消' : '添加账户' }}</span>
           </button>
-          <button
-            @click="showQRCodeScanner = true"
-            class="flex-1 bg-blue-600 text-white py-3 px-3 sm:px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center"
-          >
-            <Icon name="qr-code" size="h-5 w-5" class="mr-1 sm:mr-2" />
-            <span class="text-xs sm:text-sm">扫描二维码</span>
-          </button>
+
         </div>
       </div>
       
@@ -218,47 +212,7 @@
       </div>
     </main>
     
-    <!-- 二维码扫描器 -->
-    <div v-if="showQRCodeScanner" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50">
-      <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md transform transition-all duration-300 animate-fade-in">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-xl font-semibold text-gray-900 flex items-center">
-            <Icon name="qr-code" size="h-5 w-5" class="mr-2 text-blue-600" />
-            扫描二维码
-          </h3>
-          <button
-            @click="showQRCodeScanner = false"
-            class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
-          >
-            <Icon name="x-circle" size="h-5 w-5" />
-          </button>
-        </div>
-        <div class="mb-6 relative">
-          <div class="aspect-video bg-gray-900 rounded-lg overflow-hidden relative">
-            <video id="qrScanner" class="w-full h-full object-cover" autoplay></video>
-            <!-- 扫描线动画 -->
-            <div class="absolute inset-0 flex items-center justify-center">
-              <div class="w-4/5 h-4/5 border-2 border-blue-500 rounded-lg animate-pulse"></div>
-            </div>
-            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div class="w-full h-1 bg-blue-500 opacity-75 animate-scan"></div>
-            </div>
-          </div>
-          <div class="text-center mt-4 text-sm text-gray-500">
-            请将二维码对准摄像头
-          </div>
-        </div>
-        <div>
-          <button
-            @click="showQRCodeScanner = false"
-            class="w-full bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center"
-          >
-            <Icon name="x-circle" size="h-5 w-5" class="mr-2" />
-            取消
-          </button>
-        </div>
-      </div>
-    </div>
+
     
     <!-- 密码输入弹窗组件 -->
     <PasswordInputDialog
@@ -278,7 +232,7 @@ import { ref, onMounted, onUnmounted, computed, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { loadAccountList, saveAccountList, addAccount, removeAccount } from '../utils/accountManager'
 import { generateTOTP, getRemainingTime } from '../utils/2fa'
-import { extractSecretFromQRCode } from '../utils/qrCode'
+
 import { hasStoredAccounts } from '../utils/storage'
 import PasswordInputDialog from '../components/PasswordInputDialog.vue'
 import Icon from '../components/Icon.vue'
@@ -290,7 +244,6 @@ const { password, clearPassword, setPassword } = authStore
 const accounts = ref<any[]>([])
 const currentTime = ref(Date.now())
 const showAddAccountForm = ref(false)
-const showQRCodeScanner = ref(false)
 const showPasswordDialog = ref(false)
 const passwordError = ref('')
 const newAccountName = ref('')
@@ -478,60 +431,7 @@ const copyToClipboard = (code: string) => {
   })
 }
 
-// 初始化二维码扫描器
-const initQRCodeScanner = () => {
-  if (showQRCodeScanner.value) {
-    const video = document.getElementById('qrScanner') as HTMLVideoElement
-    if (video) {
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        .then(stream => {
-          video.srcObject = stream
-          video.addEventListener('play', () => {
-            const canvas = document.createElement('canvas')
-            const ctx = canvas.getContext('2d')
-            
-            const scan = () => {
-              if (!video.paused && !video.ended && ctx) {
-                canvas.width = video.videoWidth
-                canvas.height = video.videoHeight
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-                const result = extractSecretFromQRCode(imageData)
-                
-                if (result) {
-                  newAccountName.value = result.name
-                  newAccountSecret.value = result.secret
-                  newAccountIssuer.value = result.issuer || ''
-                  showQRCodeScanner.value = false
-                  successMessage.value = '二维码扫描成功！'
-                  
-                  // 停止视频流
-                  const stream = video.srcObject as MediaStream
-                  if (stream) {
-                    stream.getTracks().forEach(track => track.stop())
-                  }
-                } else {
-                  requestAnimationFrame(scan)
-                }
-              }
-            }
-            
-            requestAnimationFrame(scan)
-          })
-        })
-        .catch(err => {
-          console.error('无法访问摄像头:', err)
-          errorMessage.value = '无法访问摄像头，请检查权限设置。'
-          showQRCodeScanner.value = false
-        })
-    }
-  }
-}
 
-// 监听二维码扫描器显示状态
-watchEffect(() => {
-  initQRCodeScanner()
-})
 
 // 密码输入弹窗相关
 const handlePasswordSubmit = async (passwordValue: string) => {
@@ -629,20 +529,7 @@ body {
   }
 }
 
-@keyframes scan {
-  0% {
-    transform: translateY(-100%);
-  }
-  100% {
-    transform: translateY(100%);
-  }
-}
-
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out forwards;
-}
-
-.animate-scan {
-  animation: scan 2s linear infinite;
 }
 </style>
