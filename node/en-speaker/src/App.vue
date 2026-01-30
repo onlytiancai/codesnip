@@ -5,18 +5,26 @@ import { ref } from 'vue';
 // @ts-ignore
 import { Howl } from 'howler';
 // 导入FFmpeg模块（使用动态导入方式）
-let createFFmpeg: any;
-let fetchFile: any;
+let FFmpeg: any;
 let ffmpegModuleLoaded = false;
 let ffmpegModulePromise: Promise<void>;
+
+// 实现fetchFile函数
+const fetchFile = async (blob: Blob): Promise<Uint8Array> => {
+  const arrayBuffer = await blob.arrayBuffer();
+  return new Uint8Array(arrayBuffer);
+};
 
 // 动态导入FFmpeg模块
 ffmpegModulePromise = import('@ffmpeg/ffmpeg').then(ffmpegModule => {
   // 使用类型断言来绕过TypeScript错误
   const module = ffmpegModule as any;
-  createFFmpeg = module.createFFmpeg || module.default?.createFFmpeg;
-  fetchFile = module.fetchFile || module.default?.fetchFile;
+  FFmpeg = module.FFmpeg || module.default?.FFmpeg;
   ffmpegModuleLoaded = true;
+  console.log('FFmpeg module loaded successfully:', { FFmpeg });
+}).catch(error => {
+  console.error('Failed to load FFmpeg module:', error);
+  ffmpegModuleLoaded = false;
 });
 
 interface Sentence {
@@ -45,15 +53,12 @@ const initFFmpeg = async () => {
     await ffmpegModulePromise;
   }
   
-  if (!createFFmpeg) {
+  if (!FFmpeg) {
     throw new Error('Failed to load FFmpeg module');
   }
   
   if (!ffmpegInstance) {
-    ffmpegInstance = createFFmpeg({
-      log: true,
-      corePath: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/ffmpeg-core.js'
-    });
+    ffmpegInstance = new FFmpeg();
   }
   
   return ffmpegInstance;
@@ -165,6 +170,7 @@ const playAudio = async (sentenceId: number) => {
     // 使用Howler.js播放音频
     currentHowl = new Howl({
       src: [sentence.audio],
+      format: ['wav'],
       onend: () => {
         sentence.isPlaying = false;
         currentHowl = null;
@@ -275,9 +281,12 @@ const mergeAudioFiles = async (): Promise<Blob | null> => {
     const ffmpeg = await initFFmpeg();
     
     // 加载FFmpeg
-    if (!ffmpeg.isLoaded()) {
+    if (!ffmpeg.loaded) {
       videoProgress.value = 10;
-      await ffmpeg.load();
+      await ffmpeg.load({
+        coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
+        wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
+      });
       videoProgress.value = 20;
     }
     
@@ -287,7 +296,7 @@ const mergeAudioFiles = async (): Promise<Blob | null> => {
       if (sentence && sentence.audio) {
         const response = await fetch(sentence.audio);
         const blob = await response.blob();
-        ffmpeg.FS('writeFile', `input${i}.wav`, await fetchFile(blob));
+        await ffmpeg.writeFile(`input${i}.wav`, await fetchFile(blob));
       }
     }
     
@@ -297,23 +306,23 @@ const mergeAudioFiles = async (): Promise<Blob | null> => {
     const audioFiles = sentences.value.map((_, i) => `input${i}.wav`).join('|');
     
     // 使用FFmpeg合并音频
-    await ffmpeg.run(
+    await ffmpeg.exec([
       '-f', 'concat',
       '-safe', '0',
       '-i', `concat:${audioFiles}`,
       '-c', 'copy',
       'merged_audio.wav'
-    );
+    ]);
     
     videoProgress.value = 50;
     
     // 读取合并后的音频
-    const data = ffmpeg.FS('readFile', 'merged_audio.wav');
+    const data = await ffmpeg.readFile('merged_audio.wav');
     const blob = new Blob([data.buffer], { type: 'audio/wav' });
     
     // 清理临时文件
     for (let i = 0; i < sentences.value.length; i++) {
-      ffmpeg.FS('unlink', `input${i}.wav`);
+      await ffmpeg.deleteFile(`input${i}.wav`);
     }
     
     return blob;
@@ -364,18 +373,21 @@ const createVideo = async () => {
     const ffmpeg = await initFFmpeg();
     
     // 加载FFmpeg
-    if (!ffmpeg.isLoaded()) {
-      await ffmpeg.load();
+    if (!ffmpeg.loaded) {
+      await ffmpeg.load({
+        coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
+        wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
+      });
     }
     
     // 写入文件到FFmpeg虚拟文件系统
-    ffmpeg.FS('writeFile', 'image.png', await fetchFile(imageBlob));
-    ffmpeg.FS('writeFile', 'audio.wav', await fetchFile(mergedAudioBlob));
+    await ffmpeg.writeFile('image.png', await fetchFile(imageBlob));
+    await ffmpeg.writeFile('audio.wav', await fetchFile(mergedAudioBlob));
     
     videoProgress.value = 70;
     
     // 使用FFmpeg生成视频
-    await ffmpeg.run(
+    await ffmpeg.exec([
       '-loop', '1',
       '-i', 'image.png',
       '-i', 'audio.wav',
@@ -384,12 +396,12 @@ const createVideo = async () => {
       '-shortest',
       '-pix_fmt', 'yuv420p',
       'output.mp4'
-    );
+    ]);
     
     videoProgress.value = 90;
     
     // 读取生成的视频
-    const data = ffmpeg.FS('readFile', 'output.mp4');
+    const data = await ffmpeg.readFile('output.mp4');
     const videoBlob = new Blob([data.buffer], { type: 'video/mp4' });
     const videoUrl = URL.createObjectURL(videoBlob);
     
@@ -399,10 +411,10 @@ const createVideo = async () => {
     videoProgress.value = 100;
     
     // 清理临时文件
-    ffmpeg.FS('unlink', 'image.png');
-    ffmpeg.FS('unlink', 'audio.wav');
-    ffmpeg.FS('unlink', 'merged_audio.wav');
-    ffmpeg.FS('unlink', 'output.mp4');
+    await ffmpeg.deleteFile('image.png');
+    await ffmpeg.deleteFile('audio.wav');
+    await ffmpeg.deleteFile('merged_audio.wav');
+    await ffmpeg.deleteFile('output.mp4');
     
     isCreatingVideo.value = false;
     
