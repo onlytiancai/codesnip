@@ -302,15 +302,24 @@ const mergeAudioFiles = async (): Promise<Blob | null> => {
     
     videoProgress.value = 30;
     
-    // 创建音频文件列表
-    const audioFiles = sentences.value.map((_, i) => `input${i}.wav`).join('|');
+    // 使用filter_complex方式合并音频，更可靠
+    const inputArgs = [];
+    const filterArgs = [];
+    
+    // 构建输入参数和滤镜参数
+    for (let i = 0; i < sentences.value.length; i++) {
+      inputArgs.push('-i', `input${i}.wav`);
+      filterArgs.push(`[${i}:a]`);
+    }
+    
+    // 构建完整的滤镜链
+    filterArgs.push('concat=n=' + sentences.value.length + ':v=0:a=1[outa]');
     
     // 使用FFmpeg合并音频
     await ffmpeg.exec([
-      '-f', 'concat',
-      '-safe', '0',
-      '-i', `concat:${audioFiles}`,
-      '-c', 'copy',
+      ...inputArgs,
+      '-filter_complex', filterArgs.join(''),
+      '-map', '[outa]',
       'merged_audio.wav'
     ]);
     
