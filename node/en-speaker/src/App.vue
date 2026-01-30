@@ -35,7 +35,7 @@ interface Sentence {
   isPlaying: boolean;
 }
 
-const inputText = ref('');
+const inputText = ref("Postcards always spoil my holidays. Last summer, I went to Italy. I visited museums and sat in public gardens. A friendly waiter taught me a few words of Italian. Then he lent me a book. I read a few lines, but I did not understand a word. Every day I thought about postcards. My holidays passed quickly, but I did not send any cards to my friends. On the last day I made a big decision. I got up early and bought thirty-seven cards. I spent the whole day in my room, but I did not write a single card!");
 const sentences = ref<Sentence[]>([]);
 const isProcessing = ref(false);
 const isCreatingVideo = ref(false);
@@ -212,8 +212,8 @@ const reRecordAudio = (sentenceId: number) => {
 // 生成静态图片（包含完整文本）
 const generateImage = (): string => {
   const canvas = document.createElement('canvas');
-  canvas.width = 1280;
-  canvas.height = 720;
+  canvas.width = 720;
+  canvas.height = 1280;
   const ctx = canvas.getContext('2d');
   
   if (!ctx) return '';
@@ -284,8 +284,8 @@ const mergeAudioFiles = async (): Promise<Blob | null> => {
     if (!ffmpeg.loaded) {
       videoProgress.value = 10;
       await ffmpeg.load({
-        coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
-        wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
+        coreURL: 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
+        wasmURL: 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
       });
       videoProgress.value = 20;
     }
@@ -404,6 +404,7 @@ const createVideo = async () => {
       '-c:a', 'aac',
       '-shortest',
       '-pix_fmt', 'yuv420p',
+      '-aspect', '9:16',
       'output.mp4'
     ]);
     
