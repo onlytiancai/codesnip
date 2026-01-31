@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 
 // 导入类型
 import type { Sentence } from './types';
@@ -12,6 +12,9 @@ import { downloadWasm, testWasm } from './services/wasm';
 
 // 导入工具函数
 import { showToast, downloadVideo } from './utils/ui';
+
+// 导入TTS服务
+import { ttsService } from './services/tts';
 
 // 响应式变量
 const inputText = ref("Postcards always spoil my holidays. Last summer, I went to Italy. I visited museums and sat in public gardens. ");
@@ -28,6 +31,14 @@ const wasmDownloadStatus = ref('');
 const wasmTestStatus = ref('');
 const wasmFileUrl = ref('');
 const isWasmReady = ref(false);
+
+// kokoro-js相关变量
+const isLoadingModel = ref(false);
+const modelLoadProgress = ref(0);
+const modelLoadStatus = ref('');
+const selectedVoice = ref('af_heart');
+const availableVoices = ref<string[]>([]);
+const isWebGPUSupported = ref(false);
 
 // 处理文本
 const handleProcessText = () => {
@@ -218,6 +229,87 @@ const createVideo = async () => {
 const handleDownloadVideo = () => {
   downloadVideo(videoPreviewUrl.value);
 };
+
+// 检测WebGPU支持
+const checkWebGPUSupport = async () => {
+  isWebGPUSupported.value = await ttsService.checkWebGPUSupport();
+};
+
+// 加载Kokoro TTS模型
+const loadKokoroModel = async () => {
+  if (ttsService.isModelLoaded()) return;
+  
+  try {
+    isLoadingModel.value = true;
+    modelLoadProgress.value = 0;
+    modelLoadStatus.value = '正在检测WebGPU支持...';
+    
+    // 检测WebGPU支持
+    await checkWebGPUSupport();
+    
+    modelLoadStatus.value = `正在加载模型 (设备: ${isWebGPUSupported.value ? 'WebGPU' : 'WASM'})...`;
+    
+    // 加载模型并显示进度
+    await ttsService.loadModel((progress) => {
+      modelLoadProgress.value = progress;
+      modelLoadStatus.value = `加载中: ${progress}%`;
+    });
+    
+    // 获取可用的语音
+    availableVoices.value = ttsService.getAvailableVoiceNames();
+    
+    modelLoadStatus.value = '模型加载成功！';
+    showToast('Kokoro TTS模型加载成功', 'success');
+  } catch (error) {
+    console.error('加载模型失败:', error);
+    modelLoadStatus.value = '模型加载失败，请重试';
+    showToast('加载模型失败，请重试', 'error');
+  } finally {
+    isLoadingModel.value = false;
+  }
+};
+
+// 使用Kokoro TTS朗读句子
+const speakSentence = async (sentenceId: number) => {
+  if (!ttsService.isModelLoaded()) {
+    showToast('请先加载TTS模型', 'warning');
+    await loadKokoroModel();
+    if (!ttsService.isModelLoaded()) return;
+  }
+  
+  const sentence = sentences.value.find(s => s.id === sentenceId);
+  if (!sentence) return;
+  
+  try {
+    sentence.isPlaying = true;
+    
+    // 生成音频
+    const audioBlob = await ttsService.generateSpeech(sentence.text, selectedVoice.value);
+    const audioUrl = URL.createObjectURL(audioBlob);
+    
+    // 播放音频
+    const audioElement = new Audio(audioUrl);
+    audioElement.onended = () => {
+      sentence.isPlaying = false;
+      URL.revokeObjectURL(audioUrl);
+    };
+    audioElement.onerror = () => {
+      sentence.isPlaying = false;
+      URL.revokeObjectURL(audioUrl);
+    };
+    
+    await audioElement.play();
+  } catch (error) {
+    console.error('朗读失败:', error);
+    showToast('朗读失败，请重试', 'error');
+    sentence.isPlaying = false;
+  }
+};
+
+// 组件挂载时检测WebGPU支持
+onMounted(async () => {
+  await checkWebGPUSupport();
+});
 </script>
 
 <template>
@@ -236,13 +328,53 @@ const handleDownloadVideo = () => {
           rows="6"
           placeholder="请输入英文文本，例如：Hello! How are you? I'm fine, thank you."
         ></textarea>
-        <button 
-          @click="handleProcessText" 
-          :disabled="isProcessing"
-          class="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {{ isProcessing ? '处理中...' : '开始朗读' }}
-        </button>
+        <div class="mt-4 flex flex-col sm:flex-row gap-4">
+          <button 
+            @click="handleProcessText" 
+            :disabled="isProcessing"
+            class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ isProcessing ? '处理中...' : '处理文本' }}
+          </button>
+          <button 
+            @click="loadKokoroModel" 
+            :disabled="isLoadingModel || ttsService.isModelLoaded()"
+            class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ isLoadingModel ? '加载中...' : ttsService.isModelLoaded() ? '模型已加载' : '加载TTS模型' }}
+          </button>
+        </div>
+        
+        <!-- 语音选择 -->
+        <div v-if="ttsService.isModelLoaded()" class="mt-4">
+          <label for="voice-select" class="block text-gray-700 font-medium mb-2">选择语音：</label>
+          <select 
+            id="voice-select" 
+            v-model="selectedVoice" 
+            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+          >
+            <option v-for="voice in availableVoices" :key="voice" :value="voice">
+              {{ voice }}
+            </option>
+          </select>
+        </div>
+        
+        <!-- 模型加载进度 -->
+        <div v-if="isLoadingModel || modelLoadProgress > 0" class="mt-4 space-y-2">
+          <div class="flex justify-between text-sm text-gray-600">
+            <span>模型加载进度</span>
+            <span>{{ modelLoadProgress }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div 
+              class="bg-green-600 h-2.5 rounded-full transition-all duration-300 ease-in-out"
+              :style="{ width: modelLoadProgress + '%' }"
+            ></div>
+          </div>
+          <div v-if="modelLoadStatus" class="text-sm" :class="modelLoadStatus.includes('成功') ? 'text-green-600' : modelLoadStatus.includes('失败') ? 'text-red-600' : 'text-blue-600'">
+            {{ modelLoadStatus }}
+          </div>
+        </div>
       </div>
       
       <div v-if="sentences.length > 0" class="space-y-6">
@@ -260,7 +392,7 @@ const handleDownloadVideo = () => {
               <span class="text-gray-800">{{ sentence.text }}</span>
             </div>
           </div>
-          <div class="flex space-x-3">
+          <div class="flex space-x-3 flex-wrap">
             <button 
               @click="sentence.isRecording ? stopRecording() : handleStartRecording(sentence.id)"
               :class="[
@@ -291,6 +423,19 @@ const handleDownloadVideo = () => {
               class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               重录
+            </button>
+            <button 
+              @click="speakSentence(sentence.id)"
+              :disabled="sentence.isPlaying"
+              :class="[
+                'px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors',
+                sentence.isPlaying 
+                  ? 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500' 
+                  : 'bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500',
+                !ttsService.isModelLoaded() && 'opacity-50 cursor-not-allowed'
+              ]"
+            >
+              {{ sentence.isPlaying ? 'AI朗读中...' : 'AI朗读' }}
             </button>
           </div>
         </div>
