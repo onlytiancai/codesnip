@@ -13,7 +13,8 @@ export const processText = (text: string): Sentence[] => {
     text: sentence.trim(),
     audio: null,
     isRecording: false,
-    isPlaying: false
+    isPlaying: false,
+    isAiSpeaking: false
   }));
 };
 

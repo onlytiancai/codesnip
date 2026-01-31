@@ -39,12 +39,23 @@ const wasmTestStatus = ref('');
 const wasmFileUrl = ref('');
 const isWasmReady = ref(false);
 
+// 语音类型定义
+interface Voice {
+  id: string;
+  name: string;
+  gender: string;
+  language: string;
+  overallGrade: string;
+  targetQuality: string;
+  displayName: string;
+}
+
 // kokoro-js相关变量
 const isLoadingModel = ref(false);
 const modelLoadProgress = ref(0);
 const modelLoadStatus = ref('');
 const selectedVoice = ref('af_heart');
-const availableVoices = ref<string[]>([]);
+const availableVoices = ref<Voice[]>([]);
 const isWebGPUSupported = ref(false);
 
 // 处理文本
@@ -120,6 +131,7 @@ const reRecordAudio = (sentenceId: number) => {
     }
     sentences.value[sentenceIndex].audio = null;
     sentences.value[sentenceIndex].isPlaying = false;
+    sentences.value[sentenceIndex].isAiSpeaking = false;
   }
   
   // 开始重新录音
@@ -265,7 +277,7 @@ const loadKokoroModel = async () => {
     });
     
     // 获取可用的语音
-    availableVoices.value = service.getAvailableVoiceNames();
+    availableVoices.value = service.getAvailableVoiceObjects();
     
     modelLoadStatus.value = '模型加载成功！';
     showToast('Kokoro TTS模型加载成功', 'success');
@@ -291,7 +303,7 @@ const speakSentence = async (sentenceId: number) => {
   if (!sentence) return;
   
   try {
-    sentence.isPlaying = true;
+    sentence.isAiSpeaking = true;
     
     // 生成音频
     const audioBlob = await service.generateSpeech(sentence.text, selectedVoice.value);
@@ -300,11 +312,11 @@ const speakSentence = async (sentenceId: number) => {
     // 播放音频
     const audioElement = new Audio(audioUrl);
     audioElement.onended = () => {
-      sentence.isPlaying = false;
+      sentence.isAiSpeaking = false;
       URL.revokeObjectURL(audioUrl);
     };
     audioElement.onerror = () => {
-      sentence.isPlaying = false;
+      sentence.isAiSpeaking = false;
       URL.revokeObjectURL(audioUrl);
     };
     
@@ -312,7 +324,7 @@ const speakSentence = async (sentenceId: number) => {
   } catch (error) {
     console.error('朗读失败:', error);
     showToast('朗读失败，请重试', 'error');
-    sentence.isPlaying = false;
+    sentence.isAiSpeaking = false;
   }
 };
 
@@ -351,7 +363,7 @@ onMounted(async () => {
             :disabled="isLoadingModel"
             class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {{ isLoadingModel ? '加载中...' : '加载TTS模型' }}
+            {{ isLoadingModel ? '加载中...' : '加载语音模型' }}
           </button>
         </div>
         
@@ -363,8 +375,8 @@ onMounted(async () => {
             v-model="selectedVoice" 
             class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
           >
-            <option v-for="voice in availableVoices" :key="voice" :value="voice">
-              {{ voice }}
+            <option v-for="voice in availableVoices" :key="voice.id" :value="voice.id">
+              {{ voice.displayName }}
             </option>
           </select>
         </div>
@@ -416,35 +428,36 @@ onMounted(async () => {
             </button>
             <button 
               @click="handlePlayAudio(sentence.id)"
-              :disabled="!sentence.audio"
+              :disabled="!sentence.audio || sentence.isPlaying"
               :class="[
                 'px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors',
                 sentence.isPlaying 
                   ? 'bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500' 
                   : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-                !sentence.audio && 'opacity-50 cursor-not-allowed'
+                (!sentence.audio || sentence.isPlaying) && 'opacity-50 cursor-not-allowed'
               ]"
             >
               {{ sentence.isPlaying ? '播放中...' : '回放' }}
             </button>
             <button 
               @click="reRecordAudio(sentence.id)"
-              :disabled="sentence.isRecording || sentence.isPlaying"
+              :disabled="sentence.isRecording || sentence.isPlaying || sentence.isAiSpeaking"
               class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               重录
             </button>
             <button 
               @click="speakSentence(sentence.id)"
-              :disabled="sentence.isPlaying"
+              :disabled="sentence.isAiSpeaking"
               :class="[
                 'px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors',
-                sentence.isPlaying 
+                sentence.isAiSpeaking 
                   ? 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500' 
-                  : 'bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500'
+                  : 'bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500',
+                sentence.isAiSpeaking && 'opacity-50 cursor-not-allowed'
               ]"
             >
-              {{ sentence.isPlaying ? 'AI朗读中...' : 'AI朗读' }}
+              {{ sentence.isAiSpeaking ? 'AI朗读中...' : 'AI朗读' }}
             </button>
           </div>
         </div>

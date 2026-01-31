@@ -74,12 +74,48 @@ export class TTSService {
     return this.tts;
   }
 
-  // 获取可用语音列表
-  getAvailableVoices(): Record<string, any> {
+  // 获取原始语音对象映射
+  getRawVoices(): Record<string, any> {
     return this.availableVoices;
   }
 
-  // 获取可用语音名称数组
+  // 获取可用语音对象数组
+  getAvailableVoiceObjects(): Array<{
+    id: string;
+    name: string;
+    gender: string;
+    language: string;
+    overallGrade: string;
+    targetQuality: string;
+    displayName: string;
+  }> {
+    return Object.entries(this.availableVoices).map(([id, voice]) => {
+      const voiceObj = voice as any;
+      // 构建显示名称，格式为 "Name (Language Gender)"
+      let languageDisplay = "";
+      if (voiceObj.language === "en-us") {
+        languageDisplay = "American";
+      } else if (voiceObj.language === "en-gb") {
+        languageDisplay = "British";
+      } else {
+        languageDisplay = voiceObj.language;
+      }
+      
+      const displayName = `${voiceObj.name || id} (${languageDisplay} ${voiceObj.gender || ""})`;
+      
+      return {
+        id,
+        name: voiceObj.name || id,
+        gender: voiceObj.gender || "",
+        language: voiceObj.language || "",
+        overallGrade: voiceObj.overallGrade || "",
+        targetQuality: voiceObj.targetQuality || "",
+        displayName
+      };
+    });
+  }
+
+  // 为保持兼容性，保留原方法
   getAvailableVoiceNames(): string[] {
     return Object.keys(this.availableVoices);
   }
