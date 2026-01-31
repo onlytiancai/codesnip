@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 
 // 导入类型
-import type { Sentence } from './types';
+import type { Sentence, Voice, AudioCacheItem } from './types';
 
 // 导入服务函数
 import { mergeAudioFiles, createVideoFromParts } from './services/ffmpeg';
@@ -39,17 +39,6 @@ const wasmTestStatus = ref('');
 const wasmFileUrl = ref('');
 const isWasmReady = ref(false);
 
-// 语音类型定义
-interface Voice {
-  id: string;
-  name: string;
-  gender: string;
-  language: string;
-  overallGrade: string;
-  targetQuality: string;
-  displayName: string;
-}
-
 // kokoro-js相关变量
 const isLoadingModel = ref(false);
 const modelLoadProgress = ref(0);
@@ -57,6 +46,22 @@ const modelLoadStatus = ref('');
 const selectedVoice = ref('af_heart');
 const availableVoices = ref<Voice[]>([]);
 const isWebGPUSupported = ref(false);
+
+// 语音缓存
+const audioCache = ref<Record<string, Record<string, AudioCacheItem>>>({}); // 结构: { voiceId: { text: { audioUrl, timestamp } } }
+
+// 清空缓存
+const clearAudioCache = (voiceId?: string) => {
+  if (voiceId) {
+    // 只清空指定音色的缓存
+    delete audioCache.value[voiceId];
+    console.log(`[AI朗读] 清空音色 ${voiceId} 的语音缓存`);
+  } else {
+    // 清空所有缓存
+    audioCache.value = {};
+    console.log('[AI朗读] 清空所有语音缓存');
+  }
+};
 
 // 处理文本
 const handleProcessText = () => {
@@ -305,28 +310,60 @@ const speakSentence = async (sentenceId: number) => {
   try {
     sentence.isAiSpeaking = true;
     
-    // 生成音频
-    const audioBlob = await service.generateSpeech(sentence.text, selectedVoice.value);
-    const audioUrl = URL.createObjectURL(audioBlob);
+    const voiceId = selectedVoice.value;
+    const text = sentence.text;
+    
+    // 检查缓存
+    if (!audioCache.value[voiceId]) {
+      audioCache.value[voiceId] = {};
+    }
+    
+    let audioUrl: string;
+    if (audioCache.value[voiceId][text]) {
+      // 使用缓存的音频
+      audioUrl = audioCache.value[voiceId][text].audioUrl;
+      console.log(`[AI朗读] 使用缓存的语音: ${text.substring(0, 20)}...`);
+    } else {
+      // 生成新音频
+      console.log(`[AI朗读] 生成新语音: ${text.substring(0, 20)}...`);
+      const audioBlob = await service.generateSpeech(text, voiceId);
+      audioUrl = URL.createObjectURL(audioBlob);
+      
+      // 存储到缓存
+      audioCache.value[voiceId][text] = {
+        audioUrl,
+        timestamp: Date.now()
+      };
+      console.log(`[AI朗读] 语音已缓存: ${text.substring(0, 20)}...`);
+    }
     
     // 播放音频
     const audioElement = new Audio(audioUrl);
     audioElement.onended = () => {
       sentence.isAiSpeaking = false;
-      URL.revokeObjectURL(audioUrl);
+      // 注意：由于缓存中需要使用audioUrl，这里不再revokeObjectURL
     };
     audioElement.onerror = () => {
       sentence.isAiSpeaking = false;
-      URL.revokeObjectURL(audioUrl);
+      // 注意：由于缓存中需要使用audioUrl，这里不再revokeObjectURL
     };
     
     await audioElement.play();
   } catch (error) {
-    console.error('朗读失败:', error);
+    console.error('[AI朗读] 朗读失败:', error);
     showToast('朗读失败，请重试', 'error');
     sentence.isAiSpeaking = false;
   }
 };
+
+// 监听音色变化
+watch(selectedVoice, (newVoice, oldVoice) => {
+  if (oldVoice && newVoice !== oldVoice) {
+    console.log(`[AI朗读] 音色从 ${oldVoice} 切换到 ${newVoice}`);
+    // 切换音色时清空所有缓存，确保使用新音色生成语音
+    clearAudioCache();
+  }
+});
 
 // 组件挂载时检测WebGPU支持
 onMounted(async () => {
