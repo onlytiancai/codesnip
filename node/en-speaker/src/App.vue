@@ -13,8 +13,15 @@ import { downloadWasm, testWasm } from './services/wasm';
 // 导入工具函数
 import { showToast, downloadVideo } from './utils/ui';
 
-// 导入TTS服务
-import { ttsService } from './services/tts';
+// 动态导入TTS服务
+let ttsService: any = null;
+const loadTTSService = async () => {
+  if (!ttsService) {
+    const module = await import('./services/tts');
+    ttsService = module.ttsService;
+  }
+  return ttsService;
+};
 
 // 响应式变量
 const inputText = ref("Postcards always spoil my holidays. Last summer, I went to Italy. I visited museums and sat in public gardens. ");
@@ -232,12 +239,14 @@ const handleDownloadVideo = () => {
 
 // 检测WebGPU支持
 const checkWebGPUSupport = async () => {
-  isWebGPUSupported.value = await ttsService.checkWebGPUSupport();
+  const service = await loadTTSService();
+  isWebGPUSupported.value = await service.checkWebGPUSupport();
 };
 
 // 加载Kokoro TTS模型
 const loadKokoroModel = async () => {
-  if (ttsService.isModelLoaded()) return;
+  const service = await loadTTSService();
+  if (service.isModelLoaded()) return;
   
   try {
     isLoadingModel.value = true;
@@ -250,13 +259,13 @@ const loadKokoroModel = async () => {
     modelLoadStatus.value = `正在加载模型 (设备: ${isWebGPUSupported.value ? 'WebGPU' : 'WASM'})...`;
     
     // 加载模型并显示进度
-    await ttsService.loadModel((progress) => {
+    await service.loadModel((progress: number) => {
       modelLoadProgress.value = progress;
       modelLoadStatus.value = `加载中: ${progress}%`;
     });
     
     // 获取可用的语音
-    availableVoices.value = ttsService.getAvailableVoiceNames();
+    availableVoices.value = service.getAvailableVoiceNames();
     
     modelLoadStatus.value = '模型加载成功！';
     showToast('Kokoro TTS模型加载成功', 'success');
@@ -271,10 +280,11 @@ const loadKokoroModel = async () => {
 
 // 使用Kokoro TTS朗读句子
 const speakSentence = async (sentenceId: number) => {
-  if (!ttsService.isModelLoaded()) {
+  const service = await loadTTSService();
+  if (!service.isModelLoaded()) {
     showToast('请先加载TTS模型', 'warning');
     await loadKokoroModel();
-    if (!ttsService.isModelLoaded()) return;
+    if (!service.isModelLoaded()) return;
   }
   
   const sentence = sentences.value.find(s => s.id === sentenceId);
@@ -284,7 +294,7 @@ const speakSentence = async (sentenceId: number) => {
     sentence.isPlaying = true;
     
     // 生成音频
-    const audioBlob = await ttsService.generateSpeech(sentence.text, selectedVoice.value);
+    const audioBlob = await service.generateSpeech(sentence.text, selectedVoice.value);
     const audioUrl = URL.createObjectURL(audioBlob);
     
     // 播放音频
@@ -338,15 +348,15 @@ onMounted(async () => {
           </button>
           <button 
             @click="loadKokoroModel" 
-            :disabled="isLoadingModel || ttsService.isModelLoaded()"
+            :disabled="isLoadingModel"
             class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {{ isLoadingModel ? '加载中...' : ttsService.isModelLoaded() ? '模型已加载' : '加载TTS模型' }}
+            {{ isLoadingModel ? '加载中...' : '加载TTS模型' }}
           </button>
         </div>
         
         <!-- 语音选择 -->
-        <div v-if="ttsService.isModelLoaded()" class="mt-4">
+        <div v-if="availableVoices.length > 0" class="mt-4">
           <label for="voice-select" class="block text-gray-700 font-medium mb-2">选择语音：</label>
           <select 
             id="voice-select" 
@@ -431,8 +441,7 @@ onMounted(async () => {
                 'px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors',
                 sentence.isPlaying 
                   ? 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500' 
-                  : 'bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500',
-                !ttsService.isModelLoaded() && 'opacity-50 cursor-not-allowed'
+                  : 'bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500'
               ]"
             >
               {{ sentence.isPlaying ? 'AI朗读中...' : 'AI朗读' }}
