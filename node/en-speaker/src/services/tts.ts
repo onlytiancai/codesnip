@@ -1,4 +1,18 @@
-import { KokoroTTS } from 'kokoro-js';
+import * as ort from "onnxruntime-web";
+import { KokoroTTS } from "kokoro-js";
+import { env } from "@huggingface/transformers";
+
+// 1. 配 WASM CDN
+const WASM_BASE = "https://cdn.jsdmirror.com/npm/@huggingface/transformers@3.8.1/dist/";
+
+// 同时设置根版本和 transformers 版本的 wasmPaths
+ort.env.wasm.wasmPaths = WASM_BASE;
+if (env.backends.onnx?.wasm) {
+  env.backends.onnx.wasm.wasmPaths = WASM_BASE;
+}
+
+
+
 
 // 检测WebGPU支持
 export async function detectWebGPU(): Promise<boolean> {
