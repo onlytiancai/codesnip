@@ -52,6 +52,12 @@ const isDownloadingWasm = ref(false);
 const wasmDownloadStatus = ref('');
 const wasmTestStatus = ref('');
 const wasmFileUrl = ref('');
+const isWasmReady = ref(false);
+
+// 消息提示相关变量
+const showMessage = ref(false);
+const messageContent = ref('');
+const messageType = ref('info'); // info, success, error, warning
 
 // 下载wasm文件并显示进度
 const downloadWasm = async () => {
@@ -104,11 +110,6 @@ const downloadWasm = async () => {
     wasmDownloadStatus.value = 'wasm文件下载成功！';
     wasmDownloadProgress.value = 100;
     
-    // 下载完成后自动测试wasm
-    setTimeout(() => {
-      testWasm();
-    }, 500);
-    
   } catch (error) {
     console.error('下载wasm文件失败:', error);
     wasmDownloadStatus.value = `下载失败: ${error instanceof Error ? error.message : '未知错误'}`;
@@ -135,6 +136,7 @@ const testWasm = async () => {
     await ffmpeg.exec(['-version']);
     
     wasmTestStatus.value = 'wasm测试成功！FFmpeg加载正常。';
+    isWasmReady.value = true;
     
   } catch (error) {
     console.error('wasm测试失败:', error);
@@ -374,7 +376,7 @@ const mergeAudioFiles = async (): Promise<Blob | null> => {
     // 检查是否所有句子都有录音
     const allRecorded = sentences.value.every(sentence => sentence.audio);
     if (!allRecorded) {
-      alert('请为所有句子录制音频');
+      showToast('请为所有句子录制音频', 'warning');
       return null;
     }
     
@@ -385,8 +387,8 @@ const mergeAudioFiles = async (): Promise<Blob | null> => {
     if (!ffmpeg.loaded) {
       videoProgress.value = 10;
       await ffmpeg.load({
-        coreURL: import.meta.env.VITE_FFMPEG_CORE_URL || 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
-        wasmURL: import.meta.env.VITE_FFMPEG_WASM_URL || 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
+        coreURL: import.meta.env.VITE_FFMPEG_CORE_URL ,
+        wasmURL: wasmFileUrl.value || import.meta.env.VITE_FFMPEG_WASM_URL 
       });
       videoProgress.value = 20;
     }
@@ -448,8 +450,28 @@ const createVideo = async () => {
     // 检查是否所有句子都有录音
     const allRecorded = sentences.value.every(sentence => sentence.audio);
     if (!allRecorded) {
-      alert('请为所有句子录制音频');
+      showToast('请为所有句子录制音频', 'warning');
       return;
+    }
+    
+    // 检查WASM是否就绪
+    if (!isWasmReady.value) {
+      showToast('正在准备WASM环境，请稍候...', 'info');
+      videoProgress.value = 0;
+      // 下载WASM文件
+      await downloadWasm();
+      // 检查WASM是否下载成功
+      if (!wasmDownloadStatus.value.includes('成功')) {
+        showToast('WASM文件下载失败，请重试', 'error');
+        return;
+      }
+      // 测试WASM是否能正常工作
+      await testWasm();
+      // 检查WASM测试是否成功
+      if (!wasmTestStatus.value.includes('成功')) {
+        showToast('WASM测试失败，请重试', 'error');
+        return;
+      }
     }
     
     isCreatingVideo.value = true;
@@ -459,7 +481,7 @@ const createVideo = async () => {
     // 生成图片
     const imageDataUrl = generateImage();
     if (!imageDataUrl) {
-      alert('图片生成失败');
+      showToast('图片生成失败', 'error');
       isCreatingVideo.value = false;
       return;
     }
@@ -485,8 +507,8 @@ const createVideo = async () => {
     // 加载FFmpeg
     if (!ffmpeg.loaded) {
       await ffmpeg.load({
-        coreURL: import.meta.env.VITE_FFMPEG_CORE_URL || 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
-        wasmURL: import.meta.env.VITE_FFMPEG_WASM_URL || 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
+        coreURL: import.meta.env.VITE_FFMPEG_CORE_URL,
+        wasmURL: wasmFileUrl.value || import.meta.env.VITE_FFMPEG_WASM_URL
       });
     }
     
@@ -546,11 +568,11 @@ const createVideo = async () => {
     isCreatingVideo.value = false;
     
     // 显示成功消息
-    alert('视频合成成功！您可以预览视频，然后下载到本地。');
+    showToast('视频合成成功！您可以预览视频，然后下载到本地。', 'success');
     
   } catch (error) {
     console.error('视频合成失败:', error);
-    alert('视频合成失败，请重试');
+    showToast('视频合成失败，请重试', 'error');
     isCreatingVideo.value = false;
     videoProgress.value = 0;
   }
@@ -567,12 +589,38 @@ const downloadVideo = () => {
   link.click();
   document.body.removeChild(link);
 };
+
+// 显示消息提示
+const showToast = (content: string, type: string = 'info') => {
+  messageContent.value = content;
+  messageType.value = type;
+  showMessage.value = true;
+  
+  // 3秒后自动关闭
+  setTimeout(() => {
+    showMessage.value = false;
+  }, 3000);
+};
 </script>
 
 <template>
   <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
     <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
       <h1 class="text-3xl font-bold text-indigo-600 mb-6 text-center">英语朗读App</h1>
+      
+      <!-- 消息提示 -->
+      <div 
+        v-if="showMessage" 
+        class="fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ease-in-out transform translate-y-0 opacity-100"
+        :class="{
+          'bg-blue-500 text-white': messageType === 'info',
+          'bg-green-500 text-white': messageType === 'success',
+          'bg-red-500 text-white': messageType === 'error',
+          'bg-yellow-500 text-white': messageType === 'warning'
+        }"
+      >
+        {{ messageContent }}
+      </div>
       
       <div class="mb-8">
         <label for="text-input" class="block text-gray-700 font-medium mb-2">输入英文文本：</label>
@@ -643,23 +691,14 @@ const downloadVideo = () => {
         </div>
         
         <div class="mt-8 space-y-6">
-          <!-- 下载wasm按钮和进度条 -->
-          <div class="space-y-4">
-            <h3 class="text-lg font-semibold text-gray-800">WASM文件管理</h3>
-            <div class="flex justify-center">
-              <button 
-                @click="downloadWasm"
-                :disabled="isDownloadingWasm"
-                class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {{ isDownloadingWasm ? '下载中...' : '下载WASM文件' }}
-              </button>
-            </div>
+          <!-- WASM状态显示 -->
+          <div class="space-y-4" v-if="isDownloadingWasm || wasmDownloadStatus || wasmTestStatus">
+            <h3 class="text-lg font-semibold text-gray-800">WASM状态</h3>
             
             <!-- WASM下载进度条 -->
             <div v-if="isDownloadingWasm || wasmDownloadProgress > 0" class="space-y-2">
               <div class="flex justify-between text-sm text-gray-600">
-                <span>下载进度</span>
+                <span>WASM下载进度</span>
                 <span>{{ wasmDownloadProgress }}%</span>
               </div>
               <div class="w-full bg-gray-200 rounded-full h-2.5">
