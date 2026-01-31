@@ -1,4 +1,6 @@
 // 导入FFmpeg模块（使用动态导入方式）
+import { showToast } from '../utils/ui';
+
 let FFmpeg: any;
 let ffmpegModuleLoaded = false;
 let ffmpegModulePromise: Promise<void>;
@@ -19,6 +21,7 @@ ffmpegModulePromise = import('@ffmpeg/ffmpeg').then(ffmpegModule => {
   console.log('FFmpeg module loaded successfully:', { FFmpeg });
 }).catch(error => {
   console.error('Failed to load FFmpeg module:', error);
+  showToast('FFmpeg模块加载失败', 'error');
   ffmpegModuleLoaded = false;
 });
 
@@ -102,6 +105,7 @@ export const mergeAudioFiles = async (audioUrls: string[], wasmFileUrl: string):
     return blob;
   } catch (error) {
     console.error('音频合并失败:', error);
+    showToast('音频合并失败', 'error');
     return null;
   }
 };
@@ -151,6 +155,7 @@ export const createVideoFromParts = async (imageBlob: Blob, audioBlob: Blob, was
     return videoBlob;
   } catch (error) {
     console.error('视频合成失败:', error);
+    showToast('视频合成失败', 'error');
     return null;
   }
 };

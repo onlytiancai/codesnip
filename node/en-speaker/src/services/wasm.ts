@@ -1,4 +1,5 @@
 import { initFFmpeg } from './ffmpeg';
+import { showToast } from '../utils/ui';
 
 // 下载wasm文件并显示进度
 export const downloadWasm = async (onProgress: (progress: number) => void, onStatus: (status: string) => void): Promise<string> => {
@@ -55,6 +56,7 @@ export const downloadWasm = async (onProgress: (progress: number) => void, onSta
     console.error('下载wasm文件失败:', error);
     const errorMessage = `下载失败: ${error instanceof Error ? error.message : '未知错误'}`;
     onStatus(errorMessage);
+    showToast('WASM文件下载失败', 'error');
     throw error;
   }
 };
@@ -82,6 +84,7 @@ export const testWasm = async (wasmFileUrl: string, onStatus: (status: string) =
     console.error('wasm测试失败:', error);
     const errorMessage = `测试失败: ${error instanceof Error ? error.message : '未知错误'}`;
     onStatus(errorMessage);
+    showToast('WASM测试失败', 'error');
     return false;
   }
 };
