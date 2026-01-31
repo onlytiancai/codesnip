@@ -5,11 +5,19 @@ import { env } from "@huggingface/transformers";
 // 1. 配 WASM CDN
 const WASM_BASE = "https://cdn.jsdmirror.com/npm/@huggingface/transformers@3.8.1/dist/";
 
+// 2. 配模型下载地址
+const MODEL_HOST = "https://webapp.ihuhao.com/cdn/";
+const MODEL_PATH_TEMPLATE = "{model}/";
+
 // 同时设置根版本和 transformers 版本的 wasmPaths
 ort.env.wasm.wasmPaths = WASM_BASE;
 if (env.backends.onnx?.wasm) {
   env.backends.onnx.wasm.wasmPaths = WASM_BASE;
 }
+
+// 自定义模型下载地址
+env.remoteHost = MODEL_HOST;
+env.remotePathTemplate = MODEL_PATH_TEMPLATE;
 
 
 
