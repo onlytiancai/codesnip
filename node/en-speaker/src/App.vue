@@ -35,7 +35,7 @@ interface Sentence {
   isPlaying: boolean;
 }
 
-const inputText = ref("Postcards always spoil my holidays. Last summer, I went to Italy. I visited museums and sat in public gardens. A friendly waiter taught me a few words of Italian. Then he lent me a book. I read a few lines, but I did not understand a word. Every day I thought about postcards. My holidays passed quickly, but I did not send any cards to my friends. On the last day I made a big decision. I got up early and bought thirty-seven cards. I spent the whole day in my room, but I did not write a single card!");
+const inputText = ref("Postcards always spoil my holidays. Last summer, I went to Italy. I visited museums and sat in public gardens. ");
 const sentences = ref<Sentence[]>([]);
 const isProcessing = ref(false);
 const isCreatingVideo = ref(false);
@@ -45,6 +45,102 @@ let mediaRecorder: MediaRecorder | null = null;
 let audioChunks: Blob[] = [];
 let currentHowl: Howl | null = null;
 let ffmpegInstance: any = null;
+
+// wasm下载相关变量
+const wasmDownloadProgress = ref(0);
+const isDownloadingWasm = ref(false);
+const wasmDownloadStatus = ref('');
+const wasmTestStatus = ref('');
+const wasmFileUrl = ref('');
+
+// 下载wasm文件并显示进度
+const downloadWasm = async () => {
+  try {
+    isDownloadingWasm.value = true;
+    wasmDownloadStatus.value = '开始下载wasm文件...';
+    wasmDownloadProgress.value = 0;
+    
+    const wasmUrl = 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm';
+    const response = await fetch(wasmUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': '*/*'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`下载失败: ${response.statusText}`);
+    }
+    
+    const totalSize = parseInt(response.headers.get('content-length') || '0');
+    let downloadedSize = 0;
+    const reader = response.body?.getReader();
+    
+    if (!reader) {
+      throw new Error('无法获取响应体');
+    }
+    
+    const chunks: Uint8Array[] = [];
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      
+      if (done) {
+        break;
+      }
+      
+      chunks.push(value);
+      downloadedSize += value.length;
+      
+      if (totalSize > 0) {
+        wasmDownloadProgress.value = Math.round((downloadedSize / totalSize) * 100);
+      }
+    }
+    
+    const blob = new Blob(chunks as BlobPart[], { type: 'application/wasm' });
+    const fileUrl = URL.createObjectURL(blob);
+    wasmFileUrl.value = fileUrl;
+    
+    wasmDownloadStatus.value = 'wasm文件下载成功！';
+    wasmDownloadProgress.value = 100;
+    
+    // 下载完成后自动测试wasm
+    setTimeout(() => {
+      testWasm();
+    }, 500);
+    
+  } catch (error) {
+    console.error('下载wasm文件失败:', error);
+    wasmDownloadStatus.value = `下载失败: ${error instanceof Error ? error.message : '未知错误'}`;
+  } finally {
+    isDownloadingWasm.value = false;
+  }
+};
+
+// 测试wasm是否能正常工作
+const testWasm = async () => {
+  try {
+    wasmTestStatus.value = '开始测试wasm...';
+    
+    // 初始化FFmpeg实例
+    const ffmpeg = await initFFmpeg();
+    
+    // 加载FFmpeg（使用本地下载的wasm文件）
+    await ffmpeg.load({
+      coreURL: 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
+      wasmURL: wasmFileUrl.value || 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
+    });
+    
+    // 简单测试：检查FFmpeg版本
+    await ffmpeg.exec(['-version']);
+    
+    wasmTestStatus.value = 'wasm测试成功！FFmpeg加载正常。';
+    
+  } catch (error) {
+    console.error('wasm测试失败:', error);
+    wasmTestStatus.value = `测试失败: ${error instanceof Error ? error.message : '未知错误'}`;
+  }
+};
 
 // 初始化FFmpeg实例
 const initFFmpeg = async () => {
@@ -58,7 +154,12 @@ const initFFmpeg = async () => {
   }
   
   if (!ffmpegInstance) {
-    ffmpegInstance = new FFmpeg();
+    ffmpegInstance = new FFmpeg({
+      log: true,
+      progress: (progress: any) => {
+        console.log('FFmpeg progress callback:', progress);
+      }
+    });
   }
   
   return ffmpegInstance;
@@ -229,19 +330,19 @@ const generateImage = (): string => {
   
   // 绘制标题
   ctx.fillStyle = '#4f46e5';
-  ctx.font = '36px Arial';
+  ctx.font = '48px Arial';
   ctx.textAlign = 'center';
   ctx.fillText('英语朗读', canvas.width / 2, 100);
   
   // 绘制文本
   ctx.fillStyle = '#1e293b';
-  ctx.font = '24px Arial';
+  ctx.font = '32px Arial';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   
   const text = inputText.value;
   const maxWidth = canvas.width - 120;
-  const lineHeight = 32;
+  const lineHeight = 40;
   const x = 60;
   let y = 160;
   
@@ -395,6 +496,18 @@ const createVideo = async () => {
     
     videoProgress.value = 70;
     
+    // 添加FFmpeg进度监听
+    ffmpeg.on('progress', (progress: any) => {
+      console.log('FFmpeg progress:', progress);
+      if (progress && typeof progress === 'object') {
+        // 计算实际进度百分比
+        const currentProgress = 70 + (progress.progress || 0) * 20;
+        if (currentProgress > videoProgress.value && currentProgress < 90) {
+          videoProgress.value = Math.min(currentProgress, 89);
+        }
+      }
+    });
+    
     // 使用FFmpeg生成视频
     await ffmpeg.exec([
       '-loop', '1',
@@ -405,8 +518,12 @@ const createVideo = async () => {
       '-shortest',
       '-pix_fmt', 'yuv420p',
       '-aspect', '9:16',
+      '-progress', 'pipe:3',
       'output.mp4'
     ]);
+    
+    // 移除进度监听
+    ffmpeg.off('progress');
     
     videoProgress.value = 90;
     
@@ -526,6 +643,44 @@ const downloadVideo = () => {
         </div>
         
         <div class="mt-8 space-y-6">
+          <!-- 下载wasm按钮和进度条 -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-gray-800">WASM文件管理</h3>
+            <div class="flex justify-center">
+              <button 
+                @click="downloadWasm"
+                :disabled="isDownloadingWasm"
+                class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {{ isDownloadingWasm ? '下载中...' : '下载WASM文件' }}
+              </button>
+            </div>
+            
+            <!-- WASM下载进度条 -->
+            <div v-if="isDownloadingWasm || wasmDownloadProgress > 0" class="space-y-2">
+              <div class="flex justify-between text-sm text-gray-600">
+                <span>下载进度</span>
+                <span>{{ wasmDownloadProgress }}%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div 
+                  class="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out"
+                  :style="{ width: wasmDownloadProgress + '%' }"
+                ></div>
+              </div>
+            </div>
+            
+            <!-- WASM下载状态 -->
+            <div v-if="wasmDownloadStatus" class="text-sm" :class="wasmDownloadStatus.includes('成功') ? 'text-green-600' : wasmDownloadStatus.includes('失败') ? 'text-red-600' : 'text-blue-600'">
+              {{ wasmDownloadStatus }}
+            </div>
+            
+            <!-- WASM测试状态 -->
+            <div v-if="wasmTestStatus" class="text-sm" :class="wasmTestStatus.includes('成功') ? 'text-green-600' : wasmTestStatus.includes('失败') ? 'text-red-600' : 'text-blue-600'">
+              {{ wasmTestStatus }}
+            </div>
+          </div>
+          
           <!-- 合成视频按钮 -->
           <div class="flex justify-center">
             <button 
@@ -554,11 +709,11 @@ const downloadVideo = () => {
           <!-- 视频预览和下载 -->
           <div v-if="videoPreviewUrl" class="space-y-4">
             <h3 class="text-lg font-semibold text-gray-800">视频预览</h3>
-            <div class="bg-gray-900 rounded-lg overflow-hidden">
+            <div class="flex justify-center bg-gray-900 rounded-lg overflow-hidden">
               <video 
                 :src="videoPreviewUrl" 
                 controls 
-                class="w-full max-h-96"
+                class="w-auto max-w-full h-[500px] aspect-[9/16]"
                 autoplay 
                 muted 
                 loop
