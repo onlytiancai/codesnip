@@ -60,7 +60,7 @@ const downloadWasm = async () => {
     wasmDownloadStatus.value = '开始下载wasm文件...';
     wasmDownloadProgress.value = 0;
     
-    const wasmUrl = 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm';
+    const wasmUrl = import.meta.env.VITE_FFMPEG_WASM_URL || 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm';
     const response = await fetch(wasmUrl, {
       method: 'GET',
       headers: {
@@ -127,8 +127,8 @@ const testWasm = async () => {
     
     // 加载FFmpeg（使用本地下载的wasm文件）
     await ffmpeg.load({
-      coreURL: 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
-      wasmURL: wasmFileUrl.value || 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
+      coreURL: import.meta.env.VITE_FFMPEG_CORE_URL || 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
+      wasmURL: wasmFileUrl.value || import.meta.env.VITE_FFMPEG_WASM_URL || 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
     });
     
     // 简单测试：检查FFmpeg版本
@@ -385,8 +385,8 @@ const mergeAudioFiles = async (): Promise<Blob | null> => {
     if (!ffmpeg.loaded) {
       videoProgress.value = 10;
       await ffmpeg.load({
-        coreURL: 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
-        wasmURL: 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
+        coreURL: import.meta.env.VITE_FFMPEG_CORE_URL || 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
+        wasmURL: import.meta.env.VITE_FFMPEG_WASM_URL || 'https://webapp.ihuhao.com/cdn/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
       });
       videoProgress.value = 20;
     }
@@ -485,8 +485,8 @@ const createVideo = async () => {
     // 加载FFmpeg
     if (!ffmpeg.loaded) {
       await ffmpeg.load({
-        coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
-        wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
+        coreURL: import.meta.env.VITE_FFMPEG_CORE_URL || 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
+        wasmURL: import.meta.env.VITE_FFMPEG_WASM_URL || 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
       });
     }
     
