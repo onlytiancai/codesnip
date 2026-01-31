@@ -500,10 +500,10 @@ const createVideo = async () => {
     ffmpeg.on('progress', (progress: any) => {
       console.log('FFmpeg progress:', progress);
       if (progress && typeof progress === 'object') {
-        // 计算实际进度百分比
-        const currentProgress = 70 + (progress.progress || 0) * 20;
+        // 计算实际进度百分比并保留两位小数
+        const currentProgress = Math.round((70 + (progress.progress || 0) * 20) * 100) / 100;
         if (currentProgress > videoProgress.value && currentProgress < 90) {
-          videoProgress.value = Math.min(currentProgress, 89);
+          videoProgress.value = Math.min(currentProgress, 89.99);
         }
       }
     });
