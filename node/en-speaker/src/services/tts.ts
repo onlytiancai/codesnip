@@ -64,9 +64,29 @@ export class TTSService {
         dtype,
         device,
         progress_callback: (progress) => {
-          // 确保进度值是有效的数字
-          const validProgress = typeof progress === 'number' && !isNaN(progress) ? progress : 0;
+          // 处理不同类型的进度参数
+          let validProgress = 0;
+          
+          if (typeof progress === 'number' && !isNaN(progress)) {
+            // 直接是数字类型的进度
+            validProgress = progress;
+          } else if (typeof progress === 'object' && progress !== null) {
+            // 处理对象类型的进度信息（来自@huggingface/transformers）
+            if ('progress' in progress && typeof progress.progress === 'number') {
+              // 包含progress字段的对象
+              validProgress = progress.progress / 100; // 转换为0-1范围
+            } else if ('status' in progress) {
+              // 处理不同状态的进度
+              if (progress.status === 'done') {
+                validProgress = 1; // 完成时设置为100%
+              } else if (progress.status === 'progress' && 'progress' in progress) {
+                validProgress = progress.progress / 100; // 转换为0-1范围
+              }
+            }
+          }
+          
           const percentage = Math.max(0, Math.min(100, Math.round(validProgress * 100)));
+          
           if (progressCallback) {
             progressCallback(percentage);
           }
