@@ -22,10 +22,7 @@ const emit = defineEmits<{
   (e: 'stop-speaking'): void;
 }>();
 
-// 获取完整句子
-const getFullSentence = (): string => {
-  return props.words.map(word => word.word).join(' ');
-};
+
 </script>
 
 <template>

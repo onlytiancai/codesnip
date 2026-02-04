@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
+import JSZip from 'jszip';
 import { analyzeEnglishText } from './utils/phonemizer';
 import type { SentenceAnalysis } from './utils/phonemizer';
 import SentenceAnalysisComponent from './components/SentenceAnalysis.vue';
@@ -16,6 +17,7 @@ interface ExtendedSentenceAnalysis extends SentenceAnalysis {
   isTranslating?: boolean;
   hasAudio?: boolean;
   showTranslation?: boolean;
+  importedAudioUrl?: string; // 导入数据的音频URL
 }
 
 const analysisResults = ref<ExtendedSentenceAnalysis[]>([]);
@@ -24,6 +26,8 @@ const errorMessage = ref('');
 const showPhonemes = ref(true);
 const alignPhonemesWithWords = ref(false);
 const allTranslationsVisible = ref(false);
+// 区分句子列表来源
+const isImportedData = ref(false);
 
 // TTS相关变量
 const isLoadingModel = ref(false);
@@ -74,6 +78,8 @@ async function analyzeText() {
     audioGenerationProgress.value = 0;
     audioGenerationStatus.value = '';
     allTranslationsVisible.value = false;
+    // 标记为分析生成的结果
+    isImportedData.value = false;
   } catch (error) {
     console.error('分析文本时出错:', error);
     errorMessage.value = '分析文本时出错，请重试';
@@ -184,8 +190,8 @@ async function generateAllAudio() {
     return;
   }
   
-  // 检查模型是否已加载
-  if (!ttsService.isModelLoaded()) {
+  // 检查模型是否已加载（仅当不是导入数据时）
+  if (!isImportedData.value && !ttsService.isModelLoaded()) {
     showToast('请先加载TTS模型', 'warning');
     await loadKokoroModel();
     if (!ttsService.isModelLoaded()) return;
@@ -298,8 +304,8 @@ async function handleSpeak(sentenceIndex: number) {
   const sentence = analysisResults.value[sentenceIndex];
   if (!sentence) return;
   
-  // 检查模型是否已加载
-  if (!ttsService.isModelLoaded()) {
+  // 检查模型是否已加载（仅当不是导入数据时）
+  if (!isImportedData.value && !ttsService.isModelLoaded()) {
     showToast('请先加载TTS模型', 'warning');
     await loadKokoroModel();
     if (!ttsService.isModelLoaded()) return;
@@ -323,32 +329,62 @@ async function handleSpeak(sentenceIndex: number) {
     sentence.isAiSpeaking = true;
     currentSpeakingSentenceIndex.value = sentenceIndex;
     
-    const voiceId = selectedVoice.value;
     // 构建完整句子文本
     const text = sentence.words.map(word => word.word).join(' ');
     
-    // 检查缓存
-    if (!audioCache.value[voiceId]) {
-      audioCache.value[voiceId] = {};
-    }
+    let audioUrl: string = '';
     
-    let audioUrl: string;
-    if (audioCache.value[voiceId][text]) {
-      // 使用缓存的音频
-      audioUrl = audioCache.value[voiceId][text].audioUrl;
-      console.log(`[AI朗读] 使用缓存的语音: ${text.substring(0, 20)}...`);
-    } else {
-      // 生成新音频
-      console.log(`[AI朗读] 生成新语音: ${text.substring(0, 20)}...`);
-      const audioBlob = await ttsService.generateSpeech(text, voiceId);
-      audioUrl = URL.createObjectURL(audioBlob);
+    if (isImportedData.value) {
+      // 导入数据：直接使用句子对象的importedAudioUrl
+      console.log(`[AI朗读] 导入数据播放：句子索引: ${sentenceIndex}, 文本: ${text.substring(0, 20)}...`);
       
-      // 存储到缓存
-      audioCache.value[voiceId][text] = {
-        audioUrl,
-        timestamp: Date.now()
-      };
-      console.log(`[AI朗读] 语音已缓存: ${text.substring(0, 20)}...`);
+      if (sentence.importedAudioUrl) {
+        audioUrl = sentence.importedAudioUrl;
+        console.log(`[AI朗读] 使用导入的音频URL: ${audioUrl.substring(0, 50)}...`);
+      } else {
+        console.error('[AI朗读] 导入数据的音频URL不存在，句子索引:', sentenceIndex);
+        console.error('[AI朗读] 句子对象:', JSON.stringify(sentence, null, 2));
+        showToast('音频URL不存在，请重新导入数据', 'error');
+        sentence.isAiSpeaking = false;
+        currentSpeakingSentenceIndex.value = null;
+        return;
+      }
+    } else {
+      // 非导入数据：使用语音合成
+      const voiceId = selectedVoice.value;
+      
+      // 检查缓存
+      if (!audioCache.value[voiceId]) {
+        audioCache.value[voiceId] = {};
+      }
+      
+      console.log(`[AI朗读] 检查音频缓存: voiceId=${voiceId}, text=${text.substring(0, 20)}...`);
+      console.log(`[AI朗读] 缓存状态: ${audioCache.value[voiceId] ? '存在语音缓存' : '无语音缓存'}`);
+      if (audioCache.value[voiceId]) {
+        console.log(`[AI朗读] 该语音下的缓存键数量: ${Object.keys(audioCache.value[voiceId]).length}`);
+        console.log(`[AI朗读] 该文本是否在缓存中: ${audioCache.value[voiceId][text] ? '是' : '否'}`);
+      }
+      
+      if (audioCache.value[voiceId] && audioCache.value[voiceId][text]) {
+        // 使用缓存的音频
+        audioUrl = audioCache.value[voiceId][text].audioUrl;
+        console.log(`[AI朗读] 使用缓存的语音: ${text.substring(0, 20)}...`);
+      } else {
+        // 生成新音频
+        console.log(`[AI朗读] 生成新语音: ${text.substring(0, 20)}...`);
+        const audioBlob = await ttsService.generateSpeech(text, voiceId);
+        audioUrl = URL.createObjectURL(audioBlob);
+        
+        // 存储到缓存
+        if (!audioCache.value[voiceId]) {
+          audioCache.value[voiceId] = {};
+        }
+        audioCache.value[voiceId][text] = {
+          audioUrl,
+          timestamp: Date.now()
+        };
+        console.log(`[AI朗读] 语音已缓存: ${text.substring(0, 20)}...`);
+      }
     }
     
     // 播放音频
@@ -411,8 +447,8 @@ async function playAllSentences() {
     return;
   }
   
-  // 检查模型是否已加载
-  if (!ttsService.isModelLoaded()) {
+  // 检查模型是否已加载（仅当不是导入数据时）
+  if (!isImportedData.value && !ttsService.isModelLoaded()) {
     showToast('请先加载TTS模型', 'warning');
     await loadKokoroModel();
     if (!ttsService.isModelLoaded()) return;
@@ -457,34 +493,63 @@ async function playNextSentence() {
     // 滚动到当前句子
     scrollToCurrentSentence(currentIndex);
     
-    const voiceId = selectedVoice.value;
     // 构建完整句子文本
     const text = sentence.words.map(word => word.word).join(' ');
     
-    // 检查缓存
-    if (!audioCache.value[voiceId]) {
-      audioCache.value[voiceId] = {};
-    }
+    let audioUrl: string = '';
     
-    let audioUrl: string;
-    if (audioCache.value[voiceId][text]) {
-      // 使用缓存的音频
-      audioUrl = audioCache.value[voiceId][text].audioUrl;
-      console.log(`[AI朗读] 使用缓存的语音播放句子 ${currentIndex + 1}: ${text.substring(0, 20)}...`);
+    if (isImportedData.value) {
+      // 导入数据：直接从任何voiceId的缓存中查找音频
+      console.log(`[AI朗读] 导入数据播放：查找句子 ${currentIndex + 1} 的音频: ${text.substring(0, 20)}...`);
+      
+      // 遍历所有voiceId，查找包含该文本的音频缓存
+      for (const voice in audioCache.value) {
+        const voiceCache = audioCache.value[voice];
+        if (voiceCache && voiceCache[text]) {
+          audioUrl = voiceCache[text].audioUrl;
+          console.log(`[AI朗读] 找到导入的音频: ${text.substring(0, 20)}...`);
+          break;
+        }
+      }
+      
+      if (!audioUrl) {
+        console.error('[AI朗读] 导入数据的音频缓存不存在');
+        showToast('音频缓存不存在，请重新导入数据', 'error');
+        sentence.isAiSpeaking = false;
+        resetPlayAllState();
+        return;
+      }
     } else {
-      // 生成新音频
-      console.log(`[AI朗读] 生成新语音播放句子 ${currentIndex + 1}: ${text.substring(0, 20)}...`);
-      const audioBlob = await ttsService.generateSpeech(text, voiceId);
-      audioUrl = URL.createObjectURL(audioBlob);
+      // 非导入数据：使用语音合成
+      const voiceId = selectedVoice.value;
       
-      // 存储到缓存
-      audioCache.value[voiceId][text] = {
-        audioUrl,
-        timestamp: Date.now()
-      };
+      // 检查缓存
+      if (!audioCache.value[voiceId]) {
+        audioCache.value[voiceId] = {};
+      }
       
-      // 标记该句子已生成音频
-      sentence.hasAudio = true;
+      if (audioCache.value[voiceId] && audioCache.value[voiceId][text]) {
+        // 使用缓存的音频
+        audioUrl = audioCache.value[voiceId][text].audioUrl;
+        console.log(`[AI朗读] 使用缓存的语音播放句子 ${currentIndex + 1}: ${text.substring(0, 20)}...`);
+      } else {
+        // 生成新音频
+        console.log(`[AI朗读] 生成新语音播放句子 ${currentIndex + 1}: ${text.substring(0, 20)}...`);
+        const audioBlob = await ttsService.generateSpeech(text, voiceId);
+        audioUrl = URL.createObjectURL(audioBlob);
+        
+        // 存储到缓存
+        if (!audioCache.value[voiceId]) {
+          audioCache.value[voiceId] = {};
+        }
+        audioCache.value[voiceId][text] = {
+          audioUrl,
+          timestamp: Date.now()
+        };
+        
+        // 标记该句子已生成音频
+        sentence.hasAudio = true;
+      }
     }
     
     // 播放音频
@@ -573,6 +638,216 @@ function resetPlayAllState() {
   console.log('[AI朗读] 播放全部状态已重置');
 }
 
+// 导出功能
+async function exportData() {
+  if (analysisResults.value.length === 0) {
+    showToast('请先分析文本', 'warning');
+    return;
+  }
+  
+  // 检查所有句子的翻译和音频状态
+  const missingTranslations = [];
+  const missingAudio = [];
+  
+  for (let i = 0; i < analysisResults.value.length; i++) {
+    const sentence = analysisResults.value[i];
+    if (sentence) {
+      if (!sentence.translation) {
+        missingTranslations.push(i + 1); // 句子编号从1开始
+      }
+      if (!sentence.hasAudio) {
+        missingAudio.push(i + 1); // 句子编号从1开始
+      }
+    }
+  }
+  
+  // 提示用户缺失的内容
+  if (missingTranslations.length > 0 || missingAudio.length > 0) {
+    let message = '导出前需要完成以下内容：\n';
+    if (missingTranslations.length > 0) {
+      message += `- 未翻译的句子：${missingTranslations.join(', ')}\n`;
+    }
+    if (missingAudio.length > 0) {
+      message += `- 未生成音频的句子：${missingAudio.join(', ')}\n`;
+    }
+    showToast(message, 'warning');
+    return;
+  }
+  
+  try {
+    const zip = new JSZip();
+    
+    // 创建导出数据
+    const exportData = {
+      sentences: analysisResults.value.map((sentence, index) => {
+        const text = sentence.words.map(word => word.word).join(' ');
+        return {
+          index,
+          text,
+          words: sentence.words,
+          translation: sentence.translation,
+          hasAudio: sentence.hasAudio
+        };
+      }),
+      exportTime: new Date().toISOString()
+    };
+    
+    // 添加数据文件
+    zip.file('data.json', JSON.stringify(exportData, null, 2));
+    
+    // 添加音频文件
+    const voiceId = selectedVoice.value;
+    if (audioCache.value[voiceId]) {
+      const audioFolder = zip.folder('audio');
+      if (audioFolder) {
+        // 遍历所有句子，为每个有音频的句子添加音频文件
+        for (let i = 0; i < exportData.sentences.length; i++) {
+          const sentence = exportData.sentences[i];
+          if (sentence) {
+            const text = sentence.text;
+            if (text && audioCache.value[voiceId][text]) {
+              const audioData = audioCache.value[voiceId][text];
+              const fileName = `sentence_${i}.mp3`;
+              // 从audioUrl获取音频数据
+              const response = await fetch(audioData.audioUrl);
+              const blob = await response.blob();
+              audioFolder.file(fileName, blob);
+            }
+          }
+        }
+      }
+    }
+    
+    // 生成压缩文件
+    const content = await zip.generateAsync({ type: 'blob' });
+    
+    // 创建下载链接
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(content);
+    link.download = `en-reader-export-${new Date().getTime()}.zip`;
+    link.click();
+    
+    showToast('导出成功', 'success');
+  } catch (error) {
+    console.error('导出失败:', error);
+    showToast('导出失败，请重试', 'error');
+  }
+}
+
+// 导入功能
+function handleImport(event: Event) {
+  const target = event.target as HTMLInputElement;
+  if (!target.files || target.files.length === 0) return;
+  
+  const file = target.files[0];
+  if (!file || !file.name.endsWith('.zip')) {
+    showToast('请上传zip格式的文件', 'error');
+    return;
+  }
+  
+  const zip = new JSZip();
+  zip.loadAsync(file as any)
+    .then(async (zip) => {
+      // 读取data.json文件
+      const dataFile = zip.file('data.json');
+      if (!dataFile) {
+        showToast('无效的导出文件', 'error');
+        return;
+      }
+      
+      const dataContent = await dataFile.async('string');
+      const importData = JSON.parse(dataContent);
+      
+      // 验证数据结构
+      if (!importData.sentences || !Array.isArray(importData.sentences)) {
+        showToast('无效的导出文件格式', 'error');
+        return;
+      }
+      
+      // 转换导入数据为analysisResults格式
+      const importedResults: ExtendedSentenceAnalysis[] = importData.sentences.map((sentence: any) => ({
+        words: sentence.words || [],
+        isAiSpeaking: false,
+        translation: sentence.translation,
+        isTranslating: false,
+        hasAudio: sentence.hasAudio || false,
+        showTranslation: false
+      }));
+      
+      // 更新分析结果
+      analysisResults.value = importedResults;
+      // 标记为导入的数据
+      isImportedData.value = true;
+      
+      // 读取音频文件
+      const audioFolder = zip.folder('audio');
+      if (audioFolder) {
+        // 为所有可用语音都添加音频缓存，确保切换语音后也能使用导入的音频
+        const voiceId = selectedVoice.value;
+        
+        // 获取所有音频文件
+        const audioFiles = Object.keys(audioFolder.files).filter(name => name.endsWith('.mp3'));
+        console.log(`[导入] 找到音频文件数量: ${audioFiles.length}`);
+        console.log(`[导入] 音频文件列表: ${audioFiles.join(', ')}`);
+        
+        for (const fileName of audioFiles) {
+          // 移除audio/前缀
+          const cleanFileName = fileName.replace(/^audio\//, '');
+          const audioFile = audioFolder.file(cleanFileName);
+          if (audioFile) {
+            console.log(`[导入] 处理音频文件: ${fileName} (清理后: ${cleanFileName})`);
+            const blob = await audioFile.async('blob');
+            const audioUrl = URL.createObjectURL(blob);
+            console.log(`[导入] 创建音频URL: ${audioUrl.substring(0, 50)}...`);
+            
+            // 解析句子索引
+            const match = cleanFileName.match(/sentence_(\d+).mp3/);
+            const sentenceIndex = match && match[1] ? parseInt(match[1]) : -1;
+            console.log(`[导入] 解析句子索引: ${cleanFileName} -> ${sentenceIndex}`);
+            
+            if (sentenceIndex >= 0 && sentenceIndex < importedResults.length) {
+              const sentence = importedResults[sentenceIndex];
+              if (sentence) {
+                const text = sentence.words.map(word => word.word).join(' ');
+                console.log(`[导入] 对应句子: 索引=${sentenceIndex}, 文本=${text.substring(0, 30)}...`);
+                
+                // 直接存储音频URL到句子对象
+                sentence.importedAudioUrl = audioUrl;
+                sentence.hasAudio = true;
+                console.log(`[导入] 添加音频到句子: 索引=${sentenceIndex}, 文本=${text.substring(0, 30)}...`);
+                console.log(`[导入] 句子对象更新后:`, JSON.stringify(sentence, null, 2));
+                
+                // 同时也添加到缓存，确保兼容性
+                if (!audioCache.value[voiceId]) {
+                  audioCache.value[voiceId] = {};
+                }
+                audioCache.value[voiceId][text] = {
+                  audioUrl,
+                  timestamp: Date.now()
+                };
+                console.log(`[导入] 添加音频到缓存: voiceId=${voiceId}, text=${text.substring(0, 30)}...`);
+              } else {
+                console.error(`[导入] 句子对象不存在，索引: ${sentenceIndex}`);
+              }
+            } else {
+              console.error(`[导入] 句子索引无效: ${sentenceIndex}, 总句子数: ${importedResults.length}`);
+            }
+          } else {
+            console.error(`[导入] 音频文件不存在: ${fileName}`);
+          }
+        }
+      } else {
+        console.error(`[导入] 音频目录不存在`);
+      }
+      
+      showToast('导入成功', 'success');
+    })
+    .catch(error => {
+      console.error('导入失败:', error);
+      showToast('导入失败，请重试', 'error');
+    });
+}
+
 // 组件挂载时检测WebGPU支持
 onMounted(async () => {
   await checkWebGPUSupport();
@@ -638,6 +913,29 @@ onMounted(async () => {
           {{ allTranslationsVisible ? '隐藏所有翻译' : '显示所有翻译' }}
         </button>
         
+        <!-- 导出按钮 - 只有分析文本后才显示 -->
+        <button 
+          v-if="analysisResults.length > 0"
+          @click="exportData"
+          class="px-6 py-2 bg-yellow-600 text-white font-medium rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-all"
+        >
+          导出数据
+        </button>
+        
+        <!-- 导入按钮 - 始终显示 -->
+        <div class="relative">
+          <button 
+            class="px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all"
+          >
+            导入数据
+          </button>
+          <input 
+            type="file" 
+            accept=".zip" 
+            @change="handleImport"
+            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          >
+        </div>
 
       </div>
       
@@ -657,9 +955,11 @@ onMounted(async () => {
       </div>
       
       <!-- 语音选择 -->
-      <div v-if="availableVoices.length > 0" class="mb-6">
+      <div v-if="analysisResults.length > 0" class="mb-6">
         <label for="voice-select" class="block text-sm font-medium text-gray-700 mb-2">选择语音：</label>
+        <!-- 语音选择下拉框 - 只有当有可用语音时显示 -->
         <select 
+          v-if="availableVoices.length > 0"
           id="voice-select" 
           v-model="selectedVoice" 
           class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
@@ -668,10 +968,15 @@ onMounted(async () => {
             {{ voice.displayName }}
           </option>
         </select>
+        <!-- 当没有可用语音时，显示当前选中的语音 -->
+        <div v-else class="w-full px-4 py-3 border border-gray-300 rounded-md bg-gray-50">
+          当前语音: {{ selectedVoice }}
+        </div>
         
         <div class="flex gap-3 mt-3">
-          <!-- 生成AI朗读按钮 - 只有加载语音模型成功后显示 -->
+          <!-- 生成AI朗读按钮 - 只有加载语音模型成功后显示，导入数据时不显示 -->
           <button 
+            v-if="!isImportedData"
             @click="generateAllAudio"
             :disabled="isGeneratingAudio"
             class="px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"

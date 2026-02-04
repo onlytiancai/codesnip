@@ -14,6 +14,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.1.18(vite@7.3.1(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2))
+      jszip:
+        specifier: ^3.10.1
+        version: 3.10.1
       kokoro-js:
         specifier: ^1.2.1
         version: 1.2.1
@@ -715,6 +718,9 @@ packages:
     resolution: {integrity: sha512-+IxzY9BZOQd/XuYPRmrvEVjF/nqj5kgT4kEq7VofrDoM1MxoRjEWkrCC3EtLi59TVawxTAn+orJwFQcrqEN1+g==}
     engines: {node: '>=18'}
 
+  core-util-is@1.0.3:
+    resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
+
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
 
@@ -802,6 +808,15 @@ packages:
   has-property-descriptors@1.0.2:
     resolution: {integrity: sha512-55JNKuIW+vq4Ke1BjOTjM2YctQIvCT7GFzHwmfZPGo5wnrgkid0YQtnAleFSqumZm4az3n2BS+erby5ipJdgrg==}
 
+  immediate@3.0.6:
+    resolution: {integrity: sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==}
+
+  inherits@2.0.4:
+    resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
+
+  isarray@1.0.0:
+    resolution: {integrity: sha512-VLghIWNM6ELQzo7zwmcg0NmTVyWKYjvIeM83yjp0wRDTmUnrM678fQbcKBo6n2CJEF0szoG//ytg+TKla89ALQ==}
+
   jiti@2.6.1:
     resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
     hasBin: true
@@ -809,8 +824,14 @@ packages:
   json-stringify-safe@5.0.1:
     resolution: {integrity: sha512-ZClg6AaYvamvYEE82d3Iyd3vSSIjQ+odgjaTzRuO3s7toCdFKczob2i0zCh7JE8kWn17yvAWhUVxvqGwUalsRA==}
 
+  jszip@3.10.1:
+    resolution: {integrity: sha512-xXDvecyTpGLrqFrvkrUSoxxfJI5AH7U8zxxtVclpsUtMCq4JQ290LY8AW5c7Ggnr/Y/oK+bQMbqK2qmtk3pN4g==}
+
   kokoro-js@1.2.1:
     resolution: {integrity: sha512-oq0HZJWis3t8lERkMJh84WLU86dpYD0EuBPtqYnLlQzyFP1OkyBRDcweAqCfhNOpltyN9j/azp1H6uuC47gShw==}
+
+  lie@3.3.0:
+    resolution: {integrity: sha512-UaiMJzeWRlEujzAuw5LokY1L5ecNQYZKfmyZ9L7wDHb/p5etKaxXhohBcrw0EYby+G/NA52vRSN4N39dxHAIwQ==}
 
   lightningcss-android-arm64@1.30.2:
     resolution: {integrity: sha512-BH9sEdOCahSgmkVhBLeU7Hc9DWeZ1Eb6wNS6Da8igvUwAe0sqROHddIlvU06q3WyXVEOYDZ6ykBZQnjTbmo4+A==}
@@ -931,6 +952,9 @@ packages:
   onnxruntime-web@1.23.2:
     resolution: {integrity: sha512-T09JUtMn+CZLk3mFwqiH0lgQf+4S7+oYHHtk6uhaYAAJI95bTcKi5bOOZYwORXfS/RLZCjDDEXGWIuOCAFlEjg==}
 
+  pako@1.0.11:
+    resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
+
   path-browserify@1.0.1:
     resolution: {integrity: sha512-b7uo2UCUOYZcnF/3ID0lulOJi/bafxa1xPe7ZPsammBSpjSWQkjNxlt635YGS2MiR9GjvuXCtz2emr3jbsz98g==}
 
@@ -951,9 +975,15 @@ packages:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
     engines: {node: ^10 || ^12 || >=14}
 
+  process-nextick-args@2.0.1:
+    resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
+
   protobufjs@7.5.4:
     resolution: {integrity: sha512-CvexbZtbov6jW2eXAvLukXjXUW1TzFaivC46BpWc/3BpcCysb5Vffu+B3XHMm8lVEuy2Mm4XGex8hBSg1yapPg==}
     engines: {node: '>=12.0.0'}
+
+  readable-stream@2.3.8:
+    resolution: {integrity: sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA==}
 
   roarr@2.15.4:
     resolution: {integrity: sha512-CHhPh+UNHD2GTXNYhPWLnU8ONHdI+5DI+4EYIAOaiD63rHeYlZvyh8P+in5999TTSFgUYuKUAjzRI4mdh/p+2A==}
@@ -963,6 +993,9 @@ packages:
     resolution: {integrity: sha512-oQL6lgK3e2QZeQ7gcgIkS2YZPg5slw37hYufJ3edKlfQSGGm8ICoxswK15ntSzF/a8+h7ekRy7k7oWc3BQ7y8A==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
+
+  safe-buffer@5.1.2:
+    resolution: {integrity: sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g==}
 
   semver-compare@1.0.0:
     resolution: {integrity: sha512-YM3/ITh2MJ5MtzaM429anh+x2jiLVjqILF4m4oyQB18W7Ggea7BfqdH/wGMK7dDiMghv/6WG7znWMwUDzJiXow==}
@@ -976,6 +1009,9 @@ packages:
     resolution: {integrity: sha512-8I8TjW5KMOKsZQTvoxjuSIa7foAwPWGOts+6o7sgjz41/qMD9VQHEDxi6PBvK2l0MXUmqZyNpUK+T2tQaaElvw==}
     engines: {node: '>=10'}
 
+  setimmediate@1.0.5:
+    resolution: {integrity: sha512-MATJdZp8sLqDl/68LfQmbP8zKPLQNV6BIZoIgrscFDQ+RsvK/BxeDQOgyxKKoh0y/8h3BqVFnCqQ/gd+reiIXA==}
+
   sharp@0.34.5:
     resolution: {integrity: sha512-Ou9I5Ft9WNcCbXrU9cMgPBcCK8LiwLqcbywW3t4oDV37n1pzpuNLsYiAV8eODnjbtQlSDwZ2cUEeQz4E54Hltg==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
@@ -986,6 +1022,9 @@ packages:
 
   sprintf-js@1.1.3:
     resolution: {integrity: sha512-Oo+0REFV59/rz3gfJNKQiBlwfHaSESl1pcGyABQsnnIfWOFt6JNj5gCog2U6MLZ//IGYD+nA8nI+mTShREReaA==}
+
+  string_decoder@1.1.1:
+    resolution: {integrity: sha512-n/ShnvDi6FHbbVfviro+WojiFzv+s8MPMHBczVePfUpDJLwoLT0ht1l4YwBCbi8pJAveEEdnkHyPyTP/mzRfwg==}
 
   tailwindcss@4.1.18:
     resolution: {integrity: sha512-4+Z+0yiYyEtUVCScyfHCxOYP06L5Ne+JiHhY2IjR2KWMIWhJOYZKLSGZaP5HkZ8+bY0cxfzwDE5uOmzFXyIwxw==}
@@ -1016,6 +1055,9 @@ packages:
 
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
+
+  util-deprecate@1.0.2:
+    resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
   vite@7.3.1:
     resolution: {integrity: sha512-w+N7Hifpc3gRjZ63vYBXA56dvvRlNWRczTdmCBBa+CotUzAPf5b7YMdMR/8CQoeYE5LX3W4wj6RYTgonm1b9DA==}
@@ -1571,6 +1613,8 @@ snapshots:
 
   chownr@3.0.0: {}
 
+  core-util-is@1.0.3: {}
+
   csstype@3.2.3: {}
 
   define-data-property@1.1.4:
@@ -1668,14 +1712,31 @@ snapshots:
     dependencies:
       es-define-property: 1.0.1
 
+  immediate@3.0.6: {}
+
+  inherits@2.0.4: {}
+
+  isarray@1.0.0: {}
+
   jiti@2.6.1: {}
 
   json-stringify-safe@5.0.1: {}
+
+  jszip@3.10.1:
+    dependencies:
+      lie: 3.3.0
+      pako: 1.0.11
+      readable-stream: 2.3.8
+      setimmediate: 1.0.5
 
   kokoro-js@1.2.1:
     dependencies:
       '@huggingface/transformers': 3.8.1
       phonemizer: 1.2.1
+
+  lie@3.3.0:
+    dependencies:
+      immediate: 3.0.6
 
   lightningcss-android-arm64@1.30.2:
     optional: true
@@ -1778,6 +1839,8 @@ snapshots:
       platform: 1.3.6
       protobufjs: 7.5.4
 
+  pako@1.0.11: {}
+
   path-browserify@1.0.1: {}
 
   phonemizer@1.2.1: {}
@@ -1794,6 +1857,8 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
+  process-nextick-args@2.0.1: {}
+
   protobufjs@7.5.4:
     dependencies:
       '@protobufjs/aspromise': 1.1.2
@@ -1808,6 +1873,16 @@ snapshots:
       '@protobufjs/utf8': 1.1.0
       '@types/node': 24.10.9
       long: 5.3.2
+
+  readable-stream@2.3.8:
+    dependencies:
+      core-util-is: 1.0.3
+      inherits: 2.0.4
+      isarray: 1.0.0
+      process-nextick-args: 2.0.1
+      safe-buffer: 5.1.2
+      string_decoder: 1.1.1
+      util-deprecate: 1.0.2
 
   roarr@2.15.4:
     dependencies:
@@ -1849,6 +1924,8 @@ snapshots:
       '@rollup/rollup-win32-x64-msvc': 4.57.1
       fsevents: 2.3.3
 
+  safe-buffer@5.1.2: {}
+
   semver-compare@1.0.0: {}
 
   semver@7.7.3: {}
@@ -1856,6 +1933,8 @@ snapshots:
   serialize-error@7.0.1:
     dependencies:
       type-fest: 0.13.1
+
+  setimmediate@1.0.5: {}
 
   sharp@0.34.5:
     dependencies:
@@ -1892,6 +1971,10 @@ snapshots:
 
   sprintf-js@1.1.3: {}
 
+  string_decoder@1.1.1:
+    dependencies:
+      safe-buffer: 5.1.2
+
   tailwindcss@4.1.18: {}
 
   tapable@2.3.0: {}
@@ -1917,6 +2000,8 @@ snapshots:
   typescript@5.9.3: {}
 
   undici-types@7.16.0: {}
+
+  util-deprecate@1.0.2: {}
 
   vite@7.3.1(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2):
     dependencies:
