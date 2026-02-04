@@ -15,8 +15,8 @@ export interface SentenceAnalysis {
 export async function analyzeEnglishText(text: string): Promise<SentenceAnalysis[]> {
   if (!text.trim()) return [];
   
-  // 按句子拆分文本
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim());
+  // 按句子拆分文本，考虑引用和保留标点
+  const sentences = splitSentencesWithPunctuation(text);
   const results: SentenceAnalysis[] = [];
   
   for (const sentence of sentences) {
@@ -45,4 +45,51 @@ export async function analyzeEnglishText(text: string): Promise<SentenceAnalysis
   }
   
   return results;
+}
+
+/**
+ * 按句子拆分文本，考虑引用情况并保留末尾标点
+ */
+function splitSentencesWithPunctuation(text: string): string[] {
+  const sentences: string[] = [];
+  let currentSentence = '';
+  let inQuotes = 0;
+  let quoteChar = '';
+  
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    currentSentence += char;
+    
+    // 处理引号
+    if (char === '"' || char === "'") {
+      if (inQuotes === 0) {
+        // 开始引用
+        inQuotes = 1;
+        quoteChar = char;
+      } else if (inQuotes === 1 && char === quoteChar) {
+        // 结束引用
+        inQuotes = 0;
+        quoteChar = '';
+      }
+    }
+    
+    // 句子结束符，且不在引用内
+    if ((char === '.' || char === '!' || char === '?') && inQuotes === 0) {
+      // 检查下一个字符是否也是标点（如省略号）
+      while (i + 1 < text.length && (text[i + 1] === '.' || text[i + 1] === '!' || text[i + 1] === '?')) {
+        currentSentence += text[i + 1];
+        i++;
+      }
+      
+      sentences.push(currentSentence);
+      currentSentence = '';
+    }
+  }
+  
+  // 处理最后一个句子（如果没有结束符）
+  if (currentSentence.trim()) {
+    sentences.push(currentSentence);
+  }
+  
+  return sentences;
 }
