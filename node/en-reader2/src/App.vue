@@ -37,6 +37,10 @@ const isWebGPUSupported = ref(false);
 const currentAudioElement = ref<HTMLAudioElement | null>(null);
 const currentSpeakingSentenceIndex = ref<number | null>(null);
 
+// 播放全部相关变量
+const isPlayingAll = ref(false);
+const currentPlayingIndex = ref(-1);
+
 // 语音缓存
 const audioCache = ref<Record<string, Record<string, { audioUrl: string; timestamp: number }>>>({}); // 结构: { voiceId: { text: { audioUrl, timestamp } } }
 
@@ -388,10 +392,185 @@ function stopSpeaking() {
       }
     }
     
+    // 如果正在播放全部，也停止播放全部
+    if (isPlayingAll.value) {
+      resetPlayAllState();
+      console.log('[AI朗读] 已停止播放全部');
+    }
+    
     currentAudioElement.value = null;
     currentSpeakingSentenceIndex.value = null;
     console.log('[AI朗读] 已停止朗读');
   }
+}
+
+// 播放全部句子
+async function playAllSentences() {
+  if (analysisResults.value.length === 0) {
+    showToast('请先分析文本', 'warning');
+    return;
+  }
+  
+  // 检查模型是否已加载
+  if (!ttsService.isModelLoaded()) {
+    showToast('请先加载TTS模型', 'warning');
+    await loadKokoroModel();
+    if (!ttsService.isModelLoaded()) return;
+  }
+  
+  // 停止当前正在播放的音频
+  stopSpeaking();
+  
+  // 设置播放全部状态
+  isPlayingAll.value = true;
+  currentPlayingIndex.value = 0;
+  
+  console.log('[AI朗读] 开始播放全部句子');
+  
+  // 开始播放第一个句子
+  await playNextSentence();
+}
+
+// 播放下一个句子
+async function playNextSentence() {
+  if (!isPlayingAll.value || currentPlayingIndex.value >= analysisResults.value.length) {
+    // 播放全部已完成或已停止
+    resetPlayAllState();
+    return;
+  }
+  
+  const currentIndex = currentPlayingIndex.value;
+  const sentence = analysisResults.value[currentIndex];
+  
+  if (!sentence) {
+    // 句子不存在，播放下一个
+    currentPlayingIndex.value++;
+    await playNextSentence();
+    return;
+  }
+  
+  try {
+    // 更新当前播放状态
+    sentence.isAiSpeaking = true;
+    currentSpeakingSentenceIndex.value = currentIndex;
+    
+    // 滚动到当前句子
+    scrollToCurrentSentence(currentIndex);
+    
+    const voiceId = selectedVoice.value;
+    // 构建完整句子文本
+    const text = sentence.words.map(word => word.word).join(' ');
+    
+    // 检查缓存
+    if (!audioCache.value[voiceId]) {
+      audioCache.value[voiceId] = {};
+    }
+    
+    let audioUrl: string;
+    if (audioCache.value[voiceId][text]) {
+      // 使用缓存的音频
+      audioUrl = audioCache.value[voiceId][text].audioUrl;
+      console.log(`[AI朗读] 使用缓存的语音播放句子 ${currentIndex + 1}: ${text.substring(0, 20)}...`);
+    } else {
+      // 生成新音频
+      console.log(`[AI朗读] 生成新语音播放句子 ${currentIndex + 1}: ${text.substring(0, 20)}...`);
+      const audioBlob = await ttsService.generateSpeech(text, voiceId);
+      audioUrl = URL.createObjectURL(audioBlob);
+      
+      // 存储到缓存
+      audioCache.value[voiceId][text] = {
+        audioUrl,
+        timestamp: Date.now()
+      };
+      
+      // 标记该句子已生成音频
+      sentence.hasAudio = true;
+    }
+    
+    // 播放音频
+    const audioElement = new Audio(audioUrl);
+    currentAudioElement.value = audioElement;
+    
+    audioElement.onended = async () => {
+      // 当前句子播放完成
+      sentence.isAiSpeaking = false;
+      
+      // 播放下一个句子
+      currentPlayingIndex.value++;
+      await playNextSentence();
+    };
+    
+    audioElement.onerror = async () => {
+      // 播放出错，尝试播放下一个句子
+      sentence.isAiSpeaking = false;
+      console.error(`[AI朗读] 播放句子 ${currentIndex + 1} 出错`);
+      
+      currentPlayingIndex.value++;
+      await playNextSentence();
+    };
+    
+    await audioElement.play();
+  } catch (error) {
+    console.error('[AI朗读] 播放句子失败:', error);
+    sentence.isAiSpeaking = false;
+    
+    // 尝试播放下一个句子
+    currentPlayingIndex.value++;
+    await playNextSentence();
+  }
+}
+
+// 滚动到当前句子
+function scrollToCurrentSentence(sentenceIndex: number) {
+  // 延迟滚动，确保DOM已更新
+  setTimeout(() => {
+    // 查找当前句子的DOM元素
+    const sentenceElements = document.querySelectorAll('.sentence-analysis');
+    const currentElement = sentenceElements[sentenceIndex];
+    
+    if (currentElement) {
+      // 滚动到元素，添加一些顶部边距以获得更好的视觉效果
+      const elementTop = currentElement.getBoundingClientRect().top;
+      const windowHeight = window.innerHeight;
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      
+      // 计算目标滚动位置，使元素位于屏幕中间偏上的位置
+      const targetScrollTop = scrollTop + elementTop - windowHeight / 3;
+      
+      // 平滑滚动
+      window.scrollTo({
+        top: targetScrollTop,
+        behavior: 'smooth'
+      });
+      
+      console.log(`[AI朗读] 滚动到句子 ${sentenceIndex + 1}`);
+    }
+  }, 100);
+}
+
+// 停止播放全部
+function stopPlayingAll() {
+  if (isPlayingAll.value) {
+    stopSpeaking();
+    resetPlayAllState();
+    console.log('[AI朗读] 已停止播放全部');
+  }
+}
+
+// 重置播放全部状态
+function resetPlayAllState() {
+  isPlayingAll.value = false;
+  currentPlayingIndex.value = -1;
+  
+  // 确保所有句子的播放状态都已重置
+  analysisResults.value.forEach(sentence => {
+    sentence.isAiSpeaking = false;
+  });
+  
+  currentSpeakingSentenceIndex.value = null;
+  currentAudioElement.value = null;
+  
+  console.log('[AI朗读] 播放全部状态已重置');
 }
 
 // 组件挂载时检测WebGPU支持
@@ -490,14 +669,29 @@ onMounted(async () => {
           </option>
         </select>
         
-        <!-- 生成AI朗读按钮 - 只有加载语音模型成功后显示 -->
-        <button 
-          @click="generateAllAudio"
-          :disabled="isGeneratingAudio"
-          class="mt-3 px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
-        >
-          {{ isGeneratingAudio ? '生成中...' : '生成AI朗读' }}
-        </button>
+        <div class="flex gap-3 mt-3">
+          <!-- 生成AI朗读按钮 - 只有加载语音模型成功后显示 -->
+          <button 
+            @click="generateAllAudio"
+            :disabled="isGeneratingAudio"
+            class="px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+          >
+            {{ isGeneratingAudio ? '生成中...' : '生成AI朗读' }}
+          </button>
+          
+          <!-- 播放/停止全部按钮 -->
+          <button 
+            @click="isPlayingAll ? stopPlayingAll() : playAllSentences()"
+            :class="[
+              'px-6 py-2 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all',
+              isPlayingAll 
+                ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500' 
+                : 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500'
+            ]"
+          >
+            {{ isPlayingAll ? '停止' : '播放全部' }}
+          </button>
+        </div>
       </div>
       
       <!-- 音频生成进度 -->

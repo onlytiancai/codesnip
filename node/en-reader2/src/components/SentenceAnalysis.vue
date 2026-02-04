@@ -29,7 +29,7 @@ const getFullSentence = (): string => {
 </script>
 
 <template>
-  <div class="sentence-analysis mb-8 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+  <div class="sentence-analysis mb-8 p-4 rounded-lg shadow-sm border border-gray-100" :class="{ 'bg-green-50 border-green-200': isAiSpeaking }">
     <div class="flex items-start mb-3">
       <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium mr-3 mt-0.5 flex-shrink-0">
         {{ sentenceIndex + 1 }}
