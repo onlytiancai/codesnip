@@ -27,6 +27,10 @@ const selectedVoice = ref('af_heart');
 const availableVoices = ref<any[]>([]);
 const isWebGPUSupported = ref(false);
 
+// 当前播放状态
+const currentAudioElement = ref<HTMLAudioElement | null>(null);
+const currentSpeakingSentenceIndex = ref<number | null>(null);
+
 // 语音缓存
 const audioCache = ref<Record<string, Record<string, { audioUrl: string; timestamp: number }>>>({}); // 结构: { voiceId: { text: { audioUrl, timestamp } } }
 
@@ -144,7 +148,22 @@ async function handleSpeak(sentenceIndex: number) {
   }
   
   try {
+    // 停止当前正在播放的音频
+    if (currentAudioElement.value) {
+      currentAudioElement.value.pause();
+      currentAudioElement.value.currentTime = 0;
+      // 重置之前句子的状态
+      if (currentSpeakingSentenceIndex.value !== null) {
+        const previousSentence = analysisResults.value[currentSpeakingSentenceIndex.value];
+        if (previousSentence) {
+          previousSentence.isAiSpeaking = false;
+        }
+      }
+    }
+    
+    // 更新当前播放状态
     sentence.isAiSpeaking = true;
+    currentSpeakingSentenceIndex.value = sentenceIndex;
     
     const voiceId = selectedVoice.value;
     // 构建完整句子文本
@@ -176,12 +195,18 @@ async function handleSpeak(sentenceIndex: number) {
     
     // 播放音频
     const audioElement = new Audio(audioUrl);
+    currentAudioElement.value = audioElement;
+    
     audioElement.onended = () => {
       sentence.isAiSpeaking = false;
+      currentAudioElement.value = null;
+      currentSpeakingSentenceIndex.value = null;
       // 注意：由于缓存中需要使用audioUrl，这里不再revokeObjectURL
     };
     audioElement.onerror = () => {
       sentence.isAiSpeaking = false;
+      currentAudioElement.value = null;
+      currentSpeakingSentenceIndex.value = null;
       // 注意：由于缓存中需要使用audioUrl，这里不再revokeObjectURL
     };
     
@@ -190,6 +215,8 @@ async function handleSpeak(sentenceIndex: number) {
     console.error('[AI朗读] 朗读失败:', error);
     showToast('朗读失败，请重试', 'error');
     sentence.isAiSpeaking = false;
+    currentAudioElement.value = null;
+    currentSpeakingSentenceIndex.value = null;
   }
 }
 
