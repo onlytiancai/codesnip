@@ -1,57 +1,8 @@
-import { phonemize } from 'phonemizer';
-
-export interface WordWithPhoneme {
-  word: string;
-  phoneme: string;
-}
-
-export interface SentenceAnalysis {
-  words: WordWithPhoneme[];
-}
-
-/**
- * 分析英文文本，按句子拆分并为每个单词生成音标
- */
-export async function analyzeEnglishText(text: string): Promise<SentenceAnalysis[]> {
-  if (!text.trim()) return [];
-  
-  // 按句子拆分文本，考虑引用和保留标点
-  const sentences = splitSentencesWithPunctuation(text);
-  const results: SentenceAnalysis[] = [];
-  
-  for (const sentence of sentences) {
-    const words = sentence.trim().split(/\s+/).filter(w => w);
-    if (words.length === 0) continue;
-    
-    // 为每个单词生成音标
-    const wordsWithPhonemes: WordWithPhoneme[] = [];
-    for (const word of words) {
-      try {
-        const phoneme = await phonemize(word);
-        wordsWithPhonemes.push({
-          word,
-          phoneme: phoneme[0] || ''
-        });
-      } catch (error) {
-        console.error(`为单词 "${word}" 生成音标时出错:`, error);
-        wordsWithPhonemes.push({
-          word,
-          phoneme: ''
-        });
-      }
-    }
-    
-    results.push({ words: wordsWithPhonemes });
-  }
-  
-  return results;
-}
-
 /**
  * 按句子拆分文本，考虑引用情况并保留末尾标点
  */
-function splitSentencesWithPunctuation(text: string): string[] {
-  const sentences: string[] = [];
+function splitSentencesWithPunctuation(text) {
+  const sentences = [];
   let currentSentence = '';
   let inQuotes = 0;
   let quoteChar = '';
@@ -115,3 +66,39 @@ function splitSentencesWithPunctuation(text: string): string[] {
   
   return sentences;
 }
+
+// Simulate the full process
+function simulateFullProcess(text) {
+  console.log('Input text:', text);
+  
+  // Step 1: Split into sentences
+  const sentences = splitSentencesWithPunctuation(text);
+  console.log('Split sentences:', sentences);
+  
+  // Step 2: Process each sentence into words
+  const processedSentences = sentences.map((sentence, index) => {
+    console.log(`\nProcessing sentence ${index + 1}: "${sentence.trim()}"`);
+    
+    // Split into words (simulating line 23 in phonemizer.ts)
+    const words = sentence.trim().split(/\s+/).filter(w => w);
+    console.log('Extracted words:', words);
+    
+    // Join back to create translation text (simulating line 99 in App.vue)
+    const translationText = words.map(word => word).join(' ');
+    console.log('Translation text:', translationText);
+    
+    return {
+      original: sentence.trim(),
+      words: words,
+      translationText: translationText
+    };
+  });
+  
+  return processedSentences;
+}
+
+// Test the user's example
+const userExample = "\"We have no business with the dead.\" \"Are they dead?\" Royce asked softly.";
+console.log('Testing user example:');
+console.log('================================');
+simulateFullProcess(userExample);

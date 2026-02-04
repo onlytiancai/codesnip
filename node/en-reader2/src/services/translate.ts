@@ -37,7 +37,8 @@ export class TranslateService {
       }
       
       const data = await response.json();
-      const translatedText = data[0][0][0];
+      // Extract all translations and join them
+      const translatedText = data[0].map((item: any) => item[0]).join(' ');
       
       // 存入缓存
       this.translationCache[cacheKey] = translatedText;
