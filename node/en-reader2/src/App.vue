@@ -26,6 +26,7 @@ const errorMessage = ref('');
 const showPhonemes = ref(true);
 const alignPhonemesWithWords = ref(false);
 const allTranslationsVisible = ref(false);
+const isTranslatingAll = ref(false);
 // 区分句子列表来源
 const isImportedData = ref(false);
 
@@ -270,7 +271,12 @@ async function handleTranslateAll() {
     
     if (!allTranslated) {
       // 如果有未翻译的句子，则先翻译所有句子
-      await translateAllSentences();
+      isTranslatingAll.value = true;
+      try {
+        await translateAllSentences();
+      } finally {
+        isTranslatingAll.value = false;
+      }
     }
     
     // 显示所有翻译
@@ -724,7 +730,17 @@ async function exportData() {
     // 创建下载链接
     const link = document.createElement('a');
     link.href = URL.createObjectURL(content);
-    link.download = `en-reader-export-${new Date().getTime()}.zip`;
+    
+    // 生成文件名：第一句的前三个单词加.zip
+    let fileName = 'en-reader-export';
+    if (analysisResults.value.length > 0) {
+      const firstSentence = analysisResults.value[0];
+      if (firstSentence && firstSentence.words && firstSentence.words.length > 0) {
+        const firstThreeWords = firstSentence.words.slice(0, 3).map(word => word.word).join('_');
+        fileName = firstThreeWords || 'en-reader-export';
+      }
+    }
+    link.download = `${fileName}.zip`;
     link.click();
     
     showToast('导出成功', 'success');
@@ -908,9 +924,10 @@ onMounted(async () => {
         <button 
           v-if="analysisResults.length > 0"
           @click="handleTranslateAll"
-          class="px-6 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all"
+          :disabled="isTranslatingAll"
+          class="px-6 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
         >
-          {{ allTranslationsVisible ? '隐藏所有翻译' : '显示所有翻译' }}
+          {{ isTranslatingAll ? '翻译中...' : allTranslationsVisible ? '隐藏所有翻译' : '显示所有翻译' }}
         </button>
         
         <!-- 导出按钮 - 只有分析文本后才显示 -->
@@ -956,47 +973,66 @@ onMounted(async () => {
       
       <!-- 语音选择 -->
       <div v-if="analysisResults.length > 0" class="mb-6">
-        <label for="voice-select" class="block text-sm font-medium text-gray-700 mb-2">选择语音：</label>
-        <!-- 语音选择下拉框 - 只有当有可用语音时显示 -->
-        <select 
-          v-if="availableVoices.length > 0"
-          id="voice-select" 
-          v-model="selectedVoice" 
-          class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-        >
-          <option v-for="voice in availableVoices" :key="voice.id" :value="voice.id">
-            {{ voice.displayName }}
-          </option>
-        </select>
-        <!-- 当没有可用语音时，显示当前选中的语音 -->
-        <div v-else class="w-full px-4 py-3 border border-gray-300 rounded-md bg-gray-50">
-          当前语音: {{ selectedVoice }}
-        </div>
-        
-        <div class="flex gap-3 mt-3">
-          <!-- 生成AI朗读按钮 - 只有加载语音模型成功后显示，导入数据时不显示 -->
-          <button 
-            v-if="!isImportedData"
-            @click="generateAllAudio"
-            :disabled="isGeneratingAudio"
-            class="px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+        <!-- 仅当不是导入数据时显示语音选择 -->
+        <template v-if="!isImportedData">
+          <label for="voice-select" class="block text-sm font-medium text-gray-700 mb-2">选择语音：</label>
+          <!-- 语音选择下拉框 - 只有当有可用语音时显示 -->
+          <select 
+            v-if="availableVoices.length > 0"
+            id="voice-select" 
+            v-model="selectedVoice" 
+            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           >
-            {{ isGeneratingAudio ? '生成中...' : '生成AI朗读' }}
-          </button>
+            <option v-for="voice in availableVoices" :key="voice.id" :value="voice.id">
+              {{ voice.displayName }}
+            </option>
+          </select>
+          <!-- 当没有可用语音时，显示当前选中的语音 -->
+          <div v-else class="w-full px-4 py-3 border border-gray-300 rounded-md bg-gray-50">
+            当前语音: {{ selectedVoice }}
+          </div>
           
-          <!-- 播放/停止全部按钮 -->
-          <button 
-            @click="isPlayingAll ? stopPlayingAll() : playAllSentences()"
-            :class="[
-              'px-6 py-2 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all',
-              isPlayingAll 
-                ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500' 
-                : 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500'
-            ]"
-          >
-            {{ isPlayingAll ? '停止' : '播放全部' }}
-          </button>
-        </div>
+          <div class="flex gap-3 mt-3">
+            <!-- 生成AI朗读按钮 - 只有加载语音模型成功后显示，导入数据时不显示 -->
+            <button 
+              @click="generateAllAudio"
+              :disabled="isGeneratingAudio"
+              class="px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+            >
+              {{ isGeneratingAudio ? '生成中...' : '生成AI朗读' }}
+            </button>
+            
+            <!-- 播放/停止全部按钮 -->
+            <button 
+              @click="isPlayingAll ? stopPlayingAll() : playAllSentences()"
+              :class="[
+                'px-6 py-2 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all',
+                isPlayingAll 
+                  ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500' 
+                  : 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500'
+              ]"
+            >
+              {{ isPlayingAll ? '停止' : '播放全部' }}
+            </button>
+          </div>
+        </template>
+        <!-- 导入数据时只显示播放全部按钮 -->
+        <template v-else>
+          <div class="flex gap-3">
+            <!-- 播放/停止全部按钮 -->
+            <button 
+              @click="isPlayingAll ? stopPlayingAll() : playAllSentences()"
+              :class="[
+                'px-6 py-2 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all',
+                isPlayingAll 
+                  ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500' 
+                  : 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500'
+              ]"
+            >
+              {{ isPlayingAll ? '停止' : '播放全部' }}
+            </button>
+          </div>
+        </template>
       </div>
       
       <!-- 音频生成进度 -->
