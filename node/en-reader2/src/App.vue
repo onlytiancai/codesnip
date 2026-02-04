@@ -21,7 +21,7 @@ interface ExtendedSentenceAnalysis extends SentenceAnalysis {
 const analysisResults = ref<ExtendedSentenceAnalysis[]>([]);
 const isLoading = ref(false);
 const errorMessage = ref('');
-const showPhonemes = ref(false);
+const showPhonemes = ref(true);
 const alignPhonemesWithWords = ref(false);
 const allTranslationsVisible = ref(false);
 
@@ -374,6 +374,26 @@ async function handleSpeak(sentenceIndex: number) {
   }
 }
 
+// 停止朗读
+function stopSpeaking() {
+  if (currentAudioElement.value) {
+    currentAudioElement.value.pause();
+    currentAudioElement.value.currentTime = 0;
+    
+    // 重置当前句子的状态
+    if (currentSpeakingSentenceIndex.value !== null) {
+      const currentSentence = analysisResults.value[currentSpeakingSentenceIndex.value];
+      if (currentSentence) {
+        currentSentence.isAiSpeaking = false;
+      }
+    }
+    
+    currentAudioElement.value = null;
+    currentSpeakingSentenceIndex.value = null;
+    console.log('[AI朗读] 已停止朗读');
+  }
+}
+
 // 组件挂载时检测WebGPU支持
 onMounted(async () => {
   await checkWebGPUSupport();
@@ -383,7 +403,7 @@ onMounted(async () => {
 <template>
   <div class="container mx-auto px-4 py-10 max-w-4xl">
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-      <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">英文音标分析器</h1>
+      <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">英语阅读 V2</h1>
       
       <div class="mb-6">
         <label for="text-input" class="block text-sm font-medium text-gray-700 mb-2">输入英文文本：</label>
@@ -439,15 +459,7 @@ onMounted(async () => {
           {{ allTranslationsVisible ? '隐藏所有翻译' : '显示所有翻译' }}
         </button>
         
-        <!-- 生成AI朗读按钮 - 只有加载语音模型成功后显示 -->
-        <button 
-          v-if="analysisResults.length > 0 && ttsService.isModelLoaded()"
-          @click="generateAllAudio"
-          :disabled="isGeneratingAudio"
-          class="px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
-        >
-          {{ isGeneratingAudio ? '生成中...' : '生成AI朗读' }}
-        </button>
+
       </div>
       
       <!-- 音标对齐选项 -->
@@ -477,6 +489,15 @@ onMounted(async () => {
             {{ voice.displayName }}
           </option>
         </select>
+        
+        <!-- 生成AI朗读按钮 - 只有加载语音模型成功后显示 -->
+        <button 
+          @click="generateAllAudio"
+          :disabled="isGeneratingAudio"
+          class="mt-3 px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+        >
+          {{ isGeneratingAudio ? '生成中...' : '生成AI朗读' }}
+        </button>
       </div>
       
       <!-- 音频生成进度 -->
@@ -533,6 +554,7 @@ onMounted(async () => {
           @speak="handleSpeak"
           @translate="translateSentence"
           @toggle-translation="toggleSentenceTranslation"
+          @stop-speaking="stopSpeaking"
         />
       </div>
     </div>
