@@ -9,6 +9,8 @@ interface Props {
   isAiSpeaking?: boolean;
   translation?: string;
   isTranslating?: boolean;
+  hasAudio?: boolean;
+  showTranslation?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -16,6 +18,7 @@ const props = defineProps<Props>();
 const emit = defineEmits<{
   (e: 'speak', sentenceIndex: number): void;
   (e: 'translate', sentenceIndex: number): void;
+  (e: 'toggleTranslation', sentenceIndex: number): void;
 }>();
 
 // 获取完整句子
@@ -64,15 +67,16 @@ const getFullSentence = (): string => {
     </div>
     
     <!-- 翻译结果显示 -->
-    <div v-if="props.translation" class="mt-3 p-3 bg-blue-50 rounded-md">
+    <div v-if="props.translation && props.showTranslation" class="mt-3 p-3 bg-blue-50 rounded-md">
       <div class="text-sm font-medium text-gray-700 mb-1">翻译：</div>
       <div class="text-sm text-gray-800">{{ props.translation }}</div>
     </div>
     
     <!-- 操作按钮 -->
-    <div class="mt-4 flex gap-3">
-      <!-- AI朗读按钮 -->
+    <div class="mt-4 flex flex-wrap gap-3">
+      <!-- AI朗读按钮 - 只有生成音频后才显示 -->
       <button 
+        v-if="props.hasAudio"
         @click="emit('speak', sentenceIndex)"
         :disabled="props.isAiSpeaking"
         :class="[
@@ -82,21 +86,23 @@ const getFullSentence = (): string => {
             : 'bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500'
         ]"
       >
-        {{ props.isAiSpeaking ? 'AI朗读中...' : 'AI朗读' }}
+        {{ props.isAiSpeaking ? 'AI朗读中...' : '播放' }}
       </button>
       
-      <!-- 翻译按钮 -->
+      <!-- 翻译/显示翻译按钮 -->
       <button 
-        @click="emit('translate', sentenceIndex)"
+        @click="props.translation ? emit('toggleTranslation', sentenceIndex) : emit('translate', sentenceIndex)"
         :disabled="props.isTranslating"
         :class="[
           'px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors',
           props.isTranslating 
             ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 opacity-50 cursor-not-allowed' 
-            : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
+            : props.translation 
+              ? (props.showTranslation ? 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500' : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500') 
+              : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
         ]"
       >
-        {{ props.isTranslating ? '翻译中...' : '翻译' }}
+        {{ props.isTranslating ? '翻译中...' : (props.translation ? (props.showTranslation ? '隐藏翻译' : '显示翻译') : '显示翻译') }}
       </button>
     </div>
   </div>

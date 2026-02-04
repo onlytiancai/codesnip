@@ -14,14 +14,16 @@ interface ExtendedSentenceAnalysis extends SentenceAnalysis {
   isAiSpeaking?: boolean;
   translation?: string;
   isTranslating?: boolean;
+  hasAudio?: boolean;
+  showTranslation?: boolean;
 }
 
 const analysisResults = ref<ExtendedSentenceAnalysis[]>([]);
 const isLoading = ref(false);
 const errorMessage = ref('');
-const showPhonemes = ref(true);
-const alignPhonemesWithWords = ref(true);
-const autoTranslate = ref(false);
+const showPhonemes = ref(false);
+const alignPhonemesWithWords = ref(false);
+const allTranslationsVisible = ref(false);
 
 // TTS相关变量
 const isLoadingModel = ref(false);
@@ -37,6 +39,11 @@ const currentSpeakingSentenceIndex = ref<number | null>(null);
 
 // 语音缓存
 const audioCache = ref<Record<string, Record<string, { audioUrl: string; timestamp: number }>>>({}); // 结构: { voiceId: { text: { audioUrl, timestamp } } }
+
+// 生成音频相关变量
+const isGeneratingAudio = ref(false);
+const audioGenerationProgress = ref(0);
+const audioGenerationStatus = ref('');
 
 async function analyzeText() {
   if (!inputText.value.trim()) {
@@ -54,13 +61,15 @@ async function analyzeText() {
       ...result,
       isAiSpeaking: false,
       translation: undefined,
-      isTranslating: false
+      isTranslating: false,
+      hasAudio: false,
+      showTranslation: false
     }));
     
-    // 如果开启了自动翻译，翻译所有句子
-    if (autoTranslate.value) {
-      await translateAllSentences();
-    }
+    // 重置音频生成相关变量
+    audioGenerationProgress.value = 0;
+    audioGenerationStatus.value = '';
+    allTranslationsVisible.value = false;
   } catch (error) {
     console.error('分析文本时出错:', error);
     errorMessage.value = '分析文本时出错，请重试';
@@ -79,6 +88,8 @@ async function translateSentence(sentenceIndex: number) {
     const text = sentence.words.map(word => word.word).join(' ');
     const translation = await translateService.translate(text);
     sentence.translation = translation;
+    // 翻译完成后自动显示翻译结果
+    sentence.showTranslation = true;
   } catch (error) {
     console.error('翻译句子时出错:', error);
     showToast('谷歌翻译服务不可用，请检查网络连接', 'error');
@@ -162,12 +173,119 @@ function showToast(message: string, type: 'success' | 'error' | 'warning' | 'inf
   }, 3000);
 }
 
+// 生成所有句子的AI朗读
+async function generateAllAudio() {
+  if (analysisResults.value.length === 0) {
+    showToast('请先分析文本', 'warning');
+    return;
+  }
+  
+  // 检查模型是否已加载
+  if (!ttsService.isModelLoaded()) {
+    showToast('请先加载TTS模型', 'warning');
+    await loadKokoroModel();
+    if (!ttsService.isModelLoaded()) return;
+  }
+  
+  isGeneratingAudio.value = true;
+  audioGenerationProgress.value = 0;
+  audioGenerationStatus.value = '正在生成音频...';
+  
+  try {
+    const voiceId = selectedVoice.value;
+    const totalSentences = analysisResults.value.length;
+    
+    for (let i = 0; i < totalSentences; i++) {
+      const sentence = analysisResults.value[i];
+      if (!sentence) continue;
+      
+      audioGenerationStatus.value = `正在生成句子 ${i + 1}/${totalSentences} 的音频...`;
+      audioGenerationProgress.value = Math.round((i / totalSentences) * 100);
+      
+      const text = sentence.words.map(word => word.word).join(' ');
+      
+      // 检查缓存
+      if (!audioCache.value[voiceId]) {
+        audioCache.value[voiceId] = {};
+      }
+      
+      if (!audioCache.value[voiceId][text]) {
+        // 生成新音频
+        console.log(`[AI朗读] 生成句子 ${i + 1} 的语音: ${text.substring(0, 20)}...`);
+        const audioBlob = await ttsService.generateSpeech(text, voiceId);
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        // 存储到缓存
+        audioCache.value[voiceId][text] = {
+          audioUrl,
+          timestamp: Date.now()
+        };
+      }
+      
+      // 标记该句子已生成音频
+      sentence.hasAudio = true;
+    }
+    
+    audioGenerationStatus.value = '所有音频生成完成！';
+    audioGenerationProgress.value = 100;
+    showToast('所有音频生成完成', 'success');
+  } catch (error) {
+    console.error('[AI朗读] 生成音频失败:', error);
+    audioGenerationStatus.value = '生成音频失败，请重试';
+    showToast('生成音频失败，请重试', 'error');
+  } finally {
+    isGeneratingAudio.value = false;
+  }
+}
+
+// 切换句子翻译显示状态
+function toggleSentenceTranslation(sentenceIndex: number) {
+  const sentence = analysisResults.value[sentenceIndex];
+  if (sentence) {
+    sentence.showTranslation = !sentence.showTranslation;
+  }
+}
+
+// 翻译并显示所有翻译
+async function handleTranslateAll() {
+  if (allTranslationsVisible.value) {
+    // 如果当前是显示状态，则隐藏所有翻译
+    allTranslationsVisible.value = false;
+    analysisResults.value.forEach(sentence => {
+      sentence.showTranslation = false;
+    });
+  } else {
+    // 检查是否所有句子都已翻译
+    const allTranslated = analysisResults.value.every(sentence => sentence.translation);
+    
+    if (!allTranslated) {
+      // 如果有未翻译的句子，则先翻译所有句子
+      await translateAllSentences();
+    }
+    
+    // 显示所有翻译
+    allTranslationsVisible.value = true;
+    analysisResults.value.forEach(sentence => {
+      if (sentence.translation) {
+        sentence.showTranslation = true;
+      }
+    });
+  }
+}
+
 // 监听音色变化
 watch(selectedVoice, (newVoice, oldVoice) => {
   if (oldVoice && newVoice !== oldVoice) {
     console.log(`[AI朗读] 音色从 ${oldVoice} 切换到 ${newVoice}`);
     // 切换音色时清空所有缓存，确保使用新音色生成语音
     clearAudioCache();
+    // 重置所有句子的hasAudio状态
+    analysisResults.value.forEach(sentence => {
+      sentence.hasAudio = false;
+    });
+    // 重置语音生成进度
+    audioGenerationProgress.value = 0;
+    audioGenerationStatus.value = '';
   }
 });
 
@@ -278,21 +396,63 @@ onMounted(async () => {
         ></textarea>
       </div>
       
-      <!-- 音标显示选项 -->
-      <div class="mb-6 space-y-3">
-        <div class="flex items-center">
-          <input 
-            id="show-phonemes"
-            v-model="showPhonemes"
-            type="checkbox"
-            class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
-          >
-          <label for="show-phonemes" class="ml-2 block text-sm text-gray-700">
-            显示音标
-          </label>
-        </div>
+      <div v-if="errorMessage" class="mb-4 text-red-500 text-sm">
+        {{ errorMessage }}
+      </div>
+      
+      <!-- 所有按钮放在一行，左对齐，统一大小 -->
+      <div class="mb-6 flex flex-wrap gap-3 items-center">
+        <!-- 分析文本按钮 - 始终显示 -->
+        <button 
+          @click="analyzeText"
+          :disabled="isLoading"
+          class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+        >
+          {{ isLoading ? '分析中...' : '分析文本' }}
+        </button>
         
-        <div class="flex items-center" v-if="showPhonemes">
+        <!-- 加载语音模型按钮 - 加载完毕后自动隐藏 -->
+        <button 
+          v-if="analysisResults.length > 0 && !ttsService.isModelLoaded()"
+          @click="loadKokoroModel" 
+          :disabled="isLoadingModel"
+          class="px-6 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+        >
+          {{ isLoadingModel ? '加载中...' : '加载语音模型' }}
+        </button>
+        
+        <!-- 显示/隐藏音标按钮 - 只有分析文本后才显示 -->
+        <button 
+          v-if="analysisResults.length > 0"
+          @click="showPhonemes = !showPhonemes"
+          class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
+        >
+          {{ showPhonemes ? '隐藏音标' : '显示音标' }}
+        </button>
+        
+        <!-- 显示所有翻译按钮 - 只有分析文本后才显示 -->
+        <button 
+          v-if="analysisResults.length > 0"
+          @click="handleTranslateAll"
+          class="px-6 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all"
+        >
+          {{ allTranslationsVisible ? '隐藏所有翻译' : '显示所有翻译' }}
+        </button>
+        
+        <!-- 生成AI朗读按钮 - 只有加载语音模型成功后显示 -->
+        <button 
+          v-if="analysisResults.length > 0 && ttsService.isModelLoaded()"
+          @click="generateAllAudio"
+          :disabled="isGeneratingAudio"
+          class="px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+        >
+          {{ isGeneratingAudio ? '生成中...' : '生成AI朗读' }}
+        </button>
+      </div>
+      
+      <!-- 音标对齐选项 -->
+      <div class="mb-6" v-if="showPhonemes">
+        <div class="flex items-center">
           <input 
             id="align-phonemes"
             v-model="alignPhonemesWithWords"
@@ -303,39 +463,6 @@ onMounted(async () => {
             音标与单词对齐
           </label>
         </div>
-        
-        <div class="flex items-center">
-          <input 
-            id="auto-translate"
-            v-model="autoTranslate"
-            type="checkbox"
-            class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
-          >
-          <label for="auto-translate" class="ml-2 block text-sm text-gray-700">
-            自动翻译
-          </label>
-        </div>
-      </div>
-      
-      <div v-if="errorMessage" class="mb-4 text-red-500 text-sm">
-        {{ errorMessage }}
-      </div>
-      
-      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-4">
-        <button 
-          @click="analyzeText"
-          :disabled="isLoading"
-          class="px-8 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
-        >
-          {{ isLoading ? '分析中...' : '分析文本' }}
-        </button>
-        <button 
-          @click="loadKokoroModel" 
-          :disabled="isLoadingModel"
-          class="px-6 py-3 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
-        >
-          {{ isLoadingModel ? '加载中...' : '加载语音模型' }}
-        </button>
       </div>
       
       <!-- 语音选择 -->
@@ -350,6 +477,23 @@ onMounted(async () => {
             {{ voice.displayName }}
           </option>
         </select>
+      </div>
+      
+      <!-- 音频生成进度 -->
+      <div v-if="isGeneratingAudio || audioGenerationProgress > 0" class="mb-6 space-y-2">
+        <div class="flex justify-between text-sm text-gray-600">
+          <span>音频生成进度</span>
+          <span>{{ audioGenerationProgress }}%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+          <div 
+            class="bg-purple-600 h-2.5 rounded-full transition-all duration-300 ease-in-out"
+            :style="{ width: audioGenerationProgress + '%' }"
+          ></div>
+        </div>
+        <div v-if="audioGenerationStatus" class="text-sm" :class="audioGenerationStatus.includes('完成') ? 'text-green-600' : audioGenerationStatus.includes('失败') ? 'text-red-600' : 'text-blue-600'">
+          {{ audioGenerationStatus }}
+        </div>
       </div>
       
       <!-- 模型加载进度 -->
@@ -384,8 +528,11 @@ onMounted(async () => {
           :is-ai-speaking="result.isAiSpeaking"
           :translation="result.translation"
           :is-translating="result.isTranslating"
+          :has-audio="result.hasAudio"
+          :show-translation="result.showTranslation"
           @speak="handleSpeak"
           @translate="translateSentence"
+          @toggle-translation="toggleSentenceTranslation"
         />
       </div>
     </div>
