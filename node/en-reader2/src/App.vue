@@ -1,17 +1,34 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { analyzeEnglishText } from './utils/phonemizer';
 import type { SentenceAnalysis } from './utils/phonemizer';
 import SentenceAnalysisComponent from './components/SentenceAnalysis.vue';
+import { ttsService } from './services/tts';
 
 const inputText = ref(`Last week I went to the theatre. I had a very good seat. The play was very interesting. I did not enjoy it. A young man and a young woman were sitting behind me. They were talking loudly. I got very angry. I could not hear the actors. I turned round. I looked at the man and the woman angrily. They did not pay any attention. In the end, I could not bear it. I turned round again. 'I can't hear a word!' I said angrily.
 
 'It's none of your business,' the young man said rudely. 'This is a private conversation!'`);
-const analysisResults = ref<SentenceAnalysis[]>([]);
+// 扩展SentenceAnalysis类型，添加isAiSpeaking属性
+interface ExtendedSentenceAnalysis extends SentenceAnalysis {
+  isAiSpeaking?: boolean;
+}
+
+const analysisResults = ref<ExtendedSentenceAnalysis[]>([]);
 const isLoading = ref(false);
 const errorMessage = ref('');
 const showPhonemes = ref(true);
 const alignPhonemesWithWords = ref(true);
+
+// TTS相关变量
+const isLoadingModel = ref(false);
+const modelLoadProgress = ref(0);
+const modelLoadStatus = ref('');
+const selectedVoice = ref('af_heart');
+const availableVoices = ref<any[]>([]);
+const isWebGPUSupported = ref(false);
+
+// 语音缓存
+const audioCache = ref<Record<string, Record<string, { audioUrl: string; timestamp: number }>>>({}); // 结构: { voiceId: { text: { audioUrl, timestamp } } }
 
 async function analyzeText() {
   if (!inputText.value.trim()) {
@@ -24,7 +41,11 @@ async function analyzeText() {
   
   try {
     const results = await analyzeEnglishText(inputText.value);
-    analysisResults.value = results;
+    // 为每个句子添加isAiSpeaking属性
+    analysisResults.value = results.map(result => ({
+      ...result,
+      isAiSpeaking: false
+    }));
   } catch (error) {
     console.error('分析文本时出错:', error);
     errorMessage.value = '分析文本时出错，请重试';
@@ -32,6 +53,150 @@ async function analyzeText() {
     isLoading.value = false;
   }
 }
+
+// 清空音频缓存
+function clearAudioCache(voiceId?: string) {
+  if (voiceId) {
+    // 只清空指定音色的缓存
+    delete audioCache.value[voiceId];
+    console.log(`[AI朗读] 清空音色 ${voiceId} 的语音缓存`);
+  } else {
+    // 清空所有缓存
+    audioCache.value = {};
+    console.log('[AI朗读] 清空所有语音缓存');
+  }
+}
+
+// 检测WebGPU支持
+async function checkWebGPUSupport() {
+  isWebGPUSupported.value = await ttsService.checkWebGPUSupport();
+}
+
+// 加载Kokoro TTS模型
+async function loadKokoroModel() {
+  if (ttsService.isModelLoaded()) return;
+  
+  try {
+    isLoadingModel.value = true;
+    modelLoadProgress.value = 0;
+    modelLoadStatus.value = '正在检测WebGPU支持...';
+    
+    // 检测WebGPU支持
+    await checkWebGPUSupport();
+    
+    modelLoadStatus.value = `正在加载模型 (设备: ${isWebGPUSupported.value ? 'WebGPU' : 'WASM'})...`;
+    
+    // 加载模型并显示进度
+    await ttsService.loadModel((progress: number) => {
+      modelLoadProgress.value = progress;
+      modelLoadStatus.value = `加载中: ${progress}%`;
+    });
+    
+    // 获取可用的语音
+    availableVoices.value = ttsService.getAvailableVoiceObjects();
+    
+    modelLoadStatus.value = '模型加载成功！';
+    showToast('Kokoro TTS模型加载成功', 'success');
+  } catch (error) {
+    console.error('加载模型失败:', error);
+    modelLoadStatus.value = '模型加载失败，请重试';
+    showToast('加载模型失败，请重试', 'error');
+  } finally {
+    isLoadingModel.value = false;
+  }
+}
+
+// 显示提示信息
+function showToast(message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') {
+  // 简单的提示实现，实际项目中可以使用更复杂的组件
+  const toast = document.createElement('div');
+  toast.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-500 text-white' : type === 'error' ? 'bg-red-500 text-white' : type === 'warning' ? 'bg-yellow-500 text-white' : 'bg-blue-500 text-white'}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+    setTimeout(() => {
+      document.body.removeChild(toast);
+    }, 300);
+  }, 3000);
+}
+
+// 监听音色变化
+watch(selectedVoice, (newVoice, oldVoice) => {
+  if (oldVoice && newVoice !== oldVoice) {
+    console.log(`[AI朗读] 音色从 ${oldVoice} 切换到 ${newVoice}`);
+    // 切换音色时清空所有缓存，确保使用新音色生成语音
+    clearAudioCache();
+  }
+});
+
+// 处理句子朗读
+async function handleSpeak(sentenceIndex: number) {
+  const sentence = analysisResults.value[sentenceIndex];
+  if (!sentence) return;
+  
+  // 检查模型是否已加载
+  if (!ttsService.isModelLoaded()) {
+    showToast('请先加载TTS模型', 'warning');
+    await loadKokoroModel();
+    if (!ttsService.isModelLoaded()) return;
+  }
+  
+  try {
+    sentence.isAiSpeaking = true;
+    
+    const voiceId = selectedVoice.value;
+    // 构建完整句子文本
+    const text = sentence.words.map(word => word.word).join(' ');
+    
+    // 检查缓存
+    if (!audioCache.value[voiceId]) {
+      audioCache.value[voiceId] = {};
+    }
+    
+    let audioUrl: string;
+    if (audioCache.value[voiceId][text]) {
+      // 使用缓存的音频
+      audioUrl = audioCache.value[voiceId][text].audioUrl;
+      console.log(`[AI朗读] 使用缓存的语音: ${text.substring(0, 20)}...`);
+    } else {
+      // 生成新音频
+      console.log(`[AI朗读] 生成新语音: ${text.substring(0, 20)}...`);
+      const audioBlob = await ttsService.generateSpeech(text, voiceId);
+      audioUrl = URL.createObjectURL(audioBlob);
+      
+      // 存储到缓存
+      audioCache.value[voiceId][text] = {
+        audioUrl,
+        timestamp: Date.now()
+      };
+      console.log(`[AI朗读] 语音已缓存: ${text.substring(0, 20)}...`);
+    }
+    
+    // 播放音频
+    const audioElement = new Audio(audioUrl);
+    audioElement.onended = () => {
+      sentence.isAiSpeaking = false;
+      // 注意：由于缓存中需要使用audioUrl，这里不再revokeObjectURL
+    };
+    audioElement.onerror = () => {
+      sentence.isAiSpeaking = false;
+      // 注意：由于缓存中需要使用audioUrl，这里不再revokeObjectURL
+    };
+    
+    await audioElement.play();
+  } catch (error) {
+    console.error('[AI朗读] 朗读失败:', error);
+    showToast('朗读失败，请重试', 'error');
+    sentence.isAiSpeaking = false;
+  }
+}
+
+// 组件挂载时检测WebGPU支持
+onMounted(async () => {
+  await checkWebGPUSupport();
+});
 </script>
 
 <template>
@@ -81,7 +246,7 @@ async function analyzeText() {
         {{ errorMessage }}
       </div>
       
-      <div class="flex justify-center mb-4">
+      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-4">
         <button 
           @click="analyzeText"
           :disabled="isLoading"
@@ -89,6 +254,44 @@ async function analyzeText() {
         >
           {{ isLoading ? '分析中...' : '分析文本' }}
         </button>
+        <button 
+          @click="loadKokoroModel" 
+          :disabled="isLoadingModel"
+          class="px-6 py-3 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+        >
+          {{ isLoadingModel ? '加载中...' : '加载语音模型' }}
+        </button>
+      </div>
+      
+      <!-- 语音选择 -->
+      <div v-if="availableVoices.length > 0" class="mb-6">
+        <label for="voice-select" class="block text-sm font-medium text-gray-700 mb-2">选择语音：</label>
+        <select 
+          id="voice-select" 
+          v-model="selectedVoice" 
+          class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+        >
+          <option v-for="voice in availableVoices" :key="voice.id" :value="voice.id">
+            {{ voice.displayName }}
+          </option>
+        </select>
+      </div>
+      
+      <!-- 模型加载进度 -->
+      <div v-if="isLoadingModel || modelLoadProgress > 0" class="mb-6 space-y-2">
+        <div class="flex justify-between text-sm text-gray-600">
+          <span>模型加载进度</span>
+          <span>{{ modelLoadProgress }}%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+          <div 
+            class="bg-green-600 h-2.5 rounded-full transition-all duration-300 ease-in-out"
+            :style="{ width: modelLoadProgress + '%' }"
+          ></div>
+        </div>
+        <div v-if="modelLoadStatus" class="text-sm" :class="modelLoadStatus.includes('成功') ? 'text-green-600' : modelLoadStatus.includes('失败') ? 'text-red-600' : 'text-blue-600'">
+          {{ modelLoadStatus }}
+        </div>
       </div>
     </div>
     
@@ -103,6 +306,8 @@ async function analyzeText() {
           :sentence-index="index"
           :show-phonemes="showPhonemes"
           :align-phonemes-with-words="alignPhonemesWithWords"
+          :is-ai-speaking="result.isAiSpeaking"
+          @speak="handleSpeak"
         />
       </div>
     </div>

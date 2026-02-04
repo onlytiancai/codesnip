@@ -9,7 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
     "@tailwindcss/vite": "^4.1.18",
+    "kokoro-js": "^1.2.1",
+    "onnxruntime-web": "^1.23.2",
     "phonemizer": "^1.2.1",
     "tailwindcss": "^4.1.18",
     "vue": "^3.5.24"

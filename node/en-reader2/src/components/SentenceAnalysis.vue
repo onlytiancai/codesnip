@@ -6,9 +6,19 @@ interface Props {
   sentenceIndex: number;
   showPhonemes: boolean;
   alignPhonemesWithWords: boolean;
+  isAiSpeaking?: boolean;
 }
 
 const props = defineProps<Props>();
+
+const emit = defineEmits<{
+  (e: 'speak', sentenceIndex: number): void;
+}>();
+
+// 获取完整句子
+const getFullSentence = (): string => {
+  return props.words.map(word => word.word).join(' ');
+};
 </script>
 
 <template>
@@ -48,6 +58,22 @@ const props = defineProps<Props>();
         {{ item.word }}
         <span v-if="index < words.length - 1"> </span>
       </span>
+    </div>
+    
+    <!-- AI朗读按钮 -->
+    <div class="mt-4">
+      <button 
+        @click="emit('speak', sentenceIndex)"
+        :disabled="props.isAiSpeaking"
+        :class="[
+          'px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors',
+          props.isAiSpeaking 
+            ? 'bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500 opacity-50 cursor-not-allowed' 
+            : 'bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500'
+        ]"
+      >
+        {{ props.isAiSpeaking ? 'AI朗读中...' : 'AI朗读' }}
+      </button>
     </div>
   </div>
 </template>
