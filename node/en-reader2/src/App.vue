@@ -4,13 +4,16 @@ import { analyzeEnglishText } from './utils/phonemizer';
 import type { SentenceAnalysis } from './utils/phonemizer';
 import SentenceAnalysisComponent from './components/SentenceAnalysis.vue';
 import { ttsService } from './services/tts';
+import { translateService } from './services/translate';
 
 const inputText = ref(`Last week I went to the theatre. I had a very good seat. The play was very interesting. I did not enjoy it. A young man and a young woman were sitting behind me. They were talking loudly. I got very angry. I could not hear the actors. I turned round. I looked at the man and the woman angrily. They did not pay any attention. In the end, I could not bear it. I turned round again. 'I can't hear a word!' I said angrily.
 
 'It's none of your business,' the young man said rudely. 'This is a private conversation!'`);
-// 扩展SentenceAnalysis类型，添加isAiSpeaking属性
+// 扩展SentenceAnalysis类型，添加isAiSpeaking和translation属性
 interface ExtendedSentenceAnalysis extends SentenceAnalysis {
   isAiSpeaking?: boolean;
+  translation?: string;
+  isTranslating?: boolean;
 }
 
 const analysisResults = ref<ExtendedSentenceAnalysis[]>([]);
@@ -18,6 +21,7 @@ const isLoading = ref(false);
 const errorMessage = ref('');
 const showPhonemes = ref(true);
 const alignPhonemesWithWords = ref(true);
+const autoTranslate = ref(false);
 
 // TTS相关变量
 const isLoadingModel = ref(false);
@@ -48,13 +52,45 @@ async function analyzeText() {
     // 为每个句子添加isAiSpeaking属性
     analysisResults.value = results.map(result => ({
       ...result,
-      isAiSpeaking: false
+      isAiSpeaking: false,
+      translation: undefined,
+      isTranslating: false
     }));
+    
+    // 如果开启了自动翻译，翻译所有句子
+    if (autoTranslate.value) {
+      await translateAllSentences();
+    }
   } catch (error) {
     console.error('分析文本时出错:', error);
     errorMessage.value = '分析文本时出错，请重试';
   } finally {
     isLoading.value = false;
+  }
+}
+
+// 翻译单个句子
+async function translateSentence(sentenceIndex: number) {
+  const sentence = analysisResults.value[sentenceIndex];
+  if (!sentence || sentence.isTranslating) return;
+  
+  try {
+    sentence.isTranslating = true;
+    const text = sentence.words.map(word => word.word).join(' ');
+    const translation = await translateService.translate(text);
+    sentence.translation = translation;
+  } catch (error) {
+    console.error('翻译句子时出错:', error);
+    showToast('谷歌翻译服务不可用，请检查网络连接', 'error');
+  } finally {
+    sentence.isTranslating = false;
+  }
+}
+
+// 翻译所有句子
+async function translateAllSentences() {
+  for (let i = 0; i < analysisResults.value.length; i++) {
+    await translateSentence(i);
   }
 }
 
@@ -267,6 +303,18 @@ onMounted(async () => {
             音标与单词对齐
           </label>
         </div>
+        
+        <div class="flex items-center">
+          <input 
+            id="auto-translate"
+            v-model="autoTranslate"
+            type="checkbox"
+            class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+          >
+          <label for="auto-translate" class="ml-2 block text-sm text-gray-700">
+            自动翻译
+          </label>
+        </div>
       </div>
       
       <div v-if="errorMessage" class="mb-4 text-red-500 text-sm">
@@ -334,7 +382,10 @@ onMounted(async () => {
           :show-phonemes="showPhonemes"
           :align-phonemes-with-words="alignPhonemesWithWords"
           :is-ai-speaking="result.isAiSpeaking"
+          :translation="result.translation"
+          :is-translating="result.isTranslating"
           @speak="handleSpeak"
+          @translate="translateSentence"
         />
       </div>
     </div>

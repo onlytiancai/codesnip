@@ -7,12 +7,15 @@ interface Props {
   showPhonemes: boolean;
   alignPhonemesWithWords: boolean;
   isAiSpeaking?: boolean;
+  translation?: string;
+  isTranslating?: boolean;
 }
 
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
   (e: 'speak', sentenceIndex: number): void;
+  (e: 'translate', sentenceIndex: number): void;
 }>();
 
 // 获取完整句子
@@ -60,8 +63,15 @@ const getFullSentence = (): string => {
       </span>
     </div>
     
-    <!-- AI朗读按钮 -->
-    <div class="mt-4">
+    <!-- 翻译结果显示 -->
+    <div v-if="props.translation" class="mt-3 p-3 bg-blue-50 rounded-md">
+      <div class="text-sm font-medium text-gray-700 mb-1">翻译：</div>
+      <div class="text-sm text-gray-800">{{ props.translation }}</div>
+    </div>
+    
+    <!-- 操作按钮 -->
+    <div class="mt-4 flex gap-3">
+      <!-- AI朗读按钮 -->
       <button 
         @click="emit('speak', sentenceIndex)"
         :disabled="props.isAiSpeaking"
@@ -73,6 +83,20 @@ const getFullSentence = (): string => {
         ]"
       >
         {{ props.isAiSpeaking ? 'AI朗读中...' : 'AI朗读' }}
+      </button>
+      
+      <!-- 翻译按钮 -->
+      <button 
+        @click="emit('translate', sentenceIndex)"
+        :disabled="props.isTranslating"
+        :class="[
+          'px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors',
+          props.isTranslating 
+            ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 opacity-50 cursor-not-allowed' 
+            : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
+        ]"
+      >
+        {{ props.isTranslating ? '翻译中...' : '翻译' }}
       </button>
     </div>
   </div>
