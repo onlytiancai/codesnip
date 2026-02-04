@@ -8,6 +8,8 @@ const inputText = ref('');
 const analysisResults = ref<SentenceAnalysis[]>([]);
 const isLoading = ref(false);
 const errorMessage = ref('');
+const showPhonemes = ref(true);
+const alignPhonemesWithWords = ref(true);
 
 async function analyzeText() {
   if (!inputText.value.trim()) {
@@ -46,6 +48,33 @@ async function analyzeText() {
         ></textarea>
       </div>
       
+      <!-- 音标显示选项 -->
+      <div class="mb-6 space-y-3">
+        <div class="flex items-center">
+          <input 
+            id="show-phonemes"
+            v-model="showPhonemes"
+            type="checkbox"
+            class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+          >
+          <label for="show-phonemes" class="ml-2 block text-sm text-gray-700">
+            显示音标
+          </label>
+        </div>
+        
+        <div class="flex items-center" v-if="showPhonemes">
+          <input 
+            id="align-phonemes"
+            v-model="alignPhonemesWithWords"
+            type="checkbox"
+            class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+          >
+          <label for="align-phonemes" class="ml-2 block text-sm text-gray-700">
+            音标与单词对齐
+          </label>
+        </div>
+      </div>
+      
       <div v-if="errorMessage" class="mb-4 text-red-500 text-sm">
         {{ errorMessage }}
       </div>
@@ -70,6 +99,8 @@ async function analyzeText() {
           :key="index" 
           :words="result.words" 
           :sentence-index="index"
+          :show-phonemes="showPhonemes"
+          :align-phonemes-with-words="alignPhonemesWithWords"
         />
       </div>
     </div>
