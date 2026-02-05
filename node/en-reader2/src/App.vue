@@ -2,7 +2,7 @@
 import { ref, watch, onMounted } from 'vue';
 import JSZip from 'jszip';
 import { analyzeEnglishText } from './utils/phonemizer';
-import type { SentenceAnalysis } from './utils/phonemizer';
+import type { SentenceAnalysis } from './types';
 import SentenceAnalysisComponent from './components/SentenceAnalysis.vue';
 import { ttsService } from './services/tts';
 import { translateService } from './services/translate';

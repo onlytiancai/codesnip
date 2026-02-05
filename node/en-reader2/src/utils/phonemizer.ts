@@ -1,13 +1,5 @@
 import { phonemize } from 'phonemizer';
-
-export interface WordWithPhoneme {
-  word: string;
-  phoneme: string;
-}
-
-export interface SentenceAnalysis {
-  words: WordWithPhoneme[];
-}
+import type { SentenceAnalysis, WordWithPhoneme } from '../types';
 
 /**
  * 分析英文文本，按句子拆分并为每个单词生成音标

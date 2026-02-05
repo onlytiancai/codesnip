@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { WordWithPhoneme } from '../utils/phonemizer';
+import type { WordWithPhoneme } from '../types';
 
 interface Props {
   words: WordWithPhoneme[];
