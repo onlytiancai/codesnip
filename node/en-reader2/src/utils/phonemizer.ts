@@ -42,67 +42,104 @@ export async function analyzeEnglishText(text: string): Promise<SentenceAnalysis
 /**
  * 按句子拆分文本，考虑引用情况并保留末尾标点
  */
-function splitSentencesWithPunctuation(text: string): string[] {
+export function splitSentencesWithPunctuation(text: string): string[] {
+  // 处理空输入
+  if (!text.trim()) return [];
+  
+  // 替换中文标点符号为英文标点符号
+  // 将所有换行符替换为空格
+  let normalizedText = text
+    .replace(/[，]/g, ',')
+    .replace(/[。]/g, '.')
+    .replace(/[！]/g, '!')
+    .replace(/[？]/g, '?')
+    .replace(/[；]/g, ';')
+    .replace(/[：]/g, ':')
+    .replace(/[“]/g, '"')
+    .replace(/[”]/g, '"')
+    .replace(/\n/g, ' ')
+    .replace(/\s+/g, ' ') // 将多个连续空格替换为单个空格
+  
   const sentences: string[] = [];
   let currentSentence = '';
-  let inQuotes = 0;
-  let quoteChar = '';
-  let lastPunctuationIndex = -1;
+  let inQuotes = false;
   
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
+  for (let i = 0; i < normalizedText.length; i++) {
+    const char = normalizedText[i];
     currentSentence += char;
     
-    // 处理引号（只处理双引号，单引号通常是撇号）
+    // 处理引号
     if (char === '"') {
-      if (inQuotes === 0) {
-        // 开始引用
-        inQuotes = 1;
-        quoteChar = char;
-      } else if (inQuotes === 1 && char === quoteChar) {
-        // 结束引用
-        inQuotes = 0;
-        quoteChar = '';
-        
-        // 检查引号前是否有标点，如果有，可能是句子结束
-        if (lastPunctuationIndex !== -1) {
-          // 检查下一个字符是否是空格或文本结束
-          const nextChar = i + 1 < text.length ? text[i + 1] : '';
-          if (nextChar === ' ' || nextChar === '' || nextChar === '\n' || nextChar === '\t') {
-            sentences.push(currentSentence);
-            currentSentence = '';
-            lastPunctuationIndex = -1;
+      inQuotes = !inQuotes;
+      
+      // 检查引号内的逗号，如 "Hello," 这种情况
+      if (!inQuotes && i > 0 && normalizedText[i - 1] === ',') {
+        // 检查下一个字符是否是空格
+        const nextChar = i + 1 < normalizedText.length ? normalizedText[i + 1] : '';
+        if (nextChar === ' ') {
+          // 跳过空格
+          while (i + 1 < normalizedText.length && normalizedText[i + 1] === ' ') {
+            i++;
           }
+          
+          const trimmedSentence = currentSentence.trim();
+          if (trimmedSentence) {
+            sentences.push(trimmedSentence);
+          }
+          currentSentence = '';
         }
       }
     }
     
-    // 记录标点位置
+    // 检查句子结束符
     if ((char === '.' || char === '!' || char === '?')) {
-      lastPunctuationIndex = i;
-    }
-    
-    // 句子结束符，且不在引用内
-    if ((char === '.' || char === '!' || char === '?') && inQuotes === 0) {
-      // 检查下一个字符是否也是标点（如省略号）
-      while (i + 1 < text.length && (text[i + 1] === '.' || text[i + 1] === '!' || text[i + 1] === '?')) {
-        currentSentence += text[i + 1];
-        i++;
-      }
-      
-      // 检查是否是句子结束（后面是空格或文本结束）
-      const nextChar = i + 1 < text.length ? text[i + 1] : '';
-      if (nextChar === ' ' || nextChar === '' || nextChar === '\n' || nextChar === '\t') {
-        sentences.push(currentSentence);
-        currentSentence = '';
-        lastPunctuationIndex = -1;
+      // 检查是否在引号内
+      if (inQuotes) {
+        // 如果在引号内，检查下一个字符是否是引号结束
+        if (i + 1 < normalizedText.length && normalizedText[i + 1] === '"') {
+          // 消耗引号
+          currentSentence += normalizedText[i + 1];
+          i++;
+          inQuotes = false;
+          
+          // 检查引号后是否是空格
+          const nextChar = i + 1 < normalizedText.length ? normalizedText[i + 1] : '';
+          if (nextChar === ' ') {
+            // 跳过空格
+            while (i + 1 < normalizedText.length && normalizedText[i + 1] === ' ') {
+              i++;
+            }
+            
+            const trimmedSentence = currentSentence.trim();
+            if (trimmedSentence) {
+              sentences.push(trimmedSentence);
+            }
+            currentSentence = '';
+          }
+        }
+      } else {
+        // 不在引号内，检查是否是句子结束
+        const nextChar = i + 1 < normalizedText.length ? normalizedText[i + 1] : '';
+        if (nextChar === ' ' || nextChar === '' || nextChar === '\n' || nextChar === '\t') {
+          // 跳过后续的空格和换行
+          while (i + 1 < normalizedText.length && (normalizedText[i + 1] === ' ' || normalizedText[i + 1] === '\n' || normalizedText[i + 1] === '\t')) {
+            i++;
+          }
+          
+          const trimmedSentence = currentSentence.trim();
+          if (trimmedSentence) {
+            sentences.push(trimmedSentence);
+          }
+          currentSentence = '';
+        }
       }
     }
   }
   
   // 处理最后一个句子（如果没有结束符）
-  if (currentSentence.trim()) {
-    sentences.push(currentSentence);
+  const trimmedSentence = currentSentence.trim();
+  if (trimmedSentence) {
+    sentences.push(trimmedSentence);
   }
   
   return sentences;
