@@ -4,10 +4,7 @@ export default defineNuxtConfig({
     fonts: false
   },
     
-  modules: [
-    '@nuxt/eslint',
-    '@nuxt/ui'
-  ],
+  modules: ['@nuxt/eslint', '@nuxt/ui', 'nuxt-auth-utils'],
 
   devtools: {
     enabled: true
