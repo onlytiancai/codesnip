@@ -60,7 +60,37 @@ async function analyzeText() {
     return;
   }
   
+  // 重置所有状态
+  console.log('[分析] 开始重置状态...');
+  
+  // 停止当前播放的音频
+  if (currentAudioElement.value) {
+    currentAudioElement.value.pause();
+    currentAudioElement.value.currentTime = 0;
+    currentAudioElement.value = null;
+  }
+  
+  // 重置播放状态
+  if (isPlayingAll.value) {
+    resetPlayAllState();
+  }
+  
+  // 清空音频缓存
+  audioCache.value = {};
+  console.log('[分析] 已清空音频缓存');
+  
+  // 清空错误消息
   errorMessage.value = '';
+  
+  // 重置音频生成相关状态
+  audioGenerationProgress.value = 0;
+  audioGenerationStatus.value = '';
+  
+  // 重置翻译显示状态
+  allTranslationsVisible.value = false;
+  
+  console.log('[分析] 状态重置完成');
+  
   isLoading.value = true;
   
   try {
@@ -75,10 +105,6 @@ async function analyzeText() {
       showTranslation: false
     }));
     
-    // 重置音频生成相关变量
-    audioGenerationProgress.value = 0;
-    audioGenerationStatus.value = '';
-    allTranslationsVisible.value = false;
     // 标记为分析生成的结果
     isImportedData.value = false;
   } catch (error) {
@@ -761,6 +787,37 @@ function handleImport(event: Event) {
     return;
   }
   
+  // 重置所有状态，确保导入的数据能正常显示
+  console.log('[导入] 开始重置状态...');
+  
+  // 停止当前播放的音频
+  if (currentAudioElement.value) {
+    currentAudioElement.value.pause();
+    currentAudioElement.value.currentTime = 0;
+    currentAudioElement.value = null;
+  }
+  
+  // 重置播放状态
+  if (isPlayingAll.value) {
+    resetPlayAllState();
+  }
+  
+  // 清空音频缓存
+  audioCache.value = {};
+  console.log('[导入] 已清空音频缓存');
+  
+  // 清空错误消息
+  errorMessage.value = '';
+  
+  // 重置音频生成相关状态
+  audioGenerationProgress.value = 0;
+  audioGenerationStatus.value = '';
+  
+  // 重置翻译显示状态
+  allTranslationsVisible.value = false;
+  
+  console.log('[导入] 状态重置完成');
+  
   const zip = new JSZip();
   zip.loadAsync(file as any)
     .then(async (zip) => {
@@ -890,8 +947,8 @@ onMounted(async () => {
         {{ errorMessage }}
       </div>
       
-      <!-- 所有按钮放在一行，左对齐，统一大小 -->
-      <div class="mb-6 flex flex-wrap gap-3 items-center">
+      <!-- 主要功能按钮 -->
+      <div class="mb-4 flex flex-wrap gap-3 items-center">
         <!-- 分析文本按钮 - 始终显示 -->
         <button 
           @click="analyzeText"
@@ -900,17 +957,37 @@ onMounted(async () => {
         >
           {{ isLoading ? '分析中...' : '分析文本' }}
         </button>
+      </div>
+      
+      <!-- 导入导出按钮单独放在一行 -->
+      <div class="mb-4 flex flex-wrap gap-3 items-center">
+        <!-- 导入按钮 - 始终显示 -->
+        <div class="relative">
+          <button 
+            class="px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all"
+          >
+            导入数据
+          </button>
+          <input 
+            type="file" 
+            accept=".zip" 
+            @change="handleImport"
+            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          >
+        </div>
         
-        <!-- 加载语音模型按钮 - 加载完毕后自动隐藏 -->
+        <!-- 导出按钮 - 只有分析文本后才显示 -->
         <button 
-          v-if="analysisResults.length > 0 && !ttsService.isModelLoaded()"
-          @click="loadKokoroModel" 
-          :disabled="isLoadingModel"
-          class="px-6 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+          v-if="analysisResults.length > 0"
+          @click="exportData"
+          class="px-6 py-2 bg-yellow-600 text-white font-medium rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-all"
         >
-          {{ isLoadingModel ? '加载中...' : '加载语音模型' }}
+          导出数据
         </button>
-        
+      </div>
+      
+      <!-- 显示/隐藏音标和翻译按钮单独放一行 -->
+      <div class="mb-6 flex flex-wrap gap-3 items-center">
         <!-- 显示/隐藏音标按钮 - 只有分析文本后才显示 -->
         <button 
           v-if="analysisResults.length > 0"
@@ -927,37 +1004,12 @@ onMounted(async () => {
           :disabled="isTranslatingAll"
           class="px-6 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
         >
-          {{ isTranslatingAll ? '翻译中...' : allTranslationsVisible ? '隐藏所有翻译' : '显示所有翻译' }}
+          {{ isTranslatingAll ? '翻译中...' : allTranslationsVisible ? '隐藏翻译' : '显示翻译' }}
         </button>
-        
-        <!-- 导出按钮 - 只有分析文本后才显示 -->
-        <button 
-          v-if="analysisResults.length > 0"
-          @click="exportData"
-          class="px-6 py-2 bg-yellow-600 text-white font-medium rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-all"
-        >
-          导出数据
-        </button>
-        
-        <!-- 导入按钮 - 始终显示 -->
-        <div class="relative">
-          <button 
-            class="px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all"
-          >
-            导入数据
-          </button>
-          <input 
-            type="file" 
-            accept=".zip" 
-            @change="handleImport"
-            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          >
-        </div>
-
       </div>
       
       <!-- 音标对齐选项 -->
-      <div class="mb-6" v-if="showPhonemes">
+      <div class="mb-6" v-if="analysisResults.length > 0 && showPhonemes">
         <div class="flex items-center">
           <input 
             id="align-phonemes"
@@ -975,45 +1027,45 @@ onMounted(async () => {
       <div v-if="analysisResults.length > 0" class="mb-6">
         <!-- 仅当不是导入数据时显示语音选择 -->
         <template v-if="!isImportedData">
-          <label for="voice-select" class="block text-sm font-medium text-gray-700 mb-2">选择语音：</label>
-          <!-- 语音选择下拉框 - 只有当有可用语音时显示 -->
-          <select 
-            v-if="availableVoices.length > 0"
-            id="voice-select" 
-            v-model="selectedVoice" 
-            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-          >
-            <option v-for="voice in availableVoices" :key="voice.id" :value="voice.id">
-              {{ voice.displayName }}
-            </option>
-          </select>
-          <!-- 当没有可用语音时，显示当前选中的语音 -->
-          <div v-else class="w-full px-4 py-3 border border-gray-300 rounded-md bg-gray-50">
-            当前语音: {{ selectedVoice }}
-          </div>
-          
-          <div class="flex gap-3 mt-3">
-            <!-- 生成AI朗读按钮 - 只有加载语音模型成功后显示，导入数据时不显示 -->
-            <button 
-              @click="generateAllAudio"
-              :disabled="isGeneratingAudio"
-              class="px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
-            >
-              {{ isGeneratingAudio ? '生成中...' : '生成AI朗读' }}
-            </button>
+          <div class="flex flex-col gap-3">
+            <!-- 生成AI朗读按钮 - 分析完句子后就显示 -->
+            <div class="flex gap-3">
+              <button 
+                @click="generateAllAudio"
+                :disabled="isGeneratingAudio"
+                class="px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+              >
+                {{ isGeneratingAudio ? '生成中...' : '生成音频' }}
+              </button>
+              
+              <!-- 播放/停止全部按钮 -->
+              <button 
+                v-if="analysisResults.every(sentence => sentence.hasAudio)"
+                @click="isPlayingAll ? stopPlayingAll() : playAllSentences()"
+                :class="[
+                  'px-6 py-2 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all',
+                  isPlayingAll 
+                    ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500' 
+                    : 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500'
+                ]"
+              >
+                {{ isPlayingAll ? '停止' : '播放全部' }}
+              </button>
+            </div>
             
-            <!-- 播放/停止全部按钮 -->
-            <button 
-              @click="isPlayingAll ? stopPlayingAll() : playAllSentences()"
-              :class="[
-                'px-6 py-2 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all',
-                isPlayingAll 
-                  ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500' 
-                  : 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500'
-              ]"
-            >
-              {{ isPlayingAll ? '停止' : '播放全部' }}
-            </button>
+            <!-- 语音选择下拉框 - 只有当模型加载后显示 -->
+            <template v-if="availableVoices.length > 0">
+              <label for="voice-select" class="block text-sm font-medium text-gray-700 mb-2">选择语音：</label>
+              <select 
+                id="voice-select" 
+                v-model="selectedVoice" 
+                class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              >
+                <option v-for="voice in availableVoices" :key="voice.id" :value="voice.id">
+                  {{ voice.displayName }}
+                </option>
+              </select>
+            </template>
           </div>
         </template>
         <!-- 导入数据时只显示播放全部按钮 -->
@@ -1021,6 +1073,7 @@ onMounted(async () => {
           <div class="flex gap-3">
             <!-- 播放/停止全部按钮 -->
             <button 
+              v-if="analysisResults.every(sentence => sentence.hasAudio)"
               @click="isPlayingAll ? stopPlayingAll() : playAllSentences()"
               :class="[
                 'px-6 py-2 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all',
