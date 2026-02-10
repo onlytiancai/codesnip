@@ -2,10 +2,15 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  modules: ['nuxt-auth-utils'],
+  modules: ['/Users/huhao/src/nuxt-auth-utils/src/module'],
   runtimeConfig: {
     myTestConfig: '',
-    weixinOpenAppid: '',
-    weixinOpenSecret: '',
+  },
+  vite: {
+    server: {
+      allowedHosts: [
+        'tools.myapp1024.com',
+      ],
+    },
   },
 })
