@@ -1,14 +1,16 @@
-interface WeixinTokens {    
-  access_token   : string
-  refresh_token  : string
-  expires_in     : number
-  openid         : string
-  scope          : string
+interface WeixinTokens {
+  access_token: string
+  expires_in: number
+  refresh_token: string
+  openid: string
+  scope: string
+  unionid?: string
 }
 
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event)
   const tokens  = session.tokens as WeixinTokens | undefined
+  console.log("tokens?.refresh_token", tokens?.refresh_token)
 
   if (!tokens?.refresh_token) {
     throw createError({
@@ -20,7 +22,8 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
 
   // Request new tokens from Weixin
-  const newTokens = await $fetch<WeixinTokens>('https://api.weixin.qq.com/sns/oauth2/refresh_token', {
+  const newTokens =  await $fetch<WeixinTokens>('https://api.weixin.qq.com/sns/oauth2/refresh_token', {
+    parseResponse: (txt) => JSON.parse(txt),
     method: 'POST',
     body: new URLSearchParams({
       appid         : config.oauth.weixin.clientId,

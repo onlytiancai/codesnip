@@ -4,7 +4,8 @@ export default defineOAuthWeixinEventHandler({
 
     await setUserSession(event, {
       user  : user,
-      tokens: tokens
+      tokens: tokens,
+      loggedInAt: Date.now()
     })
     return sendRedirect(event, '/')
   },
