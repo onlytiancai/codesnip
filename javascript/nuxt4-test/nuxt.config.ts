@@ -5,5 +5,7 @@ export default defineNuxtConfig({
   modules: ['nuxt-auth-utils'],
   runtimeConfig: {
     myTestConfig: '',
+    weixinOpenAppid: '',
+    weixinOpenSecret: '',
   },
 })
