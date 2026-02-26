@@ -99,3 +99,9 @@ pnpm start -- -u https://example.com/article -r -o article.md
 ## License
 
 ISC
+
+## other
+
+测试文件
+
+    node src/index.js -u https://blog.cloudflare.com/vinext/ -r -o output-readability.md
