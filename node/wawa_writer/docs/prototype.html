@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 辅助写作工具 - 原型</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',
+            secondary: '#64748b',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .step-active { border-color: #3b82f6; color: #3b82f6; }
+    .step-completed { border-color: #22c55e; color: #22c55e; }
+    .step-inactive { border-color: #e2e8f0; color: #94a3b8; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <!-- 顶部导航 -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+          </div>
+          <h1 class="text-xl font-semibold text-gray-900">AI 写作助手</h1>
+        </div>
+        <div class="flex items-center gap-4">
+          <button class="text-gray-500 hover:text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </button>
+          <div class="w-8 h-8 bg-gray-200 rounded-full"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex gap-6">
+      <!-- 左侧步骤导航 -->
+      <aside class="w-64 flex-shrink-0">
+        <nav class="sticky top-24 space-y-0">
+          <div class="step-item step-active flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer hover:bg-gray-50">
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium">1</div>
+            <div>
+              <p class="font-medium">输入标题</p>
+              <p class="text-xs text-gray-500">开始写作的第一步</p>
+            </div>
+          </div>
+          <div class="step-item step-inactive flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer hover:bg-gray-50">
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium">2</div>
+            <div>
+              <p class="font-medium">结构建议</p>
+              <p class="text-xs text-gray-500">AI 生成大纲</p>
+            </div>
+          </div>
+          <div class="step-item step-inactive flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer hover:bg-gray-50">
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium">3</div>
+            <div>
+              <p class="font-medium">参考资料</p>
+              <p class="text-xs text-gray-500">搜索相关内容</p>
+            </div>
+          </div>
+          <div class="step-item step-inactive flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer hover:bg-gray-50">
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium">4</div>
+            <div>
+              <p class="font-medium">对话写作</p>
+              <p class="text-xs text-gray-500">逐步构建内容</p>
+            </div>
+          </div>
+          <div class="step-item step-inactive flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer hover:bg-gray-50">
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium">5</div>
+            <div>
+              <p class="font-medium">优化润色</p>
+              <p class="text-xs text-gray-500">AI 评审与改进</p>
+            </div>
+          </div>
+          <div class="step-item step-inactive flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer hover:bg-gray-50">
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium">6</div>
+            <div>
+              <p class="font-medium">导出发布</p>
+              <p class="text-xs text-gray-500">完成作品</p>
+            </div>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- 主内容区 -->
+      <main class="flex-1">
+        <!-- 步骤 1: 输入标题 -->
+        <div class="step-content step-1 bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-2">开始写作</h2>
+          <p class="text-gray-500 mb-6">输入文章标题，AI 将帮助你完成后续写作</p>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">文章标题</label>
+              <input type="text" placeholder="例如：如何使用 Node.js 构建 RESTful API"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-lg">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">写作类型（可选）</label>
+              <div class="flex gap-2 flex-wrap">
+                <button class="px-4 py-2 border border-gray-300 rounded-lg hover:border-primary hover:text-primary transition">技术博客</button>
+                <button class="px-4 py-2 border border-gray-300 rounded-lg hover:border-primary hover:text-primary transition">教程指南</button>
+                <button class="px-4 py-2 border border-gray-300 rounded-lg hover:border-primary hover:text-primary transition">产品文档</button>
+                <button class="px-4 py-2 border border-gray-300 rounded-lg hover:border-primary hover:text-primary transition">营销文案</button>
+                <button class="px-4 py-2 border border-gray-300 rounded-lg hover:border-primary hover:text-primary transition">学术论文</button>
+              </div>
+            </div>
+
+            <div class="pt-4">
+              <button class="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-blue-600 transition flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                开始生成
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 步骤 2: 结构建议（示例展示） -->
+        <div class="step-content step-2 bg-white rounded-xl shadow-sm border border-gray-200 p-8 mt-6 hidden">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-2">结构建议</h2>
+          <p class="text-gray-500 mb-6">AI 为你生成了以下大纲结构</p>
+
+          <div class="space-y-4">
+            <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+              <input type="checkbox" checked class="mt-1 w-4 h-4 text-primary">
+              <div class="flex-1">
+                <h3 class="font-medium text-gray-900">引言</h3>
+                <p class="text-sm text-gray-500">介绍 RESTful API 的概念和重要性</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+              <input type="checkbox" checked class="mt-1 w-4 h-4 text-primary">
+              <div class="flex-1">
+                <h3 class="font-medium text-gray-900">环境准备</h3>
+                <p class="text-sm text-gray-500">Node.js 安装、项目初始化、依赖安装</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+              <input type="checkbox" checked class="mt-1 w-4 h-4 text-primary">
+              <div class="flex-1">
+                <h3 class="font-medium text-gray-900">核心实现</h3>
+                <p class="text-sm text-gray-500">路由设计、控制器、中间件</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+              <input type="checkbox" checked class="mt-1 w-4 h-4 text-primary">
+              <div class="flex-1">
+                <h3 class="font-medium text-gray-900">数据库集成</h3>
+                <p class="text-sm text-gray-500">连接数据库、模型定义、CRUD 操作</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+              <input type="checkbox" checked class="mt-1 w-4 h-4 text-primary">
+              <div class="flex-1">
+                <h3 class="font-medium text-gray-900">测试与部署</h3>
+                <p class="text-sm text-gray-500">单元测试、生产环境配置</p>
+              </div>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+              <button class="flex-1 bg-primary text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition">
+                确认结构
+              </button>
+              <button class="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-50 transition">
+                重新生成
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 步骤 3: 参考资料（示例展示） -->
+        <div class="step-content step-3 bg-white rounded-xl shadow-sm border border-gray-200 p-8 mt-6 hidden">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-2">参考资料</h2>
+          <p class="text-gray-500 mb-6">为你找到以下相关内容</p>
+
+          <div class="space-y-3">
+            <div class="p-4 border border-gray-200 rounded-lg hover:border-primary cursor-pointer transition">
+              <div class="flex items-start justify-between">
+                <div>
+                  <h3 class="font-medium text-gray-900">Node.js REST API 最佳实践</h3>
+                  <p class="text-sm text-gray-500 mt-1">来自 Medium · 15 min 阅读</p>
+                </div>
+                <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">高相关</span>
+              </div>
+            </div>
+            <div class="p-4 border border-gray-200 rounded-lg hover:border-primary cursor-pointer transition">
+              <div class="flex items-start justify-between">
+                <div>
+                  <h3 class="font-medium text-gray-900">Express.js 构建 RESTful 服务完整指南</h3>
+                  <p class="text-sm text-gray-500 mt-1">来自 dev.to · 20 min 阅读</p>
+                </div>
+                <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">高相关</span>
+              </div>
+            </div>
+            <div class="p-4 border border-gray-200 rounded-lg hover:border-primary cursor-pointer transition">
+              <div class="flex items-start justify-between">
+                <div>
+                  <h3 class="font-medium text-gray-900">RESTful API 设计原则</h3>
+                  <p class="text-sm text-gray-500 mt-1">来自 知乎 · 10 min 阅读</p>
+                </div>
+                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded">中相关</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-3 pt-4">
+            <button class="flex-1 bg-primary text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition">
+              开始写作
+            </button>
+            <button class="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-50 transition">
+              搜索更多
+            </button>
+          </div>
+        </div>
+
+        <!-- 步骤 4: 对话写作（示例展示） -->
+        <div class="step-content step-4 bg-white rounded-xl shadow-sm border border-gray-200 p-8 mt-6 hidden">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-2xl font-semibold text-gray-900">对话写作</h2>
+              <p class="text-gray-500">与 AI 协作，逐步构建内容</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">进行中</span>
+            </div>
+          </div>
+
+          <div class="flex gap-6">
+            <!-- 左侧：大纲 -->
+            <div class="w-64 flex-shrink-0">
+              <div class="bg-gray-50 rounded-lg p-4">
+                <h3 class="font-medium text-gray-900 mb-3">文章结构</h3>
+                <ul class="space-y-2">
+                  <li class="flex items-center gap-2 text-green-600">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+                    <span class="text-sm">引言</span>
+                  </li>
+                  <li class="flex items-center gap-2 text-green-600">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+                    <span class="text-sm">环境准备</span>
+                  </li>
+                  <li class="flex items-center gap-2 text-blue-600">
+                    <span class="w-4 h-4 rounded-full border-2 border-blue-600 flex items-center justify-center text-xs">●</span>
+                    <span class="text-sm font-medium">核心实现</span>
+                  </li>
+                  <li class="flex items-center gap-2 text-gray-400">
+                    <span class="w-4 h-4 rounded-full border-2 border-gray-300"></span>
+                    <span class="text-sm">数据库集成</span>
+                  </li>
+                  <li class="flex items-center gap-2 text-gray-400">
+                    <span class="w-4 h-4 rounded-full border-2 border-gray-300"></span>
+                    <span class="text-sm">测试与部署</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- 右侧：对话区 -->
+            <div class="flex-1">
+              <div class="bg-gray-50 rounded-lg p-4 h-96 overflow-y-auto space-y-4">
+                <div class="flex gap-3">
+                  <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                  </div>
+                  <div class="bg-white rounded-lg p-3 flex-1 shadow-sm">
+                    <p class="text-gray-700">我们已经完成了「环境准备」部分。接下来让我们编写「核心实现」部分吧！你想先从哪里开始？</p>
+                    <div class="flex gap-2 mt-3">
+                      <button class="px-3 py-1 bg-blue-50 text-blue-600 text-sm rounded hover:bg-blue-100">路由设计</button>
+                      <button class="px-3 py-1 bg-blue-50 text-blue-600 text-sm rounded hover:bg-blue-100">控制器</button>
+                      <button class="px-3 py-1 bg-blue-50 text-blue-600 text-sm rounded hover:bg-blue-100">中间件</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 flex gap-3">
+                <input type="text" placeholder="告诉 AI 你想怎么写..."
+                  class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                <button class="bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 transition">
+                  发送
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 步骤 5: 优化润色（示例展示） -->
+        <div class="step-content step-5 bg-white rounded-xl shadow-sm border border-gray-200 p-8 mt-6 hidden">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-2">AI 评审</h2>
+          <p class="text-gray-500 mb-6">AI 对你的文章进行全方位评审</p>
+
+          <div class="grid grid-cols-3 gap-4 mb-6">
+            <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="font-medium text-green-700">风格</span>
+              </div>
+              <div class="text-2xl font-bold text-green-700">A</div>
+              <p class="text-sm text-green-600 mt-1">技术博客风格，清晰专业</p>
+            </div>
+            <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="font-medium text-green-700">内容</span>
+              </div>
+              <div class="text-2xl font-bold text-green-700">A</div>
+              <p class="text-sm text-green-600 mt-1">内容完整，代码示例准确</p>
+            </div>
+            <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <span class="font-medium text-yellow-700">结构</span>
+              </div>
+              <div class="text-2xl font-bold text-yellow-700">B+</div>
+              <p class="text-sm text-yellow-600 mt-1">结构清晰，可增加总结部分</p>
+            </div>
+          </div>
+
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="font-medium text-gray-900 mb-3">改进建议</h3>
+            <div class="space-y-2">
+              <div class="flex items-start gap-2 p-2 bg-yellow-50 rounded">
+                <span class="text-yellow-600">💡</span>
+                <p class="text-sm text-gray-700">建议在结尾添加一个总结段落，回顾本文要点</p>
+              </div>
+              <div class="flex items-start gap-2 p-2 bg-blue-50 rounded">
+                <span class="text-blue-600">📎</span>
+                <p class="text-sm text-gray-700">可以为代码示例添加行号注释，帮助读者理解</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-3 pt-4">
+            <button class="flex-1 bg-primary text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition">
+              应用建议
+            </button>
+            <button class="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-50 transition">
+              跳过
+            </button>
+          </div>
+        </div>
+
+        <!-- 步骤 6: 导出发布（示例展示） -->
+        <div class="step-content step-6 bg-white rounded-xl shadow-sm border border-gray-200 p-8 mt-6 hidden">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-2">导出与发布</h2>
+          <p class="text-gray-500 mb-6">选择你喜欢的格式导出文章</p>
+
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="border border-gray-200 rounded-lg p-4 hover:border-primary cursor-pointer transition">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <div>
+                  <h3 class="font-medium text-gray-900">Markdown</h3>
+                  <p class="text-sm text-gray-500">最常用格式</p>
+                </div>
+              </div>
+            </div>
+            <div class="border border-gray-200 rounded-lg p-4 hover:border-primary cursor-pointer transition">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                </div>
+                <div>
+                  <h3 class="font-medium text-gray-900">PDF</h3>
+                  <p class="text-sm text-gray-500">适合分享打印</p>
+                </div>
+              </div>
+            </div>
+            <div class="border border-gray-200 rounded-lg p-4 hover:border-primary cursor-pointer transition">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                </div>
+                <div>
+                  <h3 class="font-medium text-gray-900">HTML</h3>
+                  <p class="text-sm text-gray-500">在线发布</p>
+                </div>
+              </div>
+            </div>
+            <div class="border border-gray-200 rounded-lg p-4 hover:border-primary cursor-pointer transition">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                </div>
+                <div>
+                  <h3 class="font-medium text-gray-900">分享链接</h3>
+                  <p class="text-sm text-gray-500">生成在线链接</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-gray-50 rounded-lg p-4">
+            <h3 class="font-medium text-gray-900 mb-2">文章预览</h3>
+            <div class="prose prose-sm max-w-none bg-white p-4 rounded border">
+              <h4>如何使用 Node.js 构建 RESTful API</h4>
+              <p class="text-gray-500">本文介绍了使用 Node.js 和 Express 框架构建 RESTful API 的完整流程...</p>
+            </div>
+          </div>
+
+          <div class="flex gap-3 pt-4">
+            <button class="flex-1 bg-primary text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition">
+              导出
+            </button>
+            <button class="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-50 transition">
+              继续编辑
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <!-- 右侧：AI 助手对话面板 -->
+      <aside class="w-80 flex-shrink-0">
+        <div class="sticky top-24 bg-white rounded-xl shadow-sm border border-gray-200">
+          <div class="p-4 border-b border-gray-200">
+            <h3 class="font-medium text-gray-900">AI 助手</h3>
+          </div>
+          <div class="h-64 overflow-y-auto p-4 space-y-3">
+            <div class="flex gap-2">
+              <div class="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              </div>
+              <div class="bg-gray-50 rounded-lg p-2 text-sm text-gray-700">
+                你好！我是你的 AI 写作助手。输入标题后，我会帮你生成结构建议、搜索资料，并协助你完成写作。
+              </div>
+            </div>
+          </div>
+          <div class="p-4 border-t border-gray-200">
+            <div class="flex gap-2">
+              <input type="text" placeholder="问 AI 一个问题..."
+                class="flex-1 px-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+              <button class="bg-primary text-white px-3 py-2 rounded text-sm hover:bg-blue-600 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // 简单的步骤切换逻辑（用于原型演示）
+    document.querySelectorAll('.step-item').forEach((item, index) => {
+      item.addEventListener('click', () => {
+        // 更新步骤导航状态
+        document.querySelectorAll('.step-item').forEach((s, i) => {
+          s.classList.remove('step-active', 'step-completed', 'step-inactive');
+          if (i < index) s.classList.add('step-completed');
+          else if (i === index) s.classList.add('step-active');
+          else s.classList.add('step-inactive');
+        });
+
+        // 更新内容显示
+        document.querySelectorAll('.step-content').forEach((c, i) => {
+          c.classList.add('hidden');
+          if (i === index) c.classList.remove('hidden');
+        });
+      });
+    });
+  </script>
+</body>
+</html>
