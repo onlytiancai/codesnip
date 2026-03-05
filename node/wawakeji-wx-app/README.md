@@ -50,12 +50,29 @@ wawakeji-wx-app/
 # 安装依赖
 pnpm install
 
+# 生成 Prisma Client
+pnpm db:generate
+
+# 推送数据库 Schema
+pnpm db:push
+
+# 种子数据 (可选)
+pnpm db:seed
+
 # 开发 Web 应用
 pnpm dev:web
 
 # 运行测试
 pnpm test
 ```
+
+## API 端点
+
+| 端点 | 方法 | 描述 |
+|------|------|------|
+| `/api/articles` | GET | 获取文章列表 (支持 page, pageSize, category, difficulty, search 参数) |
+| `/api/articles/[slug]` | GET | 获取文章详情 |
+| `/api/categories` | GET | 获取分类列表 |
 
 ## License
 
