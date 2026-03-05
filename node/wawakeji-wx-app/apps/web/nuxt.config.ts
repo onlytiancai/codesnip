@@ -7,11 +7,6 @@ export default defineNuxtConfig({
     '@nuxt/ui',
   ],
 
-  // Tailwind CSS configuration
-  tailwindcss: {
-    configPath: 'tailwind.config.ts',
-  },
-
   // Runtime configuration
   runtimeConfig: {
     // Secret keys that are only available on the server
@@ -46,9 +41,8 @@ export default defineNuxtConfig({
 
   // Vite configuration
   vite: {
-    test: {
-      globals: true,
-      environment: 'happy-dom',
+    optimizeDeps: {
+      include: ['@nuxt/ui'],
     },
   },
 

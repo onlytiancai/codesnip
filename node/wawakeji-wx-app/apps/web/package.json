@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@prisma/client": "5.22.0",
+    "@wawakeji/shared": "workspace:*",
     "@nuxt/ui": "latest",
     "nuxt": "latest",
     "vue": "latest",
