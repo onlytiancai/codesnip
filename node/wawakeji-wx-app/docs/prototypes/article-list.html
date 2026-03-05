@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文章列表 - 程序员英语阅读 App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <!-- Navigation -->
+  <nav class="bg-white border-b border-gray-100 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <a href="landing.html" class="flex items-center space-x-2">
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+            <span class="text-white text-xl">📚</span>
+          </div>
+          <span class="text-xl font-bold text-gray-900">DevReader</span>
+        </a>
+        <div class="flex items-center space-x-4">
+          <a href="article-list.html" class="text-gray-900 font-medium">文章</a>
+          <a href="#" class="text-gray-600 hover:text-gray-900">进度</a>
+          <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+            U
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Header -->
+  <div class="bg-white border-b border-gray-100">
+    <div class="max-w-6xl mx-auto px-4 py-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">探索文章</h1>
+      <p class="text-gray-600">精选技术文章，提升英语阅读能力</p>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex flex-col md:flex-row gap-6">
+      <!-- Sidebar Filters -->
+      <aside class="w-full md:w-64 flex-shrink-0">
+        <div class="bg-white rounded-xl shadow-sm p-4 sticky top-24">
+          <h3 class="font-semibold text-gray-900 mb-4">分类</h3>
+          <ul class="space-y-2">
+            <li>
+              <a href="#" class="flex items-center justify-between px-3 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium">
+                <span>全部分类</span>
+                <span class="text-sm bg-blue-100 px-2 py-0.5 rounded-full">128</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center justify-between px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
+                <span>⚛️ 前端开发</span>
+                <span class="text-sm bg-gray-100 px-2 py-0.5 rounded-full">42</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center justify-between px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
+                <span>🔧 后端架构</span>
+                <span class="text-sm bg-gray-100 px-2 py-0.5 rounded-full">35</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center justify-between px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
+                <span>🤖 人工智能</span>
+                <span class="text-sm bg-gray-100 px-2 py-0.5 rounded-full">28</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center justify-between px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
+                <span>☁️ 云计算</span>
+                <span class="text-sm bg-gray-100 px-2 py-0.5 rounded-full">23</span>
+              </a>
+            </li>
+          </ul>
+
+          <div class="border-t border-gray-100 my-4"></div>
+
+          <h3 class="font-semibold text-gray-900 mb-4">难度</h3>
+          <div class="space-y-2">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" class="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500">
+              <span class="text-gray-600">🟢 初级</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" class="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500" checked>
+              <span class="text-gray-600">🟡 中级</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" class="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500">
+              <span class="text-gray-600">🔴 高级</span>
+            </label>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Article Grid -->
+      <main class="flex-1">
+        <!-- Search Bar -->
+        <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+          <div class="flex items-center space-x-3">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="text" placeholder="搜索文章..." class="flex-1 outline-none text-gray-700">
+          </div>
+        </div>
+
+        <!-- Articles -->
+        <div class="space-y-4">
+          <!-- Article Card 1 -->
+          <a href="reader.html" class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow block">
+            <div class="flex items-start justify-between mb-3">
+              <span class="px-3 py-1 bg-blue-100 text-blue-600 text-sm font-medium rounded-full">前端开发</span>
+              <span class="text-sm text-gray-500">🟡 中级</span>
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 mb-2">
+              Understanding React Server Components: A Deep Dive
+            </h2>
+            <p class="text-gray-600 mb-4 line-clamp-2">
+              React Server Components represent a paradigm shift in how we build React applications.
+              They allow us to write components that render exclusively on the server...
+            </p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-4 text-sm text-gray-500">
+                <span>📖 1,234 词</span>
+                <span>⏱️ 约 8 分钟</span>
+                <span>🎤 128 人跟读</span>
+              </div>
+              <span class="text-blue-500 font-medium">开始阅读 →</span>
+            </div>
+          </a>
+
+          <!-- Article Card 2 -->
+          <a href="reader.html" class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow block">
+            <div class="flex items-start justify-between mb-3">
+              <span class="px-3 py-1 bg-green-100 text-green-600 text-sm font-medium rounded-full">后端架构</span>
+              <span class="text-sm text-gray-500">🔴 高级</span>
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 mb-2">
+              Building Distributed Systems: Patterns and Best Practices
+            </h2>
+            <p class="text-gray-600 mb-4 line-clamp-2">
+              Distributed systems are inherently complex. This article explores common patterns
+              like CQRS, Event Sourcing, and Saga that help manage this complexity...
+            </p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-4 text-sm text-gray-500">
+                <span>📖 2,156 词</span>
+                <span>⏱️ 约 15 分钟</span>
+                <span>🎤 89 人跟读</span>
+              </div>
+              <span class="text-blue-500 font-medium">开始阅读 →</span>
+            </div>
+          </a>
+
+          <!-- Article Card 3 -->
+          <a href="reader.html" class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow block">
+            <div class="flex items-start justify-between mb-3">
+              <span class="px-3 py-1 bg-purple-100 text-purple-600 text-sm font-medium rounded-full">人工智能</span>
+              <span class="text-sm text-gray-500">🟢 初级</span>
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 mb-2">
+              Introduction to Large Language Models
+            </h2>
+            <p class="text-gray-600 mb-4 line-clamp-2">
+              Large Language Models (LLMs) have revolutionized the field of AI.
+              This beginner-friendly guide explains what LLMs are and how they work...
+            </p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-4 text-sm text-gray-500">
+                <span>📖 987 词</span>
+                <span>⏱️ 约 6 分钟</span>
+                <span>🎤 256 人跟读</span>
+              </div>
+              <span class="text-blue-500 font-medium">开始阅读 →</span>
+            </div>
+          </a>
+
+          <!-- Article Card 4 -->
+          <a href="reader.html" class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow block">
+            <div class="flex items-start justify-between mb-3">
+              <span class="px-3 py-1 bg-orange-100 text-orange-600 text-sm font-medium rounded-full">云计算</span>
+              <span class="text-sm text-gray-500">🟡 中级</span>
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 mb-2">
+              Kubernetes Networking Explained
+            </h2>
+            <p class="text-gray-600 mb-4 line-clamp-2">
+              Understanding Kubernetes networking is crucial for running containerized applications.
+              We'll cover Services, Ingress, and Network Policies...
+            </p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-4 text-sm text-gray-500">
+                <span>📖 1,567 词</span>
+                <span>⏱️ 约 10 分钟</span>
+                <span>🎤 103 人跟读</span>
+              </div>
+              <span class="text-blue-500 font-medium">开始阅读 →</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-center mt-8 space-x-2">
+          <button class="px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">上一页</button>
+          <button class="px-4 py-2 bg-blue-500 text-white rounded-lg">1</button>
+          <button class="px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">2</button>
+          <button class="px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">3</button>
+          <button class="px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">下一页</button>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

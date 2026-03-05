@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>逐句跟读模式 - 程序员英语阅读 App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+  <!-- Top Bar -->
+  <div class="bg-white/80 backdrop-blur border-b border-gray-100 sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <a href="reader.html" class="text-gray-600 hover:text-gray-900">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+          </a>
+          <span class="text-sm font-medium text-gray-700">Understanding React Server Components</span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="text-sm text-gray-500">🎤 跟读模式</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Progress Indicator -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm text-gray-600">进度</span>
+        <span class="text-sm font-medium text-blue-600">句子 5 / 11</span>
+      </div>
+      <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div class="w-[45%] h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-300"></div>
+      </div>
+    </div>
+
+    <!-- Current Sentence Card -->
+    <div class="bg-white rounded-2xl shadow-lg p-8 mb-6">
+      <!-- Status Indicator -->
+      <div class="flex items-center justify-center mb-6">
+        <div id="statusIndicator" class="flex items-center space-x-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full">
+          <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+          <span class="font-medium text-sm">正在播放...</span>
+        </div>
+      </div>
+
+      <!-- Sentence Text -->
+      <div class="text-center mb-8">
+        <p class="text-2xl font-medium text-gray-900 leading-relaxed">
+          Server Components, on the other hand, never run on the client.
+        </p>
+        <p class="text-lg text-gray-600 mt-4">
+          服务器组件另一方面，从不在客户端运行。
+        </p>
+        <p class="text-sm text-gray-400 mt-2">
+          /ˈsɜːrvər kəmˈpoʊnənts ˌɒn ði ˈʌðər hænd ˈnɛvər rʌn ɒn ðə ˈklaɪənt/
+        </p>
+      </div>
+
+      <!-- Waveform Visualization -->
+      <div class="flex items-center justify-center h-16 mb-6">
+        <div class="flex items-center space-x-1">
+          <div class="w-1 h-4 bg-blue-400 rounded-full animate-pulse"></div>
+          <div class="w-1 h-8 bg-blue-500 rounded-full animate-pulse" style="animation-delay: 0.1s"></div>
+          <div class="w-1 h-12 bg-blue-600 rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
+          <div class="w-1 h-6 bg-blue-500 rounded-full animate-pulse" style="animation-delay: 0.3s"></div>
+          <div class="w-1 h-4 bg-blue-400 rounded-full animate-pulse" style="animation-delay: 0.4s"></div>
+          <div class="w-1 h-10 bg-blue-600 rounded-full animate-pulse" style="animation-delay: 0.5s"></div>
+          <div class="w-1 h-6 bg-blue-500 rounded-full animate-pulse" style="animation-delay: 0.6s"></div>
+          <div class="w-1 h-4 bg-blue-400 rounded-full animate-pulse" style="animation-delay: 0.7s"></div>
+        </div>
+      </div>
+
+      <!-- Playback Controls -->
+      <div class="flex items-center justify-center space-x-6">
+        <!-- Previous Sentence -->
+        <button class="p-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+          </svg>
+        </button>
+
+        <!-- Play/Pause/Record Button -->
+        <button id="mainButton" class="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all hover:scale-105">
+          <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </button>
+
+        <!-- Next Sentence -->
+        <button class="p-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Button Legend -->
+      <div class="text-center mt-4 text-sm text-gray-500">
+        点击中间按钮开始跟读
+      </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+      <h3 class="font-semibold text-gray-900 mb-4">跟读设置</h3>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- Auto Play -->
+        <label class="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
+          <span class="text-sm text-gray-700">自动播放</span>
+          <input type="checkbox" class="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500" checked>
+        </label>
+        <!-- Show Translation -->
+        <label class="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
+          <span class="text-sm text-gray-700">显示翻译</span>
+          <input type="checkbox" class="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500" checked>
+        </label>
+        <!-- Show IPA -->
+        <label class="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
+          <span class="text-sm text-gray-700">显示音标</span>
+          <input type="checkbox" class="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500">
+        </label>
+        <!-- Save Progress -->
+        <label class="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
+          <span class="text-sm text-gray-700">保存进度</span>
+          <input type="checkbox" class="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500" checked>
+        </label>
+      </div>
+    </div>
+
+    <!-- Pause Duration Slider -->
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-gray-900">停顿时间</h3>
+        <span class="text-sm font-medium text-blue-600">3 秒</span>
+      </div>
+      <input type="range" min="1" max="10" value="3" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500">
+      <div class="flex justify-between mt-2 text-xs text-gray-500">
+        <span>1 秒</span>
+        <span>5 秒</span>
+        <span>10 秒</span>
+      </div>
+    </div>
+
+    <!-- Sentence List -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <h3 class="font-semibold text-gray-900 mb-4">全部句子</h3>
+      <div class="space-y-2 max-h-64 overflow-y-auto">
+        <!-- Sentence 1 -->
+        <div class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
+          <span class="w-6 h-6 flex items-center justify-center bg-green-100 text-green-600 text-xs font-medium rounded-full">✓</span>
+          <span class="flex-1 text-sm text-gray-700 truncate">React Server Components represent a paradigm shift...</span>
+          <span class="text-xs text-gray-400">92 分</span>
+        </div>
+        <!-- Sentence 2 -->
+        <div class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
+          <span class="w-6 h-6 flex items-center justify-center bg-green-100 text-green-600 text-xs font-medium rounded-full">✓</span>
+          <span class="flex-1 text-sm text-gray-700 truncate">They allow us to write components that render...</span>
+          <span class="text-xs text-gray-400">88 分</span>
+        </div>
+        <!-- Sentence 3 -->
+        <div class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
+          <span class="w-6 h-6 flex items-center justify-center bg-green-100 text-green-600 text-xs font-medium rounded-full">✓</span>
+          <span class="flex-1 text-sm text-gray-700 truncate">Traditional React components run on both...</span>
+          <span class="text-xs text-gray-400">95 分</span>
+        </div>
+        <!-- Sentence 4 -->
+        <div class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
+          <span class="w-6 h-6 flex items-center justify-center bg-blue-100 text-blue-600 text-xs font-medium rounded-full">4</span>
+          <span class="flex-1 text-sm text-gray-700 truncate">Server Components, on the other hand...</span>
+          <span class="text-xs text-gray-400">待评分</span>
+        </div>
+        <!-- Sentence 5 -->
+        <div class="flex items-center space-x-3 p-3 rounded-lg bg-blue-50 border border-blue-100 cursor-pointer">
+          <span class="w-6 h-6 flex items-center justify-center bg-blue-500 text-white text-xs font-medium rounded-full">5</span>
+          <span class="flex-1 text-sm font-medium text-blue-700 truncate">This allows them to import and use...</span>
+          <span class="text-xs text-blue-500">当前</span>
+        </div>
+        <!-- Sentence 6 -->
+        <div class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
+          <span class="w-6 h-6 flex items-center justify-center bg-gray-100 text-gray-400 text-xs font-medium rounded-full">6</span>
+          <span class="flex-1 text-sm text-gray-500 truncate">The key insight is that Server Components...</span>
+          <span class="text-xs text-gray-400">未开始</span>
+        </div>
+        <!-- Sentence 7 -->
+        <div class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
+          <span class="w-6 h-6 flex items-center justify-center bg-gray-100 text-gray-400 text-xs font-medium rounded-full">7</span>
+          <span class="flex-1 text-sm text-gray-500 truncate">This format is not HTML or JSON...</span>
+          <span class="text-xs text-gray-400">未开始</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recording Overlay (Hidden by default, shown when recording) -->
+  <div id="recordingOverlay" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div class="bg-white rounded-2xl p-8 max-w-sm mx-4 text-center">
+      <div class="w-20 h-20 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+        <div class="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 mb-2">正在录音...</h3>
+      <p class="text-gray-600 mb-6">请跟读上面的句子</p>
+      <div class="flex justify-center space-x-4">
+        <button class="px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors">
+          取消
+        </button>
+        <button class="px-6 py-3 bg-red-500 text-white font-medium rounded-xl hover:bg-red-600 transition-colors">
+          完成
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

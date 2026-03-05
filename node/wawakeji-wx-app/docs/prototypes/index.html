@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>程序员英语阅读 App - 原型导航</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="max-w-4xl mx-auto py-16 px-4">
+    <h1 class="text-4xl font-bold text-center text-gray-900 mb-4">
+      程序员英语阅读 App
+    </h1>
+    <p class="text-center text-gray-600 mb-12">
+      Interactive Prototypes - 交互稿原型导航
+    </p>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <!-- 用户端原型 -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+          <span class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white mr-3">👤</span>
+          用户端
+        </h2>
+        <ul class="space-y-3">
+          <li>
+            <a href="landing.html" class="block p-3 bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors">
+              <span class="font-medium text-gray-900">🏠 首页/落地页</span>
+              <span class="block text-sm text-gray-500 mt-1">产品介绍和功能展示</span>
+            </a>
+          </li>
+          <li>
+            <a href="login.html" class="block p-3 bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors">
+              <span class="font-medium text-gray-900">🔐 登录/注册</span>
+              <span class="block text-sm text-gray-500 mt-1">用户认证页面</span>
+            </a>
+          </li>
+          <li>
+            <a href="article-list.html" class="block p-3 bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors">
+              <span class="font-medium text-gray-900">📚 文章列表</span>
+              <span class="block text-sm text-gray-500 mt-1">分类浏览文章</span>
+            </a>
+          </li>
+          <li>
+            <a href="reader.html" class="block p-3 bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors">
+              <span class="font-medium text-gray-900">📖 沉浸式阅读器</span>
+              <span class="block text-sm text-gray-500 mt-1">阅读文章主界面</span>
+            </a>
+          </li>
+          <li>
+            <a href="practice.html" class="block p-3 bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors">
+              <span class="font-medium text-gray-900">🎤 逐句跟读模式</span>
+              <span class="block text-sm text-gray-500 mt-1">跟读练习界面</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- 管理端原型 -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+          <span class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center text-white mr-3">⚙️</span>
+          管理端
+        </h2>
+        <ul class="space-y-3">
+          <li>
+            <a href="dashboard.html" class="block p-3 bg-gray-50 hover:bg-purple-50 rounded-lg transition-colors">
+              <span class="font-medium text-gray-900">📊 Dashboard</span>
+              <span class="block text-sm text-gray-500 mt-1">管理员控制台</span>
+            </a>
+          </li>
+          <li>
+            <a href="dashboard-article-editor.html" class="block p-3 bg-gray-50 hover:bg-purple-50 rounded-lg transition-colors">
+              <span class="font-medium text-gray-900">✏️ 文章编辑器</span>
+              <span class="block text-sm text-gray-500 mt-1">创建和编辑文章</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 说明信息 -->
+    <div class="mt-12 bg-blue-50 border border-blue-200 rounded-xl p-6">
+      <h3 class="font-semibold text-blue-900 mb-2">📝 使用说明</h3>
+      <ul class="space-y-2 text-sm text-blue-800">
+        <li>• 所有原型使用 HTML + Tailwind CSS 构建，可直接在浏览器中打开</li>
+        <li>• 点击上面的卡片查看各个页面的交互设计</li>
+        <li>• 原型仅展示 UI 和交互流程，数据均为模拟</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
