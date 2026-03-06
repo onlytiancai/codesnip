@@ -175,10 +175,10 @@
 
 <script setup lang="ts">
 const columns = [
-  { key: 'feature', header: 'Feature' },
-  { key: 'free', header: 'Free' },
-  { key: 'pro', header: 'Pro' },
-  { key: 'annual', header: 'Annual' }
+  { id: 'feature', header: 'Feature' },
+  { id: 'free', header: 'Free' },
+  { id: 'pro', header: 'Pro' },
+  { id: 'annual', header: 'Annual' }
 ]
 
 const featureComparison = [

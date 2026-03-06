@@ -130,13 +130,13 @@ const membershipOptions = [
 ]
 
 const columns = [
-  { key: 'user', header: 'User', size: 250 },
-  { key: 'membership', header: 'Membership' },
-  { key: 'articlesRead', header: 'Articles Read' },
-  { key: 'joinDate', header: 'Joined' },
-  { key: 'lastActive', header: 'Last Active' },
-  { key: 'status', header: 'Status' },
-  { key: 'actions', header: '' }
+  { id: 'user', header: 'User' },
+  { id: 'membership', header: 'Membership' },
+  { id: 'articlesRead', header: 'Articles Read' },
+  { id: 'joinDate', header: 'Joined' },
+  { id: 'lastActive', header: 'Last Active' },
+  { id: 'status', header: 'Status' },
+  { id: 'actions', header: '' }
 ]
 
 const users = [

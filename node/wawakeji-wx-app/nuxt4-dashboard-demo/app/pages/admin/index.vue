@@ -142,11 +142,11 @@ const stats = [
 ]
 
 const articleColumns = [
-  { key: 'title', header: 'Title' },
-  { key: 'category', header: 'Category' },
-  { key: 'views', header: 'Views' },
-  { key: 'status', header: 'Status' },
-  { key: 'actions', header: '' }
+  { id: 'title', header: 'Title' },
+  { id: 'category', header: 'Category' },
+  { id: 'views', header: 'Views' },
+  { id: 'status', header: 'Status' },
+  { id: 'actions', header: '' }
 ]
 
 const recentArticles = [

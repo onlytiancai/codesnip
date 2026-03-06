@@ -124,10 +124,10 @@ const categoryForm = ref({
 })
 
 const columns = [
-  { key: 'name', header: 'Category', size: 250 },
-  { key: 'articleCount', header: 'Articles' },
-  { key: 'status', header: 'Status' },
-  { key: 'actions', header: '' }
+  { id: 'name', header: 'Category' },
+  { id: 'articleCount', header: 'Articles' },
+  { id: 'status', header: 'Status' },
+  { id: 'actions', header: '' }
 ]
 
 const categories = [

@@ -99,13 +99,13 @@ const categoryOptions = [
 ]
 
 const columns = [
-  { key: 'title', header: 'Article', size: 300 },
-  { key: 'category', header: 'Category' },
-  { key: 'difficulty', header: 'Difficulty' },
-  { key: 'views', header: 'Views' },
-  { key: 'status', header: 'Status' },
-  { key: 'createdAt', header: 'Created' },
-  { key: 'actions', header: '' }
+  { id: 'title', header: 'Article' },
+  { id: 'category', header: 'Category' },
+  { id: 'difficulty', header: 'Difficulty' },
+  { id: 'views', header: 'Views' },
+  { id: 'status', header: 'Status' },
+  { id: 'createdAt', header: 'Created' },
+  { id: 'actions', header: '' }
 ]
 
 const articles = [
