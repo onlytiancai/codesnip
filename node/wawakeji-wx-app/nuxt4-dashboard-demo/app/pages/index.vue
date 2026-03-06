@@ -1,210 +1,185 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
-    <!-- Navigation -->
-    <header class="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <div class="flex items-center gap-3">
-            <UIcon name="i-lucide-layout-dashboard" class="w-8 h-8 text-primary" />
-            <span class="text-xl font-bold">Dashboard</span>
-          </div>
-          <div class="flex items-center gap-4">
-            <UButton icon="i-lucide-bell" color="neutral" variant="ghost" />
-            <UAvatar src="https://avatars.githubusercontent.com/u/1?v=4" alt="User" size="sm" />
+  <NuxtLayout name="default">
+    <div>
+      <!-- Hero Section -->
+      <section class="bg-gradient-to-br from-primary/10 to-primary/5 py-16 sm:py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center">
+            <h1 class="text-4xl sm:text-5xl font-bold mb-6">
+              Master English Through
+              <span class="text-primary">Reading</span>
+            </h1>
+            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8">
+              Improve your English reading skills with curated articles, interactive vocabulary tools, and personalized progress tracking.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+              <UButton size="lg" to="/articles">
+                Start Reading
+                <UIcon name="i-lucide-arrow-right" class="ml-2 w-4 h-4" />
+              </UButton>
+              <UButton size="lg" variant="outline" to="/membership">
+                Go Premium
+              </UButton>
+            </div>
           </div>
         </div>
-      </div>
-    </header>
+      </section>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <UCard v-for="stat in stats" :key="stat.title">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">{{ stat.title }}</p>
-              <p class="text-2xl font-bold mt-1">{{ stat.value }}</p>
-              <div class="flex items-center gap-1 mt-2">
-                <UIcon :name="stat.trend > 0 ? 'i-lucide-trending-up' : 'i-lucide-trending-down'"
-                  :class="stat.trend > 0 ? 'text-green-500' : 'text-red-500'" class="w-4 h-4" />
-                <span :class="stat.trend > 0 ? 'text-green-500' : 'text-red-500'" class="text-sm">
-                  {{ Math.abs(stat.trend) }}%
-                </span>
-                <span class="text-sm text-gray-500 dark:text-gray-400">vs last month</span>
+      <!-- Categories Section -->
+      <section class="py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 class="text-2xl font-bold mb-8">Browse by Category</h2>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <NuxtLink
+              v-for="category in categories"
+              :key="category.slug"
+              :to="`/categories/${category.slug}`"
+              class="group"
+            >
+              <UCard class="text-center hover:border-primary transition cursor-pointer">
+                <div :class="category.bgColor" class="w-12 h-12 rounded-lg mx-auto mb-3 flex items-center justify-center">
+                  <UIcon :name="category.icon" class="w-6 h-6 text-white" />
+                </div>
+                <h3 class="font-medium group-hover:text-primary transition">{{ category.name }}</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ category.count }} articles</p>
+              </UCard>
+            </NuxtLink>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recommended Articles -->
+      <section class="py-16 bg-gray-100 dark:bg-gray-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex items-center justify-between mb-8">
+            <h2 class="text-2xl font-bold">Recommended for You</h2>
+            <NuxtLink to="/articles" class="text-primary hover:underline text-sm font-medium">
+              View all
+            </NuxtLink>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <UCard v-for="article in recommendedArticles" :key="article.id" class="group overflow-hidden">
+              <img :src="article.cover" :alt="article.title" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300" />
+              <template #footer>
+                <div class="p-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <UBadge color="primary" variant="subtle" size="xs">{{ article.category }}</UBadge>
+                    <UBadge :color="difficultyColor(article.difficulty)" variant="subtle" size="xs">
+                      {{ article.difficulty }}
+                    </UBadge>
+                  </div>
+                  <h3 class="font-semibold mb-2 line-clamp-2 group-hover:text-primary transition">
+                    {{ article.title }}
+                  </h3>
+                  <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">
+                    {{ article.excerpt }}
+                  </p>
+                  <div class="flex items-center justify-between text-sm text-gray-400">
+                    <span>{{ article.readTime }} min read</span>
+                    <span>{{ article.views }} views</span>
+                  </div>
+                </div>
+              </template>
+            </UCard>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features Section -->
+      <section class="py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 class="text-2xl font-bold text-center mb-12">Why Choose Us?</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="text-center">
+              <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                <UIcon name="i-lucide-headphones" class="w-8 h-8 text-blue-600 dark:text-blue-400" />
               </div>
+              <h3 class="text-lg font-semibold mb-2">Audio Narration</h3>
+              <p class="text-gray-600 dark:text-gray-400">Listen to native speakers while reading to improve pronunciation.</p>
             </div>
-            <div :class="stat.iconBg" class="p-3 rounded-lg">
-              <UIcon :name="stat.icon" class="w-6 h-6 text-white" />
+            <div class="text-center">
+              <div class="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                <UIcon name="i-lucide-book-marked" class="w-8 h-8 text-green-600 dark:text-green-400" />
+              </div>
+              <h3 class="text-lg font-semibold mb-2">Vocabulary Builder</h3>
+              <p class="text-gray-600 dark:text-gray-400">Save and review new words with spaced repetition.</p>
+            </div>
+            <div class="text-center">
+              <div class="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                <UIcon name="i-lucide-trending-up" class="w-8 h-8 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 class="text-lg font-semibold mb-2">Progress Tracking</h3>
+              <p class="text-gray-600 dark:text-gray-400">Track your reading time, words learned, and streaks.</p>
             </div>
           </div>
-        </UCard>
-      </div>
+        </div>
+      </section>
 
-      <!-- Tabs Section -->
-      <UTabs :items="tabs" class="mb-8">
-        <template #overview>
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-            <!-- Recent Activity -->
-            <UCard class="lg:col-span-2">
-              <template #header>
-                <h3 class="text-lg font-semibold">Recent Activity</h3>
-              </template>
-              <div class="space-y-4">
-                <div v-for="activity in recentActivity" :key="activity.id"
-                  class="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-                  <UAvatar :src="activity.avatar" :alt="activity.user" size="sm" />
-                  <div class="flex-1">
-                    <p class="font-medium">{{ activity.user }}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ activity.action }}</p>
-                  </div>
-                  <UBadge :color="activity.status === 'completed' ? 'success' : 'warning'" variant="subtle">
-                    {{ activity.status }}
-                  </UBadge>
-                </div>
-              </div>
-            </UCard>
-
-            <!-- Quick Actions -->
-            <UCard>
-              <template #header>
-                <h3 class="text-lg font-semibold">Quick Actions</h3>
-              </template>
-              <div class="space-y-3">
-                <UButton v-for="action in quickActions" :key="action.label" :icon="action.icon" block
-                  variant="soft">
-                  {{ action.label }}
-                </UButton>
-              </div>
-            </UCard>
-          </div>
-        </template>
-
-        <template #analytics>
-          <div class="mt-6">
-            <UCard>
-              <template #header>
-                <h3 class="text-lg font-semibold">Analytics Overview</h3>
-              </template>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div v-for="metric in analyticsMetrics" :key="metric.label" class="text-center p-4">
-                  <UIcon :name="metric.icon" class="w-8 h-8 text-primary mx-auto mb-2" />
-                  <p class="text-2xl font-bold">{{ metric.value }}</p>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">{{ metric.label }}</p>
-                </div>
-              </div>
-            </UCard>
-          </div>
-        </template>
-
-        <template #settings>
-          <div class="mt-6">
-            <UCard>
-              <template #header>
-                <h3 class="text-lg font-semibold">Settings</h3>
-              </template>
-              <div class="space-y-4">
-                <div class="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <div>
-                    <p class="font-medium">Dark Mode</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Toggle dark mode theme</p>
-                  </div>
-                  <UButton icon="i-lucide-moon" color="neutral" variant="soft" />
-                </div>
-                <div class="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <div>
-                    <p class="font-medium">Notifications</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Manage notification preferences</p>
-                  </div>
-                  <UButton icon="i-lucide-bell" color="neutral" variant="soft" />
-                </div>
-              </div>
-            </UCard>
-          </div>
-        </template>
-      </UTabs>
-    </main>
-  </div>
+      <!-- CTA Section -->
+      <section class="py-16 bg-primary text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 class="text-3xl font-bold mb-4">Ready to Improve Your English?</h2>
+          <p class="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
+            Join thousands of learners who have improved their reading skills with our platform.
+          </p>
+          <UButton size="lg" variant="solid" color="white" to="/register">
+            Get Started Free
+          </UButton>
+        </div>
+      </section>
+    </div>
+  </NuxtLayout>
 </template>
 
 <script setup lang="ts">
-const stats = [
-  {
-    title: 'Total Users',
-    value: '12,543',
-    trend: 12.5,
-    icon: 'i-lucide-users',
-    iconBg: 'bg-blue-500'
-  },
-  {
-    title: 'Revenue',
-    value: '$45,231',
-    trend: 8.2,
-    icon: 'i-lucide-dollar-sign',
-    iconBg: 'bg-green-500'
-  },
-  {
-    title: 'Orders',
-    value: '1,234',
-    trend: -3.1,
-    icon: 'i-lucide-shopping-cart',
-    iconBg: 'bg-purple-500'
-  },
-  {
-    title: 'Growth',
-    value: '+24%',
-    trend: 4.7,
-    icon: 'i-lucide-trending-up',
-    iconBg: 'bg-orange-500'
-  }
+const categories = [
+  { name: 'Technology', slug: 'technology', icon: 'i-lucide-cpu', count: 42, bgColor: 'bg-blue-500' },
+  { name: 'Science', slug: 'science', icon: 'i-lucide-flask-conical', count: 38, bgColor: 'bg-green-500' },
+  { name: 'Business', slug: 'business', icon: 'i-lucide-briefcase', count: 56, bgColor: 'bg-purple-500' },
+  { name: 'Health', slug: 'health', icon: 'i-lucide-heart-pulse', count: 31, bgColor: 'bg-red-500' },
+  { name: 'Culture', slug: 'culture', icon: 'i-lucide-globe', count: 27, bgColor: 'bg-orange-500' },
+  { name: 'Travel', slug: 'travel', icon: 'i-lucide-plane', count: 19, bgColor: 'bg-cyan-500' }
 ]
 
-const tabs = [
-  { label: 'Overview', slot: 'overview' },
-  { label: 'Analytics', slot: 'analytics' },
-  { label: 'Settings', slot: 'settings' }
-]
-
-const recentActivity = [
+const recommendedArticles = [
   {
     id: 1,
-    user: 'John Doe',
-    action: 'Completed a purchase',
-    status: 'completed',
-    avatar: 'https://avatars.githubusercontent.com/u/2?v=4'
+    title: 'The Future of Artificial Intelligence in Healthcare',
+    excerpt: 'Explore how AI is revolutionizing medical diagnosis and treatment planning.',
+    category: 'Technology',
+    difficulty: 'Intermediate',
+    readTime: 8,
+    views: '2.3k',
+    cover: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=300&fit=crop'
   },
   {
     id: 2,
-    user: 'Jane Smith',
-    action: 'Submitted a review',
-    status: 'pending',
-    avatar: 'https://avatars.githubusercontent.com/u/3?v=4'
+    title: 'Climate Change: What Scientists Are Saying',
+    excerpt: 'Understanding the latest research on global warming and its impacts.',
+    category: 'Science',
+    difficulty: 'Advanced',
+    readTime: 12,
+    views: '1.8k',
+    cover: 'https://images.unsplash.com/photo-1569163139599-0f4517e36f51?w=400&h=300&fit=crop'
   },
   {
     id: 3,
-    user: 'Bob Johnson',
-    action: 'Updated profile',
-    status: 'completed',
-    avatar: 'https://avatars.githubusercontent.com/u/4?v=4'
-  },
-  {
-    id: 4,
-    user: 'Alice Brown',
-    action: 'Created a new order',
-    status: 'pending',
-    avatar: 'https://avatars.githubusercontent.com/u/5?v=4'
+    title: 'Building a Successful Startup: Lessons from Founders',
+    excerpt: 'Key insights from entrepreneurs who built billion-dollar companies.',
+    category: 'Business',
+    difficulty: 'Beginner',
+    readTime: 6,
+    views: '3.1k',
+    cover: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&h=300&fit=crop'
   }
 ]
 
-const quickActions = [
-  { label: 'Add New User', icon: 'i-lucide-user-plus' },
-  { label: 'Create Report', icon: 'i-lucide-file-text' },
-  { label: 'Send Notification', icon: 'i-lucide-send' }
-]
-
-const analyticsMetrics = [
-  { label: 'Page Views', value: '54,234', icon: 'i-lucide-eye' },
-  { label: 'Sessions', value: '12,345', icon: 'i-lucide-activity' },
-  { label: 'Bounce Rate', value: '32%', icon: 'i-lucide-arrow-down-right' }
-]
+const difficultyColor = (difficulty: string) => {
+  switch (difficulty) {
+    case 'Beginner': return 'success'
+    case 'Intermediate': return 'warning'
+    case 'Advanced': return 'error'
+    default: return 'neutral'
+  }
+}
 </script>
