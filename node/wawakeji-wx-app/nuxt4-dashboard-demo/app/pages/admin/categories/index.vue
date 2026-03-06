@@ -38,11 +38,12 @@
       </UCard>
 
       <!-- Add/Edit Modal -->
-      <UModal v-model:open="showModal">
-        <UCard>
-          <template #header>
-            <h3 class="text-lg font-semibold">{{ editingCategory ? 'Edit Category' : 'Add Category' }}</h3>
-          </template>
+      <UModal
+        v-model:open="showModal"
+        :title="editingCategory ? 'Edit Category' : 'Add Category'"
+        description="Configure the category details below"
+      >
+        <template #body>
           <div class="space-y-4">
             <UFormField label="Name" name="name" required>
               <UInput v-model="categoryForm.name" placeholder="Category name" />
@@ -94,13 +95,13 @@
               />
             </UFormField>
           </div>
+          </template>
           <template #footer>
             <div class="flex justify-end gap-3">
               <UButton variant="outline" @click="showModal = false">Cancel</UButton>
               <UButton color="primary">{{ editingCategory ? 'Update' : 'Create' }}</UButton>
             </div>
           </template>
-        </UCard>
       </UModal>
     </div>
   </NuxtLayout>

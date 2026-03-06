@@ -71,11 +71,12 @@
       </div>
 
       <!-- Add Tag Modal -->
-      <UModal v-model:open="showModal">
-        <UCard>
-          <template #header>
-            <h3 class="text-lg font-semibold">Add Tag</h3>
-          </template>
+      <UModal
+        v-model:open="showModal"
+        title="Add Tag"
+        description="Create a new tag for organizing articles"
+      >
+        <template #body>
           <div class="space-y-4">
             <UFormField label="Tag Name" name="name" required>
               <UInput placeholder="Tag name" />
@@ -101,13 +102,13 @@
               </div>
             </UFormField>
           </div>
-          <template #footer>
-            <div class="flex justify-end gap-3">
-              <UButton variant="outline" @click="showModal = false">Cancel</UButton>
-              <UButton color="primary">Create Tag</UButton>
-            </div>
-          </template>
-        </UCard>
+        </template>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton variant="outline" @click="showModal = false">Cancel</UButton>
+            <UButton color="primary">Create Tag</UButton>
+          </div>
+        </template>
       </UModal>
     </div>
   </NuxtLayout>
