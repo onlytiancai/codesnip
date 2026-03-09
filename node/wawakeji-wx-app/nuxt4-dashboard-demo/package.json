@@ -11,14 +11,25 @@
   },
   "dependencies": {
     "@nuxt/ui": "^4.5.0",
+    "@prisma/adapter-better-sqlite3": "^6.19.2",
+    "@prisma/client": "^6.19.2",
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.6.2",
+    "dotenv": "^17.3.1",
     "nuxt": "^4.3.1",
+    "nuxt-auth-utils": "^0.5.29",
     "tailwindcss": "^4.2.1",
     "vue": "^3.5.13",
-    "vue-router": "^4.5.0"
+    "vue-router": "^4.5.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.94",
     "@nuxt/icon": "^2.2.1",
+    "@types/bcryptjs": "^3.0.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "prisma": "^6.19.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.7.3"
   }
 }

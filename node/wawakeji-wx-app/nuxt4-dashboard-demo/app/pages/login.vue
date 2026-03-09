@@ -10,21 +10,21 @@
           </div>
         </template>
 
-        <form class="space-y-4">
-          <UFormField label="Email" name="email" required>
-            <UInput placeholder="your@email.com" type="email" icon="i-lucide-mail" />
+        <form class="space-y-4" @submit.prevent="handleLogin">
+          <UFormField label="Email" name="email" required :error="errors.email">
+            <UInput v-model="form.email" placeholder="your@email.com" type="email" icon="i-lucide-mail" />
           </UFormField>
 
-          <UFormField label="Password" name="password" required>
-            <UInput placeholder="Enter your password" type="password" icon="i-lucide-lock" />
+          <UFormField label="Password" name="password" required :error="errors.password">
+            <UInput v-model="form.password" placeholder="Enter your password" type="password" icon="i-lucide-lock" />
           </UFormField>
 
           <div class="flex items-center justify-between">
-            <UCheckbox label="Remember me" />
+            <UCheckbox v-model="form.remember" label="Remember me" />
             <NuxtLink to="#" class="text-sm text-primary hover:underline">Forgot password?</NuxtLink>
           </div>
 
-          <UButton type="submit" block size="lg">
+          <UButton type="submit" block size="lg" :loading="loading">
             Sign In
           </UButton>
         </form>
@@ -38,9 +38,14 @@
           </div>
         </div>
 
-        <UButton variant="outline" block size="lg" icon="i-lucide-message-circle">
-          Continue with WeChat
-        </UButton>
+        <div class="space-y-3">
+          <UButton variant="outline" block size="lg" icon="i-simple-icons-github" @click="loginWithGitHub">
+            Continue with GitHub
+          </UButton>
+          <UButton variant="outline" block size="lg" icon="i-simple-icons-google" @click="loginWithGoogle">
+            Continue with Google
+          </UButton>
+        </div>
 
         <template #footer>
           <p class="text-center text-sm text-gray-500 dark:text-gray-400">
@@ -57,4 +62,67 @@
 definePageMeta({
   layout: false
 })
+
+const { fetch: fetchSession } = useUserSession()
+const router = useRouter()
+const toast = useToast()
+
+const form = reactive({
+  email: '',
+  password: '',
+  remember: false
+})
+
+const errors = reactive({
+  email: '',
+  password: ''
+})
+
+const loading = ref(false)
+
+const handleLogin = async () => {
+  errors.email = ''
+  errors.password = ''
+
+  if (!form.email) {
+    errors.email = 'Email is required'
+    return
+  }
+  if (!form.password) {
+    errors.password = 'Password is required'
+    return
+  }
+
+  loading.value = true
+
+  try {
+    await $fetch('/api/auth/login', {
+      method: 'POST',
+      body: {
+        email: form.email,
+        password: form.password
+      }
+    })
+
+    await fetchSession()
+    router.push('/')
+  } catch (error: any) {
+    const message = error?.data?.message || error?.message || 'Login failed'
+    toast.add({
+      title: 'Login Failed',
+      description: message,
+      color: 'error'
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+const loginWithGitHub = () => {
+  window.location.href = '/auth/github'
+}
+
+const loginWithGoogle = () => {
+  window.location.href = '/auth/google'
+}
 </script>

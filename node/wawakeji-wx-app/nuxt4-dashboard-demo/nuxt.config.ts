@@ -3,7 +3,8 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: [
     ["@nuxt/ui", { fonts: false }],
-    "@nuxt/icon"
+    "@nuxt/icon",
+    "nuxt-auth-utils"
   ],
   css: ["~/assets/css/main.css"]
 });

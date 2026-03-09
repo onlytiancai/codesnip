@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  password  String?  // password for email login, null for OAuth users
+  avatar    String?
+  role      String   @default("USER") // 'USER' | 'ADMIN'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  // Associated OAuth accounts
+  accounts Account[]
+}
+
+model Account {
+  id                Int    @id @default(autoincrement())
+  userId            Int
+  provider          String // 'github' | 'google'
+  providerAccountId String // OAuth provider's user ID
+  access_token      String?
+  refresh_token     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
