@@ -23,6 +23,7 @@ model User {
 
   // Associated OAuth accounts
   accounts Account[]
+  articles Article[]
 }
 
 model Account {
@@ -36,4 +37,71 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+  color       String   @default("#3b82f6")
+  status      String   @default("active") // active | inactive
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  articles    Article[]
+}
+
+model Tag {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  color       String   @default("#3b82f6")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  articles    ArticleTag[]
+}
+
+model Article {
+  id           Int      @id @default(autoincrement())
+  title        String
+  slug         String   @unique
+  excerpt      String?
+  cover        String?
+  content      String?  // original content
+  status       String   @default("draft") // draft | published
+  difficulty   String   @default("beginner") // beginner | intermediate | advanced
+  views        Int      @default(0)
+  bookmarks    Int      @default(0)
+  publishAt    DateTime?
+  metaTitle    String?
+  metaDesc     String?
+  categoryId   Int?
+  category     Category? @relation(fields: [categoryId], references: [id])
+  tags         ArticleTag[]
+  sentences    Sentence[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now())
+  authorId     Int
+  author       User     @relation(fields: [authorId], references: [id])
+}
+
+model ArticleTag {
+  articleId Int
+  tagId     Int
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  @@id([articleId, tagId])
+}
+
+model Sentence {
+  id        Int     @id @default(autoincrement())
+  articleId Int
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  order     Int
+  en        String
+  cn        String?
+  audio     String? // TTS audio URL
 }

@@ -5,19 +5,25 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div class="flex items-center gap-3">
           <UInput
+            v-model="searchQuery"
             placeholder="Search articles..."
             icon="i-lucide-search"
             class="w-64"
+            @input="debouncedSearch"
           />
           <USelect
+            v-model="statusFilter"
             :items="statusOptions"
             placeholder="Status"
             class="w-32"
+            @change="applyFilters"
           />
           <USelect
+            v-model="categoryFilter"
             :items="categoryOptions"
             placeholder="Category"
             class="w-40"
+            @change="applyFilters"
           />
         </div>
         <UButton to="/admin/articles/create" icon="i-lucide-plus">
@@ -25,28 +31,38 @@
         </UButton>
       </div>
 
+      <!-- Loading State -->
+      <div v-if="loading" class="flex items-center justify-center py-12">
+        <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+      </div>
+
       <!-- Articles Table -->
-      <UCard>
+      <UCard v-else>
         <UTable :data="articles" :columns="columns">
           <template #title-cell="{ row }">
             <div class="flex items-center gap-3">
               <img
+                v-if="row.original.cover"
                 :src="row.original.cover"
                 :alt="row.original.title"
                 class="w-12 h-12 object-cover rounded"
               />
+              <div class="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded flex items-center justify-center" v-else>
+                <UIcon name="i-lucide-file-text" class="w-6 h-6 text-gray-400" />
+              </div>
               <div>
                 <p class="font-medium">{{ row.original.title }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ row.original.excerpt }}
+                <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                  {{ row.original.excerpt || 'No excerpt' }}
                 </p>
               </div>
             </div>
           </template>
           <template #category-cell="{ row }">
-            <UBadge color="primary" variant="subtle" size="xs">
-              {{ row.original.category }}
+            <UBadge v-if="row.original.category" color="primary" variant="subtle" size="xs">
+              {{ row.original.category.name }}
             </UBadge>
+            <span v-else class="text-gray-400">-</span>
           </template>
           <template #difficulty-cell="{ row }">
             <UBadge :color="difficultyColor(row.original.difficulty)" variant="subtle" size="xs">
@@ -68,21 +84,58 @@
         <!-- Pagination -->
         <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            Showing 1-10 of 128 articles
+            Showing {{ (pagination.page - 1) * pagination.limit + 1 }}-{{ Math.min(pagination.page * pagination.limit, pagination.total) }} of {{ pagination.total }} articles
           </p>
-          <UPagination v-model:page="currentPage" :total="128" :items-per-page="10" />
+          <UPagination
+            v-model:page="currentPage"
+            :total="pagination.total"
+            :items-per-page="pagination.limit"
+            @update:page="handlePageChange"
+          />
         </div>
       </UCard>
+
+      <!-- Delete Confirmation -->
+      <UModal v-model:open="showDeleteModal" title="Delete Article" description="Are you sure you want to delete this article?">
+        <template #body>
+          <p class="text-gray-500">
+            This action cannot be undone. The article "{{ articleToDelete?.title }}" will be permanently deleted.
+          </p>
+        </template>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton variant="outline" @click="showDeleteModal = false">Cancel</UButton>
+            <UButton color="error" :loading="deleting" @click="handleDelete">Delete</UButton>
+          </div>
+        </template>
+      </UModal>
     </div>
   </NuxtLayout>
 </template>
 
 <script setup lang="ts">
 definePageMeta({
-  layout: false
+  layout: false,
+  middleware: 'admin'
 })
 
+const {
+  articles,
+  pagination,
+  loading,
+  fetchArticles,
+  deleteArticle
+} = useAdminArticles()
+
+const { categories, fetchCategories } = useAdminCategories()
+
 const currentPage = ref(1)
+const searchQuery = ref('')
+const statusFilter = ref('all')
+const categoryFilter = ref('all')
+const showDeleteModal = ref(false)
+const articleToDelete = ref<any>(null)
+const deleting = ref(false)
 
 const statusOptions = [
   { label: 'All Status', value: 'all' },
@@ -90,88 +143,76 @@ const statusOptions = [
   { label: 'Draft', value: 'draft' }
 ]
 
-const categoryOptions = [
+const categoryOptions = computed(() => [
   { label: 'All Categories', value: 'all' },
-  { label: 'Technology', value: 'technology' },
-  { label: 'Science', value: 'science' },
-  { label: 'Business', value: 'business' },
-  { label: 'Health', value: 'health' }
-]
+  ...categories.value.map(c => ({ label: c.name, value: c.id.toString() }))
+])
 
 const columns = [
   { id: 'title', header: 'Article' },
   { id: 'category', header: 'Category' },
   { id: 'difficulty', header: 'Difficulty' },
-  { id: 'views', header: 'Views' },
+  { id: 'views', header: 'Views', accessorKey: 'views' },
   { id: 'status', header: 'Status' },
-  { id: 'createdAt', header: 'Created' },
+  { id: 'createdAt', header: 'Created', accessorKey: 'createdAt' },
   { id: 'actions', header: '' }
-]
-
-const articles = [
-  {
-    id: 1,
-    title: 'The Future of Artificial Intelligence in Healthcare',
-    excerpt: 'Explore how AI is revolutionizing...',
-    category: 'Technology',
-    difficulty: 'Intermediate',
-    views: '2.3k',
-    status: 'published',
-    createdAt: 'Mar 5, 2026',
-    cover: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=100&h=100&fit=crop'
-  },
-  {
-    id: 2,
-    title: 'Climate Change: What Scientists Are Saying',
-    excerpt: 'Understanding the latest research...',
-    category: 'Science',
-    difficulty: 'Advanced',
-    views: '1.8k',
-    status: 'published',
-    createdAt: 'Mar 4, 2026',
-    cover: 'https://images.unsplash.com/photo-1569163139599-0f4517e36f51?w=100&h=100&fit=crop'
-  },
-  {
-    id: 3,
-    title: 'Building a Successful Startup',
-    excerpt: 'Key insights from entrepreneurs...',
-    category: 'Business',
-    difficulty: 'Beginner',
-    views: '3.1k',
-    status: 'draft',
-    createdAt: 'Mar 3, 2026',
-    cover: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=100&h=100&fit=crop'
-  },
-  {
-    id: 4,
-    title: 'The Science of Sleep: Why It Matters',
-    excerpt: 'Discover how quality sleep affects...',
-    category: 'Health',
-    difficulty: 'Beginner',
-    views: '4.2k',
-    status: 'published',
-    createdAt: 'Mar 2, 2026',
-    cover: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=100&h=100&fit=crop'
-  },
-  {
-    id: 5,
-    title: 'Digital Transformation in Modern Business',
-    excerpt: 'How companies are adapting...',
-    category: 'Business',
-    difficulty: 'Intermediate',
-    views: '1.5k',
-    status: 'draft',
-    createdAt: 'Mar 1, 2026',
-    cover: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=100&h=100&fit=crop'
-  }
 ]
 
 const difficultyColor = (difficulty: string) => {
   switch (difficulty) {
-    case 'Beginner': return 'success'
-    case 'Intermediate': return 'warning'
-    case 'Advanced': return 'error'
+    case 'beginner': return 'success'
+    case 'intermediate': return 'warning'
+    case 'advanced': return 'error'
     default: return 'neutral'
+  }
+}
+
+const applyFilters = () => {
+  currentPage.value = 1
+  fetchData()
+}
+
+const handlePageChange = (page: number) => {
+  currentPage.value = page
+  fetchData()
+}
+
+const fetchData = () => {
+  fetchArticles({
+    page: currentPage.value,
+    status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
+    categoryId: categoryFilter.value !== 'all' ? categoryFilter.value : undefined,
+    search: searchQuery.value || undefined
+  })
+}
+
+// Debounced search
+let searchTimeout: NodeJS.Timeout
+const debouncedSearch = () => {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    currentPage.value = 1
+    fetchData()
+  }, 300)
+}
+
+const confirmDelete = (article: any) => {
+  articleToDelete.value = article
+  showDeleteModal.value = true
+}
+
+const handleDelete = async () => {
+  if (!articleToDelete.value) return
+
+  deleting.value = true
+  try {
+    await deleteArticle(articleToDelete.value.id)
+    showDeleteModal.value = false
+    articleToDelete.value = null
+  } catch (e) {
+    // Error is handled in the composable
+  } finally {
+    deleting.value = false
   }
 }
 
@@ -183,12 +224,18 @@ const getActionItems = (article: any) => [
   }, {
     label: 'Preview',
     icon: 'i-lucide-eye',
-    to: `/articles/${article.id}`
+    to: `/articles/${article.slug}`
   }],
   [{
     label: 'Delete',
     icon: 'i-lucide-trash-2',
-    color: 'error'
+    color: 'error' as const,
+    click: () => confirmDelete(article)
   }]
 ]
+
+onMounted(async () => {
+  await fetchCategories()
+  await fetchData()
+})
 </script>

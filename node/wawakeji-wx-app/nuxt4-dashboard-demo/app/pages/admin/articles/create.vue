@@ -20,13 +20,17 @@
             </template>
             <div class="space-y-4">
               <UFormField label="Title" name="title" required>
-                <UInput placeholder="Enter article title" />
+                <UInput v-model="articleForm.title" placeholder="Enter article title" @input="generateSlug" />
+              </UFormField>
+              <UFormField label="Slug" name="slug" required>
+                <UInput v-model="articleForm.slug" placeholder="article-slug" />
               </UFormField>
               <UFormField label="Excerpt" name="excerpt">
-                <UTextarea placeholder="Brief description of the article" :rows="2" />
+                <UTextarea v-model="articleForm.excerpt" placeholder="Brief description of the article" :rows="2" />
               </UFormField>
               <UFormField label="Content" name="content" required>
                 <UTextarea
+                  v-model="articleForm.content"
                   placeholder="Write or paste your article content here..."
                   :rows="15"
                 />
@@ -41,10 +45,10 @@
             </template>
             <div class="space-y-4">
               <UFormField label="Meta Title" name="metaTitle">
-                <UInput placeholder="SEO title (optional)" />
+                <UInput v-model="articleForm.metaTitle" placeholder="SEO title (optional)" />
               </UFormField>
-              <UFormField label="Meta Description" name="metaDescription">
-                <UTextarea placeholder="SEO description (optional)" :rows="2" />
+              <UFormField label="Meta Description" name="metaDesc">
+                <UTextarea v-model="articleForm.metaDesc" placeholder="SEO description (optional)" :rows="2" />
               </UFormField>
             </div>
           </UCard>
@@ -60,15 +64,15 @@
             <div class="space-y-4">
               <UFormField label="Status" name="status">
                 <USelect
+                  v-model="articleForm.status"
                   :items="[
                     { label: 'Draft', value: 'draft' },
                     { label: 'Published', value: 'published' }
                   ]"
-                  default-value="draft"
                 />
               </UFormField>
-              <UFormField label="Publish Date" name="publishDate">
-                <UInput type="date" />
+              <UFormField label="Publish Date" name="publishAt">
+                <UInput v-model="articleForm.publishAt" type="datetime-local" />
               </UFormField>
             </div>
           </UCard>
@@ -79,14 +83,16 @@
               <h3 class="font-semibold">Classification</h3>
             </template>
             <div class="space-y-4">
-              <UFormField label="Category" name="category" required>
+              <UFormField label="Category" name="categoryId">
                 <USelect
-                  :items="categories"
+                  v-model="articleForm.categoryId"
+                  :items="categoryOptions"
                   placeholder="Select category"
                 />
               </UFormField>
-              <UFormField label="Difficulty" name="difficulty" required>
+              <UFormField label="Difficulty" name="difficulty">
                 <USelect
+                  v-model="articleForm.difficulty"
                   :items="[
                     { label: 'Beginner', value: 'beginner' },
                     { label: 'Intermediate', value: 'intermediate' },
@@ -97,17 +103,18 @@
               </UFormField>
               <UFormField label="Tags" name="tags">
                 <div class="flex flex-wrap gap-2 mb-2">
-                  <UBadge v-for="tag in selectedTags" :key="tag" color="primary" variant="subtle">
-                    {{ tag }}
-                    <button @click="removeTag(tag)" class="ml-1">
+                  <UBadge v-for="tag in selectedTags" :key="tag.id" color="primary" variant="subtle">
+                    {{ tag.name }}
+                    <button @click="removeTag(tag.id)" class="ml-1">
                       <UIcon name="i-lucide-x" class="w-3 h-3" />
                     </button>
                   </UBadge>
                 </div>
-                <div class="flex gap-2">
-                  <UInput v-model="newTag" placeholder="Add tag" class="flex-1" />
-                  <UButton @click="addTag" variant="outline">Add</UButton>
-                </div>
+                <USelect
+                  :items="availableTagOptions"
+                  placeholder="Add tag"
+                  @update:model-value="addTag"
+                />
               </UFormField>
             </div>
           </UCard>
@@ -117,22 +124,19 @@
             <template #header>
               <h3 class="font-semibold">Cover Image</h3>
             </template>
-            <div class="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
-              <UIcon name="i-lucide-upload" class="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                Drag and drop or click to upload
-              </p>
-              <p class="text-xs text-gray-400">PNG, JPG up to 5MB</p>
-              <UButton size="sm" variant="outline" class="mt-3">
-                Choose File
-              </UButton>
-            </div>
+            <UFormField name="cover">
+              <UInput v-model="articleForm.cover" placeholder="https://example.com/image.jpg" />
+            </UFormField>
           </UCard>
 
           <!-- Actions -->
           <div class="flex gap-3">
-            <UButton variant="outline" class="flex-1">Save Draft</UButton>
-            <UButton color="primary" class="flex-1">Publish</UButton>
+            <UButton variant="outline" class="flex-1" :loading="saving" @click="saveDraft">
+              Save Draft
+            </UButton>
+            <UButton color="primary" class="flex-1" :loading="saving" @click="publish">
+              {{ articleForm.status === 'published' ? 'Publish' : 'Save' }}
+            </UButton>
           </div>
         </div>
       </div>
@@ -142,29 +146,98 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: false
+  layout: false,
+  middleware: 'admin'
 })
 
-const newTag = ref('')
-const selectedTags = ref(['technology', 'AI'])
+const { createArticle, loading } = useAdminArticles()
+const { categories, fetchCategories } = useAdminCategories()
+const { tags, fetchTags } = useAdminTags()
 
-const categories = [
-  { label: 'Technology', value: 'technology' },
-  { label: 'Science', value: 'science' },
-  { label: 'Business', value: 'business' },
-  { label: 'Health', value: 'health' },
-  { label: 'Culture', value: 'culture' },
-  { label: 'Travel', value: 'travel' }
-]
+const saving = ref(false)
+const selectedTags = ref<{ id: number; name: string }[]>([])
 
-const addTag = () => {
-  if (newTag.value && !selectedTags.value.includes(newTag.value)) {
-    selectedTags.value.push(newTag.value)
-    newTag.value = ''
+const articleForm = ref({
+  title: '',
+  slug: '',
+  excerpt: '',
+  cover: '',
+  content: '',
+  status: 'draft',
+  difficulty: 'beginner',
+  publishAt: '',
+  metaTitle: '',
+  metaDesc: '',
+  categoryId: null as number | null,
+  tagIds: [] as number[]
+})
+
+const categoryOptions = computed(() =>
+  categories.value.map(c => ({ label: c.name, value: c.id }))
+)
+
+const availableTagOptions = computed(() =>
+  tags.value
+    .filter(t => !selectedTags.value.find(st => st.id === t.id))
+    .map(t => ({ label: t.name, value: t.id }))
+)
+
+const generateSlug = () => {
+  if (articleForm.value.title && !articleForm.value.slug) {
+    articleForm.value.slug = articleForm.value.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
   }
 }
 
-const removeTag = (tag: string) => {
-  selectedTags.value = selectedTags.value.filter(t => t !== tag)
+const addTag = (tagId: number) => {
+  const tag = tags.value.find(t => t.id === tagId)
+  if (tag && !selectedTags.value.find(t => t.id === tagId)) {
+    selectedTags.value.push({ id: tag.id, name: tag.name })
+    articleForm.value.tagIds.push(tagId)
+  }
 }
+
+const removeTag = (tagId: number) => {
+  selectedTags.value = selectedTags.value.filter(t => t.id !== tagId)
+  articleForm.value.tagIds = articleForm.value.tagIds.filter(id => id !== tagId)
+}
+
+const saveDraft = async () => {
+  articleForm.value.status = 'draft'
+  await saveArticle()
+}
+
+const publish = async () => {
+  if (articleForm.value.status === 'draft') {
+    articleForm.value.status = 'published'
+  }
+  await saveArticle()
+}
+
+const saveArticle = async () => {
+  saving.value = true
+  try {
+    const data = {
+      ...articleForm.value,
+      categoryId: articleForm.value.categoryId || undefined,
+      tagIds: articleForm.value.tagIds.length > 0 ? articleForm.value.tagIds : undefined
+    }
+
+    const article = await createArticle(data)
+    await navigateTo(`/admin/articles/${article.id}/edit`)
+  } catch (e) {
+    // Error is handled in the composable
+  } finally {
+    saving.value = false
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([
+    fetchCategories(),
+    fetchTags()
+  ])
+})
 </script>

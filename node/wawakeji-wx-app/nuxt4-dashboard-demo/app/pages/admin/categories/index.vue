@@ -4,18 +4,26 @@
       <!-- Header -->
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold">Categories</h2>
-        <UButton icon="i-lucide-plus" @click="showModal = true">
+        <UButton icon="i-lucide-plus" @click="openCreateModal">
           Add Category
         </UButton>
       </div>
 
+      <!-- Loading State -->
+      <div v-if="loading" class="flex items-center justify-center py-12">
+        <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+      </div>
+
       <!-- Categories Table -->
-      <UCard>
+      <UCard v-else>
         <UTable :data="categories" :columns="columns">
           <template #name-cell="{ row }">
             <div class="flex items-center gap-3">
-              <div :class="row.original.iconBg" class="w-10 h-10 rounded-lg flex items-center justify-center">
-                <UIcon :name="row.original.icon" class="w-5 h-5 text-white" />
+              <div
+                :style="{ backgroundColor: row.original.color }"
+                class="w-10 h-10 rounded-lg flex items-center justify-center"
+              >
+                <UIcon :name="row.original.icon || 'i-lucide-folder'" class="w-5 h-5 text-white" />
               </div>
               <div>
                 <p class="font-medium">{{ row.original.name }}</p>
@@ -30,8 +38,20 @@
           </template>
           <template #actions-cell="{ row }">
             <div class="flex items-center gap-1">
-              <UButton icon="i-lucide-edit" color="neutral" variant="ghost" size="xs" @click="editCategory(row.original)" />
-              <UButton icon="i-lucide-trash-2" color="error" variant="ghost" size="xs" />
+              <UButton
+                icon="i-lucide-edit"
+                color="neutral"
+                variant="ghost"
+                size="xs"
+                @click="openEditModal(row.original)"
+              />
+              <UButton
+                icon="i-lucide-trash-2"
+                color="error"
+                variant="ghost"
+                size="xs"
+                @click="confirmDelete(row.original)"
+              />
             </div>
           </template>
         </UTable>
@@ -95,13 +115,40 @@
               />
             </UFormField>
           </div>
-          </template>
-          <template #footer>
-            <div class="flex justify-end gap-3">
-              <UButton variant="outline" @click="showModal = false">Cancel</UButton>
-              <UButton color="primary">{{ editingCategory ? 'Update' : 'Create' }}</UButton>
-            </div>
-          </template>
+        </template>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton variant="outline" @click="showModal = false">Cancel</UButton>
+            <UButton color="primary" :loading="saving" @click="handleSave">
+              {{ editingCategory ? 'Update' : 'Create' }}
+            </UButton>
+          </div>
+        </template>
+      </UModal>
+
+      <!-- Delete Confirmation -->
+      <UModal v-model:open="showDeleteModal" title="Delete Category" description="Are you sure you want to delete this category?">
+        <template #body>
+          <p class="text-gray-500">
+            This action cannot be undone. The category "{{ categoryToDelete?.name }}" will be permanently deleted.
+            <span v-if="categoryToDelete?.articleCount" class="text-red-500 block mt-2">
+              Warning: This category has {{ categoryToDelete.articleCount }} articles. Please reassign them first.
+            </span>
+          </p>
+        </template>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton variant="outline" @click="showDeleteModal = false">Cancel</UButton>
+            <UButton
+              color="error"
+              :loading="deleting"
+              :disabled="!!categoryToDelete?.articleCount"
+              @click="handleDelete"
+            >
+              Delete
+            </UButton>
+          </div>
+        </template>
       </UModal>
     </div>
   </NuxtLayout>
@@ -109,11 +156,25 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: false
+  layout: false,
+  middleware: 'admin'
 })
 
+const {
+  categories,
+  loading,
+  fetchCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory
+} = useAdminCategories()
+
 const showModal = ref(false)
+const showDeleteModal = ref(false)
 const editingCategory = ref<any>(null)
+const categoryToDelete = ref<any>(null)
+const saving = ref(false)
+const deleting = ref(false)
 
 const categoryForm = ref({
   name: '',
@@ -126,18 +187,9 @@ const categoryForm = ref({
 
 const columns = [
   { id: 'name', header: 'Category' },
-  { id: 'articleCount', header: 'Articles' },
+  { id: 'articleCount', header: 'Articles', accessorKey: 'articleCount' },
   { id: 'status', header: 'Status' },
   { id: 'actions', header: '' }
-]
-
-const categories = [
-  { id: 1, name: 'Technology', slug: 'technology', icon: 'i-lucide-cpu', iconBg: 'bg-blue-500', articleCount: 42, status: 'active' },
-  { id: 2, name: 'Science', slug: 'science', icon: 'i-lucide-flask-conical', iconBg: 'bg-green-500', articleCount: 38, status: 'active' },
-  { id: 3, name: 'Business', slug: 'business', icon: 'i-lucide-briefcase', iconBg: 'bg-purple-500', articleCount: 56, status: 'active' },
-  { id: 4, name: 'Health', slug: 'health', icon: 'i-lucide-heart-pulse', iconBg: 'bg-red-500', articleCount: 31, status: 'active' },
-  { id: 5, name: 'Culture', slug: 'culture', icon: 'i-lucide-globe', iconBg: 'bg-orange-500', articleCount: 27, status: 'active' },
-  { id: 6, name: 'Travel', slug: 'travel', icon: 'i-lucide-plane', iconBg: 'bg-cyan-500', articleCount: 19, status: 'inactive' }
 ]
 
 const icons = [
@@ -157,16 +209,79 @@ const icons = [
 
 const colors = ['#3b82f6', '#22c55e', '#a855f7', '#ef4444', '#f97316', '#06b6d4']
 
-const editCategory = (category: any) => {
+const openCreateModal = () => {
+  editingCategory.value = null
+  categoryForm.value = {
+    name: '',
+    slug: '',
+    description: '',
+    icon: 'i-lucide-folder',
+    color: '#3b82f6',
+    status: 'active'
+  }
+  showModal.value = true
+}
+
+const openEditModal = (category: any) => {
   editingCategory.value = category
   categoryForm.value = {
     name: category.name,
     slug: category.slug,
-    description: '',
-    icon: category.icon,
-    color: '#3b82f6',
+    description: category.description || '',
+    icon: category.icon || 'i-lucide-folder',
+    color: category.color || '#3b82f6',
     status: category.status
   }
   showModal.value = true
 }
+
+const handleSave = async () => {
+  saving.value = true
+  try {
+    if (editingCategory.value) {
+      await updateCategory(editingCategory.value.id, categoryForm.value)
+    } else {
+      await createCategory(categoryForm.value)
+    }
+    showModal.value = false
+  } catch (e) {
+    // Error is handled in the composable
+  } finally {
+    saving.value = false
+  }
+}
+
+const confirmDelete = (category: any) => {
+  categoryToDelete.value = category
+  showDeleteModal.value = true
+}
+
+const handleDelete = async () => {
+  if (!categoryToDelete.value) return
+
+  deleting.value = true
+  try {
+    await deleteCategory(categoryToDelete.value.id)
+    showDeleteModal.value = false
+    categoryToDelete.value = null
+  } catch (e) {
+    // Error is handled in the composable
+  } finally {
+    deleting.value = false
+  }
+}
+
+// Auto-generate slug from name
+watch(() => categoryForm.value.name, (name) => {
+  if (!editingCategory.value) {
+    categoryForm.value.slug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+  }
+})
+
+onMounted(() => {
+  fetchCategories()
+})
 </script>
