@@ -9,6 +9,7 @@
         </div>
         <div class="flex items-center gap-2">
           <UInput
+            v-model="searchQuery"
             placeholder="Search bookmarks..."
             icon="i-lucide-search"
             size="sm"
@@ -17,41 +18,40 @@
         </div>
       </div>
 
-      <!-- Premium Banner (for non-premium users) -->
-      <UCard class="mb-8 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <UIcon name="i-lucide-crown" class="w-8 h-8" />
-            <div>
-              <h3 class="font-semibold">Premium Feature</h3>
-              <p class="text-sm opacity-90">Unlimited bookmarks with Premium membership</p>
-            </div>
-          </div>
-          <UButton color="white" variant="soft" to="/membership">
-            Upgrade
-          </UButton>
-        </div>
-      </UCard>
+      <!-- Loading State -->
+      <div v-if="loading" class="flex justify-center py-12">
+        <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+      </div>
 
-      <!-- Filter Tabs -->
-      <UTabs :items="tabs" class="mb-6">
-        <template #all>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <NuxtLink
-              v-for="bookmark in bookmarks"
-              :key="bookmark.id"
-              :to="`/articles/${bookmark.id}`"
-            >
-              <UCard class="group hover:border-primary transition cursor-pointer h-full">
+      <template v-else>
+        <!-- Stats -->
+        <div class="grid grid-cols-2 gap-4 mb-8">
+          <UCard class="text-center">
+            <p class="text-2xl font-bold text-primary">{{ pagination.total }}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Saved Articles</p>
+          </UCard>
+        </div>
+
+        <!-- Bookmarks Grid -->
+        <div v-if="filteredBookmarks.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div
+            v-for="bookmark in filteredBookmarks"
+            :key="bookmark.id"
+            class="group"
+          >
+            <UCard class="hover:border-primary transition cursor-pointer h-full relative">
+              <NuxtLink :to="`/articles/${bookmark.slug}`">
                 <div class="flex gap-4">
                   <img
-                    :src="bookmark.cover"
+                    :src="bookmark.cover || '/placeholder.jpg'"
                     :alt="bookmark.title"
-                    class="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                    class="w-24 h-24 object-cover rounded-lg flex-shrink-0 bg-gray-100 dark:bg-gray-800"
                   />
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
-                      <UBadge color="primary" variant="subtle" size="xs">{{ bookmark.category }}</UBadge>
+                      <UBadge v-if="bookmark.category" color="primary" variant="subtle" size="xs">
+                        {{ bookmark.category.name }}
+                      </UBadge>
                     </div>
                     <h4 class="font-medium line-clamp-2 group-hover:text-primary transition">
                       {{ bookmark.title }}
@@ -60,102 +60,98 @@
                       <span class="text-xs text-gray-500 dark:text-gray-400">
                         {{ bookmark.readTime }} min read
                       </span>
-                      <UButton
-                        icon="i-lucide-bookmark"
-                        size="xs"
-                        variant="ghost"
-                        color="primary"
-                      />
                     </div>
                   </div>
                 </div>
-              </UCard>
-            </NuxtLink>
+              </NuxtLink>
+              <UButton
+                icon="i-lucide-bookmark"
+                size="xs"
+                variant="ghost"
+                color="primary"
+                class="absolute top-2 right-2"
+                @click.prevent="handleRemove(bookmark.articleId)"
+              />
+            </UCard>
           </div>
-        </template>
+        </div>
 
-        <template #collections>
-          <div class="mt-4">
-            <div class="flex items-center justify-between mb-4">
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Organize your bookmarks into collections
-              </p>
-              <UButton size="sm" variant="outline" icon="i-lucide-plus">
-                New Collection
-              </UButton>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <UCard
-                v-for="collection in collections"
-                :key="collection.id"
-                class="hover:border-primary transition cursor-pointer"
-              >
-                <div class="text-center py-4">
-                  <UIcon :name="collection.icon" class="w-10 h-10 text-primary mb-2" />
-                  <h4 class="font-medium">{{ collection.name }}</h4>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ collection.count }} articles
-                  </p>
-                </div>
-              </UCard>
-            </div>
-          </div>
-        </template>
-      </UTabs>
+        <!-- Empty State -->
+        <div v-else class="text-center py-12">
+          <UIcon name="i-lucide-bookmark" class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+          <h3 class="text-lg font-medium mb-2">No bookmarks yet</h3>
+          <p class="text-gray-500 dark:text-gray-400 mb-4">
+            Start saving articles to read them later
+          </p>
+          <UButton to="/articles">Browse Articles</UButton>
+        </div>
 
-      <!-- Empty State -->
-      <div v-if="bookmarks.length === 0" class="text-center py-12">
-        <UIcon name="i-lucide-bookmark" class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-        <h3 class="text-lg font-medium mb-2">No bookmarks yet</h3>
-        <p class="text-gray-500 dark:text-gray-400 mb-4">
-          Start saving articles to read them later
-        </p>
-        <UButton to="/articles">Browse Articles</UButton>
-      </div>
+        <!-- Pagination -->
+        <div v-if="pagination.totalPages > 1" class="flex justify-center gap-2 mt-8">
+          <UButton
+            variant="outline"
+            size="sm"
+            :disabled="pagination.page === 1"
+            @click="loadPage(pagination.page - 1)"
+          >
+            Previous
+          </UButton>
+          <span class="flex items-center px-4 text-sm text-gray-500">
+            Page {{ pagination.page }} of {{ pagination.totalPages }}
+          </span>
+          <UButton
+            variant="outline"
+            size="sm"
+            :disabled="pagination.page === pagination.totalPages"
+            @click="loadPage(pagination.page + 1)"
+          >
+            Next
+          </UButton>
+        </div>
+      </template>
     </div>
   </NuxtLayout>
 </template>
 
 <script setup lang="ts">
-const tabs = [
-  { label: 'All Bookmarks', slot: 'all' },
-  { label: 'Collections', slot: 'collections' }
-]
+definePageMeta({
+  middleware: 'auth'
+})
 
-const bookmarks = [
-  {
-    id: 1,
-    title: 'The Future of Artificial Intelligence in Healthcare',
-    category: 'Technology',
-    readTime: 8,
-    cover: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=200&h=200&fit=crop'
-  },
-  {
-    id: 2,
-    title: 'Climate Change: What Scientists Are Saying',
-    category: 'Science',
-    readTime: 12,
-    cover: 'https://images.unsplash.com/photo-1569163139599-0f4517e36f51?w=200&h=200&fit=crop'
-  },
-  {
-    id: 3,
-    title: 'Building a Successful Startup: Lessons from Founders',
-    category: 'Business',
-    readTime: 6,
-    cover: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=200&h=200&fit=crop'
-  },
-  {
-    id: 4,
-    title: 'The Science of Sleep: Why It Matters',
-    category: 'Health',
-    readTime: 5,
-    cover: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=200&h=200&fit=crop'
+const { bookmarks, pagination, loading, fetchBookmarks, removeBookmark } = useBookmarks()
+const toast = useToast()
+const searchQuery = ref('')
+
+onMounted(() => {
+  fetchBookmarks()
+})
+
+const filteredBookmarks = computed(() => {
+  if (!searchQuery.value) return bookmarks.value
+
+  const query = searchQuery.value.toLowerCase()
+  return bookmarks.value.filter(b =>
+    b.title.toLowerCase().includes(query) ||
+    b.category?.name.toLowerCase().includes(query)
+  )
+})
+
+const loadPage = async (page: number) => {
+  await fetchBookmarks({ page })
+}
+
+const handleRemove = async (articleId: number) => {
+  try {
+    await removeBookmark(articleId)
+    toast.add({
+      title: 'Bookmark removed',
+      color: 'success'
+    })
+  } catch (error) {
+    toast.add({
+      title: 'Failed to remove bookmark',
+      color: 'error'
+    })
   }
-]
-
-const collections = [
-  { id: 1, name: 'Technology', icon: 'i-lucide-cpu', count: 12 },
-  { id: 2, name: 'For Work', icon: 'i-lucide-briefcase', count: 8 },
-  { id: 3, name: 'Science', icon: 'i-lucide-flask-conical', count: 5 }
-]
+}
 </script>

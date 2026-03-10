@@ -9,189 +9,336 @@
         </div>
         <div class="flex items-center gap-2">
           <UInput
+            v-model="searchQuery"
             placeholder="Search words..."
             icon="i-lucide-search"
             size="sm"
             class="w-48"
           />
-          <UButton variant="outline" size="sm" icon="i-lucide-download">
-            Export
+          <UButton variant="outline" size="sm" icon="i-lucide-plus" @click="showAddModal = true">
+            Add Word
           </UButton>
         </div>
       </div>
 
-      <!-- Premium Banner -->
-      <UCard class="mb-8 bg-gradient-to-r from-green-500 to-teal-500 text-white">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <UIcon name="i-lucide-crown" class="w-8 h-8" />
-            <div>
-              <h3 class="font-semibold">Vocabulary Builder</h3>
-              <p class="text-sm opacity-90">Spaced repetition & flashcards with Premium</p>
-            </div>
-          </div>
-          <UButton color="white" variant="soft" to="/membership">
-            Upgrade
-          </UButton>
-        </div>
-      </UCard>
-
-      <!-- Stats -->
-      <div class="grid grid-cols-3 gap-4 mb-8">
-        <UCard class="text-center">
-          <p class="text-2xl font-bold text-primary">{{ vocabulary.length }}</p>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Total Words</p>
-        </UCard>
-        <UCard class="text-center">
-          <p class="text-2xl font-bold text-green-500">45</p>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Mastered</p>
-        </UCard>
-        <UCard class="text-center">
-          <p class="text-2xl font-bold text-orange-500">44</p>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Learning</p>
-        </UCard>
+      <!-- Loading State -->
+      <div v-if="loading" class="flex justify-center py-12">
+        <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
       </div>
 
-      <!-- Filter -->
-      <div class="flex items-center gap-2 mb-6">
-        <UButton variant="solid" color="primary" size="sm">All</UButton>
-        <UButton variant="outline" size="sm">Learning</UButton>
-        <UButton variant="outline" size="sm">Mastered</UButton>
-        <div class="ml-auto">
-          <USelect
-            :items="[
-              { label: 'Recently Added', value: 'recent' },
-              { label: 'Alphabetical', value: 'alpha' },
-              { label: 'Progress', value: 'progress' }
-            ]"
-            default-value="recent"
+      <template v-else>
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-4 mb-8">
+          <UCard class="text-center">
+            <p class="text-2xl font-bold text-primary">{{ stats?.totalWords || 0 }}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Total Words</p>
+          </UCard>
+          <UCard class="text-center">
+            <p class="text-2xl font-bold text-green-500">{{ stats?.mastered || 0 }}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Mastered</p>
+          </UCard>
+          <UCard class="text-center">
+            <p class="text-2xl font-bold text-orange-500">{{ stats?.learning || 0 }}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Learning</p>
+          </UCard>
+        </div>
+
+        <!-- Filter -->
+        <div class="flex items-center gap-2 mb-6">
+          <UButton
+            :variant="activeFilter === 'all' ? 'solid' : 'outline'"
+            color="primary"
             size="sm"
-            class="w-40"
-          />
-        </div>
-      </div>
-
-      <!-- Word List -->
-      <div class="space-y-3">
-        <UCard
-          v-for="word in vocabulary"
-          :key="word.id"
-          class="hover:border-primary transition"
-        >
-          <div class="flex items-start gap-4">
-            <div class="flex-1">
-              <div class="flex items-center gap-3 mb-1">
-                <h4 class="text-lg font-semibold">{{ word.word }}</h4>
-                <span class="text-sm text-gray-500 dark:text-gray-400">
-                  {{ word.phonetic }}
-                </span>
-                <UButton icon="i-lucide-volume-2" size="xs" variant="ghost" color="neutral" />
-              </div>
-              <p class="text-gray-600 dark:text-gray-300 mb-2">{{ word.definition }}</p>
-              <p class="text-sm text-gray-500 dark:text-gray-400 italic">
-                "{{ word.example }}"
-              </p>
-              <div class="flex items-center gap-2 mt-3">
-                <UBadge :color="word.source === 'article' ? 'primary' : 'neutral'" variant="subtle" size="xs">
-                  From article
-                </UBadge>
-                <span class="text-xs text-gray-400">Added {{ word.addedAt }}</span>
-              </div>
-            </div>
-            <div class="flex flex-col items-end gap-2">
-              <!-- Progress Ring -->
-              <div class="relative w-12 h-12">
-                <svg class="w-12 h-12 transform -rotate-90">
-                  <circle
-                    cx="24"
-                    cy="24"
-                    r="20"
-                    stroke="currentColor"
-                    stroke-width="4"
-                    fill="none"
-                    class="text-gray-200 dark:text-gray-700"
-                  />
-                  <circle
-                    cx="24"
-                    cy="24"
-                    r="20"
-                    stroke="currentColor"
-                    stroke-width="4"
-                    fill="none"
-                    :stroke-dasharray="125.6"
-                    :stroke-dashoffset="125.6 - (125.6 * word.progress / 100)"
-                    class="text-primary"
-                  />
-                </svg>
-                <span class="absolute inset-0 flex items-center justify-center text-xs font-medium">
-                  {{ word.progress }}%
-                </span>
-              </div>
-              <UButton icon="i-lucide-trash-2" size="xs" variant="ghost" color="error" />
-            </div>
+            @click="setFilter('all')"
+          >
+            All
+          </UButton>
+          <UButton
+            :variant="activeFilter === 'learning' ? 'solid' : 'outline'"
+            size="sm"
+            @click="setFilter('learning')"
+          >
+            Learning
+          </UButton>
+          <UButton
+            :variant="activeFilter === 'mastered' ? 'solid' : 'outline'"
+            size="sm"
+            @click="setFilter('mastered')"
+          >
+            Mastered
+          </UButton>
+          <div class="ml-auto">
+            <USelect
+              :items="sortOptions"
+              :model-value="activeSort"
+              size="sm"
+              class="w-40"
+              @update:model-value="setSort($event as string)"
+            />
           </div>
-        </UCard>
-      </div>
+        </div>
 
-      <!-- Load More -->
-      <div class="flex justify-center mt-8">
-        <UButton variant="outline">Load More Words</UButton>
-      </div>
+        <!-- Word List -->
+        <div v-if="filteredVocabulary.length > 0" class="space-y-3">
+          <UCard
+            v-for="word in filteredVocabulary"
+            :key="word.id"
+            class="hover:border-primary transition"
+          >
+            <div class="flex items-start gap-4">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-1">
+                  <h4 class="text-lg font-semibold">{{ word.word }}</h4>
+                  <span v-if="word.phonetic" class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ word.phonetic }}
+                  </span>
+                  <UButton icon="i-lucide-volume-2" size="xs" variant="ghost" color="neutral" />
+                </div>
+                <p class="text-gray-600 dark:text-gray-300 mb-2">{{ word.definition }}</p>
+                <p v-if="word.example" class="text-sm text-gray-500 dark:text-gray-400 italic">
+                  "{{ word.example }}"
+                </p>
+                <div class="flex items-center gap-2 mt-3">
+                  <UBadge v-if="word.article" color="primary" variant="subtle" size="xs">
+                    From: {{ word.article.title }}
+                  </UBadge>
+                  <span class="text-xs text-gray-400">Added {{ formatRelativeTime(word.createdAt) }}</span>
+                </div>
+              </div>
+              <div class="flex flex-col items-end gap-2">
+                <!-- Progress Ring -->
+                <div class="relative w-12 h-12">
+                  <svg class="w-12 h-12 transform -rotate-90">
+                    <circle
+                      cx="24"
+                      cy="24"
+                      r="20"
+                      stroke="currentColor"
+                      stroke-width="4"
+                      fill="none"
+                      class="text-gray-200 dark:text-gray-700"
+                    />
+                    <circle
+                      cx="24"
+                      cy="24"
+                      r="20"
+                      stroke="currentColor"
+                      stroke-width="4"
+                      fill="none"
+                      :stroke-dasharray="125.6"
+                      :stroke-dashoffset="125.6 - (125.6 * word.progress / 100)"
+                      :class="word.progress === 100 ? 'text-green-500' : 'text-primary'"
+                    />
+                  </svg>
+                  <span class="absolute inset-0 flex items-center justify-center text-xs font-medium">
+                    {{ word.progress }}%
+                  </span>
+                </div>
+                <UButton
+                  icon="i-lucide-trash-2"
+                  size="xs"
+                  variant="ghost"
+                  color="error"
+                  @click="handleDelete(word.id)"
+                />
+              </div>
+            </div>
+          </UCard>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else class="text-center py-12">
+          <UIcon name="i-lucide-book" class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+          <h3 class="text-lg font-medium mb-2">No vocabulary yet</h3>
+          <p class="text-gray-500 dark:text-gray-400 mb-4">
+            Start adding words to build your vocabulary
+          </p>
+          <UButton @click="showAddModal = true">Add Your First Word</UButton>
+        </div>
+
+        <!-- Pagination -->
+        <div v-if="pagination.totalPages > 1" class="flex justify-center gap-2 mt-8">
+          <UButton
+            variant="outline"
+            size="sm"
+            :disabled="pagination.page === 1"
+            @click="loadPage(pagination.page - 1)"
+          >
+            Previous
+          </UButton>
+          <span class="flex items-center px-4 text-sm text-gray-500">
+            Page {{ pagination.page }} of {{ pagination.totalPages }}
+          </span>
+          <UButton
+            variant="outline"
+            size="sm"
+            :disabled="pagination.page === pagination.totalPages"
+            @click="loadPage(pagination.page + 1)"
+          >
+            Next
+          </UButton>
+        </div>
+      </template>
+
+      <!-- Add Word Modal -->
+      <UModal v-model:open="showAddModal">
+        <template #content>
+          <UCard>
+            <template #header>
+              <h3 class="text-lg font-semibold">Add New Word</h3>
+            </template>
+
+            <form class="space-y-4" @submit.prevent="handleAddWord">
+              <UFormField label="Word" name="word" required>
+                <UInput v-model="newWord.word" placeholder="e.g., artificial" />
+              </UFormField>
+              <UFormField label="Phonetic" name="phonetic">
+                <UInput v-model="newWord.phonetic" placeholder="e.g., /ˌɑːrtɪˈfɪʃl/" />
+              </UFormField>
+              <UFormField label="Definition" name="definition" required>
+                <UTextarea v-model="newWord.definition" placeholder="Word definition..." :rows="2" />
+              </UFormField>
+              <UFormField label="Example" name="example">
+                <UTextarea v-model="newWord.example" placeholder="Example sentence..." :rows="2" />
+              </UFormField>
+            </form>
+
+            <template #footer>
+              <div class="flex justify-end gap-2">
+                <UButton variant="outline" @click="showAddModal = false">Cancel</UButton>
+                <UButton :loading="adding" @click="handleAddWord">Add Word</UButton>
+              </div>
+            </template>
+          </UCard>
+        </template>
+      </UModal>
     </div>
   </NuxtLayout>
 </template>
 
 <script setup lang="ts">
-const vocabulary = [
-  {
-    id: 1,
-    word: 'artificial',
-    phonetic: '/ˌɑːrtɪˈfɪʃl/',
-    definition: 'Made or produced by human beings rather than occurring naturally',
-    example: 'Artificial intelligence is transforming many industries.',
-    progress: 80,
-    source: 'article',
-    addedAt: '2 days ago'
-  },
-  {
-    id: 2,
-    word: 'diagnosis',
-    phonetic: '/ˌdaɪəɡˈnoʊsɪs/',
-    definition: 'The identification of the nature of an illness or problem',
-    example: 'Early diagnosis is crucial for effective treatment.',
-    progress: 60,
-    source: 'article',
-    addedAt: '3 days ago'
-  },
-  {
-    id: 3,
-    word: 'unprecedented',
-    phonetic: '/ʌnˈpresɪdentɪd/',
-    definition: 'Never done or known before',
-    example: 'The pandemic caused unprecedented changes in society.',
-    progress: 40,
-    source: 'article',
-    addedAt: '5 days ago'
-  },
-  {
-    id: 4,
-    word: 'revolutionize',
-    phonetic: '/ˌrevəˈluːʃənaɪz/',
-    definition: 'To change something radically or fundamentally',
-    example: 'The internet has revolutionized how we communicate.',
-    progress: 100,
-    source: 'article',
-    addedAt: '1 week ago'
-  },
-  {
-    id: 5,
-    word: 'implement',
-    phonetic: '/ˈɪmplɪment/',
-    definition: 'To put a decision, plan, or agreement into effect',
-    example: 'The company plans to implement new policies next month.',
-    progress: 50,
-    source: 'article',
-    addedAt: '1 week ago'
-  }
+definePageMeta({
+  middleware: 'auth'
+})
+
+const { vocabulary, stats, pagination, loading, fetchVocabulary, addWord, deleteWord } = useVocabulary()
+const toast = useToast()
+
+const searchQuery = ref('')
+const activeFilter = ref('all')
+const activeSort = ref('recent')
+const showAddModal = ref(false)
+const adding = ref(false)
+
+const newWord = reactive({
+  word: '',
+  phonetic: '',
+  definition: '',
+  example: ''
+})
+
+const sortOptions = [
+  { label: 'Recently Added', value: 'recent' },
+  { label: 'Alphabetical', value: 'alpha' },
+  { label: 'Progress', value: 'progress' }
 ]
+
+onMounted(() => {
+  fetchVocabulary()
+})
+
+const filteredVocabulary = computed(() => {
+  if (!searchQuery.value) return vocabulary.value
+
+  const query = searchQuery.value.toLowerCase()
+  return vocabulary.value.filter(v =>
+    v.word.toLowerCase().includes(query) ||
+    v.definition.toLowerCase().includes(query)
+  )
+})
+
+const setFilter = (filter: string) => {
+  activeFilter.value = filter
+  fetchVocabulary({ filter: filter === 'all' ? undefined : filter, sort: activeSort.value })
+}
+
+const setSort = (sort: string) => {
+  activeSort.value = sort
+  fetchVocabulary({ filter: activeFilter.value === 'all' ? undefined : activeFilter.value, sort })
+}
+
+const loadPage = async (page: number) => {
+  await fetchVocabulary({
+    page,
+    filter: activeFilter.value === 'all' ? undefined : activeFilter.value,
+    sort: activeSort.value
+  })
+}
+
+const handleAddWord = async () => {
+  if (!newWord.word || !newWord.definition) {
+    toast.add({
+      title: 'Missing fields',
+      description: 'Word and definition are required',
+      color: 'error'
+    })
+    return
+  }
+
+  adding.value = true
+  try {
+    await addWord({
+      word: newWord.word,
+      phonetic: newWord.phonetic || undefined,
+      definition: newWord.definition,
+      example: newWord.example || undefined
+    })
+    toast.add({
+      title: 'Word added',
+      color: 'success'
+    })
+    showAddModal.value = false
+    // Reset form
+    newWord.word = ''
+    newWord.phonetic = ''
+    newWord.definition = ''
+    newWord.example = ''
+  } catch (error: any) {
+    toast.add({
+      title: 'Failed to add word',
+      description: error.data?.message || 'Please try again',
+      color: 'error'
+    })
+  } finally {
+    adding.value = false
+  }
+}
+
+const handleDelete = async (id: number) => {
+  try {
+    await deleteWord(id)
+    toast.add({
+      title: 'Word removed',
+      color: 'success'
+    })
+  } catch (error) {
+    toast.add({
+      title: 'Failed to remove word',
+      color: 'error'
+    })
+  }
+}
+
+const formatRelativeTime = (date: string | Date) => {
+  const now = new Date()
+  const then = new Date(date)
+  const diffMs = now.getTime() - then.getTime()
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffDays < 1) return 'today'
+  if (diffDays === 1) return 'yesterday'
+  if (diffDays < 7) return `${diffDays} days ago`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+  return then.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
 </script>

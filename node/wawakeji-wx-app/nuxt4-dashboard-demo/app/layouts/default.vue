@@ -37,13 +37,25 @@
               @click="toggleTheme"
             />
 
-            <!-- User Menu (Desktop) -->
-            <UDropdownMenu
-              :items="userMenuItems"
-              class="hidden md:block"
-            >
-              <UButton icon="i-lucide-user" color="neutral" variant="ghost" size="sm" />
-            </UDropdownMenu>
+            <!-- Logged In User Menu (Desktop) -->
+            <template v-if="loggedIn">
+              <UDropdownMenu
+                :items="userMenuItems"
+                class="hidden md:block"
+              >
+                <UButton color="neutral" variant="ghost" size="sm">
+                  <UAvatar :src="user?.avatar || undefined" :alt="user?.name || 'User'" size="xs" />
+                  <span class="ml-2 hidden lg:inline">{{ user?.name }}</span>
+                </UButton>
+              </UDropdownMenu>
+            </template>
+
+            <!-- Not Logged In (Desktop) -->
+            <template v-else>
+              <UButton to="/login" variant="outline" size="sm" class="hidden md:flex">
+                Sign In
+              </UButton>
+            </template>
 
             <!-- Mobile Menu Button -->
             <UButton
@@ -71,12 +83,44 @@
             Membership
           </NuxtLink>
           <div class="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-            <NuxtLink to="/user" class="block py-2 text-gray-600 dark:text-gray-300" @click="mobileMenuOpen = false">
-              Profile
-            </NuxtLink>
-            <NuxtLink to="/login" class="block py-2 text-gray-600 dark:text-gray-300" @click="mobileMenuOpen = false">
-              Login
-            </NuxtLink>
+            <template v-if="loggedIn">
+              <div class="flex items-center gap-3 py-2 px-2 mb-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <UAvatar :src="user?.avatar || undefined" :alt="user?.name || 'User'" size="sm" />
+                <div>
+                  <p class="font-medium text-sm">{{ user?.name }}</p>
+                  <p class="text-xs text-gray-500">{{ user?.email }}</p>
+                </div>
+              </div>
+              <NuxtLink to="/user" class="block py-2 text-gray-600 dark:text-gray-300" @click="mobileMenuOpen = false">
+                Profile
+              </NuxtLink>
+              <NuxtLink to="/user/history" class="block py-2 text-gray-600 dark:text-gray-300" @click="mobileMenuOpen = false">
+                Reading History
+              </NuxtLink>
+              <NuxtLink to="/user/bookmarks" class="block py-2 text-gray-600 dark:text-gray-300" @click="mobileMenuOpen = false">
+                Bookmarks
+              </NuxtLink>
+              <NuxtLink to="/user/vocabulary" class="block py-2 text-gray-600 dark:text-gray-300" @click="mobileMenuOpen = false">
+                Vocabulary
+              </NuxtLink>
+              <NuxtLink to="/user/settings" class="block py-2 text-gray-600 dark:text-gray-300" @click="mobileMenuOpen = false">
+                Settings
+              </NuxtLink>
+              <button
+                class="block w-full text-left py-2 text-red-500"
+                @click="handleLogout"
+              >
+                Logout
+              </button>
+            </template>
+            <template v-else>
+              <NuxtLink to="/login" class="block py-2 text-gray-600 dark:text-gray-300" @click="mobileMenuOpen = false">
+                Sign In
+              </NuxtLink>
+              <NuxtLink to="/register" class="block py-2 text-gray-600 dark:text-gray-300" @click="mobileMenuOpen = false">
+                Create Account
+              </NuxtLink>
+            </template>
           </div>
         </nav>
       </div>
@@ -134,39 +178,75 @@
 <script setup lang="ts">
 const colorMode = useColorMode()
 const mobileMenuOpen = ref(false)
+const { loggedIn, user, clear } = useUserSession()
+const router = useRouter()
+const toast = useToast()
 
 const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
 }
 
-const userMenuItems = [
-  [{
-    label: 'Profile',
-    icon: 'i-lucide-user',
-    to: '/user'
-  }],
-  [{
-    label: 'Reading History',
-    icon: 'i-lucide-history',
-    to: '/user/history'
-  }, {
-    label: 'Bookmarks',
-    icon: 'i-lucide-bookmark',
-    to: '/user/bookmarks'
-  }, {
-    label: 'Vocabulary',
-    icon: 'i-lucide-book',
-    to: '/user/vocabulary'
-  }],
-  [{
-    label: 'Settings',
-    icon: 'i-lucide-settings',
-    to: '/user/settings'
-  }],
-  [{
-    label: 'Logout',
-    icon: 'i-lucide-log-out',
-    to: '/login'
-  }]
-]
+const handleLogout = async () => {
+  try {
+    await $fetch('/api/auth/logout', { method: 'POST' })
+    await clear()
+    mobileMenuOpen.value = false
+    router.push('/')
+    toast.add({
+      title: 'Logged out',
+      description: 'You have been successfully logged out.',
+      color: 'success'
+    })
+  } catch (error) {
+    toast.add({
+      title: 'Error',
+      description: 'Failed to logout. Please try again.',
+      color: 'error'
+    })
+  }
+}
+
+const userMenuItems = computed(() => {
+  const items: any[] = [
+    [{
+      label: user.value?.name || 'Profile',
+      icon: 'i-lucide-user',
+      to: '/user'
+    }],
+    [{
+      label: 'Reading History',
+      icon: 'i-lucide-history',
+      to: '/user/history'
+    }, {
+      label: 'Bookmarks',
+      icon: 'i-lucide-bookmark',
+      to: '/user/bookmarks'
+    }, {
+      label: 'Vocabulary',
+      icon: 'i-lucide-book',
+      to: '/user/vocabulary'
+    }],
+    [{
+      label: 'Settings',
+      icon: 'i-lucide-settings',
+      to: '/user/settings'
+    }],
+    [{
+      label: 'Logout',
+      icon: 'i-lucide-log-out',
+      onSelect: handleLogout
+    }]
+  ]
+
+  // Add admin menu if user is admin
+  if (user.value?.role === 'ADMIN') {
+    items.splice(1, 0, [{
+      label: 'Admin Dashboard',
+      icon: 'i-lucide-layout-dashboard',
+      to: '/admin'
+    }])
+  }
+
+  return items
+})
 </script>

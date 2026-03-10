@@ -63,9 +63,15 @@ definePageMeta({
   layout: false
 })
 
-const { fetch: fetchSession } = useUserSession()
+const { fetch: fetchSession, loggedIn } = useUserSession()
+const route = useRoute()
 const router = useRouter()
 const toast = useToast()
+
+// Redirect if already logged in
+if (loggedIn.value) {
+  router.push('/')
+}
 
 const form = reactive({
   email: '',
@@ -105,7 +111,10 @@ const handleLogin = async () => {
     })
 
     await fetchSession()
-    router.push('/')
+
+    // Redirect to the intended page or home
+    const redirect = route.query.redirect as string
+    router.push(redirect || '/')
   } catch (error: any) {
     const message = error?.data?.message || error?.message || 'Login failed'
     toast.add({
@@ -119,10 +128,20 @@ const handleLogin = async () => {
 }
 
 const loginWithGitHub = () => {
+  // Store redirect path in session storage
+  const redirect = route.query.redirect as string
+  if (redirect) {
+    sessionStorage.setItem('oauth_redirect', redirect)
+  }
   window.location.href = '/auth/github'
 }
 
 const loginWithGoogle = () => {
+  // Store redirect path in session storage
+  const redirect = route.query.redirect as string
+  if (redirect) {
+    sessionStorage.setItem('oauth_redirect', redirect)
+  }
   window.location.href = '/auth/google'
 }
 </script>
