@@ -38,7 +38,7 @@
             <p class="text-sm font-medium truncate">Admin User</p>
             <p class="text-xs text-gray-500 dark:text-gray-400 truncate">admin@example.com</p>
           </div>
-          <UButton icon="i-lucide-log-out" color="neutral" variant="ghost" size="xs" />
+          <UButton icon="i-lucide-log-out" color="neutral" variant="ghost" size="xs" @click="handleLogout" />
         </div>
       </div>
     </aside>
@@ -98,10 +98,32 @@
 <script setup lang="ts">
 const colorMode = useColorMode()
 const route = useRoute()
+const router = useRouter()
 const sidebarOpen = ref(false)
+const { loggedIn, clear } = useUserSession()
+const toast = useToast()
 
 const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+}
+
+const handleLogout = async () => {
+  try {
+    await $fetch('/api/auth/logout', { method: 'POST' })
+    await clear()
+    router.push('/login')
+    toast.add({
+      title: 'Logged out',
+      description: 'You have been successfully logged out.',
+      color: 'success'
+    })
+  } catch (error) {
+    toast.add({
+      title: 'Error',
+      description: 'Failed to logout. Please try again.',
+      color: 'error'
+    })
+  }
 }
 
 const navItems = [

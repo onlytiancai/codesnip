@@ -1,0 +1,2 @@
+- ~/src/codesnip/skills/nuxt4-dev 目录放了一些 nuxt 项目开发经验，你可以参考它实现一些功能或修复问题
+- 你可以pnpm dev启动服务，并使用 chrome devtools mcp 打开页面进行自动化测试，发现错误并修复，测试账户可以从prisma/seed.ts里获取

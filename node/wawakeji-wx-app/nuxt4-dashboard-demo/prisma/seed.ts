@@ -191,8 +191,8 @@ async function main() {
 
   console.log('Created tags:', tags.length)
 
-  // Create sample article
-  const article = await prisma.article.upsert({
+  // Create sample article (Technology)
+  const techArticle = await prisma.article.upsert({
     where: { slug: 'ai-in-healthcare' },
     update: {},
     create: {
@@ -232,18 +232,148 @@ The future of AI in healthcare looks bright, with potential applications ranging
     }
   })
 
-  console.log('Created sample article:', article.title)
+  console.log('Created technology article:', techArticle.title)
+
+  // Create Science article
+  const scienceArticle = await prisma.article.upsert({
+    where: { slug: 'climate-change-research' },
+    update: {},
+    create: {
+      title: 'Climate Change: What Scientists Are Saying',
+      slug: 'climate-change-research',
+      excerpt: 'Understanding the latest research on global warming and its impacts on our planet.',
+      cover: 'https://images.unsplash.com/photo-1569163139599-0f4517e36f51?w=800&h=400&fit=crop',
+      content: `Climate change remains one of the most pressing issues of our time. Scientists around the world are conducting extensive research to understand its causes and effects.
+
+Recent studies show that global temperatures have risen by approximately 1.1 degrees Celsius since the pre-industrial era. This may seem small, but the consequences are significant.
+
+Extreme weather events are becoming more frequent. Heatwaves, droughts, and intense storms are affecting communities worldwide.
+
+The good news is that renewable energy technologies are advancing rapidly. Solar and wind power are now cheaper than fossil fuels in many regions.`,
+      status: 'published',
+      difficulty: 'advanced',
+      categoryId: categories[1].id,
+      authorId: admin.id,
+      views: 1856,
+      bookmarks: 98,
+      ArticleTag: {
+        create: [
+          { tagId: tags[4].id }
+        ]
+      },
+      Sentence: {
+        createMany: {
+          data: [
+            { order: 0, en: 'Climate change remains one of the most pressing issues of our time.', cn: '气候变化仍然是我们这个时代最紧迫的问题之一。' },
+            { order: 1, en: 'Scientists around the world are conducting extensive research to understand its causes and effects.', cn: '世界各地的科学家正在进行广泛的研究，以了解其原因和影响。' },
+            { order: 2, en: 'Recent studies show that global temperatures have risen by approximately 1.1 degrees Celsius since the pre-industrial era.', cn: '最近的研究表明，自工业时代以来，全球气温已上升约1.1摄氏度。' },
+            { order: 3, en: 'Extreme weather events are becoming more frequent.', cn: '极端天气事件正变得更加频繁。' }
+          ]
+        }
+      }
+    }
+  })
+
+  console.log('Created science article:', scienceArticle.title)
+
+  // Create Business article
+  const businessArticle = await prisma.article.upsert({
+    where: { slug: 'startup-success-stories' },
+    update: {},
+    create: {
+      title: 'Building a Successful Startup: Lessons from Founders',
+      slug: 'startup-success-stories',
+      excerpt: 'Key insights from entrepreneurs who built billion-dollar companies.',
+      cover: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=800&h=400&fit=crop',
+      content: `Starting a business is never easy, but learning from successful founders can help you avoid common mistakes.
+
+One key lesson is the importance of solving a real problem. The most successful startups address genuine pain points that people experience daily.
+
+Another crucial factor is timing. Many great ideas fail because they enter the market too early or too late.
+
+Building a strong team is equally important. You need people with complementary skills who share your vision and values.
+
+Finally, perseverance is essential. Most successful founders faced numerous rejections before achieving their goals.`,
+      status: 'published',
+      difficulty: 'beginner',
+      categoryId: categories[2].id,
+      authorId: admin.id,
+      views: 3127,
+      bookmarks: 234,
+      ArticleTag: {
+        create: [
+          { tagId: tags[2].id }
+        ]
+      },
+      Sentence: {
+        createMany: {
+          data: [
+            { order: 0, en: 'Starting a business is never easy, but learning from successful founders can help you avoid common mistakes.', cn: '创业从来都不容易，但从成功的创始人那里学习可以帮助你避免常见的错误。' },
+            { order: 1, en: 'One key lesson is the importance of solving a real problem.', cn: '一个关键的教训是解决真正问题的重要性。' },
+            { order: 2, en: 'Another crucial factor is timing.', cn: '另一个关键因素是时机。' },
+            { order: 3, en: 'Building a strong team is equally important.', cn: '建立一支强大的团队同样重要。' }
+          ]
+        }
+      }
+    }
+  })
+
+  console.log('Created business article:', businessArticle.title)
+
+  // Create Health article
+  const healthArticle = await prisma.article.upsert({
+    where: { slug: 'science-of-sleep' },
+    update: {},
+    create: {
+      title: 'The Science of Sleep: Why It Matters',
+      slug: 'science-of-sleep',
+      excerpt: 'Discover how quality sleep affects your health and productivity.',
+      cover: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=800&h=400&fit=crop',
+      content: `Sleep is essential for our physical and mental well-being. Yet in our busy modern lives, many people neglect this fundamental need.
+
+During sleep, our bodies repair tissues and consolidate memories. The brain processes information from the day and prepares for tomorrow.
+
+Lack of sleep has been linked to numerous health problems, including obesity, heart disease, and weakened immunity.
+
+Most adults need between 7 and 9 hours of sleep per night. However, quality matters as much as quantity.
+
+Creating a consistent sleep schedule and a relaxing bedtime routine can significantly improve your sleep quality.`,
+      status: 'published',
+      difficulty: 'beginner',
+      categoryId: categories[3].id,
+      authorId: admin.id,
+      views: 4231,
+      bookmarks: 312,
+      ArticleTag: {
+        create: [
+          { tagId: tags[3].id }
+        ]
+      },
+      Sentence: {
+        createMany: {
+          data: [
+            { order: 0, en: 'Sleep is essential for our physical and mental well-being.', cn: '睡眠对我们的身心健康至关重要。' },
+            { order: 1, en: 'During sleep, our bodies repair tissues and consolidate memories.', cn: '在睡眠期间，我们的身体修复组织并巩固记忆。' },
+            { order: 2, en: 'Lack of sleep has been linked to numerous health problems.', cn: '睡眠不足与许多健康问题有关。' },
+            { order: 3, en: 'Most adults need between 7 and 9 hours of sleep per night.', cn: '大多数成年人每晚需要7到9小时的睡眠。' }
+          ]
+        }
+      }
+    }
+  })
+
+  console.log('Created health article:', healthArticle.title)
 
   // Create sample reading history for test user
   const existingHistory = await prisma.readingHistory.findFirst({
-    where: { userId: user.id, articleId: article.id }
+    where: { userId: user.id, articleId: techArticle.id }
   })
 
   if (!existingHistory) {
     await prisma.readingHistory.create({
       data: {
         userId: user.id,
-        articleId: article.id,
+        articleId: techArticle.id,
         progress: 100,
         lastReadAt: new Date(),
         completedAt: new Date()
@@ -254,14 +384,14 @@ The future of AI in healthcare looks bright, with potential applications ranging
 
   // Create sample bookmarks for test user
   const existingBookmark = await prisma.bookmark.findFirst({
-    where: { userId: user.id, articleId: article.id }
+    where: { userId: user.id, articleId: techArticle.id }
   })
 
   if (!existingBookmark) {
     await prisma.bookmark.create({
       data: {
         userId: user.id,
-        articleId: article.id
+        articleId: techArticle.id
       }
     })
     console.log('Created bookmark for test user')
@@ -322,7 +452,7 @@ The future of AI in healthcare looks bright, with potential applications ranging
         definition: vocab.definition,
         example: vocab.example,
         progress: vocab.progress,
-        articleId: article.id
+        articleId: techArticle.id
       }
     })
   }

@@ -13,6 +13,24 @@
         </p>
       </div>
 
+      <!-- Current Plan Status -->
+      <div v-if="loggedIn && membership" class="max-w-md mx-auto mb-8">
+        <UCard class="bg-primary/5 border-primary/20">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>
+              <p class="text-lg font-semibold capitalize">{{ membership.plan }}</p>
+            </div>
+            <UBadge :color="membership.plan === 'free' ? 'neutral' : 'primary'">
+              {{ membership.plan === 'free' ? 'Free' : 'Premium' }}
+            </UBadge>
+          </div>
+          <p v-if="membership.endDate" class="text-sm text-gray-500 mt-2">
+            Valid until {{ formatDate(membership.endDate) }}
+          </p>
+        </UCard>
+      </div>
+
       <!-- Pricing Cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         <!-- Free Plan -->
@@ -47,7 +65,13 @@
             </li>
           </ul>
           <template #footer>
-            <UButton block variant="outline">Current Plan</UButton>
+            <UButton
+              block
+              variant="outline"
+              :disabled="membership?.plan === 'free'"
+            >
+              {{ membership?.plan === 'free' ? 'Current Plan' : 'Downgrade' }}
+            </UButton>
           </template>
         </UCard>
 
@@ -89,7 +113,15 @@
             </li>
           </ul>
           <template #footer>
-            <UButton block color="primary">Upgrade to Pro</UButton>
+            <UButton
+              block
+              color="primary"
+              :loading="upgrading === 'pro'"
+              :disabled="membership?.plan === 'premium'"
+              @click="handleUpgrade('pro')"
+            >
+              {{ membership?.plan === 'premium' ? 'Current Plan' : 'Upgrade to Pro' }}
+            </UButton>
           </template>
         </UCard>
 
@@ -131,7 +163,14 @@
             </li>
           </ul>
           <template #footer>
-            <UButton block variant="outline">Get Annual Plan</UButton>
+            <UButton
+              block
+              variant="outline"
+              :loading="upgrading === 'annual'"
+              @click="handleUpgrade('annual')"
+            >
+              Get Annual Plan
+            </UButton>
           </template>
         </UCard>
       </div>
@@ -174,6 +213,69 @@
 </template>
 
 <script setup lang="ts">
+const { loggedIn, user } = useUserSession()
+const toast = useToast()
+const router = useRouter()
+
+const upgrading = ref<string | null>(null)
+const membership = ref<any>(null)
+
+// Fetch user's membership
+watchEffect(async () => {
+  if (loggedIn.value && user.value) {
+    try {
+      const profile = await $fetch('/api/user/profile.get')
+      membership.value = profile.membership
+    } catch (e) {
+      // Ignore
+    }
+  }
+})
+
+const handleUpgrade = async (plan: string) => {
+  if (!loggedIn.value) {
+    toast.add({
+      title: 'Please login',
+      description: 'You need to login to upgrade your membership',
+      color: 'warning'
+    })
+    router.push('/login')
+    return
+  }
+
+  upgrading.value = plan
+  try {
+    await $fetch('/api/user/membership.post', {
+      method: 'POST',
+      body: { plan }
+    })
+    toast.add({
+      title: 'Success',
+      description: `You have successfully upgraded to ${plan} plan!`,
+      color: 'success'
+    })
+    // Refresh membership
+    const profile = await $fetch('/api/user/profile.get')
+    membership.value = profile.membership
+  } catch (error) {
+    toast.add({
+      title: 'Error',
+      description: 'Failed to upgrade membership. Please try again.',
+      color: 'error'
+    })
+  } finally {
+    upgrading.value = null
+  }
+}
+
+const formatDate = (date: string | Date) => {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
 const columns = [
   { id: 'feature', header: 'Feature' },
   { id: 'free', header: 'Free' },

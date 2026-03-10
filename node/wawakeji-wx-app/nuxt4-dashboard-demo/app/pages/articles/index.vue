@@ -8,9 +8,11 @@
           <p class="text-gray-500 dark:text-gray-400">Browse and discover articles for your level</p>
         </div>
         <UInput
+          v-model="searchQuery"
           placeholder="Search articles..."
           icon="i-lucide-search"
           class="w-full sm:w-72"
+          @keyup.enter="handleSearch"
         />
       </div>
 
@@ -43,12 +45,24 @@
         </UBadge>
       </div>
 
+      <!-- Loading State -->
+      <div v-if="pending" class="flex justify-center py-12">
+        <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin" />
+      </div>
+
+      <!-- Empty State -->
+      <div v-else-if="articles.length === 0" class="text-center py-12">
+        <UIcon name="i-lucide-file-x" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <h3 class="text-lg font-semibold mb-2">No articles found</h3>
+        <p class="text-gray-500 dark:text-gray-400">Try adjusting your filters or search query</p>
+      </div>
+
       <!-- Articles Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <NuxtLink
           v-for="article in articles"
           :key="article.id"
-          :to="`/articles/${article.id}`"
+          :to="`/articles/${article.slug}`"
         >
           <UCard class="group h-full hover:border-primary transition cursor-pointer overflow-hidden">
             <img
@@ -58,9 +72,9 @@
             />
             <div class="p-4">
               <div class="flex items-center gap-2 mb-3">
-                <UBadge color="primary" variant="subtle" size="xs">{{ article.category }}</UBadge>
+                <UBadge color="primary" variant="subtle" size="xs">{{ article.category?.name }}</UBadge>
                 <UBadge :color="difficultyColor(article.difficulty)" variant="subtle" size="xs">
-                  {{ article.difficulty }}
+                  {{ capitalize(article.difficulty) }}
                 </UBadge>
               </div>
               <h3 class="font-semibold mb-2 line-clamp-2 group-hover:text-primary transition">
@@ -89,26 +103,28 @@
       </div>
 
       <!-- Pagination -->
-      <div class="flex justify-center mt-8">
-        <UPagination v-model:page="currentPage" :total="50" :items-per-page="9" />
+      <div v-if="totalPages > 1" class="flex justify-center mt-8">
+        <UPagination v-model:page="currentPage" :total="total" :items-per-page="limit" />
       </div>
     </div>
   </NuxtLayout>
 </template>
 
 <script setup lang="ts">
+const route = useRoute()
+const router = useRouter()
+
+// State
 const selectedCategory = ref('all')
 const selectedDifficulty = ref('all')
 const currentPage = ref(1)
+const searchQuery = ref('')
+const limit = 9
 
-const categoryFilters = [
-  { label: 'All', value: 'all' },
-  { label: 'Technology', value: 'technology' },
-  { label: 'Science', value: 'science' },
-  { label: 'Business', value: 'business' },
-  { label: 'Health', value: 'health' },
-  { label: 'Culture', value: 'culture' }
-]
+// Category filters
+const categoryFilters = ref([
+  { label: 'All', value: 'all' }
+])
 
 const difficulties = [
   { label: 'All', value: 'all', color: 'neutral' },
@@ -117,114 +133,72 @@ const difficulties = [
   { label: 'Advanced', value: 'advanced', color: 'error' }
 ]
 
-const articles = [
-  {
-    id: 1,
-    title: 'The Future of Artificial Intelligence in Healthcare',
-    excerpt: 'Explore how AI is revolutionizing medical diagnosis and treatment planning.',
-    category: 'Technology',
-    difficulty: 'Intermediate',
-    readTime: 8,
-    views: '2.3k',
-    bookmarks: 156,
-    cover: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=300&fit=crop'
-  },
-  {
-    id: 2,
-    title: 'Climate Change: What Scientists Are Saying',
-    excerpt: 'Understanding the latest research on global warming and its impacts.',
-    category: 'Science',
-    difficulty: 'Advanced',
-    readTime: 12,
-    views: '1.8k',
-    bookmarks: 98,
-    cover: 'https://images.unsplash.com/photo-1569163139599-0f4517e36f51?w=400&h=300&fit=crop'
-  },
-  {
-    id: 3,
-    title: 'Building a Successful Startup: Lessons from Founders',
-    excerpt: 'Key insights from entrepreneurs who built billion-dollar companies.',
-    category: 'Business',
-    difficulty: 'Beginner',
-    readTime: 6,
-    views: '3.1k',
-    bookmarks: 234,
-    cover: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&h=300&fit=crop'
-  },
-  {
-    id: 4,
-    title: 'The Science of Sleep: Why It Matters',
-    excerpt: 'Discover how quality sleep affects your health and productivity.',
-    category: 'Health',
-    difficulty: 'Beginner',
-    readTime: 5,
-    views: '4.2k',
-    bookmarks: 312,
-    cover: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=400&h=300&fit=crop'
-  },
-  {
-    id: 5,
-    title: 'Digital Transformation in Modern Business',
-    excerpt: 'How companies are adapting to the digital age with new technologies.',
-    category: 'Business',
-    difficulty: 'Intermediate',
-    readTime: 10,
-    views: '1.5k',
-    bookmarks: 87,
-    cover: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=300&fit=crop'
-  },
-  {
-    id: 6,
-    title: 'Understanding Quantum Computing',
-    excerpt: 'A beginner-friendly introduction to the world of quantum mechanics.',
-    category: 'Technology',
-    difficulty: 'Advanced',
-    readTime: 15,
-    views: '892',
-    bookmarks: 56,
-    cover: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=300&fit=crop'
-  },
-  {
-    id: 7,
-    title: 'Traditional Festivals Around the World',
-    excerpt: 'Explore unique cultural celebrations from different countries.',
-    category: 'Culture',
-    difficulty: 'Beginner',
-    readTime: 7,
-    views: '2.1k',
-    bookmarks: 178,
-    cover: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=400&h=300&fit=crop'
-  },
-  {
-    id: 8,
-    title: 'The Psychology of Decision Making',
-    excerpt: 'Learn how our brain processes choices and makes decisions.',
-    category: 'Science',
-    difficulty: 'Intermediate',
-    readTime: 9,
-    views: '1.9k',
-    bookmarks: 145,
-    cover: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=400&h=300&fit=crop'
-  },
-  {
-    id: 9,
-    title: 'Nutrition Myths Debunked',
-    excerpt: 'Separating fact from fiction in the world of nutrition science.',
-    category: 'Health',
-    difficulty: 'Intermediate',
-    readTime: 8,
-    views: '3.8k',
-    bookmarks: 289,
-    cover: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=300&fit=crop'
+// Fetch categories for filter buttons
+const { data: categoriesData } = await useFetch('/api/categories/index.get')
+watchEffect(() => {
+  if (categoriesData.value) {
+    categoryFilters.value = [
+      { label: 'All', value: 'all' },
+      ...categoriesData.value.map(cat => ({
+        label: cat.name,
+        value: cat.slug
+      }))
+    ]
   }
-]
+})
+
+// Build query for articles
+const articlesQuery = computed(() => {
+  const query: Record<string, any> = {
+    page: currentPage.value,
+    limit
+  }
+  if (selectedCategory.value !== 'all') {
+    query.categorySlug = selectedCategory.value
+  }
+  if (selectedDifficulty.value !== 'all') {
+    query.difficulty = selectedDifficulty.value
+  }
+  if (searchQuery.value) {
+    query.search = searchQuery.value
+  }
+  return query
+})
+
+// Fetch articles
+const { data, pending } = await useFetch('/api/articles/index.get', {
+  query: articlesQuery
+})
+
+const articles = computed(() => data.value?.articles || [])
+const total = computed(() => data.value?.pagination.total || 0)
+const totalPages = computed(() => data.value?.pagination.totalPages || 1)
+
+// Reset page when filters change
+watch([selectedCategory, selectedDifficulty], () => {
+  currentPage.value = 1
+})
+
+const handleSearch = () => {
+  currentPage.value = 1
+}
 
 const difficultyColor = (difficulty: string) => {
   switch (difficulty) {
-    case 'Beginner': return 'success'
-    case 'Intermediate': return 'warning'
-    case 'Advanced': return 'error'
+    case 'beginner': return 'success'
+    case 'intermediate': return 'warning'
+    case 'advanced': return 'error'
     default: return 'neutral'
   }
 }
+
+const capitalize = (str: string) => {
+  return str ? str.charAt(0).toUpperCase() + str.slice(1) : ''
+}
+
+// SEO
+useSeoMeta({
+  title: 'Articles - English Reading',
+  description: 'Browse and discover English reading articles for your level'
+})
 </script>

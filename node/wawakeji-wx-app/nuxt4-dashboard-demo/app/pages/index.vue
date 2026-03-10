@@ -29,7 +29,10 @@
       <section class="py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 class="text-2xl font-bold mb-8">Browse by Category</h2>
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div v-if="pendingCategories" class="flex justify-center">
+            <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin" />
+          </div>
+          <div v-else class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             <NuxtLink
               v-for="category in categories"
               :key="category.slug"
@@ -37,11 +40,11 @@
               class="group"
             >
               <UCard class="text-center hover:border-primary transition cursor-pointer">
-                <div :class="category.bgColor" class="w-12 h-12 rounded-lg mx-auto mb-3 flex items-center justify-center">
-                  <UIcon :name="category.icon" class="w-6 h-6 text-white" />
+                <div :style="{ backgroundColor: category.color }" class="w-12 h-12 rounded-lg mx-auto mb-3 flex items-center justify-center opacity-80">
+                  <UIcon :name="category.icon || 'i-lucide-folder'" class="w-6 h-6 text-white" />
                 </div>
                 <h3 class="font-medium group-hover:text-primary transition">{{ category.name }}</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">{{ category.count }} articles</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ category.articleCount }} articles</p>
               </UCard>
             </NuxtLink>
           </div>
@@ -57,30 +60,39 @@
               View all
             </NuxtLink>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <UCard v-for="article in recommendedArticles" :key="article.id" class="group overflow-hidden">
-              <img :src="article.cover" :alt="article.title" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300" />
-              <template #footer>
-                <div class="p-4">
-                  <div class="flex items-center gap-2 mb-2">
-                    <UBadge color="primary" variant="subtle" size="xs">{{ article.category }}</UBadge>
-                    <UBadge :color="difficultyColor(article.difficulty)" variant="subtle" size="xs">
-                      {{ article.difficulty }}
-                    </UBadge>
+          <div v-if="pendingArticles" class="flex justify-center">
+            <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin" />
+          </div>
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <NuxtLink
+              v-for="article in articles.slice(0, 6)"
+              :key="article.id"
+              :to="`/articles/${article.slug}`"
+            >
+              <UCard class="group overflow-hidden h-full">
+                <img :src="article.cover" :alt="article.title" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300" />
+                <template #footer>
+                  <div class="p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                      <UBadge color="primary" variant="subtle" size="xs">{{ article.category?.name }}</UBadge>
+                      <UBadge :color="difficultyColor(article.difficulty)" variant="subtle" size="xs">
+                        {{ capitalize(article.difficulty) }}
+                      </UBadge>
+                    </div>
+                    <h3 class="font-semibold mb-2 line-clamp-2 group-hover:text-primary transition">
+                      {{ article.title }}
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">
+                      {{ article.excerpt }}
+                    </p>
+                    <div class="flex items-center justify-between text-sm text-gray-400">
+                      <span>{{ article.readTime }} min read</span>
+                      <span>{{ article.views }} views</span>
+                    </div>
                   </div>
-                  <h3 class="font-semibold mb-2 line-clamp-2 group-hover:text-primary transition">
-                    {{ article.title }}
-                  </h3>
-                  <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">
-                    {{ article.excerpt }}
-                  </p>
-                  <div class="flex items-center justify-between text-sm text-gray-400">
-                    <span>{{ article.readTime }} min read</span>
-                    <span>{{ article.views }} views</span>
-                  </div>
-                </div>
-              </template>
-            </UCard>
+                </template>
+              </UCard>
+            </NuxtLink>
           </div>
         </div>
       </section>
@@ -132,54 +144,26 @@
 </template>
 
 <script setup lang="ts">
-const categories = [
-  { name: 'Technology', slug: 'technology', icon: 'i-lucide-cpu', count: 42, bgColor: 'bg-blue-500' },
-  { name: 'Science', slug: 'science', icon: 'i-lucide-flask-conical', count: 38, bgColor: 'bg-green-500' },
-  { name: 'Business', slug: 'business', icon: 'i-lucide-briefcase', count: 56, bgColor: 'bg-purple-500' },
-  { name: 'Health', slug: 'health', icon: 'i-lucide-heart-pulse', count: 31, bgColor: 'bg-red-500' },
-  { name: 'Culture', slug: 'culture', icon: 'i-lucide-globe', count: 27, bgColor: 'bg-orange-500' },
-  { name: 'Travel', slug: 'travel', icon: 'i-lucide-plane', count: 19, bgColor: 'bg-cyan-500' }
-]
+// Fetch categories
+const { data: categoriesData, pending: pendingCategories } = await useFetch('/api/categories/index.get')
+const categories = computed(() => categoriesData.value || [])
 
-const recommendedArticles = [
-  {
-    id: 1,
-    title: 'The Future of Artificial Intelligence in Healthcare',
-    excerpt: 'Explore how AI is revolutionizing medical diagnosis and treatment planning.',
-    category: 'Technology',
-    difficulty: 'Intermediate',
-    readTime: 8,
-    views: '2.3k',
-    cover: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=300&fit=crop'
-  },
-  {
-    id: 2,
-    title: 'Climate Change: What Scientists Are Saying',
-    excerpt: 'Understanding the latest research on global warming and its impacts.',
-    category: 'Science',
-    difficulty: 'Advanced',
-    readTime: 12,
-    views: '1.8k',
-    cover: 'https://images.unsplash.com/photo-1569163139599-0f4517e36f51?w=400&h=300&fit=crop'
-  },
-  {
-    id: 3,
-    title: 'Building a Successful Startup: Lessons from Founders',
-    excerpt: 'Key insights from entrepreneurs who built billion-dollar companies.',
-    category: 'Business',
-    difficulty: 'Beginner',
-    readTime: 6,
-    views: '3.1k',
-    cover: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&h=300&fit=crop'
-  }
-]
+// Fetch recommended articles
+const { data: articlesData, pending: pendingArticles } = await useFetch('/api/articles/index.get', {
+  query: { limit: 6 }
+})
+const articles = computed(() => articlesData.value?.articles || [])
 
 const difficultyColor = (difficulty: string) => {
   switch (difficulty) {
-    case 'Beginner': return 'success'
-    case 'Intermediate': return 'warning'
-    case 'Advanced': return 'error'
+    case 'beginner': return 'success'
+    case 'intermediate': return 'warning'
+    case 'advanced': return 'error'
     default: return 'neutral'
   }
+}
+
+const capitalize = (str: string) => {
+  return str.charAt(0).toUpperCase() + str.slice(1)
 }
 </script>

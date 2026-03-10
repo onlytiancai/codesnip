@@ -160,9 +160,9 @@
           <div>
             <h4 class="font-semibold mb-3">Legal</h4>
             <ul class="space-y-2 text-sm text-gray-500 dark:text-gray-400">
-              <li><a href="#" class="hover:text-primary">Privacy Policy</a></li>
-              <li><a href="#" class="hover:text-primary">Terms of Service</a></li>
-              <li><a href="#" class="hover:text-primary">Contact Us</a></li>
+              <li><NuxtLink to="/privacy" class="hover:text-primary">Privacy Policy</NuxtLink></li>
+              <li><NuxtLink to="/terms" class="hover:text-primary">Terms of Service</NuxtLink></li>
+              <li><NuxtLink to="/contact" class="hover:text-primary">Contact Us</NuxtLink></li>
             </ul>
           </div>
         </div>
