@@ -15,7 +15,7 @@ const baseURL = process.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:3001'
 // Helper to make API requests
 export async function apiRequest(
   path: string,
-  options: RequestInit & { body?: any } = {}
+  options: Omit<RequestInit, 'body'> & { body?: Record<string, unknown> } = {}
 ) {
   const url = `${baseURL}${path}`
 
