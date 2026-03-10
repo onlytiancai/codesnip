@@ -17,13 +17,19 @@ model User {
   name      String?
   password  String?  // password for email login, null for OAuth users
   avatar    String?
+  bio       String?
   role      String   @default("USER") // 'USER' | 'ADMIN'
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
   // Associated OAuth accounts
-  accounts Account[]
-  articles Article[]
+  accounts       Account[]
+  articles       Article[]
+  readingHistory ReadingHistory[]
+  bookmarks      Bookmark[]
+  vocabulary     Vocabulary[]
+  preferences    UserPreferences?
+  membership     Membership?
 }
 
 model Account {
@@ -82,6 +88,8 @@ model Article {
   category     Category? @relation(fields: [categoryId], references: [id])
   tags         ArticleTag[]
   sentences    Sentence[]
+  readingHistory ReadingHistory[]
+  bookmarkedBy  Bookmark[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @default(now())
   authorId     Int
@@ -104,4 +112,79 @@ model Sentence {
   en        String
   cn        String?
   audio     String? // TTS audio URL
+}
+
+// User reading history
+model ReadingHistory {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  articleId   Int
+  progress    Int      @default(0)  // 0-100 percentage
+  lastReadAt  DateTime @default(now())
+  completedAt DateTime?
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+}
+
+// User bookmarks
+model Bookmark {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  articleId Int
+  createdAt DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+}
+
+// User vocabulary
+model Vocabulary {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  word         String
+  phonetic     String?
+  definition   String
+  example      String?
+  progress     Int      @default(0)  // 0-100 mastery percentage
+  articleId    Int?     // source article if any
+  createdAt    DateTime @default(now())
+  lastReviewAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, word])
+}
+
+// User preferences/settings
+model UserPreferences {
+  id                Int     @id @default(autoincrement())
+  userId            Int     @unique
+  englishLevel      String  @default("intermediate")  // beginner, intermediate, advanced
+  dailyGoal         Int     @default(10)  // minutes
+  audioSpeed        Float   @default(1.0)
+  theme             String  @default("system")  // light, dark, system
+  fontSize          Int     @default(16)
+  interests         String? // JSON array of category slugs
+  reminderEnabled   Boolean @default(true)
+  newArticleNotify  Boolean @default(true)
+  vocabReviewNotify Boolean @default(false)
+  marketingEmails   Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Membership
+model Membership {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  plan      String   @default("free")  // free, premium
+  startDate DateTime @default(now())
+  endDate   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

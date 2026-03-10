@@ -19,7 +19,8 @@ async function main() {
       name: 'Admin User',
       password: adminPassword,
       role: 'ADMIN',
-      avatar: 'https://avatars.githubusercontent.com/u/1?v=4'
+      avatar: 'https://avatars.githubusercontent.com/u/1?v=4',
+      bio: 'System administrator'
     }
   })
 
@@ -35,11 +36,75 @@ async function main() {
       name: 'Test User',
       password: userPassword,
       role: 'USER',
-      avatar: 'https://avatars.githubusercontent.com/u/2?v=4'
+      avatar: 'https://avatars.githubusercontent.com/u/2?v=4',
+      bio: 'English learner'
     }
   })
 
   console.log('Created test user:', user.email)
+
+  // Create user preferences for both users
+  await prisma.userPreferences.upsert({
+    where: { userId: admin.id },
+    update: {},
+    create: {
+      userId: admin.id,
+      englishLevel: 'advanced',
+      dailyGoal: 15,
+      audioSpeed: 1.0,
+      theme: 'system',
+      fontSize: 16,
+      interests: JSON.stringify(['technology', 'science']),
+      reminderEnabled: true,
+      newArticleNotify: true,
+      vocabReviewNotify: true,
+      marketingEmails: false
+    }
+  })
+
+  await prisma.userPreferences.upsert({
+    where: { userId: user.id },
+    update: {},
+    create: {
+      userId: user.id,
+      englishLevel: 'intermediate',
+      dailyGoal: 10,
+      audioSpeed: 1.0,
+      theme: 'system',
+      fontSize: 16,
+      interests: JSON.stringify(['technology', 'business', 'health']),
+      reminderEnabled: true,
+      newArticleNotify: true,
+      vocabReviewNotify: false,
+      marketingEmails: false
+    }
+  })
+
+  console.log('Created user preferences')
+
+  // Create memberships
+  await prisma.membership.upsert({
+    where: { userId: admin.id },
+    update: {},
+    create: {
+      userId: admin.id,
+      plan: 'premium',
+      startDate: new Date('2026-01-01'),
+      endDate: new Date('2026-12-31')
+    }
+  })
+
+  await prisma.membership.upsert({
+    where: { userId: user.id },
+    update: {},
+    create: {
+      userId: user.id,
+      plan: 'free',
+      startDate: new Date('2026-01-15')
+    }
+  })
+
+  console.log('Created memberships')
 
   // Create categories
   const categories = await Promise.all([
@@ -164,6 +229,101 @@ The future of AI in healthcare looks bright, with potential applications ranging
   })
 
   console.log('Created sample article:', article.title)
+
+  // Create sample reading history for test user
+  const existingHistory = await prisma.readingHistory.findFirst({
+    where: { userId: user.id, articleId: article.id }
+  })
+
+  if (!existingHistory) {
+    await prisma.readingHistory.create({
+      data: {
+        userId: user.id,
+        articleId: article.id,
+        progress: 100,
+        lastReadAt: new Date(),
+        completedAt: new Date()
+      }
+    })
+    console.log('Created reading history for test user')
+  }
+
+  // Create sample bookmarks for test user
+  const existingBookmark = await prisma.bookmark.findFirst({
+    where: { userId: user.id, articleId: article.id }
+  })
+
+  if (!existingBookmark) {
+    await prisma.bookmark.create({
+      data: {
+        userId: user.id,
+        articleId: article.id
+      }
+    })
+    console.log('Created bookmark for test user')
+  }
+
+  // Create sample vocabulary for test user
+  const vocabularyWords = [
+    {
+      word: 'artificial',
+      phonetic: '/ˌɑːrtɪˈfɪʃl/',
+      definition: 'Made or produced by human beings rather than occurring naturally',
+      example: 'Artificial intelligence is transforming many industries.',
+      progress: 80
+    },
+    {
+      word: 'diagnosis',
+      phonetic: '/ˌdaɪəɡˈnoʊsɪs/',
+      definition: 'The identification of the nature of an illness or problem',
+      example: 'Early diagnosis is crucial for effective treatment.',
+      progress: 60
+    },
+    {
+      word: 'revolutionize',
+      phonetic: '/ˌrevəˈluːʃənaɪz/',
+      definition: 'To change something radically or fundamentally',
+      example: 'The internet has revolutionized how we communicate.',
+      progress: 100
+    },
+    {
+      word: 'unprecedented',
+      phonetic: '/ʌnˈpresɪdentɪd/',
+      definition: 'Never done or known before',
+      example: 'The pandemic caused unprecedented changes in society.',
+      progress: 40
+    },
+    {
+      word: 'implement',
+      phonetic: '/ˈɪmplɪment/',
+      definition: 'To put a decision, plan, or agreement into effect',
+      example: 'The company plans to implement new policies next month.',
+      progress: 50
+    }
+  ]
+
+  for (const vocab of vocabularyWords) {
+    await prisma.vocabulary.upsert({
+      where: {
+        userId_word: {
+          userId: user.id,
+          word: vocab.word
+        }
+      },
+      update: {},
+      create: {
+        userId: user.id,
+        word: vocab.word,
+        phonetic: vocab.phonetic,
+        definition: vocab.definition,
+        example: vocab.example,
+        progress: vocab.progress,
+        articleId: article.id
+      }
+    })
+  }
+
+  console.log('Created vocabulary for test user')
 
   console.log('\n✅ Seed completed!')
   console.log('\n📝 Test Accounts:')
