@@ -331,6 +331,8 @@ export type ArticleWhereInput = {
   category?: Prisma.XOR<Prisma.CategoryNullableScalarRelationFilter, Prisma.CategoryWhereInput> | null
   tags?: Prisma.ArticleTagListRelationFilter
   sentences?: Prisma.SentenceListRelationFilter
+  readingHistory?: Prisma.ReadingHistoryListRelationFilter
+  bookmarkedBy?: Prisma.BookmarkListRelationFilter
   author?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
 
@@ -355,6 +357,8 @@ export type ArticleOrderByWithRelationInput = {
   category?: Prisma.CategoryOrderByWithRelationInput
   tags?: Prisma.ArticleTagOrderByRelationAggregateInput
   sentences?: Prisma.SentenceOrderByRelationAggregateInput
+  readingHistory?: Prisma.ReadingHistoryOrderByRelationAggregateInput
+  bookmarkedBy?: Prisma.BookmarkOrderByRelationAggregateInput
   author?: Prisma.UserOrderByWithRelationInput
 }
 
@@ -382,6 +386,8 @@ export type ArticleWhereUniqueInput = Prisma.AtLeast<{
   category?: Prisma.XOR<Prisma.CategoryNullableScalarRelationFilter, Prisma.CategoryWhereInput> | null
   tags?: Prisma.ArticleTagListRelationFilter
   sentences?: Prisma.SentenceListRelationFilter
+  readingHistory?: Prisma.ReadingHistoryListRelationFilter
+  bookmarkedBy?: Prisma.BookmarkListRelationFilter
   author?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id" | "slug">
 
@@ -451,6 +457,8 @@ export type ArticleCreateInput = {
   category?: Prisma.CategoryCreateNestedOneWithoutArticlesInput
   tags?: Prisma.ArticleTagCreateNestedManyWithoutArticleInput
   sentences?: Prisma.SentenceCreateNestedManyWithoutArticleInput
+  readingHistory?: Prisma.ReadingHistoryCreateNestedManyWithoutArticleInput
+  bookmarkedBy?: Prisma.BookmarkCreateNestedManyWithoutArticleInput
   author: Prisma.UserCreateNestedOneWithoutArticlesInput
 }
 
@@ -474,6 +482,8 @@ export type ArticleUncheckedCreateInput = {
   authorId: number
   tags?: Prisma.ArticleTagUncheckedCreateNestedManyWithoutArticleInput
   sentences?: Prisma.SentenceUncheckedCreateNestedManyWithoutArticleInput
+  readingHistory?: Prisma.ReadingHistoryUncheckedCreateNestedManyWithoutArticleInput
+  bookmarkedBy?: Prisma.BookmarkUncheckedCreateNestedManyWithoutArticleInput
 }
 
 export type ArticleUpdateInput = {
@@ -494,6 +504,8 @@ export type ArticleUpdateInput = {
   category?: Prisma.CategoryUpdateOneWithoutArticlesNestedInput
   tags?: Prisma.ArticleTagUpdateManyWithoutArticleNestedInput
   sentences?: Prisma.SentenceUpdateManyWithoutArticleNestedInput
+  readingHistory?: Prisma.ReadingHistoryUpdateManyWithoutArticleNestedInput
+  bookmarkedBy?: Prisma.BookmarkUpdateManyWithoutArticleNestedInput
   author?: Prisma.UserUpdateOneRequiredWithoutArticlesNestedInput
 }
 
@@ -517,6 +529,8 @@ export type ArticleUncheckedUpdateInput = {
   authorId?: Prisma.IntFieldUpdateOperationsInput | number
   tags?: Prisma.ArticleTagUncheckedUpdateManyWithoutArticleNestedInput
   sentences?: Prisma.SentenceUncheckedUpdateManyWithoutArticleNestedInput
+  readingHistory?: Prisma.ReadingHistoryUncheckedUpdateManyWithoutArticleNestedInput
+  bookmarkedBy?: Prisma.BookmarkUncheckedUpdateManyWithoutArticleNestedInput
 }
 
 export type ArticleCreateManyInput = {
@@ -791,6 +805,34 @@ export type ArticleUpdateOneRequiredWithoutSentencesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ArticleUpdateToOneWithWhereWithoutSentencesInput, Prisma.ArticleUpdateWithoutSentencesInput>, Prisma.ArticleUncheckedUpdateWithoutSentencesInput>
 }
 
+export type ArticleCreateNestedOneWithoutReadingHistoryInput = {
+  create?: Prisma.XOR<Prisma.ArticleCreateWithoutReadingHistoryInput, Prisma.ArticleUncheckedCreateWithoutReadingHistoryInput>
+  connectOrCreate?: Prisma.ArticleCreateOrConnectWithoutReadingHistoryInput
+  connect?: Prisma.ArticleWhereUniqueInput
+}
+
+export type ArticleUpdateOneRequiredWithoutReadingHistoryNestedInput = {
+  create?: Prisma.XOR<Prisma.ArticleCreateWithoutReadingHistoryInput, Prisma.ArticleUncheckedCreateWithoutReadingHistoryInput>
+  connectOrCreate?: Prisma.ArticleCreateOrConnectWithoutReadingHistoryInput
+  upsert?: Prisma.ArticleUpsertWithoutReadingHistoryInput
+  connect?: Prisma.ArticleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ArticleUpdateToOneWithWhereWithoutReadingHistoryInput, Prisma.ArticleUpdateWithoutReadingHistoryInput>, Prisma.ArticleUncheckedUpdateWithoutReadingHistoryInput>
+}
+
+export type ArticleCreateNestedOneWithoutBookmarkedByInput = {
+  create?: Prisma.XOR<Prisma.ArticleCreateWithoutBookmarkedByInput, Prisma.ArticleUncheckedCreateWithoutBookmarkedByInput>
+  connectOrCreate?: Prisma.ArticleCreateOrConnectWithoutBookmarkedByInput
+  connect?: Prisma.ArticleWhereUniqueInput
+}
+
+export type ArticleUpdateOneRequiredWithoutBookmarkedByNestedInput = {
+  create?: Prisma.XOR<Prisma.ArticleCreateWithoutBookmarkedByInput, Prisma.ArticleUncheckedCreateWithoutBookmarkedByInput>
+  connectOrCreate?: Prisma.ArticleCreateOrConnectWithoutBookmarkedByInput
+  upsert?: Prisma.ArticleUpsertWithoutBookmarkedByInput
+  connect?: Prisma.ArticleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ArticleUpdateToOneWithWhereWithoutBookmarkedByInput, Prisma.ArticleUpdateWithoutBookmarkedByInput>, Prisma.ArticleUncheckedUpdateWithoutBookmarkedByInput>
+}
+
 export type ArticleCreateWithoutAuthorInput = {
   title: string
   slug: string
@@ -809,6 +851,8 @@ export type ArticleCreateWithoutAuthorInput = {
   category?: Prisma.CategoryCreateNestedOneWithoutArticlesInput
   tags?: Prisma.ArticleTagCreateNestedManyWithoutArticleInput
   sentences?: Prisma.SentenceCreateNestedManyWithoutArticleInput
+  readingHistory?: Prisma.ReadingHistoryCreateNestedManyWithoutArticleInput
+  bookmarkedBy?: Prisma.BookmarkCreateNestedManyWithoutArticleInput
 }
 
 export type ArticleUncheckedCreateWithoutAuthorInput = {
@@ -830,6 +874,8 @@ export type ArticleUncheckedCreateWithoutAuthorInput = {
   updatedAt?: Date | string
   tags?: Prisma.ArticleTagUncheckedCreateNestedManyWithoutArticleInput
   sentences?: Prisma.SentenceUncheckedCreateNestedManyWithoutArticleInput
+  readingHistory?: Prisma.ReadingHistoryUncheckedCreateNestedManyWithoutArticleInput
+  bookmarkedBy?: Prisma.BookmarkUncheckedCreateNestedManyWithoutArticleInput
 }
 
 export type ArticleCreateOrConnectWithoutAuthorInput = {
@@ -897,6 +943,8 @@ export type ArticleCreateWithoutCategoryInput = {
   updatedAt?: Date | string
   tags?: Prisma.ArticleTagCreateNestedManyWithoutArticleInput
   sentences?: Prisma.SentenceCreateNestedManyWithoutArticleInput
+  readingHistory?: Prisma.ReadingHistoryCreateNestedManyWithoutArticleInput
+  bookmarkedBy?: Prisma.BookmarkCreateNestedManyWithoutArticleInput
   author: Prisma.UserCreateNestedOneWithoutArticlesInput
 }
 
@@ -919,6 +967,8 @@ export type ArticleUncheckedCreateWithoutCategoryInput = {
   authorId: number
   tags?: Prisma.ArticleTagUncheckedCreateNestedManyWithoutArticleInput
   sentences?: Prisma.SentenceUncheckedCreateNestedManyWithoutArticleInput
+  readingHistory?: Prisma.ReadingHistoryUncheckedCreateNestedManyWithoutArticleInput
+  bookmarkedBy?: Prisma.BookmarkUncheckedCreateNestedManyWithoutArticleInput
 }
 
 export type ArticleCreateOrConnectWithoutCategoryInput = {
@@ -963,6 +1013,8 @@ export type ArticleCreateWithoutTagsInput = {
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutArticlesInput
   sentences?: Prisma.SentenceCreateNestedManyWithoutArticleInput
+  readingHistory?: Prisma.ReadingHistoryCreateNestedManyWithoutArticleInput
+  bookmarkedBy?: Prisma.BookmarkCreateNestedManyWithoutArticleInput
   author: Prisma.UserCreateNestedOneWithoutArticlesInput
 }
 
@@ -985,6 +1037,8 @@ export type ArticleUncheckedCreateWithoutTagsInput = {
   updatedAt?: Date | string
   authorId: number
   sentences?: Prisma.SentenceUncheckedCreateNestedManyWithoutArticleInput
+  readingHistory?: Prisma.ReadingHistoryUncheckedCreateNestedManyWithoutArticleInput
+  bookmarkedBy?: Prisma.BookmarkUncheckedCreateNestedManyWithoutArticleInput
 }
 
 export type ArticleCreateOrConnectWithoutTagsInput = {
@@ -1020,6 +1074,8 @@ export type ArticleUpdateWithoutTagsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutArticlesNestedInput
   sentences?: Prisma.SentenceUpdateManyWithoutArticleNestedInput
+  readingHistory?: Prisma.ReadingHistoryUpdateManyWithoutArticleNestedInput
+  bookmarkedBy?: Prisma.BookmarkUpdateManyWithoutArticleNestedInput
   author?: Prisma.UserUpdateOneRequiredWithoutArticlesNestedInput
 }
 
@@ -1042,6 +1098,8 @@ export type ArticleUncheckedUpdateWithoutTagsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   authorId?: Prisma.IntFieldUpdateOperationsInput | number
   sentences?: Prisma.SentenceUncheckedUpdateManyWithoutArticleNestedInput
+  readingHistory?: Prisma.ReadingHistoryUncheckedUpdateManyWithoutArticleNestedInput
+  bookmarkedBy?: Prisma.BookmarkUncheckedUpdateManyWithoutArticleNestedInput
 }
 
 export type ArticleCreateWithoutSentencesInput = {
@@ -1061,6 +1119,8 @@ export type ArticleCreateWithoutSentencesInput = {
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutArticlesInput
   tags?: Prisma.ArticleTagCreateNestedManyWithoutArticleInput
+  readingHistory?: Prisma.ReadingHistoryCreateNestedManyWithoutArticleInput
+  bookmarkedBy?: Prisma.BookmarkCreateNestedManyWithoutArticleInput
   author: Prisma.UserCreateNestedOneWithoutArticlesInput
 }
 
@@ -1083,6 +1143,8 @@ export type ArticleUncheckedCreateWithoutSentencesInput = {
   updatedAt?: Date | string
   authorId: number
   tags?: Prisma.ArticleTagUncheckedCreateNestedManyWithoutArticleInput
+  readingHistory?: Prisma.ReadingHistoryUncheckedCreateNestedManyWithoutArticleInput
+  bookmarkedBy?: Prisma.BookmarkUncheckedCreateNestedManyWithoutArticleInput
 }
 
 export type ArticleCreateOrConnectWithoutSentencesInput = {
@@ -1118,6 +1180,8 @@ export type ArticleUpdateWithoutSentencesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutArticlesNestedInput
   tags?: Prisma.ArticleTagUpdateManyWithoutArticleNestedInput
+  readingHistory?: Prisma.ReadingHistoryUpdateManyWithoutArticleNestedInput
+  bookmarkedBy?: Prisma.BookmarkUpdateManyWithoutArticleNestedInput
   author?: Prisma.UserUpdateOneRequiredWithoutArticlesNestedInput
 }
 
@@ -1140,6 +1204,220 @@ export type ArticleUncheckedUpdateWithoutSentencesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   authorId?: Prisma.IntFieldUpdateOperationsInput | number
   tags?: Prisma.ArticleTagUncheckedUpdateManyWithoutArticleNestedInput
+  readingHistory?: Prisma.ReadingHistoryUncheckedUpdateManyWithoutArticleNestedInput
+  bookmarkedBy?: Prisma.BookmarkUncheckedUpdateManyWithoutArticleNestedInput
+}
+
+export type ArticleCreateWithoutReadingHistoryInput = {
+  title: string
+  slug: string
+  excerpt?: string | null
+  cover?: string | null
+  content?: string | null
+  status?: string
+  difficulty?: string
+  views?: number
+  bookmarks?: number
+  publishAt?: Date | string | null
+  metaTitle?: string | null
+  metaDesc?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  category?: Prisma.CategoryCreateNestedOneWithoutArticlesInput
+  tags?: Prisma.ArticleTagCreateNestedManyWithoutArticleInput
+  sentences?: Prisma.SentenceCreateNestedManyWithoutArticleInput
+  bookmarkedBy?: Prisma.BookmarkCreateNestedManyWithoutArticleInput
+  author: Prisma.UserCreateNestedOneWithoutArticlesInput
+}
+
+export type ArticleUncheckedCreateWithoutReadingHistoryInput = {
+  id?: number
+  title: string
+  slug: string
+  excerpt?: string | null
+  cover?: string | null
+  content?: string | null
+  status?: string
+  difficulty?: string
+  views?: number
+  bookmarks?: number
+  publishAt?: Date | string | null
+  metaTitle?: string | null
+  metaDesc?: string | null
+  categoryId?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  authorId: number
+  tags?: Prisma.ArticleTagUncheckedCreateNestedManyWithoutArticleInput
+  sentences?: Prisma.SentenceUncheckedCreateNestedManyWithoutArticleInput
+  bookmarkedBy?: Prisma.BookmarkUncheckedCreateNestedManyWithoutArticleInput
+}
+
+export type ArticleCreateOrConnectWithoutReadingHistoryInput = {
+  where: Prisma.ArticleWhereUniqueInput
+  create: Prisma.XOR<Prisma.ArticleCreateWithoutReadingHistoryInput, Prisma.ArticleUncheckedCreateWithoutReadingHistoryInput>
+}
+
+export type ArticleUpsertWithoutReadingHistoryInput = {
+  update: Prisma.XOR<Prisma.ArticleUpdateWithoutReadingHistoryInput, Prisma.ArticleUncheckedUpdateWithoutReadingHistoryInput>
+  create: Prisma.XOR<Prisma.ArticleCreateWithoutReadingHistoryInput, Prisma.ArticleUncheckedCreateWithoutReadingHistoryInput>
+  where?: Prisma.ArticleWhereInput
+}
+
+export type ArticleUpdateToOneWithWhereWithoutReadingHistoryInput = {
+  where?: Prisma.ArticleWhereInput
+  data: Prisma.XOR<Prisma.ArticleUpdateWithoutReadingHistoryInput, Prisma.ArticleUncheckedUpdateWithoutReadingHistoryInput>
+}
+
+export type ArticleUpdateWithoutReadingHistoryInput = {
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  difficulty?: Prisma.StringFieldUpdateOperationsInput | string
+  views?: Prisma.IntFieldUpdateOperationsInput | number
+  bookmarks?: Prisma.IntFieldUpdateOperationsInput | number
+  publishAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metaDesc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  category?: Prisma.CategoryUpdateOneWithoutArticlesNestedInput
+  tags?: Prisma.ArticleTagUpdateManyWithoutArticleNestedInput
+  sentences?: Prisma.SentenceUpdateManyWithoutArticleNestedInput
+  bookmarkedBy?: Prisma.BookmarkUpdateManyWithoutArticleNestedInput
+  author?: Prisma.UserUpdateOneRequiredWithoutArticlesNestedInput
+}
+
+export type ArticleUncheckedUpdateWithoutReadingHistoryInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  difficulty?: Prisma.StringFieldUpdateOperationsInput | string
+  views?: Prisma.IntFieldUpdateOperationsInput | number
+  bookmarks?: Prisma.IntFieldUpdateOperationsInput | number
+  publishAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metaDesc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  categoryId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  authorId?: Prisma.IntFieldUpdateOperationsInput | number
+  tags?: Prisma.ArticleTagUncheckedUpdateManyWithoutArticleNestedInput
+  sentences?: Prisma.SentenceUncheckedUpdateManyWithoutArticleNestedInput
+  bookmarkedBy?: Prisma.BookmarkUncheckedUpdateManyWithoutArticleNestedInput
+}
+
+export type ArticleCreateWithoutBookmarkedByInput = {
+  title: string
+  slug: string
+  excerpt?: string | null
+  cover?: string | null
+  content?: string | null
+  status?: string
+  difficulty?: string
+  views?: number
+  bookmarks?: number
+  publishAt?: Date | string | null
+  metaTitle?: string | null
+  metaDesc?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  category?: Prisma.CategoryCreateNestedOneWithoutArticlesInput
+  tags?: Prisma.ArticleTagCreateNestedManyWithoutArticleInput
+  sentences?: Prisma.SentenceCreateNestedManyWithoutArticleInput
+  readingHistory?: Prisma.ReadingHistoryCreateNestedManyWithoutArticleInput
+  author: Prisma.UserCreateNestedOneWithoutArticlesInput
+}
+
+export type ArticleUncheckedCreateWithoutBookmarkedByInput = {
+  id?: number
+  title: string
+  slug: string
+  excerpt?: string | null
+  cover?: string | null
+  content?: string | null
+  status?: string
+  difficulty?: string
+  views?: number
+  bookmarks?: number
+  publishAt?: Date | string | null
+  metaTitle?: string | null
+  metaDesc?: string | null
+  categoryId?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  authorId: number
+  tags?: Prisma.ArticleTagUncheckedCreateNestedManyWithoutArticleInput
+  sentences?: Prisma.SentenceUncheckedCreateNestedManyWithoutArticleInput
+  readingHistory?: Prisma.ReadingHistoryUncheckedCreateNestedManyWithoutArticleInput
+}
+
+export type ArticleCreateOrConnectWithoutBookmarkedByInput = {
+  where: Prisma.ArticleWhereUniqueInput
+  create: Prisma.XOR<Prisma.ArticleCreateWithoutBookmarkedByInput, Prisma.ArticleUncheckedCreateWithoutBookmarkedByInput>
+}
+
+export type ArticleUpsertWithoutBookmarkedByInput = {
+  update: Prisma.XOR<Prisma.ArticleUpdateWithoutBookmarkedByInput, Prisma.ArticleUncheckedUpdateWithoutBookmarkedByInput>
+  create: Prisma.XOR<Prisma.ArticleCreateWithoutBookmarkedByInput, Prisma.ArticleUncheckedCreateWithoutBookmarkedByInput>
+  where?: Prisma.ArticleWhereInput
+}
+
+export type ArticleUpdateToOneWithWhereWithoutBookmarkedByInput = {
+  where?: Prisma.ArticleWhereInput
+  data: Prisma.XOR<Prisma.ArticleUpdateWithoutBookmarkedByInput, Prisma.ArticleUncheckedUpdateWithoutBookmarkedByInput>
+}
+
+export type ArticleUpdateWithoutBookmarkedByInput = {
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  difficulty?: Prisma.StringFieldUpdateOperationsInput | string
+  views?: Prisma.IntFieldUpdateOperationsInput | number
+  bookmarks?: Prisma.IntFieldUpdateOperationsInput | number
+  publishAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metaDesc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  category?: Prisma.CategoryUpdateOneWithoutArticlesNestedInput
+  tags?: Prisma.ArticleTagUpdateManyWithoutArticleNestedInput
+  sentences?: Prisma.SentenceUpdateManyWithoutArticleNestedInput
+  readingHistory?: Prisma.ReadingHistoryUpdateManyWithoutArticleNestedInput
+  author?: Prisma.UserUpdateOneRequiredWithoutArticlesNestedInput
+}
+
+export type ArticleUncheckedUpdateWithoutBookmarkedByInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  difficulty?: Prisma.StringFieldUpdateOperationsInput | string
+  views?: Prisma.IntFieldUpdateOperationsInput | number
+  bookmarks?: Prisma.IntFieldUpdateOperationsInput | number
+  publishAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metaDesc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  categoryId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  authorId?: Prisma.IntFieldUpdateOperationsInput | number
+  tags?: Prisma.ArticleTagUncheckedUpdateManyWithoutArticleNestedInput
+  sentences?: Prisma.SentenceUncheckedUpdateManyWithoutArticleNestedInput
+  readingHistory?: Prisma.ReadingHistoryUncheckedUpdateManyWithoutArticleNestedInput
 }
 
 export type ArticleCreateManyAuthorInput = {
@@ -1179,6 +1457,8 @@ export type ArticleUpdateWithoutAuthorInput = {
   category?: Prisma.CategoryUpdateOneWithoutArticlesNestedInput
   tags?: Prisma.ArticleTagUpdateManyWithoutArticleNestedInput
   sentences?: Prisma.SentenceUpdateManyWithoutArticleNestedInput
+  readingHistory?: Prisma.ReadingHistoryUpdateManyWithoutArticleNestedInput
+  bookmarkedBy?: Prisma.BookmarkUpdateManyWithoutArticleNestedInput
 }
 
 export type ArticleUncheckedUpdateWithoutAuthorInput = {
@@ -1200,6 +1480,8 @@ export type ArticleUncheckedUpdateWithoutAuthorInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tags?: Prisma.ArticleTagUncheckedUpdateManyWithoutArticleNestedInput
   sentences?: Prisma.SentenceUncheckedUpdateManyWithoutArticleNestedInput
+  readingHistory?: Prisma.ReadingHistoryUncheckedUpdateManyWithoutArticleNestedInput
+  bookmarkedBy?: Prisma.BookmarkUncheckedUpdateManyWithoutArticleNestedInput
 }
 
 export type ArticleUncheckedUpdateManyWithoutAuthorInput = {
@@ -1257,6 +1539,8 @@ export type ArticleUpdateWithoutCategoryInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tags?: Prisma.ArticleTagUpdateManyWithoutArticleNestedInput
   sentences?: Prisma.SentenceUpdateManyWithoutArticleNestedInput
+  readingHistory?: Prisma.ReadingHistoryUpdateManyWithoutArticleNestedInput
+  bookmarkedBy?: Prisma.BookmarkUpdateManyWithoutArticleNestedInput
   author?: Prisma.UserUpdateOneRequiredWithoutArticlesNestedInput
 }
 
@@ -1279,6 +1563,8 @@ export type ArticleUncheckedUpdateWithoutCategoryInput = {
   authorId?: Prisma.IntFieldUpdateOperationsInput | number
   tags?: Prisma.ArticleTagUncheckedUpdateManyWithoutArticleNestedInput
   sentences?: Prisma.SentenceUncheckedUpdateManyWithoutArticleNestedInput
+  readingHistory?: Prisma.ReadingHistoryUncheckedUpdateManyWithoutArticleNestedInput
+  bookmarkedBy?: Prisma.BookmarkUncheckedUpdateManyWithoutArticleNestedInput
 }
 
 export type ArticleUncheckedUpdateManyWithoutCategoryInput = {
@@ -1308,11 +1594,15 @@ export type ArticleUncheckedUpdateManyWithoutCategoryInput = {
 export type ArticleCountOutputType = {
   tags: number
   sentences: number
+  readingHistory: number
+  bookmarkedBy: number
 }
 
 export type ArticleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tags?: boolean | ArticleCountOutputTypeCountTagsArgs
   sentences?: boolean | ArticleCountOutputTypeCountSentencesArgs
+  readingHistory?: boolean | ArticleCountOutputTypeCountReadingHistoryArgs
+  bookmarkedBy?: boolean | ArticleCountOutputTypeCountBookmarkedByArgs
 }
 
 /**
@@ -1339,6 +1629,20 @@ export type ArticleCountOutputTypeCountSentencesArgs<ExtArgs extends runtime.Typ
   where?: Prisma.SentenceWhereInput
 }
 
+/**
+ * ArticleCountOutputType without action
+ */
+export type ArticleCountOutputTypeCountReadingHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ReadingHistoryWhereInput
+}
+
+/**
+ * ArticleCountOutputType without action
+ */
+export type ArticleCountOutputTypeCountBookmarkedByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BookmarkWhereInput
+}
+
 
 export type ArticleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1361,6 +1665,8 @@ export type ArticleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   category?: boolean | Prisma.Article$categoryArgs<ExtArgs>
   tags?: boolean | Prisma.Article$tagsArgs<ExtArgs>
   sentences?: boolean | Prisma.Article$sentencesArgs<ExtArgs>
+  readingHistory?: boolean | Prisma.Article$readingHistoryArgs<ExtArgs>
+  bookmarkedBy?: boolean | Prisma.Article$bookmarkedByArgs<ExtArgs>
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.ArticleCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["article"]>
@@ -1434,6 +1740,8 @@ export type ArticleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   category?: boolean | Prisma.Article$categoryArgs<ExtArgs>
   tags?: boolean | Prisma.Article$tagsArgs<ExtArgs>
   sentences?: boolean | Prisma.Article$sentencesArgs<ExtArgs>
+  readingHistory?: boolean | Prisma.Article$readingHistoryArgs<ExtArgs>
+  bookmarkedBy?: boolean | Prisma.Article$bookmarkedByArgs<ExtArgs>
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.ArticleCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1452,6 +1760,8 @@ export type $ArticlePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     category: Prisma.$CategoryPayload<ExtArgs> | null
     tags: Prisma.$ArticleTagPayload<ExtArgs>[]
     sentences: Prisma.$SentencePayload<ExtArgs>[]
+    readingHistory: Prisma.$ReadingHistoryPayload<ExtArgs>[]
+    bookmarkedBy: Prisma.$BookmarkPayload<ExtArgs>[]
     author: Prisma.$UserPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1869,6 +2179,8 @@ export interface Prisma__ArticleClient<T, Null = never, ExtArgs extends runtime.
   category<T extends Prisma.Article$categoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Article$categoryArgs<ExtArgs>>): Prisma.Prisma__CategoryClient<runtime.Types.Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   tags<T extends Prisma.Article$tagsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Article$tagsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ArticleTagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sentences<T extends Prisma.Article$sentencesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Article$sentencesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SentencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  readingHistory<T extends Prisma.Article$readingHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Article$readingHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReadingHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  bookmarkedBy<T extends Prisma.Article$bookmarkedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Article$bookmarkedByArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookmarkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   author<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2374,6 +2686,54 @@ export type Article$sentencesArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.SentenceScalarFieldEnum | Prisma.SentenceScalarFieldEnum[]
+}
+
+/**
+ * Article.readingHistory
+ */
+export type Article$readingHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ReadingHistory
+   */
+  select?: Prisma.ReadingHistorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ReadingHistory
+   */
+  omit?: Prisma.ReadingHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ReadingHistoryInclude<ExtArgs> | null
+  where?: Prisma.ReadingHistoryWhereInput
+  orderBy?: Prisma.ReadingHistoryOrderByWithRelationInput | Prisma.ReadingHistoryOrderByWithRelationInput[]
+  cursor?: Prisma.ReadingHistoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ReadingHistoryScalarFieldEnum | Prisma.ReadingHistoryScalarFieldEnum[]
+}
+
+/**
+ * Article.bookmarkedBy
+ */
+export type Article$bookmarkedByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Bookmark
+   */
+  select?: Prisma.BookmarkSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Bookmark
+   */
+  omit?: Prisma.BookmarkOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookmarkInclude<ExtArgs> | null
+  where?: Prisma.BookmarkWhereInput
+  orderBy?: Prisma.BookmarkOrderByWithRelationInput | Prisma.BookmarkOrderByWithRelationInput[]
+  cursor?: Prisma.BookmarkWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BookmarkScalarFieldEnum | Prisma.BookmarkScalarFieldEnum[]
 }
 
 /**

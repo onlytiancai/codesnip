@@ -52,3 +52,28 @@ export type ArticleTag = Prisma.ArticleTagModel
  * 
  */
 export type Sentence = Prisma.SentenceModel
+/**
+ * Model ReadingHistory
+ * 
+ */
+export type ReadingHistory = Prisma.ReadingHistoryModel
+/**
+ * Model Bookmark
+ * 
+ */
+export type Bookmark = Prisma.BookmarkModel
+/**
+ * Model Vocabulary
+ * 
+ */
+export type Vocabulary = Prisma.VocabularyModel
+/**
+ * Model UserPreferences
+ * 
+ */
+export type UserPreferences = Prisma.UserPreferencesModel
+/**
+ * Model Membership
+ * 
+ */
+export type Membership = Prisma.MembershipModel

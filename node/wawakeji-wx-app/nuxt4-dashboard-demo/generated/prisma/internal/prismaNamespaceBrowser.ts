@@ -55,7 +55,12 @@ export const ModelName = {
   Tag: 'Tag',
   Article: 'Article',
   ArticleTag: 'ArticleTag',
-  Sentence: 'Sentence'
+  Sentence: 'Sentence',
+  ReadingHistory: 'ReadingHistory',
+  Bookmark: 'Bookmark',
+  Vocabulary: 'Vocabulary',
+  UserPreferences: 'UserPreferences',
+  Membership: 'Membership'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -77,6 +82,7 @@ export const UserScalarFieldEnum = {
   name: 'name',
   password: 'password',
   avatar: 'avatar',
+  bio: 'bio',
   role: 'role',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -167,6 +173,73 @@ export const SentenceScalarFieldEnum = {
 } as const
 
 export type SentenceScalarFieldEnum = (typeof SentenceScalarFieldEnum)[keyof typeof SentenceScalarFieldEnum]
+
+
+export const ReadingHistoryScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  articleId: 'articleId',
+  progress: 'progress',
+  lastReadAt: 'lastReadAt',
+  completedAt: 'completedAt'
+} as const
+
+export type ReadingHistoryScalarFieldEnum = (typeof ReadingHistoryScalarFieldEnum)[keyof typeof ReadingHistoryScalarFieldEnum]
+
+
+export const BookmarkScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  articleId: 'articleId',
+  createdAt: 'createdAt'
+} as const
+
+export type BookmarkScalarFieldEnum = (typeof BookmarkScalarFieldEnum)[keyof typeof BookmarkScalarFieldEnum]
+
+
+export const VocabularyScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  word: 'word',
+  phonetic: 'phonetic',
+  definition: 'definition',
+  example: 'example',
+  progress: 'progress',
+  articleId: 'articleId',
+  createdAt: 'createdAt',
+  lastReviewAt: 'lastReviewAt'
+} as const
+
+export type VocabularyScalarFieldEnum = (typeof VocabularyScalarFieldEnum)[keyof typeof VocabularyScalarFieldEnum]
+
+
+export const UserPreferencesScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  englishLevel: 'englishLevel',
+  dailyGoal: 'dailyGoal',
+  audioSpeed: 'audioSpeed',
+  theme: 'theme',
+  fontSize: 'fontSize',
+  interests: 'interests',
+  reminderEnabled: 'reminderEnabled',
+  newArticleNotify: 'newArticleNotify',
+  vocabReviewNotify: 'vocabReviewNotify',
+  marketingEmails: 'marketingEmails'
+} as const
+
+export type UserPreferencesScalarFieldEnum = (typeof UserPreferencesScalarFieldEnum)[keyof typeof UserPreferencesScalarFieldEnum]
+
+
+export const MembershipScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  plan: 'plan',
+  startDate: 'startDate',
+  endDate: 'endDate'
+} as const
+
+export type MembershipScalarFieldEnum = (typeof MembershipScalarFieldEnum)[keyof typeof MembershipScalarFieldEnum]
 
 
 export const SortOrder = {
