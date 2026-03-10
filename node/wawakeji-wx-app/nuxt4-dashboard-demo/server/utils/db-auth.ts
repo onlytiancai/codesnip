@@ -14,21 +14,21 @@ async function dbVerifyPassword(password: string, hash: string): Promise<boolean
 async function findUserByEmail(email: string) {
   return prisma.user.findUnique({
     where: { email },
-    include: { accounts: true },
+    include: { Account: true },
   });
 }
 
 async function findUserById(id: number) {
   return prisma.user.findUnique({
     where: { id },
-    include: { accounts: true },
+    include: { Account: true },
   });
 }
 
 async function createUser(data: { email: string; name?: string; password?: string; avatar?: string }) {
   return prisma.user.create({
     data,
-    include: { accounts: true },
+    include: { Account: true },
   });
 }
 
@@ -58,13 +58,13 @@ async function findAccountByProvider(provider: string, providerAccountId: string
         providerAccountId,
       },
     },
-    include: { user: true },
+    include: { User: true },
   });
 }
 
 async function findUserByOAuth(provider: string, providerAccountId: string) {
   const account = await findAccountByProvider(provider, providerAccountId);
-  return account?.user || null;
+  return account?.User || null;
 }
 
 async function unlinkOAuthAccount(userId: number, provider: string) {

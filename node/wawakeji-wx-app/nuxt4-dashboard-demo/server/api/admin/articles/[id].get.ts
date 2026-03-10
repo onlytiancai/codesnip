@@ -12,16 +12,16 @@ export default defineEventHandler(async (event) => {
   const article = await prisma.article.findUnique({
     where: { id },
     include: {
-      category: true,
-      tags: {
+      Category: true,
+      ArticleTag: {
         include: {
-          tag: true
+          Tag: true
         }
       },
-      sentences: {
+      Sentence: {
         orderBy: { order: 'asc' }
       },
-      author: {
+      User: {
         select: {
           id: true,
           name: true,
@@ -40,6 +40,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     ...article,
-    tags: article.tags.map(t => t.tag)
+    tags: article.ArticleTag.map(t => t.Tag),
+    sentences: article.Sentence
   }
 })

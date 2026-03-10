@@ -19,13 +19,13 @@ export default defineEventHandler(async (event) => {
       role: true,
       createdAt: true,
       updatedAt: true,
-      accounts: {
+      Account: {
         select: {
           provider: true
         }
       },
       _count: {
-        select: { articles: true }
+        select: { Article: true }
       }
     }
   })
@@ -39,7 +39,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     ...user,
-    articleCount: user._count.articles,
-    oauthProviders: user.accounts.map(a => a.provider)
+    articleCount: user._count.Article,
+    oauthProviders: user.Account.map(a => a.provider)
   }
 })

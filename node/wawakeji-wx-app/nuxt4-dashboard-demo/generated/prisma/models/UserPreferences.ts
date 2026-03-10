@@ -288,7 +288,7 @@ export type UserPreferencesWhereInput = {
   newArticleNotify?: Prisma.BoolFilter<"UserPreferences"> | boolean
   vocabReviewNotify?: Prisma.BoolFilter<"UserPreferences"> | boolean
   marketingEmails?: Prisma.BoolFilter<"UserPreferences"> | boolean
-  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  User?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
 
 export type UserPreferencesOrderByWithRelationInput = {
@@ -304,7 +304,7 @@ export type UserPreferencesOrderByWithRelationInput = {
   newArticleNotify?: Prisma.SortOrder
   vocabReviewNotify?: Prisma.SortOrder
   marketingEmails?: Prisma.SortOrder
-  user?: Prisma.UserOrderByWithRelationInput
+  User?: Prisma.UserOrderByWithRelationInput
 }
 
 export type UserPreferencesWhereUniqueInput = Prisma.AtLeast<{
@@ -323,7 +323,7 @@ export type UserPreferencesWhereUniqueInput = Prisma.AtLeast<{
   newArticleNotify?: Prisma.BoolFilter<"UserPreferences"> | boolean
   vocabReviewNotify?: Prisma.BoolFilter<"UserPreferences"> | boolean
   marketingEmails?: Prisma.BoolFilter<"UserPreferences"> | boolean
-  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  User?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id" | "userId">
 
 export type UserPreferencesOrderByWithAggregationInput = {
@@ -375,7 +375,7 @@ export type UserPreferencesCreateInput = {
   newArticleNotify?: boolean
   vocabReviewNotify?: boolean
   marketingEmails?: boolean
-  user: Prisma.UserCreateNestedOneWithoutPreferencesInput
+  User: Prisma.UserCreateNestedOneWithoutUserPreferencesInput
 }
 
 export type UserPreferencesUncheckedCreateInput = {
@@ -404,7 +404,7 @@ export type UserPreferencesUpdateInput = {
   newArticleNotify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   vocabReviewNotify?: Prisma.BoolFieldUpdateOperationsInput | boolean
   marketingEmails?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  user?: Prisma.UserUpdateOneRequiredWithoutPreferencesNestedInput
+  User?: Prisma.UserUpdateOneRequiredWithoutUserPreferencesNestedInput
 }
 
 export type UserPreferencesUncheckedUpdateInput = {
@@ -660,7 +660,7 @@ export type UserPreferencesSelect<ExtArgs extends runtime.Types.Extensions.Inter
   newArticleNotify?: boolean
   vocabReviewNotify?: boolean
   marketingEmails?: boolean
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userPreferences"]>
 
 export type UserPreferencesSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -676,7 +676,7 @@ export type UserPreferencesSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   newArticleNotify?: boolean
   vocabReviewNotify?: boolean
   marketingEmails?: boolean
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userPreferences"]>
 
 export type UserPreferencesSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -692,7 +692,7 @@ export type UserPreferencesSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   newArticleNotify?: boolean
   vocabReviewNotify?: boolean
   marketingEmails?: boolean
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userPreferences"]>
 
 export type UserPreferencesSelectScalar = {
@@ -712,19 +712,19 @@ export type UserPreferencesSelectScalar = {
 
 export type UserPreferencesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "englishLevel" | "dailyGoal" | "audioSpeed" | "theme" | "fontSize" | "interests" | "reminderEnabled" | "newArticleNotify" | "vocabReviewNotify" | "marketingEmails", ExtArgs["result"]["userPreferences"]>
 export type UserPreferencesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type UserPreferencesIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type UserPreferencesIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 
 export type $UserPreferencesPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "UserPreferences"
   objects: {
-    user: Prisma.$UserPayload<ExtArgs>
+    User: Prisma.$UserPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1133,7 +1133,7 @@ readonly fields: UserPreferencesFieldRefs;
  */
 export interface Prisma__UserPreferencesClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  User<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.

@@ -1,53 +1,84 @@
 import { beforeAll, afterAll, beforeEach } from 'vitest'
-import { $fetch } from 'ofetch'
+import { $fetch, FetchOptions } from 'ofetch'
 import { PrismaBetterSQLite3 } from '@prisma/adapter-better-sqlite3'
 import { PrismaClient } from '../generated/prisma/client'
 import bcrypt from 'bcryptjs'
 import 'dotenv/config'
+import http from 'http'
 
 // Database connection for tests
 const adapter = new PrismaBetterSQLite3({ url: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter })
 
 // Test server URL
-const baseURL = process.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:3001'
+const baseURL = process.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
-// Helper to make API requests
+// Cookie store for the current test context
+let currentCookies: string | undefined
+
+// Helper to clear cookies (for testing unauthenticated requests)
+export function clearAuthCookies() {
+  currentCookies = undefined
+}
+
+// Helper to make API requests using native http module for proper cookie handling
 export async function apiRequest(
   path: string,
   options: Omit<RequestInit, 'body'> & { body?: Record<string, unknown> } = {}
-) {
-  const url = `${baseURL}${path}`
+): Promise<{ status: number; data: any; headers: Headers }> {
+  return new Promise((resolve, reject) => {
+    const url = new URL(`${baseURL}${path}`)
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
-  }
+    const requestOptions: http.RequestOptions = {
+      hostname: url.hostname,
+      port: url.port || 3000,
+      path: url.pathname + url.search,
+      method: (options.method as string) || 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(currentCookies ? { 'Cookie': currentCookies } : {})
+      }
+    }
 
-  // Add cookie header if we have cookies stored
-  if ((globalThis as any).testCookies) {
-    headers.Cookie = (globalThis as any).testCookies
-  }
+    const bodyData = options.body ? JSON.stringify(options.body) : null
+    if (bodyData) {
+      requestOptions.headers!['Content-Length'] = Buffer.byteLength(bodyData)
+    }
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-    body: options.body ? JSON.stringify(options.body) : undefined,
+    const req = http.request(requestOptions, (res) => {
+      // Capture set-cookie header
+      const setCookie = res.headers['set-cookie']
+      if (setCookie) {
+        currentCookies = setCookie.join('; ')
+      }
+
+      let data = ''
+      res.on('data', (chunk) => { data += chunk })
+      res.on('end', () => {
+        try {
+          const parsedData = JSON.parse(data)
+          resolve({
+            status: res.statusCode || 0,
+            data: parsedData,
+            headers: res.headers as any
+          })
+        } catch {
+          resolve({
+            status: res.statusCode || 0,
+            data: null,
+            headers: res.headers as any
+          })
+        }
+      })
+    })
+
+    req.on('error', reject)
+
+    if (bodyData) {
+      req.write(bodyData)
+    }
+    req.end()
   })
-
-  // Store cookies from response
-  const setCookie = response.headers.get('set-cookie')
-  if (setCookie) {
-    ;(globalThis as any).testCookies = setCookie
-  }
-
-  const data = await response.json().catch(() => null)
-
-  return {
-    status: response.status,
-    data,
-    headers: response.headers,
-  }
 }
 
 // Helper to create test user
@@ -167,6 +198,110 @@ export async function createTestArticle(authorId: number, overrides: Partial<{
   })
 }
 
+// Helper to create test reading history
+export async function createTestReadingHistory(userId: number, articleId: number, overrides: Partial<{
+  progress: number
+  completedAt: Date | null
+}> = {}) {
+  return prisma.readingHistory.create({
+    data: {
+      userId,
+      articleId,
+      progress: overrides.progress ?? 0,
+      completedAt: overrides.completedAt ?? null,
+    },
+  })
+}
+
+// Helper to create test bookmark
+export async function createTestBookmark(userId: number, articleId: number) {
+  return prisma.bookmark.create({
+    data: {
+      userId,
+      articleId,
+    },
+  })
+}
+
+// Helper to create test vocabulary
+export async function createTestVocabulary(userId: number, overrides: Partial<{
+  word: string
+  phonetic: string
+  definition: string
+  example: string
+  progress: number
+  articleId: number
+}> = {}) {
+  return prisma.vocabulary.create({
+    data: {
+      userId,
+      word: overrides.word || `test-word-${Date.now()}`,
+      phonetic: overrides.phonetic || '/test/',
+      definition: overrides.definition || 'Test definition',
+      example: overrides.example || 'Test example sentence.',
+      progress: overrides.progress ?? 0,
+      articleId: overrides.articleId || null,
+    },
+  })
+}
+
+// Helper to create test user preferences
+export async function createTestUserPreferences(userId: number, overrides: Partial<{
+  englishLevel: string
+  dailyGoal: number
+  audioSpeed: number
+  theme: string
+  fontSize: number
+  interests: string[]
+  reminderEnabled: boolean
+  newArticleNotify: boolean
+  vocabReviewNotify: boolean
+  marketingEmails: boolean
+}> = {}) {
+  return prisma.userPreferences.create({
+    data: {
+      userId,
+      englishLevel: overrides.englishLevel || 'intermediate',
+      dailyGoal: overrides.dailyGoal || 10,
+      audioSpeed: overrides.audioSpeed || 1.0,
+      theme: overrides.theme || 'system',
+      fontSize: overrides.fontSize || 16,
+      interests: overrides.interests ? JSON.stringify(overrides.interests) : null,
+      reminderEnabled: overrides.reminderEnabled ?? true,
+      newArticleNotify: overrides.newArticleNotify ?? true,
+      vocabReviewNotify: overrides.vocabReviewNotify ?? false,
+      marketingEmails: overrides.marketingEmails ?? false,
+    },
+  })
+}
+
+// Helper to create test membership
+export async function createTestMembership(userId: number, overrides: Partial<{
+  plan: string
+  endDate: Date | null
+}> = {}) {
+  return prisma.membership.create({
+    data: {
+      userId,
+      plan: overrides.plan || 'free',
+      endDate: overrides.endDate || null,
+    },
+  })
+}
+
+// Helper to login as regular user
+export async function loginAsTestUser() {
+  const user = await prisma.user.findUnique({
+    where: { email: 'user@example.com' },
+  })
+
+  if (!user) {
+    throw new Error('Test user not found. Run db:seed first.')
+  }
+
+  return loginAsUser('user@example.com', 'user123')
+}
+
 // Clean up database helper
 export async function cleanupDatabase() {
   await prisma.sentence.deleteMany()
@@ -176,6 +311,13 @@ export async function cleanupDatabase() {
   await prisma.category.deleteMany()
   await prisma.account.deleteMany()
 
+  // Delete user-related data first (due to foreign key constraints)
+  await prisma.vocabulary.deleteMany()
+  await prisma.bookmark.deleteMany()
+  await prisma.readingHistory.deleteMany()
+  await prisma.userPreferences.deleteMany()
+  await prisma.membership.deleteMany()
+
   // Don't delete seed users, just test users
   await prisma.user.deleteMany({
     where: {
@@ -183,8 +325,8 @@ export async function cleanupDatabase() {
     },
   })
 
-  // Clear stored cookies
-  ;(globalThis as any).testCookies = undefined
+  // Clear stored cookies for this test context
+  currentCookies = undefined
 }
 
 // Setup and teardown

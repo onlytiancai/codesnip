@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     where: { id },
     include: {
       _count: {
-        select: { articles: true }
+        select: { Article: true }
       }
     }
   })
@@ -27,10 +27,10 @@ export default defineEventHandler(async (event) => {
   }
 
   // Check if category has articles
-  if (existing._count.articles > 0) {
+  if (existing._count.Article > 0) {
     throw createError({
       statusCode: 400,
-      message: `Cannot delete category with ${existing._count.articles} articles. Please reassign or delete the articles first.`
+      message: `Cannot delete category with ${existing._count.Article} articles. Please reassign or delete the articles first.`
     })
   }
 

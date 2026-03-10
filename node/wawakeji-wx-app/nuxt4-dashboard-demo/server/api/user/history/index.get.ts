@@ -25,9 +25,9 @@ export default defineEventHandler(async (event) => {
       take: limit,
       orderBy: { lastReadAt: 'desc' },
       include: {
-        article: {
+        Article: {
           include: {
-            category: {
+            Category: {
               select: { id: true, name: true, slug: true }
             }
           }
@@ -41,16 +41,16 @@ export default defineEventHandler(async (event) => {
     history: history.map(h => ({
       id: h.id,
       articleId: h.articleId,
-      title: h.article.title,
-      slug: h.article.slug,
-      cover: h.article.cover,
-      excerpt: h.article.excerpt,
-      difficulty: h.article.difficulty,
-      category: h.article.category,
+      title: h.Article.title,
+      slug: h.Article.slug,
+      cover: h.Article.cover,
+      excerpt: h.Article.excerpt,
+      difficulty: h.Article.difficulty,
+      category: h.Article.Category,
       progress: h.progress,
       lastReadAt: h.lastReadAt,
       completedAt: h.completedAt,
-      readTime: Math.ceil(h.article.content?.split(' ').length / 200 || 8) // Estimated read time
+      readTime: Math.ceil(h.Article.content?.split(' ').length / 200 || 8) // Estimated read time
     })),
     pagination: {
       page,

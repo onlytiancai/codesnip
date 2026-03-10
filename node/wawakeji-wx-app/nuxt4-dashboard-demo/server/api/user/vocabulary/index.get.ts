@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
       take: limit,
       orderBy,
       include: {
-        article: {
+        Article: {
           select: { id: true, title: true, slug: true }
         }
       }
@@ -65,7 +65,7 @@ export default defineEventHandler(async (event) => {
       definition: v.definition,
       example: v.example,
       progress: v.progress,
-      article: v.article,
+      article: v.Article,
       createdAt: v.createdAt,
       lastReviewAt: v.lastReviewAt
     })),

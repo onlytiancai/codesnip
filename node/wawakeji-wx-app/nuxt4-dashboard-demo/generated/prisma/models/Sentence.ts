@@ -232,7 +232,7 @@ export type SentenceWhereInput = {
   en?: Prisma.StringFilter<"Sentence"> | string
   cn?: Prisma.StringNullableFilter<"Sentence"> | string | null
   audio?: Prisma.StringNullableFilter<"Sentence"> | string | null
-  article?: Prisma.XOR<Prisma.ArticleScalarRelationFilter, Prisma.ArticleWhereInput>
+  Article?: Prisma.XOR<Prisma.ArticleScalarRelationFilter, Prisma.ArticleWhereInput>
 }
 
 export type SentenceOrderByWithRelationInput = {
@@ -242,7 +242,7 @@ export type SentenceOrderByWithRelationInput = {
   en?: Prisma.SortOrder
   cn?: Prisma.SortOrderInput | Prisma.SortOrder
   audio?: Prisma.SortOrderInput | Prisma.SortOrder
-  article?: Prisma.ArticleOrderByWithRelationInput
+  Article?: Prisma.ArticleOrderByWithRelationInput
 }
 
 export type SentenceWhereUniqueInput = Prisma.AtLeast<{
@@ -255,7 +255,7 @@ export type SentenceWhereUniqueInput = Prisma.AtLeast<{
   en?: Prisma.StringFilter<"Sentence"> | string
   cn?: Prisma.StringNullableFilter<"Sentence"> | string | null
   audio?: Prisma.StringNullableFilter<"Sentence"> | string | null
-  article?: Prisma.XOR<Prisma.ArticleScalarRelationFilter, Prisma.ArticleWhereInput>
+  Article?: Prisma.XOR<Prisma.ArticleScalarRelationFilter, Prisma.ArticleWhereInput>
 }, "id">
 
 export type SentenceOrderByWithAggregationInput = {
@@ -289,7 +289,7 @@ export type SentenceCreateInput = {
   en: string
   cn?: string | null
   audio?: string | null
-  article: Prisma.ArticleCreateNestedOneWithoutSentencesInput
+  Article: Prisma.ArticleCreateNestedOneWithoutSentenceInput
 }
 
 export type SentenceUncheckedCreateInput = {
@@ -306,7 +306,7 @@ export type SentenceUpdateInput = {
   en?: Prisma.StringFieldUpdateOperationsInput | string
   cn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   audio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  article?: Prisma.ArticleUpdateOneRequiredWithoutSentencesNestedInput
+  Article?: Prisma.ArticleUpdateOneRequiredWithoutSentenceNestedInput
 }
 
 export type SentenceUncheckedUpdateInput = {
@@ -526,7 +526,7 @@ export type SentenceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   en?: boolean
   cn?: boolean
   audio?: boolean
-  article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  Article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["sentence"]>
 
 export type SentenceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -536,7 +536,7 @@ export type SentenceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   en?: boolean
   cn?: boolean
   audio?: boolean
-  article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  Article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["sentence"]>
 
 export type SentenceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -546,7 +546,7 @@ export type SentenceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   en?: boolean
   cn?: boolean
   audio?: boolean
-  article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  Article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["sentence"]>
 
 export type SentenceSelectScalar = {
@@ -560,19 +560,19 @@ export type SentenceSelectScalar = {
 
 export type SentenceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "articleId" | "order" | "en" | "cn" | "audio", ExtArgs["result"]["sentence"]>
 export type SentenceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  Article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
 }
 export type SentenceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  Article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
 }
 export type SentenceIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  Article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
 }
 
 export type $SentencePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Sentence"
   objects: {
-    article: Prisma.$ArticlePayload<ExtArgs>
+    Article: Prisma.$ArticlePayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -975,7 +975,7 @@ readonly fields: SentenceFieldRefs;
  */
 export interface Prisma__SentenceClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  article<T extends Prisma.ArticleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ArticleDefaultArgs<ExtArgs>>): Prisma.Prisma__ArticleClient<runtime.Types.Result.GetResult<Prisma.$ArticlePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  Article<T extends Prisma.ArticleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ArticleDefaultArgs<ExtArgs>>): Prisma.Prisma__ArticleClient<runtime.Types.Result.GetResult<Prisma.$ArticlePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.

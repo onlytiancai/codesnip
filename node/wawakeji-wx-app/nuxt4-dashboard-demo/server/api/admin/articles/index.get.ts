@@ -37,13 +37,13 @@ export default defineEventHandler(async (event) => {
       take: limit,
       orderBy: { createdAt: 'desc' },
       include: {
-        category: true,
-        tags: {
+        Category: true,
+        ArticleTag: {
           include: {
-            tag: true
+            Tag: true
           }
         },
-        author: {
+        User: {
           select: {
             id: true,
             name: true,
@@ -51,7 +51,7 @@ export default defineEventHandler(async (event) => {
           }
         },
         _count: {
-          select: { sentences: true }
+          select: { Sentence: true }
         }
       }
     }),
@@ -61,8 +61,10 @@ export default defineEventHandler(async (event) => {
   return {
     articles: articles.map(article => ({
       ...article,
-      tags: article.tags.map(t => t.tag),
-      sentenceCount: article._count.sentences
+      category: article.Category,
+      tags: article.ArticleTag.map(t => t.Tag),
+      author: article.User,
+      sentenceCount: article._count.Sentence
     })),
     pagination: {
       page,

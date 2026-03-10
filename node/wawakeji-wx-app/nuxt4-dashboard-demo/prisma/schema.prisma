@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -11,180 +8,170 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String?
-  password  String?  // password for email login, null for OAuth users
-  avatar    String?
-  bio       String?
-  role      String   @default("USER") // 'USER' | 'ADMIN'
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-
-  // Associated OAuth accounts
-  accounts       Account[]
-  articles       Article[]
-  readingHistory ReadingHistory[]
-  bookmarks      Bookmark[]
-  vocabulary     Vocabulary[]
-  preferences    UserPreferences?
-  membership     Membership?
-}
-
 model Account {
-  id                Int    @id @default(autoincrement())
+  id                Int     @id @default(autoincrement())
   userId            Int
-  provider          String // 'github' | 'google'
-  providerAccountId String // OAuth provider's user ID
+  provider          String
+  providerAccountId String
   access_token      String?
   refresh_token     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
 
-model Category {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  slug        String   @unique
-  description String?
-  icon        String?
-  color       String   @default("#3b82f6")
-  status      String   @default("active") // active | inactive
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
-  articles    Article[]
-}
-
-model Tag {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  slug        String   @unique
-  description String?
-  color       String   @default("#3b82f6")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
-  articles    ArticleTag[]
-}
-
 model Article {
-  id           Int      @id @default(autoincrement())
-  title        String
-  slug         String   @unique
-  excerpt      String?
-  cover        String?
-  content      String?  // original content
-  status       String   @default("draft") // draft | published
-  difficulty   String   @default("beginner") // beginner | intermediate | advanced
-  views        Int      @default(0)
-  bookmarks    Int      @default(0)
-  publishAt    DateTime?
-  metaTitle    String?
-  metaDesc     String?
-  categoryId   Int?
-  category     Category? @relation(fields: [categoryId], references: [id])
-  tags         ArticleTag[]
-  sentences    Sentence[]
-  readingHistory ReadingHistory[]
-  bookmarkedBy  Bookmark[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @default(now())
-  authorId     Int
-  author       User     @relation(fields: [authorId], references: [id])
+  id             Int              @id @default(autoincrement())
+  title          String
+  slug           String           @unique
+  excerpt        String?
+  cover          String?
+  content        String?
+  status         String           @default("draft")
+  difficulty     String           @default("beginner")
+  views          Int              @default(0)
+  bookmarks      Int              @default(0)
+  publishAt      DateTime?
+  metaTitle      String?
+  metaDesc       String?
+  categoryId     Int?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @default(now())
+  authorId       Int
+  User           User             @relation(fields: [authorId], references: [id])
+  Category       Category?        @relation(fields: [categoryId], references: [id])
+  ArticleTag     ArticleTag[]
+  Bookmark       Bookmark[]
+  ReadingHistory ReadingHistory[]
+  Sentence       Sentence[]
+  Vocabulary     Vocabulary[]
 }
 
 model ArticleTag {
   articleId Int
   tagId     Int
-  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  Tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  Article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
   @@id([articleId, tagId])
 }
 
-model Sentence {
-  id        Int     @id @default(autoincrement())
-  articleId Int
-  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  order     Int
-  en        String
-  cn        String?
-  audio     String? // TTS audio URL
-}
-
-// User reading history
-model ReadingHistory {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  articleId   Int
-  progress    Int      @default(0)  // 0-100 percentage
-  lastReadAt  DateTime @default(now())
-  completedAt DateTime?
-
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  article Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, articleId])
-}
-
-// User bookmarks
 model Bookmark {
   id        Int      @id @default(autoincrement())
   userId    Int
   articleId Int
   createdAt DateTime @default(now())
-
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  article Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  Article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, articleId])
 }
 
-// User vocabulary
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  icon        String?
+  color       String    @default("#3b82f6")
+  status      String    @default("active")
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
+  Article     Article[]
+}
+
+model Membership {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @unique
+  plan      String    @default("free")
+  startDate DateTime  @default(now())
+  endDate   DateTime?
+  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ReadingHistory {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  articleId   Int
+  progress    Int       @default(0)
+  lastReadAt  DateTime  @default(now())
+  completedAt DateTime?
+  Article     Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  User        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+}
+
+model Sentence {
+  id        Int     @id @default(autoincrement())
+  articleId Int
+  order     Int
+  en        String
+  cn        String?
+  audio     String?
+  Article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+}
+
+model Tag {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  slug        String       @unique
+  description String?
+  color       String       @default("#3b82f6")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now())
+  ArticleTag  ArticleTag[]
+}
+
+model User {
+  id              Int              @id @default(autoincrement())
+  email           String           @unique
+  name            String?
+  password        String?
+  avatar          String?
+  role            String           @default("USER")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @default(now())
+  bio             String?
+  Account         Account[]
+  Article         Article[]
+  Bookmark        Bookmark[]
+  Membership      Membership?
+  ReadingHistory  ReadingHistory[]
+  UserPreferences UserPreferences?
+  Vocabulary      Vocabulary[]
+}
+
+model UserPreferences {
+  id                Int     @id @default(autoincrement())
+  userId            Int     @unique
+  englishLevel      String  @default("intermediate")
+  dailyGoal         Int     @default(10)
+  audioSpeed        Float   @default(1.0)
+  theme             String  @default("system")
+  fontSize          Int     @default(16)
+  interests         String?
+  reminderEnabled   Boolean @default(true)
+  newArticleNotify  Boolean @default(true)
+  vocabReviewNotify Boolean @default(false)
+  marketingEmails   Boolean @default(false)
+  User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model Vocabulary {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   userId       Int
   word         String
   phonetic     String?
   definition   String
   example      String?
-  progress     Int      @default(0)  // 0-100 mastery percentage
-  articleId    Int?     // source article if any
-  createdAt    DateTime @default(now())
+  progress     Int       @default(0)
+  articleId    Int?
+  createdAt    DateTime  @default(now())
   lastReviewAt DateTime?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Article      Article?  @relation(fields: [articleId], references: [id], onDelete: SetNull)
 
   @@unique([userId, word])
-}
-
-// User preferences/settings
-model UserPreferences {
-  id                Int     @id @default(autoincrement())
-  userId            Int     @unique
-  englishLevel      String  @default("intermediate")  // beginner, intermediate, advanced
-  dailyGoal         Int     @default(10)  // minutes
-  audioSpeed        Float   @default(1.0)
-  theme             String  @default("system")  // light, dark, system
-  fontSize          Int     @default(16)
-  interests         String? // JSON array of category slugs
-  reminderEnabled   Boolean @default(true)
-  newArticleNotify  Boolean @default(true)
-  vocabReviewNotify Boolean @default(false)
-  marketingEmails   Boolean @default(false)
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-// Membership
-model Membership {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @unique
-  plan      String   @default("free")  // free, premium
-  startDate DateTime @default(now())
-  endDate   DateTime?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

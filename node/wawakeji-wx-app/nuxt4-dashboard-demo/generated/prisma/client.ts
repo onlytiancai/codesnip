@@ -29,8 +29,8 @@ export * from "./enums.ts"
  * @example
  * ```
  * const prisma = new PrismaClient()
- * // Fetch zero or more Users
- * const users = await prisma.user.findMany()
+ * // Fetch zero or more Accounts
+ * const accounts = await prisma.account.findMany()
  * ```
  * 
  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
@@ -45,25 +45,10 @@ path.join(__dirname, "libquery_engine-darwin-arm64.dylib.node")
 path.join(process.cwd(), "generated/prisma/libquery_engine-darwin-arm64.dylib.node")
 
 /**
- * Model User
- * 
- */
-export type User = Prisma.UserModel
-/**
  * Model Account
  * 
  */
 export type Account = Prisma.AccountModel
-/**
- * Model Category
- * 
- */
-export type Category = Prisma.CategoryModel
-/**
- * Model Tag
- * 
- */
-export type Tag = Prisma.TagModel
 /**
  * Model Article
  * 
@@ -75,32 +60,47 @@ export type Article = Prisma.ArticleModel
  */
 export type ArticleTag = Prisma.ArticleTagModel
 /**
- * Model Sentence
+ * Model Bookmark
  * 
  */
-export type Sentence = Prisma.SentenceModel
+export type Bookmark = Prisma.BookmarkModel
+/**
+ * Model Category
+ * 
+ */
+export type Category = Prisma.CategoryModel
+/**
+ * Model Membership
+ * 
+ */
+export type Membership = Prisma.MembershipModel
 /**
  * Model ReadingHistory
  * 
  */
 export type ReadingHistory = Prisma.ReadingHistoryModel
 /**
- * Model Bookmark
+ * Model Sentence
  * 
  */
-export type Bookmark = Prisma.BookmarkModel
+export type Sentence = Prisma.SentenceModel
 /**
- * Model Vocabulary
+ * Model Tag
  * 
  */
-export type Vocabulary = Prisma.VocabularyModel
+export type Tag = Prisma.TagModel
+/**
+ * Model User
+ * 
+ */
+export type User = Prisma.UserModel
 /**
  * Model UserPreferences
  * 
  */
 export type UserPreferences = Prisma.UserPreferencesModel
 /**
- * Model Membership
+ * Model Vocabulary
  * 
  */
-export type Membership = Prisma.MembershipModel
+export type Vocabulary = Prisma.VocabularyModel

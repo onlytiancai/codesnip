@@ -113,13 +113,13 @@ export default defineEventHandler(async (event) => {
     where: { id },
     data: updateData,
     include: {
-      category: true,
-      tags: {
+      Category: true,
+      ArticleTag: {
         include: {
-          tag: true
+          Tag: true
         }
       },
-      sentences: {
+      Sentence: {
         orderBy: { order: 'asc' }
       }
     }
@@ -127,6 +127,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     ...article,
-    tags: article.tags.map(t => t.tag)
+    tags: article.ArticleTag.map(t => t.Tag),
+    sentences: article.Sentence
   }
 })

@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
         createdAt: true,
         updatedAt: true,
         _count: {
-          select: { articles: true }
+          select: { Article: true }
         }
       }
     }),
@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
   return {
     users: users.map(user => ({
       ...user,
-      articleCount: user._count.articles
+      articleCount: user._count.Article
     })),
     pagination: {
       page,

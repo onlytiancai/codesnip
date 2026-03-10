@@ -71,3 +71,8 @@
 
   - Admin: admin@example.com / admin123
   - User: user@example.com / user123
+
+  任务
+  - 完善和实现这些页面的功能：http://localhost:3000/，http://localhost:3000/articles，http://localhost:3000/articles/{id}，http://localhost:3000/membership 实现upgrade功能，完善Feature Comparison，http://localhost:3000/categories/{category}，测试数据不足的话修复seed，增加测试数据，比如每个category下增加一篇帖子，目前是开发环境，整个dev.db可以重建
+  - 简单实现这3个页面，Privacy Policy，Terms of Service，Contact Us
+  - admin dashboard里好多edit和delete功能没有实现，而且logout按钮点击后没反应

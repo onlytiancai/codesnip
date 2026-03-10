@@ -18,25 +18,10 @@ export { Prisma }
 export * as $Enums from './enums.ts'
 export * from './enums.ts';
 /**
- * Model User
- * 
- */
-export type User = Prisma.UserModel
-/**
  * Model Account
  * 
  */
 export type Account = Prisma.AccountModel
-/**
- * Model Category
- * 
- */
-export type Category = Prisma.CategoryModel
-/**
- * Model Tag
- * 
- */
-export type Tag = Prisma.TagModel
 /**
  * Model Article
  * 
@@ -48,32 +33,47 @@ export type Article = Prisma.ArticleModel
  */
 export type ArticleTag = Prisma.ArticleTagModel
 /**
- * Model Sentence
+ * Model Bookmark
  * 
  */
-export type Sentence = Prisma.SentenceModel
+export type Bookmark = Prisma.BookmarkModel
+/**
+ * Model Category
+ * 
+ */
+export type Category = Prisma.CategoryModel
+/**
+ * Model Membership
+ * 
+ */
+export type Membership = Prisma.MembershipModel
 /**
  * Model ReadingHistory
  * 
  */
 export type ReadingHistory = Prisma.ReadingHistoryModel
 /**
- * Model Bookmark
+ * Model Sentence
  * 
  */
-export type Bookmark = Prisma.BookmarkModel
+export type Sentence = Prisma.SentenceModel
 /**
- * Model Vocabulary
+ * Model Tag
  * 
  */
-export type Vocabulary = Prisma.VocabularyModel
+export type Tag = Prisma.TagModel
+/**
+ * Model User
+ * 
+ */
+export type User = Prisma.UserModel
 /**
  * Model UserPreferences
  * 
  */
 export type UserPreferences = Prisma.UserPreferencesModel
 /**
- * Model Membership
+ * Model Vocabulary
  * 
  */
-export type Membership = Prisma.MembershipModel
+export type Vocabulary = Prisma.VocabularyModel

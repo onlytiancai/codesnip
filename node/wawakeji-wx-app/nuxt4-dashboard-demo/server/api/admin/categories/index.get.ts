@@ -15,13 +15,13 @@ export default defineEventHandler(async (event) => {
     orderBy: { sortOrder: 'asc' },
     include: {
       _count: {
-        select: { articles: true }
+        select: { Article: true }
       }
     }
   })
 
   return categories.map(cat => ({
     ...cat,
-    articleCount: cat._count.articles
+    articleCount: cat._count.Article
   }))
 })

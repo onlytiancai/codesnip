@@ -236,8 +236,8 @@ export type ReadingHistoryWhereInput = {
   progress?: Prisma.IntFilter<"ReadingHistory"> | number
   lastReadAt?: Prisma.DateTimeFilter<"ReadingHistory"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"ReadingHistory"> | Date | string | null
-  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  article?: Prisma.XOR<Prisma.ArticleScalarRelationFilter, Prisma.ArticleWhereInput>
+  Article?: Prisma.XOR<Prisma.ArticleScalarRelationFilter, Prisma.ArticleWhereInput>
+  User?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
 
 export type ReadingHistoryOrderByWithRelationInput = {
@@ -247,8 +247,8 @@ export type ReadingHistoryOrderByWithRelationInput = {
   progress?: Prisma.SortOrder
   lastReadAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
-  user?: Prisma.UserOrderByWithRelationInput
-  article?: Prisma.ArticleOrderByWithRelationInput
+  Article?: Prisma.ArticleOrderByWithRelationInput
+  User?: Prisma.UserOrderByWithRelationInput
 }
 
 export type ReadingHistoryWhereUniqueInput = Prisma.AtLeast<{
@@ -262,8 +262,8 @@ export type ReadingHistoryWhereUniqueInput = Prisma.AtLeast<{
   progress?: Prisma.IntFilter<"ReadingHistory"> | number
   lastReadAt?: Prisma.DateTimeFilter<"ReadingHistory"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"ReadingHistory"> | Date | string | null
-  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  article?: Prisma.XOR<Prisma.ArticleScalarRelationFilter, Prisma.ArticleWhereInput>
+  Article?: Prisma.XOR<Prisma.ArticleScalarRelationFilter, Prisma.ArticleWhereInput>
+  User?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id" | "userId_articleId">
 
 export type ReadingHistoryOrderByWithAggregationInput = {
@@ -296,8 +296,8 @@ export type ReadingHistoryCreateInput = {
   progress?: number
   lastReadAt?: Date | string
   completedAt?: Date | string | null
-  user: Prisma.UserCreateNestedOneWithoutReadingHistoryInput
-  article: Prisma.ArticleCreateNestedOneWithoutReadingHistoryInput
+  Article: Prisma.ArticleCreateNestedOneWithoutReadingHistoryInput
+  User: Prisma.UserCreateNestedOneWithoutReadingHistoryInput
 }
 
 export type ReadingHistoryUncheckedCreateInput = {
@@ -313,8 +313,8 @@ export type ReadingHistoryUpdateInput = {
   progress?: Prisma.IntFieldUpdateOperationsInput | number
   lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  user?: Prisma.UserUpdateOneRequiredWithoutReadingHistoryNestedInput
-  article?: Prisma.ArticleUpdateOneRequiredWithoutReadingHistoryNestedInput
+  Article?: Prisma.ArticleUpdateOneRequiredWithoutReadingHistoryNestedInput
+  User?: Prisma.UserUpdateOneRequiredWithoutReadingHistoryNestedInput
 }
 
 export type ReadingHistoryUncheckedUpdateInput = {
@@ -406,48 +406,6 @@ export type ReadingHistorySumOrderByAggregateInput = {
   progress?: Prisma.SortOrder
 }
 
-export type ReadingHistoryCreateNestedManyWithoutUserInput = {
-  create?: Prisma.XOR<Prisma.ReadingHistoryCreateWithoutUserInput, Prisma.ReadingHistoryUncheckedCreateWithoutUserInput> | Prisma.ReadingHistoryCreateWithoutUserInput[] | Prisma.ReadingHistoryUncheckedCreateWithoutUserInput[]
-  connectOrCreate?: Prisma.ReadingHistoryCreateOrConnectWithoutUserInput | Prisma.ReadingHistoryCreateOrConnectWithoutUserInput[]
-  createMany?: Prisma.ReadingHistoryCreateManyUserInputEnvelope
-  connect?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
-}
-
-export type ReadingHistoryUncheckedCreateNestedManyWithoutUserInput = {
-  create?: Prisma.XOR<Prisma.ReadingHistoryCreateWithoutUserInput, Prisma.ReadingHistoryUncheckedCreateWithoutUserInput> | Prisma.ReadingHistoryCreateWithoutUserInput[] | Prisma.ReadingHistoryUncheckedCreateWithoutUserInput[]
-  connectOrCreate?: Prisma.ReadingHistoryCreateOrConnectWithoutUserInput | Prisma.ReadingHistoryCreateOrConnectWithoutUserInput[]
-  createMany?: Prisma.ReadingHistoryCreateManyUserInputEnvelope
-  connect?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
-}
-
-export type ReadingHistoryUpdateManyWithoutUserNestedInput = {
-  create?: Prisma.XOR<Prisma.ReadingHistoryCreateWithoutUserInput, Prisma.ReadingHistoryUncheckedCreateWithoutUserInput> | Prisma.ReadingHistoryCreateWithoutUserInput[] | Prisma.ReadingHistoryUncheckedCreateWithoutUserInput[]
-  connectOrCreate?: Prisma.ReadingHistoryCreateOrConnectWithoutUserInput | Prisma.ReadingHistoryCreateOrConnectWithoutUserInput[]
-  upsert?: Prisma.ReadingHistoryUpsertWithWhereUniqueWithoutUserInput | Prisma.ReadingHistoryUpsertWithWhereUniqueWithoutUserInput[]
-  createMany?: Prisma.ReadingHistoryCreateManyUserInputEnvelope
-  set?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
-  disconnect?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
-  delete?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
-  connect?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
-  update?: Prisma.ReadingHistoryUpdateWithWhereUniqueWithoutUserInput | Prisma.ReadingHistoryUpdateWithWhereUniqueWithoutUserInput[]
-  updateMany?: Prisma.ReadingHistoryUpdateManyWithWhereWithoutUserInput | Prisma.ReadingHistoryUpdateManyWithWhereWithoutUserInput[]
-  deleteMany?: Prisma.ReadingHistoryScalarWhereInput | Prisma.ReadingHistoryScalarWhereInput[]
-}
-
-export type ReadingHistoryUncheckedUpdateManyWithoutUserNestedInput = {
-  create?: Prisma.XOR<Prisma.ReadingHistoryCreateWithoutUserInput, Prisma.ReadingHistoryUncheckedCreateWithoutUserInput> | Prisma.ReadingHistoryCreateWithoutUserInput[] | Prisma.ReadingHistoryUncheckedCreateWithoutUserInput[]
-  connectOrCreate?: Prisma.ReadingHistoryCreateOrConnectWithoutUserInput | Prisma.ReadingHistoryCreateOrConnectWithoutUserInput[]
-  upsert?: Prisma.ReadingHistoryUpsertWithWhereUniqueWithoutUserInput | Prisma.ReadingHistoryUpsertWithWhereUniqueWithoutUserInput[]
-  createMany?: Prisma.ReadingHistoryCreateManyUserInputEnvelope
-  set?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
-  disconnect?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
-  delete?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
-  connect?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
-  update?: Prisma.ReadingHistoryUpdateWithWhereUniqueWithoutUserInput | Prisma.ReadingHistoryUpdateWithWhereUniqueWithoutUserInput[]
-  updateMany?: Prisma.ReadingHistoryUpdateManyWithWhereWithoutUserInput | Prisma.ReadingHistoryUpdateManyWithWhereWithoutUserInput[]
-  deleteMany?: Prisma.ReadingHistoryScalarWhereInput | Prisma.ReadingHistoryScalarWhereInput[]
-}
-
 export type ReadingHistoryCreateNestedManyWithoutArticleInput = {
   create?: Prisma.XOR<Prisma.ReadingHistoryCreateWithoutArticleInput, Prisma.ReadingHistoryUncheckedCreateWithoutArticleInput> | Prisma.ReadingHistoryCreateWithoutArticleInput[] | Prisma.ReadingHistoryUncheckedCreateWithoutArticleInput[]
   connectOrCreate?: Prisma.ReadingHistoryCreateOrConnectWithoutArticleInput | Prisma.ReadingHistoryCreateOrConnectWithoutArticleInput[]
@@ -490,63 +448,53 @@ export type ReadingHistoryUncheckedUpdateManyWithoutArticleNestedInput = {
   deleteMany?: Prisma.ReadingHistoryScalarWhereInput | Prisma.ReadingHistoryScalarWhereInput[]
 }
 
-export type ReadingHistoryCreateWithoutUserInput = {
-  progress?: number
-  lastReadAt?: Date | string
-  completedAt?: Date | string | null
-  article: Prisma.ArticleCreateNestedOneWithoutReadingHistoryInput
+export type ReadingHistoryCreateNestedManyWithoutUserInput = {
+  create?: Prisma.XOR<Prisma.ReadingHistoryCreateWithoutUserInput, Prisma.ReadingHistoryUncheckedCreateWithoutUserInput> | Prisma.ReadingHistoryCreateWithoutUserInput[] | Prisma.ReadingHistoryUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.ReadingHistoryCreateOrConnectWithoutUserInput | Prisma.ReadingHistoryCreateOrConnectWithoutUserInput[]
+  createMany?: Prisma.ReadingHistoryCreateManyUserInputEnvelope
+  connect?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
 }
 
-export type ReadingHistoryUncheckedCreateWithoutUserInput = {
-  id?: number
-  articleId: number
-  progress?: number
-  lastReadAt?: Date | string
-  completedAt?: Date | string | null
+export type ReadingHistoryUncheckedCreateNestedManyWithoutUserInput = {
+  create?: Prisma.XOR<Prisma.ReadingHistoryCreateWithoutUserInput, Prisma.ReadingHistoryUncheckedCreateWithoutUserInput> | Prisma.ReadingHistoryCreateWithoutUserInput[] | Prisma.ReadingHistoryUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.ReadingHistoryCreateOrConnectWithoutUserInput | Prisma.ReadingHistoryCreateOrConnectWithoutUserInput[]
+  createMany?: Prisma.ReadingHistoryCreateManyUserInputEnvelope
+  connect?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
 }
 
-export type ReadingHistoryCreateOrConnectWithoutUserInput = {
-  where: Prisma.ReadingHistoryWhereUniqueInput
-  create: Prisma.XOR<Prisma.ReadingHistoryCreateWithoutUserInput, Prisma.ReadingHistoryUncheckedCreateWithoutUserInput>
+export type ReadingHistoryUpdateManyWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.ReadingHistoryCreateWithoutUserInput, Prisma.ReadingHistoryUncheckedCreateWithoutUserInput> | Prisma.ReadingHistoryCreateWithoutUserInput[] | Prisma.ReadingHistoryUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.ReadingHistoryCreateOrConnectWithoutUserInput | Prisma.ReadingHistoryCreateOrConnectWithoutUserInput[]
+  upsert?: Prisma.ReadingHistoryUpsertWithWhereUniqueWithoutUserInput | Prisma.ReadingHistoryUpsertWithWhereUniqueWithoutUserInput[]
+  createMany?: Prisma.ReadingHistoryCreateManyUserInputEnvelope
+  set?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
+  disconnect?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
+  delete?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
+  connect?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
+  update?: Prisma.ReadingHistoryUpdateWithWhereUniqueWithoutUserInput | Prisma.ReadingHistoryUpdateWithWhereUniqueWithoutUserInput[]
+  updateMany?: Prisma.ReadingHistoryUpdateManyWithWhereWithoutUserInput | Prisma.ReadingHistoryUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.ReadingHistoryScalarWhereInput | Prisma.ReadingHistoryScalarWhereInput[]
 }
 
-export type ReadingHistoryCreateManyUserInputEnvelope = {
-  data: Prisma.ReadingHistoryCreateManyUserInput | Prisma.ReadingHistoryCreateManyUserInput[]
-}
-
-export type ReadingHistoryUpsertWithWhereUniqueWithoutUserInput = {
-  where: Prisma.ReadingHistoryWhereUniqueInput
-  update: Prisma.XOR<Prisma.ReadingHistoryUpdateWithoutUserInput, Prisma.ReadingHistoryUncheckedUpdateWithoutUserInput>
-  create: Prisma.XOR<Prisma.ReadingHistoryCreateWithoutUserInput, Prisma.ReadingHistoryUncheckedCreateWithoutUserInput>
-}
-
-export type ReadingHistoryUpdateWithWhereUniqueWithoutUserInput = {
-  where: Prisma.ReadingHistoryWhereUniqueInput
-  data: Prisma.XOR<Prisma.ReadingHistoryUpdateWithoutUserInput, Prisma.ReadingHistoryUncheckedUpdateWithoutUserInput>
-}
-
-export type ReadingHistoryUpdateManyWithWhereWithoutUserInput = {
-  where: Prisma.ReadingHistoryScalarWhereInput
-  data: Prisma.XOR<Prisma.ReadingHistoryUpdateManyMutationInput, Prisma.ReadingHistoryUncheckedUpdateManyWithoutUserInput>
-}
-
-export type ReadingHistoryScalarWhereInput = {
-  AND?: Prisma.ReadingHistoryScalarWhereInput | Prisma.ReadingHistoryScalarWhereInput[]
-  OR?: Prisma.ReadingHistoryScalarWhereInput[]
-  NOT?: Prisma.ReadingHistoryScalarWhereInput | Prisma.ReadingHistoryScalarWhereInput[]
-  id?: Prisma.IntFilter<"ReadingHistory"> | number
-  userId?: Prisma.IntFilter<"ReadingHistory"> | number
-  articleId?: Prisma.IntFilter<"ReadingHistory"> | number
-  progress?: Prisma.IntFilter<"ReadingHistory"> | number
-  lastReadAt?: Prisma.DateTimeFilter<"ReadingHistory"> | Date | string
-  completedAt?: Prisma.DateTimeNullableFilter<"ReadingHistory"> | Date | string | null
+export type ReadingHistoryUncheckedUpdateManyWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.ReadingHistoryCreateWithoutUserInput, Prisma.ReadingHistoryUncheckedCreateWithoutUserInput> | Prisma.ReadingHistoryCreateWithoutUserInput[] | Prisma.ReadingHistoryUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.ReadingHistoryCreateOrConnectWithoutUserInput | Prisma.ReadingHistoryCreateOrConnectWithoutUserInput[]
+  upsert?: Prisma.ReadingHistoryUpsertWithWhereUniqueWithoutUserInput | Prisma.ReadingHistoryUpsertWithWhereUniqueWithoutUserInput[]
+  createMany?: Prisma.ReadingHistoryCreateManyUserInputEnvelope
+  set?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
+  disconnect?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
+  delete?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
+  connect?: Prisma.ReadingHistoryWhereUniqueInput | Prisma.ReadingHistoryWhereUniqueInput[]
+  update?: Prisma.ReadingHistoryUpdateWithWhereUniqueWithoutUserInput | Prisma.ReadingHistoryUpdateWithWhereUniqueWithoutUserInput[]
+  updateMany?: Prisma.ReadingHistoryUpdateManyWithWhereWithoutUserInput | Prisma.ReadingHistoryUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.ReadingHistoryScalarWhereInput | Prisma.ReadingHistoryScalarWhereInput[]
 }
 
 export type ReadingHistoryCreateWithoutArticleInput = {
   progress?: number
   lastReadAt?: Date | string
   completedAt?: Date | string | null
-  user: Prisma.UserCreateNestedOneWithoutReadingHistoryInput
+  User: Prisma.UserCreateNestedOneWithoutReadingHistoryInput
 }
 
 export type ReadingHistoryUncheckedCreateWithoutArticleInput = {
@@ -582,7 +530,26 @@ export type ReadingHistoryUpdateManyWithWhereWithoutArticleInput = {
   data: Prisma.XOR<Prisma.ReadingHistoryUpdateManyMutationInput, Prisma.ReadingHistoryUncheckedUpdateManyWithoutArticleInput>
 }
 
-export type ReadingHistoryCreateManyUserInput = {
+export type ReadingHistoryScalarWhereInput = {
+  AND?: Prisma.ReadingHistoryScalarWhereInput | Prisma.ReadingHistoryScalarWhereInput[]
+  OR?: Prisma.ReadingHistoryScalarWhereInput[]
+  NOT?: Prisma.ReadingHistoryScalarWhereInput | Prisma.ReadingHistoryScalarWhereInput[]
+  id?: Prisma.IntFilter<"ReadingHistory"> | number
+  userId?: Prisma.IntFilter<"ReadingHistory"> | number
+  articleId?: Prisma.IntFilter<"ReadingHistory"> | number
+  progress?: Prisma.IntFilter<"ReadingHistory"> | number
+  lastReadAt?: Prisma.DateTimeFilter<"ReadingHistory"> | Date | string
+  completedAt?: Prisma.DateTimeNullableFilter<"ReadingHistory"> | Date | string | null
+}
+
+export type ReadingHistoryCreateWithoutUserInput = {
+  progress?: number
+  lastReadAt?: Date | string
+  completedAt?: Date | string | null
+  Article: Prisma.ArticleCreateNestedOneWithoutReadingHistoryInput
+}
+
+export type ReadingHistoryUncheckedCreateWithoutUserInput = {
   id?: number
   articleId: number
   progress?: number
@@ -590,27 +557,29 @@ export type ReadingHistoryCreateManyUserInput = {
   completedAt?: Date | string | null
 }
 
-export type ReadingHistoryUpdateWithoutUserInput = {
-  progress?: Prisma.IntFieldUpdateOperationsInput | number
-  lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  article?: Prisma.ArticleUpdateOneRequiredWithoutReadingHistoryNestedInput
+export type ReadingHistoryCreateOrConnectWithoutUserInput = {
+  where: Prisma.ReadingHistoryWhereUniqueInput
+  create: Prisma.XOR<Prisma.ReadingHistoryCreateWithoutUserInput, Prisma.ReadingHistoryUncheckedCreateWithoutUserInput>
 }
 
-export type ReadingHistoryUncheckedUpdateWithoutUserInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  articleId?: Prisma.IntFieldUpdateOperationsInput | number
-  progress?: Prisma.IntFieldUpdateOperationsInput | number
-  lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+export type ReadingHistoryCreateManyUserInputEnvelope = {
+  data: Prisma.ReadingHistoryCreateManyUserInput | Prisma.ReadingHistoryCreateManyUserInput[]
 }
 
-export type ReadingHistoryUncheckedUpdateManyWithoutUserInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  articleId?: Prisma.IntFieldUpdateOperationsInput | number
-  progress?: Prisma.IntFieldUpdateOperationsInput | number
-  lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+export type ReadingHistoryUpsertWithWhereUniqueWithoutUserInput = {
+  where: Prisma.ReadingHistoryWhereUniqueInput
+  update: Prisma.XOR<Prisma.ReadingHistoryUpdateWithoutUserInput, Prisma.ReadingHistoryUncheckedUpdateWithoutUserInput>
+  create: Prisma.XOR<Prisma.ReadingHistoryCreateWithoutUserInput, Prisma.ReadingHistoryUncheckedCreateWithoutUserInput>
+}
+
+export type ReadingHistoryUpdateWithWhereUniqueWithoutUserInput = {
+  where: Prisma.ReadingHistoryWhereUniqueInput
+  data: Prisma.XOR<Prisma.ReadingHistoryUpdateWithoutUserInput, Prisma.ReadingHistoryUncheckedUpdateWithoutUserInput>
+}
+
+export type ReadingHistoryUpdateManyWithWhereWithoutUserInput = {
+  where: Prisma.ReadingHistoryScalarWhereInput
+  data: Prisma.XOR<Prisma.ReadingHistoryUpdateManyMutationInput, Prisma.ReadingHistoryUncheckedUpdateManyWithoutUserInput>
 }
 
 export type ReadingHistoryCreateManyArticleInput = {
@@ -625,7 +594,7 @@ export type ReadingHistoryUpdateWithoutArticleInput = {
   progress?: Prisma.IntFieldUpdateOperationsInput | number
   lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  user?: Prisma.UserUpdateOneRequiredWithoutReadingHistoryNestedInput
+  User?: Prisma.UserUpdateOneRequiredWithoutReadingHistoryNestedInput
 }
 
 export type ReadingHistoryUncheckedUpdateWithoutArticleInput = {
@@ -644,6 +613,37 @@ export type ReadingHistoryUncheckedUpdateManyWithoutArticleInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
+export type ReadingHistoryCreateManyUserInput = {
+  id?: number
+  articleId: number
+  progress?: number
+  lastReadAt?: Date | string
+  completedAt?: Date | string | null
+}
+
+export type ReadingHistoryUpdateWithoutUserInput = {
+  progress?: Prisma.IntFieldUpdateOperationsInput | number
+  lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  Article?: Prisma.ArticleUpdateOneRequiredWithoutReadingHistoryNestedInput
+}
+
+export type ReadingHistoryUncheckedUpdateWithoutUserInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  articleId?: Prisma.IntFieldUpdateOperationsInput | number
+  progress?: Prisma.IntFieldUpdateOperationsInput | number
+  lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type ReadingHistoryUncheckedUpdateManyWithoutUserInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  articleId?: Prisma.IntFieldUpdateOperationsInput | number
+  progress?: Prisma.IntFieldUpdateOperationsInput | number
+  lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
 
 
 export type ReadingHistorySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -653,8 +653,8 @@ export type ReadingHistorySelect<ExtArgs extends runtime.Types.Extensions.Intern
   progress?: boolean
   lastReadAt?: boolean
   completedAt?: boolean
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  Article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["readingHistory"]>
 
 export type ReadingHistorySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -664,8 +664,8 @@ export type ReadingHistorySelectCreateManyAndReturn<ExtArgs extends runtime.Type
   progress?: boolean
   lastReadAt?: boolean
   completedAt?: boolean
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  Article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["readingHistory"]>
 
 export type ReadingHistorySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -675,8 +675,8 @@ export type ReadingHistorySelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   progress?: boolean
   lastReadAt?: boolean
   completedAt?: boolean
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  Article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["readingHistory"]>
 
 export type ReadingHistorySelectScalar = {
@@ -690,23 +690,23 @@ export type ReadingHistorySelectScalar = {
 
 export type ReadingHistoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "articleId" | "progress" | "lastReadAt" | "completedAt", ExtArgs["result"]["readingHistory"]>
 export type ReadingHistoryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  Article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type ReadingHistoryIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  Article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type ReadingHistoryIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  Article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
+  User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 
 export type $ReadingHistoryPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ReadingHistory"
   objects: {
-    user: Prisma.$UserPayload<ExtArgs>
-    article: Prisma.$ArticlePayload<ExtArgs>
+    Article: Prisma.$ArticlePayload<ExtArgs>
+    User: Prisma.$UserPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1109,8 +1109,8 @@ readonly fields: ReadingHistoryFieldRefs;
  */
 export interface Prisma__ReadingHistoryClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  article<T extends Prisma.ArticleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ArticleDefaultArgs<ExtArgs>>): Prisma.Prisma__ArticleClient<runtime.Types.Result.GetResult<Prisma.$ArticlePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  Article<T extends Prisma.ArticleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ArticleDefaultArgs<ExtArgs>>): Prisma.Prisma__ArticleClient<runtime.Types.Result.GetResult<Prisma.$ArticlePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  User<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.

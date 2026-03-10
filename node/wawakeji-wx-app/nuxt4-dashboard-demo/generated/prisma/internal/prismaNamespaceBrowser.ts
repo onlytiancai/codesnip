@@ -49,18 +49,18 @@ export const AnyNull = runtime.objectEnumValues.instances.AnyNull
 
 
 export const ModelName = {
-  User: 'User',
   Account: 'Account',
-  Category: 'Category',
-  Tag: 'Tag',
   Article: 'Article',
   ArticleTag: 'ArticleTag',
-  Sentence: 'Sentence',
-  ReadingHistory: 'ReadingHistory',
   Bookmark: 'Bookmark',
-  Vocabulary: 'Vocabulary',
+  Category: 'Category',
+  Membership: 'Membership',
+  ReadingHistory: 'ReadingHistory',
+  Sentence: 'Sentence',
+  Tag: 'Tag',
+  User: 'User',
   UserPreferences: 'UserPreferences',
-  Membership: 'Membership'
+  Vocabulary: 'Vocabulary'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -76,21 +76,6 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
-export const UserScalarFieldEnum = {
-  id: 'id',
-  email: 'email',
-  name: 'name',
-  password: 'password',
-  avatar: 'avatar',
-  bio: 'bio',
-  role: 'role',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
-
-
 export const AccountScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -101,35 +86,6 @@ export const AccountScalarFieldEnum = {
 } as const
 
 export type AccountScalarFieldEnum = (typeof AccountScalarFieldEnum)[keyof typeof AccountScalarFieldEnum]
-
-
-export const CategoryScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  slug: 'slug',
-  description: 'description',
-  icon: 'icon',
-  color: 'color',
-  status: 'status',
-  sortOrder: 'sortOrder',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typeof CategoryScalarFieldEnum]
-
-
-export const TagScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  slug: 'slug',
-  description: 'description',
-  color: 'color',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type TagScalarFieldEnum = (typeof TagScalarFieldEnum)[keyof typeof TagScalarFieldEnum]
 
 
 export const ArticleScalarFieldEnum = {
@@ -163,16 +119,41 @@ export const ArticleTagScalarFieldEnum = {
 export type ArticleTagScalarFieldEnum = (typeof ArticleTagScalarFieldEnum)[keyof typeof ArticleTagScalarFieldEnum]
 
 
-export const SentenceScalarFieldEnum = {
+export const BookmarkScalarFieldEnum = {
   id: 'id',
+  userId: 'userId',
   articleId: 'articleId',
-  order: 'order',
-  en: 'en',
-  cn: 'cn',
-  audio: 'audio'
+  createdAt: 'createdAt'
 } as const
 
-export type SentenceScalarFieldEnum = (typeof SentenceScalarFieldEnum)[keyof typeof SentenceScalarFieldEnum]
+export type BookmarkScalarFieldEnum = (typeof BookmarkScalarFieldEnum)[keyof typeof BookmarkScalarFieldEnum]
+
+
+export const CategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+  icon: 'icon',
+  color: 'color',
+  status: 'status',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typeof CategoryScalarFieldEnum]
+
+
+export const MembershipScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  plan: 'plan',
+  startDate: 'startDate',
+  endDate: 'endDate'
+} as const
+
+export type MembershipScalarFieldEnum = (typeof MembershipScalarFieldEnum)[keyof typeof MembershipScalarFieldEnum]
 
 
 export const ReadingHistoryScalarFieldEnum = {
@@ -187,30 +168,44 @@ export const ReadingHistoryScalarFieldEnum = {
 export type ReadingHistoryScalarFieldEnum = (typeof ReadingHistoryScalarFieldEnum)[keyof typeof ReadingHistoryScalarFieldEnum]
 
 
-export const BookmarkScalarFieldEnum = {
+export const SentenceScalarFieldEnum = {
   id: 'id',
-  userId: 'userId',
   articleId: 'articleId',
-  createdAt: 'createdAt'
+  order: 'order',
+  en: 'en',
+  cn: 'cn',
+  audio: 'audio'
 } as const
 
-export type BookmarkScalarFieldEnum = (typeof BookmarkScalarFieldEnum)[keyof typeof BookmarkScalarFieldEnum]
+export type SentenceScalarFieldEnum = (typeof SentenceScalarFieldEnum)[keyof typeof SentenceScalarFieldEnum]
 
 
-export const VocabularyScalarFieldEnum = {
+export const TagScalarFieldEnum = {
   id: 'id',
-  userId: 'userId',
-  word: 'word',
-  phonetic: 'phonetic',
-  definition: 'definition',
-  example: 'example',
-  progress: 'progress',
-  articleId: 'articleId',
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+  color: 'color',
   createdAt: 'createdAt',
-  lastReviewAt: 'lastReviewAt'
+  updatedAt: 'updatedAt'
 } as const
 
-export type VocabularyScalarFieldEnum = (typeof VocabularyScalarFieldEnum)[keyof typeof VocabularyScalarFieldEnum]
+export type TagScalarFieldEnum = (typeof TagScalarFieldEnum)[keyof typeof TagScalarFieldEnum]
+
+
+export const UserScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  name: 'name',
+  password: 'password',
+  avatar: 'avatar',
+  role: 'role',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  bio: 'bio'
+} as const
+
+export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
 export const UserPreferencesScalarFieldEnum = {
@@ -231,15 +226,20 @@ export const UserPreferencesScalarFieldEnum = {
 export type UserPreferencesScalarFieldEnum = (typeof UserPreferencesScalarFieldEnum)[keyof typeof UserPreferencesScalarFieldEnum]
 
 
-export const MembershipScalarFieldEnum = {
+export const VocabularyScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  plan: 'plan',
-  startDate: 'startDate',
-  endDate: 'endDate'
+  word: 'word',
+  phonetic: 'phonetic',
+  definition: 'definition',
+  example: 'example',
+  progress: 'progress',
+  articleId: 'articleId',
+  createdAt: 'createdAt',
+  lastReviewAt: 'lastReviewAt'
 } as const
 
-export type MembershipScalarFieldEnum = (typeof MembershipScalarFieldEnum)[keyof typeof MembershipScalarFieldEnum]
+export type VocabularyScalarFieldEnum = (typeof VocabularyScalarFieldEnum)[keyof typeof VocabularyScalarFieldEnum]
 
 
 export const SortOrder = {

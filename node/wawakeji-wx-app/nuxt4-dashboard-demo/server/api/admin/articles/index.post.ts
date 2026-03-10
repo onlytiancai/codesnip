@@ -62,30 +62,31 @@ export default defineEventHandler(async (event) => {
       metaDesc: data.metaDesc,
       categoryId: data.categoryId,
       authorId: session.user.id,
-      tags: data.tagIds ? {
+      ArticleTag: data.tagIds ? {
         create: data.tagIds.map(tagId => ({
-          tag: { connect: { id: tagId } }
+          Tag: { connect: { id: tagId } }
         }))
       } : undefined,
-      sentences: data.sentences ? {
+      Sentence: data.sentences ? {
         createMany: {
           data: data.sentences
         }
       } : undefined
     },
     include: {
-      category: true,
-      tags: {
+      Category: true,
+      ArticleTag: {
         include: {
-          tag: true
+          Tag: true
         }
       },
-      sentences: true
+      Sentence: true
     }
   })
 
   return {
     ...article,
-    tags: article.tags.map(t => t.tag)
+    tags: article.ArticleTag.map(t => t.Tag),
+    sentences: article.Sentence
   }
 })

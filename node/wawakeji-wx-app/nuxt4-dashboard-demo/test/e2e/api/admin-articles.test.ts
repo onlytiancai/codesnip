@@ -7,6 +7,7 @@ import {
   createTestTag,
   createTestArticle,
   cleanupDatabase,
+  clearAuthCookies,
   prisma,
 } from '../../setup-e2e'
 
@@ -185,7 +186,7 @@ describe('Admin Articles API', () => {
 
     it('should return 401 without auth', async () => {
       // Clear cookies
-      ;(globalThis as any).testCookies = undefined
+      clearAuthCookies()
 
       const response = await apiRequest('/api/admin/articles', {
         method: 'POST',

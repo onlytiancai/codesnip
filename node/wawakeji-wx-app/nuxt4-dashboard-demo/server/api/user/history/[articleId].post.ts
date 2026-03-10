@@ -28,7 +28,18 @@ export default defineEventHandler(async (event) => {
     progress: z.number().min(0).max(100).optional()
   })
 
-  const parsed = schema.parse(body)
+  let parsed
+  try {
+    parsed = schema.parse(body)
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw createError({
+        statusCode: 400,
+        message: error.errors?.[0]?.message || 'Validation failed'
+      })
+    }
+    throw error
+  }
   const progress = parsed.progress ?? 0
 
   // Check if article exists

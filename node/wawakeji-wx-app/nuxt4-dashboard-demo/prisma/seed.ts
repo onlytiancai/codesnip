@@ -13,7 +13,9 @@ async function main() {
   const adminPassword = await bcrypt.hash('admin123', 10)
   const admin = await prisma.user.upsert({
     where: { email: 'admin@example.com' },
-    update: {},
+    update: {
+      password: adminPassword, // Update password in case it changed
+    },
     create: {
       email: 'admin@example.com',
       name: 'Admin User',
@@ -30,7 +32,9 @@ async function main() {
   const userPassword = await bcrypt.hash('user123', 10)
   const user = await prisma.user.upsert({
     where: { email: 'user@example.com' },
-    update: {},
+    update: {
+      password: userPassword, // Update password in case it changed
+    },
     create: {
       email: 'user@example.com',
       name: 'Test User',
@@ -209,13 +213,13 @@ The future of AI in healthcare looks bright, with potential applications ranging
       authorId: admin.id,
       views: 2340,
       bookmarks: 156,
-      tags: {
+      ArticleTag: {
         create: [
           { tagId: tags[0].id },
           { tagId: tags[3].id }
         ]
       },
-      sentences: {
+      Sentence: {
         createMany: {
           data: [
             { order: 0, en: 'Artificial intelligence is transforming the healthcare industry.', cn: '人工智能正在改变医疗行业。' },

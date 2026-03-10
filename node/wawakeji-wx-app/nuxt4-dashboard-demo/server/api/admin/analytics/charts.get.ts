@@ -29,11 +29,11 @@ export default defineEventHandler(async (event) => {
   const categoryDistribution = await prisma.category.findMany({
     include: {
       _count: {
-        select: { articles: true }
+        select: { Article: true }
       }
     },
     orderBy: {
-      articles: { _count: 'desc' }
+      Article: { _count: 'desc' }
     },
     take: 10
   })
@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
     take: 5,
     orderBy: { views: 'desc' },
     include: {
-      category: true
+      Category: true
     }
   })
 
@@ -57,11 +57,11 @@ export default defineEventHandler(async (event) => {
   const tagUsage = await prisma.tag.findMany({
     include: {
       _count: {
-        select: { articles: true }
+        select: { ArticleTag: true }
       }
     },
     orderBy: {
-      articles: { _count: 'desc' }
+      ArticleTag: { _count: 'desc' }
     },
     take: 10
   })
@@ -77,7 +77,7 @@ export default defineEventHandler(async (event) => {
     })),
     categoryDistribution: categoryDistribution.map(c => ({
       name: c.name,
-      count: c._count.articles
+      count: c._count.Article
     })),
     difficultyDistribution: difficultyDistribution.map(d => ({
       difficulty: d.difficulty,
@@ -86,7 +86,7 @@ export default defineEventHandler(async (event) => {
     topArticles,
     tagUsage: tagUsage.map(t => ({
       ...t,
-      articleCount: t._count.articles
+      articleCount: t._count.ArticleTag
     }))
   }
 })

@@ -48,8 +48,8 @@ export default defineEventHandler(async (event) => {
     take: 5,
     orderBy: { createdAt: 'desc' },
     include: {
-      category: true,
-      author: {
+      Category: true,
+      User: {
         select: {
           id: true,
           name: true

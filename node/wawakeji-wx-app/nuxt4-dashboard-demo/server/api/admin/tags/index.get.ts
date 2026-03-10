@@ -17,13 +17,13 @@ export default defineEventHandler(async (event) => {
     orderBy: { name: 'asc' },
     include: {
       _count: {
-        select: { articles: true }
+        select: { ArticleTag: true }
       }
     }
   })
 
   return tags.map(tag => ({
     ...tag,
-    articleCount: tag._count.articles
+    articleCount: tag._count.ArticleTag
   }))
 })

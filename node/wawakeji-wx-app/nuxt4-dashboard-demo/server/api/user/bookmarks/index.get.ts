@@ -25,9 +25,9 @@ export default defineEventHandler(async (event) => {
       take: limit,
       orderBy: { createdAt: 'desc' },
       include: {
-        article: {
+        Article: {
           include: {
-            category: {
+            Category: {
               select: { id: true, name: true, slug: true }
             }
           }
@@ -41,14 +41,14 @@ export default defineEventHandler(async (event) => {
     bookmarks: bookmarks.map(b => ({
       id: b.id,
       articleId: b.articleId,
-      title: b.article.title,
-      slug: b.article.slug,
-      cover: b.article.cover,
-      excerpt: b.article.excerpt,
-      difficulty: b.article.difficulty,
-      category: b.article.category,
+      title: b.Article.title,
+      slug: b.Article.slug,
+      cover: b.Article.cover,
+      excerpt: b.Article.excerpt,
+      difficulty: b.Article.difficulty,
+      category: b.Article.Category,
       createdAt: b.createdAt,
-      readTime: Math.ceil(b.article.content?.split(' ').length / 200 || 8)
+      readTime: Math.ceil(b.Article.content?.split(' ').length / 200 || 8)
     })),
     pagination: {
       page,

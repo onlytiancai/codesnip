@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
   const history = await prisma.readingHistory.findMany({
     where: { userId },
     include: {
-      article: {
+      Article: {
         select: { content: true }
       }
     }
@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
 
   let totalMinutes = 0
   for (const h of history) {
-    const wordCount = h.article.content?.split(' ').length || 0
+    const wordCount = h.Article.content?.split(' ').length || 0
     const estimatedMinutes = Math.ceil(wordCount / 200 * (h.progress / 100))
     totalMinutes += estimatedMinutes
   }
