@@ -8,7 +8,13 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "test": "vitest",
+    "test:unit": "vitest --config vitest.config.ts",
+    "test:e2e": "vitest --config vitest.e2e.config.ts",
+    "test:ui": "vitest --ui",
+    "test:e2e:browser": "pnpm db:seed && playwright test",
+    "test:all": "vitest --run && vitest --config vitest.e2e.config.ts --run"
   },
   "dependencies": {
     "@nuxt/ui": "^4.5.0",
@@ -27,10 +33,16 @@
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.94",
     "@nuxt/icon": "^2.2.1",
+    "@nuxt/test-utils": "^4.0.0",
+    "@playwright/test": "^1.58.2",
     "@types/bcryptjs": "^3.0.0",
     "@types/better-sqlite3": "^7.6.13",
+    "@vitest/ui": "^4.0.18",
+    "@vue/test-utils": "^2.4.6",
+    "happy-dom": "^20.8.3",
     "prisma": "^6.19.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^4.0.18"
   }
 }
