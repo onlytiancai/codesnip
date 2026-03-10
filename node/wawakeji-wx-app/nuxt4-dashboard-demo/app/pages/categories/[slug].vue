@@ -135,7 +135,7 @@ const difficulties = [
 const slug = computed(() => route.params.slug as string)
 
 // Fetch category
-const { data: categoryData, pending: pendingCategory, error: categoryError } = await useFetch(`/api/categories/${slug.value}.get`)
+const { data: categoryData, pending: pendingCategory, error: categoryError } = await useFetch(`/api/categories/${slug.value}`)
 
 const category = computed(() => categoryData.value?.category || null)
 
@@ -152,7 +152,7 @@ const articlesQuery = computed(() => {
 })
 
 // Fetch articles for this category
-const { data: articlesData, pending: pendingArticles } = await useFetch(`/api/categories/${slug.value}.get`, {
+const { data: articlesData, pending: pendingArticles } = await useFetch(`/api/categories/${slug.value}`, {
   query: articlesQuery
 })
 

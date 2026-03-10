@@ -14,22 +14,24 @@
       </div>
 
       <!-- Current Plan Status -->
-      <div v-if="loggedIn && membership" class="max-w-md mx-auto mb-8">
-        <UCard class="bg-primary/5 border-primary/20">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>
-              <p class="text-lg font-semibold capitalize">{{ membership.plan }}</p>
+      <ClientOnly>
+        <div v-if="loggedIn && membership" class="max-w-md mx-auto mb-8">
+          <UCard class="bg-primary/5 border-primary/20">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>
+                <p class="text-lg font-semibold capitalize">{{ membership.plan }}</p>
+              </div>
+              <UBadge :color="membership.plan === 'free' ? 'neutral' : 'primary'">
+                {{ membership.plan === 'free' ? 'Free' : 'Premium' }}
+              </UBadge>
             </div>
-            <UBadge :color="membership.plan === 'free' ? 'neutral' : 'primary'">
-              {{ membership.plan === 'free' ? 'Free' : 'Premium' }}
-            </UBadge>
-          </div>
-          <p v-if="membership.endDate" class="text-sm text-gray-500 mt-2">
-            Valid until {{ formatDate(membership.endDate) }}
-          </p>
-        </UCard>
-      </div>
+            <p v-if="membership.endDate" class="text-sm text-gray-500 mt-2">
+              Valid until {{ formatDate(membership.endDate) }}
+            </p>
+          </UCard>
+        </div>
+      </ClientOnly>
 
       <!-- Pricing Cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -65,13 +67,15 @@
             </li>
           </ul>
           <template #footer>
-            <UButton
-              block
-              variant="outline"
-              :disabled="membership?.plan === 'free'"
-            >
-              {{ membership?.plan === 'free' ? 'Current Plan' : 'Downgrade' }}
-            </UButton>
+            <ClientOnly>
+              <UButton
+                block
+                variant="outline"
+                :disabled="membership?.plan === 'free'"
+              >
+                {{ membership?.plan === 'free' ? 'Current Plan' : 'Downgrade' }}
+              </UButton>
+            </ClientOnly>
           </template>
         </UCard>
 
@@ -113,15 +117,17 @@
             </li>
           </ul>
           <template #footer>
-            <UButton
-              block
-              color="primary"
-              :loading="upgrading === 'pro'"
-              :disabled="membership?.plan === 'premium'"
-              @click="handleUpgrade('pro')"
-            >
-              {{ membership?.plan === 'premium' ? 'Current Plan' : 'Upgrade to Pro' }}
-            </UButton>
+            <ClientOnly>
+              <UButton
+                block
+                color="primary"
+                :loading="upgrading === 'pro'"
+                :disabled="membership?.plan === 'premium'"
+                @click="handleUpgrade('pro')"
+              >
+                {{ membership?.plan === 'premium' ? 'Current Plan' : 'Upgrade to Pro' }}
+              </UButton>
+            </ClientOnly>
           </template>
         </UCard>
 
@@ -224,7 +230,7 @@ const membership = ref<any>(null)
 watchEffect(async () => {
   if (loggedIn.value && user.value) {
     try {
-      const profile = await $fetch('/api/user/profile.get')
+      const profile = await $fetch('/api/user/profile')
       membership.value = profile.membership
     } catch (e) {
       // Ignore
@@ -245,7 +251,7 @@ const handleUpgrade = async (plan: string) => {
 
   upgrading.value = plan
   try {
-    await $fetch('/api/user/membership.post', {
+    await $fetch('/api/user/membership', {
       method: 'POST',
       body: { plan }
     })
@@ -255,7 +261,7 @@ const handleUpgrade = async (plan: string) => {
       color: 'success'
     })
     // Refresh membership
-    const profile = await $fetch('/api/user/profile.get')
+    const profile = await $fetch('/api/user/profile')
     membership.value = profile.membership
   } catch (error) {
     toast.add({

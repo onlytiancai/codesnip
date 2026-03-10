@@ -134,7 +134,7 @@ const difficulties = [
 ]
 
 // Fetch categories for filter buttons
-const { data: categoriesData } = await useFetch('/api/categories/index.get')
+const { data: categoriesData } = await useFetch('/api/categories')
 watchEffect(() => {
   if (categoriesData.value) {
     categoryFilters.value = [
@@ -166,7 +166,7 @@ const articlesQuery = computed(() => {
 })
 
 // Fetch articles
-const { data, pending } = await useFetch('/api/articles/index.get', {
+const { data, pending } = await useFetch('/api/articles', {
   query: articlesQuery
 })
 

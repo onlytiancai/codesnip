@@ -145,11 +145,11 @@
 
 <script setup lang="ts">
 // Fetch categories
-const { data: categoriesData, pending: pendingCategories } = await useFetch('/api/categories/index.get')
+const { data: categoriesData, pending: pendingCategories } = await useFetch('/api/categories')
 const categories = computed(() => categoriesData.value || [])
 
 // Fetch recommended articles
-const { data: articlesData, pending: pendingArticles } = await useFetch('/api/articles/index.get', {
+const { data: articlesData, pending: pendingArticles } = await useFetch('/api/articles', {
   query: { limit: 6 }
 })
 const articles = computed(() => articlesData.value?.articles || [])

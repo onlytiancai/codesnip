@@ -167,14 +167,14 @@ const bookmarkPending = ref(false)
 const slug = computed(() => route.params.id as string)
 
 // Fetch article
-const { data, pending, error } = await useFetch(`/api/articles/${slug.value}.get`)
+const { data, pending, error } = await useFetch(`/api/articles/${slug.value}`)
 const article = computed(() => data.value)
 
 // Check if article is bookmarked
 watchEffect(async () => {
   if (loggedIn.value && article.value) {
     try {
-      const bookmarks = await $fetch('/api/user/bookmarks/index.get')
+      const bookmarks = await $fetch('/api/user/bookmarks')
       isBookmarked.value = bookmarks.some((b: any) => b.articleId === article.value?.id)
     } catch (e) {
       // Ignore errors
@@ -198,11 +198,11 @@ const toggleBookmark = async () => {
   bookmarkPending.value = true
   try {
     if (isBookmarked.value) {
-      await $fetch(`/api/user/bookmarks/${article.value.id}.delete`, { method: 'DELETE' })
+      await $fetch(`/api/user/bookmarks/${article.value.id}`, { method: 'DELETE' })
       isBookmarked.value = false
       toast.add({ title: 'Removed from bookmarks', color: 'success' })
     } else {
-      await $fetch(`/api/user/bookmarks/${article.value.id}.post`, { method: 'POST' })
+      await $fetch(`/api/user/bookmarks/${article.value.id}`, { method: 'POST' })
       isBookmarked.value = true
       toast.add({ title: 'Added to bookmarks', color: 'success' })
     }
@@ -216,7 +216,7 @@ const toggleBookmark = async () => {
 // Track reading progress
 watchEffect(() => {
   if (loggedIn.value && article.value) {
-    $fetch(`/api/user/history/${article.value.id}.post`, {
+    $fetch(`/api/user/history/${article.value.id}`, {
       method: 'POST',
       body: { progress: 0 }
     }).catch(() => {})
