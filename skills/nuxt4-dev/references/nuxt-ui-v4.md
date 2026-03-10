@@ -2,6 +2,15 @@
 
 Nuxt UI v4 (currently v3.x evolving to v4) is a comprehensive UI component library built on top of Tailwind CSS v4 and Reka UI. This guide covers common pitfalls and best practices.
 
+## Version Compatibility
+
+| Package | Version | Notes |
+|---------|---------|-------|
+| @nuxt/ui | ^4.5.0 | Component library (v4 evolving) |
+| lucide icons | ^1.2.94 | Via @nuxt/icon, use `lucide-*` icon names |
+
+**Important:** Nuxt UI v4 components require `title` and `description` props for modals (accessibility requirement from Reka UI).
+
 ## Installation
 
 ```bash

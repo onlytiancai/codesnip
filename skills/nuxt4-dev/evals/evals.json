@@ -5,61 +5,346 @@
       "id": 1,
       "name": "prisma-initial-setup",
       "prompt": "I'm starting a new Nuxt 4 project and need to set up Prisma with SQLite. Walk me through the complete setup process from installation to having a working User model.",
-      "expected_output": "Step-by-step guide covering: 1) Installing prisma and dependencies, 2) Running prisma init, 3) Configuring schema.prisma for SQLite, 4) Creating a User model with common fields, 5) Running migrations, 6) Setting up db.ts singleton pattern for Nuxt 4"
+      "expected_output": "Step-by-step guide covering: 1) Installing prisma and dependencies, 2) Running prisma init, 3) Configuring schema.prisma for SQLite, 4) Creating a User model with common fields, 5) Running migrations, 6) Setting up db.ts singleton pattern for Nuxt 4",
+      "assertions": [
+        {
+          "name": "installs-prisma-dependencies",
+          "type": "regex",
+          "pattern": "pnpm add prisma @prisma/client"
+        },
+        {
+          "name": "mentions-better-sqlite3-adapter",
+          "type": "regex",
+          "pattern": "@prisma/adapter-better-sqlite3|better-sqlite3"
+        },
+        {
+          "name": "configures-sqlite-datasource",
+          "type": "regex",
+          "pattern": "provider\\s*=\\s*[\"']sqlite[\"']"
+        },
+        {
+          "name": "creates-user-model",
+          "type": "regex",
+          "pattern": "model User"
+        },
+        {
+          "name": "runs-migration-command",
+          "type": "regex",
+          "pattern": "pnpm prisma migrate dev"
+        },
+        {
+          "name": "creates-db-singleton",
+          "type": "regex",
+          "pattern": "prismaClientSingleton|globalForPrisma|globalThis"
+        }
+      ]
     },
     {
       "id": 2,
       "name": "nuxt-ui-table-columns-error",
       "prompt": "I'm getting an error 'Columns require an id when using a non-string header' when using UTable in Nuxt UI v4. My column definition uses 'key' property. How do I fix this?",
-      "expected_output": "Explain that Nuxt UI v4 uses TanStack Table which requires 'id' instead of 'key'. Show the correct column definition format with id and accessorKey properties."
+      "expected_output": "Explain that Nuxt UI v4 uses TanStack Table which requires 'id' instead of 'key'. Show the correct column definition format with id and accessorKey properties.",
+      "assertions": [
+        {
+          "name": "mentions-id-not-key",
+          "type": "regex",
+          "pattern": "use `id` instead of `key`|replace `key` with `id`|requires `id`"
+        },
+        {
+          "name": "shows-accessorkey-usage",
+          "type": "regex",
+          "pattern": "accessorKey"
+        },
+        {
+          "name": "mentions-tanstack-table",
+          "type": "regex",
+          "pattern": "TanStack Table"
+        },
+        {
+          "name": "provides-correct-column-example",
+          "type": "regex",
+          "pattern": "\\{\\s*id:\\s*['\"]\\w+['\"]"
+        }
+      ]
     },
     {
       "id": 3,
       "name": "nuxt-ui-modal-accessibility",
       "prompt": "My UModal component shows accessibility warnings about missing DialogTitle and Description. I'm using the #header slot with an h3 tag. How should I restructure my modal?",
-      "expected_output": "Explain that Nuxt UI v4 requires title and description props for accessibility. Show how to replace #header slot with title/description props and use #body and #footer slots for content."
+      "expected_output": "Explain that Nuxt UI v4 requires title and description props for accessibility. Show how to replace #header slot with title/description props and use #body and #footer slots for content.",
+      "assertions": [
+        {
+          "name": "mentions-title-prop",
+          "type": "regex",
+          "pattern": "title"
+        },
+        {
+          "name": "mentions-description-prop",
+          "type": "regex",
+          "pattern": "description"
+        },
+        {
+          "name": "shows-body-slot",
+          "type": "regex",
+          "pattern": "#body|v-slot:body"
+        },
+        {
+          "name": "shows-footer-slot",
+          "type": "regex",
+          "pattern": "#footer|v-slot:footer"
+        },
+        {
+          "name": "mentions-accessibility",
+          "type": "regex",
+          "pattern": "accessibility|screen reader|a11y"
+        }
+      ]
     },
     {
       "id": 4,
       "name": "prisma-migration-after-schema-change",
       "prompt": "I just added a new 'status' field to my Article model in schema.prisma. What commands do I need to run to update my database?",
-      "expected_output": "Explain the migration workflow: 1) Run 'pnpm prisma migrate dev' for development, 2) Run 'pnpm prisma generate' to regenerate client, 3) For production use 'pnpm prisma migrate deploy'"
+      "expected_output": "Explain the migration workflow: 1) Run 'pnpm prisma migrate dev' for development, 2) Run 'pnpm prisma generate' to regenerate client, 3) For production use 'pnpm prisma migrate deploy'",
+      "assertions": [
+        {
+          "name": "runs-migrate-dev",
+          "type": "regex",
+          "pattern": "pnpm prisma migrate dev"
+        },
+        {
+          "name": "runs-prisma-generate",
+          "type": "regex",
+          "pattern": "pnpm prisma generate"
+        },
+        {
+          "name": "mentions-deploy-for-production",
+          "type": "regex",
+          "pattern": "pnpm prisma migrate deploy"
+        }
+      ]
     },
     {
       "id": 5,
       "name": "setup-email-auth-registration",
       "prompt": "I need to implement user registration with email and password in my Nuxt 4 app using nuxt-auth-utils. Create the API endpoint with proper validation and password hashing.",
-      "expected_output": "Create server/api/auth/register.post.ts with: Zod validation for email/password/confirmPassword, check for existing user, bcrypt password hashing, user creation via Prisma, and session setting with setUserSession"
+      "expected_output": "Create server/api/auth/register.post.ts with: Zod validation for email/password/confirmPassword, check for existing user, bcrypt password hashing, user creation via Prisma, and session setting with setUserSession",
+      "assertions": [
+        {
+          "name": "imports-zod",
+          "type": "regex",
+          "pattern": "import.*z.*from.*zod"
+        },
+        {
+          "name": "validates-email",
+          "type": "regex",
+          "pattern": "email.*z\\.string\\(\\)\\.email|z\\.string\\(\\)\\.email.*email"
+        },
+        {
+          "name": "validates-password-min-length",
+          "type": "regex",
+          "pattern": "password.*\\.min\\([6-9]"
+        },
+        {
+          "name": "validates-confirm-password",
+          "type": "regex",
+          "pattern": "confirmPassword|refine.*password"
+        },
+        {
+          "name": "checks-existing-user",
+          "type": "regex",
+          "pattern": "findUserByEmail|existingUser"
+        },
+        {
+          "name": "hashes-password",
+          "type": "regex",
+          "pattern": "dbHashPassword|bcrypt\\.hash"
+        },
+        {
+          "name": "sets-user-session",
+          "type": "regex",
+          "pattern": "setUserSession"
+        }
+      ]
     },
     {
       "id": 6,
       "name": "setup-github-oauth",
       "prompt": "Help me set up GitHub OAuth authentication in my Nuxt 4 project. I already have the GitHub OAuth app created with client ID and secret.",
-      "expected_output": "Guide covering: 1) Environment variables setup, 2) Create server/routes/auth/github.get.ts callback handler, 3) Exchange code for token, 4) Fetch GitHub user profile, 5) Create or link user account, 6) Set session and redirect"
+      "expected_output": "Guide covering: 1) Environment variables setup, 2) Create server/routes/auth/github.get.ts callback handler, 3) Exchange code for token, 4) Fetch GitHub user profile, 5) Create or link user account, 6) Set session and redirect",
+      "assertions": [
+        {
+          "name": "mentions-env-variables",
+          "type": "regex",
+          "pattern": "GITHUB_CLIENT_ID|GITHUB_CLIENT_SECRET|process\\.env\\."
+        },
+        {
+          "name": "creates-github-route",
+          "type": "regex",
+          "pattern": "server/routes/auth/github|auth/github\\.get"
+        },
+        {
+          "name": "exchanges-code-for-token",
+          "type": "regex",
+          "pattern": "access_token|exchange.*code"
+        },
+        {
+          "name": "fetches-github-profile",
+          "type": "regex",
+          "pattern": "api\\.github\\.com/user|userProfile|user\\.email"
+        },
+        {
+          "name": "links-oauth-account",
+          "type": "regex",
+          "pattern": "linkOAuthAccount|findUserByOAuth"
+        },
+        {
+          "name": "handles-existing-email",
+          "type": "regex",
+          "pattern": "findUserByEmail"
+        },
+        {
+          "name": "sets-session-and-redirects",
+          "type": "regex",
+          "pattern": "setUserSession.*sendRedirect|sendRedirect"
+        }
+      ]
     },
     {
       "id": 7,
       "name": "write-unit-test-component",
       "prompt": "I want to write a unit test for my login form component using Vitest. Show me how to structure the test file and test email validation.",
-      "expected_output": "Create test/unit/components/login.test.ts with: describe/it blocks, email regex validation tests, password length validation tests, proper vitest imports and structure"
+      "expected_output": "Create test/unit/components/login.test.ts with: describe/it blocks, email regex validation tests, password length validation tests, proper vitest imports and structure",
+      "assertions": [
+        {
+          "name": "imports-vitest",
+          "type": "regex",
+          "pattern": "import.*from.*vitest"
+        },
+        {
+          "name": "uses-describe-blocks",
+          "type": "regex",
+          "pattern": "describe\\("
+        },
+        {
+          "name": "uses-it-blocks",
+          "type": "regex",
+          "pattern": "it\\(|test\\("
+        },
+        {
+          "name": "tests-email-validation",
+          "type": "regex",
+          "pattern": "email.*test|valid.*email|invalid.*email"
+        },
+        {
+          "name": "tests-password-length",
+          "type": "regex",
+          "pattern": "password.*length|min.*[6-9]|minimum"
+        }
+      ]
     },
     {
       "id": 8,
       "name": "write-e2e-browser-test",
       "prompt": "I need to write a Playwright E2E test that logs in with valid credentials and verifies the user is redirected to the homepage.",
-      "expected_output": "Create test in test/e2e/browser/ with: Playwright imports, page.goto for login, fill email/password, click submit button, expect URL to match homepage pattern"
+      "expected_output": "Create test in test/e2e/browser/ with: Playwright imports, page.goto for login, fill email/password, click submit button, expect URL to match homepage pattern",
+      "assertions": [
+        {
+          "name": "imports-playwright",
+          "type": "regex",
+          "pattern": "import.*from.*@playwright/test"
+        },
+        {
+          "name": "uses-page-goto",
+          "type": "regex",
+          "pattern": "page\\.goto"
+        },
+        {
+          "name": "fills-email-field",
+          "type": "regex",
+          "pattern": "fill.*email|page\\.locator.*email"
+        },
+        {
+          "name": "fills-password-field",
+          "type": "regex",
+          "pattern": "fill.*password|page\\.locator.*password"
+        },
+        {
+          "name": "clicks-submit-button",
+          "type": "regex",
+          "pattern": "click.*submit|\\.click\\(\\)"
+        },
+        {
+          "name": "expects-homepage-redirect",
+          "type": "regex",
+          "pattern": "expect.*URL|toHaveURL|\\/.*$"
+        }
+      ]
     },
     {
       "id": 9,
       "name": "tailwind-v4-configuration",
       "prompt": "How do I configure Tailwind CSS v4 in my Nuxt 4 project? What's different from v3?",
-      "expected_output": "Explain: 1) Single @import 'tailwindcss' instead of @tailwind directives, 2) CSS-first configuration with @theme, 3) No tailwind.config.js needed for basic setup, 4) Integration with Nuxt UI"
+      "expected_output": "Explain: 1) Single @import 'tailwindcss' instead of @tailwind directives, 2) CSS-first configuration with @theme, 3) No tailwind.config.js needed for basic setup, 4) Integration with Nuxt UI",
+      "assertions": [
+        {
+          "name": "mentions-import-tailwindcss",
+          "type": "regex",
+          "pattern": "@import [\"']tailwindcss[\"']"
+        },
+        {
+          "name": "explains-no-tailwind-directives",
+          "type": "regex",
+          "pattern": "@tailwind base|no more @tailwind|instead of @tailwind"
+        },
+        {
+          "name": "mentions-theme-configuration",
+          "type": "regex",
+          "pattern": "@theme"
+        },
+        {
+          "name": "mentions-no-config-file",
+          "type": "regex",
+          "pattern": "tailwind\\.config|no.*config.*needed"
+        },
+        {
+          "name": "mentions-nuxt-ui-integration",
+          "type": "regex",
+          "pattern": "@nuxt/ui|Nuxt UI"
+        }
+      ]
     },
     {
       "id": 10,
       "name": "prisma-create-with-relations",
       "prompt": "I need to create an Article with associated tags (many-to-many). The tagIds come from the request body. Show me how to do this with Prisma.",
-      "expected_output": "Show two approaches: 1) Create article then createMany for articleTag join table, or 2) Use nested create with tags.create array. Include proper transaction usage."
+      "expected_output": "Show two approaches: 1) Create article then createMany for articleTag join table, or 2) Use nested create with tags.create array. Include proper transaction usage.",
+      "assertions": [
+        {
+          "name": "creates-article",
+          "type": "regex",
+          "pattern": "prisma\\.article\\.create"
+        },
+        {
+          "name": "handles-tag-relations",
+          "type": "regex",
+          "pattern": "articleTag|ArticleTag"
+        },
+        {
+          "name": "uses-create-many",
+          "type": "regex",
+          "pattern": "createMany"
+        },
+        {
+          "name": "mentions-nested-create",
+          "type": "regex",
+          "pattern": "tags:\\s*\\{\\s*create"
+        },
+        {
+          "name": "uses-transaction",
+          "type": "regex",
+          "pattern": "\\$transaction|prisma\\.\\$transaction"
+        }
+      ]
     }
   ]
 }

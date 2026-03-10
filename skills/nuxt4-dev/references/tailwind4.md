@@ -2,6 +2,16 @@
 
 Tailwind CSS v4 introduces significant changes from v3. This guide covers the key differences and how to use Tailwind v4 in Nuxt 4 projects.
 
+## Version Compatibility
+
+| Package | Version | Notes |
+|---------|---------|-------|
+| tailwindcss | ^4.2.1 | CSS-first configuration, single @import |
+| @nuxt/ui | ^4.5.0 | Built on Tailwind v4 and Reka UI |
+| @nuxt/icon | ^2.2.1 | Icon component (uses Iconify) |
+
+**Key Change from v3:** No more `tailwind.config.js` - configuration is done in CSS using `@theme`
+
 ## Installation
 
 Tailwind v4 is installed as a direct dependency:

@@ -2,13 +2,15 @@
 name: nuxt4-dev
 description: |
   Full-stack Nuxt 4 development skill. Use this skill whenever working on a Nuxt 4 project needing help with:
-  - Project setup and configuration
-  - Tailwind CSS v4 integration
-  - Nuxt UI v3/v4 components (UTable, UModal)
-  - Prisma ORM setup, migrations, and queries
-  - Authentication with nuxt-auth-utils (email/password, OAuth)
-  - Testing with Vitest and Playwright
-  Covers the complete workflow from initialization to deployment.
+  - Project setup and configuration (Nuxt 4.x, nuxt.config.ts, app/ directory structure)
+  - Tailwind CSS v4 integration (@nuxt/ui v4.5+, CSS-first configuration)
+  - Nuxt UI v3/v4 components (UTable with id/accessorKey, UModal with title/description props)
+  - Prisma ORM setup (v6.x, better-sqlite3 adapter, migrations, singleton db.ts pattern)
+  - Authentication with nuxt-auth-utils (v0.5.x, email/password, OAuth GitHub/Google)
+  - Testing with Vitest (v4.x) and Playwright (v1.58+)
+  - Admin dashboard patterns (role-based access, protected routes, data tables)
+
+  Make sure to use this skill whenever the user mentions Nuxt, even if they just say "add a table", "set up login", or "create a dashboard" - this skill covers the complete workflow from initialization to deployment.
 ---
 
 # Nuxt 4 Full-Stack Development Guide

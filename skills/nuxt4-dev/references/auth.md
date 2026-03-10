@@ -2,6 +2,17 @@
 
 Complete guide to implementing authentication in Nuxt 4 using nuxt-auth-utils, including email/password login, registration, and OAuth (GitHub, Google).
 
+## Version Compatibility
+
+| Package | Version | Notes |
+|---------|---------|-------|
+| nuxt-auth-utils | ^0.5.29 | Use `defineOAuthGitHubEventHandler` and `defineOAuthGoogleEventHandler` |
+| nuxt | ^4.3.1 | Nuxt 4 uses `app/` directory structure |
+| @nuxt/ui | ^4.5.0 | Components use `title`/`description` props for accessibility |
+| zod | ^4.3.6 | Schema validation for auth endpoints |
+| bcryptjs | ^3.0.3 | Password hashing |
+| prisma | ^6.19.2 | Use `@prisma/adapter-better-sqlite3` for SQLite |
+
 ## Installation
 
 ```bash
@@ -390,190 +401,320 @@ export default defineEventHandler(async (event) => {
 
 ### GitHub OAuth
 
-Create `server/routes/auth/github.get.ts`:
+The recommended approach is to use `defineOAuthGitHubEventHandler` from nuxt-auth-utils:
 
 ```typescript
-import { z } from 'zod';
+// server/routes/auth/github.get.ts
+import { findUserByOAuth, createUser, linkOAuthAccount, findUserByEmail } from '../../utils/db-auth'
 
-export default defineEventHandler(async (event) => {
-  const query = await getQuery(z.object({ code: z.string() }).parse(await getQuery(event)));
+export default defineOAuthGitHubEventHandler({
+  config: {
+    emailRequired: true,
+  },
+  async onSuccess(event, { user }) {
+    // First check if OAuth account already exists
+    let dbUser = await findUserByOAuth('github', user.id.toString())
 
-  // Exchange code for access token
-  const tokenResponse = await $fetch('https://github.com/login/oauth/access_token', {
-    method: 'POST',
-    body: {
-      client_id: process.env.GITHUB_CLIENT_ID,
-      client_secret: process.env.GITHUB_CLIENT_SECRET,
-      code: query.code,
-    },
-  });
-
-  const token = new URLSearchParams(tokenResponse as string).get('access_token');
-
-  if (!token) {
-    throw createError({
-      statusCode: 400,
-      message: 'Failed to get access token from GitHub',
-    });
-  }
-
-  // Get user profile
-  const userProfile: any = await $fetch('https://api.github.com/user', {
-    headers: {
-      Authorization: `token ${token}`,
-    },
-  });
-
-  // Get user email
-  let email = userProfile.email;
-
-  if (!email) {
-    const emails: any[] = await $fetch('https://api.github.com/user/emails', {
-      headers: {
-        Authorization: `token ${token}`,
-      },
-    });
-
-    const primaryEmail = emails.find((e: any) => e.primary);
-    email = primaryEmail?.email;
-  }
-
-  if (!email) {
-    throw createError({
-      statusCode: 400,
-      message: 'No email found in GitHub profile',
-    });
-  }
-
-  // Check if user exists or create new
-  const { linkOAuthAccount, findUserByOAuth, createUser } = await import('../../utils/db-auth');
-
-  let user = await findUserByOAuth('github', userProfile.id.toString());
-
-  if (!user) {
-    // Check if email already exists
-    const { findUserByEmail } = await import('../../utils/db-auth');
-    user = await findUserByEmail(email);
-
-    if (user) {
-      // Link GitHub account to existing user
-      await linkOAuthAccount(
-        user.id,
-        'github',
-        userProfile.id.toString(),
-        token
-      );
-    } else {
-      // Create new user
-      user = await createUser({
-        email,
-        name: userProfile.name || userProfile.login,
-        avatar: userProfile.avatar_url,
-      });
-
-      // Link GitHub account
-      await linkOAuthAccount(
-        user.id,
-        'github',
-        userProfile.id.toString(),
-        token
-      );
+    if (dbUser) {
+      // Already exists, login directly
+      await setUserSession(event, {
+        user: {
+          id: dbUser.id,
+          email: dbUser.email,
+          name: dbUser.name,
+          avatar: dbUser.avatar,
+          role: dbUser.role,
+          hasPassword: !!dbUser.password,
+        },
+      })
+      return
     }
-  }
 
-  // Set session
-  await setUserSession(event, {
-    user: {
-      id: user.id,
+    // Check if user with same email exists
+    dbUser = await findUserByEmail(user.email)
+
+    if (dbUser) {
+      // User exists, link GitHub account
+      await linkOAuthAccount(
+        dbUser.id,
+        'github',
+        user.id.toString(),
+        user.accessToken,
+        user.refreshToken
+      )
+      await setUserSession(event, {
+        user: {
+          id: dbUser.id,
+          email: dbUser.email,
+          name: dbUser.name,
+          avatar: dbUser.avatar,
+          role: dbUser.role,
+          hasPassword: !!dbUser.password,
+        },
+      })
+      return
+    }
+
+    // Create new user and link GitHub account
+    const newUser = await createUser({
       email: user.email,
-      name: user.name,
-      avatar: user.avatar,
-      role: user.role,
-      hasPassword: !!user.password,
-    },
-  });
+      name: user.name || user.login,
+      avatar: user.avatar_url,
+    })
 
-  return sendRedirect(event, '/');
-});
+    await linkOAuthAccount(
+      newUser.id,
+      'github',
+      user.id.toString(),
+      user.accessToken,
+      user.refreshToken
+    )
+
+    await setUserSession(event, {
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+        avatar: newUser.avatar,
+        role: newUser.role,
+        hasPassword: !!newUser.password,
+      },
+    })
+  },
+  onError(event, error) {
+    console.error('GitHub OAuth error:', error)
+    // Redirect to login with error message
+    return sendRedirect(event, '/login?error=oauth_github_failed')
+  },
+})
 ```
 
 ### Google OAuth
 
-Create `server/routes/auth/google.get.ts`:
+```typescript
+// server/routes/auth/google.get.ts
+import { findUserByOAuth, createUser, linkOAuthAccount, findUserByEmail } from '../../utils/db-auth'
+
+export default defineOAuthGoogleEventHandler({
+  config: {
+    scope: ['openid', 'email', 'profile'],
+  },
+  async onSuccess(event, { user }) {
+    // First check if OAuth account already exists
+    let dbUser = await findUserByOAuth('google', user.sub)
+
+    if (dbUser) {
+      // Already exists, login directly
+      await setUserSession(event, {
+        user: {
+          id: dbUser.id,
+          email: dbUser.email,
+          name: dbUser.name,
+          avatar: dbUser.picture,
+          role: dbUser.role,
+          hasPassword: !!dbUser.password,
+        },
+      })
+      return
+    }
+
+    // Check if user with same email exists
+    dbUser = await findUserByEmail(user.email)
+
+    if (dbUser) {
+      // User exists, link Google account
+      await linkOAuthAccount(
+        dbUser.id,
+        'google',
+        user.sub,
+        user.accessToken,
+        user.refreshToken
+      )
+      await setUserSession(event, {
+        user: {
+          id: dbUser.id,
+          email: dbUser.email,
+          name: dbUser.name,
+          avatar: dbUser.picture,
+          role: dbUser.role,
+          hasPassword: !!dbUser.password,
+        },
+      })
+      return
+    }
+
+    // Create new user and link Google account
+    const newUser = await createUser({
+      email: user.email,
+      name: user.name,
+      avatar: user.picture,
+    })
+
+    await linkOAuthAccount(
+      newUser.id,
+      'google',
+      user.sub,
+      user.accessToken,
+      user.refreshToken
+    )
+
+    await setUserSession(event, {
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+        avatar: newUser.avatar,
+        role: newUser.role,
+        hasPassword: !!newUser.password,
+      },
+    })
+  },
+  onError(event, error) {
+    console.error('Google OAuth error:', error)
+    // Redirect to login with error message
+    return sendRedirect(event, '/login?error=oauth_google_failed')
+  },
+})
+```
+
+### OAuth Error Handling
+
+Handle common OAuth failure scenarios gracefully:
+
+#### 1. User Denies Permission / Cancels Flow
+
+When a user cancels the OAuth flow or denies permission, the OAuth provider returns an error:
 
 ```typescript
-import { z } from 'zod';
+// server/routes/auth/github.get.ts
+export default defineOAuthGitHubEventHandler({
+  config: {
+    emailRequired: true,
+  },
+  async onSuccess(event, { user }) {
+    // ... success handling
+  },
+  async onError(event, error) {
+    console.error('GitHub OAuth error:', error)
 
-export default defineEventHandler(async (event) => {
-  const query = await getQuery(z.object({ code: z.string() }).parse(await getQuery(event)));
+    // Check for specific error types
+    if (error.message?.includes('access_denied')) {
+      // User denied permission or cancelled
+      return sendRedirect(event, '/login?error=oauth_cancelled')
+    }
 
-  // Exchange code for tokens
-  const tokenResponse: any = await $fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    body: {
-      client_id: process.env.GOOGLE_CLIENT_ID,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET,
-      code: query.code,
-      grant_type: 'authorization_code',
-      redirect_uri: `${process.env.NUXT_PUBLIC_BASE_URL}/auth/google`,
-    },
-  });
+    if (error.message?.includes('invalid_code')) {
+      // Expired or invalid authorization code
+      return sendRedirect(event, '/login?error=oauth_expired')
+    }
 
-  const { access_token } = tokenResponse;
+    // Generic error
+    return sendRedirect(event, '/login?error=oauth_failed')
+  },
+})
+```
 
-  // Get user profile
-  const userProfile: any = await $fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-  });
+#### 2. Missing Email from Provider
 
-  // Check if user exists or create new
-  const { linkOAuthAccount, findUserByOAuth, createUser } = await import('../../utils/db-auth');
+Some users may have private email addresses on GitHub. Handle this case:
 
-  let user = await findUserByOAuth('google', userProfile.id);
+```typescript
+async onSuccess(event, { user }) {
+  // GitHub may return null email if user has no public email
+  if (!user.email) {
+    try {
+      // Fetch emails from GitHub API
+      const emails: any[] = await $fetch('https://api.github.com/user/emails', {
+        headers: {
+          Authorization: `token ${user.accessToken}`,
+        },
+      })
 
-  if (!user) {
-    const { findUserByEmail } = await import('../../utils/db-auth');
-    user = await findUserByEmail(userProfile.email);
-
-    if (user) {
-      await linkOAuthAccount(
-        user.id,
-        'google',
-        userProfile.id,
-        access_token
-      );
-    } else {
-      user = await createUser({
-        email: userProfile.email,
-        name: userProfile.name,
-        avatar: userProfile.picture,
-      });
-
-      await linkOAuthAccount(
-        user.id,
-        'google',
-        userProfile.id,
-        access_token
-      );
+      const primaryEmail = emails.find((e: any) => e.primary)
+      user.email = primaryEmail?.email
+    } catch (fetchError) {
+      console.error('Failed to fetch GitHub emails:', fetchError)
+      return sendRedirect(event, '/login?error=no_email')
     }
   }
 
-  // Set session
-  await setUserSession(event, {
-    user: {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      avatar: user.avatar,
-      role: user.role,
-      hasPassword: !!user.password,
-    },
-  });
+  if (!user.email) {
+    // Still no email - can't create user without one
+    return sendRedirect(event, '/login?error=no_email')
+  }
 
-  return sendRedirect(event, '/');
-});
+  // Continue with user creation/login...
+}
+```
+
+#### 3. Account Already Linked to Different Provider
+
+When a user tries to link GitHub but their email is already registered with Google:
+
+```typescript
+async onSuccess(event, { user }) {
+  // Check if OAuth account already exists
+  let dbUser = await findUserByOAuth('github', user.id.toString())
+
+  if (dbUser) {
+    // Already linked, just log them in
+    await setUserSession(event, { user: { ... } })
+    return
+  }
+
+  // Check if email exists
+  const existingUser = await findUserByEmail(user.email)
+
+  if (existingUser) {
+    // Email exists - check if they're trying to add a second OAuth provider
+    const hasGitHub = existingUser.accounts.some((a: any) => a.provider === 'github')
+
+    if (hasGitHub) {
+      // Already has GitHub linked - should use existing login
+      return sendRedirect(event, '/login?error=account_exists_use_password')
+    }
+
+    // Link GitHub to existing account (e.g., user registered with Google, now adding GitHub)
+    await linkOAuthAccount(existingUser.id, 'github', user.id.toString(), user.accessToken)
+    await setUserSession(event, { user: { ... } })
+    return
+  }
+
+  // Create new user...
+}
+```
+
+#### 4. Frontend Error Display
+
+Show user-friendly error messages on the login page:
+
+```vue
+<!-- app/pages/login.vue -->
+<script setup lang="ts">
+const route = useRoute()
+
+const errorMessages: Record<string, string> = {
+  oauth_cancelled: 'You cancelled the sign-in process',
+  oauth_expired: 'The authorization code expired. Please try again',
+  oauth_failed: 'Failed to sign in with OAuth provider',
+  no_email: 'Could not get your email from the OAuth provider',
+  account_exists_use_password: 'This email is already registered. Please sign in with your password',
+}
+
+const oauthError = computed(() => {
+  const error = route.query.error as string
+  return errorMessages[error] || null
+})
+</script>
+
+<template>
+  <div>
+    <div v-if="oauthError" class="mb-4 p-3 bg-red-50 text-red-600 rounded">
+      {{ oauthError }}
+    </div>
+    <!-- Rest of login form -->
+  </div>
+</template>
 ```
 
 ## Frontend Components
@@ -770,3 +911,244 @@ export default defineEventHandler(async (event) => {
 4. **Handle OAuth errors** gracefully with user-friendly messages
 5. **Link OAuth accounts** to existing email users automatically
 6. **Clear session on logout** using `clearUserSession()`
+
+## Protected Routes and Role-Based UI
+
+### Client-Side Middleware for Admin Routes
+
+Create `app/middleware/admin.ts` to protect admin pages:
+
+```typescript
+// app/middleware/admin.ts
+export default defineNuxtRouteMiddleware(async (to) => {
+  // Only protect /admin routes
+  if (!to.path.startsWith('/admin')) {
+    return
+  }
+
+  const { user } = await useUserSession()
+
+  // Not logged in - redirect to login
+  if (!user.value) {
+    return navigateTo('/login', {
+      query: { redirect: to.fullPath }
+    })
+  }
+
+  // Not admin - redirect to home
+  if (user.value.role !== 'ADMIN') {
+    return navigateTo('/')
+  }
+})
+```
+
+Apply the middleware in admin pages:
+
+```vue
+<!-- app/pages/admin/users/index.vue -->
+<script setup lang="ts">
+definePageMeta({
+  layout: 'admin',
+  middleware: 'admin'
+})
+</script>
+
+<template>
+  <NuxtLayout name="admin">
+    <!-- Admin content -->
+  </NuxtLayout>
+</template>
+```
+
+### Role-Based Component Rendering
+
+Show/hide UI elements based on user role:
+
+```vue
+<script setup lang="ts">
+const { user } = useUserSession()
+
+const isAdmin = computed(() => user.value?.role === 'ADMIN')
+</script>
+
+<template>
+  <div>
+    <!-- Visible to all users -->
+    <UButton icon="lucide-home">Home</UButton>
+
+    <!-- Only visible to admins -->
+    <UButton
+      v-if="isAdmin"
+      icon="lucide-shield"
+      color="warning"
+      to="/admin"
+    >
+      Admin Dashboard
+    </UButton>
+
+    <!-- Admin-only actions in tables -->
+    <UTable :data="users" :columns="columns">
+      <template #actions-cell="{ row }">
+        <UDropdownMenu :items="getActionItems(row.original)">
+          <UButton
+            icon="lucide-more-horizontal"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+          />
+        </UDropdownMenu>
+      </template>
+    </UTable>
+  </div>
+</template>
+```
+
+### Admin Layout with Navigation
+
+Create a dedicated admin layout:
+
+```vue
+<!-- app/layouts/admin.vue -->
+<template>
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <!-- Admin Header -->
+    <header class="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+      <div class="flex items-center justify-between px-6 py-4">
+        <div class="flex items-center gap-4">
+          <NuxtLink to="/admin" class="text-lg font-bold">
+            Admin Dashboard
+          </NuxtLink>
+
+          <!-- Admin Navigation -->
+          <nav class="flex items-center gap-2 ml-8">
+            <NuxtLink
+              to="/admin/users"
+              class="px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              Users
+            </NuxtLink>
+            <NuxtLink
+              to="/admin/articles"
+              class="px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              Articles
+            </NuxtLink>
+            <NuxtLink
+              to="/admin/categories"
+              class="px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              Categories
+            </NuxtLink>
+            <NuxtLink
+              to="/admin/analytics"
+              class="px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              Analytics
+            </NuxtLink>
+          </nav>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <NuxtLink to="/" class="text-sm text-gray-500">
+            Back to Site
+          </NuxtLink>
+          <UButton icon="lucide-log-out" variant="outline" @click="logout">
+            Logout
+          </UButton>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="p-6">
+      <slot />
+    </main>
+  </div>
+</template>
+
+<script setup lang="ts">
+async function logout() {
+  await $fetch('/api/auth/logout', { method: 'POST' })
+  navigateTo('/')
+}
+</script>
+```
+
+### User Stats Dashboard Example
+
+Display role-based statistics in an admin dashboard:
+
+```vue
+<script setup lang="ts">
+const { users, loading } = useAdminUsers()
+
+const adminCount = computed(() => users.value.filter(u => u.role === 'ADMIN').length)
+const userCount = computed(() => users.value.filter(u => u.role === 'USER').length)
+const totalArticles = computed(() => users.value.reduce((sum, u) => sum + u.articleCount, 0))
+</script>
+
+<template>
+  <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+    <UCard class="text-center">
+      <p class="text-2xl font-bold">{{ pagination.total }}</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Total Users</p>
+    </UCard>
+    <UCard class="text-center">
+      <p class="text-2xl font-bold text-purple-500">{{ adminCount }}</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Admins</p>
+    </UCard>
+    <UCard class="text-center">
+      <p class="text-2xl font-bold text-blue-500">{{ userCount }}</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Regular Users</p>
+    </UCard>
+    <UCard class="text-center">
+      <p class="text-2xl font-bold text-green-500">{{ totalArticles }}</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Total Articles</p>
+    </UCard>
+  </div>
+</template>
+```
+
+### Action Menus with Role-Based Options
+
+```vue
+<script setup lang="ts">
+const { user } = useUserSession()
+
+const getActionItems = (user: any) => {
+  const items = [
+    [{
+      label: 'View Profile',
+      icon: 'lucide-user',
+      click: () => viewProfile(user)
+    }]
+  ]
+
+  // Admin-only actions
+  if (user.value?.role === 'ADMIN') {
+    items.push([{
+      label: 'Edit User',
+      icon: 'lucide-edit',
+      click: () => editUser(user)
+    }, {
+      label: 'Delete User',
+      icon: 'lucide-trash-2',
+      color: 'error' as const,
+      click: () => deleteUser(user)
+    }])
+  }
+
+  return items
+}
+</script>
+
+<template>
+  <UTable :data="users" :columns="columns">
+    <template #actions-cell="{ row }">
+      <UDropdownMenu :items="getActionItems(row.original)">
+        <UButton icon="lucide-more-horizontal" color="neutral" variant="ghost" size="xs" />
+      </UDropdownMenu>
+    </template>
+  </UTable>
+</template>
+```

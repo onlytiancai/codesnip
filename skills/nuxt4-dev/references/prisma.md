@@ -2,6 +2,22 @@
 
 Complete guide to using Prisma ORM in Nuxt 4 applications with SQLite or PostgreSQL.
 
+## Version Compatibility
+
+| Package | Version | Notes |
+|---------|---------|-------|
+| prisma | ^6.19.2 | CLI and migration tools |
+| @prisma/client | ^6.19.2 | Type-safe database client |
+| @prisma/adapter-better-sqlite3 | ^6.19.2 | Required for SQLite support |
+| better-sqlite3 | ^12.6.2 | SQLite driver (native module) |
+| @types/better-sqlite3 | ^7.6.13 | TypeScript types (dev dependency) |
+
+**Important:** After any schema change, run both:
+```bash
+pnpm prisma migrate dev    # Create and apply migration
+pnpm prisma generate       # Regenerate client types
+```
+
 ## Initial Setup
 
 ### 1. Install Dependencies
@@ -10,6 +26,12 @@ Complete guide to using Prisma ORM in Nuxt 4 applications with SQLite or Postgre
 pnpm add prisma @prisma/client
 pnpm add -D @types/better-sqlite3  # For SQLite
 pnpm add @prisma/adapter-better-sqlite3 better-sqlite3  # SQLite only
+```
+
+**Note for pnpm 10+:** When running Prisma Studio with pnpm 10+, you'll need the `--allow-build=better-sqlite3` flag due to SQLite's native dependency requirements:
+
+```bash
+pnpx --allow-build=better-sqlite3 prisma studio
 ```
 
 ### 2. Initialize Prisma

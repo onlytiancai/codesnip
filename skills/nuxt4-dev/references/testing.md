@@ -2,6 +2,17 @@
 
 Complete guide to unit testing with Vitest and E2E testing with Playwright in Nuxt 4.
 
+## Version Compatibility
+
+| Package | Version | Notes |
+|---------|---------|-------|
+| vitest | ^4.0.18 | Unit testing framework |
+| @vitest/ui | ^4.0.18 | Vitest UI reporter |
+| @nuxt/test-utils | ^4.0.0 | Nuxt 4 testing utilities |
+| @playwright/test | ^1.58.2 | Browser E2E testing |
+| @vue/test-utils | ^2.4.6 | Vue component testing |
+| happy-dom | ^20.8.3 | Fast DOM environment for unit tests |
+
 ## Overview
 
 | Test Type | Tool | Config File | Test Directory |
