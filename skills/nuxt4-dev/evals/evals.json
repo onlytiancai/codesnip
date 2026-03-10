@@ -1,0 +1,65 @@
+{
+  "skill_name": "nuxt4-dev",
+  "evals": [
+    {
+      "id": 1,
+      "name": "prisma-initial-setup",
+      "prompt": "I'm starting a new Nuxt 4 project and need to set up Prisma with SQLite. Walk me through the complete setup process from installation to having a working User model.",
+      "expected_output": "Step-by-step guide covering: 1) Installing prisma and dependencies, 2) Running prisma init, 3) Configuring schema.prisma for SQLite, 4) Creating a User model with common fields, 5) Running migrations, 6) Setting up db.ts singleton pattern for Nuxt 4"
+    },
+    {
+      "id": 2,
+      "name": "nuxt-ui-table-columns-error",
+      "prompt": "I'm getting an error 'Columns require an id when using a non-string header' when using UTable in Nuxt UI v4. My column definition uses 'key' property. How do I fix this?",
+      "expected_output": "Explain that Nuxt UI v4 uses TanStack Table which requires 'id' instead of 'key'. Show the correct column definition format with id and accessorKey properties."
+    },
+    {
+      "id": 3,
+      "name": "nuxt-ui-modal-accessibility",
+      "prompt": "My UModal component shows accessibility warnings about missing DialogTitle and Description. I'm using the #header slot with an h3 tag. How should I restructure my modal?",
+      "expected_output": "Explain that Nuxt UI v4 requires title and description props for accessibility. Show how to replace #header slot with title/description props and use #body and #footer slots for content."
+    },
+    {
+      "id": 4,
+      "name": "prisma-migration-after-schema-change",
+      "prompt": "I just added a new 'status' field to my Article model in schema.prisma. What commands do I need to run to update my database?",
+      "expected_output": "Explain the migration workflow: 1) Run 'pnpm prisma migrate dev' for development, 2) Run 'pnpm prisma generate' to regenerate client, 3) For production use 'pnpm prisma migrate deploy'"
+    },
+    {
+      "id": 5,
+      "name": "setup-email-auth-registration",
+      "prompt": "I need to implement user registration with email and password in my Nuxt 4 app using nuxt-auth-utils. Create the API endpoint with proper validation and password hashing.",
+      "expected_output": "Create server/api/auth/register.post.ts with: Zod validation for email/password/confirmPassword, check for existing user, bcrypt password hashing, user creation via Prisma, and session setting with setUserSession"
+    },
+    {
+      "id": 6,
+      "name": "setup-github-oauth",
+      "prompt": "Help me set up GitHub OAuth authentication in my Nuxt 4 project. I already have the GitHub OAuth app created with client ID and secret.",
+      "expected_output": "Guide covering: 1) Environment variables setup, 2) Create server/routes/auth/github.get.ts callback handler, 3) Exchange code for token, 4) Fetch GitHub user profile, 5) Create or link user account, 6) Set session and redirect"
+    },
+    {
+      "id": 7,
+      "name": "write-unit-test-component",
+      "prompt": "I want to write a unit test for my login form component using Vitest. Show me how to structure the test file and test email validation.",
+      "expected_output": "Create test/unit/components/login.test.ts with: describe/it blocks, email regex validation tests, password length validation tests, proper vitest imports and structure"
+    },
+    {
+      "id": 8,
+      "name": "write-e2e-browser-test",
+      "prompt": "I need to write a Playwright E2E test that logs in with valid credentials and verifies the user is redirected to the homepage.",
+      "expected_output": "Create test in test/e2e/browser/ with: Playwright imports, page.goto for login, fill email/password, click submit button, expect URL to match homepage pattern"
+    },
+    {
+      "id": 9,
+      "name": "tailwind-v4-configuration",
+      "prompt": "How do I configure Tailwind CSS v4 in my Nuxt 4 project? What's different from v3?",
+      "expected_output": "Explain: 1) Single @import 'tailwindcss' instead of @tailwind directives, 2) CSS-first configuration with @theme, 3) No tailwind.config.js needed for basic setup, 4) Integration with Nuxt UI"
+    },
+    {
+      "id": 10,
+      "name": "prisma-create-with-relations",
+      "prompt": "I need to create an Article with associated tags (many-to-many). The tagIds come from the request body. Show me how to do this with Prisma.",
+      "expected_output": "Show two approaches: 1) Create article then createMany for articleTag join table, or 2) Use nested create with tags.create array. Include proper transaction usage."
+    }
+  ]
+}
