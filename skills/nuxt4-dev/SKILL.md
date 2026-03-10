@@ -54,6 +54,7 @@ Use this skill when:
 
 For detailed information on specific topics, read these reference files:
 
+- **Project Structure** → `references/project-structure.md` - app/ directory, auto-imports, common pitfalls
 - **Tailwind v4** → `references/tailwind4.md` - CSS configuration, new v4 features
 - **Nuxt UI v4** → `references/nuxt-ui-v4.md` - Component usage, common pitfalls
 - **Prisma** → `references/prisma.md` - Schema design, migrations, client setup
@@ -101,3 +102,5 @@ project/
 - **UModal accessibility warnings** → Add `title` and `description` props
 - **Prisma client not found** → Run `pnpm prisma generate`
 - **Auth session not working** → Check `server/utils/db-auth.ts` setup
+- **Composable not defined** → Ensure composables are in `app/composables/`, remove manual imports, restart dev server
+- **Failed to resolve import ~/composables/** → Move composables to `app/composables/`, delete `.nuxt/` and restart
