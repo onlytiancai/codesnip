@@ -11,11 +11,19 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { plan } = body
 
-  if (!plan || !['pro', 'annual'].includes(plan)) {
+  if (!plan || !['free', 'pro', 'annual'].includes(plan)) {
     throw createError({
       statusCode: 400,
       message: 'Invalid plan'
     })
+  }
+
+  // Handle downgrade to free
+  if (plan === 'free') {
+    await prisma.membership.deleteMany({
+      where: { userId: session.user.id }
+    })
+    return { success: true, membership: { plan: 'free' } }
   }
 
   // Calculate end date
@@ -36,13 +44,13 @@ export default defineEventHandler(async (event) => {
   const membership = await prisma.membership.upsert({
     where: { userId: session.user.id },
     update: {
-      plan: 'premium',
+      plan: plan === 'annual' ? 'annual' : 'premium',
       startDate,
       endDate
     },
     create: {
       userId: session.user.id,
-      plan: 'premium',
+      plan: plan === 'annual' ? 'annual' : 'premium',
       startDate,
       endDate
     }

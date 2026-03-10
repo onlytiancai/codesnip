@@ -71,7 +71,9 @@
               <UButton
                 block
                 variant="outline"
+                :loading="upgrading === 'free'"
                 :disabled="membership?.plan === 'free'"
+                @click="handleDowngrade"
               >
                 {{ membership?.plan === 'free' ? 'Current Plan' : 'Downgrade' }}
               </UButton>
@@ -125,7 +127,7 @@
                 :disabled="membership?.plan === 'premium'"
                 @click="handleUpgrade('pro')"
               >
-                {{ membership?.plan === 'premium' ? 'Current Plan' : 'Upgrade to Pro' }}
+                {{ membership?.plan === 'premium' ? 'Current Plan' : membership?.plan === 'annual' ? 'Downgrade to Pro' : 'Upgrade to Pro' }}
               </UButton>
             </ClientOnly>
           </template>
@@ -173,21 +175,41 @@
               block
               variant="outline"
               :loading="upgrading === 'annual'"
+              :disabled="membership?.plan === 'annual'"
               @click="handleUpgrade('annual')"
             >
-              Get Annual Plan
+              {{ membership?.plan === 'annual' ? 'Current Plan' : 'Get Annual Plan' }}
             </UButton>
           </template>
         </UCard>
       </div>
 
       <!-- Feature Comparison -->
-      <UCard class="mb-12">
-        <template #header>
-          <h3 class="text-lg font-semibold">Feature Comparison</h3>
-        </template>
-        <UTable :data="featureComparison" :columns="columns" />
-      </UCard>
+      <div class="mb-12">
+        <h2 class="text-2xl font-bold text-center mb-6">Feature Comparison</h2>
+        <UCard>
+          <UTable :data="featureComparison" :columns="columns" class="w-full">
+            <template #feature-cell="{ row }">
+              <span class="font-medium">{{ row.original.feature }}</span>
+            </template>
+            <template #free-cell="{ row }">
+              <UIcon v-if="row.original.free === true" name="i-lucide-check" class="w-5 h-5 text-green-500" />
+              <UIcon v-else-if="row.original.free === false" name="i-lucide-x" class="w-5 h-5 text-gray-300 dark:text-gray-600" />
+              <span v-else class="text-sm">{{ row.original.free }}</span>
+            </template>
+            <template #pro-cell="{ row }">
+              <UIcon v-if="row.original.pro === true" name="i-lucide-check" class="w-5 h-5 text-green-500" />
+              <UIcon v-else-if="row.original.pro === false" name="i-lucide-x" class="w-5 h-5 text-gray-300 dark:text-gray-600" />
+              <span v-else class="text-sm">{{ row.original.pro }}</span>
+            </template>
+            <template #annual-cell="{ row }">
+              <UIcon v-if="row.original.annual === true" name="i-lucide-check" class="w-5 h-5 text-green-500" />
+              <UIcon v-else-if="row.original.annual === false" name="i-lucide-x" class="w-5 h-5 text-gray-300 dark:text-gray-600" />
+              <span v-else class="text-sm">{{ row.original.annual }}</span>
+            </template>
+          </UTable>
+        </UCard>
+      </div>
 
       <!-- FAQ -->
       <div class="max-w-3xl mx-auto">
@@ -238,6 +260,42 @@ watchEffect(async () => {
   }
 })
 
+const handleDowngrade = async () => {
+  if (!loggedIn.value) {
+    toast.add({
+      title: 'Please login',
+      description: 'You need to login to change your membership',
+      color: 'warning'
+    })
+    router.push('/login')
+    return
+  }
+
+  upgrading.value = 'free'
+  try {
+    await $fetch('/api/user/membership', {
+      method: 'POST',
+      body: { plan: 'free' }
+    })
+    toast.add({
+      title: 'Success',
+      description: 'You have successfully downgraded to free plan',
+      color: 'success'
+    })
+    // Refresh membership
+    const profile = await $fetch('/api/user/profile')
+    membership.value = profile.membership
+  } catch (error) {
+    toast.add({
+      title: 'Error',
+      description: 'Failed to downgrade membership. Please try again.',
+      color: 'error'
+    })
+  } finally {
+    upgrading.value = null
+  }
+}
+
 const handleUpgrade = async (plan: string) => {
   if (!loggedIn.value) {
     toast.add({
@@ -283,7 +341,7 @@ const formatDate = (date: string | Date) => {
 }
 
 const columns = [
-  { id: 'feature', header: 'Feature' },
+  { id: 'feature', header: 'Feature', size: 200 },
   { id: 'free', header: 'Free' },
   { id: 'pro', header: 'Pro' },
   { id: 'annual', header: 'Annual' }
@@ -292,10 +350,19 @@ const columns = [
 const featureComparison = [
   { feature: 'Articles per month', free: '5', pro: 'Unlimited', annual: 'Unlimited' },
   { feature: 'Audio quality', free: 'Standard', pro: 'HD', annual: 'HD' },
+  { feature: 'Audio playback speed', free: false, pro: true, annual: true },
   { feature: 'Vocabulary limit', free: '10 words', pro: 'Unlimited', annual: 'Unlimited' },
-  { feature: 'Spaced repetition', free: 'No', pro: 'Yes', annual: 'Yes' },
-  { feature: 'Offline access', free: 'No', pro: 'Yes', annual: 'Yes' },
-  { feature: 'Priority support', free: 'No', pro: 'No', annual: 'Yes' }
+  { feature: 'Spaced repetition', free: false, pro: true, annual: true },
+  { feature: 'Offline access', free: false, pro: true, annual: true },
+  { feature: 'Reading progress sync', free: true, pro: true, annual: true },
+  { feature: 'Bookmark articles', free: true, pro: true, annual: true },
+  { feature: 'Highlight & notes', free: false, pro: true, annual: true },
+  { feature: 'Vocabulary export', free: false, pro: true, annual: true },
+  { feature: 'Dark mode', free: true, pro: true, annual: true },
+  { feature: 'Ad-free experience', free: false, pro: true, annual: true },
+  { feature: 'Priority support', free: false, pro: false, annual: true },
+  { feature: 'Early access to features', free: false, pro: false, annual: true },
+  { feature: 'Exclusive content', free: false, pro: false, annual: true }
 ]
 
 const faqItems = [
