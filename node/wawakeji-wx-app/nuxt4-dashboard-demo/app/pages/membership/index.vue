@@ -82,8 +82,8 @@
         </UCard>
 
         <!-- Pro Plan -->
-        <UCard class="ring-2 ring-primary relative">
-          <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+        <UCard class="ring-2 ring-primary relative overflow-visible">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
             <UBadge color="primary">Most Popular</UBadge>
           </div>
           <template #header>

@@ -13,6 +13,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const userId = session.user.id
+    console.log('Creating vocabulary for userId:', userId)
     const body = await readBody(event)
 
     // Validate request body
@@ -48,10 +49,10 @@ export default defineEventHandler(async (event) => {
       data: {
         userId,
         word: parsed.word.toLowerCase(),
-        phonetic: parsed.phonetic,
+        phonetic: parsed.phonetic || null,
         definition: parsed.definition,
-        example: parsed.example,
-        articleId: parsed.articleId,
+        example: parsed.example || null,
+        ...(parsed.articleId ? { articleId: parsed.articleId } : {}),
         progress: 0
       }
     })

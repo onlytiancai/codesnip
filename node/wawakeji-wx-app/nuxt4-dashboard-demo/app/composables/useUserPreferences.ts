@@ -15,10 +15,14 @@ interface UserPreferences {
   marketingEmails: boolean
 }
 
+// Global state for preferences
+const globalPreferences: Ref<UserPreferences | null> = ref(null)
+
 export const useUserPreferences = () => {
-  const preferences: Ref<UserPreferences | null> = ref(null)
+  const preferences = globalPreferences
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const colorMode = useColorMode()
 
   const fetchPreferences = async () => {
     loading.value = true
@@ -27,6 +31,10 @@ export const useUserPreferences = () => {
     try {
       const response = await $fetch<UserPreferences>('/api/user/settings')
       preferences.value = response
+      // Apply theme from preferences
+      if (response.theme) {
+        colorMode.preference = response.theme
+      }
       return response
     } catch (e: any) {
       error.value = e.data?.message || 'Failed to fetch preferences'
@@ -57,6 +65,10 @@ export const useUserPreferences = () => {
         body: data
       })
       preferences.value = response.preferences
+      // Apply theme immediately when changed
+      if (data.theme) {
+        colorMode.preference = data.theme
+      }
       return response.preferences
     } catch (e: any) {
       error.value = e.data?.message || 'Failed to update preferences'

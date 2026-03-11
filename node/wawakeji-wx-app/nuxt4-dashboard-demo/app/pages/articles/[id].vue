@@ -82,9 +82,9 @@
                 <div class="space-y-2">
                   <span class="text-sm font-medium">Font Size</span>
                   <div class="flex gap-2">
-                    <UButton size="xs" variant="outline" @click="fontSize = Math.max(12, fontSize - 2)">A-</UButton>
+                    <UButton size="xs" variant="outline" @click="updateFontSize(Math.max(12, fontSize - 2))">A-</UButton>
                     <UButton size="xs" variant="outline">{{ fontSize }}</UButton>
-                    <UButton size="xs" variant="outline" @click="fontSize = Math.min(24, fontSize + 2)">A+</UButton>
+                    <UButton size="xs" variant="outline" @click="updateFontSize(Math.min(24, fontSize + 2))">A+</UButton>
                   </div>
                 </div>
               </div>
@@ -142,12 +142,45 @@
               {{ isBookmarked ? 'Saved' : 'Save' }}
             </UButton>
             <UButton icon="i-lucide-share-2" variant="soft">Share</UButton>
+            <UButton icon="i-lucide-book-plus" variant="soft" @click="showVocabModal = true">
+              Add Word
+            </UButton>
           </div>
           <div class="flex items-center gap-2">
             <UButton icon="i-lucide-arrow-left" variant="ghost" to="/articles">Back</UButton>
           </div>
         </div>
       </template>
+
+      <!-- Add Vocabulary Modal -->
+      <UModal v-model:open="showVocabModal">
+        <template #content>
+          <UCard>
+            <template #header>
+              <h3 class="text-lg font-semibold">Add to Vocabulary</h3>
+            </template>
+
+            <form class="space-y-4" @submit.prevent="handleAddToVocabulary">
+              <UFormField label="Word" name="word" required>
+                <UInput v-model="selectedWord.word" placeholder="e.g., artificial" />
+              </UFormField>
+              <UFormField label="Phonetic" name="phonetic">
+                <UInput v-model="selectedWord.phonetic" placeholder="e.g., /ˌɑːrtɪˈfɪʃl/" />
+              </UFormField>
+              <UFormField label="Definition" name="definition" required>
+                <UTextarea v-model="selectedWord.definition" placeholder="Word definition..." :rows="2" />
+              </UFormField>
+            </form>
+
+            <template #footer>
+              <div class="flex justify-end gap-2">
+                <UButton variant="outline" @click="showVocabModal = false">Cancel</UButton>
+                <UButton :loading="addingVocab" @click="handleAddToVocabulary">Add Word</UButton>
+              </div>
+            </template>
+          </UCard>
+        </template>
+      </UModal>
     </div>
   </NuxtLayout>
 </template>
@@ -155,16 +188,51 @@
 <script setup lang="ts">
 const route = useRoute()
 const { loggedIn } = useUserSession()
+const { preferences, fetchPreferences, updatePreferences } = useUserPreferences()
+const { addWord } = useVocabulary()
 const toast = useToast()
 
 const selectedSentence = ref<string | null>(null)
 const showTranslation = ref(true)
 const showPhonetics = ref(false)
-const fontSize = ref(16)
 const isBookmarked = ref(false)
 const bookmarkPending = ref(false)
+const showVocabModal = ref(false)
+const selectedWord = reactive({
+  word: '',
+  phonetic: '',
+  definition: ''
+})
+const addingVocab = ref(false)
+
+// Font size from preferences
+const fontSize = computed(() => preferences.value?.fontSize || 16)
+
+const updateFontSize = async (newSize: number) => {
+  if (loggedIn.value) {
+    try {
+      await updatePreferences({ fontSize: newSize })
+    } catch (e) {
+      // Ignore errors
+    }
+  }
+}
 
 const slug = computed(() => route.params.id as string)
+
+// Fetch user preferences
+onMounted(async () => {
+  if (loggedIn.value) {
+    try {
+      await fetchPreferences()
+      // Apply preferences to local state
+      showTranslation.value = preferences.value?.showTranslation ?? true
+      showPhonetics.value = preferences.value?.showPhonetics ?? false
+    } catch (e) {
+      // Ignore errors
+    }
+  }
+})
 
 // Fetch article
 const { data, pending, error } = await useFetch(`/api/articles/${slug.value}`)
@@ -222,6 +290,72 @@ watchEffect(() => {
     }).catch(() => {})
   }
 })
+
+// Persist showTranslation and showPhonetics when changed
+watch([showTranslation, showPhonetics], async ([translation, phonetics]) => {
+  if (loggedIn.value && preferences.value) {
+    try {
+      await updatePreferences({
+        showTranslation: translation,
+        showPhonetics: phonetics
+      })
+    } catch (e) {
+      // Ignore errors
+    }
+  }
+})
+
+// Add word to vocabulary
+const handleAddToVocabulary = async () => {
+  if (!selectedWord.word || !selectedWord.definition) {
+    toast.add({
+      title: 'Missing fields',
+      description: 'Word and definition are required',
+      color: 'error'
+    })
+    return
+  }
+
+  addingVocab.value = true
+  try {
+    await addWord({
+      word: selectedWord.word,
+      phonetic: selectedWord.phonetic || undefined,
+      definition: selectedWord.definition,
+      articleId: article.value?.id
+    })
+    toast.add({
+      title: 'Word added',
+      description: `"${selectedWord.word}" has been added to your vocabulary`,
+      color: 'success'
+    })
+    showVocabModal.value = false
+    // Reset form
+    selectedWord.word = ''
+    selectedWord.phonetic = ''
+    selectedWord.definition = ''
+  } catch (error: any) {
+    toast.add({
+      title: 'Failed to add word',
+      description: error.data?.message || 'Please try again',
+      color: 'error'
+    })
+  } finally {
+    addingVocab.value = false
+  }
+}
+
+// Open vocabulary modal with selected sentence word
+const openVocabModal = (sentence: any) => {
+  // For simplicity, use the first word of the sentence
+  const words = sentence.en.split(' ')
+  if (words.length > 0) {
+    selectedWord.word = words[0].replace(/[^\w]/g, '').toLowerCase()
+    selectedWord.definition = ''
+    selectedWord.phonetic = ''
+  }
+  showVocabModal.value = true
+}
 
 const difficultyColor = (difficulty: string) => {
   switch (difficulty) {

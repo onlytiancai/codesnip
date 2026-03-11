@@ -21,6 +21,24 @@
                 Go Premium
               </UButton>
             </div>
+            <!-- Search Bar -->
+            <div class="mt-8 max-w-xl mx-auto">
+              <form @submit.prevent="handleSearch">
+                <UInput
+                  v-model="homeSearchQuery"
+                  placeholder="Search for articles..."
+                  icon="i-lucide-search"
+                  size="lg"
+                  class="w-full"
+                >
+                  <template #trailing>
+                    <UButton type="submit" color="primary" size="sm">
+                      Search
+                    </UButton>
+                  </template>
+                </UInput>
+              </form>
+            </div>
           </div>
         </div>
       </section>
@@ -144,6 +162,10 @@
 </template>
 
 <script setup lang="ts">
+const router = useRouter()
+
+const homeSearchQuery = ref('')
+
 // Fetch categories
 const { data: categoriesData, pending: pendingCategories } = await useFetch('/api/categories')
 const categories = computed(() => categoriesData.value || [])
@@ -153,6 +175,12 @@ const { data: articlesData, pending: pendingArticles } = await useFetch('/api/ar
   query: { limit: 6 }
 })
 const articles = computed(() => articlesData.value?.articles || [])
+
+const handleSearch = () => {
+  if (homeSearchQuery.value.trim()) {
+    router.push(`/articles?q=${encodeURIComponent(homeSearchQuery.value.trim())}`)
+  }
+}
 
 const difficultyColor = (difficulty: string) => {
   switch (difficulty) {

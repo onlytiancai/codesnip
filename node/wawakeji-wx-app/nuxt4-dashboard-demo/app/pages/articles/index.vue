@@ -121,6 +121,14 @@ const currentPage = ref(1)
 const searchQuery = ref('')
 const limit = 9
 
+// Initialize search from URL query param
+onMounted(() => {
+  const q = route.query.q
+  if (q && typeof q === 'string') {
+    searchQuery.value = q
+  }
+})
+
 // Category filters
 const categoryFilters = ref([
   { label: 'All', value: 'all' }

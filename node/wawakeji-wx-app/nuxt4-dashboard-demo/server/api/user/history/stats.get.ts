@@ -21,46 +21,67 @@ export default defineEventHandler(async (event) => {
     where: { userId },
     include: {
       Article: {
-        select: { content: true }
+        select: { content: true, readTime: true }
       }
     }
   })
 
   let totalMinutes = 0
   for (const h of history) {
-    const wordCount = h.Article.content?.split(' ').length || 0
-    const estimatedMinutes = Math.ceil(wordCount / 200 * (h.progress / 100))
+    // Use article's readTime if available, otherwise estimate from word count
+    const readTime = h.Article.readTime || Math.ceil((h.Article.content?.split(' ').length || 0) / 200)
+    const estimatedMinutes = Math.ceil(readTime * (h.progress / 100))
     totalMinutes += estimatedMinutes
   }
 
-  // Calculate streak
+  // Calculate streak - get distinct dates user has read
   const recentHistory = await prisma.readingHistory.findMany({
     where: {
       userId,
       lastReadAt: {
-        gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+        gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) // Look back 60 days
       }
     },
     select: { lastReadAt: true },
     orderBy: { lastReadAt: 'desc' }
   })
 
+  // Get unique dates
+  const readDates = new Set<string>()
+  for (const h of recentHistory) {
+    const date = new Date(h.lastReadAt)
+    date.setHours(0, 0, 0, 0)
+    readDates.add(date.toISOString().split('T')[0])
+  }
+
   let streak = 0
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  for (let i = 0; i < 30; i++) {
-    const checkDate = new Date(today)
-    checkDate.setDate(checkDate.getDate() - i)
-    const hasRead = recentHistory.some(h => {
-      const readDate = new Date(h.lastReadAt)
-      readDate.setHours(0, 0, 0, 0)
-      return readDate.getTime() === checkDate.getTime()
-    })
-    if (hasRead) {
-      streak++
-    } else if (i > 0) {
-      break
+  // Check if user read today, if not start counting from yesterday
+  let startDate = new Date(today)
+  const todayStr = today.toISOString().split('T')[0]
+  if (!readDates.has(todayStr)) {
+    // User hasn't read today yet, check if they read yesterday
+    startDate.setDate(startDate.getDate() - 1)
+    const yesterdayStr = startDate.toISOString().split('T')[0]
+    if (!readDates.has(yesterdayStr)) {
+      // User hasn't read today or yesterday, streak is 0
+      streak = 0
+    }
+  }
+
+  // Count consecutive days
+  if (readDates.has(todayStr) || readDates.has(startDate.toISOString().split('T')[0])) {
+    for (let i = 0; i < 60; i++) {
+      const checkDate = new Date(startDate)
+      checkDate.setDate(checkDate.getDate() - i)
+      const dateStr = checkDate.toISOString().split('T')[0]
+      if (readDates.has(dateStr)) {
+        streak++
+      } else {
+        break
+      }
     }
   }
 

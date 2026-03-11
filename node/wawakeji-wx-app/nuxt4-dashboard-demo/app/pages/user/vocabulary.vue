@@ -15,6 +15,9 @@
             size="sm"
             class="w-48"
           />
+          <UButton variant="outline" size="sm" icon="i-lucide-layers" @click="startFlashcardMode">
+            Flashcards
+          </UButton>
           <UButton variant="outline" size="sm" icon="i-lucide-plus" @click="showAddModal = true">
             Add Word
           </UButton>
@@ -134,13 +137,34 @@
                     {{ word.progress }}%
                   </span>
                 </div>
-                <UButton
-                  icon="i-lucide-trash-2"
-                  size="xs"
-                  variant="ghost"
-                  color="error"
-                  @click="handleDelete(word.id)"
-                />
+                <!-- Action Buttons -->
+                <div class="flex items-center gap-1">
+                  <UButton
+                    v-if="word.progress < 100"
+                    icon="i-lucide-check"
+                    size="xs"
+                    variant="ghost"
+                    color="success"
+                    title="Mark as Mastered"
+                    @click="handleMarkMastered(word.id)"
+                  />
+                  <UButton
+                    v-if="word.progress === 100"
+                    icon="i-lucide-refresh-cw"
+                    size="xs"
+                    variant="ghost"
+                    color="warning"
+                    title="Mark as Learning"
+                    @click="handleMarkLearning(word.id)"
+                  />
+                  <UButton
+                    icon="i-lucide-trash-2"
+                    size="xs"
+                    variant="ghost"
+                    color="error"
+                    @click="handleDelete(word.id)"
+                  />
+                </div>
               </div>
             </div>
           </UCard>
@@ -212,6 +236,74 @@
           </UCard>
         </template>
       </UModal>
+
+      <!-- Flashcard Modal -->
+      <UModal v-model:open="showFlashcard" :ui="{ content: 'max-w-lg' }">
+        <template #content>
+          <UCard v-if="flashcardWords.length > 0">
+            <template #header>
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold">Flashcard Mode</h3>
+                <span class="text-sm text-gray-500">{{ currentCardIndex + 1 }} / {{ flashcardWords.length }}</span>
+              </div>
+            </template>
+
+            <div class="text-center py-8">
+              <!-- Front of card -->
+              <div v-if="!flashcardFlipped" class="space-y-4">
+                <p class="text-3xl font-bold">{{ flashcardWords[currentCardIndex]?.word }}</p>
+                <p v-if="flashcardWords[currentCardIndex]?.phonetic" class="text-lg text-gray-500">
+                  {{ flashcardWords[currentCardIndex]?.phonetic }}
+                </p>
+                <UButton variant="outline" @click="flashcardFlipped = true">
+                  Show Definition
+                </UButton>
+              </div>
+              <!-- Back of card -->
+              <div v-else class="space-y-4">
+                <p class="text-2xl font-semibold">{{ flashcardWords[currentCardIndex]?.word }}</p>
+                <p v-if="flashcardWords[currentCardIndex]?.phonetic" class="text-gray-500">
+                  {{ flashcardWords[currentCardIndex]?.phonetic }}
+                </p>
+                <p class="text-lg text-gray-700 dark:text-gray-300 border-t border-gray-200 dark:border-gray-700 pt-4">
+                  {{ flashcardWords[currentCardIndex]?.definition }}
+                </p>
+                <p v-if="flashcardWords[currentCardIndex]?.example" class="text-sm text-gray-500 italic">
+                  "{{ flashcardWords[currentCardIndex]?.example }}"
+                </p>
+              </div>
+            </div>
+
+            <template #footer>
+              <div class="flex justify-between gap-2">
+                <UButton
+                  variant="outline"
+                  :disabled="currentCardIndex === 0"
+                  @click="prevCard"
+                >
+                  Previous
+                </UButton>
+                <div v-if="flashcardFlipped" class="flex gap-2">
+                  <UButton color="error" @click="handleDontKnow">
+                    Don't Know
+                  </UButton>
+                  <UButton color="success" @click="handleKnowIt">
+                    Know It
+                  </UButton>
+                </div>
+                <UButton v-else variant="outline" @click="nextCard">
+                  Skip
+                </UButton>
+              </div>
+            </template>
+          </UCard>
+          <UCard v-else>
+            <div class="text-center py-8">
+              <p class="text-gray-500">No words to review. Add some words first!</p>
+            </div>
+          </UCard>
+        </template>
+      </UModal>
     </div>
   </NuxtLayout>
 </template>
@@ -221,7 +313,7 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const { vocabulary, stats, pagination, loading, fetchVocabulary, addWord, deleteWord } = useVocabulary()
+const { vocabulary, stats, pagination, loading, fetchVocabulary, addWord, updateWord, deleteWord } = useVocabulary()
 const toast = useToast()
 
 const searchQuery = ref('')
@@ -229,6 +321,12 @@ const activeFilter = ref('all')
 const activeSort = ref('recent')
 const showAddModal = ref(false)
 const adding = ref(false)
+
+// Flashcard state
+const showFlashcard = ref(false)
+const flashcardWords = ref<any[]>([])
+const currentCardIndex = ref(0)
+const flashcardFlipped = ref(false)
 
 const newWord = reactive({
   word: '',
@@ -327,6 +425,95 @@ const handleDelete = async (id: number) => {
       color: 'error'
     })
   }
+}
+
+const handleMarkMastered = async (id: number) => {
+  try {
+    await updateWord(id, { progress: 100 })
+    toast.add({
+      title: 'Marked as mastered',
+      color: 'success'
+    })
+    // Refresh stats
+    fetchVocabulary({ filter: activeFilter.value === 'all' ? undefined : activeFilter.value, sort: activeSort.value })
+  } catch (error) {
+    toast.add({
+      title: 'Failed to update word',
+      color: 'error'
+    })
+  }
+}
+
+const handleMarkLearning = async (id: number) => {
+  try {
+    await updateWord(id, { progress: 50 })
+    toast.add({
+      title: 'Marked as learning',
+      color: 'success'
+    })
+    // Refresh stats
+    fetchVocabulary({ filter: activeFilter.value === 'all' ? undefined : activeFilter.value, sort: activeSort.value })
+  } catch (error) {
+    toast.add({
+      title: 'Failed to update word',
+      color: 'error'
+    })
+  }
+}
+
+// Flashcard functions
+const startFlashcardMode = () => {
+  if (vocabulary.value.length === 0) {
+    toast.add({
+      title: 'No words to review',
+      description: 'Add some words first!',
+      color: 'warning'
+    })
+    return
+  }
+  // Use words that are not mastered first
+  flashcardWords.value = [...vocabulary.value]
+    .sort((a, b) => a.progress - b.progress)
+    .slice(0, 20) // Limit to 20 cards per session
+  currentCardIndex.value = 0
+  flashcardFlipped.value = false
+  showFlashcard.value = true
+}
+
+const nextCard = () => {
+  if (currentCardIndex.value < flashcardWords.value.length - 1) {
+    currentCardIndex.value++
+    flashcardFlipped.value = false
+  }
+}
+
+const prevCard = () => {
+  if (currentCardIndex.value > 0) {
+    currentCardIndex.value--
+    flashcardFlipped.value = false
+  }
+}
+
+const handleKnowIt = async () => {
+  const word = flashcardWords.value[currentCardIndex.value]
+  const newProgress = Math.min(100, word.progress + 20)
+  try {
+    await updateWord(word.id, { progress: newProgress })
+  } catch (e) {
+    // Ignore errors
+  }
+  nextCard()
+}
+
+const handleDontKnow = async () => {
+  const word = flashcardWords.value[currentCardIndex.value]
+  const newProgress = Math.max(0, word.progress - 10)
+  try {
+    await updateWord(word.id, { progress: newProgress })
+  } catch (e) {
+    // Ignore errors
+  }
+  nextCard()
 }
 
 const formatRelativeTime = (date: string | Date) => {

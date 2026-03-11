@@ -79,6 +79,7 @@ export const useBookmarks = () => {
       })
       bookmarkedIds.value.delete(articleId)
       bookmarks.value = bookmarks.value.filter(b => b.articleId !== articleId)
+      pagination.value.total = Math.max(0, pagination.value.total - 1)
       return true
     } catch (e: any) {
       error.value = e.data?.message || 'Failed to remove bookmark'
