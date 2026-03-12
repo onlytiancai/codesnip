@@ -1,6 +1,6 @@
 <template>
   <NuxtLayout name="admin">
-    <div class="max-w-4xl">
+    <div class="w-full">
       <!-- Header -->
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
@@ -31,19 +31,20 @@
               </template>
               <div class="space-y-4">
                 <UFormField label="Title" name="title" required>
-                  <UInput v-model="articleForm.title" placeholder="Enter article title" />
+                  <UInput v-model="articleForm.title" placeholder="Enter article title" class="w-full" />
                 </UFormField>
                 <UFormField label="Slug" name="slug" required>
-                  <UInput v-model="articleForm.slug" placeholder="article-slug" />
+                  <UInput v-model="articleForm.slug" placeholder="article-slug" class="w-full" />
                 </UFormField>
                 <UFormField label="Excerpt" name="excerpt">
-                  <UTextarea v-model="articleForm.excerpt" placeholder="Brief description" :rows="2" />
+                  <UTextarea v-model="articleForm.excerpt" placeholder="Brief description" :rows="2" class="w-full" />
                 </UFormField>
                 <UFormField label="Content" name="content" required>
                   <UTextarea
                     v-model="articleForm.content"
                     placeholder="Write or paste your article content..."
                     :rows="15"
+                    class="w-full"
                   />
                 </UFormField>
               </div>
@@ -86,18 +87,18 @@
                   :key="index"
                   class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
                 >
-                  <div class="flex items-start gap-3">
-                    <span class="text-sm text-gray-400 w-6">{{ index + 1 }}.</span>
-                    <div class="flex-1 space-y-2">
-                      <UInput v-model="sentence.en" placeholder="English sentence" />
-                      <UInput v-model="sentence.cn" placeholder="Chinese translation" />
-                      <div class="flex items-center gap-2">
-                        <UButton size="xs" variant="ghost" icon="i-lucide-volume-2" />
-                        <UButton size="xs" variant="ghost" icon="i-lucide-arrow-up" @click="moveSentence(index, -1)" :disabled="index === 0" />
-                        <UButton size="xs" variant="ghost" icon="i-lucide-arrow-down" @click="moveSentence(index, 1)" :disabled="index === articleForm.sentences.length - 1" />
-                        <UButton size="xs" variant="ghost" color="error" icon="i-lucide-trash-2" @click="removeSentence(index)" />
-                      </div>
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm font-medium text-gray-500">{{ index + 1 }}.</span>
+                    <div class="flex items-center gap-1">
+                      <UButton size="xs" variant="ghost" icon="i-lucide-volume-2" />
+                      <UButton size="xs" variant="ghost" icon="i-lucide-arrow-up" @click="moveSentence(index, -1)" :disabled="index === 0" />
+                      <UButton size="xs" variant="ghost" icon="i-lucide-arrow-down" @click="moveSentence(index, 1)" :disabled="index === articleForm.sentences.length - 1" />
+                      <UButton size="xs" variant="ghost" color="error" icon="i-lucide-trash-2" @click="removeSentence(index)" />
                     </div>
+                  </div>
+                  <div class="space-y-2">
+                    <div><UInput v-model="sentence.en" placeholder="English sentence" class="w-full" /></div>
+                    <div><UInput v-model="sentence.cn" placeholder="Chinese translation" class="w-full" /></div>
                   </div>
                 </div>
                 <p v-if="articleForm.sentences.length === 0" class="text-center text-gray-500 py-4">
@@ -122,6 +123,7 @@
                       { label: 'Draft', value: 'draft' },
                       { label: 'Published', value: 'published' }
                     ]"
+                    class="w-full"
                   />
                 </UFormField>
                 <UFormField label="Last Updated" name="updatedAt">
@@ -141,6 +143,7 @@
                     v-model="articleForm.categoryId"
                     :items="categoryOptions"
                     placeholder="Select category"
+                    class="w-full"
                   />
                 </UFormField>
                 <UFormField label="Difficulty" name="difficulty">
@@ -151,6 +154,7 @@
                       { label: 'Intermediate', value: 'intermediate' },
                       { label: 'Advanced', value: 'advanced' }
                     ]"
+                    class="w-full"
                   />
                 </UFormField>
                 <UFormField label="Tags" name="tags">
@@ -165,6 +169,7 @@
                   <USelect
                     :items="availableTagOptions"
                     placeholder="Add tag"
+                    class="w-full"
                     @update:model-value="addTag"
                   />
                 </UFormField>
@@ -183,7 +188,7 @@
                 class="w-full h-40 object-cover rounded-lg mb-3"
               />
               <UFormField name="cover">
-                <UInput v-model="articleForm.cover" placeholder="https://example.com/image.jpg" />
+                <UInput v-model="articleForm.cover" placeholder="https://example.com/image.jpg" class="w-full" />
               </UFormField>
             </UCard>
 

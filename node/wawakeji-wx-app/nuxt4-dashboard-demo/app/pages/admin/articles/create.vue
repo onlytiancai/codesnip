@@ -1,6 +1,6 @@
 <template>
   <NuxtLayout name="admin">
-    <div class="max-w-4xl">
+    <div class="w-full">
       <!-- Header -->
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold">Create Article</h2>
@@ -20,19 +20,20 @@
             </template>
             <div class="space-y-4">
               <UFormField label="Title" name="title" required>
-                <UInput v-model="articleForm.title" placeholder="Enter article title" @input="generateSlug" />
+                <UInput v-model="articleForm.title" placeholder="Enter article title" class="w-full" @input="generateSlug" />
               </UFormField>
               <UFormField label="Slug" name="slug" required>
-                <UInput v-model="articleForm.slug" placeholder="article-slug" />
+                <UInput v-model="articleForm.slug" placeholder="article-slug" class="w-full" />
               </UFormField>
               <UFormField label="Excerpt" name="excerpt">
-                <UTextarea v-model="articleForm.excerpt" placeholder="Brief description of the article" :rows="2" />
+                <UTextarea v-model="articleForm.excerpt" placeholder="Brief description of the article" :rows="2" class="w-full" />
               </UFormField>
               <UFormField label="Content" name="content" required>
                 <UTextarea
                   v-model="articleForm.content"
                   placeholder="Write or paste your article content here..."
                   :rows="15"
+                  class="w-full"
                 />
               </UFormField>
             </div>
@@ -45,10 +46,10 @@
             </template>
             <div class="space-y-4">
               <UFormField label="Meta Title" name="metaTitle">
-                <UInput v-model="articleForm.metaTitle" placeholder="SEO title (optional)" />
+                <UInput v-model="articleForm.metaTitle" placeholder="SEO title (optional)" class="w-full" />
               </UFormField>
               <UFormField label="Meta Description" name="metaDesc">
-                <UTextarea v-model="articleForm.metaDesc" placeholder="SEO description (optional)" :rows="2" />
+                <UTextarea v-model="articleForm.metaDesc" placeholder="SEO description (optional)" :rows="2" class="w-full" />
               </UFormField>
             </div>
           </UCard>
@@ -69,10 +70,11 @@
                     { label: 'Draft', value: 'draft' },
                     { label: 'Published', value: 'published' }
                   ]"
+                  class="w-full"
                 />
               </UFormField>
               <UFormField label="Publish Date" name="publishAt">
-                <UInput v-model="articleForm.publishAt" type="datetime-local" />
+                <UInput v-model="articleForm.publishAt" type="datetime-local" class="w-full" />
               </UFormField>
             </div>
           </UCard>
@@ -88,6 +90,7 @@
                   v-model="articleForm.categoryId"
                   :items="categoryOptions"
                   placeholder="Select category"
+                  class="w-full"
                 />
               </UFormField>
               <UFormField label="Difficulty" name="difficulty">
@@ -99,6 +102,7 @@
                     { label: 'Advanced', value: 'advanced' }
                   ]"
                   placeholder="Select difficulty"
+                  class="w-full"
                 />
               </UFormField>
               <UFormField label="Tags" name="tags">
@@ -113,6 +117,7 @@
                 <USelect
                   :items="availableTagOptions"
                   placeholder="Add tag"
+                  class="w-full"
                   @update:model-value="addTag"
                 />
               </UFormField>
@@ -125,7 +130,7 @@
               <h3 class="font-semibold">Cover Image</h3>
             </template>
             <UFormField name="cover">
-              <UInput v-model="articleForm.cover" placeholder="https://example.com/image.jpg" />
+              <UInput v-model="articleForm.cover" placeholder="https://example.com/image.jpg" class="w-full" />
             </UFormField>
           </UCard>
 

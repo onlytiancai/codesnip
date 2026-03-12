@@ -49,6 +49,7 @@ interface Pagination {
 
 export const useAdminArticles = () => {
   const articles: Ref<Article[]> = ref([])
+  const article: Ref<Article | null> = ref(null)
   const pagination: Ref<Pagination> = ref({
     page: 1,
     limit: 10,
@@ -99,6 +100,7 @@ export const useAdminArticles = () => {
 
     try {
       const response = await $fetch<Article>(`/api/admin/articles/${id}`)
+      article.value = response
       return response
     } catch (e: any) {
       error.value = e.data?.message || 'Failed to fetch article'
@@ -166,6 +168,7 @@ export const useAdminArticles = () => {
 
   return {
     articles,
+    article,
     pagination,
     loading,
     error,
