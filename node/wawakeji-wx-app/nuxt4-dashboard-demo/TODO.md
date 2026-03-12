@@ -1,7 +1,2 @@
-- 首页顶部的搜索按钮点不动
-- /articles/{title} 页面，如果已经加入书签，下面应该显示 Saved，再点一次是取消加入书签
-- /articles/{title} 页面，share 按钮点不动
-- /articles/{title} 页面，去掉 Add Word 按钮，应该是鼠标 hover 在文章的某个单词上时弹出一个悬浮框显示单词详情，然后有个按钮可以把该单词加入单词本
-    - 后台实现查词 API， 先实现一个假接口，后续再真正实现
-- /articles/{title} 页面，显示音标的功能没有工作，后台实现一个假接口，用来给一个英语句子返回音标，然后前端实现音标显示隐藏的功能。
-- /user/history  页面的阅读时长是如何统计的，建议在 /articles/{title} 页面显示本次阅读时间，并定时更新到后台数据库里，如果一分钟内有鼠标或手指touch操作，就算这篇文章读了一分钟，
+- /user 页面，如果已经是 Premium 则不需要弹出 upgrade 提示了
+- /user/vocabulary 的 flash cards 弹出框加个关闭小按钮，本页单词多了要有分页，弹出框显示时也有 utils.ts:35 Warning: `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users. 

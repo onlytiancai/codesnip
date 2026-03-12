@@ -205,12 +205,9 @@
       </template>
 
       <!-- Add Word Modal -->
-      <UModal v-model:open="showAddModal">
+      <UModal v-model:open="showAddModal" title="Add New Word" description="Add a new word to your vocabulary list">
         <template #content>
           <UCard>
-            <template #header>
-              <h3 class="text-lg font-semibold">Add New Word</h3>
-            </template>
 
             <form class="space-y-4" @submit.prevent="handleAddWord">
               <UFormField label="Word" name="word" required>
@@ -238,13 +235,22 @@
       </UModal>
 
       <!-- Flashcard Modal -->
-      <UModal v-model:open="showFlashcard" :ui="{ content: 'max-w-lg' }">
+      <UModal v-model:open="showFlashcard" :ui="{ content: 'max-w-lg' }" title="Flashcard Mode" description="Review your vocabulary with flashcards">
         <template #content>
           <UCard v-if="flashcardWords.length > 0">
             <template #header>
               <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold">Flashcard Mode</h3>
-                <span class="text-sm text-gray-500">{{ currentCardIndex + 1 }} / {{ flashcardWords.length }}</span>
+                <div>
+                  <h3 class="text-lg font-semibold">Flashcard Mode</h3>
+                  <p class="text-sm text-gray-500">{{ currentCardIndex + 1 }} / {{ flashcardWords.length }}</p>
+                </div>
+                <UButton
+                  icon="i-lucide-x"
+                  size="sm"
+                  variant="ghost"
+                  color="neutral"
+                  @click="showFlashcard = false"
+                />
               </div>
             </template>
 
@@ -275,25 +281,61 @@
             </div>
 
             <template #footer>
-              <div class="flex justify-between gap-2">
-                <UButton
-                  variant="outline"
-                  :disabled="currentCardIndex === 0"
-                  @click="prevCard"
-                >
-                  Previous
-                </UButton>
-                <div v-if="flashcardFlipped" class="flex gap-2">
-                  <UButton color="error" @click="handleDontKnow">
-                    Don't Know
+              <div class="flex flex-col gap-3 w-full">
+                <!-- Card navigation -->
+                <div class="flex justify-between items-center gap-2">
+                  <UButton
+                    variant="outline"
+                    size="sm"
+                    :disabled="currentCardIndex === 0"
+                    @click="prevCard"
+                  >
+                    <UIcon name="i-lucide-chevron-left" class="mr-1" />
+                    Prev
                   </UButton>
-                  <UButton color="success" @click="handleKnowIt">
-                    Know It
+                  <div v-if="flashcardFlipped" class="flex gap-2">
+                    <UButton size="sm" color="error" @click="handleDontKnow">
+                      Don't Know
+                    </UButton>
+                    <UButton size="sm" color="success" @click="handleKnowIt">
+                      Know It
+                    </UButton>
+                  </div>
+                  <UButton v-else variant="outline" size="sm" @click="flashcardFlipped = true">
+                    Show Answer
+                  </UButton>
+                  <UButton
+                    variant="outline"
+                    size="sm"
+                    :disabled="currentCardIndex >= flashcardWords.length - 1"
+                    @click="nextCard"
+                  >
+                    Next
+                    <UIcon name="i-lucide-chevron-right" class="ml-1" />
                   </UButton>
                 </div>
-                <UButton v-else variant="outline" @click="nextCard">
-                  Skip
-                </UButton>
+                <!-- Page navigation -->
+                <div v-if="flashcardTotalPages > 1" class="flex items-center justify-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                  <UButton
+                    variant="ghost"
+                    size="xs"
+                    :disabled="flashcardCurrentPage === 1"
+                    @click="loadFlashcardPage(flashcardCurrentPage - 1)"
+                  >
+                    <UIcon name="i-lucide-chevron-left" />
+                  </UButton>
+                  <span class="text-xs text-gray-500">
+                    Page {{ flashcardCurrentPage }} of {{ flashcardTotalPages }}
+                  </span>
+                  <UButton
+                    variant="ghost"
+                    size="xs"
+                    :disabled="flashcardCurrentPage >= flashcardTotalPages"
+                    @click="loadFlashcardPage(flashcardCurrentPage + 1)"
+                  >
+                    <UIcon name="i-lucide-chevron-right" />
+                  </UButton>
+                </div>
               </div>
             </template>
           </UCard>
@@ -327,6 +369,10 @@ const showFlashcard = ref(false)
 const flashcardWords = ref<any[]>([])
 const currentCardIndex = ref(0)
 const flashcardFlipped = ref(false)
+const flashcardCurrentPage = ref(1)
+const flashcardTotalPages = ref(1)
+const allFlashcardWords = ref<any[]>([])
+const FLASHCARD_PAGE_SIZE = 10
 
 const newWord = reactive({
   word: '',
@@ -472,12 +518,21 @@ const startFlashcardMode = () => {
     return
   }
   // Use words that are not mastered first
-  flashcardWords.value = [...vocabulary.value]
+  allFlashcardWords.value = [...vocabulary.value]
     .sort((a, b) => a.progress - b.progress)
-    .slice(0, 20) // Limit to 20 cards per session
+  flashcardTotalPages.value = Math.ceil(allFlashcardWords.value.length / FLASHCARD_PAGE_SIZE)
+  flashcardCurrentPage.value = 1
+  loadFlashcardPage(1)
+  showFlashcard.value = true
+}
+
+const loadFlashcardPage = (page: number) => {
+  flashcardCurrentPage.value = page
+  const start = (page - 1) * FLASHCARD_PAGE_SIZE
+  const end = start + FLASHCARD_PAGE_SIZE
+  flashcardWords.value = allFlashcardWords.value.slice(start, end)
   currentCardIndex.value = 0
   flashcardFlipped.value = false
-  showFlashcard.value = true
 }
 
 const nextCard = () => {
