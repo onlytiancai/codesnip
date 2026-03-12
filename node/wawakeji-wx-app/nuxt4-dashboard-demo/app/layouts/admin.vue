@@ -131,6 +131,7 @@ const navItems = [
   { label: 'Articles', icon: 'i-lucide-file-text', to: '/admin/articles', badge: '128' },
   { label: 'Categories', icon: 'i-lucide-folder', to: '/admin/categories' },
   { label: 'Tags', icon: 'i-lucide-tag', to: '/admin/tags' },
+  { label: 'Dictionary', icon: 'i-lucide-book', to: '/admin/dictionary' },
   { label: 'Users', icon: 'i-lucide-users', to: '/admin/users' },
   { label: 'Analytics', icon: 'i-lucide-bar-chart-2', to: '/admin/analytics' }
 ]
@@ -143,6 +144,7 @@ const currentPageTitle = computed(() => {
   if (path === '/admin/articles') return 'Articles'
   if (path === '/admin/categories') return 'Categories'
   if (path === '/admin/tags') return 'Tags'
+  if (path === '/admin/dictionary') return 'Dictionary'
   if (path === '/admin/users') return 'Users'
   if (path === '/admin/analytics') return 'Analytics'
   return 'Admin'

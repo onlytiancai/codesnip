@@ -197,16 +197,46 @@
             <!-- Part of speech -->
             <p v-if="wordPopupData.pos" class="text-xs text-primary mb-2">{{ wordPopupData.pos }}</p>
 
+            <!-- Tags -->
+            <div v-if="wordPopupData.tag" class="flex flex-wrap gap-1 mb-2">
+              <UBadge
+                v-for="t in wordPopupData.tag.split(/\s+/).slice(0, 4)"
+                :key="t"
+                variant="subtle"
+                size="xs"
+              >
+                {{ getTagLabel(t) }}
+              </UBadge>
+            </div>
+
             <!-- English Definition -->
             <div v-if="wordPopupData.definition" class="mb-2">
               <p class="text-xs text-gray-400 mb-0.5">English</p>
-              <p class="text-sm text-gray-700 dark:text-gray-300">{{ wordPopupData.definition }}</p>
+              <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ getDisplayText(wordPopupData.definition, 'definition') }}</p>
+              <UButton
+                v-if="needsExpand(wordPopupData.definition)"
+                variant="ghost"
+                size="xs"
+                class="mt-1"
+                @click="toggleExpand('definition')"
+              >
+                {{ expandedFields.has('definition') ? 'Show less' : 'Show more' }}
+              </UButton>
             </div>
 
             <!-- Chinese Translation -->
             <div v-if="wordPopupData.translation" class="mb-2">
               <p class="text-xs text-gray-400 mb-0.5">中文</p>
-              <p class="text-sm text-gray-700 dark:text-gray-300">{{ wordPopupData.translation }}</p>
+              <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ getDisplayText(wordPopupData.translation, 'translation') }}</p>
+              <UButton
+                v-if="needsExpand(wordPopupData.translation)"
+                variant="ghost"
+                size="xs"
+                class="mt-1"
+                @click="toggleExpand('translation')"
+              >
+                {{ expandedFields.has('translation') ? 'Show less' : 'Show more' }}
+              </UButton>
             </div>
 
             <!-- Not found message -->
@@ -272,10 +302,12 @@ const wordPopupData = ref<{
   definition: string
   translation: string
   pos?: string
+  tag?: string
   audioUs?: string
   audioUk?: string
   found?: boolean
 } | null>(null)
+const expandedFields = ref<Set<string>>(new Set())
 const wordPopupStyle = ref<Record<string, string>>({})
 const hidePopupTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
 const addingWordToVocab = ref(false)
@@ -293,6 +325,59 @@ const phoneticsCache = ref<Map<string, string>>(new Map())
 
 // Font size from preferences
 const fontSize = computed(() => preferences.value?.fontSize || 16)
+
+// Tag labels
+const tagLabels: Record<string, string> = {
+  'zk': '中考',
+  'gk': '高考',
+  'cet4': '四级',
+  'cet6': '六级',
+  'ielts': '雅思',
+  'toefl': '托福',
+  'gre': 'GRE',
+  'ky': '考研',
+  'bec': 'BEC',
+  'tem4': '专四',
+  'tem8': '专八'
+}
+
+const getTagLabel = (tag: string) => tagLabels[tag.toLowerCase()] || tag.toUpperCase()
+
+// Truncate text for preview (max 50 chars)
+const truncateText = (text: string, maxLength: number = 50) => {
+  if (!text) return { text: '', needsExpand: false }
+  const cleanText = text.replace(/\\n/g, '\n')
+  if (cleanText.length <= maxLength) {
+    return { text: cleanText, needsExpand: false }
+  }
+  return { text: cleanText.slice(0, maxLength) + '...', needsExpand: true }
+}
+
+// Get display text (with line breaks)
+const getDisplayText = (text: string, field: string) => {
+  const isExpanded = expandedFields.value.has(field)
+  const cleanText = text.replace(/\\n/g, '\n')
+
+  if (isExpanded || cleanText.length <= 50) {
+    return cleanText
+  }
+  return cleanText.slice(0, 50) + '...'
+}
+
+// Check if text needs expand button
+const needsExpand = (text: string) => {
+  if (!text) return false
+  return text.replace(/\\n/g, '\n').length > 50
+}
+
+// Toggle field expansion
+const toggleExpand = (field: string) => {
+  if (expandedFields.value.has(field)) {
+    expandedFields.value.delete(field)
+  } else {
+    expandedFields.value.add(field)
+  }
+}
 
 const updateFontSize = async (newSize: number) => {
   if (loggedIn.value) {
@@ -446,6 +531,9 @@ const handleWordHover = async (word: { text: string; clean: string }, event: Mou
   if (!word.clean) return
 
   hoveredWord.value = { word: word.clean, clean: word.clean, text: word.text }
+
+  // Reset expanded fields when hovering new word
+  expandedFields.value.clear()
 
   // Cancel any pending hide
   if (hidePopupTimeout.value) {

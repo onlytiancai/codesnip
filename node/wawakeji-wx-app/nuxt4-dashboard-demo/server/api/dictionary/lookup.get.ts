@@ -83,6 +83,7 @@ export default defineEventHandler(async (event) => {
       definition: entry.definition || '',
       translation: entry.translation || '',
       pos: entry.pos || '',
+      tag: entry.tag || '',
       audioUs,
       audioUk,
       lemma: lemma || undefined,

@@ -74,3 +74,8 @@
 sqlite
 
   sqlite3 prisma/dictionary.db "SELECT * FROM Dictionary WHERE word='physical' LIMIT 1;"
+
+杀 dev 进程
+
+  ps -ef | grep 'nuxt.mjs dev' | grep -v grep | awk '{print $2}' | xargs kill -9
+  pkill -f "nuxt.mjs dev"
