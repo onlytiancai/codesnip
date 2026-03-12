@@ -67,16 +67,5 @@
   我会根据 REQUIREMENTS.md 的规范，一步步实现代码并更新 PROGRESS.md 的进度。
 
   ---
-  你想从哪个模块开始？
-
   - Admin: admin@example.com / admin123
   - User: user@example.com / user123
-
-  任务
-  - http://localhost:3000/user/bookmarks 删除书签后，上面的Saved Articles没有更新，搜索过滤也不工作
-  - http://localhost:3000/membership Pro套餐上的 Most Popular 没有显示完整，被遮盖住了
-  - http://localhost:3000/ 首页上的搜索功能不能使用
-  - http://localhost:3000/user/history 顶部的统计Articles Read，Total Time，Day Streak 等不准确
-  - http://localhost:3000/user/vocabulary 如何设置 Mastered 还是正在 Learning，还有progress 是如何计算的，实现它，另外在该页实现一个闪卡背单词功能
-  - http://localhost:3000/user/settings Appearance里的设置生效，目前是假的，页面明暗主题没生效，文章阅读页面的字号也没有变化
-  - http://localhost:3000/articles/{titie} 可以把某个单词加入单词本，可以设置是否显示翻译，是否显示音标

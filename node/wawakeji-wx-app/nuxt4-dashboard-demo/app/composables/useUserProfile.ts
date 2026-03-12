@@ -50,6 +50,7 @@ export const useUserProfile = () => {
   const profile: Ref<ProfileResponse | null> = ref(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const { fetch: fetchSession } = useUserSession()
 
   const fetchProfile = async () => {
     loading.value = true
@@ -79,6 +80,8 @@ export const useUserProfile = () => {
       if (profile.value) {
         profile.value.user = response.user
       }
+      // Refresh the client session to sync with server
+      await fetchSession()
       return response.user
     } catch (e: any) {
       error.value = e.data?.message || 'Failed to update profile'
