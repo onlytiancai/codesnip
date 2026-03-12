@@ -66,6 +66,11 @@
 
   我会根据 REQUIREMENTS.md 的规范，一步步实现代码并更新 PROGRESS.md 的进度。
 
-  ---
-  - Admin: admin@example.com / admin123
-  - User: user@example.com / user123
+测试账号
+
+- Admin: admin@example.com / admin123
+- User: user@example.com / user123
+
+sqlite
+
+  sqlite3 prisma/dictionary.db "SELECT * FROM Dictionary WHERE word='physical' LIMIT 1;"

@@ -1,0 +1,27 @@
+generator dictionaryClient {
+  provider = "prisma-client"
+  output   = "../generated/dictionary"
+}
+
+datasource dictionary {
+  provider = "sqlite"
+  url      = "file:./dictionary.db"
+}
+
+// ECDICT dictionary data for word lookup
+model Dictionary {
+  id           Int     @id @default(autoincrement())
+  word         String  @unique
+  phonetic     String?
+  definition   String? // English definition
+  translation  String? // Chinese translation
+  pos          String? // part of speech
+  collins      Int?    // Collins star rating (1-5)
+  oxford       Int?    // Oxford 3000 flag (0 or 1)
+  tag          String? // tags like "zk" for middle school, "gk" for high school
+  bnc          Int?    // British National Corpus frequency
+  frq          Int?    // Contemporary Corpus frequency
+  exchange     String? // word forms: past tense, plural, etc.
+
+  @@index([word])
+}

@@ -60,7 +60,8 @@ export const ModelName = {
   Tag: 'Tag',
   User: 'User',
   UserPreferences: 'UserPreferences',
-  Vocabulary: 'Vocabulary'
+  Vocabulary: 'Vocabulary',
+  Dictionary: 'Dictionary'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -241,6 +242,24 @@ export const VocabularyScalarFieldEnum = {
 } as const
 
 export type VocabularyScalarFieldEnum = (typeof VocabularyScalarFieldEnum)[keyof typeof VocabularyScalarFieldEnum]
+
+
+export const DictionaryScalarFieldEnum = {
+  id: 'id',
+  word: 'word',
+  phonetic: 'phonetic',
+  definition: 'definition',
+  translation: 'translation',
+  pos: 'pos',
+  collins: 'collins',
+  oxford: 'oxford',
+  tag: 'tag',
+  bnc: 'bnc',
+  frq: 'frq',
+  exchange: 'exchange'
+} as const
+
+export type DictionaryScalarFieldEnum = (typeof DictionaryScalarFieldEnum)[keyof typeof DictionaryScalarFieldEnum]
 
 
 export const SortOrder = {

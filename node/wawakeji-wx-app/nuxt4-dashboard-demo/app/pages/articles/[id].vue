@@ -147,7 +147,7 @@
           <div
             v-if="showWordPopup && wordPopupData"
             ref="wordPopupRef"
-            class="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 w-72"
+            class="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 w-80"
             :style="wordPopupStyle"
             @mouseenter="cancelHidePopup"
             @mouseleave="handleWordLeave"
@@ -155,20 +155,64 @@
             <div class="flex items-start justify-between mb-2">
               <div>
                 <h4 class="font-semibold text-lg">{{ wordPopupData.word }}</h4>
-                <p class="text-sm text-gray-500">{{ wordPopupData.phonetic }}</p>
+                <p class="text-sm text-gray-500">{{ wordPopupData.phonetic || '—' }}</p>
               </div>
-              <UButton
-                v-if="loggedIn"
-                icon="i-lucide-plus"
-                size="xs"
-                color="primary"
-                :loading="addingWordToVocab"
-                @click="addWordFromPopup"
-              >
-                Add
-              </UButton>
+              <div class="flex items-center gap-1">
+                <!-- Audio buttons -->
+                <UButton
+                  v-if="wordPopupData.audioUs"
+                  icon="i-lucide-volume-2"
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  :loading="playingAudioType === 'us'"
+                  @click="playAudio('us')"
+                >
+                  US
+                </UButton>
+                <UButton
+                  v-if="wordPopupData.audioUk"
+                  icon="i-lucide-volume-1"
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  :loading="playingAudioType === 'uk'"
+                  @click="playAudio('uk')"
+                >
+                  UK
+                </UButton>
+                <UButton
+                  v-if="loggedIn"
+                  icon="i-lucide-plus"
+                  size="xs"
+                  color="primary"
+                  :loading="addingWordToVocab"
+                  @click="addWordFromPopup"
+                >
+                  Add
+                </UButton>
+              </div>
             </div>
-            <p class="text-sm text-gray-700 dark:text-gray-300">{{ wordPopupData.definition }}</p>
+
+            <!-- Part of speech -->
+            <p v-if="wordPopupData.pos" class="text-xs text-primary mb-2">{{ wordPopupData.pos }}</p>
+
+            <!-- English Definition -->
+            <div v-if="wordPopupData.definition" class="mb-2">
+              <p class="text-xs text-gray-400 mb-0.5">English</p>
+              <p class="text-sm text-gray-700 dark:text-gray-300">{{ wordPopupData.definition }}</p>
+            </div>
+
+            <!-- Chinese Translation -->
+            <div v-if="wordPopupData.translation" class="mb-2">
+              <p class="text-xs text-gray-400 mb-0.5">中文</p>
+              <p class="text-sm text-gray-700 dark:text-gray-300">{{ wordPopupData.translation }}</p>
+            </div>
+
+            <!-- Not found message -->
+            <p v-if="!wordPopupData.found && !wordPopupData.definition && !wordPopupData.translation" class="text-sm text-gray-400 italic">
+              Word not found in dictionary
+            </p>
           </div>
         </Teleport>
 
@@ -222,10 +266,21 @@ const bookmarkPending = ref(false)
 // Word hover state
 const hoveredWord = ref<{ word: string; clean: string; text: string } | null>(null)
 const showWordPopup = ref(false)
-const wordPopupData = ref<{ word: string; phonetic: string; definition: string } | null>(null)
+const wordPopupData = ref<{
+  word: string
+  phonetic: string
+  definition: string
+  translation: string
+  pos?: string
+  audioUs?: string
+  audioUk?: string
+  found?: boolean
+} | null>(null)
 const wordPopupStyle = ref<Record<string, string>>({})
 const hidePopupTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
 const addingWordToVocab = ref(false)
+const playingAudioType = ref<'us' | 'uk' | null>(null)
+const audioRef = ref<HTMLAudioElement | null>(null)
 
 // Reading time tracking
 const readingTime = ref(0)
@@ -437,6 +492,34 @@ const cancelHidePopup = () => {
   }
 }
 
+// Play audio pronunciation
+const playAudio = async (type: 'us' | 'uk') => {
+  if (!wordPopupData.value?.audioUs) return
+
+  const url = type === 'us' ? wordPopupData.value.audioUs : wordPopupData.value.audioUk
+
+  // Stop current audio if playing
+  if (audioRef.value) {
+    audioRef.value.pause()
+    audioRef.value = null
+  }
+
+  playingAudioType.value = type
+  audioRef.value = new Audio(url)
+
+  try {
+    await audioRef.value.play()
+    audioRef.value.onended = () => {
+      playingAudioType.value = null
+    }
+    audioRef.value.onerror = () => {
+      playingAudioType.value = null
+    }
+  } catch (e) {
+    playingAudioType.value = null
+  }
+}
+
 // Add word from popup
 const addWordFromPopup = async () => {
   if (!wordPopupData.value || !loggedIn.value) return
@@ -446,7 +529,7 @@ const addWordFromPopup = async () => {
     await addWord({
       word: wordPopupData.value.word,
       phonetic: wordPopupData.value.phonetic,
-      definition: wordPopupData.value.definition,
+      definition: wordPopupData.value.translation || wordPopupData.value.definition,
       articleId: article.value?.id
     })
     toast.add({
