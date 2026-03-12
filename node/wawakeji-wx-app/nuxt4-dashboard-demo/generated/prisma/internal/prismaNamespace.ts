@@ -1430,6 +1430,7 @@ export const ReadingHistoryScalarFieldEnum = {
   userId: 'userId',
   articleId: 'articleId',
   progress: 'progress',
+  readingTime: 'readingTime',
   lastReadAt: 'lastReadAt',
   completedAt: 'completedAt'
 } as const

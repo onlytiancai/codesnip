@@ -26,7 +26,7 @@
           <!-- Right Side -->
           <div class="flex items-center gap-3">
             <!-- Search -->
-            <UButton icon="i-lucide-search" color="neutral" variant="ghost" size="sm" class="hidden sm:flex" />
+            <UButton icon="i-lucide-search" color="neutral" variant="ghost" size="sm" class="hidden sm:flex" @click="searchOpen = true" />
 
             <!-- Theme Toggle -->
             <UButton
@@ -172,12 +172,34 @@
         </div>
       </div>
     </footer>
+
+    <!-- Search Modal -->
+    <UModal v-model:open="searchOpen" title="Search Articles" description="Enter keywords to search for articles">
+      <template #body>
+        <UInput
+          v-model="searchQuery"
+          placeholder="Search articles..."
+          icon="i-lucide-search"
+          size="lg"
+          autofocus
+          @keyup.enter="handleSearch"
+        />
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton variant="outline" @click="searchOpen = false">Cancel</UButton>
+          <UButton color="primary" @click="handleSearch">Search</UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
 <script setup lang="ts">
 const colorMode = useColorMode()
 const mobileMenuOpen = ref(false)
+const searchOpen = ref(false)
+const searchQuery = ref('')
 const { loggedIn, user, clear } = useUserSession()
 const router = useRouter()
 const toast = useToast()
@@ -185,6 +207,30 @@ const toast = useToast()
 const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
 }
+
+const handleSearch = () => {
+  if (searchQuery.value.trim()) {
+    router.push(`/articles?q=${encodeURIComponent(searchQuery.value.trim())}`)
+    searchOpen.value = false
+    searchQuery.value = ''
+  }
+}
+
+// Keyboard shortcut for search (Cmd/Ctrl + K)
+const handleKeydown = (e: KeyboardEvent) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault()
+    searchOpen.value = true
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
 
 const handleLogout = async () => {
   try {

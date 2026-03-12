@@ -91,14 +91,15 @@ model Membership {
 }
 
 model ReadingHistory {
-  id          Int       @id @default(autoincrement())
-  userId      Int
-  articleId   Int
-  progress    Int       @default(0)
-  lastReadAt  DateTime  @default(now())
-  completedAt DateTime?
-  Article     Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  User        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  articleId    Int
+  progress     Int       @default(0)
+  readingTime  Int       @default(0)
+  lastReadAt   DateTime  @default(now())
+  completedAt  DateTime?
+  Article      Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  User         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, articleId])
 }

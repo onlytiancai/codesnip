@@ -25,7 +25,8 @@ export default defineEventHandler(async (event) => {
 
   // Validate request body
   const schema = z.object({
-    progress: z.number().min(0).max(100).optional()
+    progress: z.number().min(0).max(100).optional(),
+    readingTime: z.number().min(0).optional()
   })
 
   let parsed
@@ -41,6 +42,7 @@ export default defineEventHandler(async (event) => {
     throw error
   }
   const progress = parsed.progress ?? 0
+  const readingTime = parsed.readingTime
 
   // Check if article exists
   const article = await prisma.article.findUnique({
@@ -54,6 +56,18 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Build update data
+  const updateData: any = {
+    progress,
+    lastReadAt: new Date(),
+    completedAt: progress === 100 ? new Date() : null
+  }
+
+  // Only update readingTime if provided and greater than current
+  if (readingTime !== undefined) {
+    updateData.readingTime = readingTime
+  }
+
   // Upsert reading history
   const history = await prisma.readingHistory.upsert({
     where: {
@@ -62,15 +76,12 @@ export default defineEventHandler(async (event) => {
         articleId
       }
     },
-    update: {
-      progress,
-      lastReadAt: new Date(),
-      completedAt: progress === 100 ? new Date() : null
-    },
+    update: updateData,
     create: {
       userId,
       articleId,
       progress,
+      readingTime: readingTime || 0,
       completedAt: progress === 100 ? new Date() : null
     }
   })

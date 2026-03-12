@@ -32,7 +32,7 @@
                   class="w-full"
                 >
                   <template #trailing>
-                    <UButton type="submit" color="primary" size="sm">
+                    <UButton type="submit" color="primary" size="sm" @click="handleSearch">
                       Search
                     </UButton>
                   </template>

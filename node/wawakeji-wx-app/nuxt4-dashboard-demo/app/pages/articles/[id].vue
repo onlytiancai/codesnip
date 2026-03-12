@@ -23,6 +23,7 @@
               {{ capitalize(article.difficulty) }}
             </UBadge>
             <span class="text-sm text-gray-500 dark:text-gray-400">{{ article.readTime }} min read</span>
+            <span v-if="readingTime > 0" class="text-sm text-primary">Reading: {{ readingTime }} min</span>
           </div>
           <h1 class="text-3xl font-bold mb-4">{{ article.title }}</h1>
           <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
@@ -92,7 +93,7 @@
           </UPopover>
         </div>
 
-        <!-- Article Content (Sentence by Sentence) -->
+        <!-- Article Content (Sentence by Sentence with Word Hover) -->
         <div class="prose prose-lg dark:prose-invert max-w-none mb-8" :style="{ fontSize: fontSize + 'px' }">
           <div
             v-for="(paragraph, pIndex) in article.paragraphs"
@@ -110,13 +111,66 @@
               ]"
               @click="selectedSentence = `${pIndex}-${sIndex}`"
             >
-              <p class="mb-1">{{ sentence.en }}</p>
+              <p class="mb-1 leading-relaxed">
+                <span
+                  v-for="(word, wIndex) in getSentenceWords(sentence.en, pIndex, sIndex)"
+                  :key="wIndex"
+                  class="word-wrapper inline-block relative"
+                  @mouseenter="handleWordHover(word, $event)"
+                  @mouseleave="handleWordLeave"
+                >
+                  <span
+                    :class="[
+                      'transition-colors duration-150',
+                      hoveredWord?.word === word.clean ? 'text-primary bg-primary/10 rounded px-0.5' : ''
+                    ]"
+                  >
+                    <template v-if="showPhonetics && word.phonetic">
+                      <ruby class="ruby-text">
+                        {{ word.text }}
+                        <rt class="text-xs text-gray-500">{{ word.phonetic }}</rt>
+                      </ruby>
+                    </template>
+                    <template v-else>{{ word.text }}</template>
+                  </span>
+                </span>
+              </p>
               <p v-if="showTranslation" class="text-sm text-gray-500 dark:text-gray-400">
                 {{ sentence.cn }}
               </p>
             </div>
           </div>
         </div>
+
+        <!-- Word Popup -->
+        <Teleport to="body">
+          <div
+            v-if="showWordPopup && wordPopupData"
+            ref="wordPopupRef"
+            class="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 w-72"
+            :style="wordPopupStyle"
+            @mouseenter="cancelHidePopup"
+            @mouseleave="handleWordLeave"
+          >
+            <div class="flex items-start justify-between mb-2">
+              <div>
+                <h4 class="font-semibold text-lg">{{ wordPopupData.word }}</h4>
+                <p class="text-sm text-gray-500">{{ wordPopupData.phonetic }}</p>
+              </div>
+              <UButton
+                v-if="loggedIn"
+                icon="i-lucide-plus"
+                size="xs"
+                color="primary"
+                :loading="addingWordToVocab"
+                @click="addWordFromPopup"
+              >
+                Add
+              </UButton>
+            </div>
+            <p class="text-sm text-gray-700 dark:text-gray-300">{{ wordPopupData.definition }}</p>
+          </div>
+        </Teleport>
 
         <!-- Tags -->
         <div v-if="article.tags?.length" class="flex flex-wrap gap-2 mb-8">
@@ -141,46 +195,13 @@
             >
               {{ isBookmarked ? 'Saved' : 'Save' }}
             </UButton>
-            <UButton icon="i-lucide-share-2" variant="soft">Share</UButton>
-            <UButton icon="i-lucide-book-plus" variant="soft" @click="showVocabModal = true">
-              Add Word
-            </UButton>
+            <UButton icon="i-lucide-share-2" variant="soft" @click="handleShare">Share</UButton>
           </div>
           <div class="flex items-center gap-2">
             <UButton icon="i-lucide-arrow-left" variant="ghost" to="/articles">Back</UButton>
           </div>
         </div>
       </template>
-
-      <!-- Add Vocabulary Modal -->
-      <UModal v-model:open="showVocabModal">
-        <template #content>
-          <UCard>
-            <template #header>
-              <h3 class="text-lg font-semibold">Add to Vocabulary</h3>
-            </template>
-
-            <form class="space-y-4" @submit.prevent="handleAddToVocabulary">
-              <UFormField label="Word" name="word" required>
-                <UInput v-model="selectedWord.word" placeholder="e.g., artificial" />
-              </UFormField>
-              <UFormField label="Phonetic" name="phonetic">
-                <UInput v-model="selectedWord.phonetic" placeholder="e.g., /ˌɑːrtɪˈfɪʃl/" />
-              </UFormField>
-              <UFormField label="Definition" name="definition" required>
-                <UTextarea v-model="selectedWord.definition" placeholder="Word definition..." :rows="2" />
-              </UFormField>
-            </form>
-
-            <template #footer>
-              <div class="flex justify-end gap-2">
-                <UButton variant="outline" @click="showVocabModal = false">Cancel</UButton>
-                <UButton :loading="addingVocab" @click="handleAddToVocabulary">Add Word</UButton>
-              </div>
-            </template>
-          </UCard>
-        </template>
-      </UModal>
     </div>
   </NuxtLayout>
 </template>
@@ -197,13 +218,23 @@ const showTranslation = ref(true)
 const showPhonetics = ref(false)
 const isBookmarked = ref(false)
 const bookmarkPending = ref(false)
-const showVocabModal = ref(false)
-const selectedWord = reactive({
-  word: '',
-  phonetic: '',
-  definition: ''
-})
-const addingVocab = ref(false)
+
+// Word hover state
+const hoveredWord = ref<{ word: string; clean: string; text: string } | null>(null)
+const showWordPopup = ref(false)
+const wordPopupData = ref<{ word: string; phonetic: string; definition: string } | null>(null)
+const wordPopupStyle = ref<Record<string, string>>({})
+const hidePopupTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
+const addingWordToVocab = ref(false)
+
+// Reading time tracking
+const readingTime = ref(0)
+const lastActivityTime = ref(Date.now())
+const activityTimeout = ref<ReturnType<typeof setInterval> | null>(null)
+const activityListeners = ref<{ name: string; handler: () => void }[]>([])
+
+// Phonetics cache
+const phoneticsCache = ref<Map<string, string>>(new Map())
 
 // Font size from preferences
 const fontSize = computed(() => preferences.value?.fontSize || 16)
@@ -220,6 +251,50 @@ const updateFontSize = async (newSize: number) => {
 
 const slug = computed(() => route.params.id as string)
 
+// Track user activity
+const trackActivity = () => {
+  lastActivityTime.value = Date.now()
+}
+
+// Start reading time tracking
+const startReadingTimeTracking = () => {
+  // Add event listeners for user activity
+  const events = ['mousemove', 'touchstart', 'scroll', 'keydown'] as const
+  events.forEach(eventName => {
+    document.addEventListener(eventName, trackActivity)
+    activityListeners.value.push({ name: eventName, handler: trackActivity })
+  })
+
+  // Update reading time every minute if user was active
+  activityTimeout.value = setInterval(() => {
+    const now = Date.now()
+    const timeSinceLastActivity = now - lastActivityTime.value
+
+    // If user was active in the last minute, increment reading time
+    if (timeSinceLastActivity < 60000) {
+      readingTime.value++
+
+      // Update progress with reading time
+      if (loggedIn.value && article.value) {
+        $fetch(`/api/user/history/${article.value.id}`, {
+          method: 'POST',
+          body: {
+            progress: calculateProgress(),
+            readingTime: readingTime.value
+          }
+        }).catch(() => {})
+      }
+    }
+  }, 60000) // Every minute
+}
+
+// Calculate reading progress based on scroll position
+const calculateProgress = () => {
+  const scrollTop = window.scrollY
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight
+  return Math.min(100, Math.round((scrollTop / docHeight) * 100))
+}
+
 // Fetch user preferences
 onMounted(async () => {
   if (loggedIn.value) {
@@ -232,11 +307,163 @@ onMounted(async () => {
       // Ignore errors
     }
   }
+
+  // Start reading time tracking
+  startReadingTimeTracking()
+})
+
+// Cleanup on unmount
+onUnmounted(() => {
+  if (activityTimeout.value) {
+    clearInterval(activityTimeout.value)
+  }
+  if (hidePopupTimeout.value) {
+    clearTimeout(hidePopupTimeout.value)
+  }
+  // Remove activity listeners
+  activityListeners.value.forEach(({ name, handler }) => {
+    document.removeEventListener(name, handler)
+  })
 })
 
 // Fetch article
 const { data, pending, error } = await useFetch(`/api/articles/${slug.value}`)
 const article = computed(() => data.value)
+
+// Fetch phonetics when article is loaded and showPhonetics is true
+watch([() => article.value, showPhonetics], async ([articleData, show]) => {
+  if (articleData && show) {
+    await fetchPhoneticsForArticle(articleData)
+  }
+}, { immediate: true })
+
+// Fetch phonetics for all sentences
+const fetchPhoneticsForArticle = async (articleData: any) => {
+  if (!articleData?.paragraphs) return
+
+  for (const paragraph of articleData.paragraphs) {
+    for (const sentence of paragraph.sentences) {
+      if (sentence.en) {
+        try {
+          const result = await $fetch('/api/phonetics', {
+            query: { text: sentence.en }
+          })
+          if (result?.words) {
+            for (const w of result.words) {
+              phoneticsCache.value.set(w.word.toLowerCase(), w.phonetic)
+            }
+          }
+        } catch (e) {
+          // Ignore errors
+        }
+      }
+    }
+  }
+}
+
+// Get words from a sentence with phonetics
+const getSentenceWords = (sentence: string, _pIndex: number, _sIndex: number) => {
+  const words: { text: string; clean: string; phonetic?: string }[] = []
+  const regex = /(\w+)|([^\w\s]+)/g
+  let match
+
+  while ((match = regex.exec(sentence)) !== null) {
+    const text = match[0]
+    const isWord = !!match[1]
+    const clean = text.toLowerCase().replace(/[^\w]/g, '')
+
+    if (isWord) {
+      words.push({
+        text,
+        clean,
+        phonetic: phoneticsCache.value.get(clean)
+      })
+    } else {
+      words.push({ text, clean: '' })
+    }
+  }
+
+  return words
+}
+
+// Handle word hover
+const handleWordHover = async (word: { text: string; clean: string }, event: MouseEvent) => {
+  if (!word.clean) return
+
+  hoveredWord.value = { word: word.clean, clean: word.clean, text: word.text }
+
+  // Cancel any pending hide
+  if (hidePopupTimeout.value) {
+    clearTimeout(hidePopupTimeout.value)
+    hidePopupTimeout.value = null
+  }
+
+  // Fetch word data
+  try {
+    const result = await $fetch('/api/dictionary/lookup', {
+      query: { word: word.clean }
+    })
+
+    wordPopupData.value = result
+
+    // Position popup
+    const target = event.target as HTMLElement
+    const rect = target.getBoundingClientRect()
+
+    wordPopupStyle.value = {
+      top: `${rect.bottom + 8}px`,
+      left: `${Math.min(rect.left, window.innerWidth - 300)}px`
+    }
+
+    showWordPopup.value = true
+  } catch (e) {
+    // Ignore errors
+  }
+}
+
+// Handle word leave
+const handleWordLeave = () => {
+  hidePopupTimeout.value = setTimeout(() => {
+    showWordPopup.value = false
+    hoveredWord.value = null
+  }, 200)
+}
+
+// Cancel hide popup
+const cancelHidePopup = () => {
+  if (hidePopupTimeout.value) {
+    clearTimeout(hidePopupTimeout.value)
+    hidePopupTimeout.value = null
+  }
+}
+
+// Add word from popup
+const addWordFromPopup = async () => {
+  if (!wordPopupData.value || !loggedIn.value) return
+
+  addingWordToVocab.value = true
+  try {
+    await addWord({
+      word: wordPopupData.value.word,
+      phonetic: wordPopupData.value.phonetic,
+      definition: wordPopupData.value.definition,
+      articleId: article.value?.id
+    })
+    toast.add({
+      title: 'Word added',
+      description: `"${wordPopupData.value.word}" has been added to your vocabulary`,
+      color: 'success'
+    })
+  } catch (error: any) {
+    toast.add({
+      title: 'Failed to add word',
+      description: error.data?.message || 'Please try again',
+      color: 'error'
+    })
+  } finally {
+    addingWordToVocab.value = false
+  }
+}
 
 // Check if article is bookmarked
 watchEffect(async () => {
@@ -305,56 +532,37 @@ watch([showTranslation, showPhonetics], async ([translation, phonetics]) => {
   }
 })
 
-// Add word to vocabulary
-const handleAddToVocabulary = async () => {
-  if (!selectedWord.word || !selectedWord.definition) {
-    toast.add({
-      title: 'Missing fields',
-      description: 'Word and definition are required',
-      color: 'error'
-    })
-    return
-  }
+// Share article
+const handleShare = async () => {
+  const url = window.location.href
+  const title = article.value?.title || 'Article'
 
-  addingVocab.value = true
-  try {
-    await addWord({
-      word: selectedWord.word,
-      phonetic: selectedWord.phonetic || undefined,
-      definition: selectedWord.definition,
-      articleId: article.value?.id
-    })
-    toast.add({
-      title: 'Word added',
-      description: `"${selectedWord.word}" has been added to your vocabulary`,
-      color: 'success'
-    })
-    showVocabModal.value = false
-    // Reset form
-    selectedWord.word = ''
-    selectedWord.phonetic = ''
-    selectedWord.definition = ''
-  } catch (error: any) {
-    toast.add({
-      title: 'Failed to add word',
-      description: error.data?.message || 'Please try again',
-      color: 'error'
-    })
-  } finally {
-    addingVocab.value = false
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title,
+        url
+      })
+    } catch (e) {
+      // User cancelled or error
+    }
+  } else {
+    // Fallback to clipboard
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.add({
+        title: 'Link copied',
+        description: 'Article link has been copied to clipboard',
+        color: 'success'
+      })
+    } catch (e) {
+      toast.add({
+        title: 'Failed to copy',
+        description: 'Please copy the URL manually',
+        color: 'error'
+      })
+    }
   }
-}
-
-// Open vocabulary modal with selected sentence word
-const openVocabModal = (sentence: any) => {
-  // For simplicity, use the first word of the sentence
-  const words = sentence.en.split(' ')
-  if (words.length > 0) {
-    selectedWord.word = words[0].replace(/[^\w]/g, '').toLowerCase()
-    selectedWord.definition = ''
-    selectedWord.phonetic = ''
-  }
-  showVocabModal.value = true
 }
 
 const difficultyColor = (difficulty: string) => {
@@ -384,3 +592,14 @@ useSeoMeta({
   description: () => article.value?.excerpt || ''
 })
 </script>
+
+<style scoped>
+.word-wrapper {
+  margin: 0 1px;
+}
+
+.ruby-text rt {
+  font-size: 0.6em;
+  color: #6b7280;
+}
+</style>

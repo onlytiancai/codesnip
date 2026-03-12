@@ -16,23 +16,14 @@ export default defineEventHandler(async (event) => {
     where: { userId, progress: 100 }
   })
 
-  // Get total reading time (estimated)
+  // Get total reading time (actual, not estimated)
   const history = await prisma.readingHistory.findMany({
     where: { userId },
-    include: {
-      Article: {
-        select: { content: true, readTime: true }
-      }
-    }
+    select: { readingTime: true }
   })
 
-  let totalMinutes = 0
-  for (const h of history) {
-    // Use article's readTime if available, otherwise estimate from word count
-    const readTime = h.Article.readTime || Math.ceil((h.Article.content?.split(' ').length || 0) / 200)
-    const estimatedMinutes = Math.ceil(readTime * (h.progress / 100))
-    totalMinutes += estimatedMinutes
-  }
+  // Sum up actual reading time from database
+  const totalMinutes = history.reduce((sum, h) => sum + (h.readingTime || 0), 0)
 
   // Calculate streak - get distinct dates user has read
   const recentHistory = await prisma.readingHistory.findMany({

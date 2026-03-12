@@ -31,6 +31,7 @@ export type ReadingHistoryAvgAggregateOutputType = {
   userId: number | null
   articleId: number | null
   progress: number | null
+  readingTime: number | null
 }
 
 export type ReadingHistorySumAggregateOutputType = {
@@ -38,6 +39,7 @@ export type ReadingHistorySumAggregateOutputType = {
   userId: number | null
   articleId: number | null
   progress: number | null
+  readingTime: number | null
 }
 
 export type ReadingHistoryMinAggregateOutputType = {
@@ -45,6 +47,7 @@ export type ReadingHistoryMinAggregateOutputType = {
   userId: number | null
   articleId: number | null
   progress: number | null
+  readingTime: number | null
   lastReadAt: Date | null
   completedAt: Date | null
 }
@@ -54,6 +57,7 @@ export type ReadingHistoryMaxAggregateOutputType = {
   userId: number | null
   articleId: number | null
   progress: number | null
+  readingTime: number | null
   lastReadAt: Date | null
   completedAt: Date | null
 }
@@ -63,6 +67,7 @@ export type ReadingHistoryCountAggregateOutputType = {
   userId: number
   articleId: number
   progress: number
+  readingTime: number
   lastReadAt: number
   completedAt: number
   _all: number
@@ -74,6 +79,7 @@ export type ReadingHistoryAvgAggregateInputType = {
   userId?: true
   articleId?: true
   progress?: true
+  readingTime?: true
 }
 
 export type ReadingHistorySumAggregateInputType = {
@@ -81,6 +87,7 @@ export type ReadingHistorySumAggregateInputType = {
   userId?: true
   articleId?: true
   progress?: true
+  readingTime?: true
 }
 
 export type ReadingHistoryMinAggregateInputType = {
@@ -88,6 +95,7 @@ export type ReadingHistoryMinAggregateInputType = {
   userId?: true
   articleId?: true
   progress?: true
+  readingTime?: true
   lastReadAt?: true
   completedAt?: true
 }
@@ -97,6 +105,7 @@ export type ReadingHistoryMaxAggregateInputType = {
   userId?: true
   articleId?: true
   progress?: true
+  readingTime?: true
   lastReadAt?: true
   completedAt?: true
 }
@@ -106,6 +115,7 @@ export type ReadingHistoryCountAggregateInputType = {
   userId?: true
   articleId?: true
   progress?: true
+  readingTime?: true
   lastReadAt?: true
   completedAt?: true
   _all?: true
@@ -202,6 +212,7 @@ export type ReadingHistoryGroupByOutputType = {
   userId: number
   articleId: number
   progress: number
+  readingTime: number
   lastReadAt: Date
   completedAt: Date | null
   _count: ReadingHistoryCountAggregateOutputType | null
@@ -234,6 +245,7 @@ export type ReadingHistoryWhereInput = {
   userId?: Prisma.IntFilter<"ReadingHistory"> | number
   articleId?: Prisma.IntFilter<"ReadingHistory"> | number
   progress?: Prisma.IntFilter<"ReadingHistory"> | number
+  readingTime?: Prisma.IntFilter<"ReadingHistory"> | number
   lastReadAt?: Prisma.DateTimeFilter<"ReadingHistory"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"ReadingHistory"> | Date | string | null
   Article?: Prisma.XOR<Prisma.ArticleScalarRelationFilter, Prisma.ArticleWhereInput>
@@ -245,6 +257,7 @@ export type ReadingHistoryOrderByWithRelationInput = {
   userId?: Prisma.SortOrder
   articleId?: Prisma.SortOrder
   progress?: Prisma.SortOrder
+  readingTime?: Prisma.SortOrder
   lastReadAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   Article?: Prisma.ArticleOrderByWithRelationInput
@@ -260,6 +273,7 @@ export type ReadingHistoryWhereUniqueInput = Prisma.AtLeast<{
   userId?: Prisma.IntFilter<"ReadingHistory"> | number
   articleId?: Prisma.IntFilter<"ReadingHistory"> | number
   progress?: Prisma.IntFilter<"ReadingHistory"> | number
+  readingTime?: Prisma.IntFilter<"ReadingHistory"> | number
   lastReadAt?: Prisma.DateTimeFilter<"ReadingHistory"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"ReadingHistory"> | Date | string | null
   Article?: Prisma.XOR<Prisma.ArticleScalarRelationFilter, Prisma.ArticleWhereInput>
@@ -271,6 +285,7 @@ export type ReadingHistoryOrderByWithAggregationInput = {
   userId?: Prisma.SortOrder
   articleId?: Prisma.SortOrder
   progress?: Prisma.SortOrder
+  readingTime?: Prisma.SortOrder
   lastReadAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.ReadingHistoryCountOrderByAggregateInput
@@ -288,12 +303,14 @@ export type ReadingHistoryScalarWhereWithAggregatesInput = {
   userId?: Prisma.IntWithAggregatesFilter<"ReadingHistory"> | number
   articleId?: Prisma.IntWithAggregatesFilter<"ReadingHistory"> | number
   progress?: Prisma.IntWithAggregatesFilter<"ReadingHistory"> | number
+  readingTime?: Prisma.IntWithAggregatesFilter<"ReadingHistory"> | number
   lastReadAt?: Prisma.DateTimeWithAggregatesFilter<"ReadingHistory"> | Date | string
   completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ReadingHistory"> | Date | string | null
 }
 
 export type ReadingHistoryCreateInput = {
   progress?: number
+  readingTime?: number
   lastReadAt?: Date | string
   completedAt?: Date | string | null
   Article: Prisma.ArticleCreateNestedOneWithoutReadingHistoryInput
@@ -305,12 +322,14 @@ export type ReadingHistoryUncheckedCreateInput = {
   userId: number
   articleId: number
   progress?: number
+  readingTime?: number
   lastReadAt?: Date | string
   completedAt?: Date | string | null
 }
 
 export type ReadingHistoryUpdateInput = {
   progress?: Prisma.IntFieldUpdateOperationsInput | number
+  readingTime?: Prisma.IntFieldUpdateOperationsInput | number
   lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   Article?: Prisma.ArticleUpdateOneRequiredWithoutReadingHistoryNestedInput
@@ -322,6 +341,7 @@ export type ReadingHistoryUncheckedUpdateInput = {
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   articleId?: Prisma.IntFieldUpdateOperationsInput | number
   progress?: Prisma.IntFieldUpdateOperationsInput | number
+  readingTime?: Prisma.IntFieldUpdateOperationsInput | number
   lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -331,12 +351,14 @@ export type ReadingHistoryCreateManyInput = {
   userId: number
   articleId: number
   progress?: number
+  readingTime?: number
   lastReadAt?: Date | string
   completedAt?: Date | string | null
 }
 
 export type ReadingHistoryUpdateManyMutationInput = {
   progress?: Prisma.IntFieldUpdateOperationsInput | number
+  readingTime?: Prisma.IntFieldUpdateOperationsInput | number
   lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -346,6 +368,7 @@ export type ReadingHistoryUncheckedUpdateManyInput = {
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   articleId?: Prisma.IntFieldUpdateOperationsInput | number
   progress?: Prisma.IntFieldUpdateOperationsInput | number
+  readingTime?: Prisma.IntFieldUpdateOperationsInput | number
   lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -370,6 +393,7 @@ export type ReadingHistoryCountOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   articleId?: Prisma.SortOrder
   progress?: Prisma.SortOrder
+  readingTime?: Prisma.SortOrder
   lastReadAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
 }
@@ -379,6 +403,7 @@ export type ReadingHistoryAvgOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   articleId?: Prisma.SortOrder
   progress?: Prisma.SortOrder
+  readingTime?: Prisma.SortOrder
 }
 
 export type ReadingHistoryMaxOrderByAggregateInput = {
@@ -386,6 +411,7 @@ export type ReadingHistoryMaxOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   articleId?: Prisma.SortOrder
   progress?: Prisma.SortOrder
+  readingTime?: Prisma.SortOrder
   lastReadAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
 }
@@ -395,6 +421,7 @@ export type ReadingHistoryMinOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   articleId?: Prisma.SortOrder
   progress?: Prisma.SortOrder
+  readingTime?: Prisma.SortOrder
   lastReadAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
 }
@@ -404,6 +431,7 @@ export type ReadingHistorySumOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   articleId?: Prisma.SortOrder
   progress?: Prisma.SortOrder
+  readingTime?: Prisma.SortOrder
 }
 
 export type ReadingHistoryCreateNestedManyWithoutArticleInput = {
@@ -492,6 +520,7 @@ export type ReadingHistoryUncheckedUpdateManyWithoutUserNestedInput = {
 
 export type ReadingHistoryCreateWithoutArticleInput = {
   progress?: number
+  readingTime?: number
   lastReadAt?: Date | string
   completedAt?: Date | string | null
   User: Prisma.UserCreateNestedOneWithoutReadingHistoryInput
@@ -501,6 +530,7 @@ export type ReadingHistoryUncheckedCreateWithoutArticleInput = {
   id?: number
   userId: number
   progress?: number
+  readingTime?: number
   lastReadAt?: Date | string
   completedAt?: Date | string | null
 }
@@ -538,12 +568,14 @@ export type ReadingHistoryScalarWhereInput = {
   userId?: Prisma.IntFilter<"ReadingHistory"> | number
   articleId?: Prisma.IntFilter<"ReadingHistory"> | number
   progress?: Prisma.IntFilter<"ReadingHistory"> | number
+  readingTime?: Prisma.IntFilter<"ReadingHistory"> | number
   lastReadAt?: Prisma.DateTimeFilter<"ReadingHistory"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"ReadingHistory"> | Date | string | null
 }
 
 export type ReadingHistoryCreateWithoutUserInput = {
   progress?: number
+  readingTime?: number
   lastReadAt?: Date | string
   completedAt?: Date | string | null
   Article: Prisma.ArticleCreateNestedOneWithoutReadingHistoryInput
@@ -553,6 +585,7 @@ export type ReadingHistoryUncheckedCreateWithoutUserInput = {
   id?: number
   articleId: number
   progress?: number
+  readingTime?: number
   lastReadAt?: Date | string
   completedAt?: Date | string | null
 }
@@ -586,12 +619,14 @@ export type ReadingHistoryCreateManyArticleInput = {
   id?: number
   userId: number
   progress?: number
+  readingTime?: number
   lastReadAt?: Date | string
   completedAt?: Date | string | null
 }
 
 export type ReadingHistoryUpdateWithoutArticleInput = {
   progress?: Prisma.IntFieldUpdateOperationsInput | number
+  readingTime?: Prisma.IntFieldUpdateOperationsInput | number
   lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   User?: Prisma.UserUpdateOneRequiredWithoutReadingHistoryNestedInput
@@ -601,6 +636,7 @@ export type ReadingHistoryUncheckedUpdateWithoutArticleInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   progress?: Prisma.IntFieldUpdateOperationsInput | number
+  readingTime?: Prisma.IntFieldUpdateOperationsInput | number
   lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -609,6 +645,7 @@ export type ReadingHistoryUncheckedUpdateManyWithoutArticleInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   progress?: Prisma.IntFieldUpdateOperationsInput | number
+  readingTime?: Prisma.IntFieldUpdateOperationsInput | number
   lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -617,12 +654,14 @@ export type ReadingHistoryCreateManyUserInput = {
   id?: number
   articleId: number
   progress?: number
+  readingTime?: number
   lastReadAt?: Date | string
   completedAt?: Date | string | null
 }
 
 export type ReadingHistoryUpdateWithoutUserInput = {
   progress?: Prisma.IntFieldUpdateOperationsInput | number
+  readingTime?: Prisma.IntFieldUpdateOperationsInput | number
   lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   Article?: Prisma.ArticleUpdateOneRequiredWithoutReadingHistoryNestedInput
@@ -632,6 +671,7 @@ export type ReadingHistoryUncheckedUpdateWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   articleId?: Prisma.IntFieldUpdateOperationsInput | number
   progress?: Prisma.IntFieldUpdateOperationsInput | number
+  readingTime?: Prisma.IntFieldUpdateOperationsInput | number
   lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -640,6 +680,7 @@ export type ReadingHistoryUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   articleId?: Prisma.IntFieldUpdateOperationsInput | number
   progress?: Prisma.IntFieldUpdateOperationsInput | number
+  readingTime?: Prisma.IntFieldUpdateOperationsInput | number
   lastReadAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -651,6 +692,7 @@ export type ReadingHistorySelect<ExtArgs extends runtime.Types.Extensions.Intern
   userId?: boolean
   articleId?: boolean
   progress?: boolean
+  readingTime?: boolean
   lastReadAt?: boolean
   completedAt?: boolean
   Article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
@@ -662,6 +704,7 @@ export type ReadingHistorySelectCreateManyAndReturn<ExtArgs extends runtime.Type
   userId?: boolean
   articleId?: boolean
   progress?: boolean
+  readingTime?: boolean
   lastReadAt?: boolean
   completedAt?: boolean
   Article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
@@ -673,6 +716,7 @@ export type ReadingHistorySelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   userId?: boolean
   articleId?: boolean
   progress?: boolean
+  readingTime?: boolean
   lastReadAt?: boolean
   completedAt?: boolean
   Article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
@@ -684,11 +728,12 @@ export type ReadingHistorySelectScalar = {
   userId?: boolean
   articleId?: boolean
   progress?: boolean
+  readingTime?: boolean
   lastReadAt?: boolean
   completedAt?: boolean
 }
 
-export type ReadingHistoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "articleId" | "progress" | "lastReadAt" | "completedAt", ExtArgs["result"]["readingHistory"]>
+export type ReadingHistoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "articleId" | "progress" | "readingTime" | "lastReadAt" | "completedAt", ExtArgs["result"]["readingHistory"]>
 export type ReadingHistoryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   Article?: boolean | Prisma.ArticleDefaultArgs<ExtArgs>
   User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -713,6 +758,7 @@ export type $ReadingHistoryPayload<ExtArgs extends runtime.Types.Extensions.Inte
     userId: number
     articleId: number
     progress: number
+    readingTime: number
     lastReadAt: Date
     completedAt: Date | null
   }, ExtArgs["result"]["readingHistory"]>
@@ -1144,6 +1190,7 @@ export interface ReadingHistoryFieldRefs {
   readonly userId: Prisma.FieldRef<"ReadingHistory", 'Int'>
   readonly articleId: Prisma.FieldRef<"ReadingHistory", 'Int'>
   readonly progress: Prisma.FieldRef<"ReadingHistory", 'Int'>
+  readonly readingTime: Prisma.FieldRef<"ReadingHistory", 'Int'>
   readonly lastReadAt: Prisma.FieldRef<"ReadingHistory", 'DateTime'>
   readonly completedAt: Prisma.FieldRef<"ReadingHistory", 'DateTime'>
 }
