@@ -29,14 +29,14 @@ export default defineEventHandler(async (event) => {
     where.push(`(tag LIKE '%${tag}%' OR tag LIKE '% ${tag}%' OR tag LIKE '${tag} %')`)
   }
   if (hasPhonetic === 'true') {
-    where.push('phonetic IS NOT NULL AND phonetic != ""')
+    where.push("phonetic IS NOT NULL AND phonetic != ''")
   } else if (hasPhonetic === 'false') {
-    where.push('phonetic IS NULL OR phonetic = ""')
+    where.push("phonetic IS NULL OR phonetic = ''")
   }
   if (hasTranslation === 'true') {
-    where.push('translation IS NOT NULL AND translation != ""')
+    where.push("translation IS NOT NULL AND translation != ''")
   } else if (hasTranslation === 'false') {
-    where.push('translation IS NULL OR translation = ""')
+    where.push("translation IS NULL OR translation = ''")
   }
 
   const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : ''
