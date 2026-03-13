@@ -1,3 +1,2 @@
 - 本项目是一个 nuxt v4 + nuxt ui 实现的英语阅读应用
-- 你可以 pnpm dev 启动服务，并使用 chrome devtools mcp 打开页面进行自动化测试，发现错误并修复，如果服务已经启动，则 pkill -f "nuxt.mjs dev"
-- 测试账户 Admin: admin@example.com / admin123，User: user@example.com / user123
+- 你可以 pnpm dev 启动服务，并使用 chrome devtools mcp 打开页面进行自动化测试，发现错误并修复，如果服务已经启动，则 pkill -f "nuxt.mjs dev"，不要使用截屏工具

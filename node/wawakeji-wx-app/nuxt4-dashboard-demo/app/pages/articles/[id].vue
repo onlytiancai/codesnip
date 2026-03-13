@@ -56,24 +56,44 @@
           <!-- Audio Player for Original/Immersive mode -->
           <template v-if="readingMode !== 'sentence' && article.paragraphs?.length">
             <UButton
-              :icon="isPlayingAll ? 'i-lucide-pause' : 'i-lucide-play'"
+              v-if="!isPlayingAll"
+              icon="i-lucide-play"
               color="primary"
               size="sm"
               @click="togglePlayAllParagraphs"
             >
-              {{ isPlayingAll ? 'Pause' : 'Play All' }}
+              Play All
+            </UButton>
+            <UButton
+              v-else
+              icon="i-lucide-square"
+              color="error"
+              size="sm"
+              @click="stopAllAudio"
+            >
+              Stop
             </UButton>
           </template>
 
           <!-- Audio Player for Sentence mode -->
           <template v-if="readingMode === 'sentence' && article.sentences?.length">
             <UButton
-              :icon="isPlayingAll ? 'i-lucide-pause' : 'i-lucide-play'"
+              v-if="!isPlayingAll"
+              icon="i-lucide-play"
               color="primary"
               size="sm"
               @click="togglePlayAllSentences"
             >
-              {{ isPlayingAll ? 'Pause' : 'Play All' }}
+              Play All
+            </UButton>
+            <UButton
+              v-else
+              icon="i-lucide-square"
+              color="error"
+              size="sm"
+              @click="stopAllAudio"
+            >
+              Stop
             </UButton>
           </template>
 
@@ -144,7 +164,11 @@
           <div
             v-for="(paragraph, pIndex) in article.paragraphs"
             :key="pIndex"
-            class="mb-8"
+            :ref="el => { if (el) paragraphRefs[pIndex] = el as HTMLElement }"
+            :class="[
+              'mb-8 rounded-lg px-3 py-2 -mx-3 transition-all duration-300',
+              currentPlayingIndex === pIndex && isPlayingAll ? 'bg-primary/10 border-l-4 border-primary' : ''
+            ]"
           >
             <!-- English paragraph with inline speaker at end -->
             <p class="mb-2 leading-relaxed">
@@ -168,11 +192,14 @@
           <div
             v-for="(sentence, sIndex) in displaySentences"
             :key="sIndex"
+            :ref="el => { if (el) sentenceRefs[sIndex] = el as HTMLElement }"
             :class="[
               'mb-6 p-4 rounded-lg transition cursor-pointer border',
-              selectedSentenceIndex === sIndex
-                ? 'border-primary bg-primary/5'
-                : 'border-gray-200 dark:border-gray-700 hover:border-primary/50'
+              currentPlayingIndex === sIndex && isPlayingAll
+                ? 'border-primary bg-primary/10 shadow-md'
+                : selectedSentenceIndex === sIndex
+                  ? 'border-primary bg-primary/5'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-primary/50'
             ]"
             @click="selectedSentenceIndex = sIndex"
           >
@@ -320,6 +347,34 @@
           </div>
         </Teleport>
 
+        <!-- Floating Stop Button -->
+        <Teleport to="body">
+          <Transition name="fade">
+            <div
+              v-if="isPlayingAll"
+              class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-white dark:bg-gray-800 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 px-4 py-2"
+            >
+              <div class="flex items-center gap-2">
+                <span class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-primary-500"></span>
+                </span>
+                <span class="text-sm font-medium">
+                  Playing {{ readingMode === 'sentence' ? `Sentence ${currentPlayingIndex + 1}` : `Paragraph ${currentPlayingIndex + 1}` }}
+                </span>
+              </div>
+              <UButton
+                icon="i-lucide-square"
+                color="error"
+                size="sm"
+                @click="stopAllAudio"
+              >
+                Stop
+              </UButton>
+            </div>
+          </Transition>
+        </Teleport>
+
         <!-- Tags -->
         <div v-if="article.tags?.length" class="flex flex-wrap gap-2 mb-8">
           <UBadge
@@ -392,6 +447,10 @@ const speedOptions = [
 const isPlayingAll = ref(false)
 const currentPlayingIndex = ref(-1)
 const audioElement = ref<HTMLAudioElement | null>(null)
+
+// Element refs for scrolling
+const paragraphRefs = ref<HTMLElement[]>([])
+const sentenceRefs = ref<HTMLElement[]>([])
 
 // Word hover state
 const hoveredWord = ref<{ word: string; clean: string; text: string } | null>(null)
@@ -584,6 +643,17 @@ const fetchPhoneticsForArticle = async (articleData: any) => {
   }
 }
 
+// Scroll to current playing element
+const scrollToCurrentElement = (index: number, mode: 'paragraph' | 'sentence') => {
+  nextTick(() => {
+    const refs = mode === 'paragraph' ? paragraphRefs.value : sentenceRefs.value
+    const element = refs[index]
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  })
+}
+
 // Speech synthesis for audio playback
 const speechSynthesis = ref<SpeechSynthesis | null>(null)
 const currentUtterance = ref<SpeechSynthesisUtterance | null>(null)
@@ -594,7 +664,7 @@ const speakText = (text: string, onEnd?: () => void) => {
     return
   }
 
-  stopSpeechSynthesis()
+  cancelCurrentSpeech()
 
   speechSynthesis.value = window.speechSynthesis
   currentUtterance.value = new SpeechSynthesisUtterance(text)
@@ -614,6 +684,13 @@ const stopSpeechSynthesis = () => {
   }
   isPlayingAll.value = false
   currentPlayingIndex.value = -1
+}
+
+// Cancel current speech without stopping the play-all sequence
+const cancelCurrentSpeech = () => {
+  if (speechSynthesis.value) {
+    speechSynthesis.value.cancel()
+  }
 }
 
 // Play paragraph (immersive mode)
@@ -658,7 +735,12 @@ const playSentence = (index: number) => {
 
 // Play audio from URL
 const playAudioUrl = (url: string, onEnd?: () => void) => {
-  stopAllAudio()
+  // Stop current audio/speech without resetting play-all state
+  if (audioElement.value) {
+    audioElement.value.pause()
+    audioElement.value = null
+  }
+  cancelCurrentSpeech()
 
   audioElement.value = new Audio(url)
   audioElement.value.onended = () => {
@@ -684,21 +766,18 @@ const stopAllAudio = () => {
 
 // Play all paragraphs
 const togglePlayAllParagraphs = () => {
-  if (isPlayingAll.value) {
-    stopAllAudio()
-    return
-  }
-
   isPlayingAll.value = true
   let index = 0
 
   const playNext = () => {
     if (index >= (article.value?.paragraphs?.length || 0)) {
       isPlayingAll.value = false
+      currentPlayingIndex.value = -1
       return
     }
 
     currentPlayingIndex.value = index
+    scrollToCurrentElement(index, 'paragraph')
     const paragraph = article.value?.paragraphs?.[index]
     const text = paragraph?.en || paragraph?.sentences?.map((s: any) => s.en).join(' ')
     const audioUrl = paragraph?.audio
@@ -724,21 +803,18 @@ const togglePlayAllParagraphs = () => {
 
 // Play all sentences
 const togglePlayAllSentences = () => {
-  if (isPlayingAll.value) {
-    stopAllAudio()
-    return
-  }
-
   isPlayingAll.value = true
   let index = 0
 
   const playNext = () => {
     if (index >= displaySentences.value.length) {
       isPlayingAll.value = false
+      currentPlayingIndex.value = -1
       return
     }
 
     currentPlayingIndex.value = index
+    scrollToCurrentElement(index, 'sentence')
     const sentence = displaySentences.value[index]
     const audioUrl = sentence?.audio
 
@@ -1088,5 +1164,15 @@ useSeoMeta({
 .ruby-text rt {
   font-size: 0.6em;
   color: #6b7280;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
