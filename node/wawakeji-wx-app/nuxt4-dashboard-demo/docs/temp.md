@@ -79,3 +79,7 @@ sqlite
 
   ps -ef | grep 'nuxt.mjs dev' | grep -v grep | awk '{print $2}' | xargs kill -9
   pkill -f "nuxt.mjs dev"
+
+绕过代理测试 url
+
+  curl --noproxy 'tools.myapp1024.com' -v https://tools.myapp1024.com

@@ -1,2 +1,3 @@
 .nuxt
 *.db
+.env.bk
