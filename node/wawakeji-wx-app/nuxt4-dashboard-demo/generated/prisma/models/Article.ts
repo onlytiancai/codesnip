@@ -89,6 +89,7 @@ export type ArticleCountAggregateOutputType = {
   excerpt: number
   cover: number
   content: number
+  splitContent: number
   status: number
   difficulty: number
   views: number
@@ -167,6 +168,7 @@ export type ArticleCountAggregateInputType = {
   excerpt?: true
   cover?: true
   content?: true
+  splitContent?: true
   status?: true
   difficulty?: true
   views?: true
@@ -274,6 +276,7 @@ export type ArticleGroupByOutputType = {
   excerpt: string | null
   cover: string | null
   content: string | null
+  splitContent: runtime.JsonValue | null
   status: string
   difficulty: string
   views: number
@@ -317,6 +320,7 @@ export type ArticleWhereInput = {
   excerpt?: Prisma.StringNullableFilter<"Article"> | string | null
   cover?: Prisma.StringNullableFilter<"Article"> | string | null
   content?: Prisma.StringNullableFilter<"Article"> | string | null
+  splitContent?: Prisma.JsonNullableFilter<"Article">
   status?: Prisma.StringFilter<"Article"> | string
   difficulty?: Prisma.StringFilter<"Article"> | string
   views?: Prisma.IntFilter<"Article"> | number
@@ -344,6 +348,7 @@ export type ArticleOrderByWithRelationInput = {
   excerpt?: Prisma.SortOrderInput | Prisma.SortOrder
   cover?: Prisma.SortOrderInput | Prisma.SortOrder
   content?: Prisma.SortOrderInput | Prisma.SortOrder
+  splitContent?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   difficulty?: Prisma.SortOrder
   views?: Prisma.SortOrder
@@ -374,6 +379,7 @@ export type ArticleWhereUniqueInput = Prisma.AtLeast<{
   excerpt?: Prisma.StringNullableFilter<"Article"> | string | null
   cover?: Prisma.StringNullableFilter<"Article"> | string | null
   content?: Prisma.StringNullableFilter<"Article"> | string | null
+  splitContent?: Prisma.JsonNullableFilter<"Article">
   status?: Prisma.StringFilter<"Article"> | string
   difficulty?: Prisma.StringFilter<"Article"> | string
   views?: Prisma.IntFilter<"Article"> | number
@@ -401,6 +407,7 @@ export type ArticleOrderByWithAggregationInput = {
   excerpt?: Prisma.SortOrderInput | Prisma.SortOrder
   cover?: Prisma.SortOrderInput | Prisma.SortOrder
   content?: Prisma.SortOrderInput | Prisma.SortOrder
+  splitContent?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   difficulty?: Prisma.SortOrder
   views?: Prisma.SortOrder
@@ -429,6 +436,7 @@ export type ArticleScalarWhereWithAggregatesInput = {
   excerpt?: Prisma.StringNullableWithAggregatesFilter<"Article"> | string | null
   cover?: Prisma.StringNullableWithAggregatesFilter<"Article"> | string | null
   content?: Prisma.StringNullableWithAggregatesFilter<"Article"> | string | null
+  splitContent?: Prisma.JsonNullableWithAggregatesFilter<"Article">
   status?: Prisma.StringWithAggregatesFilter<"Article"> | string
   difficulty?: Prisma.StringWithAggregatesFilter<"Article"> | string
   views?: Prisma.IntWithAggregatesFilter<"Article"> | number
@@ -448,6 +456,7 @@ export type ArticleCreateInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -473,6 +482,7 @@ export type ArticleUncheckedCreateInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -497,6 +507,7 @@ export type ArticleUpdateInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -522,6 +533,7 @@ export type ArticleUncheckedUpdateInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -547,6 +559,7 @@ export type ArticleCreateManyInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -566,6 +579,7 @@ export type ArticleUpdateManyMutationInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -584,6 +598,7 @@ export type ArticleUncheckedUpdateManyInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -604,6 +619,7 @@ export type ArticleCountOrderByAggregateInput = {
   excerpt?: Prisma.SortOrder
   cover?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  splitContent?: Prisma.SortOrder
   status?: Prisma.SortOrder
   difficulty?: Prisma.SortOrder
   views?: Prisma.SortOrder
@@ -871,6 +887,7 @@ export type ArticleCreateWithoutArticleTagInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -895,6 +912,7 @@ export type ArticleUncheckedCreateWithoutArticleTagInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -934,6 +952,7 @@ export type ArticleUpdateWithoutArticleTagInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -958,6 +977,7 @@ export type ArticleUncheckedUpdateWithoutArticleTagInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -981,6 +1001,7 @@ export type ArticleCreateWithoutBookmarkInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -1005,6 +1026,7 @@ export type ArticleUncheckedCreateWithoutBookmarkInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -1044,6 +1066,7 @@ export type ArticleUpdateWithoutBookmarkInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1068,6 +1091,7 @@ export type ArticleUncheckedUpdateWithoutBookmarkInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1091,6 +1115,7 @@ export type ArticleCreateWithoutCategoryInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -1115,6 +1140,7 @@ export type ArticleUncheckedCreateWithoutCategoryInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -1167,6 +1193,7 @@ export type ArticleScalarWhereInput = {
   excerpt?: Prisma.StringNullableFilter<"Article"> | string | null
   cover?: Prisma.StringNullableFilter<"Article"> | string | null
   content?: Prisma.StringNullableFilter<"Article"> | string | null
+  splitContent?: Prisma.JsonNullableFilter<"Article">
   status?: Prisma.StringFilter<"Article"> | string
   difficulty?: Prisma.StringFilter<"Article"> | string
   views?: Prisma.IntFilter<"Article"> | number
@@ -1186,6 +1213,7 @@ export type ArticleCreateWithoutReadingHistoryInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -1210,6 +1238,7 @@ export type ArticleUncheckedCreateWithoutReadingHistoryInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -1249,6 +1278,7 @@ export type ArticleUpdateWithoutReadingHistoryInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1273,6 +1303,7 @@ export type ArticleUncheckedUpdateWithoutReadingHistoryInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1296,6 +1327,7 @@ export type ArticleCreateWithoutSentenceInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -1320,6 +1352,7 @@ export type ArticleUncheckedCreateWithoutSentenceInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -1359,6 +1392,7 @@ export type ArticleUpdateWithoutSentenceInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1383,6 +1417,7 @@ export type ArticleUncheckedUpdateWithoutSentenceInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1406,6 +1441,7 @@ export type ArticleCreateWithoutUserInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -1430,6 +1466,7 @@ export type ArticleUncheckedCreateWithoutUserInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -1478,6 +1515,7 @@ export type ArticleCreateWithoutVocabularyInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -1502,6 +1540,7 @@ export type ArticleUncheckedCreateWithoutVocabularyInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -1541,6 +1580,7 @@ export type ArticleUpdateWithoutVocabularyInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1565,6 +1605,7 @@ export type ArticleUncheckedUpdateWithoutVocabularyInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1589,6 +1630,7 @@ export type ArticleCreateManyCategoryInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -1607,6 +1649,7 @@ export type ArticleUpdateWithoutCategoryInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1631,6 +1674,7 @@ export type ArticleUncheckedUpdateWithoutCategoryInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1655,6 +1699,7 @@ export type ArticleUncheckedUpdateManyWithoutCategoryInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1674,6 +1719,7 @@ export type ArticleCreateManyUserInput = {
   excerpt?: string | null
   cover?: string | null
   content?: string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: string
   difficulty?: string
   views?: number
@@ -1692,6 +1738,7 @@ export type ArticleUpdateWithoutUserInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1716,6 +1763,7 @@ export type ArticleUncheckedUpdateWithoutUserInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1740,6 +1788,7 @@ export type ArticleUncheckedUpdateManyWithoutUserInput = {
   excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cover?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  splitContent?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.StringFieldUpdateOperationsInput | string
   difficulty?: Prisma.StringFieldUpdateOperationsInput | string
   views?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1826,6 +1875,7 @@ export type ArticleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   excerpt?: boolean
   cover?: boolean
   content?: boolean
+  splitContent?: boolean
   status?: boolean
   difficulty?: boolean
   views?: boolean
@@ -1854,6 +1904,7 @@ export type ArticleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   excerpt?: boolean
   cover?: boolean
   content?: boolean
+  splitContent?: boolean
   status?: boolean
   difficulty?: boolean
   views?: boolean
@@ -1876,6 +1927,7 @@ export type ArticleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   excerpt?: boolean
   cover?: boolean
   content?: boolean
+  splitContent?: boolean
   status?: boolean
   difficulty?: boolean
   views?: boolean
@@ -1898,6 +1950,7 @@ export type ArticleSelectScalar = {
   excerpt?: boolean
   cover?: boolean
   content?: boolean
+  splitContent?: boolean
   status?: boolean
   difficulty?: boolean
   views?: boolean
@@ -1911,7 +1964,7 @@ export type ArticleSelectScalar = {
   authorId?: boolean
 }
 
-export type ArticleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "slug" | "excerpt" | "cover" | "content" | "status" | "difficulty" | "views" | "bookmarks" | "publishAt" | "metaTitle" | "metaDesc" | "categoryId" | "createdAt" | "updatedAt" | "authorId", ExtArgs["result"]["article"]>
+export type ArticleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "slug" | "excerpt" | "cover" | "content" | "splitContent" | "status" | "difficulty" | "views" | "bookmarks" | "publishAt" | "metaTitle" | "metaDesc" | "categoryId" | "createdAt" | "updatedAt" | "authorId", ExtArgs["result"]["article"]>
 export type ArticleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   Category?: boolean | Prisma.Article$CategoryArgs<ExtArgs>
@@ -1949,6 +2002,7 @@ export type $ArticlePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     excerpt: string | null
     cover: string | null
     content: string | null
+    splitContent: runtime.JsonValue | null
     status: string
     difficulty: string
     views: number
@@ -2396,6 +2450,7 @@ export interface ArticleFieldRefs {
   readonly excerpt: Prisma.FieldRef<"Article", 'String'>
   readonly cover: Prisma.FieldRef<"Article", 'String'>
   readonly content: Prisma.FieldRef<"Article", 'String'>
+  readonly splitContent: Prisma.FieldRef<"Article", 'Json'>
   readonly status: Prisma.FieldRef<"Article", 'String'>
   readonly difficulty: Prisma.FieldRef<"Article", 'String'>
   readonly views: Prisma.FieldRef<"Article", 'Int'>

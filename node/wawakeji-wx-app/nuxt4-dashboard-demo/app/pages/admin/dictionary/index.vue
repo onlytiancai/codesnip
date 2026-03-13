@@ -101,6 +101,12 @@
               />
             </UFormField>
           </div>
+          <div class="flex items-center gap-2 pb-1">
+            <UCheckbox
+              v-model="filters.exactMatch"
+              label="Exact Match"
+            />
+          </div>
           <div class="w-48">
             <UFormField label="Phonetic">
               <USelect

@@ -104,8 +104,3 @@ export type UserPreferences = Prisma.UserPreferencesModel
  * 
  */
 export type Vocabulary = Prisma.VocabularyModel
-/**
- * Model Dictionary
- * 
- */
-export type Dictionary = Prisma.DictionaryModel

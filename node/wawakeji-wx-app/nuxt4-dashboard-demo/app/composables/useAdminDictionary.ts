@@ -28,6 +28,7 @@ interface DictionaryStats {
 
 interface DictionaryFilters {
   search?: string
+  exactMatch?: boolean
   tag?: string
   hasPhonetic?: 'true' | 'false' | 'all'
   hasTranslation?: 'true' | 'false' | 'all'
@@ -49,6 +50,7 @@ export const useAdminDictionary = () => {
   })
   const filters = ref<DictionaryFilters>({
     search: '',
+    exactMatch: false,
     tag: '',
     hasPhonetic: 'all',
     hasTranslation: 'all',
@@ -59,13 +61,14 @@ export const useAdminDictionary = () => {
   const fetchWords = async (page = 1) => {
     loading.value = true
     try {
-      const query: Record<string, string | number> = {
+      const query: Record<string, string | number | boolean> = {
         page,
         limit: pagination.value.limit,
         sortBy: filters.value.sortBy || 'word',
         sortOrder: filters.value.sortOrder || 'asc'
       }
       if (filters.value.search) query.search = filters.value.search
+      if (filters.value.exactMatch) query.exactMatch = true
       if (filters.value.tag) query.tag = filters.value.tag
       if (filters.value.hasPhonetic && filters.value.hasPhonetic !== 'all') {
         query.hasPhonetic = filters.value.hasPhonetic

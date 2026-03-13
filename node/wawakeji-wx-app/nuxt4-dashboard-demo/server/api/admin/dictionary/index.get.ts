@@ -6,6 +6,7 @@ const querySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   search: z.string().optional(),
+  exactMatch: z.coerce.boolean().optional(),
   tag: z.string().optional(), // Filter by tag (zk, gk, cet4, cet6, ielts, toefl, gre, etc.)
   hasPhonetic: z.enum(['true', 'false', 'all']).optional(),
   hasTranslation: z.enum(['true', 'false', 'all']).optional(),
@@ -15,14 +16,18 @@ const querySchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const result = await getValidatedQuery(event, querySchema.parse)
-  const { page, limit, search, tag, hasPhonetic, hasTranslation, sortBy, sortOrder } = result
+  const { page, limit, search, exactMatch, tag, hasPhonetic, hasTranslation, sortBy, sortOrder } = result
 
   const offset = (page - 1) * limit
 
   // Build where clause
   const where: string[] = []
   if (search) {
-    where.push(`word LIKE '%${search.replace(/'/g, "''")}%'`)
+    if (exactMatch) {
+      where.push(`word = '${search.replace(/'/g, "''")}'`)
+    } else {
+      where.push(`word LIKE '%${search.replace(/'/g, "''")}%'`)
+    }
   }
   if (tag) {
     // Tags are space-separated, so we search for the tag within the tag field

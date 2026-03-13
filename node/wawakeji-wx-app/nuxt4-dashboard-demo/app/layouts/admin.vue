@@ -3,42 +3,55 @@
     <!-- Sidebar -->
     <aside
       :class="[
-        'fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transform transition-transform duration-200 lg:translate-x-0',
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        'fixed inset-y-0 left-0 z-50 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transform transition-all duration-200 lg:translate-x-0',
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+        sidebarCollapsed ? 'w-16' : 'w-64'
       ]"
     >
       <!-- Logo -->
-      <div class="flex items-center gap-2 h-16 px-6 border-b border-gray-200 dark:border-gray-800">
-        <UIcon name="i-lucide-book-open" class="w-8 h-8 text-primary" />
-        <span class="text-xl font-bold">Admin Panel</span>
+      <div class="flex items-center gap-2 h-16 px-4 border-b border-gray-200 dark:border-gray-800">
+        <UIcon name="i-lucide-book-open" class="w-8 h-8 text-primary flex-shrink-0" />
+        <span v-if="!sidebarCollapsed" class="text-xl font-bold truncate">Admin Panel</span>
       </div>
 
       <!-- Navigation -->
-      <nav class="p-4 space-y-1">
+      <nav class="p-2 space-y-1">
         <NuxtLink
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+          :class="[
+            'flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition',
+            sidebarCollapsed ? 'justify-center' : ''
+          ]"
           active-class="bg-primary/10 text-primary font-medium"
+          :title="sidebarCollapsed ? item.label : undefined"
         >
-          <UIcon :name="item.icon" class="w-5 h-5" />
-          <span>{{ item.label }}</span>
-          <UBadge v-if="item.badge" color="primary" variant="subtle" size="xs">
+          <UIcon :name="item.icon" class="w-5 h-5 flex-shrink-0" />
+          <span v-if="!sidebarCollapsed">{{ item.label }}</span>
+          <UBadge v-if="item.badge && !sidebarCollapsed" color="primary" variant="subtle" size="xs">
             {{ item.badge }}
           </UBadge>
         </NuxtLink>
       </nav>
 
+      <!-- Collapse Toggle Button (Desktop only) -->
+      <button
+        class="hidden lg:flex absolute top-20 -right-3 w-6 h-6 items-center justify-center bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+        @click="sidebarCollapsed = !sidebarCollapsed"
+      >
+        <UIcon :name="sidebarCollapsed ? 'i-lucide-chevron-right' : 'i-lucide-chevron-left'" class="w-4 h-4 text-gray-500" />
+      </button>
+
       <!-- User Section -->
-      <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-800">
-        <div class="flex items-center gap-3">
+      <div class="absolute bottom-0 left-0 right-0 p-2 border-t border-gray-200 dark:border-gray-800">
+        <div :class="['flex items-center gap-3', sidebarCollapsed ? 'justify-center' : '']">
           <UAvatar src="https://avatars.githubusercontent.com/u/1?v=4" alt="Admin" size="sm" />
-          <div class="flex-1 min-w-0">
+          <div v-if="!sidebarCollapsed" class="flex-1 min-w-0">
             <p class="text-sm font-medium truncate">Admin User</p>
             <p class="text-xs text-gray-500 dark:text-gray-400 truncate">admin@example.com</p>
           </div>
-          <UButton icon="i-lucide-log-out" color="neutral" variant="ghost" size="xs" @click="handleLogout" />
+          <UButton v-if="!sidebarCollapsed" icon="i-lucide-log-out" color="neutral" variant="ghost" size="xs" @click="handleLogout" />
         </div>
       </div>
     </aside>
@@ -51,7 +64,7 @@
     />
 
     <!-- Main Content -->
-    <div class="flex-1 lg:ml-64 flex flex-col">
+    <div :class="['flex-1 flex flex-col transition-all duration-200', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
       <!-- Header -->
       <header class="sticky top-0 z-30 h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <div class="flex items-center justify-between h-full px-4 sm:px-6">
@@ -100,6 +113,7 @@ const colorMode = useColorMode()
 const route = useRoute()
 const router = useRouter()
 const sidebarOpen = ref(false)
+const sidebarCollapsed = ref(false)
 const { loggedIn, clear } = useUserSession()
 const toast = useToast()
 

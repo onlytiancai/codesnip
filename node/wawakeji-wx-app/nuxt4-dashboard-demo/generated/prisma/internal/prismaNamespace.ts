@@ -401,8 +401,7 @@ export const ModelName = {
   Tag: 'Tag',
   User: 'User',
   UserPreferences: 'UserPreferences',
-  Vocabulary: 'Vocabulary',
-  Dictionary: 'Dictionary'
+  Vocabulary: 'Vocabulary'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -418,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "article" | "articleTag" | "bookmark" | "category" | "membership" | "readingHistory" | "sentence" | "tag" | "user" | "userPreferences" | "vocabulary" | "dictionary"
+    modelProps: "account" | "article" | "articleTag" | "bookmark" | "category" | "membership" | "readingHistory" | "sentence" | "tag" | "user" | "userPreferences" | "vocabulary"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1310,80 +1309,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    Dictionary: {
-      payload: Prisma.$DictionaryPayload<ExtArgs>
-      fields: Prisma.DictionaryFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.DictionaryFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$DictionaryPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.DictionaryFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$DictionaryPayload>
-        }
-        findFirst: {
-          args: Prisma.DictionaryFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$DictionaryPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.DictionaryFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$DictionaryPayload>
-        }
-        findMany: {
-          args: Prisma.DictionaryFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$DictionaryPayload>[]
-        }
-        create: {
-          args: Prisma.DictionaryCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$DictionaryPayload>
-        }
-        createMany: {
-          args: Prisma.DictionaryCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.DictionaryCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$DictionaryPayload>[]
-        }
-        delete: {
-          args: Prisma.DictionaryDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$DictionaryPayload>
-        }
-        update: {
-          args: Prisma.DictionaryUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$DictionaryPayload>
-        }
-        deleteMany: {
-          args: Prisma.DictionaryDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.DictionaryUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.DictionaryUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$DictionaryPayload>[]
-        }
-        upsert: {
-          args: Prisma.DictionaryUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$DictionaryPayload>
-        }
-        aggregate: {
-          args: Prisma.DictionaryAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateDictionary>
-        }
-        groupBy: {
-          args: Prisma.DictionaryGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.DictionaryGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.DictionaryCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.DictionaryCountAggregateOutputType> | number
-        }
-      }
-    }
   }
 } & {
   other: {
@@ -1439,6 +1364,7 @@ export const ArticleScalarFieldEnum = {
   excerpt: 'excerpt',
   cover: 'cover',
   content: 'content',
+  splitContent: 'splitContent',
   status: 'status',
   difficulty: 'difficulty',
   views: 'views',
@@ -1587,24 +1513,6 @@ export const VocabularyScalarFieldEnum = {
 export type VocabularyScalarFieldEnum = (typeof VocabularyScalarFieldEnum)[keyof typeof VocabularyScalarFieldEnum]
 
 
-export const DictionaryScalarFieldEnum = {
-  id: 'id',
-  word: 'word',
-  phonetic: 'phonetic',
-  definition: 'definition',
-  translation: 'translation',
-  pos: 'pos',
-  collins: 'collins',
-  oxford: 'oxford',
-  tag: 'tag',
-  bnc: 'bnc',
-  frq: 'frq',
-  exchange: 'exchange'
-} as const
-
-export type DictionaryScalarFieldEnum = (typeof DictionaryScalarFieldEnum)[keyof typeof DictionaryScalarFieldEnum]
-
-
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1613,12 +1521,37 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
 export const NullsOrder = {
   first: 'first',
   last: 'last'
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+export const QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+} as const
+
+export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
 
@@ -1638,6 +1571,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'String'
  */
 export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -1760,7 +1707,6 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   userPreferences?: Prisma.UserPreferencesOmit
   vocabulary?: Prisma.VocabularyOmit
-  dictionary?: Prisma.DictionaryOmit
 }
 
 /* Types for Logging */

@@ -60,8 +60,7 @@ export const ModelName = {
   Tag: 'Tag',
   User: 'User',
   UserPreferences: 'UserPreferences',
-  Vocabulary: 'Vocabulary',
-  Dictionary: 'Dictionary'
+  Vocabulary: 'Vocabulary'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -96,6 +95,7 @@ export const ArticleScalarFieldEnum = {
   excerpt: 'excerpt',
   cover: 'cover',
   content: 'content',
+  splitContent: 'splitContent',
   status: 'status',
   difficulty: 'difficulty',
   views: 'views',
@@ -244,24 +244,6 @@ export const VocabularyScalarFieldEnum = {
 export type VocabularyScalarFieldEnum = (typeof VocabularyScalarFieldEnum)[keyof typeof VocabularyScalarFieldEnum]
 
 
-export const DictionaryScalarFieldEnum = {
-  id: 'id',
-  word: 'word',
-  phonetic: 'phonetic',
-  definition: 'definition',
-  translation: 'translation',
-  pos: 'pos',
-  collins: 'collins',
-  oxford: 'oxford',
-  tag: 'tag',
-  bnc: 'bnc',
-  frq: 'frq',
-  exchange: 'exchange'
-} as const
-
-export type DictionaryScalarFieldEnum = (typeof DictionaryScalarFieldEnum)[keyof typeof DictionaryScalarFieldEnum]
-
-
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -270,10 +252,35 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
 export const NullsOrder = {
   first: 'first',
   last: 'last'
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+export const QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+} as const
+
+export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 

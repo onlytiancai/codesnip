@@ -45,24 +45,42 @@
 
         <!-- Reading Controls -->
         <div class="flex flex-wrap items-center gap-3 mb-8 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-          <!-- Audio Player -->
-          <div class="flex items-center gap-2 flex-1 min-w-0">
-            <UButton icon="i-lucide-play" color="primary" size="sm">Play Audio</UButton>
-            <div class="flex-1 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div class="h-full w-1/3 bg-primary rounded-full" />
-            </div>
-            <span class="text-xs text-gray-500">0:00 / {{ article.readTime }}:00</span>
-          </div>
+          <!-- Mode Selector -->
+          <USelect
+            v-model="readingMode"
+            :items="modeOptions"
+            size="sm"
+            class="w-48"
+          />
+
+          <!-- Audio Player for Original/Immersive mode -->
+          <template v-if="readingMode !== 'sentence' && article.paragraphs?.length">
+            <UButton
+              :icon="isPlayingAll ? 'i-lucide-pause' : 'i-lucide-play'"
+              color="primary"
+              size="sm"
+              @click="togglePlayAllParagraphs"
+            >
+              {{ isPlayingAll ? 'Pause' : 'Play All' }}
+            </UButton>
+          </template>
+
+          <!-- Audio Player for Sentence mode -->
+          <template v-if="readingMode === 'sentence' && article.sentences?.length">
+            <UButton
+              :icon="isPlayingAll ? 'i-lucide-pause' : 'i-lucide-play'"
+              color="primary"
+              size="sm"
+              @click="togglePlayAllSentences"
+            >
+              {{ isPlayingAll ? 'Pause' : 'Play All' }}
+            </UButton>
+          </template>
 
           <!-- Speed Control -->
           <USelect
-            :items="[
-              { label: '0.5x', value: '0.5' },
-              { label: '1.0x', value: '1.0' },
-              { label: '1.5x', value: '1.5' },
-              { label: '2.0x', value: '2.0' }
-            ]"
-            default-value="1.0x"
+            v-model="audioSpeed"
+            :items="speedOptions"
             size="sm"
             class="w-24"
           />
@@ -76,7 +94,7 @@
                   <span class="text-sm font-medium">Show Translation</span>
                   <USwitch v-model="showTranslation" />
                 </div>
-                <div class="flex items-center justify-between">
+                <div v-if="readingMode === 'sentence'" class="flex items-center justify-between">
                   <span class="text-sm font-medium">Show Phonetics</span>
                   <USwitch v-model="showPhonetics" />
                 </div>
@@ -93,52 +111,114 @@
           </UPopover>
         </div>
 
-        <!-- Article Content (Sentence by Sentence with Word Hover) -->
-        <div class="prose prose-lg dark:prose-invert max-w-none mb-8" :style="{ fontSize: fontSize + 'px' }">
+        <!-- ORIGINAL MODE - Pure English only -->
+        <div v-if="readingMode === 'original'" class="prose prose-lg dark:prose-invert max-w-none mb-8" :style="{ fontSize: fontSize + 'px' }">
           <div
             v-for="(paragraph, pIndex) in article.paragraphs"
             :key="pIndex"
             class="mb-6"
           >
-            <div
-              v-for="(sentence, sIndex) in paragraph.sentences"
-              :key="sIndex"
-              :class="[
-                'cursor-pointer transition rounded px-1 -mx-1',
-                selectedSentence === `${pIndex}-${sIndex}`
-                  ? 'bg-primary/10 ring-2 ring-primary'
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-              ]"
-              @click="selectedSentence = `${pIndex}-${sIndex}`"
-            >
-              <p class="mb-1 leading-relaxed">
+            <p class="leading-relaxed">
+              <span
+                v-for="(word, wIndex) in getParagraphWords(paragraph)"
+                :key="wIndex"
+                class="word-wrapper inline-block relative"
+                @mouseenter="handleWordHover(word, $event)"
+                @mouseleave="handleWordLeave"
+              >
                 <span
-                  v-for="(word, wIndex) in getSentenceWords(sentence.en, pIndex, sIndex)"
-                  :key="wIndex"
-                  class="word-wrapper inline-block relative"
-                  @mouseenter="handleWordHover(word, $event)"
-                  @mouseleave="handleWordLeave"
+                  :class="[
+                    'transition-colors duration-150',
+                    hoveredWord?.word === word.clean ? 'text-primary bg-primary/10 rounded px-0.5' : ''
+                  ]"
                 >
-                  <span
-                    :class="[
-                      'transition-colors duration-150',
-                      hoveredWord?.word === word.clean ? 'text-primary bg-primary/10 rounded px-0.5' : ''
-                    ]"
-                  >
-                    <template v-if="showPhonetics && word.phonetic">
-                      <ruby class="ruby-text">
-                        {{ word.text }}
-                        <rt class="text-xs text-gray-500">{{ word.phonetic }}</rt>
-                      </ruby>
-                    </template>
-                    <template v-else>{{ word.text }}</template>
-                  </span>
+                  {{ word.text }}
                 </span>
-              </p>
-              <p v-if="showTranslation" class="text-sm text-gray-500 dark:text-gray-400">
-                {{ sentence.cn }}
-              </p>
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <!-- IMMERSIVE TRANSLATION MODE - Clean layout -->
+        <div v-else-if="readingMode === 'immersive'" class="prose prose-lg dark:prose-invert max-w-none mb-8" :style="{ fontSize: fontSize + 'px' }">
+          <div
+            v-for="(paragraph, pIndex) in article.paragraphs"
+            :key="pIndex"
+            class="mb-8"
+          >
+            <!-- English paragraph with inline speaker at end -->
+            <p class="mb-2 leading-relaxed">
+              {{ paragraph.en || paragraph.sentences?.map((s: any) => s.en).join(' ') }}
+              <button
+                class="inline-flex items-center justify-center w-6 h-6 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 ml-1 align-middle"
+                @click="playParagraph(pIndex)"
+              >
+                <UIcon name="i-lucide-volume-2" class="w-4 h-4 text-gray-500" />
+              </button>
+            </p>
+            <!-- Chinese translation paragraph -->
+            <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+              {{ paragraph.cn || paragraph.sentences?.map((s: any) => s.cn).join(' ') }}
+            </p>
+          </div>
+        </div>
+
+        <!-- SENTENCE-BY-SENTENCE MODE -->
+        <div v-else-if="readingMode === 'sentence'" class="max-w-none mb-8" :style="{ fontSize: fontSize + 'px' }">
+          <div
+            v-for="(sentence, sIndex) in displaySentences"
+            :key="sIndex"
+            :class="[
+              'mb-6 p-4 rounded-lg transition cursor-pointer border',
+              selectedSentenceIndex === sIndex
+                ? 'border-primary bg-primary/5'
+                : 'border-gray-200 dark:border-gray-700 hover:border-primary/50'
+            ]"
+            @click="selectedSentenceIndex = sIndex"
+          >
+            <div class="flex items-center gap-2 mb-2">
+              <UButton
+                size="xs"
+                variant="ghost"
+                icon="i-lucide-volume-2"
+                @click.stop="playSentence(sIndex)"
+              />
+              <span class="text-xs text-gray-400">{{ sIndex + 1 }} / {{ displaySentences.length }}</span>
+              <UBadge v-if="sentence.paragraphIndex !== undefined" variant="subtle" size="xs">
+                P{{ sentence.paragraphIndex + 1 }}
+              </UBadge>
             </div>
+
+            <!-- English with Phonetics -->
+            <p class="leading-relaxed mb-2">
+              <span
+                v-for="(word, wIndex) in getSentenceWordsWithPhonetics(sentence)"
+                :key="wIndex"
+                class="word-wrapper inline-block relative"
+                @mouseenter="handleWordHover(word, $event)"
+                @mouseleave="handleWordLeave"
+              >
+                <span
+                  :class="[
+                    'transition-colors duration-150',
+                    hoveredWord?.word === word.clean ? 'text-primary bg-primary/10 rounded px-0.5' : ''
+                  ]"
+                >
+                  <template v-if="showPhonetics && word.phonetic">
+                    <ruby class="ruby-text">
+                      {{ word.text }}
+                      <rt class="text-xs text-gray-500">{{ word.phonetic }}</rt>
+                    </ruby>
+                  </template>
+                  <template v-else>{{ word.text }}</template>
+                </span>
+              </span>
+            </p>
+
+            <!-- Chinese Translation -->
+            <p v-if="sentence.cn" class="text-sm text-gray-500 dark:text-gray-400">
+              {{ sentence.cn }}
+            </p>
           </div>
         </div>
 
@@ -158,7 +238,6 @@
                 <p class="text-sm text-gray-500">{{ wordPopupData.phonetic || '—' }}</p>
               </div>
               <div class="flex items-center gap-1">
-                <!-- Audio buttons -->
                 <UButton
                   v-if="wordPopupData.audioUs"
                   icon="i-lucide-volume-2"
@@ -194,10 +273,8 @@
               </div>
             </div>
 
-            <!-- Part of speech -->
             <p v-if="wordPopupData.pos" class="text-xs text-primary mb-2">{{ wordPopupData.pos }}</p>
 
-            <!-- Tags -->
             <div v-if="wordPopupData.tag" class="flex flex-wrap gap-1 mb-2">
               <UBadge
                 v-for="t in wordPopupData.tag.split(/\s+/).slice(0, 4)"
@@ -209,7 +286,6 @@
               </UBadge>
             </div>
 
-            <!-- English Definition -->
             <div v-if="wordPopupData.definition" class="mb-2">
               <p class="text-xs text-gray-400 mb-0.5">English</p>
               <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ getDisplayText(wordPopupData.definition, 'definition') }}</p>
@@ -224,7 +300,6 @@
               </UButton>
             </div>
 
-            <!-- Chinese Translation -->
             <div v-if="wordPopupData.translation" class="mb-2">
               <p class="text-xs text-gray-400 mb-0.5">中文</p>
               <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ getDisplayText(wordPopupData.translation, 'translation') }}</p>
@@ -239,7 +314,6 @@
               </UButton>
             </div>
 
-            <!-- Not found message -->
             <p v-if="!wordPopupData.found && !wordPopupData.definition && !wordPopupData.translation" class="text-sm text-gray-400 italic">
               Word not found in dictionary
             </p>
@@ -287,11 +361,37 @@ const { preferences, fetchPreferences, updatePreferences } = useUserPreferences(
 const { addWord } = useVocabulary()
 const toast = useToast()
 
+// Reading mode - initialize from URL query parameter
+const readingMode = ref<'original' | 'immersive' | 'sentence'>(
+  (route.query.mode as 'original' | 'immersive' | 'sentence') || 'original'
+)
+const modeOptions = [
+  { label: 'Original', value: 'original', icon: 'i-lucide-file-text' },
+  { label: 'Immersive', value: 'immersive', icon: 'i-lucide-languages' },
+  { label: 'Sentence', value: 'sentence', icon: 'i-lucide-list' }
+]
+
 const selectedSentence = ref<string | null>(null)
+const selectedSentenceIndex = ref<number | null>(null)
 const showTranslation = ref(true)
 const showPhonetics = ref(false)
 const isBookmarked = ref(false)
 const bookmarkPending = ref(false)
+const audioSpeed = ref(1.0)
+
+const speedOptions = [
+  { label: '0.5x', value: 0.5 },
+  { label: '0.75x', value: 0.75 },
+  { label: '1.0x', value: 1.0 },
+  { label: '1.25x', value: 1.25 },
+  { label: '1.5x', value: 1.5 },
+  { label: '2.0x', value: 2.0 }
+]
+
+// Audio playback state
+const isPlayingAll = ref(false)
+const currentPlayingIndex = ref(-1)
+const audioElement = ref<HTMLAudioElement | null>(null)
 
 // Word hover state
 const hoveredWord = ref<{ word: string; clean: string; text: string } | null>(null)
@@ -343,17 +443,12 @@ const tagLabels: Record<string, string> = {
 
 const getTagLabel = (tag: string) => tagLabels[tag.toLowerCase()] || tag.toUpperCase()
 
-// Truncate text for preview (max 50 chars)
-const truncateText = (text: string, maxLength: number = 50) => {
-  if (!text) return { text: '', needsExpand: false }
-  const cleanText = text.replace(/\\n/g, '\n')
-  if (cleanText.length <= maxLength) {
-    return { text: cleanText, needsExpand: false }
-  }
-  return { text: cleanText.slice(0, maxLength) + '...', needsExpand: true }
-}
+// Display sentences for sentence mode
+const displaySentences = computed(() => {
+  if (!article.value?.sentences) return []
+  return article.value.sentences
+})
 
-// Get display text (with line breaks)
 const getDisplayText = (text: string, field: string) => {
   const isExpanded = expandedFields.value.has(field)
   const cleanText = text.replace(/\\n/g, '\n')
@@ -364,13 +459,11 @@ const getDisplayText = (text: string, field: string) => {
   return cleanText.slice(0, 50) + '...'
 }
 
-// Check if text needs expand button
 const needsExpand = (text: string) => {
   if (!text) return false
   return text.replace(/\\n/g, '\n').length > 50
 }
 
-// Toggle field expansion
 const toggleExpand = (field: string) => {
   if (expandedFields.value.has(field)) {
     expandedFields.value.delete(field)
@@ -398,23 +491,19 @@ const trackActivity = () => {
 
 // Start reading time tracking
 const startReadingTimeTracking = () => {
-  // Add event listeners for user activity
   const events = ['mousemove', 'touchstart', 'scroll', 'keydown'] as const
   events.forEach(eventName => {
     document.addEventListener(eventName, trackActivity)
     activityListeners.value.push({ name: eventName, handler: trackActivity })
   })
 
-  // Update reading time every minute if user was active
   activityTimeout.value = setInterval(() => {
     const now = Date.now()
     const timeSinceLastActivity = now - lastActivityTime.value
 
-    // If user was active in the last minute, increment reading time
     if (timeSinceLastActivity < 60000) {
       readingTime.value++
 
-      // Update progress with reading time
       if (loggedIn.value && article.value) {
         $fetch(`/api/user/history/${article.value.id}`, {
           method: 'POST',
@@ -425,34 +514,29 @@ const startReadingTimeTracking = () => {
         }).catch(() => {})
       }
     }
-  }, 60000) // Every minute
+  }, 60000)
 }
 
-// Calculate reading progress based on scroll position
 const calculateProgress = () => {
   const scrollTop = window.scrollY
   const docHeight = document.documentElement.scrollHeight - window.innerHeight
   return Math.min(100, Math.round((scrollTop / docHeight) * 100))
 }
 
-// Fetch user preferences
 onMounted(async () => {
   if (loggedIn.value) {
     try {
       await fetchPreferences()
-      // Apply preferences to local state
       showTranslation.value = preferences.value?.showTranslation ?? true
       showPhonetics.value = preferences.value?.showPhonetics ?? false
+      audioSpeed.value = preferences.value?.audioSpeed ?? 1.0
     } catch (e) {
       // Ignore errors
     }
   }
-
-  // Start reading time tracking
   startReadingTimeTracking()
 })
 
-// Cleanup on unmount
 onUnmounted(() => {
   if (activityTimeout.value) {
     clearInterval(activityTimeout.value)
@@ -460,29 +544,28 @@ onUnmounted(() => {
   if (hidePopupTimeout.value) {
     clearTimeout(hidePopupTimeout.value)
   }
-  // Remove activity listeners
   activityListeners.value.forEach(({ name, handler }) => {
     document.removeEventListener(name, handler)
   })
+  stopAllAudio()
 })
 
 // Fetch article
 const { data, pending, error } = await useFetch(`/api/articles/${slug.value}`)
 const article = computed(() => data.value)
 
-// Fetch phonetics when article is loaded and showPhonetics is true
+// Fetch phonetics when article is loaded
 watch([() => article.value, showPhonetics], async ([articleData, show]) => {
   if (articleData && show) {
     await fetchPhoneticsForArticle(articleData)
   }
 }, { immediate: true })
 
-// Fetch phonetics for all sentences
 const fetchPhoneticsForArticle = async (articleData: any) => {
   if (!articleData?.paragraphs) return
 
   for (const paragraph of articleData.paragraphs) {
-    for (const sentence of paragraph.sentences) {
+    for (const sentence of paragraph.sentences || []) {
       if (sentence.en) {
         try {
           const result = await $fetch('/api/phonetics', {
@@ -499,6 +582,183 @@ const fetchPhoneticsForArticle = async (articleData: any) => {
       }
     }
   }
+}
+
+// Speech synthesis for audio playback
+const speechSynthesis = ref<SpeechSynthesis | null>(null)
+const currentUtterance = ref<SpeechSynthesisUtterance | null>(null)
+
+const speakText = (text: string, onEnd?: () => void) => {
+  if (!('speechSynthesis' in window)) {
+    toast.add({ title: 'TTS not supported', color: 'warning' })
+    return
+  }
+
+  stopSpeechSynthesis()
+
+  speechSynthesis.value = window.speechSynthesis
+  currentUtterance.value = new SpeechSynthesisUtterance(text)
+  currentUtterance.value.lang = 'en-US'
+  currentUtterance.value.rate = audioSpeed.value
+
+  currentUtterance.value.onend = () => {
+    if (onEnd) onEnd()
+  }
+
+  speechSynthesis.value.speak(currentUtterance.value)
+}
+
+const stopSpeechSynthesis = () => {
+  if (speechSynthesis.value) {
+    speechSynthesis.value.cancel()
+  }
+  isPlayingAll.value = false
+  currentPlayingIndex.value = -1
+}
+
+// Play paragraph (immersive mode)
+const playParagraph = (index: number) => {
+  const paragraph = article.value?.paragraphs?.[index]
+  if (!paragraph) return
+
+  const text = paragraph.en || paragraph.sentences?.map((s: any) => s.en).join(' ')
+  const audioUrl = paragraph.audio
+
+  currentPlayingIndex.value = index
+
+  if (audioUrl) {
+    playAudioUrl(audioUrl, () => {
+      currentPlayingIndex.value = -1
+    })
+  } else if (text) {
+    speakText(text, () => {
+      currentPlayingIndex.value = -1
+    })
+  }
+}
+
+// Play sentence (sentence mode)
+const playSentence = (index: number) => {
+  const sentence = displaySentences.value[index]
+  if (!sentence?.en) return
+
+  const audioUrl = sentence.audio
+  currentPlayingIndex.value = index
+
+  if (audioUrl) {
+    playAudioUrl(audioUrl, () => {
+      currentPlayingIndex.value = -1
+    })
+  } else {
+    speakText(sentence.en, () => {
+      currentPlayingIndex.value = -1
+    })
+  }
+}
+
+// Play audio from URL
+const playAudioUrl = (url: string, onEnd?: () => void) => {
+  stopAllAudio()
+
+  audioElement.value = new Audio(url)
+  audioElement.value.onended = () => {
+    if (onEnd) onEnd()
+  }
+  audioElement.value.onerror = () => {
+    if (onEnd) onEnd()
+  }
+
+  audioElement.value.play().catch(() => {
+    if (onEnd) onEnd()
+  })
+}
+
+// Stop all audio playback
+const stopAllAudio = () => {
+  if (audioElement.value) {
+    audioElement.value.pause()
+    audioElement.value = null
+  }
+  stopSpeechSynthesis()
+}
+
+// Play all paragraphs
+const togglePlayAllParagraphs = () => {
+  if (isPlayingAll.value) {
+    stopAllAudio()
+    return
+  }
+
+  isPlayingAll.value = true
+  let index = 0
+
+  const playNext = () => {
+    if (index >= (article.value?.paragraphs?.length || 0)) {
+      isPlayingAll.value = false
+      return
+    }
+
+    currentPlayingIndex.value = index
+    const paragraph = article.value?.paragraphs?.[index]
+    const text = paragraph?.en || paragraph?.sentences?.map((s: any) => s.en).join(' ')
+    const audioUrl = paragraph?.audio
+
+    if (audioUrl) {
+      playAudioUrl(audioUrl, () => {
+        index++
+        playNext()
+      })
+    } else if (text) {
+      speakText(text, () => {
+        index++
+        playNext()
+      })
+    } else {
+      index++
+      playNext()
+    }
+  }
+
+  playNext()
+}
+
+// Play all sentences
+const togglePlayAllSentences = () => {
+  if (isPlayingAll.value) {
+    stopAllAudio()
+    return
+  }
+
+  isPlayingAll.value = true
+  let index = 0
+
+  const playNext = () => {
+    if (index >= displaySentences.value.length) {
+      isPlayingAll.value = false
+      return
+    }
+
+    currentPlayingIndex.value = index
+    const sentence = displaySentences.value[index]
+    const audioUrl = sentence?.audio
+
+    if (audioUrl) {
+      playAudioUrl(audioUrl, () => {
+        index++
+        playNext()
+      })
+    } else if (sentence?.en) {
+      speakText(sentence.en, () => {
+        index++
+        playNext()
+      })
+    } else {
+      index++
+      playNext()
+    }
+  }
+
+  playNext()
 }
 
 // Get words from a sentence with phonetics
@@ -526,22 +786,82 @@ const getSentenceWords = (sentence: string, _pIndex: number, _sIndex: number) =>
   return words
 }
 
+// Get words with phonetics from sentence object
+const getSentenceWordsWithPhonetics = (sentence: any) => {
+  const words: { text: string; clean: string; phonetic?: string }[] = []
+  if (!sentence?.en) return words
+
+  // Use pre-generated phonetics if available (now in word order)
+  if (sentence.phonetics && Array.isArray(sentence.phonetics)) {
+    // New format: phonetics array is in word order with { text, word, phonetic }
+    return sentence.phonetics.map((p: { text: string; word: string; phonetic: string | null }) => ({
+      text: p.text,
+      clean: p.word,
+      phonetic: p.phonetic ?? undefined
+    }))
+  }
+
+  // Fallback: tokenize and lookup from cache
+  const regex = /(\w+)|([^\w\s]+)/g
+  let match
+
+  while ((match = regex.exec(sentence.en)) !== null) {
+    const text = match[0]
+    const isWord = !!match[1]
+    const clean = text.toLowerCase().replace(/[^\w]/g, '')
+
+    if (isWord) {
+      words.push({
+        text,
+        clean,
+        phonetic: phoneticsCache.value.get(clean)
+      })
+    } else {
+      words.push({ text, clean: '' })
+    }
+  }
+
+  return words
+}
+
+// Get words from a paragraph (for Original mode)
+const getParagraphWords = (paragraph: any) => {
+  const words: { text: string; clean: string; phonetic?: string }[] = []
+  const text = paragraph.en || paragraph.sentences?.map((s: any) => s.en).join(' ') || ''
+  const regex = /(\w+)|([^\w\s]+)/g
+  let match
+
+  while ((match = regex.exec(text)) !== null) {
+    const wordText = match[0]
+    const isWord = !!match[1]
+    const clean = wordText.toLowerCase().replace(/[^\w]/g, '')
+
+    if (isWord) {
+      words.push({
+        text: wordText,
+        clean,
+        phonetic: phoneticsCache.value.get(clean)
+      })
+    } else {
+      words.push({ text: wordText, clean: '' })
+    }
+  }
+
+  return words
+}
+
 // Handle word hover
 const handleWordHover = async (word: { text: string; clean: string }, event: MouseEvent) => {
   if (!word.clean) return
 
   hoveredWord.value = { word: word.clean, clean: word.clean, text: word.text }
-
-  // Reset expanded fields when hovering new word
   expandedFields.value.clear()
 
-  // Cancel any pending hide
   if (hidePopupTimeout.value) {
     clearTimeout(hidePopupTimeout.value)
     hidePopupTimeout.value = null
   }
 
-  // Fetch word data
   try {
     const result = await $fetch('/api/dictionary/lookup', {
       query: { word: word.clean }
@@ -549,7 +869,6 @@ const handleWordHover = async (word: { text: string; clean: string }, event: Mou
 
     wordPopupData.value = result
 
-    // Position popup
     const target = event.target as HTMLElement
     const rect = target.getBoundingClientRect()
 
@@ -564,7 +883,6 @@ const handleWordHover = async (word: { text: string; clean: string }, event: Mou
   }
 }
 
-// Handle word leave
 const handleWordLeave = () => {
   hidePopupTimeout.value = setTimeout(() => {
     showWordPopup.value = false
@@ -572,7 +890,6 @@ const handleWordLeave = () => {
   }, 200)
 }
 
-// Cancel hide popup
 const cancelHidePopup = () => {
   if (hidePopupTimeout.value) {
     clearTimeout(hidePopupTimeout.value)
@@ -580,13 +897,11 @@ const cancelHidePopup = () => {
   }
 }
 
-// Play audio pronunciation
 const playAudio = async (type: 'us' | 'uk') => {
   if (!wordPopupData.value?.audioUs) return
 
   const url = type === 'us' ? wordPopupData.value.audioUs : wordPopupData.value.audioUk
 
-  // Stop current audio if playing
   if (audioRef.value) {
     audioRef.value.pause()
     audioRef.value = null
@@ -608,7 +923,6 @@ const playAudio = async (type: 'us' | 'uk') => {
   }
 }
 
-// Add word from popup
 const addWordFromPopup = async () => {
   if (!wordPopupData.value || !loggedIn.value) return
 
@@ -648,7 +962,6 @@ watchEffect(async () => {
   }
 })
 
-// Toggle bookmark
 const toggleBookmark = async () => {
   if (!loggedIn.value) {
     toast.add({
@@ -689,13 +1002,21 @@ watchEffect(() => {
   }
 })
 
-// Persist showTranslation and showPhonetics when changed
-watch([showTranslation, showPhonetics], async ([translation, phonetics]) => {
+// Persist settings
+watch(readingMode, (mode) => {
+  // Update URL query parameter
+  const url = new URL(window.location.href)
+  url.searchParams.set('mode', mode)
+  window.history.replaceState({}, '', url.toString())
+})
+
+watch([showTranslation, showPhonetics, audioSpeed], async ([translation, phonetics, speed]) => {
   if (loggedIn.value && preferences.value) {
     try {
       await updatePreferences({
         showTranslation: translation,
-        showPhonetics: phonetics
+        showPhonetics: phonetics,
+        audioSpeed: speed
       })
     } catch (e) {
       // Ignore errors
@@ -703,22 +1024,17 @@ watch([showTranslation, showPhonetics], async ([translation, phonetics]) => {
   }
 })
 
-// Share article
 const handleShare = async () => {
   const url = window.location.href
   const title = article.value?.title || 'Article'
 
   if (navigator.share) {
     try {
-      await navigator.share({
-        title,
-        url
-      })
+      await navigator.share({ title, url })
     } catch (e) {
       // User cancelled or error
     }
   } else {
-    // Fallback to clipboard
     try {
       await navigator.clipboard.writeText(url)
       toast.add({

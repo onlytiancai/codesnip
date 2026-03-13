@@ -27,6 +27,7 @@ model Article {
   excerpt        String?
   cover          String?
   content        String?
+  splitContent   Json?            // Structured split content: { paragraphs: [...], sentences: [...] }
   status         String           @default("draft")
   difficulty     String           @default("beginner")
   views          Int              @default(0)

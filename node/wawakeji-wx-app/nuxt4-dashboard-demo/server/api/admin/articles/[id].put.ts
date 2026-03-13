@@ -6,6 +6,7 @@ const articleSchema = z.object({
   excerpt: z.string().optional().nullable(),
   cover: z.string().optional().nullable(),
   content: z.string().optional().nullable(),
+  splitContent: z.any().optional().nullable(), // JSON field for split content
   status: z.enum(['draft', 'published']).optional(),
   difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
   publishAt: z.string().optional().nullable(),

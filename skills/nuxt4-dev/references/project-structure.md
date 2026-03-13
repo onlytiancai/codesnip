@@ -60,8 +60,6 @@ import { useAdminAnalytics } from '#imports'
 </script>
 ```
 
-## Common Issue: Composable Not Found
-
 ### Problem
 
 Error message: `useAdminAnalytics is not defined`
