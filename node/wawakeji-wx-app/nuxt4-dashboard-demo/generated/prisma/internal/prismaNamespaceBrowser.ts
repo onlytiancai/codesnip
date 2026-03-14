@@ -55,6 +55,7 @@ export const ModelName = {
   Bookmark: 'Bookmark',
   Category: 'Category',
   Membership: 'Membership',
+  Order: 'Order',
   ReadingHistory: 'ReadingHistory',
   Sentence: 'Sentence',
   Tag: 'Tag',
@@ -155,6 +156,23 @@ export const MembershipScalarFieldEnum = {
 } as const
 
 export type MembershipScalarFieldEnum = (typeof MembershipScalarFieldEnum)[keyof typeof MembershipScalarFieldEnum]
+
+
+export const OrderScalarFieldEnum = {
+  id: 'id',
+  orderNo: 'orderNo',
+  userId: 'userId',
+  plan: 'plan',
+  amount: 'amount',
+  status: 'status',
+  paymentMethod: 'paymentMethod',
+  transactionId: 'transactionId',
+  paidAt: 'paidAt',
+  createdAt: 'createdAt',
+  expiredAt: 'expiredAt'
+} as const
+
+export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum]
 
 
 export const ReadingHistoryScalarFieldEnum = {

@@ -147,6 +147,7 @@ const navItems = [
   { label: 'Tags', icon: 'i-lucide-tag', to: '/admin/tags' },
   { label: 'Dictionary', icon: 'i-lucide-book', to: '/admin/dictionary' },
   { label: 'Users', icon: 'i-lucide-users', to: '/admin/users' },
+  { label: 'Orders', icon: 'i-lucide-credit-card', to: '/admin/orders' },
   { label: 'Analytics', icon: 'i-lucide-bar-chart-2', to: '/admin/analytics' }
 ]
 
@@ -160,6 +161,7 @@ const currentPageTitle = computed(() => {
   if (path === '/admin/tags') return 'Tags'
   if (path === '/admin/dictionary') return 'Dictionary'
   if (path === '/admin/users') return 'Users'
+  if (path === '/admin/orders') return 'Orders'
   if (path === '/admin/analytics') return 'Analytics'
   return 'Admin'
 })

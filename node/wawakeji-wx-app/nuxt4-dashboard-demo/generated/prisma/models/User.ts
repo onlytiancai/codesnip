@@ -252,6 +252,7 @@ export type UserWhereInput = {
   Article?: Prisma.ArticleListRelationFilter
   Bookmark?: Prisma.BookmarkListRelationFilter
   Membership?: Prisma.XOR<Prisma.MembershipNullableScalarRelationFilter, Prisma.MembershipWhereInput> | null
+  Order?: Prisma.OrderListRelationFilter
   ReadingHistory?: Prisma.ReadingHistoryListRelationFilter
   UserPreferences?: Prisma.XOR<Prisma.UserPreferencesNullableScalarRelationFilter, Prisma.UserPreferencesWhereInput> | null
   Vocabulary?: Prisma.VocabularyListRelationFilter
@@ -271,6 +272,7 @@ export type UserOrderByWithRelationInput = {
   Article?: Prisma.ArticleOrderByRelationAggregateInput
   Bookmark?: Prisma.BookmarkOrderByRelationAggregateInput
   Membership?: Prisma.MembershipOrderByWithRelationInput
+  Order?: Prisma.OrderOrderByRelationAggregateInput
   ReadingHistory?: Prisma.ReadingHistoryOrderByRelationAggregateInput
   UserPreferences?: Prisma.UserPreferencesOrderByWithRelationInput
   Vocabulary?: Prisma.VocabularyOrderByRelationAggregateInput
@@ -293,6 +295,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   Article?: Prisma.ArticleListRelationFilter
   Bookmark?: Prisma.BookmarkListRelationFilter
   Membership?: Prisma.XOR<Prisma.MembershipNullableScalarRelationFilter, Prisma.MembershipWhereInput> | null
+  Order?: Prisma.OrderListRelationFilter
   ReadingHistory?: Prisma.ReadingHistoryListRelationFilter
   UserPreferences?: Prisma.XOR<Prisma.UserPreferencesNullableScalarRelationFilter, Prisma.UserPreferencesWhereInput> | null
   Vocabulary?: Prisma.VocabularyListRelationFilter
@@ -343,6 +346,7 @@ export type UserCreateInput = {
   Article?: Prisma.ArticleCreateNestedManyWithoutUserInput
   Bookmark?: Prisma.BookmarkCreateNestedManyWithoutUserInput
   Membership?: Prisma.MembershipCreateNestedOneWithoutUserInput
+  Order?: Prisma.OrderCreateNestedManyWithoutUserInput
   ReadingHistory?: Prisma.ReadingHistoryCreateNestedManyWithoutUserInput
   UserPreferences?: Prisma.UserPreferencesCreateNestedOneWithoutUserInput
   Vocabulary?: Prisma.VocabularyCreateNestedManyWithoutUserInput
@@ -362,6 +366,7 @@ export type UserUncheckedCreateInput = {
   Article?: Prisma.ArticleUncheckedCreateNestedManyWithoutUserInput
   Bookmark?: Prisma.BookmarkUncheckedCreateNestedManyWithoutUserInput
   Membership?: Prisma.MembershipUncheckedCreateNestedOneWithoutUserInput
+  Order?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   ReadingHistory?: Prisma.ReadingHistoryUncheckedCreateNestedManyWithoutUserInput
   UserPreferences?: Prisma.UserPreferencesUncheckedCreateNestedOneWithoutUserInput
   Vocabulary?: Prisma.VocabularyUncheckedCreateNestedManyWithoutUserInput
@@ -380,6 +385,7 @@ export type UserUpdateInput = {
   Article?: Prisma.ArticleUpdateManyWithoutUserNestedInput
   Bookmark?: Prisma.BookmarkUpdateManyWithoutUserNestedInput
   Membership?: Prisma.MembershipUpdateOneWithoutUserNestedInput
+  Order?: Prisma.OrderUpdateManyWithoutUserNestedInput
   ReadingHistory?: Prisma.ReadingHistoryUpdateManyWithoutUserNestedInput
   UserPreferences?: Prisma.UserPreferencesUpdateOneWithoutUserNestedInput
   Vocabulary?: Prisma.VocabularyUpdateManyWithoutUserNestedInput
@@ -399,6 +405,7 @@ export type UserUncheckedUpdateInput = {
   Article?: Prisma.ArticleUncheckedUpdateManyWithoutUserNestedInput
   Bookmark?: Prisma.BookmarkUncheckedUpdateManyWithoutUserNestedInput
   Membership?: Prisma.MembershipUncheckedUpdateOneWithoutUserNestedInput
+  Order?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   ReadingHistory?: Prisma.ReadingHistoryUncheckedUpdateManyWithoutUserNestedInput
   UserPreferences?: Prisma.UserPreferencesUncheckedUpdateOneWithoutUserNestedInput
   Vocabulary?: Prisma.VocabularyUncheckedUpdateManyWithoutUserNestedInput
@@ -544,6 +551,20 @@ export type UserUpdateOneRequiredWithoutMembershipNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutMembershipInput, Prisma.UserUpdateWithoutMembershipInput>, Prisma.UserUncheckedUpdateWithoutMembershipInput>
 }
 
+export type UserCreateNestedOneWithoutOrderInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOrderInput, Prisma.UserUncheckedCreateWithoutOrderInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOrderInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutOrderNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOrderInput, Prisma.UserUncheckedCreateWithoutOrderInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOrderInput
+  upsert?: Prisma.UserUpsertWithoutOrderInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOrderInput, Prisma.UserUpdateWithoutOrderInput>, Prisma.UserUncheckedUpdateWithoutOrderInput>
+}
+
 export type UserCreateNestedOneWithoutReadingHistoryInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutReadingHistoryInput, Prisma.UserUncheckedCreateWithoutReadingHistoryInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutReadingHistoryInput
@@ -598,6 +619,7 @@ export type UserCreateWithoutAccountInput = {
   Article?: Prisma.ArticleCreateNestedManyWithoutUserInput
   Bookmark?: Prisma.BookmarkCreateNestedManyWithoutUserInput
   Membership?: Prisma.MembershipCreateNestedOneWithoutUserInput
+  Order?: Prisma.OrderCreateNestedManyWithoutUserInput
   ReadingHistory?: Prisma.ReadingHistoryCreateNestedManyWithoutUserInput
   UserPreferences?: Prisma.UserPreferencesCreateNestedOneWithoutUserInput
   Vocabulary?: Prisma.VocabularyCreateNestedManyWithoutUserInput
@@ -616,6 +638,7 @@ export type UserUncheckedCreateWithoutAccountInput = {
   Article?: Prisma.ArticleUncheckedCreateNestedManyWithoutUserInput
   Bookmark?: Prisma.BookmarkUncheckedCreateNestedManyWithoutUserInput
   Membership?: Prisma.MembershipUncheckedCreateNestedOneWithoutUserInput
+  Order?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   ReadingHistory?: Prisma.ReadingHistoryUncheckedCreateNestedManyWithoutUserInput
   UserPreferences?: Prisma.UserPreferencesUncheckedCreateNestedOneWithoutUserInput
   Vocabulary?: Prisma.VocabularyUncheckedCreateNestedManyWithoutUserInput
@@ -649,6 +672,7 @@ export type UserUpdateWithoutAccountInput = {
   Article?: Prisma.ArticleUpdateManyWithoutUserNestedInput
   Bookmark?: Prisma.BookmarkUpdateManyWithoutUserNestedInput
   Membership?: Prisma.MembershipUpdateOneWithoutUserNestedInput
+  Order?: Prisma.OrderUpdateManyWithoutUserNestedInput
   ReadingHistory?: Prisma.ReadingHistoryUpdateManyWithoutUserNestedInput
   UserPreferences?: Prisma.UserPreferencesUpdateOneWithoutUserNestedInput
   Vocabulary?: Prisma.VocabularyUpdateManyWithoutUserNestedInput
@@ -667,6 +691,7 @@ export type UserUncheckedUpdateWithoutAccountInput = {
   Article?: Prisma.ArticleUncheckedUpdateManyWithoutUserNestedInput
   Bookmark?: Prisma.BookmarkUncheckedUpdateManyWithoutUserNestedInput
   Membership?: Prisma.MembershipUncheckedUpdateOneWithoutUserNestedInput
+  Order?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   ReadingHistory?: Prisma.ReadingHistoryUncheckedUpdateManyWithoutUserNestedInput
   UserPreferences?: Prisma.UserPreferencesUncheckedUpdateOneWithoutUserNestedInput
   Vocabulary?: Prisma.VocabularyUncheckedUpdateManyWithoutUserNestedInput
@@ -684,6 +709,7 @@ export type UserCreateWithoutArticleInput = {
   Account?: Prisma.AccountCreateNestedManyWithoutUserInput
   Bookmark?: Prisma.BookmarkCreateNestedManyWithoutUserInput
   Membership?: Prisma.MembershipCreateNestedOneWithoutUserInput
+  Order?: Prisma.OrderCreateNestedManyWithoutUserInput
   ReadingHistory?: Prisma.ReadingHistoryCreateNestedManyWithoutUserInput
   UserPreferences?: Prisma.UserPreferencesCreateNestedOneWithoutUserInput
   Vocabulary?: Prisma.VocabularyCreateNestedManyWithoutUserInput
@@ -702,6 +728,7 @@ export type UserUncheckedCreateWithoutArticleInput = {
   Account?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   Bookmark?: Prisma.BookmarkUncheckedCreateNestedManyWithoutUserInput
   Membership?: Prisma.MembershipUncheckedCreateNestedOneWithoutUserInput
+  Order?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   ReadingHistory?: Prisma.ReadingHistoryUncheckedCreateNestedManyWithoutUserInput
   UserPreferences?: Prisma.UserPreferencesUncheckedCreateNestedOneWithoutUserInput
   Vocabulary?: Prisma.VocabularyUncheckedCreateNestedManyWithoutUserInput
@@ -735,6 +762,7 @@ export type UserUpdateWithoutArticleInput = {
   Account?: Prisma.AccountUpdateManyWithoutUserNestedInput
   Bookmark?: Prisma.BookmarkUpdateManyWithoutUserNestedInput
   Membership?: Prisma.MembershipUpdateOneWithoutUserNestedInput
+  Order?: Prisma.OrderUpdateManyWithoutUserNestedInput
   ReadingHistory?: Prisma.ReadingHistoryUpdateManyWithoutUserNestedInput
   UserPreferences?: Prisma.UserPreferencesUpdateOneWithoutUserNestedInput
   Vocabulary?: Prisma.VocabularyUpdateManyWithoutUserNestedInput
@@ -753,6 +781,7 @@ export type UserUncheckedUpdateWithoutArticleInput = {
   Account?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   Bookmark?: Prisma.BookmarkUncheckedUpdateManyWithoutUserNestedInput
   Membership?: Prisma.MembershipUncheckedUpdateOneWithoutUserNestedInput
+  Order?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   ReadingHistory?: Prisma.ReadingHistoryUncheckedUpdateManyWithoutUserNestedInput
   UserPreferences?: Prisma.UserPreferencesUncheckedUpdateOneWithoutUserNestedInput
   Vocabulary?: Prisma.VocabularyUncheckedUpdateManyWithoutUserNestedInput
@@ -770,6 +799,7 @@ export type UserCreateWithoutBookmarkInput = {
   Account?: Prisma.AccountCreateNestedManyWithoutUserInput
   Article?: Prisma.ArticleCreateNestedManyWithoutUserInput
   Membership?: Prisma.MembershipCreateNestedOneWithoutUserInput
+  Order?: Prisma.OrderCreateNestedManyWithoutUserInput
   ReadingHistory?: Prisma.ReadingHistoryCreateNestedManyWithoutUserInput
   UserPreferences?: Prisma.UserPreferencesCreateNestedOneWithoutUserInput
   Vocabulary?: Prisma.VocabularyCreateNestedManyWithoutUserInput
@@ -788,6 +818,7 @@ export type UserUncheckedCreateWithoutBookmarkInput = {
   Account?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   Article?: Prisma.ArticleUncheckedCreateNestedManyWithoutUserInput
   Membership?: Prisma.MembershipUncheckedCreateNestedOneWithoutUserInput
+  Order?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   ReadingHistory?: Prisma.ReadingHistoryUncheckedCreateNestedManyWithoutUserInput
   UserPreferences?: Prisma.UserPreferencesUncheckedCreateNestedOneWithoutUserInput
   Vocabulary?: Prisma.VocabularyUncheckedCreateNestedManyWithoutUserInput
@@ -821,6 +852,7 @@ export type UserUpdateWithoutBookmarkInput = {
   Account?: Prisma.AccountUpdateManyWithoutUserNestedInput
   Article?: Prisma.ArticleUpdateManyWithoutUserNestedInput
   Membership?: Prisma.MembershipUpdateOneWithoutUserNestedInput
+  Order?: Prisma.OrderUpdateManyWithoutUserNestedInput
   ReadingHistory?: Prisma.ReadingHistoryUpdateManyWithoutUserNestedInput
   UserPreferences?: Prisma.UserPreferencesUpdateOneWithoutUserNestedInput
   Vocabulary?: Prisma.VocabularyUpdateManyWithoutUserNestedInput
@@ -839,6 +871,7 @@ export type UserUncheckedUpdateWithoutBookmarkInput = {
   Account?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   Article?: Prisma.ArticleUncheckedUpdateManyWithoutUserNestedInput
   Membership?: Prisma.MembershipUncheckedUpdateOneWithoutUserNestedInput
+  Order?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   ReadingHistory?: Prisma.ReadingHistoryUncheckedUpdateManyWithoutUserNestedInput
   UserPreferences?: Prisma.UserPreferencesUncheckedUpdateOneWithoutUserNestedInput
   Vocabulary?: Prisma.VocabularyUncheckedUpdateManyWithoutUserNestedInput
@@ -856,6 +889,7 @@ export type UserCreateWithoutMembershipInput = {
   Account?: Prisma.AccountCreateNestedManyWithoutUserInput
   Article?: Prisma.ArticleCreateNestedManyWithoutUserInput
   Bookmark?: Prisma.BookmarkCreateNestedManyWithoutUserInput
+  Order?: Prisma.OrderCreateNestedManyWithoutUserInput
   ReadingHistory?: Prisma.ReadingHistoryCreateNestedManyWithoutUserInput
   UserPreferences?: Prisma.UserPreferencesCreateNestedOneWithoutUserInput
   Vocabulary?: Prisma.VocabularyCreateNestedManyWithoutUserInput
@@ -874,6 +908,7 @@ export type UserUncheckedCreateWithoutMembershipInput = {
   Account?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   Article?: Prisma.ArticleUncheckedCreateNestedManyWithoutUserInput
   Bookmark?: Prisma.BookmarkUncheckedCreateNestedManyWithoutUserInput
+  Order?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   ReadingHistory?: Prisma.ReadingHistoryUncheckedCreateNestedManyWithoutUserInput
   UserPreferences?: Prisma.UserPreferencesUncheckedCreateNestedOneWithoutUserInput
   Vocabulary?: Prisma.VocabularyUncheckedCreateNestedManyWithoutUserInput
@@ -907,6 +942,7 @@ export type UserUpdateWithoutMembershipInput = {
   Account?: Prisma.AccountUpdateManyWithoutUserNestedInput
   Article?: Prisma.ArticleUpdateManyWithoutUserNestedInput
   Bookmark?: Prisma.BookmarkUpdateManyWithoutUserNestedInput
+  Order?: Prisma.OrderUpdateManyWithoutUserNestedInput
   ReadingHistory?: Prisma.ReadingHistoryUpdateManyWithoutUserNestedInput
   UserPreferences?: Prisma.UserPreferencesUpdateOneWithoutUserNestedInput
   Vocabulary?: Prisma.VocabularyUpdateManyWithoutUserNestedInput
@@ -925,6 +961,97 @@ export type UserUncheckedUpdateWithoutMembershipInput = {
   Account?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   Article?: Prisma.ArticleUncheckedUpdateManyWithoutUserNestedInput
   Bookmark?: Prisma.BookmarkUncheckedUpdateManyWithoutUserNestedInput
+  Order?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  ReadingHistory?: Prisma.ReadingHistoryUncheckedUpdateManyWithoutUserNestedInput
+  UserPreferences?: Prisma.UserPreferencesUncheckedUpdateOneWithoutUserNestedInput
+  Vocabulary?: Prisma.VocabularyUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutOrderInput = {
+  email: string
+  name?: string | null
+  password?: string | null
+  avatar?: string | null
+  role?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  bio?: string | null
+  Account?: Prisma.AccountCreateNestedManyWithoutUserInput
+  Article?: Prisma.ArticleCreateNestedManyWithoutUserInput
+  Bookmark?: Prisma.BookmarkCreateNestedManyWithoutUserInput
+  Membership?: Prisma.MembershipCreateNestedOneWithoutUserInput
+  ReadingHistory?: Prisma.ReadingHistoryCreateNestedManyWithoutUserInput
+  UserPreferences?: Prisma.UserPreferencesCreateNestedOneWithoutUserInput
+  Vocabulary?: Prisma.VocabularyCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutOrderInput = {
+  id?: number
+  email: string
+  name?: string | null
+  password?: string | null
+  avatar?: string | null
+  role?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  bio?: string | null
+  Account?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  Article?: Prisma.ArticleUncheckedCreateNestedManyWithoutUserInput
+  Bookmark?: Prisma.BookmarkUncheckedCreateNestedManyWithoutUserInput
+  Membership?: Prisma.MembershipUncheckedCreateNestedOneWithoutUserInput
+  ReadingHistory?: Prisma.ReadingHistoryUncheckedCreateNestedManyWithoutUserInput
+  UserPreferences?: Prisma.UserPreferencesUncheckedCreateNestedOneWithoutUserInput
+  Vocabulary?: Prisma.VocabularyUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutOrderInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutOrderInput, Prisma.UserUncheckedCreateWithoutOrderInput>
+}
+
+export type UserUpsertWithoutOrderInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutOrderInput, Prisma.UserUncheckedUpdateWithoutOrderInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutOrderInput, Prisma.UserUncheckedCreateWithoutOrderInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutOrderInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutOrderInput, Prisma.UserUncheckedUpdateWithoutOrderInput>
+}
+
+export type UserUpdateWithoutOrderInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  Account?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  Article?: Prisma.ArticleUpdateManyWithoutUserNestedInput
+  Bookmark?: Prisma.BookmarkUpdateManyWithoutUserNestedInput
+  Membership?: Prisma.MembershipUpdateOneWithoutUserNestedInput
+  ReadingHistory?: Prisma.ReadingHistoryUpdateManyWithoutUserNestedInput
+  UserPreferences?: Prisma.UserPreferencesUpdateOneWithoutUserNestedInput
+  Vocabulary?: Prisma.VocabularyUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutOrderInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  Account?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  Article?: Prisma.ArticleUncheckedUpdateManyWithoutUserNestedInput
+  Bookmark?: Prisma.BookmarkUncheckedUpdateManyWithoutUserNestedInput
+  Membership?: Prisma.MembershipUncheckedUpdateOneWithoutUserNestedInput
   ReadingHistory?: Prisma.ReadingHistoryUncheckedUpdateManyWithoutUserNestedInput
   UserPreferences?: Prisma.UserPreferencesUncheckedUpdateOneWithoutUserNestedInput
   Vocabulary?: Prisma.VocabularyUncheckedUpdateManyWithoutUserNestedInput
@@ -943,6 +1070,7 @@ export type UserCreateWithoutReadingHistoryInput = {
   Article?: Prisma.ArticleCreateNestedManyWithoutUserInput
   Bookmark?: Prisma.BookmarkCreateNestedManyWithoutUserInput
   Membership?: Prisma.MembershipCreateNestedOneWithoutUserInput
+  Order?: Prisma.OrderCreateNestedManyWithoutUserInput
   UserPreferences?: Prisma.UserPreferencesCreateNestedOneWithoutUserInput
   Vocabulary?: Prisma.VocabularyCreateNestedManyWithoutUserInput
 }
@@ -961,6 +1089,7 @@ export type UserUncheckedCreateWithoutReadingHistoryInput = {
   Article?: Prisma.ArticleUncheckedCreateNestedManyWithoutUserInput
   Bookmark?: Prisma.BookmarkUncheckedCreateNestedManyWithoutUserInput
   Membership?: Prisma.MembershipUncheckedCreateNestedOneWithoutUserInput
+  Order?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   UserPreferences?: Prisma.UserPreferencesUncheckedCreateNestedOneWithoutUserInput
   Vocabulary?: Prisma.VocabularyUncheckedCreateNestedManyWithoutUserInput
 }
@@ -994,6 +1123,7 @@ export type UserUpdateWithoutReadingHistoryInput = {
   Article?: Prisma.ArticleUpdateManyWithoutUserNestedInput
   Bookmark?: Prisma.BookmarkUpdateManyWithoutUserNestedInput
   Membership?: Prisma.MembershipUpdateOneWithoutUserNestedInput
+  Order?: Prisma.OrderUpdateManyWithoutUserNestedInput
   UserPreferences?: Prisma.UserPreferencesUpdateOneWithoutUserNestedInput
   Vocabulary?: Prisma.VocabularyUpdateManyWithoutUserNestedInput
 }
@@ -1012,6 +1142,7 @@ export type UserUncheckedUpdateWithoutReadingHistoryInput = {
   Article?: Prisma.ArticleUncheckedUpdateManyWithoutUserNestedInput
   Bookmark?: Prisma.BookmarkUncheckedUpdateManyWithoutUserNestedInput
   Membership?: Prisma.MembershipUncheckedUpdateOneWithoutUserNestedInput
+  Order?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   UserPreferences?: Prisma.UserPreferencesUncheckedUpdateOneWithoutUserNestedInput
   Vocabulary?: Prisma.VocabularyUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -1029,6 +1160,7 @@ export type UserCreateWithoutUserPreferencesInput = {
   Article?: Prisma.ArticleCreateNestedManyWithoutUserInput
   Bookmark?: Prisma.BookmarkCreateNestedManyWithoutUserInput
   Membership?: Prisma.MembershipCreateNestedOneWithoutUserInput
+  Order?: Prisma.OrderCreateNestedManyWithoutUserInput
   ReadingHistory?: Prisma.ReadingHistoryCreateNestedManyWithoutUserInput
   Vocabulary?: Prisma.VocabularyCreateNestedManyWithoutUserInput
 }
@@ -1047,6 +1179,7 @@ export type UserUncheckedCreateWithoutUserPreferencesInput = {
   Article?: Prisma.ArticleUncheckedCreateNestedManyWithoutUserInput
   Bookmark?: Prisma.BookmarkUncheckedCreateNestedManyWithoutUserInput
   Membership?: Prisma.MembershipUncheckedCreateNestedOneWithoutUserInput
+  Order?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   ReadingHistory?: Prisma.ReadingHistoryUncheckedCreateNestedManyWithoutUserInput
   Vocabulary?: Prisma.VocabularyUncheckedCreateNestedManyWithoutUserInput
 }
@@ -1080,6 +1213,7 @@ export type UserUpdateWithoutUserPreferencesInput = {
   Article?: Prisma.ArticleUpdateManyWithoutUserNestedInput
   Bookmark?: Prisma.BookmarkUpdateManyWithoutUserNestedInput
   Membership?: Prisma.MembershipUpdateOneWithoutUserNestedInput
+  Order?: Prisma.OrderUpdateManyWithoutUserNestedInput
   ReadingHistory?: Prisma.ReadingHistoryUpdateManyWithoutUserNestedInput
   Vocabulary?: Prisma.VocabularyUpdateManyWithoutUserNestedInput
 }
@@ -1098,6 +1232,7 @@ export type UserUncheckedUpdateWithoutUserPreferencesInput = {
   Article?: Prisma.ArticleUncheckedUpdateManyWithoutUserNestedInput
   Bookmark?: Prisma.BookmarkUncheckedUpdateManyWithoutUserNestedInput
   Membership?: Prisma.MembershipUncheckedUpdateOneWithoutUserNestedInput
+  Order?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   ReadingHistory?: Prisma.ReadingHistoryUncheckedUpdateManyWithoutUserNestedInput
   Vocabulary?: Prisma.VocabularyUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -1115,6 +1250,7 @@ export type UserCreateWithoutVocabularyInput = {
   Article?: Prisma.ArticleCreateNestedManyWithoutUserInput
   Bookmark?: Prisma.BookmarkCreateNestedManyWithoutUserInput
   Membership?: Prisma.MembershipCreateNestedOneWithoutUserInput
+  Order?: Prisma.OrderCreateNestedManyWithoutUserInput
   ReadingHistory?: Prisma.ReadingHistoryCreateNestedManyWithoutUserInput
   UserPreferences?: Prisma.UserPreferencesCreateNestedOneWithoutUserInput
 }
@@ -1133,6 +1269,7 @@ export type UserUncheckedCreateWithoutVocabularyInput = {
   Article?: Prisma.ArticleUncheckedCreateNestedManyWithoutUserInput
   Bookmark?: Prisma.BookmarkUncheckedCreateNestedManyWithoutUserInput
   Membership?: Prisma.MembershipUncheckedCreateNestedOneWithoutUserInput
+  Order?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   ReadingHistory?: Prisma.ReadingHistoryUncheckedCreateNestedManyWithoutUserInput
   UserPreferences?: Prisma.UserPreferencesUncheckedCreateNestedOneWithoutUserInput
 }
@@ -1166,6 +1303,7 @@ export type UserUpdateWithoutVocabularyInput = {
   Article?: Prisma.ArticleUpdateManyWithoutUserNestedInput
   Bookmark?: Prisma.BookmarkUpdateManyWithoutUserNestedInput
   Membership?: Prisma.MembershipUpdateOneWithoutUserNestedInput
+  Order?: Prisma.OrderUpdateManyWithoutUserNestedInput
   ReadingHistory?: Prisma.ReadingHistoryUpdateManyWithoutUserNestedInput
   UserPreferences?: Prisma.UserPreferencesUpdateOneWithoutUserNestedInput
 }
@@ -1184,6 +1322,7 @@ export type UserUncheckedUpdateWithoutVocabularyInput = {
   Article?: Prisma.ArticleUncheckedUpdateManyWithoutUserNestedInput
   Bookmark?: Prisma.BookmarkUncheckedUpdateManyWithoutUserNestedInput
   Membership?: Prisma.MembershipUncheckedUpdateOneWithoutUserNestedInput
+  Order?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   ReadingHistory?: Prisma.ReadingHistoryUncheckedUpdateManyWithoutUserNestedInput
   UserPreferences?: Prisma.UserPreferencesUncheckedUpdateOneWithoutUserNestedInput
 }
@@ -1197,6 +1336,7 @@ export type UserCountOutputType = {
   Account: number
   Article: number
   Bookmark: number
+  Order: number
   ReadingHistory: number
   Vocabulary: number
 }
@@ -1205,6 +1345,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   Account?: boolean | UserCountOutputTypeCountAccountArgs
   Article?: boolean | UserCountOutputTypeCountArticleArgs
   Bookmark?: boolean | UserCountOutputTypeCountBookmarkArgs
+  Order?: boolean | UserCountOutputTypeCountOrderArgs
   ReadingHistory?: boolean | UserCountOutputTypeCountReadingHistoryArgs
   Vocabulary?: boolean | UserCountOutputTypeCountVocabularyArgs
 }
@@ -1243,6 +1384,13 @@ export type UserCountOutputTypeCountBookmarkArgs<ExtArgs extends runtime.Types.E
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountOrderArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrderWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountReadingHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ReadingHistoryWhereInput
 }
@@ -1269,6 +1417,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   Article?: boolean | Prisma.User$ArticleArgs<ExtArgs>
   Bookmark?: boolean | Prisma.User$BookmarkArgs<ExtArgs>
   Membership?: boolean | Prisma.User$MembershipArgs<ExtArgs>
+  Order?: boolean | Prisma.User$OrderArgs<ExtArgs>
   ReadingHistory?: boolean | Prisma.User$ReadingHistoryArgs<ExtArgs>
   UserPreferences?: boolean | Prisma.User$UserPreferencesArgs<ExtArgs>
   Vocabulary?: boolean | Prisma.User$VocabularyArgs<ExtArgs>
@@ -1317,6 +1466,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   Article?: boolean | Prisma.User$ArticleArgs<ExtArgs>
   Bookmark?: boolean | Prisma.User$BookmarkArgs<ExtArgs>
   Membership?: boolean | Prisma.User$MembershipArgs<ExtArgs>
+  Order?: boolean | Prisma.User$OrderArgs<ExtArgs>
   ReadingHistory?: boolean | Prisma.User$ReadingHistoryArgs<ExtArgs>
   UserPreferences?: boolean | Prisma.User$UserPreferencesArgs<ExtArgs>
   Vocabulary?: boolean | Prisma.User$VocabularyArgs<ExtArgs>
@@ -1332,6 +1482,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     Article: Prisma.$ArticlePayload<ExtArgs>[]
     Bookmark: Prisma.$BookmarkPayload<ExtArgs>[]
     Membership: Prisma.$MembershipPayload<ExtArgs> | null
+    Order: Prisma.$OrderPayload<ExtArgs>[]
     ReadingHistory: Prisma.$ReadingHistoryPayload<ExtArgs>[]
     UserPreferences: Prisma.$UserPreferencesPayload<ExtArgs> | null
     Vocabulary: Prisma.$VocabularyPayload<ExtArgs>[]
@@ -1744,6 +1895,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   Article<T extends Prisma.User$ArticleArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ArticleArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ArticlePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   Bookmark<T extends Prisma.User$BookmarkArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$BookmarkArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookmarkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   Membership<T extends Prisma.User$MembershipArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$MembershipArgs<ExtArgs>>): Prisma.Prisma__MembershipClient<runtime.Types.Result.GetResult<Prisma.$MembershipPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  Order<T extends Prisma.User$OrderArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$OrderArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   ReadingHistory<T extends Prisma.User$ReadingHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ReadingHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReadingHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   UserPreferences<T extends Prisma.User$UserPreferencesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$UserPreferencesArgs<ExtArgs>>): Prisma.Prisma__UserPreferencesClient<runtime.Types.Result.GetResult<Prisma.$UserPreferencesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   Vocabulary<T extends Prisma.User$VocabularyArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$VocabularyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VocabularyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2259,6 +2411,30 @@ export type User$MembershipArgs<ExtArgs extends runtime.Types.Extensions.Interna
    */
   include?: Prisma.MembershipInclude<ExtArgs> | null
   where?: Prisma.MembershipWhereInput
+}
+
+/**
+ * User.Order
+ */
+export type User$OrderArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Order
+   */
+  select?: Prisma.OrderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Order
+   */
+  omit?: Prisma.OrderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderInclude<ExtArgs> | null
+  where?: Prisma.OrderWhereInput
+  orderBy?: Prisma.OrderOrderByWithRelationInput | Prisma.OrderOrderByWithRelationInput[]
+  cursor?: Prisma.OrderWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrderScalarFieldEnum | Prisma.OrderScalarFieldEnum[]
 }
 
 /**

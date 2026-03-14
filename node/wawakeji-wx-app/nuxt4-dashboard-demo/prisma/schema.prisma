@@ -91,6 +91,24 @@ model Membership {
   User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Order {
+  id            Int       @id @default(autoincrement())
+  orderNo       String    @unique        // Merchant order number
+  userId        Int
+  plan          String                     // pro / annual
+  amount        Int                        // Amount in cents (分)
+  status        String    @default("pending")  // pending / paid / failed / refunded
+  paymentMethod String    @default("wechat")   // wechat
+  transactionId String?                     // WeChat Pay transaction ID
+  paidAt        DateTime?
+  createdAt     DateTime  @default(now())
+  expiredAt     DateTime                    // Order expiration time (30 minutes)
+  User          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
 model ReadingHistory {
   id           Int       @id @default(autoincrement())
   userId       Int
@@ -140,6 +158,7 @@ model User {
   Article         Article[]
   Bookmark        Bookmark[]
   Membership      Membership?
+  Order           Order[]
   ReadingHistory  ReadingHistory[]
   UserPreferences UserPreferences?
   Vocabulary      Vocabulary[]

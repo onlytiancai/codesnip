@@ -89,7 +89,7 @@
           <template #header>
             <h3 class="text-lg font-semibold">Pro</h3>
             <div class="mt-4">
-              <span class="text-4xl font-bold">$9</span>
+              <span class="text-4xl font-bold">¥68</span>
               <span class="text-gray-500 dark:text-gray-400">/month</span>
             </div>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -123,11 +123,11 @@
               <UButton
                 block
                 color="primary"
-                :loading="upgrading === 'pro'"
-                :disabled="membership?.plan === 'premium'"
-                @click="handleUpgrade('pro')"
+                :loading="paying === 'pro'"
+                :disabled="membership?.plan === 'premium' || membership?.plan === 'annual'"
+                @click="handlePayment('pro')"
               >
-                {{ membership?.plan === 'premium' ? 'Current Plan' : membership?.plan === 'annual' ? 'Downgrade to Pro' : 'Upgrade to Pro' }}
+                {{ membership?.plan === 'premium' || membership?.plan === 'annual' ? 'Current Plan' : 'Upgrade to Pro' }}
               </UButton>
             </ClientOnly>
           </template>
@@ -141,11 +141,11 @@
               <UBadge color="success" variant="subtle">Save 40%</UBadge>
             </div>
             <div class="mt-4">
-              <span class="text-4xl font-bold">$65</span>
+              <span class="text-4xl font-bold">¥468</span>
               <span class="text-gray-500 dark:text-gray-400">/year</span>
             </div>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              $5.42/month, billed annually
+              ¥39/month, billed annually
             </p>
           </template>
           <ul class="space-y-3">
@@ -174,15 +174,45 @@
             <UButton
               block
               variant="outline"
-              :loading="upgrading === 'annual'"
+              :loading="paying === 'annual'"
               :disabled="membership?.plan === 'annual'"
-              @click="handleUpgrade('annual')"
+              @click="handlePayment('annual')"
             >
               {{ membership?.plan === 'annual' ? 'Current Plan' : 'Get Annual Plan' }}
             </UButton>
           </template>
         </UCard>
       </div>
+
+      <!-- Payment Status Modal -->
+      <UModal v-model:open="showPaymentModal" :ui="{ footer: 'justify-end' }">
+        <template #title>
+          <div class="flex items-center gap-2">
+            <UIcon v-if="paymentStatus === 'processing'" name="i-lucide-loader-2" class="w-5 h-5 animate-spin" />
+            <UIcon v-else-if="paymentStatus === 'success'" name="i-lucide-check-circle" class="w-5 h-5 text-green-500" />
+            <UIcon v-else-if="paymentStatus === 'failed'" name="i-lucide-x-circle" class="w-5 h-5 text-red-500" />
+            <span>{{ paymentModalTitle }}</span>
+          </div>
+        </template>
+        <template #body>
+          <p class="text-gray-500 dark:text-gray-400">{{ paymentModalMessage }}</p>
+        </template>
+        <template #footer>
+          <UButton
+            v-if="paymentStatus === 'success'"
+            color="primary"
+            @click="closePaymentModal"
+          >
+            Done
+          </UButton>
+          <UButton
+            v-else-if="paymentStatus === 'failed'"
+            @click="closePaymentModal"
+          >
+            Close
+          </UButton>
+        </template>
+      </UModal>
 
       <!-- Feature Comparison -->
       <div class="mb-12">
@@ -246,7 +276,40 @@ const toast = useToast()
 const router = useRouter()
 
 const upgrading = ref<string | null>(null)
+const paying = ref<string | null>(null)
 const membership = ref<any>(null)
+
+// Payment status
+const showPaymentModal = ref(false)
+const paymentStatus = ref<'processing' | 'success' | 'failed'>('processing')
+const currentOrderNo = ref<string | null>(null)
+let pollTimer: ReturnType<typeof setInterval> | null = null
+
+const paymentModalTitle = computed(() => {
+  switch (paymentStatus.value) {
+    case 'processing':
+      return 'Processing Payment...'
+    case 'success':
+      return 'Payment Successful!'
+    case 'failed':
+      return 'Payment Failed'
+    default:
+      return ''
+  }
+})
+
+const paymentModalMessage = computed(() => {
+  switch (paymentStatus.value) {
+    case 'processing':
+      return 'Please complete the payment in WeChat. We will notify you once the payment is successful.'
+    case 'success':
+      return 'Your membership has been upgraded successfully! Enjoy your premium features.'
+    case 'failed':
+      return 'The payment was not completed. Please try again.'
+    default:
+      return ''
+  }
+})
 
 // Fetch user's membership
 watchEffect(async () => {
@@ -259,6 +322,13 @@ watchEffect(async () => {
     }
   }
 })
+
+// Check if running in WeChat browser
+const isInWeChat = () => {
+  if (typeof window === 'undefined') return false
+  const ua = navigator.userAgent.toLowerCase()
+  return ua.includes('micromessenger')
+}
 
 const handleDowngrade = async () => {
   if (!loggedIn.value) {
@@ -285,10 +355,10 @@ const handleDowngrade = async () => {
     // Refresh membership
     const profile = await $fetch('/api/user/profile')
     membership.value = profile.membership
-  } catch (error) {
+  } catch (error: any) {
     toast.add({
       title: 'Error',
-      description: 'Failed to downgrade membership. Please try again.',
+      description: error?.data?.message || 'Failed to downgrade membership. Please try again.',
       color: 'error'
     })
   } finally {
@@ -296,7 +366,7 @@ const handleDowngrade = async () => {
   }
 }
 
-const handleUpgrade = async (plan: string) => {
+const handlePayment = async (plan: string) => {
   if (!loggedIn.value) {
     toast.add({
       title: 'Please login',
@@ -307,30 +377,129 @@ const handleUpgrade = async (plan: string) => {
     return
   }
 
-  upgrading.value = plan
+  // Check if in WeChat browser
+  if (!isInWeChat()) {
+    toast.add({
+      title: 'WeChat Required',
+      description: 'Please open this page in WeChat to complete the payment',
+      color: 'warning'
+    })
+    return
+  }
+
+  paying.value = plan
+  paymentStatus.value = 'processing'
+  showPaymentModal.value = true
+
   try {
-    await $fetch('/api/user/membership', {
+    // Create order and get payment params
+    const response = await $fetch('/api/orders', {
       method: 'POST',
       body: { plan }
     })
-    toast.add({
-      title: 'Success',
-      description: `You have successfully upgraded to ${plan} plan!`,
-      color: 'success'
-    })
-    // Refresh membership
-    const profile = await $fetch('/api/user/profile')
-    membership.value = profile.membership
-  } catch (error) {
+
+    if (!response.success || !response.paymentParams) {
+      throw new Error('Failed to create order')
+    }
+
+    currentOrderNo.value = response.orderNo
+
+    // Call WeChat JS-SDK to invoke payment
+    const payParams = response.paymentParams
+
+    // WeChat JS-SDK invoke payment
+    // @ts-ignore
+    if (typeof wx !== 'undefined' && wx.chooseWXPay) {
+      // @ts-ignore
+      wx.chooseWXPay({
+        timestamp: payParams.timeStamp,
+        nonceStr: payParams.nonceStr,
+        package: payParams.package,
+        signType: payParams.signType,
+        paySign: payParams.paySign,
+        success: () => {
+          // Start polling for payment result
+          startPolling()
+        },
+        cancel: () => {
+          paymentStatus.value = 'failed'
+          clearPollTimer()
+        },
+        fail: () => {
+          paymentStatus.value = 'failed'
+          clearPollTimer()
+        }
+      })
+    } else {
+      // If wx is not available, start polling directly
+      // (user might complete payment in another way)
+      startPolling()
+    }
+  } catch (error: any) {
+    console.error('Payment error:', error)
+    paymentStatus.value = 'failed'
     toast.add({
       title: 'Error',
-      description: 'Failed to upgrade membership. Please try again.',
+      description: error?.data?.message || 'Failed to initiate payment. Please try again.',
       color: 'error'
     })
   } finally {
-    upgrading.value = null
+    paying.value = null
   }
 }
+
+const startPolling = () => {
+  if (!currentOrderNo.value) return
+
+  // Poll every 2 seconds for up to 60 times (2 minutes)
+  let pollCount = 0
+  const maxPolls = 60
+
+  pollTimer = setInterval(async () => {
+    pollCount++
+
+    if (pollCount > maxPolls) {
+      clearPollTimer()
+      paymentStatus.value = 'failed'
+      return
+    }
+
+    try {
+      const order = await $fetch(`/api/orders/${currentOrderNo.value}`)
+
+      if (order.status === 'paid') {
+        clearPollTimer()
+        paymentStatus.value = 'success'
+
+        // Refresh membership
+        const profile = await $fetch('/api/user/profile')
+        membership.value = profile.membership
+      } else if (order.status === 'failed') {
+        clearPollTimer()
+        paymentStatus.value = 'failed'
+      }
+    } catch (e) {
+      console.error('Poll error:', e)
+    }
+  }, 2000)
+}
+
+const clearPollTimer = () => {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+}
+
+const closePaymentModal = () => {
+  showPaymentModal.value = false
+  clearPollTimer()
+}
+
+// Cleanup on unmount
+onUnmounted(() => {
+  clearPollTimer()
+})
 
 const formatDate = (date: string | Date) => {
   return new Date(date).toLocaleDateString('en-US', {
@@ -372,7 +541,7 @@ const faqItems = [
   },
   {
     label: 'What payment methods do you accept?',
-    content: 'We accept WeChat Pay, Alipay, and major credit cards including Visa, Mastercard, and American Express.'
+    content: 'We accept WeChat Pay for now. More payment methods will be added in the future.'
   },
   {
     label: 'Is there a refund policy?',
@@ -380,7 +549,7 @@ const faqItems = [
   },
   {
     label: 'Can I switch between plans?',
-    content: 'Yes, you can upgrade or downgrade your plan at any time. The changes will take effect at your next billing cycle.'
+    content: 'Yes, you can upgrade your plan at any time. The new plan will take effect immediately after payment.'
   }
 ]
 </script>

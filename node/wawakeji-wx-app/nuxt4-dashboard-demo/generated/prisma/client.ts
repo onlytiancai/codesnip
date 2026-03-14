@@ -75,6 +75,11 @@ export type Category = Prisma.CategoryModel
  */
 export type Membership = Prisma.MembershipModel
 /**
+ * Model Order
+ * 
+ */
+export type Order = Prisma.OrderModel
+/**
  * Model ReadingHistory
  * 
  */
