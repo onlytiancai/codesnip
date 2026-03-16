@@ -82,3 +82,13 @@ export type UserPreferences = Prisma.UserPreferencesModel
  * 
  */
 export type Vocabulary = Prisma.VocabularyModel
+/**
+ * Model ImportQueue
+ * 
+ */
+export type ImportQueue = Prisma.ImportQueueModel
+/**
+ * Model ImportImage
+ * 
+ */
+export type ImportImage = Prisma.ImportImageModel

@@ -61,7 +61,9 @@ export const ModelName = {
   Tag: 'Tag',
   User: 'User',
   UserPreferences: 'UserPreferences',
-  Vocabulary: 'Vocabulary'
+  Vocabulary: 'Vocabulary',
+  ImportQueue: 'ImportQueue',
+  ImportImage: 'ImportImage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -107,7 +109,8 @@ export const ArticleScalarFieldEnum = {
   categoryId: 'categoryId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  authorId: 'authorId'
+  authorId: 'authorId',
+  importTaskId: 'importTaskId'
 } as const
 
 export type ArticleScalarFieldEnum = (typeof ArticleScalarFieldEnum)[keyof typeof ArticleScalarFieldEnum]
@@ -260,6 +263,36 @@ export const VocabularyScalarFieldEnum = {
 } as const
 
 export type VocabularyScalarFieldEnum = (typeof VocabularyScalarFieldEnum)[keyof typeof VocabularyScalarFieldEnum]
+
+
+export const ImportQueueScalarFieldEnum = {
+  id: 'id',
+  url: 'url',
+  status: 'status',
+  stage: 'stage',
+  progress: 'progress',
+  totalImages: 'totalImages',
+  processedImages: 'processedImages',
+  result: 'result',
+  error: 'error',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ImportQueueScalarFieldEnum = (typeof ImportQueueScalarFieldEnum)[keyof typeof ImportQueueScalarFieldEnum]
+
+
+export const ImportImageScalarFieldEnum = {
+  id: 'id',
+  queueId: 'queueId',
+  originalUrl: 'originalUrl',
+  localPath: 'localPath',
+  status: 'status',
+  error: 'error',
+  createdAt: 'createdAt'
+} as const
+
+export type ImportImageScalarFieldEnum = (typeof ImportImageScalarFieldEnum)[keyof typeof ImportImageScalarFieldEnum]
 
 
 export const SortOrder = {

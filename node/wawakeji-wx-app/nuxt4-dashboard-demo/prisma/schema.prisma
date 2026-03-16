@@ -39,8 +39,10 @@ model Article {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @default(now())
   authorId       Int
+  importTaskId  Int?            @unique
   User           User             @relation(fields: [authorId], references: [id])
   Category       Category?        @relation(fields: [categoryId], references: [id])
+  ImportQueue    ImportQueue?     @relation(fields: [importTaskId], references: [id], onDelete: SetNull)
   ArticleTag     ArticleTag[]
   Bookmark       Bookmark[]
   ReadingHistory ReadingHistory[]
@@ -195,4 +197,36 @@ model Vocabulary {
   Article      Article?  @relation(fields: [articleId], references: [id], onDelete: SetNull)
 
   @@unique([userId, word])
+}
+
+model ImportQueue {
+  id          Int           @id @default(autoincrement())
+  url         String
+  status      String        @default("pending") // pending, processing, completed, failed, cancelled
+  stage       String        @default("init")    // init, fetch, extract, convert, images, done
+  progress    Int           @default(0)         // 0-100 percentage
+  totalImages Int           @default(0)
+  processedImages Int       @default(0)
+  result      Json?                             // { title, markdown, images: [...] }
+  error       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now())
+  Article     Article?
+  ImportImage ImportImage[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ImportImage {
+  id          Int         @id @default(autoincrement())
+  queueId     Int
+  originalUrl String
+  localPath   String?
+  status      String      @default("pending") // pending, downloading, completed, failed
+  error       String?
+  createdAt   DateTime    @default(now())
+  ImportQueue ImportQueue @relation(fields: [queueId], references: [id], onDelete: Cascade)
+
+  @@index([queueId])
 }

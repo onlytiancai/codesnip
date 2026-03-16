@@ -402,7 +402,9 @@ export const ModelName = {
   Tag: 'Tag',
   User: 'User',
   UserPreferences: 'UserPreferences',
-  Vocabulary: 'Vocabulary'
+  Vocabulary: 'Vocabulary',
+  ImportQueue: 'ImportQueue',
+  ImportImage: 'ImportImage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -418,7 +420,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "article" | "articleTag" | "bookmark" | "category" | "membership" | "order" | "readingHistory" | "sentence" | "tag" | "user" | "userPreferences" | "vocabulary"
+    modelProps: "account" | "article" | "articleTag" | "bookmark" | "category" | "membership" | "order" | "readingHistory" | "sentence" | "tag" | "user" | "userPreferences" | "vocabulary" | "importQueue" | "importImage"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1384,6 +1386,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ImportQueue: {
+      payload: Prisma.$ImportQueuePayload<ExtArgs>
+      fields: Prisma.ImportQueueFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ImportQueueFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportQueuePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ImportQueueFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportQueuePayload>
+        }
+        findFirst: {
+          args: Prisma.ImportQueueFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportQueuePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ImportQueueFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportQueuePayload>
+        }
+        findMany: {
+          args: Prisma.ImportQueueFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportQueuePayload>[]
+        }
+        create: {
+          args: Prisma.ImportQueueCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportQueuePayload>
+        }
+        createMany: {
+          args: Prisma.ImportQueueCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ImportQueueCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportQueuePayload>[]
+        }
+        delete: {
+          args: Prisma.ImportQueueDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportQueuePayload>
+        }
+        update: {
+          args: Prisma.ImportQueueUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportQueuePayload>
+        }
+        deleteMany: {
+          args: Prisma.ImportQueueDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ImportQueueUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ImportQueueUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportQueuePayload>[]
+        }
+        upsert: {
+          args: Prisma.ImportQueueUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportQueuePayload>
+        }
+        aggregate: {
+          args: Prisma.ImportQueueAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateImportQueue>
+        }
+        groupBy: {
+          args: Prisma.ImportQueueGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ImportQueueGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ImportQueueCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ImportQueueCountAggregateOutputType> | number
+        }
+      }
+    }
+    ImportImage: {
+      payload: Prisma.$ImportImagePayload<ExtArgs>
+      fields: Prisma.ImportImageFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ImportImageFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportImagePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ImportImageFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportImagePayload>
+        }
+        findFirst: {
+          args: Prisma.ImportImageFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportImagePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ImportImageFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportImagePayload>
+        }
+        findMany: {
+          args: Prisma.ImportImageFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportImagePayload>[]
+        }
+        create: {
+          args: Prisma.ImportImageCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportImagePayload>
+        }
+        createMany: {
+          args: Prisma.ImportImageCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ImportImageCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportImagePayload>[]
+        }
+        delete: {
+          args: Prisma.ImportImageDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportImagePayload>
+        }
+        update: {
+          args: Prisma.ImportImageUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportImagePayload>
+        }
+        deleteMany: {
+          args: Prisma.ImportImageDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ImportImageUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ImportImageUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportImagePayload>[]
+        }
+        upsert: {
+          args: Prisma.ImportImageUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportImagePayload>
+        }
+        aggregate: {
+          args: Prisma.ImportImageAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateImportImage>
+        }
+        groupBy: {
+          args: Prisma.ImportImageGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ImportImageGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ImportImageCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ImportImageCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1450,7 +1600,8 @@ export const ArticleScalarFieldEnum = {
   categoryId: 'categoryId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  authorId: 'authorId'
+  authorId: 'authorId',
+  importTaskId: 'importTaskId'
 } as const
 
 export type ArticleScalarFieldEnum = (typeof ArticleScalarFieldEnum)[keyof typeof ArticleScalarFieldEnum]
@@ -1603,6 +1754,36 @@ export const VocabularyScalarFieldEnum = {
 } as const
 
 export type VocabularyScalarFieldEnum = (typeof VocabularyScalarFieldEnum)[keyof typeof VocabularyScalarFieldEnum]
+
+
+export const ImportQueueScalarFieldEnum = {
+  id: 'id',
+  url: 'url',
+  status: 'status',
+  stage: 'stage',
+  progress: 'progress',
+  totalImages: 'totalImages',
+  processedImages: 'processedImages',
+  result: 'result',
+  error: 'error',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ImportQueueScalarFieldEnum = (typeof ImportQueueScalarFieldEnum)[keyof typeof ImportQueueScalarFieldEnum]
+
+
+export const ImportImageScalarFieldEnum = {
+  id: 'id',
+  queueId: 'queueId',
+  originalUrl: 'originalUrl',
+  localPath: 'localPath',
+  status: 'status',
+  error: 'error',
+  createdAt: 'createdAt'
+} as const
+
+export type ImportImageScalarFieldEnum = (typeof ImportImageScalarFieldEnum)[keyof typeof ImportImageScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1800,6 +1981,8 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   userPreferences?: Prisma.UserPreferencesOmit
   vocabulary?: Prisma.VocabularyOmit
+  importQueue?: Prisma.ImportQueueOmit
+  importImage?: Prisma.ImportImageOmit
 }
 
 /* Types for Logging */

@@ -17,25 +17,51 @@
             v-model="url"
             placeholder="Enter article URL (e.g., https://example.com/article)"
             class="flex-1"
-            :disabled="loading"
-            @keyup.enter="fetchArticle"
+            :disabled="isProcessing"
+            @keyup.enter="startImport"
           />
           <UButton
             color="primary"
-            :loading="loading"
-            :disabled="!url || loading"
-            @click="fetchArticle"
+            :loading="isCreating"
+            :disabled="!url || isProcessing"
+            @click="startImport"
           >
             Fetch
+          </UButton>
+          <UButton
+            v-if="isProcessing"
+            color="error"
+            variant="outline"
+            :loading="isCancelling"
+            @click="cancelImport"
+          >
+            Cancel
           </UButton>
         </div>
       </UCard>
 
-      <!-- Loading State -->
-      <div v-if="loading" class="flex items-center justify-center py-12">
-        <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
-        <span class="ml-3 text-gray-500">Fetching and processing article...</span>
-      </div>
+      <!-- Progress State -->
+      <UCard v-if="taskId && !preview && !error" class="mb-6">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold">Processing Article</h3>
+            <UBadge :color="stageBadgeColor">{{ stageLabel }}</UBadge>
+          </div>
+
+          <UProgress :value="progress" :max="100" />
+
+          <div class="flex items-center justify-between text-sm text-gray-500">
+            <span>{{ progressMessage }}</span>
+            <span>{{ progress }}%</span>
+          </div>
+
+          <!-- Image download progress -->
+          <div v-if="stage === 'images' && totalImages > 0" class="text-sm text-gray-500">
+            <UIcon name="i-lucide-image" class="w-4 h-4 inline mr-1" />
+            Downloading images: {{ processedImages }} / {{ totalImages }}
+          </div>
+        </div>
+      </UCard>
 
       <!-- Preview -->
       <template v-else-if="preview">
@@ -115,19 +141,83 @@ interface ImportResult {
   images: Array<{ originalUrl: string; localUrl: string }>
 }
 
+interface TaskUpdate {
+  id: number
+  status: string
+  stage: string
+  progress: number
+  totalImages: number
+  processedImages: number
+  result?: ImportResult
+  error?: string
+}
+
 const url = ref('')
-const loading = ref(false)
-const proceeding = ref(false)
+const taskId = ref<number | null>(null)
+const status = ref('')
+const stage = ref('')
+const progress = ref(0)
+const totalImages = ref(0)
+const processedImages = ref(0)
 const preview = ref<ImportResult | null>(null)
 const error = ref<string | null>(null)
+const proceeding = ref(false)
+const isCreating = ref(false)
+const isCancelling = ref(false)
 const toast = useToast()
 
-const fetchArticle = async () => {
+// EventSource reference for cleanup
+let eventSource: EventSource | null = null
+
+const isProcessing = computed(() => {
+  return taskId.value && !preview.value && !error.value
+})
+
+const stageLabel = computed(() => {
+  const labels: Record<string, string> = {
+    init: 'Initializing',
+    fetch: 'Fetching',
+    extract: 'Extracting',
+    convert: 'Converting',
+    images: 'Downloading Images',
+    done: 'Complete'
+  }
+  return labels[stage.value] || 'Processing'
+})
+
+const stageBadgeColor = computed(() => {
+  if (status.value === 'failed') return 'error'
+  if (status.value === 'completed') return 'success'
+  return 'primary'
+})
+
+const progressMessage = computed(() => {
+  switch (stage.value) {
+    case 'fetch':
+      return 'Fetching webpage content...'
+    case 'extract':
+      return 'Extracting article content...'
+    case 'convert':
+      return 'Converting to Markdown...'
+    case 'images':
+      return 'Downloading images...'
+    case 'done':
+      return 'Complete!'
+    default:
+      return 'Starting...'
+  }
+})
+
+const startImport = async () => {
   if (!url.value) return
 
   // Reset state
   error.value = null
   preview.value = null
+  taskId.value = null
+  stage.value = ''
+  progress.value = 0
+  status.value = ''
 
   // Validate URL
   try {
@@ -137,31 +227,157 @@ const fetchArticle = async () => {
     return
   }
 
-  loading.value = true
+  isCreating.value = true
 
   try {
-    const result = await $fetch('/api/admin/articles/import', {
+    // Create import task
+    const result = await $fetch('/api/admin/articles/import-queue', {
       method: 'POST',
       body: { url: url.value }
     })
 
-    preview.value = result as ImportResult
+    taskId.value = result.taskId
+    status.value = result.status
+    stage.value = result.stage
 
-    if (result.images?.length > 0) {
-      toast.add({
-        title: `${result.images.length} image(s) downloaded`,
-        color: 'success'
-      })
-    }
+    // Subscribe to SSE updates
+    subscribeToUpdates(result.taskId)
   } catch (e: any) {
-    error.value = e.data?.message || e.message || 'Failed to fetch article'
+    error.value = e.data?.message || e.message || 'Failed to create import task'
     toast.add({
-      title: 'Failed to import article',
+      title: 'Failed to start import',
       description: error.value,
       color: 'error'
     })
   } finally {
-    loading.value = false
+    isCreating.value = false
+  }
+}
+
+const subscribeToUpdates = (id: number) => {
+  // Close existing connection if any
+  if (eventSource) {
+    eventSource.close()
+  }
+
+  eventSource = new EventSource(`/api/admin/articles/import-queue/${id}/events`)
+
+  eventSource.onmessage = (event) => {
+    const data: TaskUpdate = JSON.parse(event.data)
+
+    status.value = data.status
+    stage.value = data.stage
+    progress.value = data.progress
+    totalImages.value = data.totalImages || 0
+    processedImages.value = data.processedImages || 0
+
+    if (data.status === 'completed' && data.result) {
+      preview.value = data.result
+
+      if (data.result.images?.length > 0) {
+        toast.add({
+          title: `${data.result.images.length} image(s) downloaded`,
+          color: 'success'
+        })
+      }
+
+      eventSource?.close()
+      eventSource = null
+    } else if (data.status === 'failed') {
+      error.value = data.error || 'Import failed'
+      toast.add({
+        title: 'Import failed',
+        description: error.value,
+        color: 'error'
+      })
+      eventSource?.close()
+      eventSource = null
+    } else if (data.status === 'cancelled') {
+      error.value = 'Import was cancelled'
+      eventSource?.close()
+      eventSource = null
+    }
+  }
+
+  eventSource.onerror = () => {
+    console.error('SSE connection error')
+    // Fall back to polling
+    pollForUpdates(id)
+  }
+}
+
+const pollForUpdates = async (id: number) => {
+  const poll = async () => {
+    if (!taskId.value || preview.value || error.value) return
+
+    try {
+      const data = await $fetch(`/api/admin/articles/import-queue/${id}`)
+
+      status.value = data.status
+      stage.value = data.stage
+      progress.value = data.progress
+      totalImages.value = data.totalImages || 0
+      processedImages.value = data.processedImages || 0
+
+      if (data.status === 'completed' && data.result) {
+        preview.value = data.result
+
+        if (data.result.images?.length > 0) {
+          toast.add({
+            title: `${data.result.images.length} image(s) downloaded`,
+            color: 'success'
+          })
+        }
+      } else if (data.status === 'failed') {
+        error.value = data.error || 'Import failed'
+        toast.add({
+          title: 'Import failed',
+          description: error.value,
+          color: 'error'
+        })
+      } else if (data.status !== 'cancelled') {
+        // Continue polling
+        setTimeout(poll, 1000)
+      }
+    } catch (e) {
+      console.error('Poll error:', e)
+      setTimeout(poll, 2000)
+    }
+  }
+
+  poll()
+}
+
+const cancelImport = async () => {
+  if (!taskId.value) return
+
+  isCancelling.value = true
+
+  try {
+    await $fetch(`/api/admin/articles/import-queue/${taskId.value}`, {
+      method: 'DELETE'
+    })
+
+    if (eventSource) {
+      eventSource.close()
+      eventSource = null
+    }
+
+    taskId.value = null
+    error.value = 'Import was cancelled'
+
+    toast.add({
+      title: 'Import cancelled',
+      color: 'warning'
+    })
+  } catch (e: any) {
+    toast.add({
+      title: 'Failed to cancel import',
+      description: e.data?.message || e.message,
+      color: 'error'
+    })
+  } finally {
+    isCancelling.value = false
   }
 }
 
@@ -183,4 +399,12 @@ const proceedToCreate = async () => {
     proceeding.value = false
   }
 }
+
+// Cleanup on unmount
+onUnmounted(() => {
+  if (eventSource) {
+    eventSource.close()
+    eventSource = null
+  }
+})
 </script>
