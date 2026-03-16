@@ -29,11 +29,10 @@
                 <UTextarea v-model="articleForm.excerpt" placeholder="Brief description of the article" :rows="2" class="w-full" />
               </UFormField>
               <UFormField label="Content" name="content" required>
-                <UTextarea
+                <AdminMarkdownEditor
                   v-model="articleForm.content"
                   placeholder="Write or paste your article content here..."
                   :rows="15"
-                  class="w-full"
                 />
               </UFormField>
             </div>
@@ -707,6 +706,20 @@ const saveArticle = async () => {
 }
 
 onMounted(async () => {
+  // Check for imported article data
+  const imported = sessionStorage.getItem('importedArticle')
+  if (imported) {
+    try {
+      const data = JSON.parse(imported)
+      articleForm.value.title = data.title || ''
+      articleForm.value.content = data.content || ''
+      generateSlug()
+    } catch (e) {
+      console.error('Failed to parse imported article:', e)
+    }
+    sessionStorage.removeItem('importedArticle')
+  }
+
   await Promise.all([
     fetchCategories(),
     fetchTags()

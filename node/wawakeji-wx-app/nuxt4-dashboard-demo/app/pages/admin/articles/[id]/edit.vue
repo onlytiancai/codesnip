@@ -40,11 +40,10 @@
                   <UTextarea v-model="articleForm.excerpt" placeholder="Brief description" :rows="2" class="w-full" />
                 </UFormField>
                 <UFormField label="Content" name="content" required>
-                  <UTextarea
+                  <AdminMarkdownEditor
                     v-model="articleForm.content"
                     placeholder="Write or paste your article content..."
                     :rows="15"
-                    class="w-full"
                   />
                 </UFormField>
               </div>

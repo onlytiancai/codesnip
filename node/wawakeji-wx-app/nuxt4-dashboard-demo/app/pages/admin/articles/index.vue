@@ -26,9 +26,14 @@
             @change="applyFilters"
           />
         </div>
-        <UButton to="/admin/articles/create" icon="i-lucide-plus">
-          New Article
-        </UButton>
+        <div class="flex items-center gap-2">
+          <UButton to="/admin/articles/create" icon="i-lucide-plus">
+            New Article
+          </UButton>
+          <UButton to="/admin/articles/import" icon="i-lucide-link" variant="outline">
+            Import from URL
+          </UButton>
+        </div>
       </div>
 
       <!-- Loading State -->
