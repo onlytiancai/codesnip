@@ -54,29 +54,70 @@
             <span>{{ progressMessage }}</span>
             <span>{{ progress }}%</span>
           </div>
-
-          <!-- Image download progress -->
-          <div v-if="stage === 'images' && totalImages > 0" class="text-sm text-gray-500">
-            <UIcon name="i-lucide-image" class="w-4 h-4 inline mr-1" />
-            Downloading images: {{ processedImages }} / {{ totalImages }}
-          </div>
         </div>
       </UCard>
 
       <!-- Preview -->
       <template v-else-if="preview">
+        <!-- Action Bar -->
+        <div class="mb-4 flex items-center gap-3 flex-wrap">
+          <!-- Image Status & Fetch Button -->
+          <template v-if="hasImages">
+            <UBadge v-if="imagesDownloaded" color="success" variant="subtle">
+              <UIcon name="i-lucide-check" class="w-3 h-3 mr-1" />
+              {{ preview.images?.length || 0 }} image(s) downloaded
+            </UBadge>
+            <template v-else>
+              <UBadge color="warning" variant="subtle">
+                <UIcon name="i-lucide-image" class="w-3 h-3 mr-1" />
+                {{ preview.imageUrls?.length || 0 }} remote image(s)
+              </UBadge>
+              <UButton
+                color="secondary"
+                variant="outline"
+                icon="i-lucide-download"
+                size="sm"
+                :loading="isFetchingImages"
+                @click="fetchImages"
+              >
+                Fetch Images
+              </UButton>
+            </template>
+          </template>
+
+          <!-- Translation Button -->
+          <UButton
+            v-if="!translatedBlocks && !isTranslating"
+            color="secondary"
+            icon="i-lucide-languages"
+            :disabled="isTranslating"
+            @click="startTranslation"
+          >
+            Translate to Chinese
+          </UButton>
+          <template v-if="isTranslating">
+            <UIcon name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+            <span class="text-sm text-gray-500">Translating... {{ translateProgress }}</span>
+          </template>
+          <UButton
+            v-if="translatedBlocks"
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-refresh-cw"
+            size="sm"
+            @click="startTranslation"
+          >
+            Re-translate
+          </UButton>
+        </div>
+
         <UCard class="mb-6">
           <template #header>
             <div class="flex items-center justify-between">
               <h3 class="font-semibold">Extracted Content</h3>
-              <div class="flex items-center gap-2">
-                <UBadge v-if="preview.images?.length" color="primary" variant="subtle">
-                  {{ preview.images.length }} image(s) downloaded
-                </UBadge>
-                <a :href="preview.url" target="_blank" class="text-sm text-primary hover:underline">
-                  View Original
-                </a>
-              </div>
+              <a :href="preview.url" target="_blank" class="text-sm text-primary hover:underline">
+                View Original
+              </a>
             </div>
           </template>
 
@@ -86,8 +127,32 @@
               <UInput v-model="preview.title" placeholder="Article title" class="w-full" />
             </UFormField>
 
-            <!-- Content -->
-            <UFormField label="Content (Markdown)" name="content" required>
+            <!-- Translated Title -->
+            <UFormField v-if="translatedTitle" label="Translated Title" name="translatedTitle">
+              <UInput v-model="translatedTitle" placeholder="Translated title" class="w-full" />
+            </UFormField>
+
+            <!-- Content Mode Tabs -->
+            <div class="flex items-center gap-2 border-b pb-2 flex-wrap">
+              <UButton
+                v-for="mode in contentModes"
+                :key="mode.value"
+                :color="contentMode === mode.value ? 'primary' : 'neutral'"
+                :variant="contentMode === mode.value ? 'solid' : 'ghost'"
+                size="xs"
+                @click="contentMode = mode.value"
+              >
+                {{ mode.label }}
+              </UButton>
+            </div>
+
+            <!-- Original HTML Preview -->
+            <article v-if="contentMode === 'original-md'" class="markdown-body bg-white dark:bg-gray-900 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+              <div v-html="renderedOriginalMarkdown" />
+            </article>
+
+            <!-- Edit Original Markdown -->
+            <UFormField v-else-if="contentMode === 'edit'" label="Content (Markdown)" name="content" required>
               <UTextarea
                 v-model="preview.markdown"
                 placeholder="Article content in Markdown format..."
@@ -95,6 +160,27 @@
                 class="w-full font-mono text-sm"
               />
             </UFormField>
+
+            <!-- Bilingual Content -->
+            <UFormField v-else-if="contentMode === 'bilingual'" label="Bilingual Content (Markdown)" name="bilingualContent">
+              <UTextarea
+                v-model="bilingualMarkdown"
+                placeholder="Bilingual content in Markdown format..."
+                :rows="20"
+                class="w-full font-mono text-sm"
+              />
+            </UFormField>
+
+            <!-- Bilingual Preview -->
+            <template v-else-if="contentMode === 'preview-bilingual' && translatedBlocks">
+              <AdminBilingualPreview :blocks="translatedBlocks" />
+            </template>
+
+            <!-- Placeholder when no translation yet -->
+            <div v-else-if="contentMode === 'preview-bilingual' && !translatedBlocks" class="text-center py-8 text-gray-500">
+              <UIcon name="i-lucide-languages" class="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>Click "Translate to Chinese" to generate bilingual preview</p>
+            </div>
           </div>
         </UCard>
 
@@ -129,6 +215,10 @@
 </template>
 
 <script setup lang="ts">
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
+import 'github-markdown-css/github-markdown.css'
+
 definePageMeta({
   layout: false,
   middleware: 'admin'
@@ -138,7 +228,8 @@ interface ImportResult {
   title: string
   markdown: string
   url: string
-  images: Array<{ originalUrl: string; localUrl: string }>
+  imageUrls?: string[]
+  images?: Array<{ originalUrl: string; localUrl: string }>
 }
 
 interface TaskUpdate {
@@ -152,19 +243,43 @@ interface TaskUpdate {
   error?: string
 }
 
+interface TranslatedBlock {
+  original: string
+  translated: string
+  type: string
+  level?: number
+  language?: string
+}
+
 const url = ref('')
 const taskId = ref<number | null>(null)
 const status = ref('')
 const stage = ref('')
 const progress = ref(0)
-const totalImages = ref(0)
-const processedImages = ref(0)
 const preview = ref<ImportResult | null>(null)
 const error = ref<string | null>(null)
 const proceeding = ref(false)
 const isCreating = ref(false)
 const isCancelling = ref(false)
+const isFetchingImages = ref(false)
 const toast = useToast()
+
+// Translation state
+const isTranslating = ref(false)
+const translateProgress = ref('')
+const translatedBlocks = ref<TranslatedBlock[] | null>(null)
+const translatedTitle = ref('')
+const bilingualMarkdown = ref('')
+
+// Content mode
+const contentMode = ref<'original-md' | 'edit' | 'preview-bilingual' | 'bilingual'>('original-md')
+
+const contentModes = [
+  { label: 'Original Preview', value: 'original-md' },
+  { label: 'Edit Original', value: 'edit' },
+  { label: 'Preview Bilingual', value: 'preview-bilingual' },
+  { label: 'Edit Bilingual', value: 'bilingual' }
+]
 
 // EventSource reference for cleanup
 let eventSource: EventSource | null = null
@@ -208,6 +323,33 @@ const progressMessage = computed(() => {
   }
 })
 
+// Check if there are images
+const hasImages = computed(() => {
+  return (preview.value?.imageUrls?.length || 0) > 0 || (preview.value?.images?.length || 0) > 0
+})
+
+// Check if images are downloaded
+const imagesDownloaded = computed(() => {
+  return (preview.value?.images?.length || 0) > 0
+})
+
+// Configure marked
+marked.setOptions({
+  breaks: true,
+  gfm: true
+})
+
+// Render original markdown as HTML
+const renderedOriginalMarkdown = computed(() => {
+  if (!preview.value?.markdown) return ''
+  try {
+    const html = marked.parse(preview.value.markdown) as string
+    return DOMPurify.sanitize(html)
+  } catch {
+    return preview.value.markdown
+  }
+})
+
 const startImport = async () => {
   if (!url.value) return
 
@@ -218,6 +360,14 @@ const startImport = async () => {
   stage.value = ''
   progress.value = 0
   status.value = ''
+
+  // Reset translation state
+  isTranslating.value = false
+  translateProgress.value = ''
+  translatedBlocks.value = null
+  bilingualMarkdown.value = ''
+  translatedTitle.value = ''
+  contentMode.value = 'original-md'
 
   // Validate URL
   try {
@@ -268,18 +418,14 @@ const subscribeToUpdates = (id: number) => {
     status.value = data.status
     stage.value = data.stage
     progress.value = data.progress
-    totalImages.value = data.totalImages || 0
-    processedImages.value = data.processedImages || 0
 
     if (data.status === 'completed' && data.result) {
       preview.value = data.result
 
-      if (data.result.images?.length > 0) {
-        toast.add({
-          title: `${data.result.images.length} image(s) downloaded`,
-          color: 'success'
-        })
-      }
+      toast.add({
+        title: 'Article fetched successfully',
+        color: 'success'
+      })
 
       eventSource?.close()
       eventSource = null
@@ -316,18 +462,14 @@ const pollForUpdates = async (id: number) => {
       status.value = data.status
       stage.value = data.stage
       progress.value = data.progress
-      totalImages.value = data.totalImages || 0
-      processedImages.value = data.processedImages || 0
 
       if (data.status === 'completed' && data.result) {
         preview.value = data.result
 
-        if (data.result.images?.length > 0) {
-          toast.add({
-            title: `${data.result.images.length} image(s) downloaded`,
-            color: 'success'
-          })
-        }
+        toast.add({
+          title: 'Article fetched successfully',
+          color: 'success'
+        })
       } else if (data.status === 'failed') {
         error.value = data.error || 'Import failed'
         toast.add({
@@ -381,22 +523,111 @@ const cancelImport = async () => {
   }
 }
 
+const fetchImages = async () => {
+  if (!taskId.value || !preview.value) return
+
+  isFetchingImages.value = true
+
+  try {
+    await $fetch(`/api/admin/articles/import-queue/${taskId.value}/images`, {
+      method: 'POST'
+    })
+
+    // Poll for image download completion
+    const checkImages = async () => {
+      const data = await $fetch(`/api/admin/articles/import-queue/${taskId.value}`)
+      if (data.result?.images?.length) {
+        preview.value = data.result
+        toast.add({
+          title: `${data.result.images.length} image(s) downloaded`,
+          color: 'success'
+        })
+      } else if (data.stage === 'images') {
+        // Still downloading
+        setTimeout(checkImages, 1000)
+      }
+    }
+
+    setTimeout(checkImages, 1000)
+  } catch (e: any) {
+    toast.add({
+      title: 'Failed to fetch images',
+      description: e.data?.message || e.message,
+      color: 'error'
+    })
+  } finally {
+    isFetchingImages.value = false
+  }
+}
+
 const proceedToCreate = async () => {
   if (!preview.value) return
 
   proceeding.value = true
 
   try {
+    // Determine which content to use
+    let contentToUse = preview.value.markdown
+
+    // If bilingual markdown exists and user is in bilingual mode, use that
+    if (bilingualMarkdown.value && contentMode.value !== 'original-md' && contentMode.value !== 'edit') {
+      contentToUse = bilingualMarkdown.value
+    }
+
     // Store in sessionStorage
     sessionStorage.setItem('importedArticle', JSON.stringify({
       title: preview.value.title,
-      content: preview.value.markdown
+      content: contentToUse,
+      translatedTitle: translatedTitle.value || undefined
     }))
 
     // Navigate to create page
     await navigateTo('/admin/articles/create')
   } finally {
     proceeding.value = false
+  }
+}
+
+// Translation function
+const startTranslation = async () => {
+  if (!preview.value?.markdown) return
+
+  isTranslating.value = true
+  translateProgress.value = 'Starting...'
+  translatedBlocks.value = null
+  bilingualMarkdown.value = ''
+  translatedTitle.value = ''
+
+  try {
+    const result = await $fetch('/api/admin/articles/translate-markdown', {
+      method: 'POST',
+      body: {
+        markdown: preview.value.markdown,
+        title: preview.value.title
+      }
+    })
+
+    if (result.success) {
+      translatedBlocks.value = result.blocks
+      bilingualMarkdown.value = result.bilingualMarkdown
+      translatedTitle.value = result.translatedTitle
+      contentMode.value = 'preview-bilingual'
+
+      toast.add({
+        title: 'Translation completed',
+        color: 'success'
+      })
+    }
+  } catch (e: any) {
+    console.error('Translation error:', e)
+    toast.add({
+      title: 'Translation failed',
+      description: e.data?.message || e.message || 'Unknown error',
+      color: 'error'
+    })
+  } finally {
+    isTranslating.value = false
+    translateProgress.value = ''
   }
 }
 

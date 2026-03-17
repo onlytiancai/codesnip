@@ -23,15 +23,24 @@ importers:
       '@prisma/client':
         specifier: ^6.19.2
         version: 6.19.2(prisma@6.19.2(magicast@0.5.2)(typescript@5.9.3))(typescript@5.9.3)
+      '@vitalets/google-translate-api':
+        specifier: ^9.2.1
+        version: 9.2.1
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
       better-sqlite3:
         specifier: ^12.6.2
         version: 12.6.2
+      dompurify:
+        specifier: ^3.3.3
+        version: 3.3.3
       dotenv:
         specifier: ^17.3.1
         version: 17.3.1
+      github-markdown-css:
+        specifier: ^5.9.0
+        version: 5.9.0
       jsdom:
         specifier: ^29.0.0
         version: 29.0.0
@@ -84,6 +93,9 @@ importers:
       '@types/better-sqlite3':
         specifier: ^7.6.13
         version: 7.6.13
+      '@types/dompurify':
+        specifier: ^3.2.0
+        version: 3.2.0
       '@vitest/ui':
         specifier: ^4.0.18
         version: 4.0.18(vitest@4.0.18)
@@ -1859,8 +1871,15 @@ packages:
   '@types/deep-eql@4.0.2':
     resolution: {integrity: sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==}
 
+  '@types/dompurify@3.2.0':
+    resolution: {integrity: sha512-Fgg31wv9QbLDA0SpTOXO3MaxySc4DKGLi8sna4/Utjo4r3ZRPdCt4UQee8BWr+Q5z21yifghREPJGYaEOEIACg==}
+    deprecated: This is a stub types definition. dompurify provides its own type definitions, so you do not need this installed.
+
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
+
+  '@types/http-errors@1.8.2':
+    resolution: {integrity: sha512-EqX+YQxINb+MeXaIqYDASb6U6FCHbWjkj4a1CKDBks3d/QiB2+PqBLyO72vLDgAO1wUI4O+9gweRcQK11bTL/w==}
 
   '@types/linkify-it@5.0.0':
     resolution: {integrity: sha512-sVDA58zAw4eWAffKOaQH5/5j3XeayukzDk+ewSsnv3p4yJEZHCCzMDiZM8e0OUrRvmpGZ85jf4yDHkHsgBNr9Q==}
@@ -1879,6 +1898,9 @@ packages:
 
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
+
+  '@types/trusted-types@2.0.7':
+    resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
 
   '@types/web-bluetooth@0.0.20':
     resolution: {integrity: sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow==}
@@ -1901,6 +1923,10 @@ packages:
     resolution: {integrity: sha512-HC8venRc4Ya7vNeBsJneKHHMDDWpQie7VaKhAIOst3MKO+DES+Y/SbzSp8mFkD7OzwAE2HhHkeSuSmwS20mz3A==}
     engines: {node: '>=20'}
     hasBin: true
+
+  '@vitalets/google-translate-api@9.2.1':
+    resolution: {integrity: sha512-zlwQWSjXUZhbZQ6qwtIQ7GdYXFQmJ4wYqzcrYJUxtvzQQwUP+uKUb/SRJaBOQuBntjBjzcdcJoLFrpCKUbIkOg==}
+    engines: {node: '>=14'}
 
   '@vitejs/plugin-vue-jsx@5.1.4':
     resolution: {integrity: sha512-70LmoVk9riR7qc4W2CpjsbNMWTPnuZb9dpFKX1emru0yP57nsc9k8nhLA6U93ngQapv5VDIUq2JatNfLbBIkrA==}
@@ -2629,6 +2655,9 @@ packages:
     resolution: {integrity: sha512-cgwlv/1iFQiFnU96XXgROh8xTeetsnJiDsTc7TYCLFd9+/WNkIqPTxiM/8pSd8VIrhXGTf1Ny1q1hquVqDJB5w==}
     engines: {node: '>= 4'}
 
+  dompurify@3.3.3:
+    resolution: {integrity: sha512-Oj6pzI2+RqBfFG+qOaOLbFXLQ90ARpcGG6UePL82bJLtdsa6CYJD7nmiU8MW9nQNOtCHV3lZ/Bzq1X0QYbBZCA==}
+
   domutils@3.2.2:
     resolution: {integrity: sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw==}
 
@@ -2953,6 +2982,10 @@ packages:
 
   github-from-package@0.0.0:
     resolution: {integrity: sha512-SyHy3T1v2NUXn29OsWdxmK6RwHD+vkj3v8en8AOBZ1wBQ/hCAQ5bAQTD02kW4W9tUp/3Qh6J8r9EvntiyCmOOw==}
+
+  github-markdown-css@5.9.0:
+    resolution: {integrity: sha512-tmT5sY+zvg2302XLYEfH2mtkViIM1SWf2nvYoF5N1ZsO0V6B2qZTiw3GOzw4vpjLygK/KG35qRlPFweHqfzz5w==}
+    engines: {node: '>=10'}
 
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
@@ -6900,7 +6933,13 @@ snapshots:
 
   '@types/deep-eql@4.0.2': {}
 
+  '@types/dompurify@3.2.0':
+    dependencies:
+      dompurify: 3.3.3
+
   '@types/estree@1.0.8': {}
+
+  '@types/http-errors@1.8.2': {}
 
   '@types/linkify-it@5.0.0': {}
 
@@ -6918,6 +6957,9 @@ snapshots:
   '@types/pluralize@0.0.33': {}
 
   '@types/resolve@1.20.2': {}
+
+  '@types/trusted-types@2.0.7':
+    optional: true
 
   '@types/web-bluetooth@0.0.20': {}
 
@@ -6953,6 +6995,14 @@ snapshots:
       - encoding
       - rollup
       - supports-color
+
+  '@vitalets/google-translate-api@9.2.1':
+    dependencies:
+      '@types/http-errors': 1.8.2
+      http-errors: 2.0.1
+      node-fetch: 2.7.0
+    transitivePeerDependencies:
+      - encoding
 
   '@vitejs/plugin-vue-jsx@5.1.4(vite@7.3.1(@types/node@25.3.5)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.29(typescript@5.9.3))':
     dependencies:
@@ -7702,6 +7752,10 @@ snapshots:
     dependencies:
       domelementtype: 2.3.0
 
+  dompurify@3.3.3:
+    optionalDependencies:
+      '@types/trusted-types': 2.0.7
+
   domutils@3.2.2:
     dependencies:
       dom-serializer: 2.0.0
@@ -8028,6 +8082,8 @@ snapshots:
   giget@3.1.2: {}
 
   github-from-package@0.0.0: {}
+
+  github-markdown-css@5.9.0: {}
 
   glob-parent@5.1.2:
     dependencies:

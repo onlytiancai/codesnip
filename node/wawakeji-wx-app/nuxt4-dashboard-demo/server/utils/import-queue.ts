@@ -13,7 +13,6 @@ export const STAGE_PROGRESS = {
   fetch: 10,
   extract: 25,
   convert: 35,
-  images_start: 40,
   done: 100
 } as const
 
@@ -24,7 +23,8 @@ export interface ImportJobResult {
   title: string
   markdown: string
   url: string
-  images: Array<{ originalUrl: string; localUrl: string }>
+  imageUrls: string[]  // Remote image URLs (not downloaded yet)
+  images?: Array<{ originalUrl: string; localUrl: string }>  // Downloaded images (after fetch)
 }
 
 /**
@@ -183,8 +183,8 @@ export function extractImageUrls(markdown: string): string[] {
 
   for (const match of matches) {
     const url = match[2]
-    // Skip data URLs and local paths
-    if (!url.startsWith('data:') && !url.startsWith('/')) {
+    // Skip data URLs only (keep relative URLs for later resolution)
+    if (!url.startsWith('data:')) {
       urls.add(url)
     }
   }
@@ -259,7 +259,7 @@ export async function deleteImportImages(imagePaths: string[]): Promise<void> {
 }
 
 /**
- * Process an import job through all stages
+ * Process an import job through all stages (without downloading images)
  */
 export async function processImportJob(jobId: number): Promise<void> {
   // Get job
@@ -289,86 +289,26 @@ export async function processImportJob(jobId: number): Promise<void> {
 
     // Stage 3: Convert to Markdown
     if (job.status === 'cancelled') return
-    let markdown = convertToMarkdown(extractedContent.content)
-    await updateJobProgress(jobId, { stage: 'images', progress: STAGE_PROGRESS.images_start })
+    const markdown = convertToMarkdown(extractedContent.content)
 
-    // Stage 4: Extract and download images
-    if (job.status === 'cancelled') return
+    // Extract image URLs but keep them as remote URLs
     const imageUrls = extractImageUrls(markdown)
-    const totalImages = imageUrls.length
-    await updateJobProgress(jobId, { totalImages })
 
-    const imageMap: Record<string, string> = {}
-    const imageRecords: Array<{ originalUrl: string; localPath: string }> = []
-
-    for (let i = 0; i < imageUrls.length; i++) {
-      // Check for cancellation
-      const currentJob = await prisma.importQueue.findUnique({ where: { id: jobId } })
-      if (currentJob?.status === 'cancelled') return
-
-      const originalUrl = imageUrls[i]
-
-      // Resolve relative URLs
-      let resolvedUrl: string
+    // Resolve relative URLs
+    const resolvedImageUrls = imageUrls.map(url => {
       try {
-        resolvedUrl = new URL(originalUrl, baseUrl).href
+        return new URL(url, baseUrl).href
       } catch {
-        console.warn(`Invalid image URL: ${originalUrl}`)
-        continue
+        return url
       }
+    })
 
-      // Create ImportImage record
-      const importImage = await prisma.importImage.create({
-        data: {
-          queueId: jobId,
-          originalUrl: resolvedUrl,
-          status: 'downloading'
-        }
-      })
-
-      try {
-        const result = await downloadImage(resolvedUrl, jobId, i)
-
-        if (result) {
-          imageMap[originalUrl] = result.localUrl
-          imageRecords.push({ originalUrl: resolvedUrl, localPath: result.localPath })
-
-          await prisma.importImage.update({
-            where: { id: importImage.id },
-            data: { status: 'completed', localPath: result.localPath }
-          })
-        } else {
-          await prisma.importImage.update({
-            where: { id: importImage.id },
-            data: { status: 'failed', error: 'Download failed' }
-          })
-        }
-      } catch (e: any) {
-        await prisma.importImage.update({
-          where: { id: importImage.id },
-          data: { status: 'failed', error: e.message }
-        })
-      }
-
-      // Update progress
-      const progress = Math.round(STAGE_PROGRESS.images_start + ((i + 1) / totalImages) * 60)
-      await updateJobProgress(jobId, { processedImages: i + 1, progress })
-    }
-
-    // Replace image URLs in markdown with local URLs
-    for (const [originalUrl, localUrl] of Object.entries(imageMap)) {
-      markdown = markdown.split(originalUrl).join(localUrl)
-    }
-
-    // Stage 5: Complete
+    // Stage 4: Complete (without downloading images)
     const result: ImportJobResult = {
       title: extractedContent.title,
       markdown,
       url: job.url,
-      images: Object.entries(imageMap).map(([originalUrl, localUrl]) => ({
-        originalUrl,
-        localUrl
-      }))
+      imageUrls: resolvedImageUrls
     }
 
     await updateJobProgress(jobId, {
@@ -384,4 +324,102 @@ export async function processImportJob(jobId: number): Promise<void> {
       error: error.message || 'Unknown error'
     })
   }
+}
+
+/**
+ * Process images for a completed import job
+ */
+export async function processImagesForJob(jobId: number): Promise<void> {
+  const job = await prisma.importQueue.findUnique({
+    where: { id: jobId }
+  })
+
+  if (!job || job.status !== 'completed' || !job.result) {
+    throw new Error('Job not found or not completed')
+  }
+
+  const result = job.result as ImportJobResult
+  const imageUrls = result.imageUrls || []
+
+  if (imageUrls.length === 0) {
+    return // No images to download
+  }
+
+  // Update status to processing images
+  await updateJobProgress(jobId, {
+    stage: 'images',
+    totalImages: imageUrls.length,
+    processedImages: 0
+  })
+
+  const baseUrl = new URL(job.url)
+  const imageMap: Record<string, string> = {}
+  const downloadedImages: Array<{ originalUrl: string; localUrl: string }> = []
+
+  for (let i = 0; i < imageUrls.length; i++) {
+    const originalUrl = imageUrls[i]
+
+    // Resolve relative URLs
+    let resolvedUrl: string
+    try {
+      resolvedUrl = new URL(originalUrl, baseUrl).href
+    } catch {
+      console.warn(`Invalid image URL: ${originalUrl}`)
+      continue
+    }
+
+    // Create ImportImage record
+    const importImage = await prisma.importImage.create({
+      data: {
+        queueId: jobId,
+        originalUrl: resolvedUrl,
+        status: 'downloading'
+      }
+    })
+
+    try {
+      const downloadResult = await downloadImage(resolvedUrl, jobId, i)
+
+      if (downloadResult) {
+        imageMap[originalUrl] = downloadResult.localUrl
+        downloadedImages.push({ originalUrl: resolvedUrl, localUrl: downloadResult.localUrl })
+
+        await prisma.importImage.update({
+          where: { id: importImage.id },
+          data: { status: 'completed', localPath: downloadResult.localPath }
+        })
+      } else {
+        await prisma.importImage.update({
+          where: { id: importImage.id },
+          data: { status: 'failed', error: 'Download failed' }
+        })
+      }
+    } catch (e: any) {
+      await prisma.importImage.update({
+        where: { id: importImage.id },
+        data: { status: 'failed', error: e.message }
+      })
+    }
+
+    // Update progress
+    await updateJobProgress(jobId, { processedImages: i + 1 })
+  }
+
+  // Replace image URLs in markdown with local URLs
+  let updatedMarkdown = result.markdown
+  for (const [originalUrl, localUrl] of Object.entries(imageMap)) {
+    updatedMarkdown = updatedMarkdown.split(originalUrl).join(localUrl)
+  }
+
+  // Update result with downloaded images
+  const updatedResult: ImportJobResult = {
+    ...result,
+    markdown: updatedMarkdown,
+    images: downloadedImages
+  }
+
+  await updateJobProgress(jobId, {
+    stage: 'done',
+    result: updatedResult
+  })
 }
