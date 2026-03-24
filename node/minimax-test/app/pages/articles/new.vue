@@ -4,6 +4,7 @@ definePageMeta({
 })
 
 const url = ref('')
+const scrapeImages = ref(true)
 const loading = ref(false)
 const error = ref('')
 const jobId = ref<string | null>(null)
@@ -20,7 +21,7 @@ async function startScrape() {
   try {
     const result = await $fetch<{ job: { id: string } }>('/api/jobs/scrape', {
       method: 'POST',
-      body: { url: url.value }
+      body: { url: url.value, scrapeImages: scrapeImages.value }
     })
 
     jobId.value = result.job.id
@@ -84,6 +85,19 @@ async function pollJobStatus() {
             placeholder="https://example.com/article"
             class="w-full px-3 py-2 border border-gray-300 rounded-md"
           />
+        </div>
+
+        <div class="flex items-center gap-2">
+          <input
+            v-model="scrapeImages"
+            type="checkbox"
+            id="scrapeImages"
+            class="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <label for="scrapeImages" class="text-sm font-medium text-gray-700">
+            Download images
+          </label>
+          <span class="text-xs text-gray-500">(store images locally)</span>
         </div>
 
         <button

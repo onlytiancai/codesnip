@@ -30,17 +30,20 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const scrapeImages = body.scrapeImages !== false
+
   const job = await prisma.job.create({
     data: {
       type: 'scrape',
       status: 'pending',
       progress: 0,
-      data: JSON.stringify({ url }),
+      data: JSON.stringify({ url, scrapeImages }),
+      scrapeImages: scrapeImages,
       userId: session.user.id
     }
   })
 
-  await addScrapeJob(job.id, url, session.user.id)
+  await addScrapeJob(job.id, url, session.user.id, scrapeImages)
 
   return { job }
 })

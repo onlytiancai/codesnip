@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   progress: number
   status: string
 }>()
@@ -14,11 +14,6 @@ const statusText = computed(() => {
   if (props.progress < 90) return 'Converting to markdown...'
   return 'Finalizing...'
 })
-
-const props = defineProps<{
-  progress: number
-  status: string
-}>()
 </script>
 
 <template>

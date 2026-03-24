@@ -9,11 +9,31 @@ if (loggedIn.value) {
   navigateTo('/dashboard')
 }
 
+const config = useRuntimeConfig()
+const captchaEnabled = computed(() => config.public.captchaEnabled === 'true')
+
 const email = ref('')
 const password = ref('')
 const name = ref('')
+const passwordHint = ref('')
+const captchaAnswer = ref('')
+const captchaQuestion = ref('')
 const error = ref('')
 const loading = ref(false)
+
+async function fetchCaptcha() {
+  if (!captchaEnabled.value) return
+  try {
+    const result = await $fetch<{ question: string }>('/api/auth/captcha')
+    captchaQuestion.value = result.question
+  } catch (e) {
+    console.error('Failed to fetch CAPTCHA:', e)
+  }
+}
+
+onMounted(() => {
+  fetchCaptcha()
+})
 
 async function handleRegister() {
   error.value = ''
@@ -25,7 +45,9 @@ async function handleRegister() {
       body: {
         email: email.value,
         password: password.value,
-        name: name.value || undefined
+        name: name.value || undefined,
+        passwordHint: passwordHint.value || undefined,
+        captchaAnswer: captchaAnswer.value || undefined
       }
     })
 
@@ -33,6 +55,10 @@ async function handleRegister() {
     navigateTo('/dashboard')
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Registration failed'
+    if (captchaEnabled.value) {
+      captchaAnswer.value = ''
+      fetchCaptcha()
+    }
   } finally {
     loading.value = false
   }
@@ -75,6 +101,34 @@ async function handleRegister() {
           required
           minlength="6"
           class="w-full px-3 py-2 border border-gray-300 rounded-md"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Password Hint (optional)
+        </label>
+        <input
+          v-model="passwordHint"
+          type="text"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md"
+          placeholder="A phrase to help you remember your password"
+        />
+        <p class="mt-1 text-xs text-gray-500">
+          Set a hint to help you remember your password later
+        </p>
+      </div>
+
+      <div v-if="captchaEnabled">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          CAPTCHA: {{ captchaQuestion }}
+        </label>
+        <input
+          v-model="captchaAnswer"
+          type="text"
+          required
+          class="w-full px-3 py-2 border border-gray-300 rounded-md"
+          placeholder="Enter the answer"
         />
       </div>
 

@@ -8,14 +8,16 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  password  String
-  name      String?
-  articles  Article[]
-  jobs      Job[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           String    @id @default(cuid())
+  email        String    @unique
+  password     String
+  name         String?
+  passwordHint String?
+  isDisabled   Boolean   @default(false)
+  articles     Article[]
+  jobs         Job[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
 model Article {
@@ -63,15 +65,16 @@ model Image {
 }
 
 model Job {
-  id        String   @id @default(cuid())
-  type      String
-  status    String   @default("pending")
-  progress  Int      @default(0)
-  data      String?
-  result    String?
-  error     String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  type         String
+  status       String   @default("pending")
+  progress     Int      @default(0)
+  data         String?
+  result       String?
+  error        String?
+  scrapeImages Boolean  @default(true)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

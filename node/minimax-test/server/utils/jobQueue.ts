@@ -14,13 +14,15 @@ export interface ScrapeJobData {
   jobId: string
   url: string
   userId: string
+  scrapeImages: boolean
 }
 
-export async function addScrapeJob(jobId: string, url: string, userId: string) {
+export async function addScrapeJob(jobId: string, url: string, userId: string, scrapeImages: boolean = true) {
   await scrapeQueue.add('scrape', {
     jobId,
     url,
-    userId
+    userId,
+    scrapeImages
   })
 }
 
@@ -28,7 +30,7 @@ export function createScrapeWorker() {
   return new Worker<ScrapeJobData>(
     'scrape',
     async (job: BullJob<ScrapeJobData>) => {
-      const { jobId, url, userId } = job.data
+      const { jobId, url, userId, scrapeImages = true } = job.data
 
       try {
         await prisma.job.update({
@@ -64,24 +66,34 @@ export function createScrapeWorker() {
         })
 
         const downloadedImages: { url: string; localPath: string }[] = []
-        for (let i = 0; i < scraped.images.length; i++) {
-          const imgUrl = scraped.images[i]
-          const downloaded = await downloadImage(imgUrl, article.id)
-          downloadedImages.push(downloaded)
 
-          await prisma.image.create({
-            data: {
-              url: downloaded.originalUrl,
-              localPath: downloaded.localPath,
-              articleId: article.id
-            }
-          })
+        if (scrapeImages && scraped.images.length > 0) {
+          for (let i = 0; i < scraped.images.length; i++) {
+            const imgUrl = scraped.images[i]
+            const downloaded = await downloadImage(imgUrl, article.id)
+            downloadedImages.push(downloaded)
 
-          const imgProgress = 50 + Math.round(((i + 1) / scraped.images.length) * 20)
-          await job.updateProgress(imgProgress)
+            await prisma.image.create({
+              data: {
+                url: downloaded.originalUrl,
+                localPath: downloaded.localPath,
+                articleId: article.id
+              }
+            })
+
+            const imgProgress = 50 + Math.round(((i + 1) / scraped.images.length) * 20)
+            await job.updateProgress(imgProgress)
+            await prisma.job.update({
+              where: { id: jobId },
+              data: { progress: imgProgress }
+            })
+          }
+        } else {
+          // Skip image download, jump to 70%
+          await job.updateProgress(70)
           await prisma.job.update({
             where: { id: jobId },
-            data: { progress: imgProgress }
+            data: { progress: 70 }
           })
         }
 

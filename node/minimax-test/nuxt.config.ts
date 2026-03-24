@@ -1,17 +1,18 @@
 export default defineNuxtConfig({
-  compatibilityDate: '2024-11-01',
-  devtools: { enabled: true },
+  compatibilityDate: "2025-07-15",
+  devtools: { enabled: false },
 
-  future: {
-    compatibilityVersion: 4
-  },
-
-  modules: ['@nuxt/ui', 'nuxt-auth-utils'],
+  modules: [
+    ['@nuxt/ui', { fonts: false }],
+    '@nuxt/icon',
+    'nuxt-auth-utils'
+  ],
 
   css: ['~/assets/css/main.css'],
 
-  ui: {
-    version: '4'
+
+    ui: {
+    fonts: false
   },
 
   nitro: {
@@ -22,6 +23,10 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     sessionSecret: process.env.SESSION_SECRET || 'article-scraper-secret-key-change-in-production',
-    redisUrl: process.env.REDIS_URL || 'redis://localhost:6379'
+    redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
+    captchaEnabled: process.env.CAPTCHA_ENABLED || 'false'
+  },
+  public: {
+    captchaEnabled: process.env.CAPTCHA_ENABLED || 'true'
   }
 })
