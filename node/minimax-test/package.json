@@ -1,0 +1,39 @@
+{
+  "name": "article-scraper",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "prisma:generate": "prisma generate",
+    "prisma:dbpush": "prisma db push",
+    "test": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@nuxt/ui": "^4.0.0",
+    "@prisma/client": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "bullmq": "^5.0.0",
+    "cheerio": "^1.0.0",
+    "ioredis": "^5.0.0",
+    "nuxt": "^4.0.0",
+    "nuxt-auth-utils": "^0.5.0",
+    "turndown": "^7.0.0",
+    "vue": "^3.5.0",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0",
+    "@types/bcryptjs": "^3.0.0",
+    "@types/node": "^22.0.0",
+    "@types/turndown": "^5.0.0",
+    "prisma": "^6.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^3.0.0"
+  }
+}
