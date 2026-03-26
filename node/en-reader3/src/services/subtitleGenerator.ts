@@ -3,18 +3,6 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { logger } from '../utils/logger.js';
 
-interface WordTimestamp {
-  word: string;
-  start: number;
-  end: number;
-}
-
-interface SegmentTimestamp {
-  text: string;
-  start: number;
-  end: number;
-}
-
 interface SubtitleEntry {
   start: number;
   end: number;
@@ -22,8 +10,8 @@ interface SubtitleEntry {
 }
 
 /**
- * Generate SRT subtitles using faster-whisper ASR for accurate timing.
- * Uses ASR segment text directly and applies intelligent line splitting.
+ * Generate SRT subtitles using Edge TTS WordBoundary events.
+ * WordBoundary provides precise word-level timing directly from TTS.
  */
 export async function generateSubtitles(
   narrationScript: string,
@@ -31,65 +19,51 @@ export async function generateSubtitles(
   outputDir: string,
   sectionId: number
 ): Promise<string> {
-  logger.debug(`Generating subtitles with faster-whisper for section ${sectionId}`);
+  logger.debug(`Generating subtitles with Edge TTS WordBoundary for section ${sectionId}`);
 
-  const { words, segments } = await runWhisperASR(audioPath);
+  try {
+    const entries = await runEdgeTTSWordBoundary(narrationScript);
 
-  if (segments.length === 0) {
-    logger.warn(`No ASR results for section ${sectionId}, falling back to estimation`);
+    if (entries.length === 0) {
+      logger.warn(`No WordBoundary results for section ${sectionId}, falling back to estimation`);
+      return generateFallbackSubtitles(narrationScript, audioPath, outputDir, sectionId);
+    }
+
+    const srtContent = generateSRT(entries);
+
+    const outputPath = join(outputDir, `section-${sectionId}.srt`);
+    await writeFile(outputPath, srtContent, 'utf-8');
+
+    logger.debug(`Subtitles saved to ${outputPath}`);
+
+    return outputPath;
+  } catch (err) {
+    logger.error(`Edge TTS WordBoundary failed for section ${sectionId}:`, err);
     return generateFallbackSubtitles(narrationScript, audioPath, outputDir, sectionId);
   }
-
-  const entries = buildSubtitleEntriesFromSegments(segments);
-
-  const srtContent = generateSRT(entries);
-
-  const outputPath = join(outputDir, `section-${sectionId}.srt`);
-  await writeFile(outputPath, srtContent, 'utf-8');
-
-  logger.debug(`Subtitles saved to ${outputPath}`);
-
-  return outputPath;
 }
 
 /**
- * Run faster-whisper ASR to get word and segment timestamps.
+ * Run Edge TTS with WordBoundary to get word timestamps and generate SRT.
  */
-async function runWhisperASR(audioPath: string): Promise<{ words: WordTimestamp[]; segments: SegmentTimestamp[] }> {
+async function runEdgeTTSWordBoundary(narrationScript: string): Promise<SubtitleEntry[]> {
   const pythonScript = `
 import sys
-import json
-from faster_whisper import WhisperModel
+import asyncio
+import edge_tts
 
-model_size = "medium"
-model = WhisperModel(model_size, device="cpu", compute_type="int8")
+async def get_word_boundaries(text):
+    submaker = edge_tts.SubMaker()
+    communicate = edge_tts.Communicate(text, boundary="WordBoundary")
+    async for chunk in communicate.stream():
+        if chunk["type"] in ("WordBoundary", "SentenceBoundary"):
+            submaker.feed(chunk)
+    return submaker.get_srt()
 
-segments, info = model.transcribe("${audioPath.replace(/\\/g, '\\\\')}", word_timestamps=True)
-
-word_list = []
-segment_list = []
-
-for segment in segments:
-    seg_start = round(segment.start, 2)
-    seg_end = round(segment.end, 2)
-    seg_text = segment.text.strip()
-
-    segment_list.append({
-        "text": seg_text,
-        "start": seg_start,
-        "end": seg_end
-    })
-
-    if segment.words:
-        for word in segment.words:
-            word_list.append({
-                "word": word.word,
-                "start": round(word.start, 2),
-                "end": round(word.end, 2)
-            })
-
-result = {"words": word_list, "segments": segment_list}
-print(json.dumps(result))
+if __name__ == "__main__":
+    text = """${narrationScript.replace(/"/g, '\\"').replace(/`/g, '\\`').replace(/\n/g, ' ')}"""
+    srt_content = asyncio.run(get_word_boundaries(text))
+    print(srt_content)
 `;
 
   return new Promise((resolve, reject) => {
@@ -111,18 +85,16 @@ print(json.dumps(result))
     proc.on('close', (code) => {
       if (code === 0) {
         try {
-          const result = JSON.parse(stdout.trim());
-          const words = result.words as WordTimestamp[];
-          const segments = result.segments as SegmentTimestamp[];
-          logger.debug(`ASR returned ${words.length} words, ${segments.length} segments`);
-          resolve({ words, segments });
+          const entries = parseSRTEntries(stdout);
+          logger.debug(`Edge TTS WordBoundary returned ${entries.length} subtitle entries`);
+          resolve(entries);
         } catch (err) {
-          logger.error('Failed to parse ASR output:', err);
-          reject(new Error(`Failed to parse ASR output: ${stderr}`));
+          logger.error('Failed to parse Edge TTS output:', err);
+          reject(new Error(`Failed to parse Edge TTS output: ${stderr}`));
         }
       } else {
-        logger.error(`ASR failed: ${stderr}`);
-        reject(new Error(`ASR failed: ${stderr}`));
+        logger.error(`Edge TTS WordBoundary failed: ${stderr}`);
+        reject(new Error(`Edge TTS WordBoundary failed: ${stderr}`));
       }
     });
 
@@ -133,101 +105,38 @@ print(json.dumps(result))
 }
 
 /**
- * Build subtitle entries from ASR segments.
- * Splits long segments into shorter lines at natural boundaries.
+ * Parse SRT content into subtitle entries.
  */
-function buildSubtitleEntriesFromSegments(segments: SegmentTimestamp[]): SubtitleEntry[] {
+function parseSRTEntries(srtContent: string): SubtitleEntry[] {
   const entries: SubtitleEntry[] = [];
+  const blocks = srtContent.trim().split(/\n\n+/);
 
-  for (const segment of segments) {
-    const lines = splitSegmentIntoLines(segment.text);
+  for (const block of blocks) {
+    const lines = block.split('\n');
+    if (lines.length < 3) continue;
 
-    if (lines.length === 1) {
-      entries.push({
-        start: segment.start,
-        end: segment.end,
-        text: lines[0],
-      });
-    } else {
-      const segmentDuration = segment.end - segment.start;
-      const lineDuration = segmentDuration / lines.length;
+    // Parse time line: "00:00:01,234 --> 00:00:03,456"
+    const timeMatch = lines[1].match(/(\d{2}):(\d{2}):(\d{2}),(\d{3})\s*-->\s*(\d{2}):(\d{2}):(\d{2}),(\d{3})/);
+    if (!timeMatch) continue;
 
-      for (let i = 0; i < lines.length; i++) {
-        entries.push({
-          start: segment.start + i * lineDuration,
-          end: segment.start + (i + 1) * lineDuration,
-          text: lines[i],
-        });
-      }
-    }
+    const start =
+      parseInt(timeMatch[1]) * 3600 +
+      parseInt(timeMatch[2]) * 60 +
+      parseInt(timeMatch[3]) +
+      parseInt(timeMatch[4]) / 1000;
+
+    const end =
+      parseInt(timeMatch[5]) * 3600 +
+      parseInt(timeMatch[6]) * 60 +
+      parseInt(timeMatch[7]) +
+      parseInt(timeMatch[8]) / 1000;
+
+    const text = lines.slice(2).join('\n');
+
+    entries.push({ start, end, text });
   }
 
-  return mergeShortEntries(entries);
-}
-
-/**
- * Split a segment text into lines.
- * Preserves spaces and breaks at natural word boundaries.
- */
-function splitSegmentIntoLines(text: string): string[] {
-  const lines: string[] = [];
-  let currentLine = '';
-  let currentLen = 0;
-  const MAX_CHARS = 24;
-
-  // Split into words while preserving spaces
-  const tokens = text.split(/(\s+)/);
-
-  for (const token of tokens) {
-    if (token.trim().length === 0) {
-      // Whitespace - add to current line
-      currentLine += token;
-      continue;
-    }
-
-    const tokenLen = token.trim().length;
-
-    if (currentLen + tokenLen > MAX_CHARS && currentLen > 0) {
-      lines.push(currentLine.trim());
-      currentLine = token;
-      currentLen = tokenLen;
-    } else {
-      currentLine += token;
-      currentLen += tokenLen;
-    }
-  }
-
-  if (currentLine.trim().length > 0) {
-    lines.push(currentLine.trim());
-  }
-
-  return lines;
-}
-
-/**
- * Merge very short entries with neighbors.
- */
-function mergeShortEntries(entries: SubtitleEntry[]): SubtitleEntry[] {
-  const MIN_DURATION = 0.8;
-  const MIN_CHARS = 8;
-
-  const merged: SubtitleEntry[] = [];
-
-  for (const entry of entries) {
-    if (
-      merged.length > 0 &&
-      entry.text.length < MIN_CHARS &&
-      entry.end - entry.start < MIN_DURATION
-    ) {
-      const prev = merged[merged.length - 1];
-      prev.text += ' ' + entry.text;
-      prev.end = entry.end;
-    } else {
-      merged.push(entry);
-    }
-  }
-
-  return merged;
+  return entries;
 }
 
 /**

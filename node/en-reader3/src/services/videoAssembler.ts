@@ -41,7 +41,7 @@ export async function assembleSegment(
         '-pix_fmt',
         'yuv420p',
         '-vf',
-        `subtitles=${subtitleFile}:force_style='FontSize=18,PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,Outline=2,Bold=1,MarginV=80,Alignment=2'`,
+        `subtitles=${subtitleFile}:force_style='FontSize=36,PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,Outline=2,Bold=1,MarginV=250,Alignment=2'`,
         '-y',
       ])
       .output(outputPath)
