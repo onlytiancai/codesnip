@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080, height=1920">
+  <title>{{title}}</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      font-family: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      color: #eaeaea;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Decorative elements */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(ellipse at center, rgba(255,215,0,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .container {
+      width: 100%;
+      height: 100%;
+      padding: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .intro-label {
+      font-size: 24px;
+      color: #ffd700;
+      margin-bottom: 40px;
+      text-transform: uppercase;
+      letter-spacing: 8px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .title {
+      font-size: 56px;
+      font-weight: bold;
+      color: #ffffff;
+      text-align: center;
+      margin-bottom: 40px;
+      text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+      line-height: 1.3;
+      max-width: 900px;
+    }
+
+    .intro-text {
+      font-size: 28px;
+      color: #cccccc;
+      text-align: center;
+      max-width: 800px;
+      line-height: 1.8;
+      margin-bottom: 60px;
+    }
+
+    .segment-count {
+      font-size: 22px;
+      color: #888888;
+      text-align: center;
+    }
+
+    /* Subtitle at bottom */
+    .subtitle-container {
+      position: absolute;
+      bottom: 80px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      padding: 0 40px;
+    }
+
+    .subtitle-text {
+      font-size: 24px;
+      color: #ffffff;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.9);
+      line-height: 1.6;
+    }
+
+    #audio {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="intro-label">English Article</div>
+    <div class="title">{{title}}</div>
+    <div class="intro-text">{{introText}}</div>
+    <div class="segment-count">共 {{segmentCount}} 个段落</div>
+  </div>
+
+  <div class="subtitle-container">
+    <div id="subtitle" class="subtitle-text"></div>
+  </div>
+
+  <audio id="audio" src="file://{{audioPath}}"></audio>
+
+  <script>
+    const audioEl = document.getElementById('audio');
+    const subtitleEl = document.getElementById('subtitle');
+
+    const sentences = {{sentencesJson}};
+
+    function updateSubtitle(currentTime) {
+      for (let i = 0; i < sentences.length; i++) {
+        if (currentTime >= sentences[i].start && currentTime < sentences[i].end) {
+          if (subtitleEl.dataset.sentenceIndex != i) {
+            subtitleEl.textContent = sentences[i].text;
+            subtitleEl.dataset.sentenceIndex = i;
+          }
+          return;
+        }
+      }
+      subtitleEl.textContent = '';
+    }
+
+    audioEl.addEventListener('timeupdate', () => {
+      updateSubtitle(audioEl.currentTime);
+    });
+
+    audioEl.addEventListener('loadedmetadata', () => {
+      audioEl.play().catch(() => {});
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      audioEl.play().catch(() => {});
+    });
+  </script>
+</body>
+</html>

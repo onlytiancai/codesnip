@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080, height=1920">
+  <title>{{title}}</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      font-family: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      color: #eaeaea;
+      position: relative;
+    }
+
+    .container {
+      width: 100%;
+      height: 100%;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+
+    .section-label {
+      font-size: 36px;
+      color: #ffd700;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow: hidden;
+    }
+
+    .original-card {
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 16px;
+      border-left: 4px solid #ffd700;
+      flex-shrink: 0;
+      max-height: 160px;
+      overflow: hidden;
+    }
+
+    .original-text {
+      font-size: 20px;
+      color: #cccccc;
+      line-height: 1.5;
+    }
+
+    .vocab-section {
+      background: rgba(0,255,136,0.08);
+      border-radius: 12px;
+      padding: 16px;
+      border: 2px solid rgba(0,255,136,0.3);
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .vocab-title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #00ff88;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .vocab-list {
+      overflow-y: auto;
+      max-height: calc(100% - 50px);
+    }
+
+    .vocab-item {
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(0,255,136,0.2);
+    }
+
+    .vocab-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .vocab-word {
+      font-size: 24px;
+      font-weight: bold;
+      color: #00ff88;
+    }
+
+    .phonetic {
+      font-size: 18px;
+      color: #888888;
+      font-weight: normal;
+      margin-left: 8px;
+    }
+
+    .vocab-def {
+      font-size: 20px;
+      color: #cccccc;
+      margin-top: 6px;
+    }
+
+    .vocab-example {
+      font-size: 16px;
+      color: #888888;
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    /* Subtitle at bottom */
+    .subtitle-container {
+      position: absolute;
+      bottom: 60px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      padding: 0 30px;
+    }
+
+    .subtitle-text {
+      font-size: 20px;
+      color: #ffffff;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
+      line-height: 1.5;
+    }
+
+    #audio {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="section-label">{{partLabel}}</div>
+    </div>
+
+    <div class="content-area">
+      <div class="original-card">
+        <div class="original-text">{{originalText}}</div>
+      </div>
+
+      <div class="vocab-section">
+        <div class="vocab-title">📝 重点词汇</div>
+        <div class="vocab-list">
+          {{vocabItemsHtml}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subtitle-container">
+    <div id="subtitle" class="subtitle-text"></div>
+  </div>
+
+  <audio id="audio" src="file://{{audioPath}}"></audio>
+
+  <script>
+    const audioEl = document.getElementById('audio');
+    const subtitleEl = document.getElementById('subtitle');
+
+    const sentences = {{sentencesJson}};
+
+    function updateSubtitle(currentTime) {
+      for (let i = 0; i < sentences.length; i++) {
+        if (currentTime >= sentences[i].start && currentTime < sentences[i].end) {
+          if (subtitleEl.dataset.sentenceIndex != i) {
+            subtitleEl.textContent = sentences[i].text;
+            subtitleEl.dataset.sentenceIndex = i;
+          }
+          return;
+        }
+      }
+      subtitleEl.textContent = '';
+    }
+
+    audioEl.addEventListener('timeupdate', () => {
+      updateSubtitle(audioEl.currentTime);
+    });
+
+    audioEl.addEventListener('loadedmetadata', () => {
+      audioEl.play().catch(() => {});
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      audioEl.play().catch(() => {});
+    });
+  </script>
+</body>
+</html>

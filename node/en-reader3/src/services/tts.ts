@@ -10,6 +10,21 @@ interface TTSResult {
 }
 
 /**
+ * Preprocess narration script by removing [朗读] and [讲解] markers.
+ * These markers are for internal word timing but should not be spoken by TTS.
+ */
+function preprocessNarrationScript(text: string): string {
+  // Remove [朗读] and [讲解] markers but keep the content
+  let clean = text.replace(/\[朗读\]/g, '');
+  clean = clean.replace(/\[讲解\]/g, '');
+
+  // Clean up any extra whitespace left behind
+  clean = clean.replace(/\s+/g, ' ').trim();
+
+  return clean;
+}
+
+/**
  * Generate Chinese TTS audio using Edge TTS (free, supports Chinese).
  */
 async function generateEdgeTTS(text: string, outputPath: string): Promise<TTSResult> {
@@ -172,15 +187,20 @@ export async function generateTTS(
 ): Promise<TTSResult> {
   await mkdir(outputDir, { recursive: true });
 
+  // Preprocess narration script: remove [朗读] and [讲解] markers
+  // These markers are for internal use but should not be spoken by TTS
+  const cleanText = preprocessNarrationScript(text);
+  logger.debug(`Clean narration: ${cleanText.substring(0, 50)}...`);
+
   const outputPath = join(outputDir, `section-${sectionId}.mp3`);
 
   const provider = config.TTS_PROVIDER as TTSProvider;
 
   switch (provider) {
     case 'bytedance':
-      return generateByteDanceTTS(text, outputPath);
+      return generateByteDanceTTS(cleanText, outputPath);
     case 'edge':
     default:
-      return generateEdgeTTS(text, outputPath);
+      return generateEdgeTTS(cleanText, outputPath);
   }
 }

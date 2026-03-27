@@ -1,185 +1,293 @@
-import OpenAI from 'openai';
 import { config } from '../config/index.js';
-import { ArticleSection, VocabularyItem, PhraseItem, GrammarPoint } from '../types/index.js';
 import { logger } from '../utils/logger.js';
+import { loadPromptsConfig, interpolateTemplate } from './promptLoader.js';
+import {
+  ArticleSection,
+  ArticleScript,
+  SegmentPart,
+  PartType,
+  VocabularyItem,
+  GrammarPoint,
+  SegmentGenerationResponse,
+} from '../types/index.js';
 
-const client = new OpenAI({
-  baseURL: config.LLM_BASE_URL,
-  apiKey: config.LLM_API_KEY,
-});
+/**
+ * Generate article script with intro, segments (each with 6 parts), and outro.
+ * Intro/outro get full original text for context.
+ */
+export async function generateArticleScript(
+  sections: { text: string; order: number }[],
+  title: string,
+  fullOriginalText: string
+): Promise<ArticleScript> {
+  logger.info(`Generating article script for "${title}" with ${sections.length} segments`);
 
-const RESPONSE_FORMAT = {
-  type: 'json_object',
-} as const;
+  // Load prompts configuration
+  const promptsConfig = await loadPromptsConfig();
 
-interface AIScriptResponse {
-  summary: string;
-  vocabulary: VocabularyItem[];
-  phrases: PhraseItem[];
-  grammarPoints: GrammarPoint[];
-  contextExplanation: string;
-  narrationScript: string;
+  // Generate intro (with full text for context)
+  const intro = await generateIntro(title, sections.length, fullOriginalText, promptsConfig);
+
+  // Generate segments with 6 parts each (single AI call per segment)
+  const segments = [];
+  for (const section of sections) {
+    const segmentScript = await generateSegmentAllParts(section.order, section.text, title, promptsConfig);
+    segments.push(segmentScript);
+  }
+
+  // Generate outro (with full text for context)
+  const outro = await generateOutro(title, fullOriginalText, promptsConfig);
+
+  logger.info(`Article script generated: 1 intro, ${segments.length} segments, 1 outro`);
+
+  return { intro, segments, outro };
 }
 
 /**
- * Extract JSON from content that may include thinking tags.
- * Handles responses like: <think>...thinking...```json{...}```</think>
+ * Generate intro content using configured prompts.
  */
-function extractJSON(content: string): string {
-  // Remove thinking tags using string operations
-  let cleaned = content;
-  while (cleaned.includes('<think>')) {
-    const start = cleaned.indexOf('<think>');
-    const end = cleaned.indexOf('</think>');
-    if (end > start) {
-      cleaned = cleaned.substring(0, start) + cleaned.substring(end + 4);
-    } else {
-      break;
+async function generateIntro(
+  title: string,
+  segmentCount: number,
+  fullOriginalText: string,
+  promptsConfig: { systemPrompt: string; temperature: number; prompts: { intro: { template: string } } }
+): Promise<{ title: string; script: string }> {
+  const template = promptsConfig.prompts.intro.template;
+  const prompt = interpolateTemplate(template, {
+    title,
+    segmentCount,
+    originalText: fullOriginalText,
+  });
+
+  try {
+    const response = await callAI(promptsConfig.systemPrompt, prompt, promptsConfig.temperature);
+    const parsed = extractJSON(response) as { title?: string; script?: string };
+
+    return {
+      title: parsed.title || title,
+      script: parsed.script || `Welcome to today's English learning. Let's explore an article about ${title}.`,
+    };
+  } catch (error) {
+    logger.error('Failed to generate intro:', error);
+    return {
+      title,
+      script: `Welcome to today's English learning. Let's explore an article about ${title}.`,
+    };
+  }
+}
+
+/**
+ * Generate outro content using configured prompts.
+ */
+async function generateOutro(
+  title: string,
+  fullOriginalText: string,
+  promptsConfig: { systemPrompt: string; temperature: number; prompts: { outro: { template: string } } }
+): Promise<{ script: string }> {
+  const template = promptsConfig.prompts.outro.template;
+  const prompt = interpolateTemplate(template, {
+    title,
+    originalText: fullOriginalText,
+  });
+
+  try {
+    const response = await callAI(promptsConfig.systemPrompt, prompt, promptsConfig.temperature);
+    const parsed = extractJSON(response) as { script?: string };
+
+    return { script: parsed.script || 'Thank you for watching. Hope this was helpful. See you next time!' };
+  } catch (error) {
+    logger.error('Failed to generate outro:', error);
+    return { script: 'Thank you for watching. Hope this was helpful. See you next time!' };
+  }
+}
+
+/**
+ * Generate all 6 parts of a segment in ONE AI call for coherence.
+ */
+async function generateSegmentAllParts(
+  segmentId: number,
+  originalText: string,
+  title: string,
+  promptsConfig: { systemPrompt: string; temperature: number; prompts: { segment: { template: string } } }
+): Promise<{ id: number; originalText: string; parts: SegmentPart[] }> {
+  logger.info(`Generating all 6 parts for segment ${segmentId} in single AI call`);
+
+  const template = promptsConfig.prompts.segment.template;
+  const prompt = interpolateTemplate(template, {
+    title,
+    originalText,
+  });
+
+  let generationResponse: SegmentGenerationResponse = {
+    translation: '',
+    vocabularyScript: '',
+    grammarScript: '',
+    contextScript: '',
+    vocabulary: [],
+    grammarPoints: [],
+  };
+  const maxRetries = 2;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await callAI(promptsConfig.systemPrompt, prompt, promptsConfig.temperature);
+      const parsed = extractJSON(response);
+
+      // Validate required fields exist
+      if (parsed && typeof parsed.translation === 'string' && parsed.translation.length > 10) {
+        generationResponse = parsed as unknown as SegmentGenerationResponse;
+        break;
+      }
+
+      if (attempt < maxRetries) {
+        logger.warn(`Segment ${segmentId} response validation failed, retrying (${attempt + 1}/${maxRetries})`);
+        continue;
+      }
+
+      // All retries failed, use fallback
+      throw new Error('Response validation failed after retries');
+    } catch (error) {
+      if (attempt === maxRetries) {
+        logger.error(`Failed to generate segment ${segmentId} content after ${maxRetries + 1} attempts:`, error);
+        generationResponse = {
+          translation: `现在让我们来翻译这篇文章。${originalText}`,
+          vocabularyScript: '这篇文章没有需要特别讲解的词汇。',
+          grammarScript: '这篇文章没有需要特别讲解的语法点。',
+          contextScript: '这篇文章的背景信息比较简单。',
+          vocabulary: [],
+          grammarPoints: [],
+        };
+      }
     }
   }
 
-  // Try to find JSON in code blocks first
-  const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (codeBlockMatch) {
-    return codeBlockMatch[1].trim();
+  const parts: SegmentPart[] = [];
+
+  // Part 1: Reading (original English)
+  parts.push({
+    id: 1,
+    type: PartType.READING,
+    originalText,
+    script: originalText,
+  });
+
+  // Part 2: Translation (pure Chinese narration)
+  parts.push({
+    id: 2,
+    type: PartType.TRANSLATION,
+    originalText,
+    script: generationResponse.translation,
+    translation: generationResponse.translation,
+  });
+
+  // Part 3: Vocabulary
+  parts.push({
+    id: 3,
+    type: PartType.VOCABULARY,
+    originalText,
+    script: generationResponse.vocabularyScript,
+    vocabulary: generationResponse.vocabulary || [],
+  });
+
+  // Part 4: Grammar
+  parts.push({
+    id: 4,
+    type: PartType.GRAMMAR,
+    originalText,
+    script: generationResponse.grammarScript,
+    grammarPoints: generationResponse.grammarPoints || [],
+  });
+
+  // Part 5: Context/Explanation
+  parts.push({
+    id: 5,
+    type: PartType.EXPLANATION,
+    originalText,
+    script: generationResponse.contextScript,
+    contextExplanation: generationResponse.contextScript,
+  });
+
+  // Part 6: Reading (repeat original English)
+  parts.push({
+    id: 6,
+    type: PartType.READING,
+    originalText,
+    script: originalText,
+  });
+
+  return { id: segmentId, originalText, parts };
+}
+
+/**
+ * Call AI API with prompt
+ */
+async function callAI(systemPrompt: string, userPrompt: string, temperature: number): Promise<string> {
+  const response = await fetch(`${config.LLM_BASE_URL}/text/chatcompletion_v2`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${config.LLM_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: config.LLM_MODEL,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`AI API error: ${response.status}`);
   }
 
-  // Find the first { and last }
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+
+  if (!content) {
+    throw new Error('Empty response from AI');
+  }
+
+  return content;
+}
+
+/**
+ * Extract JSON from AI response content.
+ * Handles AI thinking tags by finding JSON before processing other patterns.
+ */
+function extractJSON(content: string): Record<string, unknown> {
+  // First, remove all AI thinking tags (with closing tag)
+  let cleaned = content.replace(/<think>[\s\S]*?<\/think>/gi, '');
+
+  // Also remove thinking tags without closing tag (at end of content)
+  cleaned = cleaned.replace(/<think>[^<]*$/gm, '');
+
+  // Try to find JSON in code blocks first
+  const codeMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (codeMatch) {
+    cleaned = codeMatch[1];
+  }
+
+  // Find first { and last }
   const firstBrace = cleaned.indexOf('{');
   const lastBrace = cleaned.lastIndexOf('}');
 
   if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-    let jsonCandidate = cleaned.substring(firstBrace, lastBrace + 1);
-
-    // Try to fix common JSON issues
-    jsonCandidate = fixJSON(jsonCandidate);
-
+    const jsonStr = cleaned.substring(firstBrace, lastBrace + 1);
     try {
-      JSON.parse(jsonCandidate);
-      return jsonCandidate;
-    } catch {
-      // Try a more aggressive approach - find balanced braces
-      const balanced = findBalancedJSON(cleaned);
-      if (balanced) {
-        return balanced;
-      }
+      return JSON.parse(jsonStr);
+    } catch (e) {
+      logger.debug(`JSON parse error: ${jsonStr.substring(0, 200)}`);
     }
   }
 
-  // Return cleaned content as fallback
-  return cleaned.trim();
-}
-
-/**
- * Fix common JSON issues in AI-generated content.
- */
-function fixJSON(json: string): string {
-  // Remove any trailing commas before closing braces/brackets
-  let fixed = json.replace(/,(\s*[}\]])/g, '$1');
-
-  // Remove any text after the closing brace
-  const lastBrace = fixed.lastIndexOf('}');
-  if (lastBrace !== -1) {
-    fixed = fixed.substring(0, lastBrace + 1);
-  }
-
-  return fixed;
-}
-
-/**
- * Find a balanced JSON object in the content.
- */
-function findBalancedJSON(content: string): string | null {
-  let start = -1;
-  let braceCount = 0;
-  let inString = false;
-  let escape = false;
-
-  for (let i = 0; i < content.length; i++) {
-    const char = content[i];
-
-    if (escape) {
-      escape = false;
-      continue;
-    }
-
-    if (char === '\\') {
-      escape = true;
-      continue;
-    }
-
-    if (char === '"' && !escape) {
-      inString = !inString;
-      continue;
-    }
-
-    if (inString) continue;
-
-    if (char === '{') {
-      if (start === -1) start = i;
-      braceCount++;
-    } else if (char === '}') {
-      braceCount--;
-      if (braceCount === 0 && start !== -1) {
-        return content.substring(start, i + 1);
-      }
-    }
-  }
-
-  return null;
-}
-
-/**
- * Parse JSON from content with retry on failure.
- */
-async function parseJSONWithRetry(
-  sectionId: number,
-  content: string,
-  retries: number
-): Promise<AIScriptResponse | null> {
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    const jsonStr = extractJSON(content);
-    try {
-      const parsed = JSON.parse(jsonStr) as AIScriptResponse;
-      return parsed;
-    } catch (parseError) {
-      logger.warn(`JSON parse attempt ${attempt}/${retries} failed for section ${sectionId}: ${parseError}`);
-
-      if (attempt < retries) {
-        // Wait a bit before retry
-        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
-
-        // Try to re-extract with a different approach - remove thinking tags using string ops
-        let cleaned = content;
-        while (cleaned.includes('<think>')) {
-          const start = cleaned.indexOf('<think>');
-          const end = cleaned.indexOf('</think>');
-          if (end > start) {
-            cleaned = cleaned.substring(0, start) + cleaned.substring(end + 4);
-          } else {
-            break;
-          }
-        }
-
-        // Try to find JSON in code blocks
-        const codeBlockMatch = cleaned.match(/```json\n([\s\S]*?)```/);
-        if (codeBlockMatch) {
-          content = codeBlockMatch[1];
-        } else {
-          // Try to find any JSON object
-          const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            content = jsonMatch[0];
-          }
-        }
-      }
-    }
-  }
-  return null;
+  return {};
 }
 
 /**
  * Generate teaching script for a single section using AI.
+ * @deprecated Use generateArticleScript instead
  */
 export async function generateScript(
   sectionId: number,
@@ -188,105 +296,35 @@ export async function generateScript(
 ): Promise<ArticleSection> {
   logger.info(`Generating script for section ${sectionId}`);
 
-  const prompt = `你是一位专业的英语期刊领读老师。请为以下英文文章段落生成教学内容：
-
-【文章标题】
-${title}
-
-【原文】
-${originalText}
-
-请为每个段落提供：
-1. 简洁摘要（2-3句中文）
-2. 重点单词（3-5个）：单词、音标、词性、释义、例句
-3. 固定短语/搭配（2-3个）：短语、含义、例句
-4. 重点语法（1-2个）：语法规则、解释、例句
-5. 背景/上下文讲解（2-3句中文）
-6. 讲解逐字稿（200-300字中文）：结构为"先朗读一遍英文原文，再用中文详细讲解，讲解完后再朗读一遍英文原文"。朗读原文时用"[朗读]"标记，讲解时用"[讲解]"标记。例如："[朗读]Long, long ago, there lived a beautiful princess.[讲解]很久很久以前，有一位美丽的公主。今天我们要学的重点是..."
-
-重要提醒：
-- 朗读原文部分要用英文，讲解部分用中文
-- 逐字稿要自然流畅，适合口头讲解
-- 词汇和语法要紧密围绕原文内容
-
-请输出符合以下 JSON schema 的内容：
-{
-  "summary": "中文摘要",
-  "vocabulary": [{"word": "单词", "phonetic": "/音标/", "partOfSpeech": "词性", "definition": "中文释义", "example": "英文例句"}],
-  "phrases": [{"phrase": "短语", "meaning": "中文含义", "example": "英文例句"}],
-  "grammarPoints": [{"rule": "语法规则", "explanation": "中文解释", "example": "英文例句"}],
-  "contextExplanation": "背景/上下文讲解",
-  "narrationScript": "讲解逐字稿，格式：[朗读]英文原文[讲解]中文讲解[朗读]英文原文。200-300字。"
-}
-
-`;
+  const promptsConfig = await loadPromptsConfig();
+  const template = promptsConfig.prompts.segment.template;
+  const prompt = interpolateTemplate(template, { title, originalText });
 
   try {
     logger.debug(`Calling AI API with model ${config.LLM_MODEL} at ${config.LLM_BASE_URL}`);
 
-    const response = await client.chat.completions.create({
-      model: config.LLM_MODEL,
-      messages: [
-        {
-          role: 'system',
-          content: '你是一位专业的英语期刊领读老师，擅长生成教学内容和讲解逐字稿。',
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      response_format: RESPONSE_FORMAT,
-      temperature: 0.7,
-    });
-
-    logger.debug(`AI response object keys: ${Object.keys(response).join(', ')}`);
-    logger.debug(`AI response choices count: ${response.choices?.length}`);
-
-    if (!response.choices || response.choices.length === 0) {
-      logger.error(`No choices in response: ${JSON.stringify(response).substring(0, 1000)}`);
-      throw new Error('No choices in AI response');
-    }
-
-    const choice = response.choices[0];
-    logger.debug(`Choice finish_reason: ${choice.finish_reason}`);
-    logger.debug(`Choice message keys: ${Object.keys(choice.message || {}).join(', ')}`);
-
-    const content = choice.message?.content;
-
-    if (!content) {
-      // Log the full response for debugging
-      logger.error(`Empty content in response: ${JSON.stringify(response).substring(0, 1000)}`);
-      throw new Error('Empty response from AI');
-    }
-
-    logger.debug(`Raw AI response for section ${sectionId}: ${content.substring(0, 500)}...`);
-
-    // Extract and parse JSON with retry on failure
-    let parsed = await parseJSONWithRetry(sectionId, content, 3);
+    const response = await callAI(promptsConfig.systemPrompt, prompt, promptsConfig.temperature);
+    const parsed = extractJSON(response) as unknown as SegmentGenerationResponse;
 
     if (!parsed) {
-      throw new Error('Failed to parse AI response after retries');
+      throw new Error('Failed to parse AI response');
     }
 
-    logger.debug(`Script generated for section ${sectionId}: ${parsed.summary.substring(0, 50)}...`);
+    logger.debug(`Script generated for section ${sectionId}`);
 
     return {
       id: sectionId,
       originalText,
-      summary: parsed.summary,
+      summary: parsed.translation?.substring(0, 100) || '',
       vocabulary: parsed.vocabulary || [],
-      phrases: parsed.phrases || [],
+      phrases: [],
       grammarPoints: parsed.grammarPoints || [],
-      contextExplanation: parsed.contextExplanation,
-      narrationScript: parsed.narrationScript,
+      contextExplanation: parsed.contextScript || '',
+      narrationScript: parsed.translation || '',
     };
   } catch (error) {
-    // Log detailed error info
     if (error instanceof Error) {
-      logger.error(`Error generating script for section ${sectionId}:`);
-      logger.error(`  Message: ${error.message}`);
-      logger.error(`  Stack: ${error.stack}`);
+      logger.error(`Error generating script for section ${sectionId}:`, error.message);
     } else {
       logger.error(`Failed to generate script for section ${sectionId}:`, error);
     }
@@ -296,6 +334,7 @@ ${originalText}
 
 /**
  * Generate scripts for all sections.
+ * @deprecated Use generateArticleScript instead
  */
 export async function generateScripts(
   sections: { text: string; order: number }[],

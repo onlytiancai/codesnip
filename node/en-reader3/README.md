@@ -57,22 +57,22 @@ For long articles or distributed processing, run pipeline phases separately:
 
 ```bash
 # Phase 1: Segment article only
-pnpm exec tsx src/index.ts --input ./input/fairy-tale.txt --phase 1
+pnpm exec tsx src/index.ts --input input/test-short.txt --phase 1
 
 # Phase 2: Generate AI scripts (requires phase 1 output)
-pnpm exec tsx src/index.ts --input ./input/fairy-tale.txt --phase 2
+pnpm exec tsx src/index.ts --input input/test-short.txt --phase 2
 
 # Phase 3: Generate slides & audio (requires phase 2 output)
-pnpm exec tsx src/index.ts --input ./input/fairy-tale.txt --phase 3
+pnpm exec tsx src/index.ts --input input/test-short.txt --phase 3
 
 # Phase 4: Generate video segments with subtitles (requires phase 3 output)
-pnpm exec tsx src/index.ts --input ./input/fairy-tale.txt --phase 4
+pnpm exec tsx src/index.ts --input input/test-short.txt --phase 4
 
 # Phase 5: Concatenate all segments into final video (requires phase 4 output)
-pnpm exec tsx src/index.ts --input ./input/fairy-tale.txt --phase 5
+pnpm exec tsx src/index.ts --input input/test-short.txt --phase 5
 
 # Full pipeline (default - runs all phases)
-pnpm exec tsx src/index.ts --input ./input/fairy-tale.txt --output ./output/video.mp4
+pnpm exec tsx src/index.ts --input input/test-short.txt --output ./output/video.mp4
 ```
 
 Each phase reads from and writes to `output/segments/`:

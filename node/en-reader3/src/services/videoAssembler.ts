@@ -30,8 +30,6 @@ export async function assembleSegment(
       .inputOptions(['-loop 1'])  // Loop the image for audio duration
       .input(audioFile)
       .inputFormat('mp3')
-      .input(subtitleFile)
-      .inputFormat('srt')
       .outputOptions([
         '-c:v',
         'libx264',
@@ -41,7 +39,7 @@ export async function assembleSegment(
         '-pix_fmt',
         'yuv420p',
         '-vf',
-        `subtitles=${subtitleFile}:force_style='FontSize=36,PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,Outline=2,Bold=1,MarginV=250,Alignment=2'`,
+        `ass=${subtitleFile}`,
         '-y',
       ])
       .output(outputPath)
