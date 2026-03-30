@@ -9,6 +9,16 @@ interface TTSResult {
   duration: number;
 }
 
+interface WordTiming {
+  text: string;
+  start: number;
+  end: number;
+}
+
+interface TTSResultWithWords extends TTSResult {
+  wordTimings: WordTiming[];
+}
+
 /**
  * Preprocess narration script by removing [朗读] and [讲解] markers.
  * These markers are for internal word timing but should not be spoken by TTS.
@@ -26,45 +36,121 @@ function preprocessNarrationScript(text: string): string {
 
 /**
  * Generate Chinese TTS audio using Edge TTS (free, supports Chinese).
+ * This function generates audio AND returns word timings in a SINGLE call.
  */
 async function generateEdgeTTS(text: string, outputPath: string): Promise<TTSResult> {
-  logger.debug(`Generating Edge TTS: ${text.substring(0, 50)}...`);
+  const result = await generateEdgeTTSWithWords(text, outputPath);
+  return { audioPath: result.audioPath, duration: result.duration };
+}
 
-  // Write text to a temp file to avoid CLI argument parsing issues with Chinese characters
-  const { writeFile } = await import('fs/promises');
-  const { join } = await import('path');
-  const { tmpdir } = await import('os');
+/**
+ * Generate Chinese TTS audio using Edge TTS AND get word timings simultaneously.
+ * This uses a single Python script that captures both audio and WordBoundary.
+ */
+async function generateEdgeTTSWithWords(text: string, outputPath: string): Promise<TTSResultWithWords> {
+  logger.debug(`Generating Edge TTS with word timings: ${text.substring(0, 50)}...`);
 
-  const textFile = join(tmpdir(), `tts-text-${Date.now()}.txt`);
-  await writeFile(textFile, text, 'utf-8');
+  // Escape text for Python string
+  const escapedText = text.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/`/g, '\\`');
+
+  // Python script that generates audio AND captures WordBoundary in one call
+  const pythonScript = `
+import sys
+import asyncio
+import edge_tts
+
+async def generate_and_get_timings(text, output_path):
+    words = []
+    audio_chunks = []
+
+    communicate = edge_tts.Communicate(text, voice="zh-CN-XiaoxiaoNeural", boundary="WordBoundary")
+
+    async for chunk in communicate.stream():
+        if chunk["type"] == "audio":
+            audio_chunks.append(chunk["data"])
+        elif chunk["type"] == "WordBoundary":
+            offset_seconds = chunk["offset"] / 10000000
+            duration_seconds = chunk["duration"] / 10000000
+            words.append({
+                "text": chunk["text"],
+                "start": round(offset_seconds, 3),
+                "end": round(offset_seconds + duration_seconds, 3)
+            })
+
+    # Write audio file
+    with open(output_path, "wb") as f:
+        for chunk in audio_chunks:
+            f.write(chunk)
+
+    return words
+
+if __name__ == "__main__":
+    text = """${escapedText}"""
+    output_path = """${outputPath.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"""
+
+    words = asyncio.run(generate_and_get_timings(text, output_path))
+
+    # Output words as JSON for parsing
+    import json
+    print("WORDS_START")
+    for w in words:
+        print(f"{w['start']:.3f}:{w['end']:.3f}:{w['text']}")
+    print("WORDS_END")
+    print(f"DURATION:{len(words)} words")
+`;
 
   return new Promise((resolve, reject) => {
-    // Use shell mode with proper quoting to handle Chinese characters
-    const cmd = `python3 -m edge_tts -f "${textFile}" -v zh-CN-XiaoxiaoNeural --write-media "${outputPath}"`;
+    const proc = spawn('python3', ['-c', pythonScript], { shell: false });
 
-    const proc = spawn(cmd, {
-      shell: true,
-    });
-
+    let stdout = '';
     let stderr = '';
 
-    proc.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
+    proc.stdout.on('data', (data) => { stdout += data.toString(); });
+    proc.stderr.on('data', (data) => { stderr += data.toString(); });
 
     proc.on('close', async (code) => {
-      // Clean up temp file
-      try {
-        const { unlink } = await import('fs/promises');
-        await unlink(textFile);
-      } catch {
-        // Ignore cleanup errors
-      }
-
       if (code === 0) {
-        // Get duration using ffprobe
-        const duration = await getAudioDuration(outputPath);
-        resolve({ audioPath: outputPath, duration });
+        try {
+          // Parse word timings from stdout
+          const lines = stdout.split('\n');
+          const wordTimings: WordTiming[] = [];
+          let inWords = false;
+
+          for (const line of lines) {
+            if (line === 'WORDS_START') {
+              inWords = true;
+              continue;
+            }
+            if (line === 'WORDS_END') {
+              inWords = false;
+              continue;
+            }
+            if (line.startsWith('DURATION:')) {
+              continue;
+            }
+            if (inWords && line.trim()) {
+              const parts = line.split(':');
+              if (parts.length >= 3) {
+                wordTimings.push({
+                  start: parseFloat(parts[0]),
+                  end: parseFloat(parts[1]),
+                  text: parts.slice(2).join(':'), // Handle text with colons
+                });
+              }
+            }
+          }
+
+          const duration = await getAudioDuration(outputPath);
+          logger.debug(`Edge TTS generated ${wordTimings.length} words, audio duration: ${duration}s`);
+
+          resolve({
+            audioPath: outputPath,
+            duration,
+            wordTimings,
+          });
+        } catch (err) {
+          reject(err);
+        }
       } else {
         reject(new Error(`Edge TTS failed: ${stderr}`));
       }
@@ -202,5 +288,37 @@ export async function generateTTS(
     case 'edge':
     default:
       return generateEdgeTTS(cleanText, outputPath);
+  }
+}
+
+/**
+ * Generate TTS audio for narration script AND get word timings simultaneously.
+ * Only works for Edge TTS provider.
+ */
+export async function generateTTSWithWords(
+  text: string,
+  outputDir: string,
+  sectionId: number
+): Promise<TTSResultWithWords> {
+  await mkdir(outputDir, { recursive: true });
+
+  // Preprocess narration script: remove [朗读] and [讲解] markers
+  const cleanText = preprocessNarrationScript(text);
+  logger.debug(`Clean narration: ${cleanText.substring(0, 50)}...`);
+
+  const outputPath = join(outputDir, `section-${sectionId}.mp3`);
+
+  const provider = config.TTS_PROVIDER as TTSProvider;
+
+  switch (provider) {
+    case 'edge':
+      return generateEdgeTTSWithWords(cleanText, outputPath);
+    case 'bytedance':
+      // ByteDance doesn't support simultaneous word timings, use regular TTS
+      const result = await generateByteDanceTTS(cleanText, outputPath);
+      return { ...result, wordTimings: [] };
+    default:
+      const defaultResult = await generateEdgeTTS(cleanText, outputPath);
+      return { ...defaultResult, wordTimings: [] };
   }
 }

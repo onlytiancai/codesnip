@@ -1,9 +1,9 @@
-import { readFile, writeFile, mkdir } from 'fs/promises';
+import { readFile, writeFile, mkdir, access } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { segmentArticle } from './services/segmenter.js';
 import { generateArticleScript, generateScripts } from './services/scriptGenerator.js';
-import { generateTTS } from './services/tts.js';
+import { generateTTS, generateTTSWithWords } from './services/tts.js';
 import { evaluateScript, printEvaluationResult } from './services/scriptEvaluator.js';
 import { generateSubtitles, getAudioDuration } from './services/subtitleGenerator.js';
 import { generateSlide } from './services/slideGenerator.js';
@@ -11,6 +11,7 @@ import { generateHtmlSlide } from './services/htmlSlideGenerator.js';
 import { captureSlideScreenshot } from './services/browserRecorder.js';
 import { extractWordTimings, WordTimingEntry } from './services/wordTimingExtractor.js';
 import { assembleSegment, concatenateSegments } from './services/videoAssembler.js';
+import { checkASSFiles, printASSCheckResults } from './services/assChecker.js';
 import { SectionData, ArticleScript, PartType } from './types/index.js';
 import { logger } from './utils/logger.js';
 
@@ -158,17 +159,17 @@ async function runPhase3(
   articleScript: ArticleScript,
   outputDir: string
 ): Promise<{
-  intro: { audioPath: string; subtitlePath: string; htmlPath: string; duration: number };
-  segments: { id: number; parts: { partId: number; partType: string; audioPath: string; subtitlePath: string; htmlPath: string; duration: number }[] }[];
-  outro: { audioPath: string; subtitlePath: string; htmlPath: string; duration: number };
+  intro: { audioPath: string; htmlPath: string; duration: number; script: string };
+  segments: { id: number; parts: { partId: number; partType: string; audioPath: string; htmlPath: string; duration: number; script: string }[] }[];
+  outro: { audioPath: string; htmlPath: string; duration: number; script: string };
 }> {
   const segmentsDir = join(outputDir, 'segments');
   await mkdir(segmentsDir, { recursive: true });
 
   const result: {
-    intro: { audioPath: string; subtitlePath: string; htmlPath: string; duration: number };
-    segments: { id: number; parts: { partId: number; partType: string; audioPath: string; subtitlePath: string; htmlPath: string; duration: number }[] }[];
-    outro: { audioPath: string; subtitlePath: string; htmlPath: string; duration: number };
+    intro: { audioPath: string; htmlPath: string; duration: number; script: string };
+    segments: { id: number; parts: { partId: number; partType: string; audioPath: string; htmlPath: string; duration: number; script: string }[] }[];
+    outro: { audioPath: string; htmlPath: string; duration: number; script: string };
   } = {
     intro: {} as any,
     segments: [],
@@ -179,8 +180,7 @@ async function runPhase3(
   logger.info('Phase 3: Processing intro...');
   const introDir = join(segmentsDir, 'intro');
   await mkdir(introDir, { recursive: true });
-  const introAudio = await generateTTS(articleScript.intro.script, introDir, 0);
-  const introSubtitle = await generateSubtitles(articleScript.intro.script, introAudio.audioPath, introDir, 0);
+  const introTTS = await generateTTSWithWords(articleScript.intro.script, introDir, 0);
 
   const introSectionData: SectionData = {
     id: 0,
@@ -191,20 +191,19 @@ async function runPhase3(
     contextExplanation: '',
     narrationScript: articleScript.intro.script,
   };
-  const introWordTimings = await extractWordTimings(introSubtitle).catch(() => []);
   const introHtml = await generateHtmlSlide({
     section: introSectionData,
-    wordTimings: introWordTimings,
-    audioPath: introAudio.audioPath,
+    wordTimings: introTTS.wordTimings.map(w => ({ word: w.text, start: w.start, end: w.end })),
+    audioPath: introTTS.audioPath,
     outputDir: introDir,
     partId: 0,
   });
 
   result.intro = {
-    audioPath: introAudio.audioPath,
-    subtitlePath: introSubtitle,
+    audioPath: introTTS.audioPath,
     htmlPath: introHtml,
-    duration: introAudio.duration,
+    duration: introTTS.duration,
+    script: articleScript.intro.script,
   };
 
   // Process segments
@@ -224,8 +223,7 @@ async function runPhase3(
         continue;
       }
 
-      const partAudio = await generateTTS(part.script, partDir, part.id);
-      const partSubtitle = await generateSubtitles(part.script, partAudio.audioPath, partDir, part.id);
+      const partTTS = await generateTTSWithWords(part.script, partDir, part.id);
 
       const partSectionData: SectionData = {
         id: segment.id,
@@ -236,12 +234,11 @@ async function runPhase3(
         contextExplanation: part.type === PartType.EXPLANATION ? (part.contextExplanation || '') : '',
         narrationScript: part.script,
       };
-      const partWordTimings = await extractWordTimings(partSubtitle).catch(() => []);
       const partHtml = await generateHtmlSlide({
         section: partSectionData,
         partType: part.type,
-        wordTimings: partWordTimings,
-        audioPath: partAudio.audioPath,
+        wordTimings: partTTS.wordTimings.map(w => ({ word: w.text, start: w.start, end: w.end })),
+        audioPath: partTTS.audioPath,
         outputDir: partDir,
         partId: part.id,
       });
@@ -249,10 +246,10 @@ async function runPhase3(
       segmentResult.parts.push({
         partId: part.id,
         partType: part.type,
-        audioPath: partAudio.audioPath,
-        subtitlePath: partSubtitle,
+        audioPath: partTTS.audioPath,
         htmlPath: partHtml,
-        duration: partAudio.duration,
+        duration: partTTS.duration,
+        script: part.script,
       });
     }
 
@@ -263,8 +260,7 @@ async function runPhase3(
   logger.info('Phase 3: Processing outro...');
   const outroDir = join(segmentsDir, 'outro');
   await mkdir(outroDir, { recursive: true });
-  const outroAudio = await generateTTS(articleScript.outro.script, outroDir, 999);
-  const outroSubtitle = await generateSubtitles(articleScript.outro.script, outroAudio.audioPath, outroDir, 999);
+  const outroTTS = await generateTTSWithWords(articleScript.outro.script, outroDir, 999);
 
   const outroSectionData: SectionData = {
     id: 999,
@@ -275,28 +271,27 @@ async function runPhase3(
     contextExplanation: '',
     narrationScript: articleScript.outro.script,
   };
-  const outroWordTimings = await extractWordTimings(outroSubtitle).catch(() => []);
   const outroHtml = await generateHtmlSlide({
     section: outroSectionData,
-    wordTimings: outroWordTimings,
-    audioPath: outroAudio.audioPath,
+    wordTimings: outroTTS.wordTimings.map(w => ({ word: w.text, start: w.start, end: w.end })),
+    audioPath: outroTTS.audioPath,
     outputDir: outroDir,
     partId: 999,
   });
 
   result.outro = {
-    audioPath: outroAudio.audioPath,
-    subtitlePath: outroSubtitle,
+    audioPath: outroTTS.audioPath,
     htmlPath: outroHtml,
-    duration: outroAudio.duration,
+    duration: outroTTS.duration,
+    script: articleScript.outro.script,
   };
 
   return result;
 }
 
 /**
- * Phase 4: Generate video segments with screenshots.
- * Reads from phase-3-result.json, captures screenshots and creates MP4 files.
+ * Phase 4: Generate ASS subtitle files.
+ * Reads from phase-3-result.json, generates ASS for intro, segments, and outro.
  */
 async function runPhase4(
   phase3Result: Awaited<ReturnType<typeof runPhase3>>,
@@ -305,6 +300,86 @@ async function runPhase4(
   const segmentsDir = join(outputDir, 'segments');
 
   const phase4Result: {
+    intro: { subtitlePath: string };
+    segments: { id: number; parts: { partId: number; subtitlePath: string }[] }[];
+    outro: { subtitlePath: string };
+  } = {
+    intro: {} as any,
+    segments: [],
+    outro: {} as any,
+  };
+
+  // Process intro
+  logger.info('Phase 4: Processing intro...');
+  const introDir = join(segmentsDir, 'intro');
+  const introSubtitlePath = await generateSubtitles(
+    phase3Result.intro.script,
+    phase3Result.intro.audioPath,
+    introDir,
+    0
+  );
+  phase4Result.intro = { subtitlePath: introSubtitlePath };
+
+  // Process segments
+  for (const segment of phase3Result.segments) {
+    logger.info(`Phase 4: Processing segment ${segment.id}...`);
+    const segmentDir = join(segmentsDir, `segment-${segment.id}`);
+    const segmentResult: typeof phase4Result.segments[0] = { id: segment.id, parts: [] };
+
+    for (const part of segment.parts) {
+      const partDir = join(segmentDir, `part-${part.partId}`);
+      const subtitlePath = await generateSubtitles(
+        part.script,
+        part.audioPath,
+        partDir,
+        part.partId
+      );
+      segmentResult.parts.push({ partId: part.partId, subtitlePath });
+    }
+
+    phase4Result.segments.push(segmentResult);
+  }
+
+  // Process outro
+  logger.info('Phase 4: Processing outro...');
+  const outroDir = join(segmentsDir, 'outro');
+  const outroSubtitlePath = await generateSubtitles(
+    phase3Result.outro.script,
+    phase3Result.outro.audioPath,
+    outroDir,
+    999
+  );
+  phase4Result.outro = { subtitlePath: outroSubtitlePath };
+
+  // Save phase 4 result
+  const phase4Path = join(outputDir, 'phase-4-result.json');
+  await writeFile(phase4Path, JSON.stringify(phase4Result, null, 2), 'utf-8');
+}
+
+/**
+ * Phase 5: Generate PNG screenshots and MP4 videos for each segment.
+ * Runs checkASS first; exits with error if validation fails.
+ */
+async function runPhase5(
+  phase3Result: Awaited<ReturnType<typeof runPhase3>>,
+  phase4Result: { intro: { subtitlePath: string }; segments: { id: number; parts: { partId: number; subtitlePath: string }[] }[]; outro: { subtitlePath: string } },
+  outputDir: string
+): Promise<void> {
+  const segmentsDir = join(outputDir, 'segments');
+
+  // Run checkASS before generating videos
+  logger.info('Phase 5: Running ASS validation...');
+  const checkResults = await checkASSFiles(segmentsDir);
+  const hasErrors = checkResults.results.some((r: { result: { errors: unknown[] } }) => r.result.errors.length > 0);
+  if (hasErrors) {
+    printASSCheckResults(segmentsDir, checkResults);
+    throw new Error('Phase 5: ASS validation failed. Fix errors before proceeding.');
+  }
+  logger.info('Phase 5: ASS validation passed.');
+
+  const { exec } = await import('child_process');
+
+  const phase5Result: {
     intro: { videoPath: string };
     segments: { id: number; parts: { partId: number; videoPath: string }[] }[];
     outro: { videoPath: string };
@@ -315,7 +390,7 @@ async function runPhase4(
   };
 
   // Process intro
-  logger.info('Phase 4: Processing intro...');
+  logger.info('Phase 5: Processing intro...');
   const introDir = join(segmentsDir, 'intro');
   const introScreenshot = join(introDir, 'slide-intro.png');
   await captureSlideScreenshot({
@@ -325,22 +400,25 @@ async function runPhase4(
     height: 1920,
   });
   const introVideoPath = join(introDir, 'intro.mp4');
-  const { exec } = await import('child_process');
   await new Promise<void>((resolve, reject) => {
     exec(
-      `ffmpeg -y -loop 1 -framerate 25 -i "${introScreenshot}" -i "${phase3Result.intro.audioPath}" -vf "ass='${phase3Result.intro.subtitlePath}'" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -t ${phase3Result.intro.duration} -fps_mode cfr "${introVideoPath}"`,
+      `ffmpeg -y -loop 1 -framerate 25 -i "${introScreenshot}" -i "${phase3Result.intro.audioPath}" -vf "ass='${phase4Result.intro.subtitlePath}'" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -t ${phase3Result.intro.duration} -fps_mode cfr "${introVideoPath}"`,
       (err) => (err ? reject(err) : resolve())
     );
   });
-  phase4Result.intro = { videoPath: introVideoPath };
+  phase5Result.intro = { videoPath: introVideoPath };
 
   // Process segments
-  for (const segment of phase3Result.segments) {
-    logger.info(`Phase 4: Processing segment ${segment.id}...`);
+  for (let i = 0; i < phase3Result.segments.length; i++) {
+    const segment = phase3Result.segments[i];
+    const phase4Segment = phase4Result.segments[i];
+    logger.info(`Phase 5: Processing segment ${segment.id}...`);
     const segmentDir = join(segmentsDir, `segment-${segment.id}`);
-    const segmentResult: typeof phase4Result.segments[0] = { id: segment.id, parts: [] };
+    const segmentResult: typeof phase5Result.segments[0] = { id: segment.id, parts: [] };
 
-    for (const part of segment.parts) {
+    for (let j = 0; j < segment.parts.length; j++) {
+      const part = segment.parts[j];
+      const phase4Part = phase4Segment.parts[j];
       const partDir = join(segmentDir, `part-${part.partId}`);
       const screenshotPath = join(partDir, `slide-${segment.id}-${part.partId}.png`);
       await captureSlideScreenshot({
@@ -353,7 +431,7 @@ async function runPhase4(
       const videoPath = join(partDir, `part-${segment.id}-${part.partId}.mp4`);
       await new Promise<void>((resolve, reject) => {
         exec(
-          `ffmpeg -y -loop 1 -framerate 25 -i "${screenshotPath}" -i "${part.audioPath}" -vf "ass='${part.subtitlePath}'" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -t ${part.duration} -fps_mode cfr "${videoPath}"`,
+          `ffmpeg -y -loop 1 -framerate 25 -i "${screenshotPath}" -i "${part.audioPath}" -vf "ass='${phase4Part.subtitlePath}'" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -t ${part.duration} -fps_mode cfr "${videoPath}"`,
           (err) => (err ? reject(err) : resolve())
         );
       });
@@ -361,11 +439,11 @@ async function runPhase4(
       segmentResult.parts.push({ partId: part.partId, videoPath });
     }
 
-    phase4Result.segments.push(segmentResult);
+    phase5Result.segments.push(segmentResult);
   }
 
   // Process outro
-  logger.info('Phase 4: Processing outro...');
+  logger.info('Phase 5: Processing outro...');
   const outroDir = join(segmentsDir, 'outro');
   const outroScreenshot = join(outroDir, 'slide-outro.png');
   await captureSlideScreenshot({
@@ -377,15 +455,15 @@ async function runPhase4(
   const outroVideoPath = join(outroDir, 'outro.mp4');
   await new Promise<void>((resolve, reject) => {
     exec(
-      `ffmpeg -y -loop 1 -framerate 25 -i "${outroScreenshot}" -i "${phase3Result.outro.audioPath}" -vf "ass='${phase3Result.outro.subtitlePath}'" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -t ${phase3Result.outro.duration} -fps_mode cfr "${outroVideoPath}"`,
+      `ffmpeg -y -loop 1 -framerate 25 -i "${outroScreenshot}" -i "${phase3Result.outro.audioPath}" -vf "ass='${phase4Result.outro.subtitlePath}'" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -t ${phase3Result.outro.duration} -fps_mode cfr "${outroVideoPath}"`,
       (err) => (err ? reject(err) : resolve())
     );
   });
-  phase4Result.outro = { videoPath: outroVideoPath };
+  phase5Result.outro = { videoPath: outroVideoPath };
 
-  // Save phase 4 result
-  const phase4Path = join(outputDir, 'phase-4-result.json');
-  await writeFile(phase4Path, JSON.stringify(phase4Result, null, 2), 'utf-8');
+  // Save phase 5 result
+  const phase5Path = join(outputDir, 'phase-5-result.json');
+  await writeFile(phase5Path, JSON.stringify(phase5Result, null, 2), 'utf-8');
 }
 
 interface PartResult {
@@ -693,13 +771,14 @@ async function processSegment(
 /**
  * Parse command line arguments.
  */
-function parseArgs(): { inputPath: string; outputPath: string; title?: string; phase?: number; evaluate?: boolean } {
+function parseArgs(): { inputPath: string; outputPath: string; title?: string; phase?: number; evaluate?: boolean; checkAss?: boolean } {
   const args = process.argv.slice(2);
   let inputPath = '';
   let outputPath = '';
   let title: string | undefined;
   let phase: number | undefined;
   let evaluate = false;
+  let checkAss = false;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--input' && i + 1 < args.length) {
@@ -712,17 +791,197 @@ function parseArgs(): { inputPath: string; outputPath: string; title?: string; p
       phase = parseInt(args[++i], 10);
     } else if (args[i] === '--evaluate') {
       evaluate = true;
+    } else if (args[i] === '--check-ass') {
+      checkAss = true;
     }
   }
 
-  return { inputPath, outputPath, title, phase, evaluate };
+  return { inputPath, outputPath, title, phase, evaluate, checkAss };
+}
+
+/**
+ * Check if a file exists and is readable.
+ */
+async function fileExists(path: string): Promise<boolean> {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Validate phase 1 input: input file must exist and be readable.
+ */
+async function validatePhase1(inputPath: string): Promise<void> {
+  if (!inputPath) {
+    throw new Error('Phase 1 requires --input flag');
+  }
+  if (!(await fileExists(inputPath))) {
+    throw new Error(`Input file does not exist or is not readable: ${inputPath}`);
+  }
+}
+
+/**
+ * Validate phase 2 input: segments.json must exist and have valid structure.
+ */
+async function validatePhase2(): Promise<void> {
+  const segmentsPath = join(__dirname, '..', 'output', 'segments.json');
+  if (!(await fileExists(segmentsPath))) {
+    throw new Error(`Phase 2 requires ${segmentsPath} (run phase 1 first)`);
+  }
+  const data = JSON.parse(await readFile(segmentsPath, 'utf-8'));
+  if (!data.segments || !Array.isArray(data.segments)) {
+    throw new Error(`Invalid segments.json structure: missing or invalid segments array`);
+  }
+}
+
+/**
+ * Validate phase 3 input: article-script.json must exist and have valid structure.
+ */
+async function validatePhase3(): Promise<void> {
+  const scriptPath = join(__dirname, '..', 'output', 'article-script.json');
+  if (!(await fileExists(scriptPath))) {
+    throw new Error(`Phase 3 requires ${scriptPath} (run phase 2 first)`);
+  }
+  const data = JSON.parse(await readFile(scriptPath, 'utf-8'));
+  if (!data.intro || !data.segments || !data.outro) {
+    throw new Error(`Invalid article-script.json structure: missing intro, segments, or outro`);
+  }
+}
+
+/**
+ * Validate phase 4 input: phase-3-result.json must exist with all referenced files.
+ * Phase 4 (screenshot + FFmpeg) needs audio, html, and subtitle (ASS) files from phase 3.
+ */
+async function validatePhase4(): Promise<void> {
+  const phase3Path = join(__dirname, '..', 'output', 'phase-3-result.json');
+  if (!(await fileExists(phase3Path))) {
+    throw new Error(`Phase 4 requires ${phase3Path} (run phase 3 first)`);
+  }
+  const data = JSON.parse(await readFile(phase3Path, 'utf-8'));
+
+  // Validate intro files (audio, html)
+  if (data.intro) {
+    for (const file of [data.intro.audioPath, data.intro.htmlPath]) {
+      if (file && !(await fileExists(file))) {
+        throw new Error(`Phase 4 missing referenced file: ${file}`);
+      }
+    }
+  }
+
+  // Validate segment files
+  for (const seg of data.segments || []) {
+    for (const part of seg.parts || []) {
+      for (const file of [part.audioPath, part.htmlPath]) {
+        if (file && !(await fileExists(file))) {
+          throw new Error(`Phase 4 missing referenced file: ${file}`);
+        }
+      }
+    }
+  }
+
+  // Validate outro files
+  if (data.outro) {
+    for (const file of [data.outro.audioPath, data.outro.htmlPath]) {
+      if (file && !(await fileExists(file))) {
+        throw new Error(`Phase 4 missing referenced file: ${file}`);
+      }
+    }
+  }
+}
+
+/**
+ * Validate phase 5 input: phase-3-result.json and phase-4-result.json must exist.
+ * Phase 5 generates PNG + MP4 from audio, html, and subtitle files.
+ */
+async function validatePhase5Input(): Promise<void> {
+  const phase3Path = join(__dirname, '..', 'output', 'phase-3-result.json');
+  if (!(await fileExists(phase3Path))) {
+    throw new Error(`Phase 5 requires ${phase3Path} (run phase 3 first)`);
+  }
+  const phase4Path = join(__dirname, '..', 'output', 'phase-4-result.json');
+  if (!(await fileExists(phase4Path))) {
+    throw new Error(`Phase 5 requires ${phase4Path} (run phase 4 first)`);
+  }
+
+  // Validate phase 3 files exist
+  const phase3Data = JSON.parse(await readFile(phase3Path, 'utf-8'));
+  if (phase3Data.intro) {
+    for (const file of [phase3Data.intro.audioPath, phase3Data.intro.htmlPath]) {
+      if (file && !(await fileExists(file))) {
+        throw new Error(`Phase 5 missing phase 3 file: ${file}`);
+      }
+    }
+  }
+  for (const seg of phase3Data.segments || []) {
+    for (const part of seg.parts || []) {
+      for (const file of [part.audioPath, part.htmlPath]) {
+        if (file && !(await fileExists(file))) {
+          throw new Error(`Phase 5 missing phase 3 file: ${file}`);
+        }
+      }
+    }
+  }
+  if (phase3Data.outro) {
+    for (const file of [phase3Data.outro.audioPath, phase3Data.outro.htmlPath]) {
+      if (file && !(await fileExists(file))) {
+        throw new Error(`Phase 5 missing phase 3 file: ${file}`);
+      }
+    }
+  }
+
+  // Validate phase 4 subtitle files exist
+  const phase4Data = JSON.parse(await readFile(phase4Path, 'utf-8'));
+  if (phase4Data.intro?.subtitlePath && !(await fileExists(phase4Data.intro.subtitlePath))) {
+    throw new Error(`Phase 5 missing subtitle file: ${phase4Data.intro.subtitlePath}`);
+  }
+  for (const seg of phase4Data.segments || []) {
+    for (const part of seg.parts || []) {
+      if (part.subtitlePath && !(await fileExists(part.subtitlePath))) {
+        throw new Error(`Phase 5 missing subtitle file: ${part.subtitlePath}`);
+      }
+    }
+  }
+  if (phase4Data.outro?.subtitlePath && !(await fileExists(phase4Data.outro.subtitlePath))) {
+    throw new Error(`Phase 5 missing subtitle file: ${phase4Data.outro.subtitlePath}`);
+  }
+}
+
+/**
+ * Validate phase 6 input: phase-5-result.json must exist with all referenced MP4 files.
+ * Phase 6 (concatenation) needs MP4 video files from phase 5.
+ */
+async function validatePhase6Input(): Promise<void> {
+  const phase5Path = join(__dirname, '..', 'output', 'phase-5-result.json');
+  if (!(await fileExists(phase5Path))) {
+    throw new Error(`Phase 6 requires ${phase5Path} (run phase 5 first)`);
+  }
+  const data = JSON.parse(await readFile(phase5Path, 'utf-8'));
+
+  // Collect all MP4 paths
+  const mp4Paths: string[] = [];
+  if (data.intro?.videoPath) mp4Paths.push(data.intro.videoPath);
+  for (const seg of data.segments || []) {
+    for (const part of seg.parts || []) {
+      if (part.videoPath) mp4Paths.push(part.videoPath);
+    }
+  }
+  if (data.outro?.videoPath) mp4Paths.push(data.outro.videoPath);
+
+  for (const mp4Path of mp4Paths) {
+    if (!(await fileExists(mp4Path))) {
+      throw new Error(`Phase 6 missing video file: ${mp4Path}`);
+    }
+  }
 }
 
 /**
  * Main CLI entry point.
  */
 async function main() {
-  const { inputPath, outputPath, title, phase, evaluate } = parseArgs();
+  const { inputPath, outputPath, title, phase, evaluate, checkAss } = parseArgs();
 
   try {
     // Handle evaluate mode
@@ -733,10 +992,19 @@ async function main() {
       return;
     }
 
+    // Handle check-ass mode
+    if (checkAss) {
+      const segmentsDir = outputPath || join(__dirname, '..', 'output', 'segments');
+      const checkResults = await checkASSFiles(segmentsDir);
+      printASSCheckResults(segmentsDir, checkResults);
+      return;
+    }
+
     const articleText = await readFile(inputPath, 'utf-8');
 
     // Phase 1: Segment only
     if (phase === 1) {
+      await validatePhase1(inputPath);
       logger.info('Phase 1: Segmenting article...');
       const segments = segmentArticle(articleText);
       const segmentsPath = join(__dirname, '..', 'output', 'segments.json');
@@ -748,6 +1016,7 @@ async function main() {
 
     // Phase 2: Generate AI scripts (requires phase 1 output)
     if (phase === 2) {
+      await validatePhase2();
       logger.info('Phase 2: Generating AI scripts...');
       const segmentsPath = join(__dirname, '..', 'output', 'segments.json');
       const segmentsData = await readFile(segmentsPath, 'utf-8');
@@ -764,6 +1033,7 @@ async function main() {
 
     // Phase 3: Generate slides & audio (requires phase 2 output)
     if (phase === 3) {
+      await validatePhase3();
       logger.info('Phase 3: Generating slides and audio...');
       const scriptPath = join(__dirname, '..', 'output', 'article-script.json');
       const scriptData = await readFile(scriptPath, 'utf-8');
@@ -777,9 +1047,10 @@ async function main() {
       return;
     }
 
-    // Phase 4: Generate video segments with subtitles (requires phase 3 output)
+    // Phase 4: Generate ASS subtitle files (requires phase 3 output)
     if (phase === 4) {
-      logger.info('Phase 4: Generating video segments...');
+      await validatePhase4();
+      logger.info('Phase 4: Generating ASS subtitle files...');
       const phase3Path = join(__dirname, '..', 'output', 'phase-3-result.json');
       const phase3Data = await readFile(phase3Path, 'utf-8');
       const phase3Result = JSON.parse(phase3Data);
@@ -790,25 +1061,43 @@ async function main() {
       return;
     }
 
-    // Phase 5: Concatenate all segments into final video (requires phase 4 output)
+    // Phase 5: Generate PNG screenshots and MP4 videos (requires phase 3 and phase 4 output)
     if (phase === 5) {
-      logger.info('Phase 5: Concatenating segments...');
+      await validatePhase5Input();
+      logger.info('Phase 5: Generating screenshots and MP4 videos...');
+      const phase3Path = join(__dirname, '..', 'output', 'phase-3-result.json');
+      const phase4Path = join(__dirname, '..', 'output', 'phase-4-result.json');
+      const phase3Data = await readFile(phase3Path, 'utf-8');
+      const phase4Data = await readFile(phase4Path, 'utf-8');
+      const phase3Result = JSON.parse(phase3Data);
+      const phase4Result = JSON.parse(phase4Data);
+      const outputDir = join(__dirname, '..', 'output');
+
+      await runPhase5(phase3Result, phase4Result, outputDir);
+      logger.info('Phase 5 complete');
+      return;
+    }
+
+    // Phase 6: Concatenate all segments into final video (requires phase 5 output)
+    if (phase === 6) {
+      await validatePhase6Input();
+      logger.info('Phase 6: Concatenating segments...');
       if (!outputPath) {
-        console.error('Phase 5 requires --output flag');
+        console.error('Phase 6 requires --output flag');
         process.exit(1);
       }
-      const phase4Path = join(__dirname, '..', 'output', 'phase-4-result.json');
-      const phase4Data = await readFile(phase4Path, 'utf-8');
-      const phase4Result = JSON.parse(phase4Data);
+      const phase5Path = join(__dirname, '..', 'output', 'phase-5-result.json');
+      const phase5Data = await readFile(phase5Path, 'utf-8');
+      const phase5Result = JSON.parse(phase5Data);
 
       const allParts: string[] = [];
-      if (phase4Result.intro?.videoPath) allParts.push(phase4Result.intro.videoPath);
-      for (const seg of phase4Result.segments || []) {
+      if (phase5Result.intro?.videoPath) allParts.push(phase5Result.intro.videoPath);
+      for (const seg of phase5Result.segments || []) {
         for (const part of seg.parts || []) {
           if (part.videoPath) allParts.push(part.videoPath);
         }
       }
-      if (phase4Result.outro?.videoPath) allParts.push(phase4Result.outro.videoPath);
+      if (phase5Result.outro?.videoPath) allParts.push(phase5Result.outro.videoPath);
 
       if (allParts.length === 0) {
         throw new Error('No video parts to concatenate');
@@ -820,7 +1109,7 @@ async function main() {
       } else {
         await concatenateSegments(allParts, outputPath);
       }
-      logger.info(`Phase 5 complete: ${outputPath}`);
+      logger.info(`Phase 6 complete: ${outputPath}`);
       return;
     }
 

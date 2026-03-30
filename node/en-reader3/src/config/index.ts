@@ -19,6 +19,9 @@ const configSchema = z.object({
 
   // Server
   PORT: z.string().default('3000'),
+
+  // ASS Checker Configuration
+  ASS_MAX_CJK_CHARS: z.string().default('13'),
 });
 
 const parsed = configSchema.safeParse(process.env);
@@ -31,3 +34,8 @@ if (!parsed.success) {
 export const config = parsed.data;
 
 export type TTSProvider = 'edge' | 'bytedance';
+
+// ASS Checker config helpers
+export function getAssMaxCjkChars(): number {
+  return parseInt(config.ASS_MAX_CJK_CHARS, 10);
+}

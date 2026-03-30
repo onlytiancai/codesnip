@@ -18,31 +18,42 @@
     }
 
     body {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 50%, #98D8C8 100%);
       font-family: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-      color: #eaeaea;
+      color: #333333;
       position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
-    /* Decorative elements */
-    body::before {
-      content: '';
+    .header {
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
-      bottom: 0;
-      background: radial-gradient(ellipse at center, rgba(255,215,0,0.1) 0%, transparent 70%);
-      pointer-events: none;
+      height: 120px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.8) 100%);
+      display: flex;
+      align-items: center;
+      padding: 0 40px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+      z-index: 10;
+    }
+
+    .header-logo {
+      font-size: 28px;
+      margin-right: 16px;
+    }
+
+    .header-app-name {
+      font-size: 32px;
+      color: #333333;
+      font-weight: bold;
     }
 
     .container {
       width: 100%;
       height: 100%;
       padding: 60px;
+      padding-top: 140px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -52,28 +63,26 @@
     }
 
     .intro-label {
-      font-size: 24px;
-      color: #ffd700;
+      font-size: 30px;
+      color: #4A90A4;
       margin-bottom: 40px;
       text-transform: uppercase;
       letter-spacing: 8px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
 
     .title {
-      font-size: 56px;
+      font-size: 64px;
       font-weight: bold;
-      color: #ffffff;
+      color: #333333;
       text-align: center;
       margin-bottom: 40px;
-      text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
       line-height: 1.3;
       max-width: 900px;
     }
 
     .intro-text {
-      font-size: 28px;
-      color: #cccccc;
+      font-size: 34px;
+      color: #555555;
       text-align: center;
       max-width: 800px;
       line-height: 1.8;
@@ -81,15 +90,14 @@
     }
 
     .segment-count {
-      font-size: 22px;
-      color: #888888;
+      font-size: 26px;
+      color: #666666;
       text-align: center;
     }
 
-    /* Subtitle at bottom */
     .subtitle-container {
       position: absolute;
-      bottom: 80px;
+      bottom: 100px;
       left: 0;
       right: 0;
       text-align: center;
@@ -97,10 +105,28 @@
     }
 
     .subtitle-text {
+      font-size: 28px;
+      color: #ffffff;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.5);
+      line-height: 1.6;
+    }
+
+    .footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: linear-gradient(0deg, rgba(74,144,164,0.95) 0%, rgba(74,144,164,0.7) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .footer-slogan {
       font-size: 24px;
       color: #ffffff;
-      text-shadow: 2px 2px 6px rgba(0,0,0,0.9);
-      line-height: 1.6;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
     }
 
     #audio {
@@ -109,6 +135,11 @@
   </style>
 </head>
 <body>
+  <div class="header">
+    <div class="header-logo">📚</div>
+    <div class="header-app-name">English Reader</div>
+  </div>
+
   <div class="container">
     <div class="intro-label">English Article</div>
     <div class="title">{{title}}</div>
@@ -118,6 +149,10 @@
 
   <div class="subtitle-container">
     <div id="subtitle" class="subtitle-text"></div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-slogan">让学习成为乐趣</div>
   </div>
 
   <audio id="audio" src="file://{{audioPath}}"></audio>

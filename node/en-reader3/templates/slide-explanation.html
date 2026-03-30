@@ -18,21 +18,47 @@
     }
 
     body {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 50%, #98D8C8 100%);
       font-family: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-      color: #eaeaea;
+      color: #333333;
       position: relative;
+    }
+
+    .header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 120px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.8) 100%);
+      display: flex;
+      align-items: center;
+      padding: 0 40px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+      z-index: 10;
+    }
+
+    .header-logo {
+      font-size: 28px;
+      margin-right: 16px;
+    }
+
+    .header-app-name {
+      font-size: 32px;
+      color: #333333;
+      font-weight: bold;
     }
 
     .container {
       width: 100%;
       height: 100%;
       padding: 40px;
+      padding-top: 140px;
       display: flex;
       flex-direction: column;
     }
 
-    .header {
+    .header-section {
       text-align: center;
       margin-bottom: 20px;
       flex-shrink: 0;
@@ -40,9 +66,8 @@
 
     .section-label {
       font-size: 36px;
-      color: #ffd700;
+      color: #4A90A4;
       font-weight: bold;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
 
     .content-area {
@@ -54,34 +79,34 @@
     }
 
     .original-card {
-      background: rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.85);
       border-radius: 12px;
       padding: 16px;
-      border-left: 4px solid #ffd700;
+      border-left: 4px solid #4A90A4;
       flex-shrink: 0;
       max-height: 160px;
       overflow: hidden;
     }
 
     .original-text {
-      font-size: 20px;
-      color: #cccccc;
+      font-size: 22px;
+      color: #555555;
       line-height: 1.5;
     }
 
     .context-section {
-      background: rgba(136,136,255,0.08);
+      background: rgba(255,255,255,0.9);
       border-radius: 12px;
       padding: 16px;
-      border: 2px solid rgba(136,136,255,0.3);
+      border: 2px solid rgba(152,216,200,0.6);
       flex: 1;
       overflow: hidden;
     }
 
     .context-title {
-      font-size: 28px;
+      font-size: 30px;
       font-weight: bold;
-      color: #8888ff;
+      color: #5BA89D;
       margin-bottom: 16px;
       display: flex;
       align-items: center;
@@ -89,17 +114,16 @@
     }
 
     .context-text {
-      font-size: 24px;
-      color: #ffffff;
+      font-size: 26px;
+      color: #333333;
       line-height: 1.8;
       overflow-y: auto;
       max-height: calc(100% - 50px);
     }
 
-    /* Subtitle at bottom */
     .subtitle-container {
       position: absolute;
-      bottom: 60px;
+      bottom: 100px;
       left: 0;
       right: 0;
       text-align: center;
@@ -107,10 +131,28 @@
     }
 
     .subtitle-text {
-      font-size: 20px;
+      font-size: 24px;
       color: #ffffff;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.5);
       line-height: 1.5;
+    }
+
+    .footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: linear-gradient(0deg, rgba(74,144,164,0.95) 0%, rgba(74,144,164,0.7) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .footer-slogan {
+      font-size: 24px;
+      color: #ffffff;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
     }
 
     #audio {
@@ -119,8 +161,13 @@
   </style>
 </head>
 <body>
+  <div class="header">
+    <div class="header-logo">📚</div>
+    <div class="header-app-name">English Reader</div>
+  </div>
+
   <div class="container">
-    <div class="header">
+    <div class="header-section">
       <div class="section-label">{{partLabel}}</div>
     </div>
 
@@ -138,6 +185,10 @@
 
   <div class="subtitle-container">
     <div id="subtitle" class="subtitle-text"></div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-slogan">让学习成为乐趣</div>
   </div>
 
   <audio id="audio" src="file://{{audioPath}}"></audio>
