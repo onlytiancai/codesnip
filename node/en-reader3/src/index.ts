@@ -12,6 +12,7 @@ import { captureSlideScreenshot } from './services/browserRecorder.js';
 import { extractWordTimings, WordTimingEntry } from './services/wordTimingExtractor.js';
 import { assembleSegment, concatenateSegments } from './services/videoAssembler.js';
 import { checkASSFiles, printASSCheckResults } from './services/assChecker.js';
+import { startPreviewServer } from './services/previewServer.js';
 import { SectionData, ArticleScript, PartType } from './types/index.js';
 import { logger } from './utils/logger.js';
 
@@ -152,24 +153,24 @@ async function generateVideo(articleText: string, options: { outputPath: string;
 }
 
 /**
- * Phase 3: Generate slides and audio for all content.
- * Reads from article-script.json, generates TTS audio and HTML slides.
+ * Phase 3: Generate TTS audio for all content.
+ * Reads from article-script.json, generates TTS audio only (HTML generation moved to phase 5).
  */
 async function runPhase3(
   articleScript: ArticleScript,
   outputDir: string
 ): Promise<{
-  intro: { audioPath: string; htmlPath: string; duration: number; script: string };
-  segments: { id: number; parts: { partId: number; partType: string; audioPath: string; htmlPath: string; duration: number; script: string }[] }[];
-  outro: { audioPath: string; htmlPath: string; duration: number; script: string };
+  intro: { audioPath: string; duration: number; script: string };
+  segments: { id: number; parts: { partId: number; partType: string; audioPath: string; duration: number; script: string }[] }[];
+  outro: { audioPath: string; duration: number; script: string };
 }> {
   const segmentsDir = join(outputDir, 'segments');
   await mkdir(segmentsDir, { recursive: true });
 
   const result: {
-    intro: { audioPath: string; htmlPath: string; duration: number; script: string };
-    segments: { id: number; parts: { partId: number; partType: string; audioPath: string; htmlPath: string; duration: number; script: string }[] }[];
-    outro: { audioPath: string; htmlPath: string; duration: number; script: string };
+    intro: { audioPath: string; duration: number; script: string };
+    segments: { id: number; parts: { partId: number; partType: string; audioPath: string; duration: number; script: string }[] }[];
+    outro: { audioPath: string; duration: number; script: string };
   } = {
     intro: {} as any,
     segments: [],
@@ -182,26 +183,8 @@ async function runPhase3(
   await mkdir(introDir, { recursive: true });
   const introTTS = await generateTTSWithWords(articleScript.intro.script, introDir, 0);
 
-  const introSectionData: SectionData = {
-    id: 0,
-    originalText: articleScript.intro.title,
-    summary: articleScript.intro.script,
-    vocabulary: [],
-    grammarPoints: [],
-    contextExplanation: '',
-    narrationScript: articleScript.intro.script,
-  };
-  const introHtml = await generateHtmlSlide({
-    section: introSectionData,
-    wordTimings: introTTS.wordTimings.map(w => ({ word: w.text, start: w.start, end: w.end })),
-    audioPath: introTTS.audioPath,
-    outputDir: introDir,
-    partId: 0,
-  });
-
   result.intro = {
     audioPath: introTTS.audioPath,
-    htmlPath: introHtml,
     duration: introTTS.duration,
     script: articleScript.intro.script,
   };
@@ -225,29 +208,10 @@ async function runPhase3(
 
       const partTTS = await generateTTSWithWords(part.script, partDir, part.id);
 
-      const partSectionData: SectionData = {
-        id: segment.id,
-        originalText: segment.originalText,
-        summary: '',
-        vocabulary: part.type === PartType.VOCABULARY ? (part.vocabulary || []) : [],
-        grammarPoints: part.type === PartType.GRAMMAR ? (part.grammarPoints || []) : [],
-        contextExplanation: part.type === PartType.EXPLANATION ? (part.contextExplanation || '') : '',
-        narrationScript: part.script,
-      };
-      const partHtml = await generateHtmlSlide({
-        section: partSectionData,
-        partType: part.type,
-        wordTimings: partTTS.wordTimings.map(w => ({ word: w.text, start: w.start, end: w.end })),
-        audioPath: partTTS.audioPath,
-        outputDir: partDir,
-        partId: part.id,
-      });
-
       segmentResult.parts.push({
         partId: part.id,
         partType: part.type,
         audioPath: partTTS.audioPath,
-        htmlPath: partHtml,
         duration: partTTS.duration,
         script: part.script,
       });
@@ -262,26 +226,8 @@ async function runPhase3(
   await mkdir(outroDir, { recursive: true });
   const outroTTS = await generateTTSWithWords(articleScript.outro.script, outroDir, 999);
 
-  const outroSectionData: SectionData = {
-    id: 999,
-    originalText: articleScript.outro.script,
-    summary: articleScript.outro.script,
-    vocabulary: [],
-    grammarPoints: [],
-    contextExplanation: '',
-    narrationScript: articleScript.outro.script,
-  };
-  const outroHtml = await generateHtmlSlide({
-    section: outroSectionData,
-    wordTimings: outroTTS.wordTimings.map(w => ({ word: w.text, start: w.start, end: w.end })),
-    audioPath: outroTTS.audioPath,
-    outputDir: outroDir,
-    partId: 999,
-  });
-
   result.outro = {
     audioPath: outroTTS.audioPath,
-    htmlPath: outroHtml,
     duration: outroTTS.duration,
     script: articleScript.outro.script,
   };
@@ -363,6 +309,7 @@ async function runPhase4(
 async function runPhase5(
   phase3Result: Awaited<ReturnType<typeof runPhase3>>,
   phase4Result: { intro: { subtitlePath: string }; segments: { id: number; parts: { partId: number; subtitlePath: string }[] }[]; outro: { subtitlePath: string } },
+  articleScript: ArticleScript,
   outputDir: string
 ): Promise<void> {
   const segmentsDir = join(outputDir, 'segments');
@@ -389,12 +336,38 @@ async function runPhase5(
     outro: {} as any,
   };
 
-  // Process intro
+  // Process intro - generate HTML first
   logger.info('Phase 5: Processing intro...');
   const introDir = join(segmentsDir, 'intro');
+  
+  // Extract word timings from subtitle
+  let introWordTimings: WordTimingEntry[] = [];
+  try {
+    introWordTimings = await extractWordTimings(phase4Result.intro.subtitlePath);
+  } catch {
+    logger.warn('Failed to extract word timings for intro');
+  }
+  
+  const introSectionData: SectionData = {
+    id: 0,
+    originalText: articleScript.intro.title,
+    summary: articleScript.intro.script,
+    vocabulary: [],
+    grammarPoints: [],
+    contextExplanation: '',
+    narrationScript: articleScript.intro.script,
+  };
+  const introHtmlPath = await generateHtmlSlide({
+    section: introSectionData,
+    wordTimings: introWordTimings.map(w => ({ word: w.word, start: w.start, end: w.end })),
+    audioPath: phase3Result.intro.audioPath,
+    outputDir: introDir,
+    partId: 0,
+  });
+
   const introScreenshot = join(introDir, 'slide-intro.png');
   await captureSlideScreenshot({
-    htmlPath: phase3Result.intro.htmlPath,
+    htmlPath: introHtmlPath,
     outputPath: introScreenshot,
     width: 1080,
     height: 1920,
@@ -412,6 +385,7 @@ async function runPhase5(
   for (let i = 0; i < phase3Result.segments.length; i++) {
     const segment = phase3Result.segments[i];
     const phase4Segment = phase4Result.segments[i];
+    const articleSegment = articleScript.segments[i];
     logger.info(`Phase 5: Processing segment ${segment.id}...`);
     const segmentDir = join(segmentsDir, `segment-${segment.id}`);
     const segmentResult: typeof phase5Result.segments[0] = { id: segment.id, parts: [] };
@@ -419,10 +393,39 @@ async function runPhase5(
     for (let j = 0; j < segment.parts.length; j++) {
       const part = segment.parts[j];
       const phase4Part = phase4Segment.parts[j];
+      const articlePart = articleSegment.parts[j];
       const partDir = join(segmentDir, `part-${part.partId}`);
+
+      // Extract word timings from subtitle
+      let partWordTimings: WordTimingEntry[] = [];
+      try {
+        partWordTimings = await extractWordTimings(phase4Part.subtitlePath);
+      } catch {
+        logger.warn(`Failed to extract word timings for segment ${segment.id} part ${part.partId}`);
+      }
+
+      // Generate HTML
+      const partSectionData: SectionData = {
+        id: segment.id,
+        originalText: articleSegment.originalText,
+        summary: '',
+        vocabulary: part.partType === PartType.VOCABULARY ? (articlePart.vocabulary || []) : [],
+        grammarPoints: part.partType === PartType.GRAMMAR ? (articlePart.grammarPoints || []) : [],
+        contextExplanation: part.partType === PartType.EXPLANATION ? (articlePart.contextExplanation || '') : '',
+        narrationScript: part.script,
+      };
+      const partHtmlPath = await generateHtmlSlide({
+        section: partSectionData,
+        partType: part.partType as PartType,
+        wordTimings: partWordTimings.map(w => ({ word: w.word, start: w.start, end: w.end })),
+        audioPath: part.audioPath,
+        outputDir: partDir,
+        partId: part.partId,
+      });
+
       const screenshotPath = join(partDir, `slide-${segment.id}-${part.partId}.png`);
       await captureSlideScreenshot({
-        htmlPath: part.htmlPath,
+        htmlPath: partHtmlPath,
         outputPath: screenshotPath,
         width: 1080,
         height: 1920,
@@ -442,12 +445,38 @@ async function runPhase5(
     phase5Result.segments.push(segmentResult);
   }
 
-  // Process outro
+  // Process outro - generate HTML first
   logger.info('Phase 5: Processing outro...');
   const outroDir = join(segmentsDir, 'outro');
+  
+  // Extract word timings from subtitle
+  let outroWordTimings: WordTimingEntry[] = [];
+  try {
+    outroWordTimings = await extractWordTimings(phase4Result.outro.subtitlePath);
+  } catch {
+    logger.warn('Failed to extract word timings for outro');
+  }
+  
+  const outroSectionData: SectionData = {
+    id: 999,
+    originalText: articleScript.outro.script,
+    summary: articleScript.outro.script,
+    vocabulary: [],
+    grammarPoints: [],
+    contextExplanation: '',
+    narrationScript: articleScript.outro.script,
+  };
+  const outroHtmlPath = await generateHtmlSlide({
+    section: outroSectionData,
+    wordTimings: outroWordTimings.map(w => ({ word: w.word, start: w.start, end: w.end })),
+    audioPath: phase3Result.outro.audioPath,
+    outputDir: outroDir,
+    partId: 999,
+  });
+
   const outroScreenshot = join(outroDir, 'slide-outro.png');
   await captureSlideScreenshot({
-    htmlPath: phase3Result.outro.htmlPath,
+    htmlPath: outroHtmlPath,
     outputPath: outroScreenshot,
     width: 1080,
     height: 1920,
@@ -465,6 +494,7 @@ async function runPhase5(
   const phase5Path = join(outputDir, 'phase-5-result.json');
   await writeFile(phase5Path, JSON.stringify(phase5Result, null, 2), 'utf-8');
 }
+
 
 interface PartResult {
   partId: number;
@@ -771,7 +801,7 @@ async function processSegment(
 /**
  * Parse command line arguments.
  */
-function parseArgs(): { inputPath: string; outputPath: string; title?: string; phase?: number; evaluate?: boolean; checkAss?: boolean } {
+function parseArgs(): { inputPath: string; outputPath: string; title?: string; phase?: number; evaluate?: boolean; checkAss?: boolean; previewHtml?: boolean } {
   const args = process.argv.slice(2);
   let inputPath = '';
   let outputPath = '';
@@ -779,6 +809,7 @@ function parseArgs(): { inputPath: string; outputPath: string; title?: string; p
   let phase: number | undefined;
   let evaluate = false;
   let checkAss = false;
+  let previewHtml = false;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--input' && i + 1 < args.length) {
@@ -793,10 +824,12 @@ function parseArgs(): { inputPath: string; outputPath: string; title?: string; p
       evaluate = true;
     } else if (args[i] === '--check-ass') {
       checkAss = true;
+    } else if (args[i] === '--preview-html') {
+      previewHtml = true;
     }
   }
 
-  return { inputPath, outputPath, title, phase, evaluate, checkAss };
+  return { inputPath, outputPath, title, phase, evaluate, checkAss, previewHtml };
 }
 
 /**
@@ -852,8 +885,8 @@ async function validatePhase3(): Promise<void> {
 }
 
 /**
- * Validate phase 4 input: phase-3-result.json must exist with all referenced files.
- * Phase 4 (screenshot + FFmpeg) needs audio, html, and subtitle (ASS) files from phase 3.
+ * Validate phase 4 input: phase-3-result.json must exist with audio files.
+ * Phase 4 (ASS subtitles) needs audio files from phase 3.
  */
 async function validatePhase4(): Promise<void> {
   const phase3Path = join(__dirname, '..', 'output', 'phase-3-result.json');
@@ -862,39 +895,33 @@ async function validatePhase4(): Promise<void> {
   }
   const data = JSON.parse(await readFile(phase3Path, 'utf-8'));
 
-  // Validate intro files (audio, html)
+  // Validate intro files (audio only)
   if (data.intro) {
-    for (const file of [data.intro.audioPath, data.intro.htmlPath]) {
-      if (file && !(await fileExists(file))) {
-        throw new Error(`Phase 4 missing referenced file: ${file}`);
-      }
+    if (data.intro.audioPath && !(await fileExists(data.intro.audioPath))) {
+      throw new Error(`Phase 4 missing audio file: ${data.intro.audioPath}`);
     }
   }
 
   // Validate segment files
   for (const seg of data.segments || []) {
     for (const part of seg.parts || []) {
-      for (const file of [part.audioPath, part.htmlPath]) {
-        if (file && !(await fileExists(file))) {
-          throw new Error(`Phase 4 missing referenced file: ${file}`);
-        }
+      if (part.audioPath && !(await fileExists(part.audioPath))) {
+        throw new Error(`Phase 4 missing audio file: ${part.audioPath}`);
       }
     }
   }
 
   // Validate outro files
   if (data.outro) {
-    for (const file of [data.outro.audioPath, data.outro.htmlPath]) {
-      if (file && !(await fileExists(file))) {
-        throw new Error(`Phase 4 missing referenced file: ${file}`);
-      }
+    if (data.outro.audioPath && !(await fileExists(data.outro.audioPath))) {
+      throw new Error(`Phase 4 missing audio file: ${data.outro.audioPath}`);
     }
   }
 }
 
 /**
- * Validate phase 5 input: phase-3-result.json and phase-4-result.json must exist.
- * Phase 5 generates PNG + MP4 from audio, html, and subtitle files.
+ * Validate phase 5 input: phase-3-result.json, phase-4-result.json and article-script.json must exist.
+ * Phase 5 generates HTML, PNG + MP4 from audio and subtitle files.
  */
 async function validatePhase5Input(): Promise<void> {
   const phase3Path = join(__dirname, '..', 'output', 'phase-3-result.json');
@@ -905,30 +932,28 @@ async function validatePhase5Input(): Promise<void> {
   if (!(await fileExists(phase4Path))) {
     throw new Error(`Phase 5 requires ${phase4Path} (run phase 4 first)`);
   }
+  const articleScriptPath = join(__dirname, '..', 'output', 'article-script.json');
+  if (!(await fileExists(articleScriptPath))) {
+    throw new Error(`Phase 5 requires ${articleScriptPath} (run phase 2 first)`);
+  }
 
-  // Validate phase 3 files exist
+  // Validate phase 3 audio files exist
   const phase3Data = JSON.parse(await readFile(phase3Path, 'utf-8'));
   if (phase3Data.intro) {
-    for (const file of [phase3Data.intro.audioPath, phase3Data.intro.htmlPath]) {
-      if (file && !(await fileExists(file))) {
-        throw new Error(`Phase 5 missing phase 3 file: ${file}`);
-      }
+    if (phase3Data.intro.audioPath && !(await fileExists(phase3Data.intro.audioPath))) {
+      throw new Error(`Phase 5 missing audio file: ${phase3Data.intro.audioPath}`);
     }
   }
   for (const seg of phase3Data.segments || []) {
     for (const part of seg.parts || []) {
-      for (const file of [part.audioPath, part.htmlPath]) {
-        if (file && !(await fileExists(file))) {
-          throw new Error(`Phase 5 missing phase 3 file: ${file}`);
-        }
+      if (part.audioPath && !(await fileExists(part.audioPath))) {
+        throw new Error(`Phase 5 missing audio file: ${part.audioPath}`);
       }
     }
   }
   if (phase3Data.outro) {
-    for (const file of [phase3Data.outro.audioPath, phase3Data.outro.htmlPath]) {
-      if (file && !(await fileExists(file))) {
-        throw new Error(`Phase 5 missing phase 3 file: ${file}`);
-      }
+    if (phase3Data.outro.audioPath && !(await fileExists(phase3Data.outro.audioPath))) {
+      throw new Error(`Phase 5 missing audio file: ${phase3Data.outro.audioPath}`);
     }
   }
 
@@ -981,9 +1006,16 @@ async function validatePhase6Input(): Promise<void> {
  * Main CLI entry point.
  */
 async function main() {
-  const { inputPath, outputPath, title, phase, evaluate, checkAss } = parseArgs();
+  const { inputPath, outputPath, title, phase, evaluate, checkAss, previewHtml } = parseArgs();
 
   try {
+    // Handle preview-html mode
+    if (previewHtml) {
+      const scriptPath = join(__dirname, '..', 'output', 'article-script.json');
+      await startPreviewServer(scriptPath);
+      return;
+    }
+
     // Handle evaluate mode
     if (evaluate) {
       const scriptPath = join(__dirname, '..', 'output', 'article-script.json');
@@ -1000,11 +1032,10 @@ async function main() {
       return;
     }
 
-    const articleText = await readFile(inputPath, 'utf-8');
-
-    // Phase 1: Segment only
+    // Phase 1: Segment only (requires input file)
     if (phase === 1) {
       await validatePhase1(inputPath);
+      const articleText = await readFile(inputPath, 'utf-8');
       logger.info('Phase 1: Segmenting article...');
       const segments = segmentArticle(articleText);
       const segmentsPath = join(__dirname, '..', 'output', 'segments.json');
@@ -1061,19 +1092,22 @@ async function main() {
       return;
     }
 
-    // Phase 5: Generate PNG screenshots and MP4 videos (requires phase 3 and phase 4 output)
+    // Phase 5: Generate HTML, PNG screenshots and MP4 videos (requires phase 3 and phase 4 output)
     if (phase === 5) {
       await validatePhase5Input();
-      logger.info('Phase 5: Generating screenshots and MP4 videos...');
+      logger.info('Phase 5: Generating HTML, screenshots and MP4 videos...');
       const phase3Path = join(__dirname, '..', 'output', 'phase-3-result.json');
       const phase4Path = join(__dirname, '..', 'output', 'phase-4-result.json');
+      const articleScriptPath = join(__dirname, '..', 'output', 'article-script.json');
       const phase3Data = await readFile(phase3Path, 'utf-8');
       const phase4Data = await readFile(phase4Path, 'utf-8');
+      const articleScriptData = await readFile(articleScriptPath, 'utf-8');
       const phase3Result = JSON.parse(phase3Data);
       const phase4Result = JSON.parse(phase4Data);
+      const articleScript = JSON.parse(articleScriptData);
       const outputDir = join(__dirname, '..', 'output');
 
-      await runPhase5(phase3Result, phase4Result, outputDir);
+      await runPhase5(phase3Result, phase4Result, articleScript, outputDir);
       logger.info('Phase 5 complete');
       return;
     }
@@ -1114,6 +1148,7 @@ async function main() {
     }
 
     // Default: Full pipeline
+    const articleText = await readFile(inputPath, 'utf-8');
     await generateVideo(articleText, {
       outputPath,
       title,

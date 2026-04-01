@@ -217,7 +217,7 @@ ${segmentCount}
     return extractScript(content);
   } catch (error) {
     logger.error('Failed to generate intro script:', error);
-    return `大家好，欢迎来到今天的英语学习。我们一起来学习一篇关于${title}的文章。`;
+    return `欢迎来到英语阅读课。我们一起来学习一篇关于${title}的文章。`;
   }
 }
 
@@ -262,7 +262,7 @@ ${title}
     return extractScript(content);
   } catch (error) {
     logger.error('Failed to generate outro script:', error);
-    return '感谢大家的观看，希望今天的分享对你们有所帮助。我们下期再见！';
+    return '以上就是今天的英语阅读课内容。感谢大家的观看，我们下期再见！';
   }
 }
 

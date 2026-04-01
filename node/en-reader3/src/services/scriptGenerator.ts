@@ -9,6 +9,7 @@ import {
   VocabularyItem,
   GrammarPoint,
   SegmentGenerationResponse,
+  PromptsConfig,
 } from '../types/index.js';
 
 /**
@@ -50,9 +51,9 @@ async function generateIntro(
   title: string,
   segmentCount: number,
   fullOriginalText: string,
-  promptsConfig: { systemPrompt: string; temperature: number; prompts: { intro: { template: string } } }
+  promptsConfig: PromptsConfig
 ): Promise<{ title: string; script: string }> {
-  const template = promptsConfig.prompts.intro.template;
+  const template = promptsConfig.prompts.intro.template!;
   const prompt = interpolateTemplate(template, {
     title,
     segmentCount,
@@ -82,9 +83,9 @@ async function generateIntro(
 async function generateOutro(
   title: string,
   fullOriginalText: string,
-  promptsConfig: { systemPrompt: string; temperature: number; prompts: { outro: { template: string } } }
+  promptsConfig: PromptsConfig
 ): Promise<{ script: string }> {
-  const template = promptsConfig.prompts.outro.template;
+  const template = promptsConfig.prompts.outro.template!;
   const prompt = interpolateTemplate(template, {
     title,
     originalText: fullOriginalText,
@@ -108,11 +109,11 @@ async function generateSegmentAllParts(
   segmentId: number,
   originalText: string,
   title: string,
-  promptsConfig: { systemPrompt: string; temperature: number; prompts: { segment: { template: string } } }
+  promptsConfig: PromptsConfig
 ): Promise<{ id: number; originalText: string; parts: SegmentPart[] }> {
   logger.info(`Generating all 6 parts for segment ${segmentId} in single AI call`);
 
-  const template = promptsConfig.prompts.segment.template;
+  const template = promptsConfig.prompts.segment.template!;
   const prompt = interpolateTemplate(template, {
     title,
     originalText,
@@ -297,7 +298,7 @@ export async function generateScript(
   logger.info(`Generating script for section ${sectionId}`);
 
   const promptsConfig = await loadPromptsConfig();
-  const template = promptsConfig.prompts.segment.template;
+  const template = promptsConfig.prompts.segment.template!;
   const prompt = interpolateTemplate(template, { title, originalText });
 
   try {

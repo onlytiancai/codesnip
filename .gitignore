@@ -12,3 +12,4 @@ node/mydb/
 node_modules
 log.txt
 .venv
+.env

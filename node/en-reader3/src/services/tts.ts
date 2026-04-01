@@ -35,6 +35,36 @@ function preprocessNarrationScript(text: string): string {
 }
 
 /**
+ * Detect if text is primarily English or Chinese/CJK.
+ * Returns 'en' for English, 'zh' for Chinese/CJK.
+ */
+function detectLanguage(text: string): 'en' | 'zh' {
+  // Count ASCII characters vs CJK characters
+  let asciiCount = 0;
+  let cjkCount = 0;
+
+  for (const char of text) {
+    const code = char.codePointAt(0);
+    if (!code) continue;
+
+    // CJK ranges: 0x4E00-0x9FFF (CJK), 0x3400-0x4DBF (Extension A), 0xAC00-0xD7AF (Hangul)
+    if (
+      (code >= 0x4e00 && code <= 0x9fff) ||
+      (code >= 0x3400 && code <= 0x4dbf) ||
+      (code >= 0xac00 && code <= 0xd7af)
+    ) {
+      cjkCount++;
+    } else if (code < 128) {
+      // ASCII letters
+      asciiCount++;
+    }
+  }
+
+  // If more than 30% CJK characters, treat as Chinese
+  return cjkCount > asciiCount * 0.3 ? 'zh' : 'en';
+}
+
+/**
  * Generate Chinese TTS audio using Edge TTS (free, supports Chinese).
  * This function generates audio AND returns word timings in a SINGLE call.
  */
@@ -50,6 +80,11 @@ async function generateEdgeTTS(text: string, outputPath: string): Promise<TTSRes
 async function generateEdgeTTSWithWords(text: string, outputPath: string): Promise<TTSResultWithWords> {
   logger.debug(`Generating Edge TTS with word timings: ${text.substring(0, 50)}...`);
 
+  // Detect language and select appropriate voice
+  const lang = detectLanguage(text);
+  const voice = lang === 'en' ? 'en-US-JennyNeural' : 'zh-CN-XiaoxiaoNeural';
+  logger.debug(`Detected language: ${lang}, using voice: ${voice}`);
+
   // Escape text for Python string
   const escapedText = text.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/`/g, '\\`');
 
@@ -59,11 +94,11 @@ import sys
 import asyncio
 import edge_tts
 
-async def generate_and_get_timings(text, output_path):
+async def generate_and_get_timings(text, output_path, voice):
     words = []
     audio_chunks = []
 
-    communicate = edge_tts.Communicate(text, voice="zh-CN-XiaoxiaoNeural", boundary="WordBoundary")
+    communicate = edge_tts.Communicate(text, voice=voice, boundary="WordBoundary")
 
     async for chunk in communicate.stream():
         if chunk["type"] == "audio":
@@ -87,8 +122,9 @@ async def generate_and_get_timings(text, output_path):
 if __name__ == "__main__":
     text = """${escapedText}"""
     output_path = """${outputPath.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"""
+    voice = """${voice}"""
 
-    words = asyncio.run(generate_and_get_timings(text, output_path))
+    words = asyncio.run(generate_and_get_timings(text, output_path, voice))
 
     # Output words as JSON for parsing
     import json

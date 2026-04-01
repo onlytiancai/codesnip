@@ -18,7 +18,7 @@
     }
 
     body {
-      background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 50%, #98D8C8 100%);
+      background: linear-gradient(180deg, #FAFAFA 0%, #F5F5F5 100%);
       font-family: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
       color: #333333;
       position: relative;
@@ -30,17 +30,20 @@
       left: 0;
       right: 0;
       height: 120px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.8) 100%);
+      background: linear-gradient(180deg, #FFFFFF 0%, #F8F8F8 100%);
+      border-bottom: 1px solid #E8E8E8;
       display: flex;
       align-items: center;
       padding: 0 40px;
-      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
       z-index: 10;
     }
 
     .header-logo {
-      font-size: 28px;
+      width: 40px;
+      height: 40px;
       margin-right: 16px;
+      background: linear-gradient(135deg, #6B8E8E 0%, #7BA3A3 100%);
+      border-radius: 8px;
     }
 
     .header-app-name {
@@ -65,7 +68,7 @@
     .thank-you {
       font-size: 80px;
       font-weight: bold;
-      color: #FF6B6B;
+      color: #6B8E8E;
       margin-bottom: 40px;
     }
 
@@ -80,26 +83,10 @@
 
     .encouragement {
       font-size: 28px;
-      color: #4A90A4;
+      color: #6B8E8E;
       text-align: center;
       margin-bottom: 40px;
       font-weight: bold;
-    }
-
-    .subtitle-container {
-      position: absolute;
-      bottom: 100px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      padding: 0 40px;
-    }
-
-    .subtitle-text {
-      font-size: 28px;
-      color: #ffffff;
-      text-shadow: 2px 2px 6px rgba(0,0,0,0.5);
-      line-height: 1.6;
     }
 
     .footer {
@@ -108,7 +95,7 @@
       left: 0;
       right: 0;
       height: 80px;
-      background: linear-gradient(0deg, rgba(74,144,164,0.95) 0%, rgba(74,144,164,0.7) 100%);
+      background: linear-gradient(0deg, #6B8E8E 0%, #7BA3A3 100%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -117,17 +104,12 @@
     .footer-slogan {
       font-size: 24px;
       color: #ffffff;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-    }
-
-    #audio {
-      display: none;
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <div class="header-logo">📚</div>
+    <div class="header-logo"></div>
     <div class="header-app-name">English Reader</div>
   </div>
 
@@ -137,46 +119,8 @@
     <div class="encouragement">感谢观看，期待下次相见！</div>
   </div>
 
-  <div class="subtitle-container">
-    <div id="subtitle" class="subtitle-text"></div>
-  </div>
-
   <div class="footer">
     <div class="footer-slogan">让学习成为乐趣</div>
   </div>
-
-  <audio id="audio" src="file://{{audioPath}}"></audio>
-
-  <script>
-    const audioEl = document.getElementById('audio');
-    const subtitleEl = document.getElementById('subtitle');
-
-    const sentences = {{sentencesJson}};
-
-    function updateSubtitle(currentTime) {
-      for (let i = 0; i < sentences.length; i++) {
-        if (currentTime >= sentences[i].start && currentTime < sentences[i].end) {
-          if (subtitleEl.dataset.sentenceIndex != i) {
-            subtitleEl.textContent = sentences[i].text;
-            subtitleEl.dataset.sentenceIndex = i;
-          }
-          return;
-        }
-      }
-      subtitleEl.textContent = '';
-    }
-
-    audioEl.addEventListener('timeupdate', () => {
-      updateSubtitle(audioEl.currentTime);
-    });
-
-    audioEl.addEventListener('loadedmetadata', () => {
-      audioEl.play().catch(() => {});
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      audioEl.play().catch(() => {});
-    });
-  </script>
 </body>
 </html>

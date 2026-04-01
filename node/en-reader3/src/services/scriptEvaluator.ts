@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import type { ArticleScript } from '../types/index.js';
 import { logger } from '../utils/logger.js';
 import { config } from '../config/index.js';
+import { loadPromptsConfig, interpolateTemplate } from './promptLoader.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -30,6 +31,7 @@ interface AIScriptResponse {
   contentAccuracy: { score: number; issues: string[] };
   structureCoherence: { score: number; issues: string[] };
   conciseness: { score: number; issues: string[] };
+  overallCoherence: { score: number; issues: string[] };
   suggestions: string[];
 }
 
@@ -84,48 +86,17 @@ export async function evaluateScript(scriptPath: string): Promise<EvaluationResu
   // Format original texts
   const originalsText = originalTexts.map((t, i) => `[ORIGINAL ${i + 1}]\n${t}`).join('\n\n---\n\n');
 
-  const prompt = `你是一位专业的英语教学评估专家。请评估以下英语学习视频的口播稿质量。
+  // Load evaluation template
+  const promptsConfig = await loadPromptsConfig();
+  const evaluatePrompt = promptsConfig.prompts.evaluate;
+  if (!evaluatePrompt?.template) {
+    throw new Error('Evaluate prompt template not found');
+  }
 
-【评估维度】
-
-1. 语言纯净度 (Language Purity): 评估中文讲解中是否有不必要的英文混杂（词汇讲解中涉及的待讲解词汇除外）。检查是否有与内容无关的英文、是否保持了纯中文讲解风格。
-
-2. 自然流畅度 (Naturalness): 评估讲解是否像真正的老师在说话，而不是在念稿。检查是否有机器感、是否流畅自然、是否有合理的停顿和节奏。
-
-3. 专业教师语气 (Professional Tone): 评估语气是否像专业英语教师。检查是否有恰当的教学引导、是否避免了过于口语化或过于正式的表达、是否避免了AI风格的痕迹。
-
-4. 内容准确性 (Content Accuracy): 评估翻译是否准确传达原文意思、词汇解释是否正确、语法讲解是否恰当。
-
-5. 结构连贯性 (Structure Coherence): 评估整体结构是否清晰、各部分之间是否有良好的衔接、是否符合教学逻辑。
-
-6. 简洁适度 (Conciseness): 评估每个部分长度是否恰当、是否避免了冗余重复、是否保持了简洁有力的讲解风格。
-
-【原文】
-${originalsText}
-
-【待评估脚本】(按讲解顺序排列)
-${scriptsText}
-
-请输出JSON格式的评估结果：
-{
-  "overall": 总分(0-100),
-  "languagePurity": {"score": 分数, "issues": ["问题1", "问题2"]},
-  "naturalness": {"score": 分数, "issues": ["问题1", "问题2"]},
-  "professionalTone": {"score": 分数, "issues": ["问题1", "问题2"]},
-  "contentAccuracy": {"score": 分数, "issues": ["问题1", "问题2"]},
-  "structureCoherence": {"score": 分数, "issues": ["问题1", "问题2"]},
-  "conciseness": {"score": 分数, "issues": ["问题1", "问题2"]},
-  "suggestions": ["建议1", "建议2"]
-}
-
-评分标准：
-- 90-100: 优秀，完全符合专业标准
-- 80-89: 良好，有小的改进空间
-- 70-79: 一般，存在一些明显问题
-- 60-69: 较差，需要较大改进
-- 60以下: 不合格，存在严重问题
-
-请直接输出JSON，不要有其他内容。`;
+  const prompt = interpolateTemplate(evaluatePrompt.template, {
+    originalsText,
+    scriptsText,
+  });
 
   try {
     const response = await fetch(`${config.LLM_BASE_URL}/text/chatcompletion_v2`, {
@@ -199,6 +170,12 @@ ${scriptsText}
         score: parsed.conciseness?.score ?? 80,
         maxScore: 100,
         issues: parsed.conciseness?.issues ?? [],
+      },
+      {
+        name: '整体连贯性 (Overall Coherence)',
+        score: parsed.overallCoherence?.score ?? 80,
+        maxScore: 100,
+        issues: parsed.overallCoherence?.issues ?? [],
       },
     ];
 

@@ -18,7 +18,7 @@
     }
 
     body {
-      background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 50%, #98D8C8 100%);
+      background: linear-gradient(180deg, #FAFAFA 0%, #F5F5F5 100%);
       font-family: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
       color: #333333;
       position: relative;
@@ -30,17 +30,20 @@
       left: 0;
       right: 0;
       height: 120px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.8) 100%);
+      background: linear-gradient(180deg, #FFFFFF 0%, #F8F8F8 100%);
+      border-bottom: 1px solid #E8E8E8;
       display: flex;
       align-items: center;
       padding: 0 40px;
-      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
       z-index: 10;
     }
 
     .header-logo {
-      font-size: 28px;
+      width: 40px;
+      height: 40px;
       margin-right: 16px;
+      background: linear-gradient(135deg, #6B8E8E 0%, #7BA3A3 100%);
+      border-radius: 8px;
     }
 
     .header-app-name {
@@ -66,7 +69,7 @@
 
     .section-label {
       font-size: 36px;
-      color: #4A90A4;
+      color: #6B8E8E;
       font-weight: bold;
     }
 
@@ -82,7 +85,7 @@
       background: rgba(255,255,255,0.85);
       border-radius: 16px;
       padding: 24px;
-      border-left: 5px solid #4A90A4;
+      border-left: 5px solid #6B8E8E;
       flex-shrink: 0;
       max-height: 280px;
       overflow: hidden;
@@ -90,7 +93,7 @@
 
     .card-label {
       font-size: 26px;
-      color: #4A90A4;
+      color: #6B8E8E;
       margin-bottom: 12px;
       font-weight: bold;
     }
@@ -105,7 +108,7 @@
       background: rgba(255,255,255,0.9);
       border-radius: 16px;
       padding: 24px;
-      border-left: 5px solid #FF6B6B;
+      border-left: 5px solid #7BA3A3;
       flex: 1;
       overflow: hidden;
     }
@@ -116,29 +119,13 @@
       line-height: 1.8;
     }
 
-    .subtitle-container {
-      position: absolute;
-      bottom: 100px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      padding: 0 30px;
-    }
-
-    .subtitle-text {
-      font-size: 24px;
-      color: #ffffff;
-      text-shadow: 2px 2px 6px rgba(0,0,0,0.5);
-      line-height: 1.5;
-    }
-
     .footer {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
       height: 80px;
-      background: linear-gradient(0deg, rgba(74,144,164,0.95) 0%, rgba(74,144,164,0.7) 100%);
+      background: linear-gradient(0deg, #6B8E8E 0%, #7BA3A3 100%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -147,17 +134,12 @@
     .footer-slogan {
       font-size: 24px;
       color: #ffffff;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-    }
-
-    #audio {
-      display: none;
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <div class="header-logo">📚</div>
+    <div class="header-logo"></div>
     <div class="header-app-name">English Reader</div>
   </div>
 
@@ -168,57 +150,19 @@
 
     <div class="content-area">
       <div class="original-card">
-        <div class="card-label">📖 原文</div>
+        <div class="card-label">原文</div>
         <div class="original-text">{{originalText}}</div>
       </div>
 
       <div class="translation-card">
-        <div class="card-label">📝 中文翻译</div>
+        <div class="card-label">中文翻译</div>
         <div class="translation-text">{{translationText}}</div>
       </div>
     </div>
   </div>
 
-  <div class="subtitle-container">
-    <div id="subtitle" class="subtitle-text"></div>
-  </div>
-
   <div class="footer">
     <div class="footer-slogan">让学习成为乐趣</div>
   </div>
-
-  <audio id="audio" src="file://{{audioPath}}"></audio>
-
-  <script>
-    const audioEl = document.getElementById('audio');
-    const subtitleEl = document.getElementById('subtitle');
-
-    const sentences = {{sentencesJson}};
-
-    function updateSubtitle(currentTime) {
-      for (let i = 0; i < sentences.length; i++) {
-        if (currentTime >= sentences[i].start && currentTime < sentences[i].end) {
-          if (subtitleEl.dataset.sentenceIndex != i) {
-            subtitleEl.textContent = sentences[i].text;
-            subtitleEl.dataset.sentenceIndex = i;
-          }
-          return;
-        }
-      }
-      subtitleEl.textContent = '';
-    }
-
-    audioEl.addEventListener('timeupdate', () => {
-      updateSubtitle(audioEl.currentTime);
-    });
-
-    audioEl.addEventListener('loadedmetadata', () => {
-      audioEl.play().catch(() => {});
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      audioEl.play().catch(() => {});
-    });
-  </script>
 </body>
 </html>

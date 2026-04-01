@@ -2,7 +2,7 @@ import { readFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { logger } from '../utils/logger.js';
-import type { PromptsConfig } from '../types/index.js';
+import type { PromptsConfig, PromptDefinition } from '../types/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -24,6 +24,7 @@ export async function loadPromptsConfig(): Promise<PromptsConfig> {
     const config = JSON.parse(content) as PromptsConfig;
 
     validateConfig(config);
+    await loadExternalTemplates(config);
 
     cachedConfig = config;
     logger.debug('Prompts config loaded and validated successfully');
@@ -38,6 +39,27 @@ export async function loadPromptsConfig(): Promise<PromptsConfig> {
       logger.error('Failed to load prompts config:', error);
     }
     throw error;
+  }
+}
+
+/**
+ * Load external template files referenced by templateFile field
+ */
+async function loadExternalTemplates(config: PromptsConfig): Promise<void> {
+  const baseDir = join(__dirname, '..', '..', 'config');
+
+  for (const [promptName, promptDef] of Object.entries(config.prompts)) {
+    if (promptDef.templateFile) {
+      const templatePath = join(baseDir, promptDef.templateFile);
+      try {
+        const templateContent = await readFile(templatePath, 'utf-8');
+        (promptDef as PromptDefinition).template = templateContent;
+        logger.debug(`Loaded external template for ${promptName} from ${promptDef.templateFile}`);
+      } catch (error) {
+        logger.error(`Failed to load template file for ${promptName}: ${error}`);
+        throw error;
+      }
+    }
   }
 }
 
@@ -62,12 +84,14 @@ function validateConfig(config: PromptsConfig): void {
 
   const requiredPrompts = ['intro', 'outro', 'segment'];
   for (const promptName of requiredPrompts) {
-    if (!config.prompts[promptName as keyof typeof config.prompts]) {
+    const prompt = config.prompts[promptName as keyof typeof config.prompts];
+    if (!prompt) {
       errors.push(`Missing prompt: ${promptName}`);
     } else {
-      const prompt = config.prompts[promptName as keyof typeof config.prompts];
-      if (!prompt.template || typeof prompt.template !== 'string') {
-        errors.push(`Missing or invalid template for ${promptName}`);
+      const hasTemplate = prompt.template && typeof prompt.template === 'string';
+      const hasTemplateFile = prompt.templateFile && typeof prompt.templateFile === 'string';
+      if (!hasTemplate && !hasTemplateFile) {
+        errors.push(`Missing template or templateFile for ${promptName}`);
       }
       if (!prompt.responseFormat || typeof prompt.responseFormat !== 'string') {
         errors.push(`Missing or invalid responseFormat for ${promptName}`);

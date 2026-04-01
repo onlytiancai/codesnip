@@ -3,7 +3,7 @@
   "temperature": 0.7,
   "prompts": {
     "intro": {
-      "template": "【文章标题】\n{{title}}\n\n【完整原文】\n{{originalText}}\n\n【段落数量】\n{{segmentCount}}\n\n请生成一段100-150字的中文开场白，要求：\n- 介绍文章主题，激发学习兴趣\n- 自然流畅，适合口头讲解\n- 像真正的老师说话一样\n\n输出JSON格式：\n{\n  \"title\": \"开场白标题\",\n  \"script\": \"开场白内容\"\n}",
+      "templateFile": "prompts/intro.txt",
       "responseFormat": "json",
       "outputFields": {
         "title": "string",
@@ -11,14 +11,14 @@
       }
     },
     "outro": {
-      "template": "【文章标题】\n{{title}}\n\n【完整原文】\n{{originalText}}\n\n请生成一段100-150字的中文结束语，要求：\n- 感谢观众，总结文章要点\n- 鼓励观众继续学习\n- 自然流畅，适合口头讲解\n- 像真正的老师说话一样\n\n输出JSON格式：\n{\n  \"script\": \"结束语内容\"\n}",
+      "templateFile": "prompts/outro.txt",
       "responseFormat": "json",
       "outputFields": {
         "script": "string"
       }
     },
     "segment": {
-      "template": "【文章标题】\n{{title}}\n\n【原文】\n{{originalText}}\n\n请一次性生成这个段落的6个部分，所有内容应该连贯一致：\n\n1. translation: 准确的中文翻译（约150-200字），忠实于原文语义，不要意译或扩展，不要加入语法分析或评论。直接翻译即可。\n\n2. vocabularyScript: 中文词汇讲解稿（150-200字）\n   - 直接解释重点词汇，讲解的词汇必须来自下面的 vocabulary 数组\n   - 不要使用 ' \" — -- 等特殊符号，用中文标点替代（括号用（），引号用「」）\n   - 不要使用\"亲爱的读者\"、\"大家好\"等问候语\n\n3. grammarScript: 简明语法讲解稿（150-200字）\n   - 只讲解本段落的1-2个关键语法点\n   - 讲解的语法点必须来自下面的 grammarPoints 数组\n   - 不要使用 ' \" — -- 等特殊符号，用中文标点替代（括号用（），引号用「」）\n\n4. contextScript: 背景知识或文化扩展（100-150字），只讲本段落相关的具体背景知识。禁止以下开头：\"这段\"、\"这是\"、\"故事/童话/文章\"。直接讲具体的文化/历史/社会背景。\n\n5. vocabulary: 3-5个重点词汇数组：\n   - 这些词汇将用于 vocabularyScript 的讲解，必须保持一致\n   [{\"word\": \"单词\", \"phonetic\": \"/音标/\", \"partOfSpeech\": \"词性\", \"definition\": \"释义\", \"example\": \"例句\"}]\n\n6. grammarPoints: 1-2个关键语法点数组：\n   - 这些语法点将用于 grammarScript 的讲解，必须保持一致\n   [{\"rule\": \"语法规则\", \"explanation\": \"中文解释\", \"example\": \"例句\"}]\n\n输出JSON格式：\n{\n  \"translation\": \"翻译讲解稿\",\n  \"vocabularyScript\": \"词汇讲解稿\",\n  \"grammarScript\": \"语法讲解稿\",\n  \"contextScript\": \"背景知识\",\n  \"vocabulary\": [{\"word\": \"\", \"phonetic\": \"\", \"partOfSpeech\": \"\", \"definition\": \"\", \"example\": \"\"}],\n  \"grammarPoints\": [{\"rule\": \"\", \"explanation\": \"\", \"example\": \"\"}]\n}",
+      "templateFile": "prompts/segment.txt",
       "responseFormat": "json",
       "outputFields": {
         "translation": "string",
@@ -28,6 +28,10 @@
         "vocabulary": "array",
         "grammarPoints": "array"
       }
+    },
+    "evaluate": {
+      "templateFile": "prompts/evaluate.txt",
+      "responseFormat": "json"
     }
   }
 }

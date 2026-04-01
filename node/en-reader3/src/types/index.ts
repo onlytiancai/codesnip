@@ -89,7 +89,8 @@ export interface JobStatus {
 
 // Prompt configuration types
 export interface PromptDefinition {
-  template: string;
+  template?: string;
+  templateFile?: string;
   responseFormat: 'json' | 'text';
   outputFields?: Record<string, string>;
 }
@@ -101,6 +102,7 @@ export interface PromptsConfig {
     intro: PromptDefinition;
     outro: PromptDefinition;
     segment: PromptDefinition;
+    evaluate?: PromptDefinition;
   };
 }
 
