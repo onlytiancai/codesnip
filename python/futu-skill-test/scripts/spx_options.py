@@ -202,6 +202,168 @@ def parse_option_code(code: str) -> dict:
         return None
 
 
+# ============== Option Strategy Recognition ==============
+
+def identify_strategies(rows: list) -> dict:
+    """
+    Identify option strategies from position rows.
+    Priority: Iron Condor > Vertical Spread > Single Leg
+    Returns dict with expiry -> {strategy_name: legs}
+    """
+    from collections import defaultdict
+
+    # Group by expiry
+    by_expiry = defaultdict(list)
+    for r in rows:
+        by_expiry[r['expiry']].append(r)
+
+    strategies = {}
+
+    for expiry, legs in by_expiry.items():
+        identified = identify_strategy_for_expiry(legs)
+        strategies[expiry] = {
+            'expiry': expiry,
+            'dte': legs[0]['days_to_expiry'],
+            'strategy': identified['name'],
+            'legs': identified['legs'],
+            'net_debit': identified.get('net_debit', 0),
+            'description': identified.get('description', ''),
+        }
+
+    return strategies
+
+
+def identify_strategy_for_expiry(legs: list) -> dict:
+    """
+    Identify strategy for a group of options with same expiry.
+    Returns dict with strategy name, legs, net_debit, description.
+    """
+    if len(legs) == 4:
+        iron_condor = try_iron_condor(legs)
+        if iron_condor:
+            return iron_condor
+
+    if len(legs) == 2:
+        vertical = try_vertical_spread(legs)
+        if vertical:
+            return vertical
+
+    # Default to single leg
+    return {
+        'name': 'Single Leg',
+        'legs': legs,
+        'net_debit': sum(l['cost_price'] * l['qty'] * 100 for l in legs),
+        'description': f"{len(legs)} leg(s) - unclassified",
+    }
+
+
+def try_iron_condor(legs: list) -> dict:
+    """
+    Iron Condor: short put spread + short call spread
+    - Short OTM put (higher strike), Long further OTM put (lower strike) = bull put spread
+    - Short OTM call (lower strike), Long further OTM call (higher strike) = bear call spread
+    """
+    puts = [l for l in legs if l['type'] == 'PUT']
+    calls = [l for l in legs if l['type'] == 'CALL']
+
+    if len(puts) != 2 or len(calls) != 2:
+        return None
+
+    # Analyze puts: one should be short (positive qty in our display shows long)
+    # In position display: negative qty = short, positive qty = long
+    # For iron condor: short put at higher strike, long put at lower strike
+    puts_sorted = sorted(puts, key=lambda x: x['strike'])
+    calls_sorted = sorted(calls, key=lambda x: x['strike'])
+
+    # Check: lower strike put should be long (bought), higher strike put should be short (sold)
+    # This is a bull put spread (put credit spread)
+    lower_put = puts_sorted[0]
+    higher_put = puts_sorted[1]
+
+    # Check: lower strike call should be short (sold), higher strike call should be long (bought)
+    # This is a bear call spread (call credit spread)
+    lower_call = calls_sorted[0]
+    higher_call = calls_sorted[1]
+
+    # Verify it's a valid iron condor structure
+    # Short put: higher strike, Short call: lower strike
+    # Long put: lower strike, Long call: higher strike
+    if lower_put['strike'] >= higher_put['strike']:
+        return None
+    if lower_call['strike'] >= higher_call['strike']:
+        return None
+
+    # Calculate net credit (premium received - premium paid)
+    net_credit = 0
+    for l in legs:
+        net_credit += l['cost_price'] * l['qty'] * 100
+
+    # Iron condor description
+    desc = (f"Bull Put Spread: Short {higher_put['strike']:.0f}P / Long {lower_put['strike']:.0f}P, "
+            f"Bear Call Spread: Short {lower_call['strike']:.0f}C / Long {higher_call['strike']:.0f}C")
+
+    return {
+        'name': 'Iron Condor',
+        'legs': legs,
+        'net_debit': abs(net_credit),  # Net credit is positive
+        'description': desc,
+    }
+
+
+def try_vertical_spread(legs: list) -> dict:
+    """
+    Vertical Spread: same type, same expiry, different strikes, opposite qty.
+    """
+    if len(legs) != 2:
+        return None
+
+    l1, l2 = legs
+
+    # Must be same type
+    if l1['type'] != l2['type']:
+        return None
+
+    # Must be different strikes
+    if l1['strike'] == l2['strike']:
+        return None
+
+    # One should be long, one short (opposite qty signs)
+    if l1['qty'] * l2['qty'] >= 0:
+        return None
+
+    opt_type = l1['type']
+    strikes = sorted([l1['strike'], l2['strike']])
+    lower_strike = strikes[0]
+    higher_strike = strikes[1]
+
+    # Identify which is long/short
+    long_leg = l1 if l1['qty'] > 0 else l2
+    short_leg = l1 if l1['qty'] < 0 else l2
+
+    # Calculate net debit (what you pay)
+    net_debit = sum(l['cost_price'] * l['qty'] * 100 for l in legs)
+    net_debit = abs(net_debit)
+
+    # Determine spread type
+    if opt_type == 'CALL':
+        if long_leg['strike'] < short_leg['strike']:
+            spread_type = 'Bull Call Debit Spread'
+        else:
+            spread_type = 'Bear Call Credit Spread'
+    else:  # PUT
+        if long_leg['strike'] > short_leg['strike']:
+            spread_type = 'Bear Put Debit Spread'
+        else:
+            spread_type = 'Bull Put Credit Spread'
+
+    return {
+        'name': 'Vertical Spread',
+        'legs': legs,
+        'net_debit': net_debit,
+        'description': f"{spread_type}: {long_leg['strike']:.0f} vs {short_leg['strike']:.0f}",
+    }
+
+
 # ============== Main ==============
 
 def main():
@@ -365,6 +527,25 @@ def main():
             lo = f"{r['low_price']:>10.2f}" if r['low_price'] is not None else "N/A"
             pc = f"{r['prev_close_price']:>12.2f}" if r['prev_close_price'] is not None else "N/A"
             print(f"{r['code']:<25} {oi} {vol} {prem} {hi} {lo} {pc}")
+
+        # ---- Strategy Recognition ----
+        strategies = identify_strategies(rows)
+        print("\n" + "=" * 110)
+        print("OPTION STRATEGIES")
+        print("=" * 110)
+
+        # Sort by expiry
+        sorted_expiries = sorted(strategies.keys())
+        for expiry in sorted_expiries:
+            s = strategies[expiry]
+            print(f"\nExpiry: {s['expiry']} (DTE: {s['dte']} days)")
+            print(f"  Strategy: {s['strategy']}")
+            print(f"  {s['description']}")
+            print(f"  Net Credit/Debit: ${abs(s['net_debit']):,.2f}")
+            print(f"  Legs:")
+            for leg in s['legs']:
+                direction = "LONG" if leg['qty'] > 0 else "SHORT"
+                print(f"    {direction:5} {leg['type']:4} {leg['strike']:8.0f} x {abs(leg['qty']):.0f} @ ${leg['cost_price']:.2f}")
 
         print(f"\nCalculated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
