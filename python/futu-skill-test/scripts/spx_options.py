@@ -7,18 +7,57 @@ and futu OpenAPI to get SPX option positions with real Greeks.
 Uses futu get_stock_quote to fetch IV, Delta, Gamma, Vega, Theta, Rho, Open Interest.
 
 Usage:
-    python scripts/spx_options.py
+    python scripts/spx_options.py [--verbose] [--json] [--trd-env REAL|SIMULATE]
+
+By default, debug logs from futu/yfinance are suppressed.
+Use --verbose to show all debug output.
 """
 
 import sys
 import argparse
+import logging
+
+# Parse verbose flag BEFORE imports so we can configure logging accordingly
+_parser = argparse.ArgumentParser(description='SPX Options Portfolio Display')
+_parser.add_argument('--trd-env', default='REAL', choices=['REAL', 'SIMULATE'])
+_parser.add_argument('--json', action='store_true')
+_parser.add_argument('--verbose', '-v', action='store_true', help='Enable verbose/debug output')
+_args = _parser.parse_args()
+
+# Configure logging to suppress futu/yfinance debug logs by default
+# Futu logs to 'FTConsoleLog' logger and yfinance logs to 'yfinance' logger
+if not _args.verbose:
+    logging.getLogger('FTConsoleLog').setLevel(logging.WARNING)
+    logging.getLogger('yfinance').setLevel(logging.WARNING)
+    # Also suppress urllib3 which yfinance uses
+    logging.getLogger('urllib3').setLevel(logging.WARNING)
+else:
+    logging.getLogger('FTConsoleLog').setLevel(logging.DEBUG)
+    logging.getLogger('yfinance').setLevel(logging.DEBUG)
+
+
+def _suppress_futu_console_logs():
+    """Suppress futu console logs by setting handler level."""
+    ft_logger = logging.getLogger('FTConsoleLog')
+    for h in ft_logger.handlers:
+        h.setLevel(logging.WARNING if not _args.verbose else logging.DEBUG)
+
+
+def _suppress_yfinance_logs():
+    """Suppress yfinance debug logs."""
+    yf_logger = logging.getLogger('yfinance')
+    yf_logger.setLevel(logging.WARNING if not _args.verbose else logging.DEBUG)
+    urllib_logger = logging.getLogger('urllib3')
+    urllib_logger.setLevel(logging.WARNING if not _args.verbose else logging.DEBUG)
+
 import json
 import time
 from datetime import datetime
 
 
 def log(msg):
-    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {msg}")
+    if _args.verbose:
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {msg}")
 
 
 try:
@@ -32,6 +71,10 @@ try:
 except ImportError:
     log("ERROR: install futu-api: pip install futu-api")
     sys.exit(1)
+
+# Suppress futu console logs after import (need to set handler level too)
+_suppress_futu_console_logs()
+_suppress_yfinance_logs()
 
 
 # ============== Market Data ==============
@@ -202,9 +245,224 @@ def parse_option_code(code: str) -> dict:
         return None
 
 
+# ============== Constants ==============
+
+SPX_OPTIONS_MULTIPLIER = 100
+
+
+# ============== Leg Status Analysis ==============
+
+def get_leg_status(leg: dict, current_spx: float) -> dict:
+    """
+    Determine ITM/OTM status, intrinsic value, and P/L for a leg.
+
+    Args:
+        leg: leg dict with type, strike, qty, cost_price, current_price
+        current_spx: current SPX index price
+
+    Returns:
+        dict with status, intrinsic_value, unrealized_pl, is_short
+    """
+    opt_type = leg['type']  # 'CALL' or 'PUT'
+    strike = leg['strike']
+    qty = leg['qty']
+    cost_price = leg['cost_price']  # entry price per share
+    current_price = leg.get('current_price')
+
+    # Positive qty = long, negative = short
+    is_short = qty < 0
+    abs_qty = abs(qty)
+
+    # Determine ITM/OTM based on intrinsic value (applies to the option itself)
+    # ITM = has intrinsic value (holder would profit if exercised)
+    # OTM = no intrinsic value (holder would not exercise)
+    # Put: intrinsic value = max(0, strike - current)
+    # Call: intrinsic value = max(0, current - strike)
+    if opt_type == 'PUT':
+        # Put is ITM when strike > current (holder can sell at higher price)
+        if strike > current_spx:
+            status = 'ITM'
+        else:
+            status = 'OTM'
+    else:  # CALL
+        # Call is ITM when strike < current (holder can buy at lower price)
+        if strike < current_spx:
+            status = 'ITM'
+        else:
+            status = 'OTM'
+
+    # Calculate intrinsic value (per share)
+    if opt_type == 'PUT':
+        intrinsic_value = max(0, strike - current_spx)
+    else:
+        intrinsic_value = max(0, current_spx - strike)
+
+    # Calculate unrealized P/L
+    # P/L = (current_price - cost_price) * qty * multiplier for long
+    # P/L = (cost_price - current_price) * abs(qty) * multiplier for short
+    unrealized_pl = 0
+    if current_price is not None:
+        if is_short:
+            unrealized_pl = (cost_price - current_price) * abs_qty * SPX_OPTIONS_MULTIPLIER
+        else:
+            unrealized_pl = (current_price - cost_price) * abs_qty * SPX_OPTIONS_MULTIPLIER
+
+    return {
+        'status': status,
+        'intrinsic_value': round(intrinsic_value, 2),
+        'unrealized_pl': round(unrealized_pl, 2),
+        'is_short': is_short,
+    }
+
+
+# ============== Strategy Metrics Calculation ==============
+
+def calculate_strategy_metrics(strategy: dict, current_spx: float) -> dict:
+    """
+    Calculate aggregated Greeks, breakevens, and max profit/loss for a strategy.
+
+    Args:
+        strategy: strategy dict from identify_strategies
+        current_spx: current SPX index price
+
+    Returns:
+        dict with total_greeks, breakevens, max_profit, max_loss, leg_details, total_pl
+    """
+    legs = strategy['legs']
+    strategy_name = strategy['strategy']
+
+    # Aggregate Greeks with multiplier
+    total_delta = sum(r.get('delta', 0) * r['qty'] * SPX_OPTIONS_MULTIPLIER for r in legs if r.get('delta') is not None)
+    total_gamma = sum(r.get('gamma', 0) * r['qty'] * SPX_OPTIONS_MULTIPLIER for r in legs if r.get('gamma') is not None)
+    total_theta = sum(r.get('theta', 0) * r['qty'] * SPX_OPTIONS_MULTIPLIER for r in legs if r.get('theta') is not None)
+    total_vega = sum(r.get('vega', 0) * r['qty'] * SPX_OPTIONS_MULTIPLIER for r in legs if r.get('vega') is not None)
+    total_rho = sum(r.get('rho', 0) * r['qty'] * SPX_OPTIONS_MULTIPLIER for r in legs if r.get('rho') is not None)
+
+    # Per-share Greeks (for reference)
+    per_share_delta = sum(r.get('delta', 0) * r['qty'] for r in legs if r.get('delta') is not None)
+    per_share_theta = sum(r.get('theta', 0) * r['qty'] for r in legs if r.get('theta') is not None)
+
+    # Calculate leg details (ITM/OTM, P/L)
+    leg_details = []
+    total_unrealized_pl = 0
+    for leg in legs:
+        status_info = get_leg_status(leg, current_spx)
+        total_unrealized_pl += status_info['unrealized_pl']
+        leg_details.append({
+            **leg,
+            **status_info,
+        })
+
+    # Calculate breakevens and max profit/loss
+    breakevens = []
+    max_profit = None
+    max_loss = None
+
+    if strategy_name == 'Iron Condor':
+        # Iron Condor: net credit spread
+        # Put side: lower_put_strike - net_credit/multiplier
+        # Call side: higher_call_strike + net_credit/multiplier
+        net_credit = strategy.get('net_debit', 0)
+
+        puts = [l for l in legs if l['type'] == 'PUT']
+        calls = [l for l in legs if l['type'] == 'CALL']
+        puts_sorted = sorted(puts, key=lambda x: x['strike'])
+        calls_sorted = sorted(calls, key=lambda x: x['strike'])
+
+        # Put spread: short put at higher strike, long put at lower strike
+        short_put = puts_sorted[1]  # higher strike
+        long_put = puts_sorted[0]   # lower strike
+        # Call spread: short call at lower strike, long call at higher strike
+        short_call = calls_sorted[0]  # lower strike
+        long_call = calls_sorted[1]   # higher strike
+
+        # Put side breakeven: short_put_strike - net_credit_per_contract
+        put_breakeven = short_put['strike'] - net_credit / SPX_OPTIONS_MULTIPLIER
+        # Call side breakeven: short_call_strike + net_credit_per_contract
+        call_breakeven = short_call['strike'] + net_credit / SPX_OPTIONS_MULTIPLIER
+        breakevens = [round(put_breakeven, 2), round(call_breakeven, 2)]
+
+        # Max profit = net credit received
+        max_profit = net_credit
+        # Max loss = width of spread - net credit
+        put_spread_width = short_put['strike'] - long_put['strike']
+        call_spread_width = long_call['strike'] - short_call['strike']
+        max_loss = -(put_spread_width + call_spread_width) * SPX_OPTIONS_MULTIPLIER - net_credit
+
+    elif strategy_name == 'Vertical Spread':
+        net_debit = strategy.get('net_debit', 0)
+        puts = [l for l in legs if l['type'] == 'PUT']
+        calls = [l for l in legs if l['type'] == 'CALL']
+        opt_type = puts[0]['type'] if puts else calls[0]['type']
+
+        sorted_by_strike = sorted(legs, key=lambda x: x['strike'])
+        lower_strike = sorted_by_strike[0]['strike']
+        higher_strike = sorted_by_strike[-1]['strike']
+
+        if opt_type == 'CALL':
+            # Bull Call Debit Spread: long lower strike, short higher strike
+            if sorted_by_strike[0]['qty'] > 0:  # lower strike is long
+                max_profit = (higher_strike - lower_strike) * SPX_OPTIONS_MULTIPLIER - net_debit
+                max_loss = -net_debit
+                breakeven = lower_strike + net_debit / SPX_OPTIONS_MULTIPLIER
+            else:  # bear call spread (credit)
+                max_profit = net_debit
+                max_loss = -(higher_strike - lower_strike) * SPX_OPTIONS_MULTIPLIER + net_debit
+                breakeven = lower_strike + net_debit / SPX_OPTIONS_MULTIPLIER
+            breakevens = [round(breakeven, 2)]
+        else:  # PUT
+            # Bear Put Debit Spread: long higher strike, short lower strike
+            if sorted_by_strike[-1]['qty'] > 0:  # higher strike is long
+                max_profit = (higher_strike - lower_strike) * SPX_OPTIONS_MULTIPLIER - net_debit
+                max_loss = -net_debit
+                breakeven = higher_strike - net_debit / SPX_OPTIONS_MULTIPLIER
+            else:  # bull put spread (credit)
+                max_profit = net_debit
+                max_loss = -(higher_strike - lower_strike) * SPX_OPTIONS_MULTIPLIER + net_debit
+                breakeven = higher_strike - net_debit / SPX_OPTIONS_MULTIPLIER
+            breakevens = [round(breakeven, 2)]
+
+    elif strategy_name == 'Single Leg':
+        # For single legs, approximate max profit/loss
+        for leg in legs:
+            if leg['qty'] > 0:  # long
+                if leg['type'] == 'CALL':
+                    max_profit = None  # theoretically unlimited
+                    max_loss = -leg['cost_price'] * leg['qty'] * SPX_OPTIONS_MULTIPLIER
+                else:  # PUT
+                    max_profit = (leg['strike'] - 0) * leg['qty'] * SPX_OPTIONS_MULTIPLIER
+                    max_loss = -leg['cost_price'] * leg['qty'] * SPX_OPTIONS_MULTIPLIER
+            else:  # short
+                if leg['type'] == 'CALL':
+                    max_profit = leg['cost_price'] * abs(leg['qty']) * SPX_OPTIONS_MULTIPLIER
+                    max_loss = None  # theoretically unlimited
+                else:  # PUT
+                    max_profit = leg['cost_price'] * abs(leg['qty']) * SPX_OPTIONS_MULTIPLIER
+                    max_loss = -(leg['strike'] - 0) * abs(leg['qty']) * SPX_OPTIONS_MULTIPLIER
+
+    return {
+        'total_greeks': {
+            'delta': round(total_delta, 4),
+            'gamma': round(total_gamma, 4),
+            'theta': round(total_theta, 4),
+            'vega': round(total_vega, 4),
+            'rho': round(total_rho, 4),
+        },
+        'per_share_greeks': {
+            'delta': round(per_share_delta, 4),
+            'theta': round(per_share_theta, 4),
+        },
+        'breakevens': breakevens,
+        'max_profit': round(max_profit, 2) if max_profit is not None else None,
+        'max_loss': round(max_loss, 2) if max_loss is not None else None,
+        'leg_details': leg_details,
+        'total_unrealized_pl': round(total_unrealized_pl, 2),
+    }
+
+
 # ============== Option Strategy Recognition ==============
 
-def identify_strategies(rows: list) -> dict:
+def identify_strategies(rows: list, current_spx: float = None) -> dict:
     """
     Identify option strategies from position rows.
     Priority: Iron Condor > Vertical Spread > Single Leg
@@ -229,6 +487,11 @@ def identify_strategies(rows: list) -> dict:
             'net_debit': identified.get('net_debit', 0),
             'description': identified.get('description', ''),
         }
+
+    # Calculate metrics for each strategy if SPX price is provided
+    if current_spx is not None:
+        for expiry, s in strategies.items():
+            s['metrics'] = calculate_strategy_metrics(s, current_spx)
 
     return strategies
 
@@ -364,16 +627,84 @@ def try_vertical_spread(legs: list) -> dict:
     }
 
 
+# ============== Strategy Analysis Output ==============
+
+def print_strategy_analysis(strategies: dict, current_spx: float):
+    """
+    Print detailed strategy analysis including Greeks, risk metrics, and P/L.
+    """
+    print("\n" + "=" * 110)
+    print("STRATEGY ANALYSIS (Greeks & Risk)")
+    print("=" * 110)
+
+    if current_spx is None:
+        print("  (SPX price not available, skipping detailed analysis)")
+        return
+
+    sorted_expiries = sorted(strategies.keys())
+    for expiry in sorted_expiries:
+        s = strategies[expiry]
+        metrics = s.get('metrics')
+
+        print(f"\n{'='*80}")
+        print(f"Expiry: {expiry} | DTE: {s['dte']} days | SPX: {current_spx:.2f}")
+        print(f"Strategy: {s['strategy']}")
+        print(f"{'='*80}")
+
+        if not metrics:
+            print("  (No metrics available)")
+            continue
+
+        # Greeks Summary
+        g = metrics['total_greeks']
+        ps = metrics['per_share_greeks']
+        print(f"\n  Greeks (Total with {SPX_OPTIONS_MULTIPLIER}x multiplier):")
+        print(f"    Delta: {g['delta']:>10.4f}  |  Theta: {g['theta']:>10.4f}")
+        print(f"    Gamma: {g['gamma']:>10.4f}  |  Vega:  {g['vega']:>10.4f}")
+        print(f"    Rho:   {g['rho']:>10.4f}")
+        print(f"  Per-Share Greeks (before multiplier):")
+        print(f"    Delta: {ps['delta']:>10.4f}  |  Theta: {ps['theta']:>10.4f}")
+
+        # Breakevens & Risk/Reward
+        print(f"\n  Risk/Reward:")
+        if metrics['breakevens']:
+            be_str = " & ".join([f"{be:,.2f}" for be in metrics['breakevens']])
+            print(f"    Breakeven(s): {be_str}")
+        max_profit = metrics['max_profit']
+        max_loss = metrics['max_loss']
+        if max_profit is not None:
+            print(f"    Max Profit:  ${max_profit:>12,.2f}")
+        else:
+            print(f"    Max Profit:  {'Unlimited':>12}")
+        if max_loss is not None:
+            print(f"    Max Loss:    ${max_loss:>12,.2f}")
+        else:
+            print(f"    Max Loss:    {'Unlimited':>12}")
+
+        # Unrealized P/L
+        total_pl = metrics['total_unrealized_pl']
+        print(f"\n  Total Unrealized P/L: ${total_pl:>12,.2f}")
+
+        # Leg Details Table
+        print(f"\n  Leg Details:")
+        hdr = f"    {'Direction':<7} {'Type':<5} {'Strike':>8} {'Qty':>5} {'ITM/OTM':<7} {'Intrinsic':>10} {'P/L':>12}"
+        print(f"    {'-'*70}")
+        print(hdr)
+
+        for leg in metrics['leg_details']:
+            direction = "LONG" if leg['qty'] > 0 else "SHORT"
+            status = leg['status']
+            intrinsic = leg['intrinsic_value']
+            pl = leg['unrealized_pl']
+            print(f"    {direction:<7} {leg['type']:<5} {leg['strike']:>8.0f} {abs(leg['qty']):>5.0f} {status:<7} ${intrinsic:>9.2f} ${pl:>11,.2f}")
+
+
 # ============== Main ==============
 
 def main():
-    parser = argparse.ArgumentParser(description='SPX Options Portfolio Display')
-    parser.add_argument('--trd-env', default='REAL', choices=['REAL', 'SIMULATE'])
-    parser.add_argument('--json', action='store_true')
-    args = parser.parse_args()
-
+    global _args
     log("Starting SPX Options Portfolio script")
-    log(f"Trading environment: {args.trd_env}")
+    log(f"Trading environment: {_args.trd_env}")
 
     # Get market data
     log("Fetching market data for SPX, VIX, SPY, ES...")
@@ -381,7 +712,7 @@ def main():
     log("Market data fetched successfully")
 
     # Get positions
-    positions = get_positions(args.trd_env)
+    positions = get_positions(_args.trd_env)
     if positions is None or positions.empty:
         log("ERROR: No positions or failed to fetch positions")
         return
@@ -462,7 +793,7 @@ def main():
             'prev_close_price': q.get('prev_close_price'),
         })
 
-    if args.json:
+    if _args.json:
         output = {
             'market': market,
             'positions': rows,
@@ -529,7 +860,8 @@ def main():
             print(f"{r['code']:<25} {oi} {vol} {prem} {hi} {lo} {pc}")
 
         # ---- Strategy Recognition ----
-        strategies = identify_strategies(rows)
+        current_spx = market.get('SPX', {}).get('price')
+        strategies = identify_strategies(rows, current_spx)
         print("\n" + "=" * 110)
         print("OPTION STRATEGIES")
         print("=" * 110)
@@ -546,6 +878,9 @@ def main():
             for leg in s['legs']:
                 direction = "LONG" if leg['qty'] > 0 else "SHORT"
                 print(f"    {direction:5} {leg['type']:4} {leg['strike']:8.0f} x {abs(leg['qty']):.0f} @ ${leg['cost_price']:.2f}")
+
+        # ---- Strategy Analysis (Greeks, Risk, P/L) ----
+        print_strategy_analysis(strategies, current_spx)
 
         print(f"\nCalculated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
