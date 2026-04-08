@@ -1,758 +1,754 @@
 # Iron Condor 期权策略专业分析指南
 
-> Trading dates: April 2026 | SPX Options Analysis
-> Market data powered by yfinance | Position data via Futu OpenAPI
+## 第一章：希腊字母分析
+
+### Delta：中性与胜率关系
+
+Delta衡量期权价格相对于标的资产价格变化的速率。
+
+**Iron Condor Delta特征：**
+- Iron Condor目标Delta接近零（方向中性）
+- 净Delta通常很小，表明方向性偏见最小
+- 每腿Delta ±0.10至±0.20对大多数IC结构是可接受的
+
+**胜率关系：**
+- SPX每日波动通常为0.5-1%（约±5-10个指数点）
+- 以SPX 5500为中心、宽度20的IC为例：
+  - Short put在5450（Delta ≈ -0.15至-0.20）
+  - Short call在5550（Delta ≈ +0.15至+0.20）
+  - 净Delta ≈ 0（平衡）
+
+**Delta作为概率代理：**
+| Delta值 | 约等于ITM概率 | 含义 |
+|---------|--------------|------|
+| 0.50 | 50% | 平价 |
+| 0.20 | 约80% OTM | Wing保护水平 |
+| 0.10 | 约90% OTM | 远虚值 |
+| -0.10 | 约90% OTM（Put侧） | 远虚值 |
+
+**实用规则：**
+- Short strike的Delta ≈ 0.20意味着约80%的概率会到期作废
+- Iron Condor的wing通常设在Delta 0.10-0.15，对应85-90%的成功率目标
+
+### Gamma：Short Gamma风险与到期日关系
+
+Gamma衡量Delta相对于标的资产价格变化的速率。
+
+**Iron Condor是Short Gamma策略：**
+
+| 持仓方向 | Gamma符号 | 效果 |
+|---------|----------|------|
+| Long期权 | 正 | 市场变动时获利 |
+| Short期权 | 负 | 市场变动时亏损 |
+| **Iron Condor（净）** | **负** | **不利波动** |
+
+**Short Gamma风险：**
+1. **Pinning风险**：大型机构持仓可将价格钉在short strike附近
+2. **跳空风险**：隔夜新闻可导致价格跳过wing
+3. **Gamma Scalping成本**：做市商动态对冲，蚕食short gamma交易者利润
+
+**Gamma与DTE关系：**
+```
+DTE    | 每Strike Gamma | 总IC Gamma敞口
+------ | -------------- | ----------------
+45     | 低              | 可控，delta漂移慢
+30     | 中等            | Gamma加速明显
+15     | 高              | Gamma效应显著
+7      | 极高            | 危险区域，delta可能快速波动
+1      | 极端            | Pin风险最大，避免新持仓
+```
+
+**Gamma风险管理：**
+- 监控总持仓Gamma：`-Gamma × SPX × 100`应保持在每日theta收入的合理倍数以下
+- 当Gamma飙升（DTE < 15）时，考虑收窄结构或获利了结
+
+### Theta：正Theta特性与DTE关系
+
+Theta衡量时间衰减——作为short期权持有者每日收取的"租金"。
+
+**Iron Condor产生正Theta：**
+- Short期权随时间推移贬值（Theta对你有利）
+- Long期权（wing）有负theta（每日损耗成本）
+- 平衡IC结构的净theta通常为正
+
+**按DTE的Theta表：**
+| DTE | 典型每日Theta | 说明 |
+|-----|--------------|------|
+| 45+ | 较低/天 | Theta缓慢累积，IV可能衰减 |
+| 30 | 中等 | IC的甜蜜区 |
+| 21 | 良好 | 通常的最佳入场点 |
+| 14 | 高 | Theta收集高峰期 |
+| 7 | 极高 | 最后的theta，后期gamma风险增加 |
+| 1-2 | 最大 | 接近到期，gamma主导 |
+
+**Theta衰减曲线：**
+- Theta非线性加速：DTE 60+时较小，30后加速
+- DTE 7时，theta是DTE 30时的3-4倍
+- 图形特征：凸曲线，接近到期时更陡
+
+**Theta计算示例：**
+```
+SPX IC：净信用金$2.50（每合约$250）
+DTE：30天
+每日theta：$2.50 / 30 ≈ $8.33/天
+如果持有到期总theta：$2.50 × 100 = $250/合约
+实际theta取决于提前平仓或调整
+```
+
+### Vega：波动率影响与VIX关系
+
+Vega衡量对隐含波动率变化的敏感度。
+
+**Iron Condor是Short Vega：**
+- Short期权有负Vega
+- IV上升 → 你卖出的期权变得更贵（不利）
+- IV下降 → 你卖出的期权变得更便宜（有利）
+
+**各Strike的Vega敞口：**
+| Strike | Delta | Vega贡献 |
+|--------|-------|---------|
+| 深度ITM | 高 | 负（short持仓） |
+| ATM | 0.50 | 最负的Vega |
+| OTM（wing） | 低 | 小但有意义 |
+
+**VIX关系：**
+- VIX > 25：高波动环境
+  - 建议使用更宽的wing
+  - 可获得更高的权利金（更多信用金）
+  - 高IV意味着更多权利金但风险也更高
+  - 考虑减小仓位
+
+- VIX 15-25：正常波动
+  - 标准20宽IC通常有效
+  - 风险/收益平衡
+
+- VIX < 15：低波动环境
+  - 使用更窄的wing（15宽）以产生足够的信用金
+  - IV可能进一步压缩，有利于short vega
+  - 注意波动率飙升风险
+
+**Vega风险公式：**
+```
+持仓Vega = Σ (Vega_i × 数量_i × 100)
+
+示例：
+  Short 5口 SPX 5500C @ Vega -0.15 × -5 × 100 = +75（受益于IV上升）
+  Long 5口 SPX 5700C @ Vega +0.08 × 5 × 100 = -40（受损于IV上升）
+  净：+35（略多Vega——异常，需审查）
+```
+
+### Rho：利率影响
+
+Rho衡量对利率变化的敏感度。
+
+**Iron Condor Rho特征：**
+- Short put有负rho（受益于利率上升）
+- Short call有正rho（受利率上升损害）
+- 对SPX期权，净rho效应通常较小
+
+**实际影响：**
+- SPX期权是股指期权，rho是次要考虑因素
+- 在高利率环境（2022-2024），rho效应更明显
+- 对于短期期权（DTE < 30），rho影响很小
+- 1%的利率变化通常使期权价格变化< 1%
 
 ---
 
-## Chapter 1: Greek Letters Analysis
+## 第二章：波动率分析
 
-### Delta: Neutral Characteristics & Win Rate
+### IV分析：IV vs RV、IV Rank
 
-Delta measures the rate of change in option price relative to the underlying price movement.
+**隐含波动率（IV）与实际波动率（RV）：**
 
-**Iron Condor Delta Profile:**
-- Iron Condor targets Delta near zero (directionally neutral)
-- Net Delta is typically small, indicating minimal directional bias
-- Delta of ±0.10 to ±0.20 per leg is acceptable for most IC structures
+| 指标 | 定义 | 作用 |
+|-----|------|------|
+| IV | 市场对未来波动的预期 | 你卖出期权的价格 |
+| RV（实际） | 历史实际波动 | 实际发生的情况 |
 
-**Win Rate Relationship:**
-- SPX typically moves 0.5-1% daily (roughly ±5-10 index points)
-- For a 20-wide IC centered around SPX 5500:
-  - Short put at 5450 (Delta ≈ -0.15 to -0.20)
-  - Short call at 5550 (Delta ≈ +0.15 to +0.20)
-  - Net Delta ≈ 0 (balanced)
+**IV vs RV关系：**
+- IV > RV：期权"昂贵"——适合卖出
+- IV < RV：期权"便宜"——卖出需谨慎
+- IV/RV比率 > 1.2：权利金卖出环境有利
+- IV/RV比率 < 0.8：考虑获利了结或避免新卖出
 
-**Delta as Probability Proxy:**
-| Delta Value | Approximate ITM Probability | Interpretation |
-|-------------|---------------------------|----------------|
-| 0.50 | 50% | At-the-money |
-| 0.20 | ~80% OTM | Wing protection level |
-| 0.10 | ~90% OTM | Distant OTM strike |
-| -0.10 | ~90% OTM (put side) | Distant OTM strike |
-
-**Practical Rule:**
-- Short strike Delta ≈ 0.20 suggests ~80% probability of expiring OTM
-- Iron Condor wings typically set at Delta 0.10-0.15 for 85-90% success rate target
-
-### Gamma: Short Gamma Risk & DTE Relationship
-
-Gamma measures the rate of change of Delta relative to the underlying.
-
-**Iron Condor is a Short Gamma Strategy:**
-
-| Position | Gamma Sign | Effect |
-|----------|-----------|--------|
-| Long option | Positive | Gains value when market moves |
-| Short option | Negative | Loses value when market moves |
-| **Iron Condor (net)** | **Negative** | **不利波动** |
-
-**Short Gamma Risks:**
-1. **Pinning Risk**: Large institutional positions can pin price near short strikes at expiry
-2. **Gap Risk**: Overnight news can cause gaps past wings
-3. **Gamma Scalping Cost**: Market makers hedge dynamically, costing the short gamma trader
-
-**Gamma vs DTE (Days to Expiration):**
+**IV Rank（百分位）：**
 ```
-DTE    | Gamma per Strike | Total IC Gamma Exposure
------- | ---------------- | -----------------------
-45     | Low              | Manageable, slow delta drift
-30     | Moderate         | Noticeable gamma acceleration
-15     | High             | Short gamma effects become significant
-7      | Very High        | Dangerous territory - delta can swing rapidly
-1      | Extreme          | Pin risk maximum, avoid new positions
-```
+IV Rank = (当前IV - 52周低值) / (52周高值 - 52周低值) × 100
 
-**Gamma Risk Management:**
-- Monitor total portfolio Gamma: `-Gamma × SPX × 100` should remain below daily theta intake
-- When Gamma spikes (DTE < 15), consider narrowing the structure or taking profits
-
-### Theta: Positive Theta Characteristics & DTE Relationship
-
-Theta measures time decay - the daily "rent" collected for being short options.
-
-**Iron Condor Generates Positive Theta:**
-- Short options lose value as time passes ( Theta decays in your favor)
-- Long options (wings) have negative theta (cost you daily)
-- Net theta is typically positive for balanced IC structures
-
-**Theta per DTE Table:**
-| DTE | Typical Daily Theta | Notes |
-|-----|---------------------|-------|
-| 45+ | Lower per day | Theta accumulates slowly, IV may decay |
-| 30 | Moderate | Sweet spot for Iron Condors |
-| 21 | Good | Often optimal entry point |
-| 14 | High | Peak theta collection period |
-| 7 | Very high | Last gasp theta, gamma risk increases |
-| 1-2 | Maximum | Close to expiry, gamma dominates |
-
-**Theta Decay Curve:**
-- Theta accelerates non-linearly: minimal at 60+ DTE, accelerates after 30 DTE
-- At 7 DTE, theta is 3-4x higher than at 30 DTE
-- Chart pattern: convex curve, steeper near expiry
-
-**Theta Calculation (Example):**
-```
-SPX IC: Net credit $2.50 (250 per contract)
-DTE: 30 days
-Daily theta: $2.50 / 30 ≈ $8.33 per day
-Total theta if held to expiry: $2.50 × 100 = $250 per contract
-Actual realized theta depends on early close or adjustment
-```
-
-### Vega: Volatility Impact & VIX Relationship
-
-Vega measures sensitivity to implied volatility changes.
-
-**Iron Condor is Short Vega:**
-- Short options have negative vega
-- IV rises → options you sold become more expensive (bad)
-- IV falls → options you sold become cheaper (good)
-
-**Vega Exposure by Strike:**
-| Strike | Delta | Vega Contribution |
-|--------|-------|------------------|
-| Deep ITM | High | Negative (short position) |
-| ATM | 0.50 | Most negative vega |
-| OTM (wing) | Low | Small but meaningful |
-
-**VIX Relationship:**
-- VIX > 25: High volatility environment
-  - Wider wings recommended
-  - Higher premium available (more credit)
-  - Higher IV means more premium but also more risk
-  - Consider smaller position size
-
-- VIX 15-25: Normal volatility
-  - Standard 20-wide IC typically works
-  - Balanced risk/reward
-
-- VIX < 15: Low volatility environment
-  - Narrower wings (15-wide) to generate adequate credit
-  - IV may crush further, benefiting short vega
-  - Be cautious of volatility spike risk
-
-**Vega Risk Formula:**
-```
-Portfolio Vega = Σ (Vega_i × Qty_i × 100)
-Example:
-  Short 5 lots SPX 5500C @ Vega -0.15 × -5 × 100 = +75 (benefits from IV rise)
-  Long 5 lots SPX 5700C @ Vega +0.08 × 5 × 100 = -40 (hurts from IV rise)
-  Net: +35 (slightly long vega - unusual, needs review)
-```
-
-### Rho: Interest Rate Impact
-
-Rho measures sensitivity to interest rate changes.
-
-**Iron Condor Rho Profile:**
-- Short puts have negative rho (benefit from rate increases)
-- Short calls have positive rho (hurt by rate increases)
-- Net rho effect is typically small for SPX options
-
-**Practical Impact:**
-- SPX options are equity-index options, rho is secondary consideration
-- In high-rate environments (2022-2024), rho effect becomes more noticeable
-- For short-dated options (DTE < 30), rho impact is minimal
-- 1% rate change affects option price by < 1% typically
-
----
-
-## Chapter 2: Volatility Analysis
-
-### IV Analysis: IV vs RV, IV Rank
-
-**Implied Volatility (IV) vs Realized Volatility (RV):**
-
-| Metric | Definition | Role |
-|--------|------------|------|
-| IV | Market's expectation of future volatility | What you sell options at |
-| RV (Realized) | Actual historical volatility | What actually happens |
-
-**IV vs RV Relationship:**
-- IV > RV: Options are "expensive" - favorable for selling
-- IV < RV: Options are "cheap" - be cautious of selling
-- IV/RV Ratio > 1.2: Premium selling environment
-- IV/RV Ratio < 0.8: Consider taking profits or avoiding new sales
-
-**IV Rank (Percentile):**
-```
-IV Rank = (Current IV - 52W Low) / (52W High - 52W Low) × 100
-
-Example:
-  52W Low IV: 12%
-  52W High IV: 28%
-  Current IV: 20%
+示例：
+  52周低IV：12%
+  52周高IV：28%
+  当前IV：20%
   IV Rank = (20 - 12) / (28 - 12) × 100 = 50%
 ```
 
-**IV Rank Interpretation:**
-| IV Rank | Environment | Strategy Implication |
-|---------|-------------|----------------------|
-| 0-20% | Very low IV | Reduce size, IV may crush further |
-| 20-40% | Low IV | Neutral, premiums may be thin |
-| 40-60% | Moderate IV | Normal conditions, standard IC |
-| 60-80% | High IV | Good premium environment |
-| 80-100% | Very high IV | Excellent premium but risk elevated |
+**IV Rank解读：**
+| IV Rank | 环境 | 策略含义 |
+|---------|------|---------|
+| 0-20% | 极低IV | 减小仓位，IV可能继续压缩 |
+| 20-40% | 低IV | 中性，权利金可能较薄 |
+| 40-60% | 中等IV | 正常条件，标准IC |
+| 60-80% | 高IV | 权利金环境好 |
+| 80-100% | 极高IV | 权利金极好但风险升高 |
 
-### VIX: Market Sentiment & Term Structure
+### VIX：市场情绪与期限结构
 
-**VIX Overview:**
-- VIX measures S&P 500 index option implied volatility
-- Also known as the "fear index"
-- Inverse relationship with stock prices (typically)
+**VIX概述：**
+- VIX衡量S&P 500指数期权的隐含波动率
+- 也称为"恐慌指数"
+- 与股价呈反向关系（通常）
 
-**VIX Levels & Market Implications:**
-| VIX Range | Market Status | IC Implication |
-|-----------|--------------|----------------|
-| < 15 | Complacent | Low premium, reduce size |
-| 15-20 | Normal | Standard IC framework |
-| 20-25 | Elevated | Higher premiums, wider wings |
-| 25-30 | High stress | Reduce exposure, very wide wings |
-| > 30 | Crisis | Avoid new IC, manage existing |
+**VIX水平与市场含义：**
+| VIX范围 | 市场状态 | IC含义 |
+|---------|---------|-------|
+| < 15 | 自满 | 权利金低，减少仓位 |
+| 15-20 | 正常 | 标准IC框架 |
+| 20-25 | 上升 | 权利金更高，wing需更宽 |
+| 25-30 | 高压力 | 减少敞口，非常宽的wing |
+| > 30 | 危机 | 避免新IC，管理现有持仓 |
 
-**VIX Term Structure:**
+**VIX期限结构：**
 ```
-Normal (Contango):
+正常（Contango）：
   1M: 18%  →  3M: 20%  →  6M: 21%  →  12M: 22%
-  (Upward sloping = normal decay of volatility term premium)
+  （向上倾斜 = 波动率期限溢价正常衰减）
 
-Inverted (Backwardation):
+倒挂（Backwardation）：
   1M: 25%  →  3M: 22%  →  6M: 20%  →  12M: 19%
-  (Spot VIX elevated, near-term fear high)
+  （现货VIX升高，近期恐惧高）
 
-Flat:
+平坦：
   1M: 20%  →  3M: 20%  →  6M: 20%
-  (Uncertain direction)
+  （方向不确定）
 ```
 
-**Contango vs Backwardation Effects:**
-- **Contango**: Normal state, front-month IV lower than back-month
-  - Short-dated options may have less premium
-  - Roll costs low for calendar spreads
+**Contango vs Backwardation影响：**
+- **Contango**：正常状态，前月IV低于后月
+  - 短期期权权利金可能较少
+  - 日历价差展期成本低
 
-- **Backwardation**: Fear spike, near-term IV elevated
-  - Front-month premium high
-  - Short-dated IC may be attractive
-  - Watch for quick mean reversion
+- **Backwardation**：恐惧飙升，近期IV升高
+  - 前月权利金高
+  - 短期IC可能有吸引力
+  - 注意快速均值回归
 
-### Volatility Smile: OTM Put Skew
+### 波动率微笑：OTM Put Skew
 
-**The Smile/Skew Phenomenon:**
-- OTM puts (downside) trade at higher IV than equivalent OTM calls
-- Reflects demand for downside protection
-- Creates opportunity in put skew selling
+**微笑/偏斜现象：**
+- OTM put（下行）比同等OTM call交易IV更高
+- 反映对下行保护的需求
+- 为put skew卖出创造机会
 
-**SPX Put Skew Structure:**
+**SPX Put Skew结构：**
 ```
-Strike      | Delta  | IV (Typical) | Notes
-------------|--------|--------------|------------------
-5400 (OTM)  | -0.10  | 19-21%       | Wing level
-5450 (OTM)  | -0.15  | 18-19%       | Common IC short put
-5500 (ATM)  | -0.50  | 16-17%       | ATM level
-5550 (OTM)  | +0.15  | 17-18%       | Common IC short call
-5600 (OTM)  | +0.10  | 18-20%       | Wing level
-```
-
-**Put Skew Implications for IC:**
-1. OTM puts are "expensive" relative to calls at same delta
-2. Selling OTM puts generates more premium than selling equivalent calls
-3. Put wing is typically set wider than call wing to account for crash risk
-4. Black swan events: left tail risk > right tail risk
-
-**Skew Ratio Calculation:**
-```
-Skew Ratio = IV(OTM Put at Delta -0.15) / IV(OTM Call at Delta +0.15)
-
-Example:
-  Put IV: 18.5% (Delta -0.15)
-  Call IV: 17.0% (Delta +0.15)
-  Skew Ratio = 18.5 / 17.0 = 1.09
-
-Interpretation: Puts are 9% more expensive than calls at equivalent delta
+Strike      | Delta  | IV（典型）| 说明
+------------|--------|----------|------------------
+5400 (OTM)  | -0.10  | 19-21%       | Wing水平
+5450 (OTM)  | -0.15  | 18-19%       | 常见IC short put
+5500 (ATM)  | -0.50  | 16-17%       | ATM水平
+5550 (OTM)  | +0.15  | 17-18%       | 常见IC short call
+5600 (OTM)  | +0.10  | 18-20%       | Wing水平
 ```
 
-### Term Structure: Contango/Backwardation, ES Futures vs SPX
+**Put Skew对IC的影响：**
+1. OTM put相对于同等delta的call"昂贵"
+2. 卖出OTM put比卖出等效call产生更多权利金
+3. Put wing通常比call wing设置更宽，以应对崩盘风险
+4. 黑天鹅事件：左尾风险 > 右尾风险
 
-**Contango (Normal):**
-- Future price > Spot price
-- Indicates expected higher future spot price OR storage costs
-- Normal for equity indices with positive carry
-
+**Skew比率计算：**
 ```
-ES Front Month: 5512
-SPX Spot: 5500
-Contango: +12 points (0.22%)
+Skew比率 = IV(Delta -0.15的OTM Put) / IV(Delta +0.15的OTM Call)
 
-Typical contango: 0.10% - 0.50% annualized
-```
+示例：
+  Put IV：18.5%（Delta -0.15）
+  Call IV：17.0%（Delta +0.15）
+  Skew比率 = 18.5 / 17.0 = 1.09
 
-**Backwardation (Inverted):**
-- Future price < Spot price
-- Often indicates:
-  - Near-term supply/demand imbalance
-  - Expected spot price decline
-  - Risk-off sentiment (futures selling)
-
-```
-ES Front Month: 5490
-SPX Spot: 5500
-Backwardation: -10 points (-0.18%)
+解读：等效delta下，Put比Call贵9%
 ```
 
-**Contango/Backwardation Impact on IC:**
+### 期限结构：Contango/Backwardation、ES期货与SPX关系
 
-| Condition | Effect on IC |
-|-----------|--------------|
-| Contango | Normal carry, standard IC construction |
-| Deep Contango | May indicate upcoming volatility term premium decay |
-| Mild Backwardation | Normal if VIX elevated, monitor |
-| Deep Backwardation | Significant fear event, avoid new positions |
+**Contango（正常）：**
+- 期货价格 > 现货价格
+- 表明预期未来现货价格更高或存储成本
+- 对正carry的股指是正常的
 
-**ES-SPX Spread Trading:**
-- ES futures track SPX closely but not perfectly
-- Spread can diverge 5-15 points in stressed markets
-- Use ES as a rough hedge reference for SPX positions
-- During high stress: ES may trade at larger discount
+```
+ES近月：5512
+SPX现货：5500
+Contango：+12点（0.22%）
+
+典型contango：年化0.10% - 0.50%
+```
+
+**Backwardation（倒挂）：**
+- 期货价格 < 现货价格
+- 通常表示：
+  - 近期供需失衡
+  - 预期现货价格下跌
+  - 风险厌恶（期货卖出）
+
+```
+ES近月：5490
+SPX现货：5500
+Backwardation：-10点（-0.18%）
+```
+
+**Contango/Backwardation对IC的影响：**
+
+| 条件 | 对IC的影响 |
+|-----|----------|
+| Contango | 正常carry，标准IC构建 |
+| 深Contango | 可能预示波动率期限溢价即将衰减 |
+| 轻度Backwardation | 如果VIX升高则正常，监控 |
+| 深Backwardation | 重大恐惧事件，避免新持仓 |
+
+**ES-SPX价差交易：**
+- ES期货紧密跟踪SPX但不完全一致
+- 在压力市场价差可能偏离5-15点
+- 用ES作为SPX持仓的粗略对冲参考
+- 高压力期间：ES可能以更大折扣交易
 
 ---
 
-## Chapter 3: Put/Call Ratio & Market Structure
+## 第三章：Put/Call比率与市场结构
 
-### PCR Indicator Interpretation
+### PCR指标解读
 
-**Put/Call Ratio Formula:**
+**Put/Call比率公式：**
 ```
-PCR = Total Put Volume / Total Call Volume
-     OR
-PCR = Total Put OI / Total Call OI  (more meaningful for positions)
-```
-
-**PCR Levels & Interpretation:**
-| PCR Value | Interpretation | Market Signal |
-|-----------|---------------|---------------|
-| < 0.70 | Very bullish | Extreme greed, caution warranted |
-| 0.70-0.90 | Bullish | Generally positive for stocks |
-| 0.90-1.10 | Neutral | Balanced positioning |
-| 1.10-1.30 | Bearish | Increased put buying, defensive |
-| > 1.30 | Very bearish | High fear, potential bottom zone |
-
-**IC-Specific PCR Use:**
-- High PCR (>1.2): More premium available on put side
-  - Consider wider put wing for more credit
-  - Sentiment may be too bearish
-
-- Low PCR (<0.8): Less put premium
-  - May need to narrow put wing
-  - Bullish sentiment, reduce put side exposure
-
-**SPX-Specific Considerations:**
-- SPX is a covered-asset (cash-settled)
-- Large institutional hedging uses SPX puts
-- PCR > 1.0 is normal for SPX due to portfolio insurance hedging
-
-### SPX Spot vs ES Futures Relationship
-
-**Price Discovery:**
-```
-ES (Electronic S&P 500) = 5512
-SPX (Cash Index) = 5500
-Premium/Discount = ES - SPX = +12 points
-
-This premium reflects:
-1. Cost of carry (interest rates)
-2. Expected dividend adjustments
-3. Supply/demand in futures market
+PCR = 总Put成交量 / 总Call成交量
+     或
+PCR = 总Put持仓量(OI) / 总Call持仓量(OI)  （对持仓更有意义）
 ```
 
-**Spread Dynamics:**
-| Condition | ES vs SPX | Interpretation |
-|-----------|-----------|----------------|
-| Normal contango | ES > SPX | Carry positive, futures fairly valued |
-| Tight spread | ES ≈ SPX | Possible rebalancing flows |
-| ES discount | ES < SPX | Risk-off, futures selling, possible selling pressure |
+**PCR水平与解读：**
+| PCR值 | 解读 | 市场信号 |
+|-------|------|---------|
+| < 0.70 | 极度看涨 | 极度贪婪，需谨慎 |
+| 0.70-0.90 | 看涨 | 对股票总体有利 |
+| 0.90-1.10 | 中性 | 平衡持仓 |
+| 1.10-1.30 | 看跌 | Put买入增加，防御性 |
+| > 1.30 | 极度看跌 | 高恐惧，可能的底部区域 |
 
-**Practical Trading Notes:**
-1. **ES is the leading indicator** - it trades 23 hours
-2. **SPX cash opens 9:30 ET** - gap fills from ES overnight move
-3. **During market stress**: ES may discount SPX significantly
-4. **IC adjustments**: Use ES level as reference for strike proximity
+**IC专用PCR用法：**
+- 高PCR（>1.2）：Put侧有更多权利金
+  - 考虑更宽的put wing以获得更多信用金
+  - 情绪可能过于看跌
 
-**Overnight Gap Risk:**
+- 低PCR（<0.8）：Put权利金较少
+  - 可能需要收窄put wing
+  - 看涨情绪，减少put侧敞口
+
+**SPX特定考量：**
+- SPX是担保资产（现金结算）
+- 大型机构对冲使用SPX put
+- 由于投资组合保险对冲，SPX的PCR > 1.0是正常的
+
+### SPX现货 vs ES期货关系
+
+**价格发现：**
 ```
-ES Close (4:15 PM): 5510
-ES Overnight High: 5525 (+15 points)
-ES Overnight Low: 5485 (-25 points)
+ES（电子S&P 500）= 5512
+SPX（现货指数）= 5500
+溢价/折价 = ES - SPX = +12点
 
-Gap Risk: If ES gaps past IC wings overnight,
-          morning adjustment may be necessary
+溢价反映：
+1. Carry成本（利率）
+2. 预期股息调整
+3. 期货市场的供需
+```
+
+**价差动态：**
+| 条件 | ES vs SPX | 解读 |
+|-----|----------|------|
+| 正常contango | ES > SPX | Carry为正，期货公允价值 |
+| 价差收紧 | ES ≈ SPX | 可能再平衡流入 |
+| ES折价 | ES < SPX | 风险厌恶，期货卖出，可能卖出压力 |
+
+**实际交易要点：**
+1. **ES是领先指标** - 它交易23小时
+2. **SPX现货9:30 ET开盘** - 从ES隔夜缺口填补
+3. **市场压力期间**：ES可能显著折价SPX
+4. **IC调整**：用ES水平作为strike接近度的参考
+
+**隔夜缺口风险：**
+```
+ES收盘（下午4:15）：5510
+ES隔夜高点：5525（+15点）
+ES隔夜低点：5485（-25点）
+
+缺口风险：如果ES隔夜跳过IC wing，
+         可能需要早晨调整
 ```
 
 ---
 
-## Chapter 4: Adjustment Strategies
+## 第四章：调整策略
 
-### Key Adjustment Methods
+### 关键调整方法
 
-| Adjustment | When to Use | Win Rate | P/L Ratio | Margin | Max Loss |
-|-----------|-------------|----------|-----------|--------|----------|
-| **Narrow Wing** | Reduce risk | Increases | Decreases | Decreases | Decreases |
-| **Widen Wing** | Increase premium | Decreases | Increases | Increases | Increases |
-| **Roll Up** | Breakout above | Varies | Varies | Varies | Changes |
-| **Roll Down** | Breakout below | Varies | Varies | Varies | Changes |
-| **Close Partial** | Lock in profit | - | - | Decreases | Decreases |
-| **Convert to Iron Butterfly** | Expect range-bound | Increases | Decreases | Decreases | Decreases |
+| 调整 | 适用场景 | 胜率 | 盈亏比 | 保证金 | 最大亏损 |
+|-----|---------|------|--------|--------|---------|
+| **收窄wing** | 降风险 | 提高 | 降低 | 降低 | 降低 |
+| **扩大wing** | 增收益 | 降低 | 提高 | 提高 | 提高 |
+| **向上移仓** | 突破上行 | 变化 | 变化 | 变化 | 变化 |
+| **向下移仓** | 突破下行 | 变化 | 变化 | 变化 | 变化 |
+| **平仓部分** | 锁利润 | - | - | 降低 | 降低 |
+| **转铁蝶式** | 看不破 | 提高 | 降低 | 降低 | 降低 |
 
-### 1. Narrow Wing (收窄 Wing)
+### 1. 收窄 Wing（收窄 Wing）
 
-**Mechanics:**
-- Buy back the short option closer to current price
-- Sell a new further OTM option to maintain wing width
-- Net effect: reduced risk, reduced credit
+**机制：**
+- 将short option买回，靠近当前价格
+- 卖出新的更远OTM的option以保持wing宽度
+- 净效果：风险降低，信用金减少
 
-**Example - April IC:**
+**示例 - 4月IC：**
 ```
-Original:
-  Short 5450P @ Delta -0.15, credit $2.00
-  Long 5400P @ Delta -0.08, debit $0.80
-  Net credit: $1.20
+原始：
+  Short 5450P @ Delta -0.15，信用金$2.00
+  Long 5400P @ Delta -0.08，权利金$0.80
+  净信用金：$1.20
 
-Narrow:
-  Buy back 5450P @ $1.50 (now closer, IV crushed)
-  Sell new 5425P @ Delta -0.12, credit $1.20
-  Net effect: reduced wing, locked in some profit
-```
-
-**When to Apply:**
-- Price moved significantly but stayed OTM
-- VIX declined (IV compression)
-- DTE > 30, theta accumulation complete
-
-**Trade-off:**
-- Win rate increases (more room to OTM)
-- Profit potential decreases (less net credit)
-- Margin requirement may decrease
-
-### 2. Widen Wing (扩大 Wing)
-
-**Mechanics:**
-- Close existing short option at a loss
-- Sell new option further OTM
-- Collect additional credit to offset loss
-
-**Example:**
-```
-Original: Short 5500C, credit $2.50, 30 DTE
-Current:  SPX at 5550 (short call ITM)
-
-Adjustment:
-  Buy back 5500C @ $6.00 (loss $3.50)
-  Sell new 5575C @ $3.50
-  Net cost: $0 (break-even on adjustment)
-
-New structure: Wider call wing, same premium risk
+收窄：
+  买回5450P @ $1.50（现在更近了，IV已压缩）
+  卖出新5425P @ Delta -0.12，信用金$1.20
+  净效果：wing收窄，锁定部分利润
 ```
 
-**When to Apply:**
-- Price approaching short strike
-- High IV environment (premium available)
-- Strong conviction that breakout is temporary
+**何时应用：**
+- 价格大幅移动但仍OTM
+- VIX下降（IV压缩）
+- DTE > 30，theta累积已完成
 
-**Trade-off:**
-- Higher potential profit
-- Lower win rate
-- Higher margin requirement
-- Larger max loss
+**权衡：**
+- 胜率提高（更多空间保持OTM）
+- 盈利潜力降低（净信用金减少）
+- 保证金要求可能降低
 
-### 3. Roll Up (向上移仓)
+### 2. 扩大 Wing（扩大 Wing）
 
-**Mechanics:**
-- Close short call that's at risk
-- Sell new higher-strike call
-- Collect premium to offset loss
+**机制：**
+- 以亏损平掉现有的short option
+- 卖出新的更远OTM的option
+- 收取额外信用金以弥补亏损
 
-**When to Apply:**
-- Strong upside breakout
-- SPX trending higher
-- Economic data / catalysts supportive
-
-**Example:**
+**示例：**
 ```
-Original April IC Call Side:
+原始：Short 5500C，信用金$2.50，30 DTE
+当前：SPX 5550（short call已ITM）
+
+调整：
+  买回5500C @ $6.00（亏损$3.50）
+  卖出新5575C @ $3.50
+  净成本：$0（调整后盈亏平衡）
+
+新结构：Call wing更宽，权利金风险相同
+```
+
+**何时应用：**
+- 价格接近short strike
+- 高IV环境（权利金充足）
+- 强烈信念认为突破是暂时的
+
+**权衡：**
+- 更高潜在利润
+- 更低胜率
+- 更高保证金要求
+- 更大最大亏损
+
+### 3. 向上移仓（Roll Up）
+
+**机制：**
+- 平掉有风险的short call
+- 卖出新的更高strike的call
+- 收取权利金以弥补亏损
+
+**何时应用：**
+- 强烈上行突破
+- SPX趋势向上
+- 经济数据/催化剂支持
+
+**示例：**
+```
+原始4月IC Call侧：
   Short 5550C @ $2.00
-  SPX at 5560 (approaching strike)
+  SPX 5560（接近strike）
 
-Roll Up:
-  Buy 5550C @ $4.00 (loss $2.00)
-  Sell 5575C @ $2.50
-  Net debit: $1.50 additional
+Roll Up：
+  买回5550C @ $4.00（亏损$2.00）
+  卖出新5575C @ $2.50
+  净借记：$1.50额外
 
-New call spread: 5575/5600 vs original 5550/5575
+新call价差：5575/5600 vs 原始5550/5575
 ```
 
-### 4. Roll Down (向下移仓)
+### 4. 向下移仓（Roll Down）
 
-**Mechanics:**
-- Close short put that's at risk
-- Sell new lower-strike put
-- Same concept as roll up, but for downside
+**机制：**
+- 平掉有风险的short put
+- 卖出新的更低strike的put
+- 与向上移仓概念相同，但针对下行
 
-**When to Apply:**
-- Downside breakout
-- Market weakness / risk-off
-- Support levels broken
+**何时应用：**
+- 下行突破
+- 市场疲弱/风险厌恶
+- 支撑位已破
 
-### 5. Close Partial (平仓部分)
+### 5. 平仓部分（Close Partial）
 
-**Mechanics:**
-- Close entire position (all legs) when profitable
-- Or close one side (e.g., put spread only)
+**机制：**
+- 盈利时平掉全部持仓（所有腿）
+- 或只平一侧（例如，仅put价差）
 
-**When to Apply:**
-- Target profit reached (e.g., 50-70% of max profit)
-- Major news event ahead
-- Weekend / holiday with uncertainty
+**何时应用：**
+- 目标利润达到（例如，50-70%的最大利润）
+- 重大新闻事件前
+- 周末/假期不确定性
 
-**Partial Close Strategy:**
+**部分平仓策略：**
 ```
-Original IC: $2.50 credit, 30 DTE
-At 10 DTE: Price at $1.00 (60% profit)
+原始IC：$2.50信用金，30 DTE
+DTE 10时：价格$1.00（60%利润）
 
-Option A: Close all
-  Buy back all legs @ $1.00
-  Profit: $1.50 per contract (60% of max)
+选项A：全部平仓
+  买回所有腿 @ $1.00
+  利润：$1.50/合约（最大利润的60%）
 
-Option B: Close put spread only
-  Keep call spread (still has value)
-  Lock in put spread profit
-  Let call spread run
+选项B：仅平put价差
+  保留call价差（仍有价值）
+  锁定put价差利润
+  让call价差继续运行
 ```
 
-### 6. Convert to Iron Butterfly (转铁蝶式)
+### 6. 转铁蝶式（Convert to Iron Butterfly）
 
-**Mechanics:**
-- Bring short strikes closer to ATM
-- Symmetric structure around current price
-- Reduced wing width
+**机制：**
+- 将short strike移近ATM
+- 在当前价格周围形成对称结构
+- Wing宽度减小
 
-**Transformation:**
+**转换：**
 ```
 Iron Condor → Iron Butterfly
 
-IC:    Long 5400P / Short 5450P / Short 5550C / Long 5600C
-       Width: 500 points on each side
+IC：    Long 5400P / Short 5450P / Short 5550C / Long 5600C
+       每侧宽度：500点
 
 Butterfly: Long 5425P / Short 5500P / Short 5500C / Long 5575C
-           Width: 75 points to ATM, wings 75 points away
+           到ATM宽度：75点，wing距离75点
 ```
 
-**When to Apply:**
-- Price stuck in tight range
-- Volatility collapsed
-- DTE < 21, want to reduce gamma risk
+**何时应用：**
+- 价格困在窄范围内
+- 波动率崩溃
+- DTE < 21，想要减少gamma风险
 
-**Trade-off:**
-- Higher probability of profit (butterfly is more neutral)
-- Lower max profit
-- Reduced margin
-- Lower max loss
+**权衡：**
+- 更高获利概率（蝴蝶更中性）
+- 更低最大利润
+- 保证金减少
+- 最大亏损降低
 
 ---
 
-## Chapter 5: Practical Analysis
+## 第五章：实战分析
 
-### Current Portfolio: April 2026 + May 2026 Iron Condors
+### 当前持仓：2026年4月 + 2026年5月 Iron Condors
 
-Based on the `spx_options.py` script output and market data (April 2, 2026):
+基于`spx_options.py`脚本输出和市场数据（2026年4月2日）：
 
-**Portfolio Structure:**
+**持仓结构：**
 ```
-April Iron Condor:
-  - Put Spread: Long 5400P / Short 5450P
-  - Call Spread: Short 5550C / Long 5600C
-  - Net Credit: ~$2.50 (250 per contract)
-  - DTE: ~15-20 days (April expiry)
-  - Max Profit: $250 per contract
-  - Max Loss: ~$500 - $250 = $750 per contract
+4月Iron Condor：
+  - Put价差：Long 5400P / Short 5450P
+  - Call价差：Short 5550C / Long 5600C
+  - 净信用金：约$2.50（每合约$250）
+  - DTE：约15-20天（4月到期）
+  - 最大利润：$250/合约
+  - 最大亏损：约$500 - $250 = $750/合约
 
-May Iron Condor:
-  - Put Spread: Similar structure, further expiry
-  - Call Spread: Similar structure
-  - Net Credit: ~$3.00 (300 per contract)
-  - DTE: ~45 days (May expiry)
-  - Max Profit: $300 per contract
+5月Iron Condor：
+  - Put价差：类似结构，更远到期
+  - Call价差：类似结构
+  - 净信用金：约$3.00（每合约$300）
+  - DTE：约45天（5月到期）
+  - 最大利润：$300/合约
 ```
 
-### Greek Analysis (April IC)
+### 希腊字母分析（4月IC）
 
-**Current SPX Price: ~5500 (assumed)**
+**当前SPX价格：约5500（假设）**
 
-**Put Side Analysis:**
-| Strike | Type | Delta | Gamma | Theta | Vega |
+**Put侧分析：**
+| Strike | 方向 | Delta | Gamma | Theta | Vega |
 |--------|------|-------|-------|-------|------|
-| 5400 | Long (Buy) | -0.08 | +0.03 | -0.05 | +0.08 |
-| 5450 | Short (Sell) | -0.15 | -0.05 | +0.12 | -0.12 |
-| **Net** | | **-0.23** | **-0.02** | **+0.07** | **-0.04** |
+| 5400 | Long（买） | -0.08 | +0.03 | -0.05 | +0.08 |
+| 5450 | Short（卖） | -0.15 | -0.05 | +0.12 | -0.12 |
+| **净** | | **-0.23** | **-0.02** | **+0.07** | **-0.04** |
 
-**Call Side Analysis:**
-| Strike | Type | Delta | Gamma | Theta | Vega |
+**Call侧分析：**
+| Strike | 方向 | Delta | Gamma | Theta | Vega |
 |--------|------|-------|-------|-------|------|
-| 5550 | Short (Sell) | +0.15 | -0.05 | +0.10 | -0.10 |
-| 5600 | Long (Buy) | +0.08 | +0.03 | -0.04 | +0.06 |
-| **Net** | | **+0.23** | **-0.02** | **+0.06** | **-0.04** |
+| 5550 | Short（卖） | +0.15 | -0.05 | +0.10 | -0.10 |
+| 5600 | Long（买） | +0.08 | +0.03 | -0.04 | +0.06 |
+| **净** | | **+0.23** | **-0.02** | **+0.06** | **-0.04** |
 
-**Combined IC Greeks:**
+**组合IC希腊字母：**
 ```
-Total Delta:  ≈ 0 (well hedged)
-Total Gamma:  ≈ -0.04 (short gamma - vulnerable to large moves)
-Total Theta:  ≈ +$0.13 × 100 = +$13/day (time working for you)
-Total Vega:   ≈ -0.08 (short vega - vulnerable to IV spike)
-```
-
-### Risk Assessment
-
-**Gamma Risk (Short Gamma Exposure):**
-```
-Gamma Risk = -Gamma × SPX Price × 100
-           = -0.04 × 5500 × 100
-           = -$2,200 per 1% move
-
-Interpretation: For every 1% SPX move, lose ~$2,200
-               1% move = 55 points = $550 per contract × 4 legs
+总Delta：≈ 0（对冲良好）
+总Gamma：≈ -0.04（short gamma——对大幅波动敏感）
+总Theta：≈ +$0.13 × 100 = +$13/天（时间对你有利）
+总Vega：≈ -0.08（short vega——对IV飙升敏感）
 ```
 
-**Theta/Gamma Ratio (Key Metric):**
+### 风险评估
+
+**Gamma风险（Short Gamma敞口）：**
 ```
-Daily Theta: +$13
-Gamma Risk per 1% Move: ~$2,200
+Gamma风险 = -Gamma × SPX价格 × 100
+          = -0.04 × 5500 × 100
+          = -$2,200 每1%变动
 
-Ratio: $13 / $2,200 = 0.006
-
-This is low - theta doesn't cover gamma risk well
-At DTE 15, this is acceptable but monitor closely
-```
-
-### IV & VIX Analysis
-
-**Current Environment (April 2, 2026):**
-```
-VIX Level: Assumed ~18-20 (normal range)
-IV vs RV: Depends on recent realized moves
-
-If VIX 18:
-  - IV Rank likely 40-60% (moderate premium)
-  - Standard 20-wide IC appropriate
-  - Current structure: reasonable
-
-If VIX > 25:
-  - Consider wider wings (25-wide)
-  - Reduce position size
-  - Higher premium but higher risk
+解读：SPX每移动1%，损失约$2,200
+      1%变动 = 55点 = $550/合约 × 4腿
 ```
 
-**April IC Adjustment Triggers:**
+**Theta/Gamma比率（关键指标）：**
+```
+每日Theta：+$13
+每1%变动的Gamma风险：约$2,200
 
-| SPX Level | Status | Action |
-|-----------|--------|--------|
-| < 5430 | Put side threatened | Consider roll down or narrow put wing |
-| 5430-5470 | Healthy range | Hold, collect theta |
-| 5470-5530 | Sweet spot | Maximum theta capture |
-| 5530-5570 | Call side threatened | Consider roll up or narrow call wing |
-| > 5570 | Call side in danger | Roll up or convert to butterfly |
+比率：$13 / $2,200 = 0.006
 
-### May IC Positioning
+这很低——theta不能很好地覆盖gamma风险
+DTE 15时可接受，但需密切监控
+```
 
-**May IC vs April IC:**
+### IV与VIX分析
 
-| Factor | April IC | May IC |
-|--------|----------|--------|
-| DTE | ~15 | ~45 |
-| Theta/day | Higher ($15+) | Lower ($7-8) |
-| Gamma risk | Higher | Lower |
-| Premium captured | Fast | Slow build |
-| Adjustment flexibility | Less | More |
+**当前环境（2026年4月2日）：**
+```
+VIX水平：假设约18-20（正常范围）
+IV vs RV：取决于近期实际波动
 
-**May IC Recommendations:**
-1. **Hold for theta accumulation**: 45 DTE allows time
-2. **Watch for 30 DTE mark**: Consider taking profit if >70% of max credit
-3. **Monitor April IC adjustment**: If April needs work, may affect May
-4. **Watch VIX term structure**: If front-month VIX spikes, May IV may follow
+如果VIX 18：
+  - IV Rank可能在40-60%（中等权利金）
+  - 标准20宽IC合适
+  - 当前结构：合理
 
-### Adjustment Decision Tree
+如果VIX > 25：
+  - 考虑更宽的wing（25宽）
+  - 减少仓位
+  - 权利金更高但风险也更高
+```
+
+**4月IC调整触发点：**
+
+| SPX水平 | 状态 | 操作 |
+|--------|------|------|
+| < 5430 | Put侧受威胁 | 考虑向下移仓或收窄put wing |
+| 5430-5470 | 健康区间 | 持有，收集theta |
+| 5470-5530 | 甜蜜区 | 最大theta捕获 |
+| 5530-5570 | Call侧受威胁 | 考虑向上移仓或收窄call wing |
+| > 5570 | Call侧危险 | 向上移仓或转蝶式 |
+
+### 5月IC定位
+
+**5月IC vs 4月IC：**
+
+| 因素 | 4月IC | 5月IC |
+|------|-------|-------|
+| DTE | 约15 | 约45 |
+| 每日Theta | 较高（$15+） | 较低（$7-8） |
+| Gamma风险 | 较高 | 较低 |
+| 权利金捕获 | 快速 | 缓慢累积 |
+| 调整灵活性 | 较低 | 较高 |
+
+**5月IC建议：**
+1. **持有以累积theta**：45 DTE允许时间
+2. **关注DTE 30**：如果>70%最大信用金，考虑获利了结
+3. **监控4月IC调整**：如果4月需要调整，可能影响5月
+4. **关注VIX期限结构**：如果前月VIX飙升，5月IV可能跟随
+
+### 调整决策树
 
 ```
-Is April IC profitable > 50%?
-├── YES: Can hold for more theta
-│   └── Is DTE < 10?
-│       ├── YES: Take profit, close all
-│       └── NO: Hold, monitor
+4月IC是否盈利> 50%？
+├── 是：可以持有以获取更多theta
+│   └── DTE < 10？
+│       ├── 是：获利了结，全部平仓
+│       └── 否：持有，监控
 │
-├── NO: Adjustment needed
-│   └── Which side is threatened?
-│       ├── Put side (SPX < 5430)
-│       │   ├── How far OTM is long put?
-│       │   ├── Consider: Roll down OR narrow wing
-│       │   └── Decision based on VIX level
+├── 否：需要调整
+│   └── 哪一侧受威胁？
+│       ├── Put侧（SPX < 5430）
+│       │   ├── Long put有多远OTM？
+│       │   ├── 考虑：向下移仓或收窄wing
+│       │   └── 根据VIX水平决策
 │       │
-│       └── Call side (SPX > 5530)
-│           ├── How far OTM is long call?
-│           ├── Consider: Roll up OR narrow wing
-│           └── Decision based on momentum
+│       └── Call侧（SPX > 5530）
+│           ├── Long call有多远OTM？
+│           ├── 考虑：向上移仓或收窄wing
+│           └── 根据动量决策
 ```
 
-### Exit Strategy Summary
+### 退出策略总结
 
-**Tiered Exit Plan:**
+**分层退出计划：**
 
-| Target | Timing | Action |
-|--------|--------|--------|
-| 50% profit | Any time | Review, consider holding |
-| 70% profit | DTE > 21 | Take profit, move to May |
-| 70% profit | DTE < 14 | Take profit, too much gamma |
-| Max profit | Near expiry | Let expire if OTM |
-| Stop loss | > 80% loss | Close to avoid assignment |
+| 目标 | 时机 | 操作 |
+|------|------|------|
+| 50%利润 | 任何时间 | 审查，考虑持有 |
+| 70%利润 | DTE > 21 | 获利了结，转向5月 |
+| 70%利润 | DTE < 14 | 获利了结，gamma风险太大 |
+| 最大利润 | 临近到期 | 如果OTM则让它到期 |
+| 止损 | 亏损> 80% | 平仓以避免行权 |
 
-**Key Dates to Watch:**
-- April Expiry: ~April 17, 2026
-- May IC: Continue holding, adjust as needed
-- VIX events: Fed meetings, CPI, NFP
+**需关注的关键日期：**
+- 4月到期：约2026年4月17日
+- 5月IC：继续持有，按需调整
+- VIX事件：美联储会议、CPI、非农
 
 ---
 
-## Appendix: Quick Reference
+## 附录：快速参考
 
-### Greek Sign Summary (Short IC)
+### 希腊字母符号汇总（Short IC）
 
 ```
-Position: Net Delta ≈ 0
-          Net Gamma < 0 (short gamma)
-          Net Theta > 0 (time decay benefit)
-          Net Vega < 0 (IV increase hurts)
+持仓：净Delta ≈ 0
+      净Gamma < 0（short gamma）
+      净Theta > 0（时间衰减对你有利）
+      净Vega < 0（IV上升有害）
 
-Risk Priority:
-  1. Gamma (big moves)
-  2. Vega (IV spikes)
-  3. Theta (gradual decay - your friend)
+风险优先级：
+  1. Gamma（大波动）
+  2. Vega（IV飙升）
+  3. Theta（逐步衰减——你的朋友）
 ```
 
-### Volatility Checklist
+### 波动率检查清单
 
-- [ ] Current VIX level (15-25 normal range)
-- [ ] VIX term structure (contango vs backwardation)
-- [ ] IV Rank (where current IV sits in 52-week range)
-- [ ] IV vs RV comparison (premium fair?)
-- [ ] Put/call skew (put wings wider?)
+- [ ] 当前VIX水平（15-25正常范围）
+- [ ] VIX期限结构（contango vs backwardation）
+- [ ] IV Rank（当前IV在52周区间的位置）
+- [ ] IV vs RV比较（权利金公平吗？）
+- [ ] Put/call skew（put wing更宽？）
 
-### Position Monitoring Checklist
+### 持仓监控检查清单
 
-- [ ] Distance to short strikes (% and delta)
-- [ ] DTE countdown
-- [ ] Daily theta accumulation
-- [ ] Any news/events ahead
-- [ ] VIX movement correlation
+- [ ] 到short strike的距离（%和delta）
+- [ ] DTE倒计时
+- [ ] 每日theta累积
+- [ ] 任何即将发布的新闻/事件
+- [ ] VIX变动相关性
 
 ---
 
-*Document generated: April 2026*
-*Data sources: yfinance (market), Futu OpenAPI (positions)*
-*For educational purposes only - not financial advice*
+*文档生成日期：2026年4月*
+*数据来源：yfinance（市场）、Futu OpenAPI（持仓）*
+*仅供教育目的——不构成投资建议*
