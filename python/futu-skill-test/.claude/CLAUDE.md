@@ -1,3 +1,1 @@
-- 我的富途账户无法通过 OpenD API 获取美股指数行情。
-- 获取美股指数行情：scripts/get_us_index.py
-- 获取账户的 SPX 期权持仓，识别铁鹰策略、垂直价差等：scripts/analyze_spx_options.py
+scripts/spx_options.py 获取美股指数行情，以及我的SPX期权持仓信息。

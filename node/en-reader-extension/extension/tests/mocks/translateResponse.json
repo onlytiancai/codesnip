@@ -1,0 +1,7 @@
+{
+  "translations": [
+    { "index": 0, "translation": "你好，世界！" },
+    { "index": 1, "translation": "这是一个测试段落。" },
+    { "index": 2, "translation": "标题" }
+  ]
+}
