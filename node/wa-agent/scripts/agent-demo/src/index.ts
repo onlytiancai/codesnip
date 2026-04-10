@@ -183,8 +183,8 @@ async function streamMessages(
 ): Promise<StreamResult> {
   const toolCalls: { name: string; id: string; argsRaw: string }[] = [];
   let currentToolIndex = -1;
-  let isThinking = false;
   let textContent = '';
+  let currentBlockType: 'thinking' | 'text' | 'tool_use' | null = null;
 
   const stream = anthropic.messages.stream({
     model,
@@ -197,12 +197,13 @@ async function streamMessages(
   for await (const event of stream) {
     const e = event as any;
 
-    if (e.type === 'message_stop') {
-      console.log();
-    } else if (e.type === 'content_block_start') {
+    if (e.type === 'content_block_start') {
       if (e.content_block?.type === 'thinking') {
-        isThinking = true;
-        process.stdout.write('\n[Thinking]\n');
+        currentBlockType = 'thinking';
+        process.stdout.write('[Thinking]\n');
+      } else if (e.content_block?.type === 'text') {
+        currentBlockType = 'text';
+        process.stdout.write('[Text]\n');
       } else if (e.content_block?.type === 'tool_use') {
         currentToolIndex++;
         toolCalls.push({
@@ -210,27 +211,41 @@ async function streamMessages(
           id: e.content_block.id || '',
           argsRaw: '',
         });
-      } else if (e.content_block?.type === 'text') {
-        if (isThinking) { console.log('\n[/Thinking]'); isThinking = false; }
-        process.stdout.write('\n[Answer]\n');
+        currentBlockType = 'tool_use';
+        process.stdout.write(`[Tool] ${e.content_block.name}\n`);
+      } else if (e.content_block?.type === 'tool_result') {
+        currentBlockType = 'tool_result';
       }
     } else if (e.type === 'content_block_delta') {
       if (e.delta?.type === 'thinking_delta') {
-        if (!isThinking) { isThinking = true; process.stdout.write('\n[Thinking]\n'); }
         process.stdout.write(e.delta.thinking || '');
+      } else if (e.delta?.type === 'text_delta' && e.delta?.text) {
+        process.stdout.write(e.delta.text);
+        textContent += e.delta.text;
       } else if (e.delta?.type === 'input_json_delta') {
+        // Only accumulate args, don't print during stream
         if (currentToolIndex >= 0 && toolCalls[currentToolIndex]) {
           toolCalls[currentToolIndex].argsRaw += e.delta.partial_json || '';
         }
-      } else if (e.delta?.type === 'text_delta' && e.delta?.text) {
-        if (isThinking) { console.log('\n[/Thinking]'); isThinking = false; }
-        process.stdout.write(e.delta.text);
-        textContent += e.delta.text;
       }
+    } else if (e.type === 'content_block_stop') {
+      if (currentBlockType === 'thinking') {
+        process.stdout.write('\n[/Thinking]\n');
+      } else if (currentBlockType === 'text') {
+        process.stdout.write('\n[/Text]\n');
+      } else if (currentBlockType === 'tool_use') {
+        // Print accumulated args after stream ends, truncated
+        const argsRaw = toolCalls[currentToolIndex]?.argsRaw || '';
+        const truncatedArgs = argsRaw.length > 100 ? argsRaw.substring(0, 100) + '...' : argsRaw;
+        process.stdout.write(`${truncatedArgs}\n`);
+        process.stdout.write('[/Tool]\n');
+      }
+      currentBlockType = null;
     } else if (e.type === 'message_delta' && e.delta?.text) {
-      if (isThinking) { console.log('\n[/Thinking]'); isThinking = false; }
       process.stdout.write(e.delta.text);
       textContent += e.delta.text;
+    } else if (e.type === 'message_stop') {
+      console.log();
     }
   }
 
@@ -242,6 +257,15 @@ async function streamMessages(
   }));
 
   return { textContent, toolCalls: parsedToolCalls };
+}
+
+// ============ Tool Result Formatting ============
+function formatToolResult(result: string, maxLen: number = 100): string {
+  const withEscapedNewlines = result.replace(/\n/g, '\\n');
+  if (withEscapedNewlines.length <= maxLen) {
+    return withEscapedNewlines;
+  }
+  return withEscapedNewlines.substring(0, maxLen) + `... (${result.length} chars total)`;
 }
 
 // ============ Main ============
@@ -290,12 +314,15 @@ async function main() {
           continue;
         }
 
-        // Execute tools in parallel
+        // Execute tools sequentially
         console.log();
-        toolCalls.forEach(tc => process.stdout.write(`[Calling ${tc.name}]\n`));
-
-        const results = await Promise.all(toolCalls.map(tc => executeTool(tc.name, tc.args)));
-        results.forEach((r, i) => console.log(`[${toolCalls[i].name} result]\n${r}\n`));
+        const results: string[] = [];
+        for (const tc of toolCalls) {
+          process.stdout.write(`[Calling ${tc.name}]\n`);
+          const result = await executeTool(tc.name, tc.args);
+          results.push(result);
+          console.log(`[${tc.name} result]\n${formatToolResult(result)}\n`);
+        }
 
         // Build messages for follow-up
         const assistantMsg: Message = {
@@ -327,9 +354,8 @@ async function main() {
         history.push(assistantMsg);
         history.push(...toolResultMsgs);
 
-        // Handle follow-up tools (simplified single level)
+        // Handle follow-up tools sequentially
         if (followUpTools.length > 0) {
-          const followUpResults = await Promise.all(followUpTools.map(tc => executeTool(tc.name, tc.args)));
           history.push({
             role: 'assistant',
             content: followUpTools.map((tc, i) => ({
@@ -339,12 +365,15 @@ async function main() {
               input: tc.args,
             })),
           });
-          followUpTools.forEach((tc, i) => {
+          for (const tc of followUpTools) {
+            process.stdout.write(`[Calling ${tc.name}]\n`);
+            const result = await executeTool(tc.name, tc.args);
+            console.log(`[${tc.name} result]\n${formatToolResult(result)}\n`);
             history.push({
               role: 'user' as const,
-              content: [{ type: 'tool_result' as const, tool_use_id: tc.id, content: followUpResults[i] }],
+              content: [{ type: 'tool_result' as const, tool_use_id: tc.id, content: result }],
             });
-          });
+          }
         }
 
         history.push({ role: 'assistant', content: finalText || textContent });
