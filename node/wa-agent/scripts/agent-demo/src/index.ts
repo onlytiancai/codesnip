@@ -1,12 +1,19 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { readFile, writeFile, mkdir, readdir, stat } from 'fs/promises';
+import { readFile } from 'fs/promises';
 import * as readline from 'readline';
-import * as cheerio from 'cheerio';
-import { z } from 'zod';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { parseArgs } from 'util';
+import {
+  ToolCall,
+  toolDefinitions,
+  toolNames,
+  executeTool,
+} from './tools.js';
+import {
+  formatToolResult,
+} from './utils.js';
 
 dotenv.config();
 
@@ -21,9 +28,6 @@ const MAX_RETRIES = 3;
 const RETRY_DELAYS = [1000, 2000, 4000];
 const MAX_HISTORY_LENGTH = 100;
 const MAX_TOKEN_OUTPUT = 4096;
-const WEB_FETCH_MAX_CHARS = 5000;
-const TOOL_RESULT_MAX_DISPLAY = 100;
-const ALLOWED_BASE_DIR = process.cwd();
 
 // Environment
 const baseURL = process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com';
@@ -86,134 +90,13 @@ type ContentBlock =
   | { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> }
   | { type: 'tool_result'; tool_use_id: string; content: string };
 
-interface ToolCall {
-  name: string;
-  id: string;
-  args: Record<string, unknown>;
-}
-
-interface ToolDefinition {
-  name: string;
-  description: string;
-  input_schema: z.ZodRawShape;
-}
-
 interface StreamResult {
   textContent: string;
   toolCalls: ToolCall[];
   usage?: { input_tokens: number; output_tokens: number };
 }
 
-// ============ Path Validation ============
-function validatePath(filePath: string): string {
-  const resolved = path.resolve(filePath);
-  if (!resolved.startsWith(ALLOWED_BASE_DIR)) {
-    throw new Error(`Path ${filePath} is outside allowed directory`);
-  }
-  return resolved;
-}
-
-// ============ Tools ============
-const tools: Record<string, {
-  description: string;
-  schema: z.ZodRawShape;
-  execute: (args: Record<string, unknown>) => Promise<string>;
-}> = {
-  read: {
-    description: 'Read the contents of a file',
-    schema: { path: z.string().describe('The file path to read') },
-    async execute({ path: filePath }) {
-      try {
-        validatePath(String(filePath));
-        return await readFile(String(filePath), 'utf-8');
-      } catch (error) {
-        return formatError(error);
-      }
-    },
-  },
-  write: {
-    description: 'Write content to a file',
-    schema: {
-      path: z.string().describe('The file path to write'),
-      content: z.string().describe('The content to write'),
-    },
-    async execute({ path: filePath, content }) {
-      try {
-        const resolved = validatePath(String(filePath));
-        await mkdir(path.dirname(resolved), { recursive: true });
-        await writeFile(resolved, String(content), 'utf-8');
-        return `Successfully wrote to ${resolved}`;
-      } catch (error) {
-        return formatError(error);
-      }
-    },
-  },
-  ls: {
-    description: 'List directory contents',
-    schema: { path: z.string().describe('The directory path to list') },
-    async execute({ path: dirPath }) {
-      try {
-        const resolved = validatePath(String(dirPath));
-        const entries = await readdir(resolved);
-        const result = await Promise.all(
-          entries.map(async (name) => {
-            const fullPath = path.join(resolved, name);
-            const s = await stat(fullPath);
-            return `${s.isDirectory() ? 'd' : '-'} ${name}`;
-          })
-        );
-        return result.join('\n');
-      } catch (error) {
-        return formatError(error);
-      }
-    },
-  },
-  mkdir: {
-    description: 'Create a directory',
-    schema: { path: z.string().describe('The directory path to create') },
-    async execute({ path: dirPath }) {
-      try {
-        const resolved = validatePath(String(dirPath));
-        await mkdir(resolved, { recursive: true });
-        return `Successfully created directory: ${resolved}`;
-      } catch (error) {
-        return formatError(error);
-      }
-    },
-  },
-  web_fetch: {
-    description: 'Fetch content from a web URL',
-    schema: { url: z.string().url().describe('The URL to fetch') },
-    async execute({ url }) {
-      try {
-        const response = await fetch(String(url), {
-          headers: { 'User-Agent': 'AI-Agent/1.0' },
-          signal: AbortSignal.timeout(30000),
-        });
-        const html = await response.text();
-        const text = cheerio.load(html)('body').text().trim();
-        return truncateText(text, WEB_FETCH_MAX_CHARS);
-      } catch (error) {
-        return formatError(error);
-      }
-    },
-  },
-};
-
-const toolDefinitions: ToolDefinition[] = Object.entries(tools).map(([name, tool]) => ({
-  name,
-  description: tool.description,
-  input_schema: tool.schema,
-}));
-
 // ============ Error Handling ============
-function formatError(error: unknown): string {
-  if (error instanceof Error) {
-    return `Error: ${error.message}`;
-  }
-  return `Error: ${String(error)}`;
-}
-
 function parseAPIError(error: unknown): { message: string; isRetryable: boolean } {
   if (error instanceof Error) {
     const msg = error.message;
@@ -224,22 +107,6 @@ function parseAPIError(error: unknown): { message: string; isRetryable: boolean 
     return { message: msg, isRetryable: false };
   }
   return { message: String(error), isRetryable: false };
-}
-
-// ============ Text Utilities ============
-function truncateText(text: string, maxLen: number): string {
-  if (text.length <= maxLen) return text;
-  return text.substring(0, maxLen) + `... (${text.length} chars total)`;
-}
-
-function escapeNewlines(text: string): string {
-  return text.replace(/\n/g, '\\n');
-}
-
-function formatToolResult(result: string, maxLen: number = TOOL_RESULT_MAX_DISPLAY): string {
-  const escaped = escapeNewlines(result);
-  if (escaped.length <= maxLen) return escaped;
-  return truncateText(escaped, maxLen);
 }
 
 // ============ Memory ============
@@ -293,13 +160,6 @@ const showStatus = (status: string) => {
   clearLine();
   process.stdout.write(`[${new Date().toLocaleTimeString()}] ${status}`);
 };
-
-// ============ Tool Execution ============
-async function executeTool(name: string, args: Record<string, unknown>): Promise<string> {
-  const tool = tools[name];
-  if (!tool) return `Unknown tool: ${name}`;
-  return await tool.execute(args);
-}
 
 // ============ Streaming ============
 async function streamMessages(
@@ -414,7 +274,7 @@ async function streamMessages(
 // ============ Interactive Mode ============
 async function interactiveMode(systemPrompt: string): Promise<void> {
   console.log('\n=== AI Agent Demo ===');
-  console.log('Tools: read, write, ls, mkdir, web_fetch');
+  console.log(`Tools: ${toolNames.join(', ')}`);
   console.log('Commands: /new (clear history), /exit (quit)\n');
 
   const input = getReadline();

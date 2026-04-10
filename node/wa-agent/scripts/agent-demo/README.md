@@ -12,7 +12,9 @@ scripts/agent-demo/
 ├── .env               # 环境变量
 ├── memory.md          # 持久化记忆（作为 system prompt）
 └── src/
-    └── index.ts       # 单文件实现（客户端 + 工具 + 主循环）
+    ├── index.ts       # 主入口（CLI、消息流、状态管理）
+    ├── tools.ts       # 工具定义与执行
+    └── utils.ts       # 工具函数（格式化、错误处理）
 ```
 
 ## 核心能力
