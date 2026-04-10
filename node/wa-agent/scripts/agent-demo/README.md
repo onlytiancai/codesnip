@@ -21,31 +21,34 @@ scripts/agent-demo/
 
 | 工具 | 功能 | 示例 |
 |------|------|------|
-| `read` | 读取文件内容 | `read package.json` |
+| `read` | 读取文件内容（路径安全验证） | `read package.json` |
 | `write` | 创建/更新文件（自动创建目录） | `write({ path: "dir/file.txt", content: "..." })` |
 | `ls` | 列出目录内容 | `ls /Users/huhao/projects` |
 | `mkdir` | 创建目录（递归） | `mkdir /tmp/test` |
-| `web_fetch` | 获取网页内容并提取文本 | `web_fetch https://example.com` |
+| `web_fetch` | 获取网页内容并提取文本（限制 5000 字符） | `web_fetch https://example.com` |
 
 ### 功能特性
 
-- **多轮对话**：完整的对话历史支持
+- **多轮对话**：完整的对话历史支持（最大 100 条消息）
 - **并行工具调用**：多个工具同时执行
 - **持久化记忆**：`memory.md` 作为 system prompt 提供长期上下文
 - **Thinking 块**：显示模型的推理过程
 - **流式响应**：实时输出，带状态指示
-- **自动重试**：API 失败时自动重试（429、5xx、网络错误）
+- **自动重试**：API 失败时自动重试（429、5xx、网络错误、timeout）
 - **斜杠命令**：
   - `/new` - 清空历史，开启新对话
   - `/exit` - 退出程序
+- **非交互模式**：命令行直接传入 prompt，单次执行后退出
+- **指标收集**：统计请求数、token 用量、工具调用次数、错误数、执行时长
 
 ### 环境变量
 
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
-| `ANTHROPIC_BASE_URL` | API 端点 | `https://api.minimaxi.com/anthropic` |
+| `ANTHROPIC_BASE_URL` | API 端点 | `https://api.anthropic.com` |
 | `ANTHROPIC_API_KEY` | 你的 API 密钥 | （必填） |
-| `ANTHROPIC_MODEL` | 使用的模型 | `MiniMax-M2.7` |
+| `ANTHROPIC_MODEL` | 使用的模型 | `claude-3-5-sonnet-20241022` |
+| `ANTHROPIC_TIMEOUT_MS` | 请求超时时间（毫秒） | `120000` (120s) |
 
 ## 快速开始
 
@@ -53,6 +56,29 @@ scripts/agent-demo/
 cd scripts/agent-demo
 pnpm install
 pnpm dev
+```
+
+## 使用方式
+
+### 交互模式（默认）
+
+启动后进入 REPL，可多次输入：
+
+```bash
+pnpm dev
+> 你好，你是谁？
+> 读取当前目录的 package.json
+> /exit
+```
+
+### 非交互模式
+
+命令行直接传入 prompt，执行完成后自动退出：
+
+```bash
+pnpm dev "你好，你是谁？"
+pnpm dev "列出当前目录的文件"
+pnpm dev "抓取 https://example.com 的内容并总结"
 ```
 
 ## 使用示例
@@ -103,6 +129,30 @@ Agent 会自动完成：
 > 读取我的 package.json
 > 测试脚本失败了，帮我排查一下？
 > 请修复这个错误
+```
+
+### 6. 非交互模式执行脚本任务
+
+```bash
+# 单次执行并退出，适合脚本集成
+pnpm dev "在当前目录创建 output.txt，内容是 'Done'"
+
+# 配合其他命令使用
+pnpm dev "读取 memory.md 的内容" && cat memory.md
+```
+
+## 安全特性
+
+- **路径验证**：所有文件操作限制在允许目录下，防止路径遍历攻击
+- **请求超时**：可配置的请求超时，避免无限等待
+- **资源清理**：正确关闭 readline 句柄
+
+## 指标输出
+
+执行完成后会输出统计信息：
+
+```
+[Metrics] Requests: 2, Tokens: 1523, ToolCalls: 3, Errors: 0, Duration: 12.34s
 ```
 
 ## 快捷键
