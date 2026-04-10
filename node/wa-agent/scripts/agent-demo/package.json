@@ -6,9 +6,7 @@
     "dev": "tsx src/index.ts"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^1.0.0",
     "@anthropic-ai/sdk": "^0.87.0",
-    "ai": "^4.0.0",
     "cheerio": "^1.0.0",
     "dotenv": "^16.4.0",
     "zod": "^3.23.0"
