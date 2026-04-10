@@ -71,3 +71,7 @@ pnpm dev
 - Network Error
 
 重试延迟：1秒 → 2秒 → 4秒（最多 3 次）
+
+## 测试 prompt
+
+- 在当前目录下创建一个test目录,抓取https://blog.ihuhao.com/2026/03/19/spx-iron-condor/页面的内容后做摘要并保存在这个目录
