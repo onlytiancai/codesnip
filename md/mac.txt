@@ -79,3 +79,11 @@ nginx
     diskutil apfs listSnapshots disk3s5
     tmutil listlocalsnapshots /
 
+
+截图
+
+| 功能     | 快捷键                                               |
+| ------ | ------------------------------------------------- |
+| 选区截图复制 | **`Control + Command + Shift + 4`**               |
+| 全屏截图复制 | **`Control + Command + Shift + 3`**               |
+| 指定窗口复制 | **`Control + Command + Shift + 4` → 再按空格 → 点击窗口** |
