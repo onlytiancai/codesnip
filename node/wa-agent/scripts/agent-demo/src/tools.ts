@@ -2,10 +2,14 @@ import { readFile, writeFile, mkdir, readdir, stat } from 'fs/promises';
 import * as cheerio from 'cheerio';
 import { z } from 'zod';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 // ============ Constants ============
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const WEB_FETCH_MAX_CHARS = 5000;
 const ALLOWED_BASE_DIR = process.cwd();
+const memoryDir = path.join(__dirname, '..', 'memory');
 
 // ============ Types ============
 export interface ToolCall {
@@ -112,6 +116,40 @@ const tools: Record<string, {
           return text.substring(0, WEB_FETCH_MAX_CHARS) + `... (${text.length} chars total)`;
         }
         return text;
+      } catch (error) {
+        throw error;
+      }
+    },
+  },
+  save_today_memory: {
+    description: 'Save important information learned today to daily memory file',
+    schema: { content: z.string().describe('Content to save') },
+    async execute({ content }) {
+      const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      const filepath = path.join(memoryDir, `${today}.md`);
+      try {
+        await mkdir(memoryDir, { recursive: true });
+        const existing = await readFile(filepath, 'utf-8').catch(() => '');
+        const timestamp = new Date().toISOString();
+        const entry = `\n\n## [${timestamp}] Memory Entry\n\n${content}`;
+        await writeFile(filepath, existing + entry, 'utf-8');
+        return `Saved to today's memory: ${today}.md`;
+      } catch (error) {
+        throw error;
+      }
+    },
+  },
+  save_global_memory: {
+    description: 'Save permanent information to global memory (identity, user preferences)',
+    schema: { content: z.string().describe('Content to save') },
+    async execute({ content }) {
+      const filepath = path.join(__dirname, '..', 'memory.md');
+      try {
+        const existing = await readFile(filepath, 'utf-8').catch(() => '');
+        const timestamp = new Date().toISOString();
+        const entry = `\n\n## [${timestamp}] Memory Entry\n\n${content}`;
+        await writeFile(filepath, existing + entry, 'utf-8');
+        return 'Saved to global memory: memory.md';
       } catch (error) {
         throw error;
       }

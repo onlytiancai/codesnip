@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { readFile } from 'fs/promises';
+import { readFile, readdir } from 'fs/promises';
 import * as readline from 'readline';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -21,6 +21,8 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const memoryPath = path.join(__dirname, '..', 'memory.md');
+const memoryDir = path.join(__dirname, '..', 'memory');
+const memorySystemPath = path.join(__dirname, '..', 'memory-system.md');
 
 // Constants
 const DEFAULT_TIMEOUT_MS = 120_000;
@@ -28,6 +30,7 @@ const MAX_RETRIES = 3;
 const RETRY_DELAYS = [1000, 2000, 4000];
 const MAX_HISTORY_LENGTH = 100;
 const MAX_TOKEN_OUTPUT = 4096;
+const MAX_TOOL_LOOPS = 10;
 
 // Environment
 const baseURL = process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com';
@@ -110,12 +113,41 @@ function parseAPIError(error: unknown): { message: string; isRetryable: boolean 
 }
 
 // ============ Memory ============
-async function loadMemory(): Promise<string> {
+async function loadAllMemories(): Promise<string> {
+  const memories: string[] = [];
+
+  // 1. Load built-in system memory (immutable instructions)
   try {
-    return await readFile(memoryPath, 'utf-8');
+    const systemMemory = await readFile(memorySystemPath, 'utf-8');
+    memories.push(systemMemory);
+  } catch { /* skip if not exists */ }
+
+  // 2. Load user main memory
+  try {
+    const mainMemory = await readFile(memoryPath, 'utf-8');
+    memories.push(mainMemory);
   } catch {
-    return '# Agent Memory\n\nNo persistent memory available.';
+    memories.push('# Agent Memory\n\nNo permanent memory available.');
   }
+
+  // 3. Load today and yesterday's timestamped memories
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const dateFiles = [yesterday, today].map(d => d.toISOString().slice(0, 10) + '.md');
+
+  try {
+    const files = await readdir(memoryDir);
+    for (const file of files) {
+      if (dateFiles.includes(file)) {
+        const content = await readFile(path.join(memoryDir, file), 'utf-8');
+        memories.push(content);
+      }
+    }
+  } catch { /* skip if directory not exists */ }
+
+  return memories.join('\n\n---\n\n');
 }
 
 // ============ History Management ============
@@ -300,117 +332,98 @@ async function nonInteractiveMode(prompt: string, systemPrompt: string): Promise
 
 // ============ Process User Input ============
 async function processUserInput(input: string, systemPrompt: string): Promise<void> {
-  let success = false;
+  let loopCount = 0;
   let lastError = '';
 
-  for (let attempt = 0; attempt <= MAX_RETRIES && !success; attempt++) {
-    if (attempt > 0) {
-      showStatus(`Retrying (${attempt}/${MAX_RETRIES})`);
-      console.log(`\n[Retry ${attempt}] ${lastError}`);
-      await sleep(RETRY_DELAYS[attempt - 1] || 4000);
-    }
+  // Build initial messages
+  const messages: Message[] = [...history, { role: 'user', content: input }];
 
-    try {
-      showStatus('Sending request...');
-      console.log('\n[LLM Response]\n');
+  while (loopCount < MAX_TOOL_LOOPS) {
+    loopCount++;
+    let success = false;
 
-      const { textContent, toolCalls } = await streamMessages(
-        [...history, { role: 'user', content: input }],
-        systemPrompt
-      );
+    for (let attempt = 0; attempt <= MAX_RETRIES && !success; attempt++) {
+      if (attempt > 0) {
+        showStatus(`Retrying (${attempt}/${MAX_RETRIES})`);
+        console.log(`\n[Retry ${attempt}] ${lastError}`);
+        await sleep(RETRY_DELAYS[attempt - 1] || 4000);
+      }
 
-      // No tools - simple response
-      if (toolCalls.length === 0) {
-        addToHistory({ role: 'user', content: input });
-        addToHistory({ role: 'assistant', content: textContent });
-        success = true;
-        showStatus('Done');
+      try {
+        showStatus('Sending request...');
+        console.log('\n[LLM Response]\n');
+
+        const { textContent, toolCalls } = await streamMessages(messages, systemPrompt);
+
+        // No tools - simple response, exit loop
+        if (toolCalls.length === 0) {
+          addToHistory({ role: 'user', content: input });
+          addToHistory({ role: 'assistant', content: textContent });
+          success = true;
+          showStatus('Done');
+          console.log();
+          return;
+        }
+
+        // Execute tools sequentially
         console.log();
-        continue;
-      }
+        const results: string[] = [];
+        for (const tc of toolCalls) {
+          process.stdout.write(`[Calling ${tc.name}]\n`);
+          const result = await executeTool(tc.name, tc.args);
+          results.push(result);
+          console.log(`[${tc.name} result]\n${formatToolResult(result)}\n`);
+        }
 
-      // Execute tools sequentially
-      console.log();
-      const results: string[] = [];
-      for (const tc of toolCalls) {
-        process.stdout.write(`[Calling ${tc.name}]\n`);
-        const result = await executeTool(tc.name, tc.args);
-        results.push(result);
-        console.log(`[${tc.name} result]\n${formatToolResult(result)}\n`);
-      }
-
-      // Build messages for follow-up
-      const assistantMsg: Message = {
-        role: 'assistant',
-        content: toolCalls.map((tc) => ({
-          type: 'tool_use' as const,
-          id: tc.id,
-          name: tc.name,
-          input: tc.args,
-        })),
-      };
-
-      const toolResultMsgs: Message[] = toolCalls.map((tc, i) => ({
-        role: 'user' as const,
-        content: [{ type: 'tool_result' as const, tool_use_id: tc.id, content: results[i] }],
-      }));
-
-      // Follow-up request with full history
-      showStatus('Sending tool results...');
-      console.log('\n[LLM Response]\n');
-
-      const { textContent: finalText, toolCalls: followUpTools } = await streamMessages(
-        [...history, { role: 'user', content: input }, assistantMsg, ...toolResultMsgs],
-        systemPrompt
-      );
-
-      // Update history
-      addToHistory({ role: 'user', content: input });
-      addToHistory(assistantMsg);
-      addToHistory(...toolResultMsgs);
-
-      // Handle follow-up tools sequentially
-      if (followUpTools.length > 0) {
-        addToHistory({
+        // Build assistant message with tool uses
+        const assistantMsg: Message = {
           role: 'assistant',
-          content: followUpTools.map((tc) => ({
+          content: toolCalls.map((tc) => ({
             type: 'tool_use' as const,
             id: tc.id,
             name: tc.name,
             input: tc.args,
           })),
-        });
-        for (const tc of followUpTools) {
-          process.stdout.write(`[Calling ${tc.name}]\n`);
-          const result = await executeTool(tc.name, tc.args);
-          console.log(`[${tc.name} result]\n${formatToolResult(result)}\n`);
-          addToHistory({
-            role: 'user' as const,
-            content: [{ type: 'tool_result' as const, tool_use_id: tc.id, content: result }],
-          });
+        };
+
+        // Build tool result messages
+        const toolResultMsgs: Message[] = toolCalls.map((tc, i) => ({
+          role: 'user' as const,
+          content: [{ type: 'tool_result' as const, tool_use_id: tc.id, content: results[i] }],
+        }));
+
+        // Update history with this round
+        addToHistory({ role: 'user', content: input });
+        addToHistory(assistantMsg);
+        addToHistory(...toolResultMsgs);
+
+        // Update messages for next iteration
+        messages.push({ role: 'user', content: input }, assistantMsg, ...toolResultMsgs);
+
+        // Continue loop to let LLM process tool results
+        success = true;
+        showStatus('Tool results sent, continuing...');
+
+      } catch (error) {
+        recordError();
+        const { message, isRetryable } = parseAPIError(error);
+        lastError = message;
+        if (!isRetryable || attempt >= MAX_RETRIES) {
+          console.error(`\n[Error] ${message}\n`);
+          return;
         }
       }
-
-      addToHistory({ role: 'assistant', content: finalText || textContent });
-      success = true;
-      showStatus('Done');
-      console.log();
-
-    } catch (error) {
-      recordError();
-      const { message, isRetryable } = parseAPIError(error);
-      lastError = message;
-      if (!isRetryable || attempt >= MAX_RETRIES) {
-        console.error(`\n[Error] ${message}\n`);
-        break;
-      }
     }
+  }
+
+  if (loopCount >= MAX_TOOL_LOOPS) {
+    console.log('[Warning] Reached max tool loop limit');
   }
 }
 
 // ============ Main ============
 async function main(): Promise<void> {
-  const systemPrompt = await loadMemory();
+  const systemPrompt = await loadAllMemories();
 
   // Parse command line arguments
   const { values, positionals } = parseArgs({
