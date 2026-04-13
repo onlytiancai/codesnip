@@ -66,9 +66,9 @@ const metrics: Metrics = {
   startTime: Date.now(),
 };
 
-function recordRequest(tokens: number = 0, toolCallCount: number = 0): void {
+function recordRequest(inputTokens: number, outputTokens: number, toolCallCount: number): void {
   metrics.requestCount++;
-  metrics.totalTokens += tokens;
+  metrics.totalTokens += inputTokens + outputTokens;
   metrics.toolCalls += toolCallCount;
 }
 
@@ -298,7 +298,7 @@ async function streamMessages(
     }
   });
 
-  recordRequest(inputTokens, parsedToolCalls.length);
+  recordRequest(inputTokens, outputTokens, parsedToolCalls.length);
 
   return { textContent, toolCalls: parsedToolCalls, usage: { input_tokens: inputTokens, output_tokens: outputTokens } };
 }
