@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+import sys
 
 api_key = os.environ.get("MINIMAX_API_KEY")
 api_host = os.environ.get("MINIMAX_API_HOST")
@@ -12,6 +13,6 @@ response = requests.post(
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     },
-    json={"q": "人类登月新闻"}
+    json={"q": sys.argv[1]}
 )
 print(json.dumps(response.json(), ensure_ascii=False, indent=2))

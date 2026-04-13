@@ -1,6 +1,7 @@
 import base64
 import requests
 import os
+import sys
 
 url = "https://api.minimaxi.com/v1/image_generation"
 api_key = os.environ.get("MINIMAX_API_KEY")
@@ -8,8 +9,7 @@ headers = {"Authorization": f"Bearer {api_key}"}
 
 payload = {
     "model": "image-01",
-    "prompt": "men Dressing in white t shirt, full-body stand front view image :25, outdoor, Venice beach sign, full-body image, Los Angeles, Fashion photography of 90s, documentary, Film grain, photorealistic",
-    "aspect_ratio": "16:9",
+    "prompt": sys.argv[1],
     "response_format": "base64",
 }
 
