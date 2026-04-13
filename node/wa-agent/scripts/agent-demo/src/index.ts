@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { readFile, readdir } from 'fs/promises';
+import { readFile } from 'fs/promises';
 import * as readline from 'readline';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -21,7 +21,6 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const memoryPath = path.join(__dirname, '..', 'memory.md');
-const memoryDir = path.join(__dirname, '..', 'memory');
 const memorySystemPath = path.join(__dirname, '..', 'memory-system.md');
 
 // Constants
@@ -129,23 +128,6 @@ async function loadAllMemories(): Promise<string> {
   } catch {
     memories.push('# Agent Memory\n\nNo permanent memory available.');
   }
-
-  // 3. Load today and yesterday's timestamped memories
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  const dateFiles = [yesterday, today].map(d => d.toISOString().slice(0, 10) + '.md');
-
-  try {
-    const files = await readdir(memoryDir);
-    for (const file of files) {
-      if (dateFiles.includes(file)) {
-        const content = await readFile(path.join(memoryDir, file), 'utf-8');
-        memories.push(content);
-      }
-    }
-  } catch { /* skip if directory not exists */ }
 
   return memories.join('\n\n---\n\n');
 }

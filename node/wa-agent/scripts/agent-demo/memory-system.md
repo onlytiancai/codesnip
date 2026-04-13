@@ -1,13 +1,7 @@
 # System Memory Instructions
 
-## Memory File Location
-- Daily memories are stored in the `memory/` subdirectory
-- Each day has one memory file named as `YYYY-MM-DD.md`
-
-## How to Save Memories
-- Use `save_today_memory` tool to save important information learned today
-- Use `save_global_memory` tool to save permanent information (identity, user preferences)
-
-## Memory Loading
-- On startup, only today's and yesterday's memory files are loaded
-- All memory files are prepended to the system prompt
+## Memory Tools
+- Use `read_memory` to view current memory content before writing
+- Use `save_memory` to persist important information
+- **Important**: Always call `read_memory` first to understand existing memory before calling `save_memory`
+- **Important**: `save_memory` expects the FULL new content. You must compose and write the complete updated memory, not just new information to append
