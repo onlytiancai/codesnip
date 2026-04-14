@@ -7,7 +7,6 @@ import { fileURLToPath } from 'url';
 // ============ Constants ============
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const WEB_FETCH_MAX_CHARS = 5000;
 const ALLOWED_BASE_DIR = process.cwd();
 
 // ============ Types ============
@@ -100,21 +99,50 @@ const tools: Record<string, {
       }
     },
   },
-  web_fetch: {
-    description: 'Fetch content from a web URL',
-    schema: { url: z.string().url().describe('The URL to fetch') },
-    async execute({ url }) {
+  http_fetch: {
+    description: 'Fetch content from a web URL with full HTTP support (method, headers, body, response type)',
+    schema: {
+      url: z.string().url().describe('The URL to fetch'),
+      method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']).optional().default('GET'),
+      headers: z.record(z.string()).optional().describe('HTTP headers'),
+      body: z.string().optional().describe('Request body (for POST/PUT/PATCH)'),
+      response_type: z.enum(['text', 'json', 'html']).optional().default('text'),
+      timeout: z.number().optional().default(30000),
+    },
+    async execute({ url, method = 'GET', headers, body, response_type = 'text', timeout = 30000 }) {
       try {
-        const response = await fetch(String(url), {
-          headers: { 'User-Agent': 'AI-Agent/1.0' },
-          signal: AbortSignal.timeout(30000),
-        });
-        const html = await response.text();
-        const text = cheerio.load(html)('body').text().trim();
-        if (text.length > WEB_FETCH_MAX_CHARS) {
-          return text.substring(0, WEB_FETCH_MAX_CHARS) + `... (${text.length} chars total)`;
+        const requestHeaders: Record<string, string> = { 'User-Agent': 'AI-Agent/1.0' };
+        if (headers) {
+          Object.entries(headers).forEach(([key, value]) => {
+            requestHeaders[key] = String(value);
+          });
         }
-        return text;
+
+        const response = await fetch(String(url), {
+          method: String(method),
+          headers: requestHeaders,
+          body: body ? String(body) : undefined,
+          signal: AbortSignal.timeout(Number(timeout)),
+        });
+
+        const responseHeaders: Record<string, string> = {};
+        response.headers.forEach((value, key) => {
+          responseHeaders[key] = value;
+        });
+
+        let responseBody: string;
+        if (response_type === 'json') {
+          responseBody = JSON.stringify(await response.json());
+        } else if (response_type === 'html') {
+          const html = await response.text();
+          responseBody = cheerio.load(html)('body').text().trim();
+        } else {
+          responseBody = await response.text();
+        }
+
+        const statusLine = `Status: ${response.status}`;
+        const headersLine = `Headers: ${JSON.stringify(responseHeaders)}`;
+        return `${statusLine}\n${headersLine}\n---\n${responseBody}`;
       } catch (error) {
         throw error;
       }

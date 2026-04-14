@@ -19,7 +19,8 @@ export function escapeNewlines(text: string): string {
   return text.replace(/\n/g, '\\n');
 }
 
-export function formatToolResult(result: string, maxLen: number = TOOL_RESULT_MAX_DISPLAY): string {
+export function formatToolResult(result: string, maxLen: number = TOOL_RESULT_MAX_DISPLAY, debug: boolean = false): string {
+  if (debug) return result;
   const escaped = escapeNewlines(result);
   if (escaped.length <= maxLen) return escaped;
   return truncateText(escaped, maxLen);

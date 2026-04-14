@@ -10,10 +10,9 @@ scripts/agent-demo/
 ├── tsconfig.json      # TypeScript 配置
 ├── .env.example       # 环境变量模板
 ├── .env               # 环境变量
-├── memory.md          # 持久化全局记忆（用户可修改）
-├── memory-system.md   # 内置系统提示词（用户不可修改）
-├── memory/            # 时间戳记忆目录
-│   └── YYYY-MM-DD.md  # 每日记忆文件
+├── memory.md          # 持久化全局记忆
+├── memory-system.md   # 内置系统提示词（Agent 行为准则）
+├── memory.md.bak.*    # 自动备份文件（时间戳命名）
 └── src/
     ├── index.ts       # 主入口（CLI、消息流、状态管理）
     ├── tools.ts       # 工具定义与执行
@@ -30,9 +29,9 @@ scripts/agent-demo/
 | `write` | 创建/更新文件（自动创建目录） | `write({ path: "dir/file.txt", content: "..." })` |
 | `ls` | 列出目录内容 | `ls /Users/huhao/projects` |
 | `mkdir` | 创建目录（递归） | `mkdir /tmp/test` |
-| `web_fetch` | 获取网页内容并提取文本（限制 5000 字符） | `web_fetch https://example.com` |
-| `save_today_memory` | 保存重要信息到今日记忆文件 | `save_today_memory({ content: "用户喜欢用中文交流" })` |
-| `save_global_memory` | 保存永久信息到全局记忆 | `save_global_memory({ content: "用户是蛙蛙的主人" })` |
+| `http_fetch` | 完整的 HTTP 客户端（支持 GET/POST/PUT/DELETE/PATCH，返回状态码和响应头） | `http_fetch https://api.github.com` |
+| `read_memory` | 读取当前 memory.md 内容 | `read_memory()` |
+| `save_memory` | 保存完整记忆内容（自动备份后覆盖） | `save_memory({ content: "# Agent Memory\n..." })` |
 
 ### 功能特性
 
@@ -40,10 +39,12 @@ scripts/agent-demo/
 - **多轮对话**：完整的对话历史支持（最大 100 条消息）
 - **并行工具调用**：多个工具同时执行
 - **持久化记忆系统**：
-  - `memory-system.md` - 内置系统提示词（用户不可修改）
-  - `memory.md` - 用户可修改的全局记忆
-  - `memory/YYYY-MM-DD.md` - 每日时间戳记忆（启动时加载今天和昨天）
-- **记忆保存工具**：`save_today_memory` 和 `save_global_memory` 供 Agent 主动保存重要信息
+  - `memory-system.md` - 内置系统提示词（Agent 行为准则）
+  - `memory.md` - 全局记忆（Agent 读写）
+  - 自动备份：修改 memory.md 前自动创建 `memory.md.bak.<timestamp>` 备份文件
+- **记忆工具**：
+  - `read_memory` - 读取当前记忆
+  - `save_memory` - 写入完整新记忆（覆盖式，Agent 须先 read 再 save）
 - **Thinking 块**：显示模型的推理过程
 - **流式响应**：实时输出，带状态指示
 - **自动重试**：API 失败时自动重试（429、5xx、网络错误、timeout）
@@ -108,14 +109,14 @@ Agent 会知道自己的身份并用中文回复。
 
 ### 2. 记忆系统使用
 
-Agent 可以主动保存重要信息：
+Agent 通过 `read_memory` 和 `save_memory` 工具管理记忆：
 
 ```
 > 用户告诉我他叫蛙蛙，请记住这个信息
 > 用户喜欢用中文交流，请把这个偏好也记住
 ```
 
-Agent 会使用 `save_global_memory` 和 `save_today_memory` 工具保存信息。
+Agent 会先调用 `read_memory` 了解当前记忆，再调用 `save_memory` 写入完整新记忆。
 
 ### 3. 文件操作
 
@@ -184,7 +185,64 @@ pnpm dev "读取 memory.md 的内容" && cat memory.md
 
 ## 测试 Prompt
 
-- 基础：`你好，你是谁？我是谁？`
-- 文件：`在当前目录创建 test.txt，内容是 "hello"`
-- 网页：`抓取 https://blog.ihuhao.com/ 并总结主要内容`
-- 复杂任务：`在当前目录下创建一个 test 目录，抓取 https://blog.ihuhao.com/2026/03/19/spx-iron-condor/ 页面的内容后做摘要并保存在这个目录`
+### 基础
+- `你好，你是谁？我是谁？`
+- `在当前目录创建 test.txt，内容是 "hello"`
+
+### 文件操作
+- `读取当前目录的 package.json`
+- `列出 /tmp 目录下的文件`
+
+### http_fetch 工具测试（REST API 调用）
+
+#### 1. 基础 GET 请求
+```
+访问 https://api.github.com/users/octocat 并总结返回的信息
+```
+
+#### 2. JSON 响应解析
+```
+调用 http_fetch 获取 https://httpbin.org/json response_type=json
+```
+
+#### 3. POST 请求带 body
+```
+用 POST 方法访问 https://httpbin.org/post，body 传 {"name": "test", "value": 123}，response_type=json，然后总结返回结果
+```
+
+#### 4. 自定义 headers
+```
+访问 https://httpbin.org/headers，添加自定义 header X-Custom-Header: hello，response_type=json
+```
+
+#### 5. HTML 提取
+```
+获取 https://example.com 的内容，response_type=html
+```
+
+#### 6. 测试 DELETE/PATCH 方法
+```
+分别用 DELETE 方法访问 https://httpbin.org/delete，response_type=json
+```
+
+#### 7. 测试超时
+```
+访问 https://httpbin.org/delay/10，设置 timeout=2000，观察超时错误
+```
+
+#### 8. 纯文本响应
+```
+获取 https://httpbin.org/plain-text 的纯文本内容
+```
+
+### 复杂任务
+```
+在当前目录下创建一个 test 目录，抓取 https://blog.ihuhao.com/2026/03/19/spx-iron-condor/ 页面的内容后做摘要并保存在这个目录
+```
+
+### Debug 模式
+使用 `--debug` 或 `-d` 参数运行，可以查看完整的 thinking 过程和工具返回结果（不截断）：
+
+```bash
+pnpm dev --debug "访问 https://api.github.com 并总结返回的信息"
+```

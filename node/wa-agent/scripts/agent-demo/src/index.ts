@@ -179,6 +179,7 @@ const showStatus = (status: string) => {
 async function streamMessages(
   messages: Message[],
   systemPrompt: string,
+  debug: boolean = false,
 ): Promise<StreamResult> {
   const toolCalls: { name: string; id: string; argsRaw: string }[] = [];
   let currentToolIndex = -1;
@@ -250,7 +251,7 @@ async function streamMessages(
           process.stdout.write('\n[/Text]\n');
         } else if (currentBlockType === 'tool_use') {
           const argsRaw = toolCalls[currentToolIndex]?.argsRaw || '';
-          process.stdout.write(`${formatToolResult(argsRaw)}\n`);
+          process.stdout.write(`${formatToolResult(argsRaw, 100, debug)}\n`);
           process.stdout.write('[/Tool]\n');
         }
         currentBlockType = null;
@@ -286,9 +287,10 @@ async function streamMessages(
 }
 
 // ============ Interactive Mode ============
-async function interactiveMode(systemPrompt: string): Promise<void> {
+async function interactiveMode(systemPrompt: string, debug: boolean = false): Promise<void> {
   console.log('\n=== AI Agent Demo ===');
   console.log(`Tools: ${toolNames.join(', ')}`);
+  if (debug) console.log('Debug mode: ON');
   console.log('Commands: /new (clear history), /exit (quit)\n');
 
   const input = getReadline();
@@ -301,19 +303,21 @@ async function interactiveMode(systemPrompt: string): Promise<void> {
     if (userInput === '/new') { clearHistory(); console.log('[New conversation]\n'); continue; }
     if (userInput === '/exit') { closeReadline(); return; }
 
-    await processUserInput(userInput, systemPrompt);
+    await processUserInput(userInput, systemPrompt, isDebug);
   }
 }
 
 // ============ Non-Interactive Mode ============
-async function nonInteractiveMode(prompt: string, systemPrompt: string): Promise<void> {
-  console.log(`[Single-shot Mode] Executing: "${prompt}"\n`);
+async function nonInteractiveMode(prompt: string, systemPrompt: string, debug: boolean = false): Promise<void> {
+  console.log(`[Single-shot Mode] Executing: "${prompt}"`);
+  if (debug) console.log('[Debug mode: ON]\n');
+  else console.log();
   await processUserInput(prompt, systemPrompt);
   closeReadline();
 }
 
 // ============ Process User Input ============
-async function processUserInput(input: string, systemPrompt: string): Promise<void> {
+async function processUserInput(input: string, systemPrompt: string, debug: boolean = false): Promise<void> {
   let loopCount = 0;
   let lastError = '';
 
@@ -335,7 +339,7 @@ async function processUserInput(input: string, systemPrompt: string): Promise<vo
         showStatus('Sending request...');
         console.log('\n[LLM Response]\n');
 
-        const { textContent, toolCalls } = await streamMessages(messages, systemPrompt);
+        const { textContent, toolCalls } = await streamMessages(messages, systemPrompt, debug);
 
         // No tools - simple response, exit loop
         if (toolCalls.length === 0) {
@@ -354,7 +358,7 @@ async function processUserInput(input: string, systemPrompt: string): Promise<vo
           process.stdout.write(`[Calling ${tc.name}]\n`);
           const result = await executeTool(tc.name, tc.args);
           results.push(result);
-          console.log(`[${tc.name} result]\n${formatToolResult(result)}\n`);
+          console.log(`[${tc.name} result]\n${formatToolResult(result, 100, debug)}\n`);
         }
 
         // Build assistant message with tool uses
@@ -405,16 +409,17 @@ async function processUserInput(input: string, systemPrompt: string): Promise<vo
 
 // ============ Main ============
 async function main(): Promise<void> {
-  const systemPrompt = await loadAllMemories();
-
   // Parse command line arguments
   const { values, positionals } = parseArgs({
     args: process.argv.slice(2),
     options: {
       help: { type: 'boolean', default: false, short: 'h' },
+      debug: { type: 'boolean', default: false, short: 'd' },
     },
     allowPositionals: true,
   });
+
+  const isDebug = values.debug === true;
 
   if (values.help) {
     console.log(`
@@ -422,6 +427,7 @@ Usage: agent-demo [OPTIONS] [PROMPT]
 
 Options:
   -h, --help     Show this help message
+  -d, --debug    Show full output without truncation (thinking blocks, tool results)
 
 Arguments:
   PROMPT         User prompt to execute in single-shot mode (non-interactive)
@@ -431,18 +437,20 @@ Otherwise, runs in interactive REPL mode.
 
 Examples:
   agent-demo "List files in current directory"
+  agent-demo --debug "Trace the execution"
   agent-demo --help
 `);
     closeReadline();
     return;
   }
 
+  const systemPrompt = await loadAllMemories();
   const prompt = positionals.join(' ');
 
   if (prompt) {
-    await nonInteractiveMode(prompt, systemPrompt);
+    await nonInteractiveMode(prompt, systemPrompt, isDebug);
   } else {
-    await interactiveMode(systemPrompt);
+    await interactiveMode(systemPrompt, isDebug);
   }
 
   printMetrics();
