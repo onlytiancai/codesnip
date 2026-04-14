@@ -251,7 +251,7 @@ async function streamMessages(
           process.stdout.write('\n[/Text]\n');
         } else if (currentBlockType === 'tool_use') {
           const argsRaw = toolCalls[currentToolIndex]?.argsRaw || '';
-          process.stdout.write(`${formatToolResult(argsRaw, 100, debug)}\n`);
+          process.stdout.write(`${formatToolResult(argsRaw, debug ? Infinity : 100, debug)}\n`);
           process.stdout.write('[/Tool]\n');
         }
         currentBlockType = null;
@@ -303,7 +303,7 @@ async function interactiveMode(systemPrompt: string, debug: boolean = false): Pr
     if (userInput === '/new') { clearHistory(); console.log('[New conversation]\n'); continue; }
     if (userInput === '/exit') { closeReadline(); return; }
 
-    await processUserInput(userInput, systemPrompt, isDebug);
+    await processUserInput(userInput, systemPrompt, debug);
   }
 }
 
@@ -312,7 +312,7 @@ async function nonInteractiveMode(prompt: string, systemPrompt: string, debug: b
   console.log(`[Single-shot Mode] Executing: "${prompt}"`);
   if (debug) console.log('[Debug mode: ON]\n');
   else console.log();
-  await processUserInput(prompt, systemPrompt);
+  await processUserInput(prompt, systemPrompt, debug);
   closeReadline();
 }
 
@@ -358,7 +358,7 @@ async function processUserInput(input: string, systemPrompt: string, debug: bool
           process.stdout.write(`[Calling ${tc.name}]\n`);
           const result = await executeTool(tc.name, tc.args);
           results.push(result);
-          console.log(`[${tc.name} result]\n${formatToolResult(result, 100, debug)}\n`);
+          console.log(`[${tc.name} result]\n${formatToolResult(result, debug ? Infinity : 100, debug)}\n`);
         }
 
         // Build assistant message with tool uses
