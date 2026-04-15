@@ -9,6 +9,7 @@
 - [Iron Condor 策略指南](sources/iron-condor-optionstrategiesinsider.md) — 中性期权策略，涵盖结构、盈亏平衡点、P/L 和交易实例
 - [Iron Condor：全面指南](sources/iron-condor-tastylive.md) — 全面指南，包含入场策略、$500 详细实例、管理规则、反向铁秃鹰
 - [SPX Iron Condor 方法论与实盘 Checklist](sources/spx-iron-condor-ihuhao.md) — 系统化方法论，含五大步骤、量化参数和风险管理原则
+- [Doubao SPX Iron Condor 实战对话](sources/doubao-ad4d476d06810.md) — Greeks 量化逻辑、Delta/Gamma 对冲详解、专业基金调仓策略
 
 ## 实体
 
@@ -25,5 +26,7 @@
 - [SkewCondor（不对称铁秃鹰）](concepts/SkewCondor.md) — 利用市场不对称性的 Iron Condor 变体
 - [Gamma风险](concepts/Gamma风险.md) — 临近行权价时 PnL 加速恶化的风险
 - [Vega风险](concepts/Vega风险.md) — IV 上升导致双杀的风险
+- [Delta对冲](concepts/Delta对冲.md) — SPY 与 SPX Call 对冲对比、Delta 中性动态维护
+- [GammaCash](concepts/GammaCash.md) — 动态 Delta 对冲产生的现金流概念
 
 ## 综合分析

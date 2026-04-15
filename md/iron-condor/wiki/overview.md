@@ -2,8 +2,8 @@
 title: "概述"
 type: synthesis
 tags: []
-sources: [iron-condor-optionstrategiesinsider, iron-condor-tastylive, spx-iron-condor-ihuhao]
-last_updated: 2026-04-14
+sources: [iron-condor-optionstrategiesinsider, iron-condor-tastylive, spx-iron-condor-ihuhao, doubao-ad4d476d06810]
+last_updated: 2026-04-15
 ---
 
 # 概述
@@ -31,6 +31,7 @@ last_updated: 2026-04-14
 - [[iron-condor-optionstrategiesinsider]] — 结构、盈亏平衡公式、XYZ $100 实例、30–60 DTE 入场窗口
 - [[iron-condor-tastylive]] — 全面指南、1/3 宽度入场规则、$500/$50 实例、50% 盈利目标、移仓管理、反向铁秃鹰、铁飞
 - [[spx-iron-condor-ihuhao]] — 方法论、IV Rank/VIX 筛选标准、Skew Condor、Gamma/Vega 风险管理、实盘 Checklist
+- [[doubao-ad4d476d06810]] — Greeks 量化逻辑、Delta/Gamma 阈值详解、SPY vs SPX Call 对冲对比
 
 ## 风险管理与系统化
 
@@ -48,3 +49,12 @@ Iron Condor 主要暴露于以下风险：
 
 - **Gamma 风险** — 临近 short strike 时 PnL 加速恶化，需要设置硬性止损
 - **Vega 风险** — IV 上升导致双杀，应在高 IV 环境建仓并避免重大事件窗口
+
+### Delta 对冲量化
+
+根据 [[doubao-ad4d476d06810]] 的实战分析：
+
+- **Delta 阈值**：Delta≥5 或 ≤-5 时，100 点 SPX 波动即可吞噬大部分利润
+- **Gamma 阈值**：Gamma≥0.1 时，50 点 SPX 波动即可让 Delta 恶化到风险失控
+- **SPY 对冲数量**：SPX Delta=-4 时需约 40 股 SPY（非 4 股），因 SPX 期权乘数 100 vs SPY 无乘数
+- **Gamma Cash**：动态 Delta 对冲中高抛低吸产生的现金流
