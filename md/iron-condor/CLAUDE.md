@@ -2,6 +2,15 @@
 
 This wiki is maintained entirely by Claude Code. No API key or Python scripts needed — just open this repo in Claude Code and talk to it.
 
+## 说明
+
+- 用户要求抓取页面目录时
+  - 先尝试用 `npx defuddle parse -m -o {保存路径} "{要抓取的 url}" 2>&1`  命令
+  - 如果 defuddle 获取内容失败，则用 Chrome Devtools MCP 打开 URL ，等页面渲染完成后，把网页整体 HTML 内容保存临时目录，再用 `npx defuddle parse {html路径} --markdown -o {保存路径}`
+  - 注意上面命令示例中大括号里的内容要替换成真实信息，如果有问题可以运行 `npx defuddle parse --help` 查看帮助
+- 生成 wiki 页面时要用中文
+
+
 ## Slash Commands (Claude Code)
 
 | Command | What to say |
@@ -19,12 +28,6 @@ Or just describe what you want in plain English:
 
 Claude Code reads this file automatically and follows the workflows below.
 
-## 说明
-
-- 抓取页面到raw 目录时先尝试用 `npx defuddle parse --help` 命令
-- 生成 wiki 页面时要用中文
-
----
 
 ## Directory Layout
 
