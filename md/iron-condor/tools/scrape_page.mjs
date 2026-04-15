@@ -4,6 +4,11 @@
  *
  * Dependencies:
  *   npm install ws jsdom defuddle
+ * 
+ * Open Chrome with CDP:
+ * 
+ *   mkdir ~/chrome-profile-for-ai
+ *   /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir=~/chrome-profile-for-ai
  *
  * Usage:
  *   node tools/scrape_page.mjs <url> [output.md]
