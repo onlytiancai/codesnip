@@ -66,7 +66,9 @@ class FeedListScreen(Screen):
         Binding("down", "list_down", "Down"),
         Binding("up", "list_up", "Up"),
         Binding("right", "enter_article_list", "Enter"),
+        Binding("l", "enter_article_list", "Enter"),
         Binding("enter", "enter_article_list", "Enter"),
+        Binding("ctrl+r", "refresh_all", "Refresh", priority=True),
     ]
 
     def compose(self) -> ComposeResult:
@@ -114,8 +116,7 @@ class FeedListScreen(Screen):
             for feed in app.feeds:
                 articles = app.articles_by_feed.get(feed.id, [])
                 total_count = len(articles)
-                unread_count = len([a for a in articles if not a.is_read])
-                suffix = f" ({total_count}/{unread_count})" if unread_count > 0 else f" ({total_count})"
+                suffix = f" ({total_count})"
                 item = ListItem(Static(f"{feed.title}{suffix}"))
                 item.key = str(feed.id)
                 feed_list.append(item)
@@ -159,24 +160,50 @@ class FeedListScreen(Screen):
         if feed_list.index is not None and feed_list.index < len(feed_list.children) - 1:
             feed_list.index += 1
 
+    def action_refresh_all(self) -> None:
+        asyncio.create_task(self._refresh_all_internal())
+
+    async def _refresh_all_internal(self) -> None:
+        app = self.app
+        log.info("FeedListScreen: Refreshing all feeds")
+        total = len(app.feeds)
+        app.is_loading = True
+        for i, feed in enumerate(app.feeds):
+            app.loading_message = f"Refreshing ({i + 1}/{total}): {feed.title[:30]}..."
+            try:
+                loading_el = self.query_one("#loading_msg", Static)
+                loading_el.update(f"[yellow]Loading: {app.loading_message}[/yellow]")
+            except Exception:
+                pass
+            await app.refresh_feed(feed.id)
+        app.is_loading = False
+        app.loading_message = ""
+        try:
+            loading_el = self.query_one("#loading_msg", Static)
+            loading_el.update("")
+        except Exception:
+            pass
+        app.notify("All feeds refreshed")
+        await self.refresh_feeds()
+
 
 class ArticleListScreen(Screen):
     BINDINGS = [
         Binding("left", "go_back", "Back"),
-        Binding("b", "go_back", "Back"),
+        Binding("h", "go_back", "Back"),
         Binding("j", "list_down", "Down", priority=True),
         Binding("k", "list_up", "Up", priority=True),
         Binding("down", "list_down", "Down"),
         Binding("up", "list_up", "Up"),
         Binding("right", "enter_article_detail", "Enter"),
+        Binding("l", "enter_article_detail", "Enter"),
         Binding("enter", "enter_article_detail", "Enter"),
-        Binding("r", "toggle_read", "Read"),
-        Binding("s", "toggle_star", "Star"),
     ]
 
     def __init__(self, app: "RSSReaderApp", feed_id: int):
         super().__init__()
         self._feed_id = feed_id
+        self._last_viewed_article_id: int | None = None
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -184,11 +211,14 @@ class ArticleListScreen(Screen):
         yield ListView(id="article_list")
         yield Footer()
 
-    async def on_mount(self) -> None:
-        await self.refresh_articles()
+    def on_mount(self) -> None:
+        self._load_articles()
+        self.query_one("#article_list", ListView).focus()
 
     def on_screen_resume(self) -> None:
-        self.call_later(self._ensure_selection)
+        last_id = self._last_viewed_article_id
+        self._last_viewed_article_id = None
+        self.call_later(lambda: self._refresh_and_select_article(last_id))
 
     def _ensure_selection(self):
         article_list = self.query_one("#article_list", ListView)
@@ -198,21 +228,38 @@ class ArticleListScreen(Screen):
             article_list.refresh()
         article_list.focus()
 
-    async def refresh_articles(self):
+    def _refresh_and_select_article(self, article_id: int | None):
+        article_list = self.query_one("#article_list", ListView)
+        if article_list.children:
+            if article_id is not None:
+                for i, item in enumerate(article_list.children):
+                    if hasattr(item, 'key') and int(item.key) == article_id:
+                        article_list.index = i
+                        article_list.focus()
+                        return
+            if article_list.index is None:
+                article_list.index = 0
+            article_list.focus()
+        else:
+            article_list.focus()
+
+    def _load_articles(self):
         app = self.app
         feed_id = self._feed_id
         app.current_feed_id = feed_id
-        feed = await app.db.get_feed(feed_id)
-        title = feed.title if feed else "Articles"
+        # 获取 feed title
+        for feed in app.feeds:
+            if feed.id == feed_id:
+                title = feed.title
+                break
+        else:
+            title = "Articles"
         self.query_one("#title", Static).update(title)
-
         article_list = self.query_one("#article_list", ListView)
         article_list.clear()
         for article in app.articles_by_feed.get(feed_id, []):
-            prefix = "[yellow]★[/yellow] " if article.is_starred else ("[green]●[/green] " if article.is_read else "")
             published_short = article.published[:10] if article.published else ""
-            title_line = f"{prefix}{article.title}"
-            item = ListItem(Static(f"{title_line} [dim]{published_short}[/dim]", markup=True))
+            item = ListItem(Static(f"{article.title} [dim]{published_short}[/dim]", markup=True))
             item.key = str(article.id)
             article_list.append(item)
         if article_list.children:
@@ -223,7 +270,7 @@ class ArticleListScreen(Screen):
         if event.item and event.item.key:
             article_id = int(event.item.key)
             self.app.current_article_id = article_id
-            asyncio.create_task(self._enter_detail_and_mark_read(article_id))
+            self.app.push_screen(ArticleDetailScreen(self.app, article_id))
 
     def action_go_back(self) -> None:
         self.app.pop_screen()
@@ -236,38 +283,7 @@ class ArticleListScreen(Screen):
                 if hasattr(item, 'key') and item.key:
                     article_id = int(item.key)
                     self.app.current_article_id = article_id
-                    asyncio.create_task(self._enter_detail_and_mark_read(article_id))
-            except (IndexError, AttributeError):
-                pass
-
-    async def _enter_detail_and_mark_read(self, article_id: int) -> None:
-        await self.app.mark_article_read(article_id)
-        await self.refresh_articles()
-        self.app.push_screen(ArticleDetailScreen(self.app, article_id))
-
-    async def action_toggle_read(self) -> None:
-        article_list = self.query_one("#article_list", ListView)
-        if article_list.index is not None and article_list.index >= 0:
-            try:
-                item = article_list.children[article_list.index]
-                if hasattr(item, 'key') and item.key:
-                    article_id = int(item.key)
-                    await self.app.toggle_read(article_id)
-                    await self.refresh_articles()
-            except (IndexError, AttributeError):
-                pass
-
-    async def action_toggle_star(self) -> None:
-        article_list = self.query_one("#article_list", ListView)
-        if article_list.index is not None and article_list.index >= 0:
-            try:
-                item = article_list.children[article_list.index]
-                if hasattr(item, 'key') and item.key:
-                    article_id = int(item.key)
-                    await self.app.toggle_star(article_id)
-                    await self.refresh_articles()
-            except (IndexError, AttributeError):
-                pass
+                    self.app.push_screen(ArticleDetailScreen(self.app, article_id))
             except (IndexError, AttributeError):
                 pass
 
@@ -285,7 +301,11 @@ class ArticleListScreen(Screen):
 class ArticleDetailScreen(Screen):
     BINDINGS = [
         Binding("c", "copy_selection", "Copy"),
-        Binding("b", "go_back", "Back"),
+        Binding("h", "go_back", "Back"),
+        Binding("j", "scroll_down", "Down", priority=True),
+        Binding("k", "scroll_up", "Up", priority=True),
+        Binding("down", "scroll_down", "Down"),
+        Binding("up", "scroll_up", "Up"),
     ]
 
     def __init__(self, app: "RSSReaderApp", article_id: int):
@@ -296,6 +316,14 @@ class ArticleDetailScreen(Screen):
         yield Header()
         yield TextArea(id="content", read_only=True, show_cursor=False)
         yield Footer()
+
+    def action_scroll_up(self) -> None:
+        text_area = self.query_one("#content", TextArea)
+        text_area.scroll_y -= 1
+
+    def action_scroll_down(self) -> None:
+        text_area = self.query_one("#content", TextArea)
+        text_area.scroll_y += 1
 
     def on_mount(self) -> None:
         asyncio.create_task(self.load_article())
@@ -371,7 +399,6 @@ class RSSReaderApp(App):
 
     BINDINGS = [
         Binding("q", "quit", "Quit"),
-        Binding("ctrl+r", "refresh_all", "Refresh"),
     ]
 
     def __init__(self):
@@ -503,36 +530,6 @@ class RSSReaderApp(App):
         self.articles_by_feed[feed_id] = await self.db.get_articles(feed_id)
         self.feeds = await self.db.get_feeds()
 
-    async def mark_article_read(self, article_id: int):
-        await self.db.mark_article_read(article_id, True)
-        for feed_id, articles in self.articles_by_feed.items():
-            for article in articles:
-                if article.id == article_id:
-                    article.is_read = True
-                    break
-
-    async def toggle_read(self, article_id: int):
-        article = await self.db.get_article(article_id)
-        if article:
-            article.is_read = not article.is_read
-            await self.db.update_article(article)
-            if self.current_feed_id and self.current_feed_id in self.articles_by_feed:
-                for a in self.articles_by_feed[self.current_feed_id]:
-                    if a.id == article_id:
-                        a.is_read = article.is_read
-                        break
-
-    async def toggle_star(self, article_id: int):
-        article = await self.db.get_article(article_id)
-        if article:
-            article.is_starred = not article.is_starred
-            await self.db.update_article(article)
-            if self.current_feed_id and self.current_feed_id in self.articles_by_feed:
-                for a in self.articles_by_feed[self.current_feed_id]:
-                    if a.id == article_id:
-                        a.is_starred = article.is_starred
-                        break
-
     def action_add_feed(self) -> None:
         log.info("action_add_feed: Opening add feed modal")
         self.push_screen(AddFeedModal())
@@ -544,13 +541,6 @@ class RSSReaderApp(App):
         await self.delete_feed(self.current_feed_id)
         self.current_feed_id = None
         self.app.pop_screen()
-        self.push_screen(FeedListScreen())
-
-    async def action_refresh_all(self) -> None:
-        log.info("action_refresh_all: Refreshing all feeds")
-        for feed in self.feeds:
-            await self.refresh_feed(feed.id)
-        self.notify("All feeds refreshed")
         self.push_screen(FeedListScreen())
 
     def action_quit(self) -> None:

@@ -46,8 +46,6 @@ class Database:
                 author TEXT,
                 published TEXT,
                 guid TEXT NOT NULL,
-                is_read INTEGER DEFAULT 0,
-                is_starred INTEGER DEFAULT 0,
                 fetched_at TEXT NOT NULL,
                 FOREIGN KEY (feed_id) REFERENCES feeds(id) ON DELETE CASCADE,
                 UNIQUE(feed_id, guid)
@@ -93,13 +91,13 @@ class Database:
         try:
             cursor = await self._conn.execute(
                 """INSERT INTO articles
-                   (feed_id, title, link, description, content, content_md, author, published, guid, is_read, is_starred, fetched_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   (feed_id, title, link, description, content, content_md, author, published, guid, fetched_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     article.feed_id, article.title, article.link,
                     article.description or "", article.content or "", article.content_md or "",
                     article.author or "", article.published or "",
-                    article.guid, int(article.is_read), int(article.is_starred), article.fetched_at,
+                    article.guid, article.fetched_at,
                 ),
             )
             await self._conn.commit()
@@ -120,16 +118,3 @@ class Database:
         row = await cursor.fetchone()
         return Article(**dict(row)) if row else None
 
-    async def update_article(self, article: Article):
-        await self._conn.execute(
-            """UPDATE articles SET is_read=?, is_starred=? WHERE id=?""",
-            (int(article.is_read), int(article.is_starred), article.id),
-        )
-        await self._conn.commit()
-
-    async def mark_article_read(self, article_id: int, is_read: bool = True):
-        await self._conn.execute(
-            "UPDATE articles SET is_read = ? WHERE id = ?",
-            (int(is_read), article_id),
-        )
-        await self._conn.commit()
