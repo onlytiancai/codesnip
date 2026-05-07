@@ -41,6 +41,9 @@ class AddFeedModal(Screen):
         Binding("enter", "submit", "Add", priority=True),
     ]
 
+    def on_mount(self) -> None:
+        self.query_one("#feed_url", Input).focus()
+
     def compose(self) -> ComposeResult:
         with VerticalScroll():
             yield Static("Add Feed URL:", id="label")
