@@ -1,0 +1,2 @@
+- 调用 llm api 参考 /Users/huhao/src/codesnip/python/minimax-test/minimax-test.py
+- 创建 nuxt 项目参考 /Users/huhao/src/codesnip/node/wawakeji-wx-app/nuxt4-dashboard-demo
