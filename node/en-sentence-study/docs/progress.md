@@ -144,3 +144,39 @@
 | 日期 | 更新内容 |
 |------|----------|
 | 2026-05-14 | 项目初始化，开始创建文档 |
+| 2026-05-14 | 创建文档：plan.md, pitch-deck.md, progress.md, scenarios.md |
+| 2026-05-14 | 重构 scripts/：新增 markdown_parser.py, llm_caller.py, generate_sentence.py |
+
+---
+
+## Scripts 目录结构
+
+| 文件 | 功能 |
+|------|------|
+| `markdown_parser.py` | 解析 docs/scenarios.md，使用第三方 Markdown 解析器 |
+| `llm_caller.py` | LLM API 调用封装，支持 debug 模式和自动重试 |
+| `generate_sentence.py` | 主脚本，随机生成场景口语练习数据 |
+
+### generate_sentence.py 使用方法
+
+```bash
+# 普通运行
+python scripts/generate_sentence.py
+
+# 开启 debug 模式（打印请求、响应、耗时）
+python scripts/generate_sentence.py --debug
+```
+
+### 输出示例
+
+```
+📍 场景：娱乐休闲 (Entertainment)
+📋 任务：看演唱会 (Concert)
+💬 中文：这演唱会太燃了！
+
+🌐 英文翻译：
+  1. [casual] This concert is absolutely electrifying!
+     直译：这场演唱会绝对让人热血沸腾！
+     说明：非常口语化且夸张的表达...
+     重点：concert /ˈkɒnsət/ (演唱会), electrifying /ɪˈlektrɪfaɪɪŋ/ (激动人心的)...
+```
