@@ -1,0 +1,46 @@
+{
+  "scene_en": "Home Life",
+  "scene_zh": "家居生活",
+  "task_en": "Furniture Shopping",
+  "task_zh": "家具购买",
+  "context": "小李和女朋友在宜家家具店挑选沙发，他们看中了一款灰色布艺沙发，小李想知道价格是否在预算范围内。",
+  "sentence_zh": "这个沙发多少钱？",
+  "translations": [
+    {
+      "sentence": "How much is this sofa?",
+      "style": "neutral",
+      "note": "最简单直接的询问价格方式，日常生活中最常用",
+      "literal_translation": "这个沙发多少钱？",
+      "phonetic": "/haʊ ˈmʌtʃ ɪz ðɪs ˈsoʊfə/"
+    },
+    {
+      "sentence": "What's the price of this sofa?",
+      "style": "polite",
+      "note": "更正式的表达，用'price'替代'much'，显得有礼貌",
+      "literal_translation": "这个沙发的价格是多少？",
+      "phonetic": "/wɒts ðə praɪs ɒv ðɪs ˈsoʊfə/"
+    },
+    {
+      "sentence": "Could you tell me how much this sofa costs?",
+      "style": "polite",
+      "note": "用could开头并加tell me，是最礼貌的询问方式，适合服务业场景",
+      "literal_translation": "您能告诉我这个沙发多少钱吗？",
+      "phonetic": "/kʊd juː tel miː haʊ ˈmʌtʃ ðɪs ˈsoʊfə kɒsts/"
+    },
+    {
+      "sentence": "How much would this sofa set me back?",
+      "style": "casual",
+      "note": "口语化表达，'set me back'是地道的习语，带点幽默感",
+      "literal_translation": "这个沙发会让我花多少钱？",
+      "phonetic": "/haʊ ˈmʌtʃ wʊd ðɪs ˈsoʊfə set miː bæk/"
+    },
+    {
+      "sentence": "Is this sofa on sale?",
+      "style": "neutral",
+      "note": "如果关注打折信息，可以这样问，同时暗示了对价格的关注",
+      "literal_translation": "这个沙发打折吗？",
+      "phonetic": "/ɪz ðɪs ˈsoʊfə ɒn seɪl/"
+    }
+  ],
+  "explanation": "在家具店询问价格是最基本也最实用的表达。日常购物中，'How much is...?'是最常用的表达；如果想显得更有礼貌，可以用'Could you tell me...'的结构。'Set me back'是美国口语中很地道的表达，但不太适合正式场合。另外，在美国购物时顺便问一句'Is this on sale?'是个好习惯，很多商品确实会有折扣。"
+}

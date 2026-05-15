@@ -1,0 +1,46 @@
+{
+  "scene_en": "Work",
+  "scene_zh": "工作",
+  "task_en": "Networking",
+  "task_zh": "社交",
+  "context": "你参加一个行业交流会，会场上人很多。你注意到旁边站着一位看起来也是业内人士的陌生人，主动上前打招呼并介绍自己。你想通过简短的自我介绍来开启对话，了解对方的职业背景。",
+  "sentence_zh": "你好，很高兴认识你。我是做产品设计的，你呢？",
+  "translations": [
+    {
+      "sentence": "It's a pleasure to meet you. I'm in product design. And you?",
+      "style": "polite",
+      "note": "适合正式场合初次见面，友好且有礼貌",
+      "literal_translation": "很荣幸见到你。我在产品设计领域。你呢？",
+      "phonetic": "ɪts ə ˈpleʒər tu miːt ju. aɪm ɪn ˈprɒdʌkt dɪˈzaɪn. ænd juː?"
+    },
+    {
+      "sentence": "Hi, nice to meet you. I work in product design. What do you do?",
+      "style": "neutral",
+      "note": "标准商务社交开场白，适用范围广",
+      "literal_translation": "嗨，很高兴认识你。我在产品设计行业工作。你做什么工作？",
+      "phonetic": "haɪ, naɪs tu miːt ju. aɪ wɜːrk ɪn ˈprɒdʌkt dɪˈzaɪn. wɒt duː juː?"
+    },
+    {
+      "sentence": "Hey, good to meet you! I'm in product design. What about you?",
+      "style": "casual",
+      "note": "轻松友好的语气，适合轻松的社交场合",
+      "literal_translation": "嘿，很高兴认识你！我在产品设计行业。你呢？",
+      "phonetic": "heɪ, gʊd tu miːt ju! aɪm ɪn ˈprɒdʌkt dɪˈzaɪn. wɒt əˈbaʊt juː?"
+    },
+    {
+      "sentence": "Great to meet you! I'm a product designer. What line of work are you in?",
+      "style": "polite",
+      "note": "使用具体职位名称，询问对方职业的正式表达",
+      "literal_translation": "很高兴见到你！我是一名产品设计师。你从事什么行业？",
+      "phonetic": "greɪt tu miːt ju! aɪm ə ˈprɒdʌkt dɪˈzaɪnər. wɒt laɪn əv wɜːrk ɑːr juː ɪn?"
+    },
+    {
+      "sentence": "Hey! Nice meeting you. I'm in product design. So what do you do for a living?",
+      "style": "casual",
+      "note": "非常口语化，轻松随意，略带好奇",
+      "literal_translation": "嘿！认识你很高兴。我在产品设计行业。那你是做什么工作的？",
+      "phonetic": "heɪ! naɪs ˈmiːtɪŋ ju. aɪm ɪn ˈprɒdʌkt dɪˈzaɪn. səʊ wɒt duː juː dʊ fɔːr ə ˈlɪvɪŋ?"
+    }
+  ],
+  "explanation": "这是职场networking中最常用的开场白之一。在自我介绍时，先表达礼貌和热情，然后简要说明自己的职业领域，最后主动询问对方的背景。关键点：1) 表达见到对方的愉快心情；2) 用简洁的语言介绍自己的职业；3) 用开放性问题引导对话。需要注意的是，在初次见面时不要问太多私人问题，保持对话轻松自然。另外，在行业活动中，提及自己的专业领域可以帮助快速找到共同话题或潜在合作机会。"
+}

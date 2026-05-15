@@ -1,0 +1,46 @@
+{
+  "scene_en": "Dating",
+  "scene_zh": "约会",
+  "task_en": "Asking Someone Out",
+  "task_zh": "发起约会",
+  "context": "小李在图书馆学习时，偶然遇到了隔壁班的心仪女生小雨。两人正在讨论一本书，小李鼓起勇气想邀请她出去。",
+  "sentence_zh": "这周末有部新电影上映，想不想一起去看？",
+  "translations": [
+    {
+      "sentence": "There's a new movie out this weekend. Would you like to go see it with me?",
+      "style": "polite",
+      "note": "礼貌且具体，提出了明确的邀约内容",
+      "literal_translation": "这周末有新电影上映。你愿意和我一起去看吗？",
+      "phonetic": "ðɛrz ə njuː ˈmuːvi aʊt ðɪs ˈwiːkˌɛnd. wʊd juː laɪk tuː ɡoʊ siː ɪt wɪð miː?"
+    },
+    {
+      "sentence": "Do you wanna catch a movie this weekend?",
+      "style": "casual",
+      "note": "口语化表达，'catch a movie'是常见俚语",
+      "literal_translation": "你这周末想不想去看场电影？",
+      "phonetic": "duː juː ˈwɒnə kætʃ ə ˈmuːvi ðɪs ˈwiːkˌɛnd?"
+    },
+    {
+      "sentence": "Hey, are you free Saturday? Let me take you out.",
+      "style": "neutral",
+      "note": "直接但友好的邀请，'take you out'暗示请客",
+      "literal_translation": "嘿，你周六有空吗？让我带你出去。",
+      "phonetic": "heɪ, ɑːr juː friː ˈsætərdeɪ? lɛt miː teɪk juː aʊt."
+    },
+    {
+      "sentence": "What are you up to this weekend? Maybe we could hang out?",
+      "style": "casual",
+      "note": "轻松试探性的邀请，给对方留有余地",
+      "literal_translation": "你这周末有什么安排？也许我们可以出来玩？",
+      "phonetic": "wɒt ɑːr juː ʌp tuː ðɪs ˈwiːkˌɛnd? ˈmeɪbiː wiː kʊd hæŋ aʊt?"
+    },
+    {
+      "sentence": "I've been wanting to ask you out. How about dinner and a movie?",
+      "style": "bold",
+      "note": "明确表示想约会，直接邀请共进晚餐和看电影",
+      "literal_translation": "我一直想约你出来。晚餐加电影怎么样？",
+      "phonetic": "aɪv biːn ˈwɒntɪŋ tuː æsk juː aʊt. haʊ əˈbaʊt ˈdɪnər ænd ə ˈmuːvi?"
+    }
+  ],
+  "explanation": "在英语约会场景中，邀请对方出去的方式取决于你们的关系程度和对方的性格。polite风格适合刚认识不久或不太确定对方心意时使用；casual风格适合已经有些熟悉的人；bold风格则适合你很有把握对方会答应的情况。需要注意的是，'date'这个词在英语中比中文的'约会'更直接暗示浪漫意味，所以如果只是普通朋友出去，用'movie'或'hang out'会更安全。"
+}
