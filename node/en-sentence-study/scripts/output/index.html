@@ -14,7 +14,7 @@
             --bg-tertiary: #f1f5f9;
             --text-primary: #1e293b;
             --text-secondary: #475569;
-            --text-muted: #64748b;
+            --text-muted: #94a3b8;
             --accent: #6366f1;
             --accent-hover: #4f46e5;
             --accent-bg: #eef2ff;
@@ -24,15 +24,15 @@
         .dark {
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
-            --bg-tertiary: #334155;
+            --bg-tertiary: #1e293b;
             --text-primary: #f1f5f9;
             --text-secondary: #cbd5e1;
-            --text-muted: #94a3b8;
+            --text-muted: #64748b;
             --accent: #818cf8;
-            --accent-hover: #a5b4fc;
+            --accent-hover: #6366f1;
             --accent-bg: #1e1b4b;
             --border: #334155;
-            --divider: #334155;
+            --divider: #252f3f;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -49,11 +49,15 @@
         .text-theme-muted { color: var(--text-muted); }
         .text-theme-accent { color: var(--accent); }
         .border-theme { border-color: var(--border); }
-        .divide-theme > * + * { border-color: var(--divider); }
         .bg-accent { background-color: var(--accent); }
         .hover\:bg-accent:hover { background-color: var(--accent-hover); }
         .hover\:text-accent:hover { color: var(--accent); }
         .hover\:bg-accent-light:hover { background-color: var(--accent-bg); }
+
+        .divide-theme > :not(:last-child) {
+            border-color: var(--divider);
+        }
+
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -143,8 +147,8 @@
                             <h3 class="font-medium text-theme-primary">{{ scene.name }}</h3>
                             <p class="text-sm text-theme-muted">{{ scene.nameEn }}</p>
                         </div>
-                        <div class="divide-y divide-theme">
-                            <div v-for="task in scene.tasks" :key="task.name"
+                        <div class="divide-y divide-theme" >
+                            <div  v-for="task in scene.tasks" :key="task.name"
                                  class="px-4 py-3 flex items-center justify-between hover:bg-theme-accent cursor-pointer transition"
                                  @click="$router.push('/task/' + encodeURIComponent(scene.name) + '/' + encodeURIComponent(task.name))">
                                 <div>
@@ -238,7 +242,7 @@
                         </nav>
 
                         <div class="bg-theme-secondary rounded-lg shadow-lg border border-theme overflow-hidden" style="border-color: var(--border);">
-                            <div class="bg-accent text-white px-6 py-4">
+                            <div class="bg-theme-tertiary text-theme-primary px-6 py-4">
                                 <h2 class="text-xl font-medium">{{ data.sentenceZh }}</h2>
                             </div>
 
