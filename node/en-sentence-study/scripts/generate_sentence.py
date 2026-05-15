@@ -27,7 +27,7 @@ SCRIPT_DIR = Path(__file__).parent
 PROJECT_DIR = SCRIPT_DIR.parent
 SCENARIOS_PATH = PROJECT_DIR / "docs" / "scenarios.md"
 OUTPUT_DIR = SCRIPT_DIR / "output"
-SENTENCES_FILE = OUTPUT_DIR / "sentences.md"
+SENTENCES_FILE = OUTPUT_DIR / "sentences.txt"
 
 
 # 系统提示词
