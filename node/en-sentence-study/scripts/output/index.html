@@ -9,29 +9,70 @@
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <style>
         :root {
-            --green-50: #f0fdf4;
-            --green-100: #dcfce7;
-            --green-200: #bbf7d0;
-            --green-300: #86efac;
-            --green-400: #4ade80;
-            --green-500: #22c55e;
-            --green-600: #16a34a;
-            --green-700: #15803d;
-            --green-800: #166534;
-            --green-900: #14532d;
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-bg: #eef2ff;
+            --border: #e2e8f0;
+            --divider: #f1f5f9;
+        }
+        .dark {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --accent: #818cf8;
+            --accent-hover: #a5b4fc;
+            --accent-bg: #1e1b4b;
+            --border: #334155;
+            --divider: #334155;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s, color 0.3s;
         }
+        .bg-theme-primary { background-color: var(--bg-primary); }
+        .bg-theme-secondary { background-color: var(--bg-secondary); }
+        .bg-theme-tertiary { background-color: var(--bg-tertiary); }
+        .bg-theme-accent { background-color: var(--accent-bg); }
+        .text-theme-primary { color: var(--text-primary); }
+        .text-theme-secondary { color: var(--text-secondary); }
+        .text-theme-muted { color: var(--text-muted); }
+        .text-theme-accent { color: var(--accent); }
+        .border-theme { border-color: var(--border); }
+        .divide-theme > * + * { border-color: var(--divider); }
+        .bg-accent { background-color: var(--accent); }
+        .hover\:bg-accent:hover { background-color: var(--accent-hover); }
+        .hover\:text-accent:hover { color: var(--accent); }
+        .hover\:bg-accent-light:hover { background-color: var(--accent-bg); }
     </style>
 </head>
-<body class="bg-green-50 min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col">
     <div id="app">
         <!-- Header -->
-        <header class="bg-green-700 text-white py-4 px-6 shadow-md">
+        <header class="bg-theme-secondary border-b border-theme text-theme-primary py-4 px-6 shadow-md" style="border-color: var(--border);">
             <div class="max-w-4xl mx-auto flex items-center justify-between">
-                <router-link to="/" class="text-xl font-semibold cursor-pointer no-underline text-white hover:text-green-200">SpeakFlow</router-link>
-                <span class="text-green-200 text-sm hidden sm:inline">英语口语练习</span>
+                <router-link to="/" class="text-xl font-semibold cursor-pointer no-underline text-theme-primary hover:text-accent">SpeakFlow</router-link>
+                <div class="flex items-center gap-4">
+                    <span class="text-theme-muted text-sm hidden sm:inline">英语口语练习</span>
+                    <button @click="toggleTheme" class="p-2 rounded-lg hover:bg-theme-tertiary transition-colors" :title="isDark ? '切换到亮色模式' : '切换到暗色模式'">
+                        <svg v-if="isDark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                        <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -40,28 +81,28 @@
             <div class="max-w-4xl mx-auto">
                 <!-- Loading -->
                 <div v-if="loading" class="text-center py-12">
-                    <div class="inline-block w-8 h-8 border-4 border-green-300 border-t-green-600 rounded-full animate-spin"></div>
-                    <p class="mt-3 text-green-700">加载中...</p>
+                    <div class="inline-block w-8 h-8 border-4 border-theme-tertiary border-t-accent rounded-full animate-spin"></div>
+                    <p class="mt-3 text-theme-muted">加载中...</p>
                 </div>
 
                 <!-- Error -->
                 <div v-else-if="error" class="text-center py-12">
-                    <p class="text-red-600">{{ error }}</p>
-                    <button @click="loadData" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                    <p class="text-red-500">{{ error }}</p>
+                    <button @click="loadData" class="mt-4 px-4 py-2 bg-accent text-white rounded hover:bg-accent-hover transition-colors">
                         重试
                     </button>
                 </div>
 
                 <!-- Router View -->
                 <router-view v-else v-slot="{ Component }">
-                    <component :is="Component" :sentences-data="sentencesData" :grouped-sentences="groupedSentences" />
+                    <component :is="Component" :sentences-data="sentencesData" :grouped-sentences="groupedSentences" :is-dark="isDark" />
                 </router-view>
             </div>
         </main>
 
         <!-- Footer -->
-        <footer class="bg-green-700 text-white py-4 px-6 text-center">
-            <p class="text-green-200 text-sm">SpeakFlow - 让英语口语学习更简单</p>
+        <footer class="bg-theme-secondary border-t py-4 px-6 text-center" style="border-color: var(--border);">
+            <p class="text-theme-muted text-sm">SpeakFlow - 让英语口语学习更简单</p>
         </footer>
     </div>
 
@@ -89,33 +130,33 @@
 
         // Home 组件
         const Home = {
-            props: ['groupedSentences', 'sentencesData'],
+            props: ['groupedSentences', 'sentencesData', 'isDark'],
             template: `
                 <div class="space-y-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-medium text-green-800">场景列表</h2>
-                        <span class="text-sm text-green-600">{{ sentencesData.length }} 个句子</span>
+                        <h2 class="text-lg font-medium text-theme-primary">场景列表</h2>
+                        <span class="text-sm text-theme-muted">{{ sentencesData.length }} 个句子</span>
                     </div>
 
-                    <div v-for="scene in groupedSentences" :key="scene.name" class="bg-white rounded-lg shadow-sm border border-green-100 overflow-hidden">
-                        <div class="bg-green-100 px-4 py-3 border-b border-green-200">
-                            <h3 class="font-medium text-green-800">{{ scene.name }}</h3>
-                            <p class="text-sm text-green-600">{{ scene.nameEn }}</p>
+                    <div v-for="scene in groupedSentences" :key="scene.name" class="bg-theme-secondary rounded-lg shadow-sm border border-theme overflow-hidden" style="border-color: var(--border);">
+                        <div class="bg-theme-tertiary px-4 py-3 border-b" style="border-color: var(--border);">
+                            <h3 class="font-medium text-theme-primary">{{ scene.name }}</h3>
+                            <p class="text-sm text-theme-muted">{{ scene.nameEn }}</p>
                         </div>
-                        <div class="divide-y divide-green-100">
+                        <div class="divide-y divide-theme">
                             <div v-for="task in scene.tasks" :key="task.name"
-                                 class="px-4 py-3 flex items-center justify-between hover:bg-green-50 cursor-pointer transition"
+                                 class="px-4 py-3 flex items-center justify-between hover:bg-theme-accent cursor-pointer transition"
                                  @click="$router.push('/task/' + encodeURIComponent(scene.name) + '/' + encodeURIComponent(task.name))">
                                 <div>
-                                    <span class="text-gray-800">{{ task.name }}</span>
-                                    <span v-if="task.nameEn" class="text-gray-400 mx-2">|</span>
-                                    <span class="text-gray-500 text-sm">{{ task.nameEn }}</span>
+                                    <span class="text-theme-primary">{{ task.name }}</span>
+                                    <span v-if="task.nameEn" class="text-theme-muted mx-2">|</span>
+                                    <span class="text-theme-muted text-sm">{{ task.nameEn }}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="bg-green-600 text-white text-xs px-2 py-1 rounded-full">
+                                    <span class="bg-accent text-white text-xs px-2 py-1 rounded-full">
                                         {{ task.sentences.length }}
                                     </span>
-                                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4 text-theme-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                     </svg>
                                 </div>
@@ -128,32 +169,32 @@
 
         // Task 组件
         const TaskView = {
-            props: ['groupedSentences', 'sentencesData'],
+            props: ['groupedSentences', 'sentencesData', 'isDark'],
             template: `
                 <div class="space-y-4">
-                    <nav class="flex items-center text-sm text-gray-500 mb-4">
-                        <router-link to="/" class="cursor-pointer hover:text-green-600 no-underline text-gray-500">首页</router-link>
+                    <nav class="flex items-center text-sm text-theme-muted mb-4">
+                        <router-link to="/" class="cursor-pointer hover:text-accent no-underline text-theme-muted">首页</router-link>
                         <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
-                        <span class="text-green-700">{{ scene.name }}</span>
+                        <span class="text-accent">{{ scene.name }}</span>
                         <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
-                        <span class="text-green-700">{{ task.name }}</span>
+                        <span class="text-accent">{{ task.name }}</span>
                     </nav>
 
-                    <div class="bg-white rounded-lg shadow-sm border border-green-100 overflow-hidden">
-                        <div class="bg-green-100 px-4 py-3 border-b border-green-200">
-                            <h3 class="font-medium text-green-800">{{ task.name }}</h3>
-                            <p class="text-sm text-green-600">{{ task.nameEn }}</p>
+                    <div class="bg-theme-secondary rounded-lg shadow-sm border border-theme overflow-hidden" style="border-color: var(--border);">
+                        <div class="bg-theme-tertiary px-4 py-3 border-b" style="border-color: var(--border);">
+                            <h3 class="font-medium text-theme-primary">{{ task.name }}</h3>
+                            <p class="text-sm text-theme-muted">{{ task.nameEn }}</p>
                         </div>
-                        <div class="divide-y divide-green-100">
+                        <div class="divide-y divide-theme">
                             <div v-for="item in task.sentences" :key="item.id"
-                                 class="px-4 py-3 flex items-center justify-between hover:bg-green-50 cursor-pointer transition"
+                                 class="px-4 py-3 flex items-center justify-between hover:bg-theme-accent cursor-pointer transition"
                                  @click="$router.push('/sentence/' + item.id)">
-                                <span class="text-gray-700">{{ item.sentenceZh }}</span>
-                                <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <span class="text-theme-primary">{{ item.sentenceZh }}</span>
+                                <svg class="w-4 h-4 text-theme-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                 </svg>
                             </div>
@@ -175,64 +216,64 @@
 
         // Sentence 组件
         const SentenceView = {
-            props: ['groupedSentences', 'sentencesData'],
+            props: ['groupedSentences', 'sentencesData', 'isDark'],
             template: `
                 <div class="space-y-4">
                     <div v-if="loading" class="text-center py-12">
-                        <div class="inline-block w-8 h-8 border-4 border-green-300 border-t-green-600 rounded-full animate-spin"></div>
-                        <p class="mt-3 text-green-700">加载中...</p>
+                        <div class="inline-block w-8 h-8 border-4 border-theme-tertiary border-t-accent rounded-full animate-spin"></div>
+                        <p class="mt-3 text-theme-muted">加载中...</p>
                     </div>
 
                     <div v-else-if="data" class="space-y-4">
-                        <nav class="flex items-center text-sm text-gray-500 mb-4">
-                            <router-link to="/" class="cursor-pointer hover:text-green-600 no-underline text-gray-500">首页</router-link>
+                        <nav class="flex items-center text-sm text-theme-muted mb-4">
+                            <router-link to="/" class="cursor-pointer hover:text-accent no-underline text-theme-muted">首页</router-link>
                             <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
-                            <router-link :to="'/task/' + encodeURIComponent(data.scene) + '/' + encodeURIComponent(data.task)" class="cursor-pointer hover:text-green-600 no-underline text-green-700">{{ data.scene }}</router-link>
+                            <router-link :to="'/task/' + encodeURIComponent(data.scene) + '/' + encodeURIComponent(data.task)" class="cursor-pointer hover:text-accent no-underline text-accent">{{ data.scene }}</router-link>
                             <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
-                            <span class="text-green-700">{{ data.task }}</span>
+                            <span class="text-accent">{{ data.task }}</span>
                         </nav>
 
-                        <div class="bg-white rounded-lg shadow-lg border border-green-100 overflow-hidden">
-                            <div class="bg-green-600 text-white px-6 py-4">
+                        <div class="bg-theme-secondary rounded-lg shadow-lg border border-theme overflow-hidden" style="border-color: var(--border);">
+                            <div class="bg-accent text-white px-6 py-4">
                                 <h2 class="text-xl font-medium">{{ data.sentenceZh }}</h2>
                             </div>
 
                             <div class="p-6 space-y-6">
-                                <div v-if="data.context" class="bg-green-50 rounded-lg p-4">
-                                    <p class="text-sm text-green-600 mb-1">上下文背景</p>
-                                    <p class="text-gray-700">{{ data.context }}</p>
+                                <div v-if="data.context" class="bg-theme-accent rounded-lg p-4">
+                                    <p class="text-sm text-theme-muted mb-1">上下文背景</p>
+                                    <p class="text-theme-primary">{{ data.context }}</p>
                                 </div>
 
                                 <div>
-                                    <h3 class="font-medium text-gray-800 mb-3">英文表达</h3>
+                                    <h3 class="font-medium text-theme-primary mb-3">英文表达</h3>
                                     <div class="space-y-4">
                                         <div v-for="(t, index) in data.translations" :key="index"
-                                             class="border border-gray-200 rounded-lg p-4">
+                                             class="border border-theme rounded-lg p-4" style="border-color: var(--border);">
                                             <div class="flex items-start justify-between mb-2">
-                                                <span class="text-lg text-gray-800">{{ t.sentence }}</span>
+                                                <span class="text-lg text-theme-primary">{{ t.sentence }}</span>
                                                 <span class="text-xs px-2 py-1 rounded"
                                                       :class="{
-                                                          'bg-green-100 text-green-700': t.style === 'polite',
-                                                          'bg-blue-100 text-blue-700': t.style === 'neutral',
-                                                          'bg-orange-100 text-orange-700': t.style === 'casual'
+                                                          'bg-accent text-white': t.style === 'polite',
+                                                          'bg-blue-500 text-white': t.style === 'neutral',
+                                                          'bg-purple-500 text-white': t.style === 'casual'
                                                       }">
                                                     {{ t.style }}
                                                 </span>
                                             </div>
-                                            <p class="text-sm text-green-600 mb-2">{{ t.phonetic }}</p>
-                                            <p class="text-gray-600 text-sm mb-2">{{ t.literalTranslation }}</p>
-                                            <p class="text-gray-500 text-sm">{{ t.note }}</p>
+                                            <p class="text-sm text-theme-muted mb-2">{{ t.phonetic }}</p>
+                                            <p class="text-theme-secondary text-sm mb-2">{{ t.literalTranslation }}</p>
+                                            <p class="text-theme-muted text-sm">{{ t.note }}</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div v-if="data.explanation" class="bg-gray-50 rounded-lg p-4">
-                                    <p class="text-sm text-gray-500 mb-1">讲解</p>
-                                    <p class="text-gray-700">{{ data.explanation }}</p>
+                                <div v-if="data.explanation" class="bg-theme-tertiary rounded-lg p-4">
+                                    <p class="text-sm text-theme-muted mb-1">讲解</p>
+                                    <p class="text-theme-primary">{{ data.explanation }}</p>
                                 </div>
                             </div>
                         </div>
@@ -261,7 +302,6 @@
                         const res = await fetch('./' + id + '.json');
                         if (res.ok) {
                             const json = await res.json();
-                            // 映射字段名以匹配组件期望
                             this.data = {
                                 scene: json.scene_zh,
                                 task: json.task_zh,
@@ -305,6 +345,7 @@
                 const loading = ref(true);
                 const error = ref(null);
                 const sentencesData = ref([]);
+                const isDark = ref(false);
 
                 // 按场景和任务分组
                 const groupedSentences = computed(() => {
@@ -336,6 +377,12 @@
                     return result;
                 });
 
+                const toggleTheme = () => {
+                    isDark.value = !isDark.value;
+                    document.documentElement.classList.toggle('dark', isDark.value);
+                    localStorage.setItem('theme', isDark.value ? 'dark' : 'light');
+                };
+
                 // 加载数据
                 const loadData = async () => {
                     loading.value = true;
@@ -353,10 +400,16 @@
                 };
 
                 onMounted(() => {
+                    // 恢复主题设置
+                    const saved = localStorage.getItem('theme');
+                    if (saved === 'dark') {
+                        isDark.value = true;
+                        document.documentElement.classList.add('dark');
+                    }
                     loadData();
                 });
 
-                return { loading, error, sentencesData, groupedSentences, loadData };
+                return { loading, error, sentencesData, groupedSentences, loadData, isDark, toggleTheme };
             }
         });
 
