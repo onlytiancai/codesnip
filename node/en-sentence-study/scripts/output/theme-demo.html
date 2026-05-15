@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>明暗主题切换演示</title>
+    <!-- 通过 CDN 引入 Tailwind CSS v4 -->
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <style>
+        /* ============================================
+           CSS 变量定义区域 - 主题色的核心
+           ============================================ */
+
+        /* 亮色主题（默认） */
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-bg: #eef2ff;
+            --border: #e2e8f0;
+        }
+
+        /* 暗色主题 - 通过 .dark 类切换
+           覆盖相同的 CSS 变量名，实现主题切换 */
+        .dark {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --accent: #818cf8;
+            --accent-hover: #6366f1;
+            --accent-bg: #1e1b4b;
+            --border: #334155;
+        }
+
+        /* ============================================
+           工具类定义 - 将 CSS 变量映射为可用的类
+           ============================================ */
+        .bg-theme-primary { background-color: var(--bg-primary); }
+        .bg-theme-secondary { background-color: var(--bg-secondary); }
+        .bg-theme-tertiary { background-color: var(--bg-tertiary); }
+        .bg-theme-accent { background-color: var(--accent-bg); }
+        .text-theme-primary { color: var(--text-primary); }
+        .text-theme-secondary { color: var(--text-secondary); }
+        .text-theme-muted { color: var(--text-muted); }
+        .text-theme-accent { color: var(--accent); }
+        .border-theme { border-color: var(--border); }
+        .bg-accent { background-color: var(--accent); }
+        .hover\:bg-accent:hover { background-color: var(--accent-hover); }
+
+        /* ============================================
+           基础样式与过渡动画
+           ============================================ */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            /* 主题切换时的平滑过渡效果 */
+            transition: background-color 0.3s, color 0.3s;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- ============================================
+         头部区域
+         ============================================ -->
+    <header class="bg-theme-secondary border-b border-theme text-theme-primary py-4 px-6 shadow-md"
+            style="border-color: var(--border);">
+        <div class="max-w-2xl mx-auto flex items-center justify-between">
+            <h1 class="text-xl font-semibold">明暗主题演示</h1>
+
+            <!-- 主题切换按钮 -->
+            <button id="themeToggle"
+                    class="p-2 rounded-lg hover:bg-theme-tertiary transition-colors cursor-pointer"
+                    title="切换主题">
+                <!-- 亮色模式图标（太阳） -->
+                <svg id="icon-sun" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                <!-- 暗色模式图标（月亮）- 默认隐藏 -->
+                <svg id="icon-moon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- ============================================
+         主内容区域
+         ============================================ -->
+    <main class="flex-1 py-8 px-4">
+        <div class="max-w-2xl mx-auto space-y-6">
+            <!-- 说明卡片 -->
+            <div class="bg-theme-secondary rounded-xl shadow-sm border border-theme p-6"
+                 style="border-color: var(--border);">
+                <h2 class="text-lg font-medium text-theme-primary mb-3">实现原理</h2>
+                <ul class="space-y-2 text-theme-secondary">
+                    <li>1. 使用 <code class="text-theme-accent">CSS 变量</code> 定义所有颜色</li>
+                    <li>2. <code class="text-theme-accent">.dark</code> 类覆盖相同的变量名实现切换</li>
+                    <li>3. 通过 <code class="text-theme-accent">localStorage</code> 持久化用户偏好</li>
+                    <li>4. <code class="text-theme-accent">transition</code> 实现平滑过渡动画</li>
+                </ul>
+            </div>
+
+            <!-- 颜色展示卡片 -->
+            <div class="bg-theme-secondary rounded-xl shadow-sm border border-theme p-6"
+                 style="border-color: var(--border);">
+                <h2 class="text-lg font-medium text-theme-primary mb-4">主题色展示</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- 背景色 -->
+                    <div class="space-y-2">
+                        <p class="text-sm text-theme-muted font-medium">背景色</p>
+                        <div class="flex gap-2">
+                            <div class="w-12 h-12 rounded-lg bg-theme-primary border border-theme flex items-center justify-center text-xs" style="border-color: var(--border);">primary</div>
+                            <div class="w-12 h-12 rounded-lg bg-theme-secondary border border-theme flex items-center justify-center text-xs" style="border-color: var(--border);">secondary</div>
+                            <div class="w-12 h-12 rounded-lg bg-theme-tertiary border border-theme flex items-center justify-center text-xs" style="border-color: var(--border);">tertiary</div>
+                        </div>
+                    </div>
+                    <!-- 文字色 -->
+                    <div class="space-y-2">
+                        <p class="text-sm text-theme-muted font-medium">文字色</p>
+                        <div class="space-y-2">
+                            <p class="text-theme-primary">主要文字 primary</p>
+                            <p class="text-theme-secondary">次要文字 secondary</p>
+                            <p class="text-theme-muted">辅助文字 muted</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 交互元素展示 -->
+            <div class="bg-theme-secondary rounded-xl shadow-sm border border-theme p-6"
+                 style="border-color: var(--border);">
+                <h2 class="text-lg font-medium text-theme-primary mb-4">交互元素</h2>
+                <div class="flex flex-wrap gap-3">
+                    <button class="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent transition-colors">
+                        主要按钮
+                    </button>
+                    <button class="px-4 py-2 border border-theme rounded-lg text-theme-primary hover:bg-theme-tertiary transition-colors" style="border-color: var(--border);">
+                        次要按钮
+                    </button>
+                    <span class="px-3 py-1 bg-theme-accent text-theme-accent rounded-full text-sm" style="color: var(--accent);">
+                        标签
+                    </span>
+                    <span class="px-3 py-1 bg-accent text-white rounded-full text-sm">
+                        accent
+                    </span>
+                </div>
+            </div>
+
+            <!-- 卡片组件 -->
+            <div class="bg-theme-secondary rounded-xl shadow-sm border border-theme overflow-hidden"
+                 style="border-color: var(--border);">
+                <div class="bg-theme-tertiary px-4 py-3 border-b" style="border-color: var(--border);">
+                    <h3 class="font-medium text-theme-primary">卡片标题</h3>
+                    <p class="text-sm text-theme-muted">这是卡片的副标题</p>
+                </div>
+                <div class="p-4">
+                    <p class="text-theme-secondary">卡片内容区域，使用主题变量保持一致性。</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ============================================
+         底部
+         ============================================ -->
+    <footer class="bg-theme-secondary border-t py-4 px-6 text-center" style="border-color: var(--border);">
+        <p class="text-theme-muted text-sm">点击右上角按钮切换明暗主题</p>
+    </footer>
+
+    <!-- ============================================
+         JavaScript - 主题切换逻辑
+         ============================================ -->
+    <script>
+        // 获取主题切换按钮和图标元素
+        const themeToggle = document.getElementById('themeToggle');
+        const iconSun = document.getElementById('icon-sun');
+        const iconMoon = document.getElementById('icon-moon');
+
+        /**
+         * 切换主题的核心函数
+         * 1. 在 <html> 元素上 toggle .dark 类
+         * 2. 更新图标显示状态
+         * 3. 将偏好保存到 localStorage
+         */
+        function toggleTheme() {
+            // 切换 .dark 类 - 这是主题切换的关键
+            document.documentElement.classList.toggle('dark');
+
+            // 检查当前是否处于暗色模式
+            const isDark = document.documentElement.classList.contains('dark');
+
+            // 更新图标显示：暗色显示太阳，亮色显示月亮
+            iconSun.classList.toggle('hidden', isDark);
+            iconMoon.classList.toggle('hidden', !isDark);
+
+            // 持久化存储
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // 页面加载时恢复保存的主题偏好
+        (function initTheme() {
+            const saved = localStorage.getItem('theme');
+            const isDark = saved === 'dark';
+
+            // 如果之前是暗色模式，立即应用
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                iconSun.classList.add('hidden');
+                iconMoon.classList.remove('hidden');
+            }
+        })();
+
+        // 绑定点击事件
+        themeToggle.addEventListener('click', toggleTheme);
+    </script>
+</body>
+</html>
