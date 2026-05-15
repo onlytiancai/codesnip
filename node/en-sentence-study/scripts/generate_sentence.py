@@ -168,21 +168,19 @@ def get_next_file_number() -> int:
     return max_num + 1
 
 
-def save_json_result(result: SentenceData):
-    """保存 JSON 结果到文件"""
+def save_json_result(result: SentenceData) -> int:
+    """保存 JSON 结果到文件，返回使用的编号"""
     ensure_output_dir()
     file_num = get_next_file_number()
     filepath = OUTPUT_DIR / f"{file_num}.json"
     filepath.write_text(json.dumps(result.to_dict(), ensure_ascii=False, indent=2), encoding='utf-8')
     print(f"\n💾 已保存 JSON 到：{filepath}")
+    return file_num
 
 
-def append_sentence_to_history(result: SentenceData):
+def append_sentence_to_history(result: SentenceData, file_num: int):
     """追加句子到历史记录文件"""
     ensure_output_dir()
-
-    # 获取下一个编号
-    file_num = get_next_file_number()
 
     # 每行格式：序号 | 场景 | 任务 | 中文句子（用 | 分割避免逗号冲突）
     line = f"{file_num} | {result.scene_zh} | {result.task_zh} | {result.sentence_zh}\n"
@@ -274,8 +272,8 @@ def main():
     result.print_result()
 
     # 保存结果
-    save_json_result(result)
-    append_sentence_to_history(result)
+    file_num = save_json_result(result)
+    append_sentence_to_history(result, file_num)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,46 @@
+{
+  "scene_en": "Taxi/Ride-hailing",
+  "scene_zh": "打车",
+  "task_en": "Rating the Driver",
+  "task_zh": "评价司机",
+  "context": "乘客小李使用打车软件到达目的地后，对司机王师傅的服务非常满意，准备结束行程并给予好评的场景。",
+  "sentence_zh": "谢谢师傅，给您个好评！",
+  "translations": [
+    {
+      "sentence": "Thank you, driver! Five stars!",
+      "style": "casual",
+      "note": "非常口语化的表达，直接说五星好评，适合轻松的交流场景",
+      "literal_translation": "谢谢你，司机！五星！",
+      "phonetic": "θæŋk ˈjuː ˈdrɑːvər! ˈfaɪv stɑːrz!"
+    },
+    {
+      "sentence": "Thanks for the ride! I'll give you a great rating.",
+      "style": "neutral",
+      "note": "中性表达，表示感谢并说明会给好评，适合大多数场景",
+      "literal_translation": "感谢您的驾驶！我会给您一个好评。",
+      "phonetic": "θæŋks fɔːr ðə raɪd! aɪl gɪv juː ə greɪt ˈreɪtɪŋ!"
+    },
+    {
+      "sentence": "Thank you so much! You were a great driver.",
+      "style": "polite",
+      "note": "礼貌表达，先感谢再称赞司机，非常友善客气",
+      "literal_translation": "非常感谢！您是一位很棒的司机。",
+      "phonetic": "θæŋk juː soʊ mʌtʃ! juː wɜːr ə greɪt ˈdrɑːvər."
+    },
+    {
+      "sentence": "Awesome driver! Getting a five-star review from me.",
+      "style": "casual",
+      "note": "很口语化，带有热情和活力，适合年轻人或轻松的氛围",
+      "literal_translation": "超棒的司机！我给您一个五星评价。",
+      "phonetic": "ˈɔːsəm ˈdrɑːvər! ɡəˈtetɪŋ ə ˈfaɪv-stɑːr rɪˈvjuː frʌm miː."
+    },
+    {
+      "sentence": "I really appreciate your service. I'll make sure to leave a positive rating.",
+      "style": "polite",
+      "note": "正式礼貌的表达，完整说明会留下正面评价，适合正式感谢场景",
+      "literal_translation": "我非常感谢您的服务。我一定会留下一个正面评价。",
+      "phonetic": "aɪ ˈrɪli əˈpriːʃieɪt jɔːr ˈsɜːvɪs. aɪl meɪk ʃʊr tə liːv ə pəˈzɪtɪv ˈreɪtɪŋ."
+    }
+  ],
+  "explanation": "在打车场景中给予司机好评是非常常见的社交行为。通常乘客会在下车前或到达目的地后对司机表示认可和感谢。需要注意的是，在中国打车文化中，给'好评'是一个约定俗成的礼貌行为，英文中会用'five stars'或'rating'来表达类似概念。不同风格的表达适用于不同的交流场景：casual风格适合轻松愉快的氛围；neutral适合大多数日常场景；polite则更适合需要表达高度感谢或正式场合的情况。"
+}

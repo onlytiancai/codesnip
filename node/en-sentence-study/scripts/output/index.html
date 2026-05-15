@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpeakFlow - 英语口语练习</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.prod.js"></script>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <style>
+        :root {
+            --green-50: #f0fdf4;
+            --green-100: #dcfce7;
+            --green-200: #bbf7d0;
+            --green-300: #86efac;
+            --green-400: #4ade80;
+            --green-500: #22c55e;
+            --green-600: #16a34a;
+            --green-700: #15803d;
+            --green-800: #166534;
+            --green-900: #14532d;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-green-50 min-h-screen flex flex-col">
+    <div id="app">
+        <!-- Header -->
+        <header class="bg-green-700 text-white py-4 px-6 shadow-md">
+            <div class="max-w-4xl mx-auto flex items-center justify-between">
+                <router-link to="/" class="text-xl font-semibold cursor-pointer no-underline text-white hover:text-green-200">SpeakFlow</router-link>
+                <span class="text-green-200 text-sm hidden sm:inline">英语口语练习</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 py-6 px-4">
+            <div class="max-w-4xl mx-auto">
+                <!-- Loading -->
+                <div v-if="loading" class="text-center py-12">
+                    <div class="inline-block w-8 h-8 border-4 border-green-300 border-t-green-600 rounded-full animate-spin"></div>
+                    <p class="mt-3 text-green-700">加载中...</p>
+                </div>
+
+                <!-- Error -->
+                <div v-else-if="error" class="text-center py-12">
+                    <p class="text-red-600">{{ error }}</p>
+                    <button @click="loadData" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                        重试
+                    </button>
+                </div>
+
+                <!-- Router View -->
+                <router-view v-else v-slot="{ Component }">
+                    <component :is="Component" :sentences-data="sentencesData" :grouped-sentences="groupedSentences" />
+                </router-view>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-green-700 text-white py-4 px-6 text-center">
+            <p class="text-green-200 text-sm">SpeakFlow - 让英语口语学习更简单</p>
+        </footer>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+        const { createRouter, createWebHashHistory } = VueRouter;
+
+        // 解析 sentences.txt
+        const parseSentences = (text) => {
+            const lines = text.trim().split('\n');
+            const result = [];
+            for (const line of lines) {
+                const parts = line.split('|').map(p => p.trim());
+                if (parts.length === 4) {
+                    result.push({
+                        id: parseInt(parts[0]),
+                        scene: parts[1],
+                        task: parts[2],
+                        sentenceZh: parts[3]
+                    });
+                }
+            }
+            return result;
+        };
+
+        // Home 组件
+        const Home = {
+            props: ['groupedSentences', 'sentencesData'],
+            template: `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-medium text-green-800">场景列表</h2>
+                        <span class="text-sm text-green-600">{{ sentencesData.length }} 个句子</span>
+                    </div>
+
+                    <div v-for="scene in groupedSentences" :key="scene.name" class="bg-white rounded-lg shadow-sm border border-green-100 overflow-hidden">
+                        <div class="bg-green-100 px-4 py-3 border-b border-green-200">
+                            <h3 class="font-medium text-green-800">{{ scene.name }}</h3>
+                            <p class="text-sm text-green-600">{{ scene.nameEn }}</p>
+                        </div>
+                        <div class="divide-y divide-green-100">
+                            <div v-for="task in scene.tasks" :key="task.name"
+                                 class="px-4 py-3 flex items-center justify-between hover:bg-green-50 cursor-pointer transition"
+                                 @click="$router.push('/task/' + encodeURIComponent(scene.name) + '/' + encodeURIComponent(task.name))">
+                                <div>
+                                    <span class="text-gray-800">{{ task.name }}</span>
+                                    <span v-if="task.nameEn" class="text-gray-400 mx-2">|</span>
+                                    <span class="text-gray-500 text-sm">{{ task.nameEn }}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="bg-green-600 text-white text-xs px-2 py-1 rounded-full">
+                                        {{ task.sentences.length }}
+                                    </span>
+                                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+
+        // Task 组件
+        const TaskView = {
+            props: ['groupedSentences', 'sentencesData'],
+            template: `
+                <div class="space-y-4">
+                    <nav class="flex items-center text-sm text-gray-500 mb-4">
+                        <router-link to="/" class="cursor-pointer hover:text-green-600 no-underline text-gray-500">首页</router-link>
+                        <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <span class="text-green-700">{{ scene.name }}</span>
+                        <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <span class="text-green-700">{{ task.name }}</span>
+                    </nav>
+
+                    <div class="bg-white rounded-lg shadow-sm border border-green-100 overflow-hidden">
+                        <div class="bg-green-100 px-4 py-3 border-b border-green-200">
+                            <h3 class="font-medium text-green-800">{{ task.name }}</h3>
+                            <p class="text-sm text-green-600">{{ task.nameEn }}</p>
+                        </div>
+                        <div class="divide-y divide-green-100">
+                            <div v-for="item in task.sentences" :key="item.id"
+                                 class="px-4 py-3 flex items-center justify-between hover:bg-green-50 cursor-pointer transition"
+                                 @click="$router.push('/sentence/' + item.id)">
+                                <span class="text-gray-700">{{ item.sentenceZh }}</span>
+                                <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            computed: {
+                scene() {
+                    const sceneName = decodeURIComponent(this.$route.params.scene);
+                    return this.groupedSentences.find(s => s.name === sceneName) || { name: '', nameEn: '', tasks: [] };
+                },
+                task() {
+                    const taskName = decodeURIComponent(this.$route.params.task);
+                    return this.scene.tasks?.find(t => t.name === taskName) || { name: '', nameEn: '', sentences: [] };
+                }
+            }
+        };
+
+        // Sentence 组件
+        const SentenceView = {
+            props: ['groupedSentences', 'sentencesData'],
+            template: `
+                <div class="space-y-4">
+                    <div v-if="loading" class="text-center py-12">
+                        <div class="inline-block w-8 h-8 border-4 border-green-300 border-t-green-600 rounded-full animate-spin"></div>
+                        <p class="mt-3 text-green-700">加载中...</p>
+                    </div>
+
+                    <div v-else-if="data" class="space-y-4">
+                        <nav class="flex items-center text-sm text-gray-500 mb-4">
+                            <router-link to="/" class="cursor-pointer hover:text-green-600 no-underline text-gray-500">首页</router-link>
+                            <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                            <router-link :to="'/task/' + encodeURIComponent(data.scene) + '/' + encodeURIComponent(data.task)" class="cursor-pointer hover:text-green-600 no-underline text-green-700">{{ data.scene }}</router-link>
+                            <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                            <span class="text-green-700">{{ data.task }}</span>
+                        </nav>
+
+                        <div class="bg-white rounded-lg shadow-lg border border-green-100 overflow-hidden">
+                            <div class="bg-green-600 text-white px-6 py-4">
+                                <h2 class="text-xl font-medium">{{ data.sentenceZh }}</h2>
+                            </div>
+
+                            <div class="p-6 space-y-6">
+                                <div v-if="data.context" class="bg-green-50 rounded-lg p-4">
+                                    <p class="text-sm text-green-600 mb-1">上下文背景</p>
+                                    <p class="text-gray-700">{{ data.context }}</p>
+                                </div>
+
+                                <div>
+                                    <h3 class="font-medium text-gray-800 mb-3">英文表达</h3>
+                                    <div class="space-y-4">
+                                        <div v-for="(t, index) in data.translations" :key="index"
+                                             class="border border-gray-200 rounded-lg p-4">
+                                            <div class="flex items-start justify-between mb-2">
+                                                <span class="text-lg text-gray-800">{{ t.sentence }}</span>
+                                                <span class="text-xs px-2 py-1 rounded"
+                                                      :class="{
+                                                          'bg-green-100 text-green-700': t.style === 'polite',
+                                                          'bg-blue-100 text-blue-700': t.style === 'neutral',
+                                                          'bg-orange-100 text-orange-700': t.style === 'casual'
+                                                      }">
+                                                    {{ t.style }}
+                                                </span>
+                                            </div>
+                                            <p class="text-sm text-green-600 mb-2">{{ t.phonetic }}</p>
+                                            <p class="text-gray-600 text-sm mb-2">{{ t.literalTranslation }}</p>
+                                            <p class="text-gray-500 text-sm">{{ t.note }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div v-if="data.explanation" class="bg-gray-50 rounded-lg p-4">
+                                    <p class="text-sm text-gray-500 mb-1">讲解</p>
+                                    <p class="text-gray-700">{{ data.explanation }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            data() {
+                return {
+                    loading: true,
+                    data: null
+                };
+            },
+            watch: {
+                '$route.params.id': {
+                    handler(newId) {
+                        this.loadSentence(newId);
+                    },
+                    immediate: true
+                }
+            },
+            methods: {
+                async loadSentence(id) {
+                    this.loading = true;
+                    this.data = null;
+                    try {
+                        const res = await fetch('./' + id + '.json');
+                        if (res.ok) {
+                            const json = await res.json();
+                            // 映射字段名以匹配组件期望
+                            this.data = {
+                                scene: json.scene_zh,
+                                task: json.task_zh,
+                                sentenceZh: json.sentence_zh,
+                                context: json.context,
+                                translations: json.translations.map(t => ({
+                                    sentence: t.sentence,
+                                    style: t.style,
+                                    note: t.note,
+                                    literalTranslation: t.literal_translation,
+                                    phonetic: t.phonetic
+                                })),
+                                explanation: json.explanation
+                            };
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+        };
+
+        // 路由配置
+        const routes = [
+            { path: '/', component: Home },
+            { path: '/task/:scene/:task', component: TaskView },
+            { path: '/sentence/:id', component: SentenceView }
+        ];
+
+        // 创建路由
+        const router = createRouter({
+            history: createWebHashHistory(),
+            routes
+        });
+
+        // 创建 App
+        const app = createApp({
+            setup() {
+                const loading = ref(true);
+                const error = ref(null);
+                const sentencesData = ref([]);
+
+                // 按场景和任务分组
+                const groupedSentences = computed(() => {
+                    const groups = {};
+                    for (const item of sentencesData.value) {
+                        const key = item.scene;
+                        if (!groups[key]) {
+                            groups[key] = { name: item.scene, nameEn: '', tasks: {} };
+                        }
+                        const taskKey = item.task;
+                        if (!groups[key].tasks[taskKey]) {
+                            groups[key].tasks[taskKey] = { name: taskKey, nameEn: '', sentences: [] };
+                        }
+                        groups[key].tasks[taskKey].sentences.push(item);
+                    }
+
+                    const result = [];
+                    for (const [, sceneData] of Object.entries(groups)) {
+                        const tasks = [];
+                        for (const [, taskData] of Object.entries(sceneData.tasks)) {
+                            tasks.push({
+                                name: taskData.name,
+                                nameEn: taskData.nameEn || '',
+                                sentences: taskData.sentences
+                            });
+                        }
+                        result.push({ name: sceneData.name, nameEn: sceneData.nameEn || '', tasks });
+                    }
+                    return result;
+                });
+
+                // 加载数据
+                const loadData = async () => {
+                    loading.value = true;
+                    error.value = null;
+                    try {
+                        const response = await fetch('./sentences.txt');
+                        if (!response.ok) throw new Error('Failed to load');
+                        const text = await response.text();
+                        sentencesData.value = parseSentences(text);
+                        loading.value = false;
+                    } catch (e) {
+                        error.value = '加载数据失败，请稍后重试';
+                        loading.value = false;
+                    }
+                };
+
+                onMounted(() => {
+                    loadData();
+                });
+
+                return { loading, error, sentencesData, groupedSentences, loadData };
+            }
+        });
+
+        app.use(router);
+        app.mount('#app');
+    </script>
+</body>
+</html>

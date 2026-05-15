@@ -1,0 +1,46 @@
+{
+  "scene_en": "Bank",
+  "scene_zh": "银行",
+  "task_en": "Credit Card Application",
+  "task_zh": "信用卡申请",
+  "context": "李明来到银行网点，想要申请一张信用卡。他走到柜台前，对银行工作人员说。他不确定申请信用卡需要准备什么材料，所以想先询问清楚流程和所需文件。",
+  "sentence_zh": "请问申请信用卡需要准备哪些材料？",
+  "translations": [
+    {
+      "sentence": "Could you tell me what documents I need to prepare for applying for a credit card?",
+      "style": "polite",
+      "note": "正式礼貌的询问方式，适用于正式场合",
+      "literal_translation": "您能告诉我需要准备哪些文件来申请信用卡吗？",
+      "phonetic": "kuːdʒiː tɛl miː wɒt ˈdɒkjʊmənts aɪ niːd tuː priːˈpeə fɔːr əˈplaɪɪŋ fɔːr ə ˈkrɛdɪt kɑːd"
+    },
+    {
+      "sentence": "What documents should I prepare for a credit card application?",
+      "style": "neutral",
+      "note": "中性询问，直接询问所需材料",
+      "literal_translation": "我应该准备哪些文件来申请信用卡？",
+      "phonetic": "wɒt ˈdɒkjʊmənts ʃʊd aɪ priːˈpeə fɔːr ə ˈkrɛdɪt kɑːd ˌæplɪˈkeɪʃən"
+    },
+    {
+      "sentence": "What do I need to bring to apply for a credit card?",
+      "style": "neutral",
+      "note": "简单直接的问法，询问需要携带什么",
+      "literal_translation": "我需要带什么来申请信用卡？",
+      "phonetic": "wɒt duː aɪ niːd tuː brɪŋ tuː əˈplaɪ fɔːr ə ˈkrɛdɪt kɑːd"
+    },
+    {
+      "sentence": "I'd like to apply for a credit card. What do I need?",
+      "style": "casual",
+      "note": "先表明意图，再询问需求，自然口语化",
+      "literal_translation": "我想申请信用卡。我需要什么？",
+      "phonetic": "aɪd laɪk tuː əˈplaɪ fɔːr ə ˈkrɛdɪt kɑːd wɒt duː aɪ niːd"
+    },
+    {
+      "sentence": "Hey, what stuff should I bring for a credit card?",
+      "style": "casual",
+      "note": "非常口语化的表达，适用于轻松的非正式场合",
+      "literal_translation": "嘿，申请信用卡我应该带什么材料？",
+      "phonetic": "heɪ wɒt stʌf ʃʊd aɪ brɪŋ fɔːr ə ˈkrɛdɪt kɑːd"
+    }
+  ],
+  "explanation": "在银行申请信用卡时，询问所需材料是非常常见且必要的开场白。建议先表明自己的意图（apply for a credit card），再用礼貌的方式询问所需准备的文件。polite风格使用Could you...开头，适合正式场合；neutral风格直接询问文件类型；casual风格则更随意自然。在实际银行场景中，建议使用polite或neutral风格以显得专业礼貌。"
+}
