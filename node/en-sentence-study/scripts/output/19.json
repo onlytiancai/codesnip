@@ -1,0 +1,46 @@
+{
+  "scene_en": "Home Life",
+  "scene_zh": "家居生活",
+  "task_en": "Utilities",
+  "task_zh": "水电费",
+  "context": "月底收到水电费账单，你看了一眼数字，惊讶地发现比上个月贵了不少，于是对室友感叹这个月水电费怎么这么贵。",
+  "sentence_zh": "这个月水电费怎么这么贵啊？",
+  "translations": [
+    {
+      "sentence": "Why is the utility bill so high this month?",
+      "style": "neutral",
+      "note": "最常用的疑问表达，询问费用高的原因",
+      "literal_translation": "为什么水电费账单这么高这个月？",
+      "phonetic": "waɪ ɪz ðə ˈjuːtɪlɪti bɪl soʊ haɪ ðɪs mʌnθ"
+    },
+    {
+      "sentence": "The electricity bill is insane this month!",
+      "style": "casual",
+      "note": "口语化表达，带有抱怨语气",
+      "literal_translation": "电费账单这个月太疯狂了！",
+      "phonetic": "ðə ɪˈlɛktrɪsɪti bɪl ɪz ɪnˈseɪn ðɪs mʌnθ"
+    },
+    {
+      "sentence": "I can't believe how much the utilities cost this month.",
+      "style": "neutral",
+      "note": "表达难以置信的语气",
+      "literal_translation": "我简直不敢相信水电费这个月花了多少。",
+      "phonetic": "aɪ kænt bɪˈliːv haʊ mʌtʃ ðə ˈjuːtɪlɪtiz kɔst ðɪs mʌnθ"
+    },
+    {
+      "sentence": "Did you see how much the water and electricity bill is?",
+      "style": "casual",
+      "note": "口语询问，邀请对方一起看账单",
+      "literal_translation": "你看到水电费账单有多少了吗？",
+      "phonetic": "dɪd juː siː haʊ mʌtʃ ðə ˈwɔtər ænd ɪˈlɛktrɪsɪti bɪl ɪz"
+    },
+    {
+      "sentence": "The utility bill this month is unusually high.",
+      "style": "polite",
+      "note": "正式客观的陈述，适宜向房东或物业反映",
+      "literal_translation": "这个月的水电费账单异常地高。",
+      "phonetic": "ðə ˈjuːtɪlɪti bɪl ðɪs mʌnθ ɪz ʌnˈjuːʒuəli haɪ"
+    }
+  ],
+  "explanation": "这个场景是家庭生活中非常常见的——月底结算水电费时发现费用超出预期。英文中 'utility' 是水电气的总称，'electricity bill' 专门指电费，'water bill' 指水费。如果是抱怨感叹，可用 'insane'、'crazy' 等口语化词汇；如果是正式反映情况，建议用 'unusually high' 这样的客观描述。注意区分不同语境选择合适的表达方式。"
+}

@@ -1,0 +1,46 @@
+{
+  "scene_en": "Travel",
+  "scene_zh": "旅行",
+  "task_en": "Guide Services",
+  "task_zh": "导游服务",
+  "context": "你是一名导游，正在带领一个国外游客团队参观景点。在做完基本介绍后，你希望游客知道如果有问题可以随时向你咨询。你面带微笑，用友善的语气说完开场白后，准备开始带领大家参观。",
+  "sentence_zh": "有什么问题可以随时问我。",
+  "translations": [
+    {
+      "sentence": "Please don't hesitate to ask if you have any questions.",
+      "style": "polite",
+      "note": "非常礼貌客气的表达，用双重否定结构显得更委婉",
+      "literal_translation": "请不要犹豫来问如果你有任何问题",
+      "phonetic": "pliːz dənt ˈhezɪteɪt tuː ɑːsk ɪf juː hæv ˈeni ˈkwestʃənz"
+    },
+    {
+      "sentence": "Feel free to ask if you have any questions.",
+      "style": "neutral",
+      "note": "自然得体的中性表达，适用于导游与游客的一般交流",
+      "literal_translation": "随意来问如果你有任何问题",
+      "phonetic": "fiːl friː tuː ɑːsk ɪf juː hæv ˈeni ˈkwestʃənz"
+    },
+    {
+      "sentence": "Just let me know if you have any questions.",
+      "style": "neutral",
+      "note": "随和友好的中性表达，强调导游乐于帮助的态度",
+      "literal_translation": "就告诉我如果你有任何问题",
+      "phonetic": "dʒʌst let miː nəʊ ɪf juː hæv ˈeni ˈkwestʃənz"
+    },
+    {
+      "sentence": "Don't be shy, ask me anything!",
+      "style": "casual",
+      "note": "轻松活泼的口语表达，适合年轻导游或轻松的旅行团",
+      "literal_translation": "不要害羞，问我任何事",
+      "phonetic": "dəʊnt biː ʃaɪ, ɑːsk miː ˈeniθɪŋ"
+    },
+    {
+      "sentence": "If you need anything, just holler.",
+      "style": "casual",
+      "note": "非常口语化的表达，有点像美国俚语，友好且随意",
+      "literal_translation": "如果你需要任何东西，就喊一下",
+      "phonetic": "ɪf juː niːd ˈeniθɪŋ, dʒʌst ˈhɒlər"
+    }
+  ],
+  "explanation": "这句话是导游服务中最常用的开场白之一，表示导游愿意随时解答游客的问题。选择不同风格的表达时，正式场合（如商务旅行团或高端旅游）建议使用polite版本；一般旅行团用neutral版本即可；如果是年轻游客或轻松的氛围，可以使用casual版本。注意在说完这句话后，给游客一个友好的微笑，让对方感受到你的热情和耐心。"
+}
