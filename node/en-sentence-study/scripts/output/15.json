@@ -1,0 +1,46 @@
+{
+  "scene_en": "Holiday",
+  "scene_zh": "节日庆祝",
+  "task_en": "Thanksgiving",
+  "task_zh": "感恩节",
+  "context": "感恩节当天，家人朋友们围坐在餐桌旁，火鸡已经上桌，大家正准备开始享用美食前，有人举杯或开口想要表达感恩之情。",
+  "sentence_zh": "我很感激身边有你们。",
+  "translations": [
+    {
+      "sentence": "Happy Thanksgiving!",
+      "style": "neutral",
+      "note": "最简单直接的说法，适用于任何场合",
+      "literal_translation": "感恩节快乐！",
+      "phonetic": "ˈhæpi ˈθæŋksɡɪviŋ"
+    },
+    {
+      "sentence": "I'm so grateful to have you all in my life.",
+      "style": "polite",
+      "note": "正式且真诚，适合在节日祝酒时使用",
+      "literal_translation": "我很感激你们出现在我的生命中。",
+      "phonetic": "aɪm soʊ ˈɡreɪtfəl tu hæv ju ɔl ɪn maɪ laɪf"
+    },
+    {
+      "sentence": "I have so much to be thankful for this year.",
+      "style": "neutral",
+      "note": "表达对过去一年的感恩，常见于节日演讲或祝酒",
+      "literal_translation": "这一年我有太多值得感恩的事。",
+      "phonetic": "aɪ hæv soʊ mʌtʃ tu bi ˈθæŋkfəl fɔr ðɪs jɪr"
+    },
+    {
+      "sentence": "Thanks for being here with us.",
+      "style": "casual",
+      "note": "轻松随意的表达，适合家庭聚餐",
+      "literal_translation": "谢谢你们能来这里陪我们。",
+      "phonetic": "θæŋks fɔr ˈbiɪŋ hɪr wɪð ʌs"
+    },
+    {
+      "sentence": "Let's give thanks together.",
+      "style": "casual",
+      "note": "邀请大家一起感恩，富有感染力",
+      "literal_translation": "让我们一起感恩吧。",
+      "phonetic": "lɛts ɡɪv θæŋks təˈɡɛðər"
+    }
+  ],
+  "explanation": "感恩节的核心就是表达感激之情。在家人团聚的餐桌上，可以用'Happy Thanksgiving'简单问候，也可以用更深情的句子如'I'm so grateful to have you all'来表达对亲人的感恩。如果是正式场合或祝酒，可以选择更完整的表达如'I have so much to be thankful for'。注意感恩节强调的不是物质而是情感和陪伴，句子要真诚自然。"
+}

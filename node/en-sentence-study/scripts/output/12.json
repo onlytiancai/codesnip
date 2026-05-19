@@ -1,0 +1,46 @@
+{
+  "scene_en": "Work",
+  "scene_zh": "工作",
+  "task_en": "Meeting Speech",
+  "task_zh": "会议发言",
+  "context": "在公司的项目讨论会议中，项目经理刚刚汇报完方案进展，一位同事发表了自己的看法。你作为团队成员，想要在认同对方观点的同时，补充一些自己的想法和建议。",
+  "sentence_zh": "我同意刚才的观点，但我想补充几点。",
+  "translations": [
+    {
+      "sentence": "I agree with the previous point, but I'd like to add a few points.",
+      "style": "polite",
+      "note": "正式商务场合，尊重他人发言后再补充观点",
+      "literal_translation": "我同意之前的观点，但我想补充几点。",
+      "phonetic": "aɪ əˈɡriː wɪð ðə ˈpriːviəs pɔɪnt, bʌt aɪd laɪk tu æd ə fjuː pɔɪnts"
+    },
+    {
+      "sentence": "I agree, and I'd also like to add something.",
+      "style": "neutral",
+      "note": "中性表达，办公室会议常用，简洁自然",
+      "literal_translation": "我同意，我也想补充一些内容。",
+      "phonetic": "aɪ əˈɡriː, ænd aɪd ˈɔːlsəu laɪk tu æd ˈsʌmθɪŋ"
+    },
+    {
+      "sentence": "I totally agree with that, and just to add on...",
+      "style": "casual",
+      "note": "轻松随意的会议氛围，适合团队内部讨论",
+      "literal_translation": "我完全同意，而且我想补充说...",
+      "phonetic": "aɪ ˈtuːtəli əˈɡriː wɪð ðæt, ænd dʒʌst tu æd ɒn"
+    },
+    {
+      "sentence": "That's a great point. I'd also like to contribute my thoughts.",
+      "style": "polite",
+      "note": "先肯定对方观点，再礼貌地提出自己的想法",
+      "literal_translation": "这是个很好的观点，我也想分享我的想法。",
+      "phonetic": "ðæts ə ɡreɪt pɔɪnt. aɪd ˈɔːlsəu laɪk tu kənˈtrɪbjuːt maɪ θɔːts"
+    },
+    {
+      "sentence": "I second that, and here's my addition.",
+      "style": "neutral",
+      "note": "简洁有力，'second'表示附议，适合快速表达",
+      "literal_translation": "我附议，这是我的补充。",
+      "phonetic": "aɪ ˈsekənd ðæt, ænd hɪəz maɪ əˈdɪʃən"
+    }
+  ],
+  "explanation": "在英语会议中表达「我同意但想补充」时，Polite风格适合正式商务会议或面对上级时使用；Neutral风格是日常办公会议最常用的表达；Casual风格适合轻松的内部讨论。注意在正式场合避免过于口语化的表达（如gonna、wanna），而'I've got something to add'或'Building on that'也是常见的补充观点的方式。"
+}

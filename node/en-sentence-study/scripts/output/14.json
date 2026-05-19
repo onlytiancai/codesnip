@@ -1,0 +1,46 @@
+{
+  "scene_en": "Travel",
+  "scene_zh": "旅行",
+  "task_en": "Packing Luggage",
+  "task_zh": "行李打包",
+  "context": "你和朋友在机场值机柜台前排队，准备办理行李托运。你把行李箱放上电子秤，心里有些忐忑，担心超重被罚款，于是问朋友帮忙看看。",
+  "sentence_zh": "我的行李超重了吗？",
+  "translations": [
+    {
+      "sentence": "Is my luggage overweight?",
+      "style": "neutral",
+      "note": "最直接、标准的问题，适用于机场值机柜台",
+      "literal_translation": "我的行李超重了吗？",
+      "phonetic": "ɪz maɪ ˈluːɡɪdʒ ˈoʊvərˌweɪt"
+    },
+    {
+      "sentence": "Do you think my bag is over the weight limit?",
+      "style": "polite",
+      "note": "更委婉客气，用'think'显得更考虑对方感受",
+      "literal_translation": "你觉得我的包超过重量限制了吗？",
+      "phonetic": "duː jə wɪŋk maɪ bæɡ ɪz ˈoʊvər ðə weɪt ˈlɪmɪt"
+    },
+    {
+      "sentence": "How much does my suitcase weigh?",
+      "style": "neutral",
+      "note": "先询问具体重量，开放式问题",
+      "literal_translation": "我的行李箱有多重？",
+      "phonetic": "haʊ mʌtʃ dʌz maɪ ˈsuːtkeɪs weɪ"
+    },
+    {
+      "sentence": "Am I good on weight?",
+      "style": "casual",
+      "note": "非常口语化的表达，轻松随意，适合朋友之间",
+      "literal_translation": "我的重量没问题吧？",
+      "phonetic": "æm aɪ ɡʊd ɑːn weɪt"
+    },
+    {
+      "sentence": "Let me check if I'm within the weight allowance.",
+      "style": "polite",
+      "note": "用'within allowance'显得更正式，提前确认",
+      "literal_translation": "让我检查一下我是否在重量允许范围内。",
+      "phonetic": "lɛt mi tʃɛk ɪf aɪm wɪˈðɪn ðə weɪt əˈlaʊəns"
+    }
+  ],
+  "explanation": "这句话是旅行中在机场办理登机手续时最常用的句子之一。需要注意不同场合选择不同表达：值机柜台用 'overweight' 最直接；和朋友讨论时可以用 'good on weight' 等口语化表达；如果担心被罚款想提前确认，可以用 'weight limit' 或 'weight allowance' 这样的正式词汇。行李超重一般会有额外费用，所以询问时语气可以根据情况调整。"
+}
