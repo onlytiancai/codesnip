@@ -1,0 +1,46 @@
+{
+  "scene_en": "Entertainment",
+  "scene_zh": "娱乐休闲",
+  "task_en": "Buying Tickets",
+  "task_zh": "买票",
+  "context": "周末和朋友约好去电影院看新上映的电影，来到电影院的售票窗口前排队，终于轮到自己了。",
+  "sentence_zh": "你好，我想买两张票。",
+  "translations": [
+    {
+      "sentence": "Hello, I would like to buy two tickets, please.",
+      "style": "polite",
+      "note": "非常正式有礼貌的表达，适合面对服务人员时使用",
+      "literal_translation": "你好，我想要买两张票，拜托了。",
+      "phonetic": "həˈloʊ aɪ wʊd laɪk tu baɪ tuː ˈtɪkɪts pliːz"
+    },
+    {
+      "sentence": "Hi, I'd like two tickets.",
+      "style": "neutral",
+      "note": "自然通用的表达，日常交流中很常见",
+      "literal_translation": "嗨，我想要两张票。",
+      "phonetic": "haɪ aɪd laɪk tuː ˈtɪkɪts"
+    },
+    {
+      "sentence": "Can I get two tickets?",
+      "style": "neutral",
+      "note": "口语化的询问方式，语气轻松",
+      "literal_translation": "我能买两张票吗？",
+      "phonetic": "kæn aɪ ɡɛt tuː ˈtɪkɪts"
+    },
+    {
+      "sentence": "Two tickets, please.",
+      "style": "casual",
+      "note": "简洁直接，适用于熟悉的场景或快速交流",
+      "literal_translation": "两张票，谢谢。",
+      "phonetic": "tuː ˈtɪkɪts pliːz"
+    },
+    {
+      "sentence": "I need two tickets for the show.",
+      "style": "neutral",
+      "note": "明确说明用途，适合在剧院或演唱会买票",
+      "literal_translation": "我需要两张演出的票。",
+      "phonetic": "aɪ niːd tuː ˈtɪkɪts fɔːr ðə ʃoʊ"
+    }
+  ],
+  "explanation": "这个场景是在电影院、剧院或演唱会等娱乐场所购票时使用。正式程度取决于环境和个人习惯：在大型场所或对陌生人说话时，建议使用 polite 或 neutral 风格；在熟知的场所或快餐式交流中可以用 casual 表达。注意英文中没有量词的复杂变化，直接说 'two tickets' 即可。"
+}

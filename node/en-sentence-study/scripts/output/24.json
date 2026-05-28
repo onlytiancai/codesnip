@@ -1,0 +1,46 @@
+{
+  "scene_en": "Daily Expressions",
+  "scene_zh": "日常表达",
+  "task_en": "Farewell",
+  "task_zh": "告别",
+  "context": "周末下午，你和几个好朋友在咖啡馆聊天聚会。聊了很久后，你想起晚上还有事情需要处理，不得不提前离开。你想友好地和朋友们告别，并表示以后再聚。",
+  "sentence_zh": "我得先走了，咱们改天再聊！",
+  "translations": [
+    {
+      "sentence": "I really should get going. Let's catch up again soon!",
+      "style": "neutral",
+      "note": "友好而自然的告别，适用于朋友间的日常告别",
+      "literal_translation": "我真的应该走了。咱们改天再聊！",
+      "phonetic": "aɪ ˈrɪəli ʃʊd ɡet ˈɡoʊɪŋ. lets kætʃ ʌp əˈɡen suːn!"
+    },
+    {
+      "sentence": "Alright, I gotta run. We'll talk later!",
+      "style": "casual",
+      "note": "轻松随意的告别，非常口语化，适合关系亲密的朋友",
+      "literal_translation": "好的，我得跑了。咱们回头聊！",
+      "phonetic": "ɔːlˈraɪt, aɪ ˈɡɒtə rʌn. wiːl tɔːk ˈlætər!"
+    },
+    {
+      "sentence": "It was great seeing you! I really must head out now.",
+      "style": "polite",
+      "note": "更正式有礼的告别，表达了对相聚的珍视",
+      "literal_translation": "见到你太开心了！我真的得现在走了。",
+      "phonetic": "ɪt wʌz ɡreɪt ˈsiːɪŋ juː! aɪ ˈrɪəli mʌst hed aʊt naʊ."
+    },
+    {
+      "sentence": "Well, I should probably get going. Take care!",
+      "style": "neutral",
+      "note": "通用告别语，既表达了要走的意思，又送上关心",
+      "literal_translation": "嗯，我可能得走了。多保重！",
+      "phonetic": "wel, aɪ ʃʊd ˈprɒbəbli get ˈɡoʊɪŋ. teɪk keər!"
+    },
+    {
+      "sentence": "Hey, I gotta bounce. See ya!",
+      "style": "casual",
+      "note": "非常口语化的俚语表达，bounce有'离开'的意思，适合非正式场合",
+      "literal_translation": "嘿，我得闪了。回头见！",
+      "phonetic": "heɪ, aɪ ˈɡɒtə baʊns. siː jə!"
+    }
+  ],
+  "explanation": "告别是日常社交中非常常见的场景。在英语中，告别的方式有很多种，可以根据关系的亲疏和场合的正式程度来选择。正式场合可以用 'I really must be going now'；一般朋友间常用 'I should get going' 或 'I gotta run'；关系非常亲密的朋友则可以用俚语如 'I gotta bounce' 或 'Later! '。注意在说再见的同时，通常会加一句表示期待再见的客套话，这样显得更有礼貌和友好。'Take care'、'See you later'、'Let's catch up again' 都是常见的结束语。"
+}
