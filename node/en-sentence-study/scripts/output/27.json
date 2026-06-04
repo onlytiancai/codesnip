@@ -1,0 +1,46 @@
+{
+  "scene_en": "Fitness",
+  "scene_zh": "健身运动",
+  "task_en": "Going to the Gym",
+  "task_zh": "去健身房",
+  "context": "你和朋友周末在咖啡馆聊天，朋友Tom最近刚开始健身，想邀请你一起去健身房锻炼。他问你平时有没有运动的习惯。",
+  "sentence_zh": "你经常去健身房吗？",
+  "translations": [
+    {
+      "sentence": "Do you go to the gym often?",
+      "style": "neutral",
+      "note": "最常见的基础问句，适合日常对话",
+      "literal_translation": "你 去 健身房 经常吗？",
+      "phonetic": "du: juː ɡoʊ tə ðə dʒɪm ˈɒfən"
+    },
+    {
+      "sentence": "Do you usually work out at the gym?",
+      "style": "neutral",
+      "note": "用 work out 强调锻炼，更具体地询问健身习惯",
+      "literal_translation": "你 通常 锻炼 在 健身房？",
+      "phonetic": "duː juː ˈjuːʒuəli wɜːk aʊt æt ðə dʒɪm"
+    },
+    {
+      "sentence": "Are you a regular at the gym?",
+      "style": "casual",
+      "note": "口语化表达，暗示对方是健身常客，带点调侃意味",
+      "literal_translation": "你是 健身房的 固定会员 吗？",
+      "phonetic": "ɑː juː ə ˈreɡjələr æt ðə dʒɪm"
+    },
+    {
+      "sentence": "How often do you hit the gym?",
+      "style": "casual",
+      "note": "非正式说法，hit the gym 是口语中常用的表达",
+      "literal_translation": "多经常 你 去健身房？",
+      "phonetic": "haʊ ˈɒfən duː juː hɪt ðə dʒɪm"
+    },
+    {
+      "sentence": "Do you maintain a gym routine?",
+      "style": "polite",
+      "note": "较正式的说法，routine 表示有计划的规律锻炼",
+      "literal_translation": "你 保持 健身 规律吗？",
+      "phonetic": "duː juː meɪnˈteɪn ə dʒɪm ruːˈtiːn"
+    }
+  ],
+  "explanation": "这句话是健身场景中最基础的寒暄问句，用于了解对方的运动习惯。'Do you go to the gym often?' 是最通用的表达，适合大多数场合。如果对方明显是健身爱好者，可以用 'Are you a regular at the gym?' 这样稍带调侃的方式拉近关系。'Hit the gym' 则是年轻人中非常流行的俚语表达，比较随意。选择哪种表达取决于你与对方的熟悉程度和谈话的正式程度。"
+}

@@ -1,0 +1,46 @@
+{
+  "scene_en": "Social Gathering",
+  "scene_zh": "社交聚会",
+  "task_en": "Extending Invitation",
+  "task_zh": "发起邀请",
+  "context": "你和几位朋友约好这周六晚上在你家聚餐，想起好久没联系的高中同学小李了，你给他发微信邀请他来参加聚会。",
+  "sentence_zh": "这周六我们有个小聚，你有空过来吗？",
+  "translations": [
+    {
+      "sentence": "We're getting together this Saturday. Would you like to come?",
+      "style": "neutral",
+      "note": "简单直接的邀请，适合邀请普通朋友",
+      "literal_translation": "我们这周六要聚一下。你想来吗？",
+      "phonetic": "/wiːz ɡɛˈtɪŋ təˈɡɛðər ðɪs ˈsætərdeɪ. wʊd juː laɪk tuː kʌm/"
+    },
+    {
+      "sentence": "We're having a small gathering on Saturday. You in?",
+      "style": "casual",
+      "note": "非常口语化的邀请，'You in?' 是年轻人常用的俚语表达",
+      "literal_translation": "我们周六有个小聚会。你来吗？",
+      "phonetic": "/wɪr ˈhævɪŋ ə smɔːl ˈɡæðərɪŋ ɑːn ˈsætərdeɪ. juː ɪn/"
+    },
+    {
+      "sentence": "We're hosting a little get-together on Saturday. Would you care to join us?",
+      "style": "polite",
+      "note": "正式礼貌的表达，'Would you care to' 比较客气客气",
+      "literal_translation": "我们周六举办一个小聚会。你愿意加入我们吗？",
+      "phonetic": "/wɪr ˈhoʊstɪŋ ə ˈlɪtəl ˈɡɛtəˌɡɛðər ɑːn ˈsætərdeɪ. wʊd juː kɛr tuː dʒɔɪn ʌs/"
+    },
+    {
+      "sentence": "Some friends are getting together at my place Saturday night. You should totally come!",
+      "style": "casual",
+      "note": "热情随意的邀请，强调'you should'表达真诚希望对方来的心情",
+      "literal_translation": "一些朋友周六晚上在我家聚会。你一定要来！",
+      "phonetic": "/sʌm frɛndz ɑːr ˈɡɛtɪŋ təˈɡɛðər æt maɪ pleɪs ˈsætərdeɪ naɪt. juː ʃʊd ˈtɑːtəli kʌm/"
+    },
+    {
+      "sentence": "We're planning a casual hangout this weekend. Think you could make it?",
+      "style": "neutral",
+      "note": "用'hangout'表示轻松的非正式聚会，问对方能否参加",
+      "literal_translation": "我们这周末计划一个随意的聚会。你觉得你能来吗？",
+      "phonetic": "/wɪr ˈplænɪŋ ə ˈkæʒuəl ˈhæŋaʊt ðɪs ˈwiːkɛnd. θɪŋk juː kʊd meɪk ɪt/"
+    }
+  ],
+  "explanation": "邀请朋友参加聚会时，要根据关系亲疏选择不同风格。正式风格适合不太熟的朋友或商务场合；中性风格适合一般朋友；口语化风格适合很熟的朋友。需要注意的是，英语中邀请时通常会先说明是什么活动（聚会、生日派对等），再询问对方是否有空。另外，'get-together'、'gathering'、'hangout' 都可以表示聚会，但正式程度递减。"
+}

@@ -1,0 +1,46 @@
+{
+  "scene_en": "Daily Expressions",
+  "scene_zh": "日常表达",
+  "task_en": "Asking About News",
+  "task_zh": "询问近况",
+  "context": "朋友许久未见，在咖啡厅偶遇，想了解对方这段时间的近况。",
+  "sentence_zh": "最近怎么样？",
+  "translations": [
+    {
+      "sentence": "How have you been lately?",
+      "style": "polite",
+      "note": "正式友好的问候，适合不太熟的朋友或久别重逢",
+      "literal_translation": "你最近一直怎么样？",
+      "phonetic": "haʊ həv iː biːn ˈleɪtli"
+    },
+    {
+      "sentence": "How's it going?",
+      "style": "neutral",
+      "note": "中性表达，适用大多数日常场景，友好自然",
+      "literal_translation": "最近怎么样？",
+      "phonetic": "haʊz ɪt ˈɡoʊɪŋ"
+    },
+    {
+      "sentence": "What's up?",
+      "style": "casual",
+      "note": "非常口语化的问候，年轻人常用，简短随意",
+      "literal_translation": "有什么新鲜事？",
+      "phonetic": "wɒts ʌp"
+    },
+    {
+      "sentence": "How are things?",
+      "style": "neutral",
+      "note": "询问对方生活、工作等整体情况，语气温和关切",
+      "literal_translation": "事情怎么样？",
+      "phonetic": "haʊ ɑːr θɪŋz"
+    },
+    {
+      "sentence": "What have you been up to?",
+      "style": "casual",
+      "note": "询问对方这段时间在忙什么，暗示关心对方动态",
+      "literal_translation": "你最近在忙什么？",
+      "phonetic": "wɒt həv iː biːn ʌp tuː"
+    }
+  ],
+  "explanation": "询问近况是日常社交中非常重要的表达。英文中有多种层次的说法：正式场合用 'How have you been lately'；一般朋友间用 'How's it going' 或 'How are things'；非常熟悉的朋友可以用 'What's up' 或 'What have you been up to'。注意语调要上扬，表示友好关切。不同场合选择不同正式程度的表达，能让你的英语更加自然地道。"
+}

@@ -1,0 +1,46 @@
+{
+  "scene_en": "Taxi/Ride-hailing",
+  "scene_zh": "打车",
+  "task_en": "Rating the Driver",
+  "task_zh": "评价司机",
+  "context": "网约车到达目的地后，乘客下车前对司机服务的评价。司机一路上驾驶平稳、态度友好，乘客想表达感谢并称赞这次乘车体验。",
+  "sentence_zh": "师傅开车真稳，一路上都很舒服，给您点个赞！",
+  "translations": [
+    {
+      "sentence": "You've been a wonderful driver. The ride was so smooth.",
+      "style": "polite",
+      "note": "正式感谢并称赞驾驶技术，语气友好有礼貌",
+      "literal_translation": "您一直是一位很棒的司机。乘车非常平稳。",
+      "phonetic": "juːv bɪn ə ˈwʌndərfəl ˈdraɪvər ðə raɪd wʌz soʊ smuːð"
+    },
+    {
+      "sentence": "You're a great driver. Thanks for the comfortable ride.",
+      "style": "neutral",
+      "note": "中性表达，既肯定司机也表达感谢，适合日常使用",
+      "literal_translation": "你是一位很棒的司机。谢谢这舒适的乘车体验。",
+      "phonetic": "jɔːr ə greɪt ˈdraɪvər θæŋks fər ðə ˈkʌmftərbəl raɪd"
+    },
+    {
+      "sentence": "Nice driving! Ride was super smooth.",
+      "style": "casual",
+      "note": "口语化表达，简洁直接，适合年轻人或轻松氛围",
+      "literal_translation": "开车开得真不错！乘车超级平稳。",
+      "phonetic": "naɪs ˈdraɪvɪŋ raɪd wʌz ˈsuːpər smuːð"
+    },
+    {
+      "sentence": "I really appreciate your driving skills. Very comfortable trip!",
+      "style": "polite",
+      "note": "强调对驾驶技术的欣赏，更正式得体",
+      "literal_translation": "我真的很欣赏您的驾驶技术。非常舒适的行程！",
+      "phonetic": "aɪ ˈrɪəli əˈpriːʃieɪt jɔːr ˈdraɪvɪŋ skɪlz ˈveri ˈkʌmftərbəl trɪp"
+    },
+    {
+      "sentence": "Great job! Really smooth ride, I loved it.",
+      "style": "casual",
+      "note": "轻松随意的夸赞，带有个人情感表达",
+      "literal_translation": "干得漂亮！真的很平稳的乘车，我喜欢。",
+      "phonetic": "greɪt dʒɑːb ˈrɪəli smuːð raɪd aɪ lʌvd ɪt"
+    }
+  ],
+  "explanation": "这个句子用于乘客下车时对司机服务的评价和感谢。核心是称赞司机开车平稳、乘车舒适。在英文表达中，'smooth ride'是固定表达，指平稳舒适的乘车体验。正式场合用 'wonderful driver' 或 'appreciate your driving skills'；日常场景可用 'great driver' 或 'nice driving'。注意不要把 'driver' 说成 'car driver'，直接说 'driver' 即可。评价司机时重点可以放在驾驶技术（driving skills）或整体服务（service）上。"
+}

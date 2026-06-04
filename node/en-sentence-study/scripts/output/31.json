@@ -1,0 +1,46 @@
+{
+  "scene_en": "Fitness",
+  "scene_zh": "健身运动",
+  "task_en": "Discussing Scores",
+  "task_zh": "讨论比分",
+  "context": "你和朋友在健身房刚做完训练，或者观看了一场体育比赛后在聊天，互相分享各自的成绩或比分，比如举重重量、跑步时间、比赛得分等。",
+  "sentence_zh": "你今天跑了多快？",
+  "translations": [
+    {
+      "sentence": "How fast did you run today?",
+      "style": "neutral",
+      "note": "最直接的提问方式，通用场景适用",
+      "literal_translation": "你今天跑了多快？",
+      "phonetic": "haʊ fæst dɪd juː rʌn təˈdeɪ"
+    },
+    {
+      "sentence": "What's your time?",
+      "style": "casual",
+      "note": "省略形式，健身房里常用，询问完成时间",
+      "literal_translation": "你的时间是多少？",
+      "phonetic": "wɒts jɔːr taɪm"
+    },
+    {
+      "sentence": "What was your score?",
+      "style": "neutral",
+      "note": "询问比赛或训练的总分/成绩",
+      "literal_translation": "你的比分是多少？",
+      "phonetic": "wɒt wʌz jɔːr skɔːr"
+    },
+    {
+      "sentence": "How did you do?",
+      "style": "casual",
+      "note": "非正式询问整体表现，口语常用",
+      "literal_translation": "你做得怎么样？",
+      "phonetic": "haʊ dɪd juː duː"
+    },
+    {
+      "sentence": "Did you beat your personal best?",
+      "style": "polite",
+      "note": "询问是否打破个人纪录，比较友好鼓励的方式",
+      "literal_translation": "你打破个人纪录了吗？",
+      "phonetic": "dɪd juː biːt jɔːr ˈpɜːrsənəl best"
+    }
+  ],
+  "explanation": "在健身场景中讨论比分或成绩时，常用简单直接的提问。如果是询问时间或速度，可以用 'How fast' 或 'What's your time'；如果是比赛得分，用 'What's your score'；想表达关心和鼓励时，可以用 'Did you beat your personal best' 这种更积极的表达。健身房中朋友间的对话通常比较随意，用 casual 风格较多，但在正式比赛场合会用更礼貌的说法。"
+}

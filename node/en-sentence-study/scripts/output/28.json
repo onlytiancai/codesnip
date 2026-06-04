@@ -1,0 +1,46 @@
+{
+  "scene_en": "Holiday",
+  "scene_zh": "节日庆祝",
+  "task_en": "Dragon Boat Festival",
+  "task_zh": "端午节",
+  "context": "端午节当天，你和朋友在办公室或家里聊天，你想邀请朋友一起吃粽子。",
+  "sentence_zh": "要不要一起吃粽子？",
+  "translations": [
+    {
+      "sentence": "Would you like some zongzi with me?",
+      "style": "polite",
+      "note": "正式邀请，语气友好有礼貌",
+      "literal_translation": "你想要一些粽子和我一起吗？",
+      "phonetic": "/wʊd ju laɪk sʌm ˈzɒŋzi wɪð mi/"
+    },
+    {
+      "sentence": "Do you want to try some zongzi?",
+      "style": "neutral",
+      "note": "中性表达，询问对方意愿",
+      "literal_translation": "你想要尝尝粽子吗？",
+      "phonetic": "/duː ju wɒnt tu traɪ sʌm ˈzɒŋzi/"
+    },
+    {
+      "sentence": "Let's grab some zongzi!",
+      "style": "casual",
+      "note": "轻松随意的提议，像朋友间的邀约",
+      "literal_translation": "我们一起去吃点粽子吧！",
+      "phonetic": "/lets ɡræb sʌm ˈzɒŋzi/"
+    },
+    {
+      "sentence": "Want to share some zongzi?",
+      "style": "casual",
+      "note": "提议一起分享粽子，语气轻松自然",
+      "literal_translation": "想不想一起分享粽子？",
+      "phonetic": "/wɒnt tu ˈʃeə sʌm ˈzɒŋzi/"
+    },
+    {
+      "sentence": "How about having some zongzi together?",
+      "style": "neutral",
+      "note": "用提建议的方式邀请，比较自然",
+      "literal_translation": "一起吃粽子怎么样？",
+      "phonetic": "/haʊ əˈbaʊt ˈhævɪŋ sʌm ˈzɒŋzi təˈɡeðə/"
+    }
+  ],
+  "explanation": "端午节吃粽子是最重要的传统习俗之一，邀请朋友一起分享粽子是很常见的社交场景。如果对方不太了解粽子，可以简单介绍 It's a sticky rice dumpling wrapped in bamboo leaves（用竹叶包的糯米粽子）。注意 zongzi 这个词在英语中已经被广泛接受，无需额外解释。正式场合用 Would you like，语气更礼貌；朋友之间用 Let's grab 或 Want to share 更加轻松自然。"
+}
