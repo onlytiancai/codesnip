@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kokoro TTS · 清声雅韵</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="hero-title">
+        <span class="seal" aria-hidden="true">聲</span>
+        <span>Kokoro TTS</span>
+      </div>
+      <p class="subtitle">基于 <code>Kokoro-82M</code> 的多语言、多音色文本转语音</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- 左侧：输入区 -->
+    <section class="panel">
+      <h2>输入文本</h2>
+      <textarea id="text-input"
+                placeholder="请输入要合成的文本…&#10;中文建议用 zf_* / zm_* 音色；英文用 af_* / am_* / bf_* / bm_*。&#10;太长会被 Kokoro 切分成多段。"
+                rows="10">今天我们来聊一个有趣的话题。Kokoro 是一个轻量但音质出色的开源 TTS 模型。</textarea>
+
+      <div class="meta">
+        <span id="char-count">0</span> 字符
+        <span class="dot">·</span>
+        <span id="status" class="status-idle">就绪</span>
+      </div>
+
+      <h2>语速</h2>
+      <div class="speed-row">
+        <input type="range" id="speed" min="0.5" max="2.0" step="0.05" value="1.0" />
+        <span id="speed-value" class="speed-value">1.00×</span>
+      </div>
+
+      <h2>输出格式</h2>
+      <div class="format-row">
+        <label><input type="radio" name="format" value="wav" checked /> WAV</label>
+        <label><input type="radio" name="format" value="mp3" /> MP3 <small>(需 ffmpeg)</small></label>
+      </div>
+
+      <div class="actions">
+        <button id="btn-synth" class="primary">合成并播放</button>
+        <button id="btn-download" class="secondary" disabled>下载</button>
+        <button id="btn-history" class="ghost">历史记录</button>
+      </div>
+
+      <div id="error-box" class="error-box hidden"></div>
+    </section>
+
+    <!-- 右侧：音色选择 + 播放区 -->
+    <section class="panel">
+      <h2>选择音色</h2>
+      <div class="voice-filter">
+        <input type="text" id="voice-search" placeholder="搜索音色名 / 标签…" />
+        <select id="lang-filter">
+          <option value="">所有语言</option>
+        </select>
+      </div>
+      <div id="voice-grid" class="voice-grid">
+        <div class="loading">正在加载音色列表…</div>
+      </div>
+
+      <h2>播放</h2>
+      <div class="player">
+        <audio id="player" controls></audio>
+        <div id="player-info" class="player-info">尚未合成</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 历史记录抽屉 -->
+  <aside id="history-drawer" class="drawer hidden">
+    <div class="drawer-header">
+      <h3>历史记录</h3>
+      <button id="btn-close-history" class="ghost">关闭</button>
+    </div>
+    <ul id="history-list" class="history-list">
+      <li class="empty">暂无记录</li>
+    </ul>
+  </aside>
+
+  <footer class="footer">
+    <span>FastAPI + Kokoro-82M</span>
+    <span>·</span>
+    <a href="/docs" target="_blank">/docs</a>
+    <span>·</span>
+    <a href="/api/voices" target="_blank">/api/voices</a>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
