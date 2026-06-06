@@ -1,0 +1,34 @@
+{
+  "skill_name": "web-app-palette",
+  "description": "测试 web-app-palette skill 能否在不同场景下正确应用「茶韵·宋雅」配色",
+  "evals": [
+    {
+      "id": 1,
+      "name": "纯HTML登录页",
+      "prompt": "帮我写一个简单的登录页面 HTML，要求有用户名、密码输入框，登录按钮，右上角放一个 logo",
+      "expected_output": "一个完整的 index.html + style.css，使用宣纸米色背景、象牙白卡片、青瓷绿主按钮、衬线体标题、印章 logo（朱砂红方块）。页面气质清淡高雅，不使用鲜艳颜色。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "Tailwind后台dashboard",
+      "prompt": "用 Nuxt 4 + Tailwind CSS v4 写一个简单的 admin dashboard demo，要侧边栏导航、顶部 header、主内容区放一个数据表格，整体风格要清淡高雅",
+      "expected_output": "使用 web-app-palette 配色 token 注册到 @theme，组件用 @apply 抽 .panel、.btn、.field 等类。侧边栏象牙白 + 淡边、header 居中带印章 logo、表格用衬线表头。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "Landing Page深色适配",
+      "prompt": "做一个落地页，介绍一个叫 'TeaNote' 的茶笔记 app，hero 区、特性区、底部 CTA 区",
+      "expected_output": "应用茶韵配色，hero 区有印章 logo + 衬线大标题，特性卡片用 card 样式，CTA 按钮用青瓷绿主色。背景宣纸米色，有径向晕染。",
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "错误处理：不要用错配色",
+      "prompt": "写一个错误提示页面，模拟 404 或者表单错误",
+      "expected_output": "错误信息用陶土红 (--clay) 而不是鲜艳的正红或纯红，背景仍是宣纸米色，错误框用 --clay-bg 淡背景 + --clay 文字 + 淡边。",
+      "files": []
+    }
+  ]
+}
