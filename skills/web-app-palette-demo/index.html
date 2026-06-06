@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>登录 · 茶韵</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="seal" aria-hidden="true">茶</span>
+      <span class="brand-name">TeaNote</span>
+    </div>
+    <nav class="topbar-links">
+      <a href="#">产品</a>
+      <a href="#">关于</a>
+      <a href="#">帮助</a>
+    </nav>
+  </header>
+
+  <main class="login-wrap">
+    <section class="login-card">
+      <h1>欢迎回来</h1>
+      <p class="sub">记录每一泡茶的清欢</p>
+
+      <form>
+        <div class="field">
+          <label for="email">邮箱</label>
+          <input type="email" id="email" placeholder="you@example.com" />
+        </div>
+
+        <div class="field">
+          <label for="password">密码</label>
+          <input type="password" id="password" placeholder="••••••••" />
+        </div>
+
+        <div class="row">
+          <label><input type="checkbox" /> 记住我</label>
+          <a href="#">忘记密码？</a>
+        </div>
+
+        <button type="submit" class="primary">登 录</button>
+
+        <div class="divider">其他方式</div>
+        <div class="alt-login">
+          <button>微信</button>
+          <button>Apple</button>
+          <button>Google</button>
+        </div>
+
+        <p class="signup">还没有账号？<a href="#">立即注册</a></p>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

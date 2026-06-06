@@ -1,0 +1,211 @@
+/* 「茶韵 · 宋雅」 测试 demo —— 直接复用 base.css 的 token 和组件 */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+:root {
+  --paper:        #f5f1ea;
+  --paper-2:      #faf7f1;
+  --card:         #fdfbf6;
+  --card-2:       #f8f4ec;
+  --line:         #e8e1d3;
+  --line-2:       #d9d0bd;
+  --ink-1:        #2e2a24;
+  --ink-2:        #5b5247;
+  --ink-3:        #8a8273;
+  --ink-4:        #b3aa9b;
+  --celadon:      #6f7e6a;
+  --celadon-2:    #5b6a56;
+  --celadon-bg:   #e9eee5;
+  --ochre:        #a07a5b;
+  --cinnabar:     #a8412e;
+  --clay:         #b56b5a;
+  --moss:         #5e7d65;
+  --shadow-sm:    0 1px 2px rgba(76, 60, 30, 0.04);
+  --shadow:       0 1px 2px rgba(76, 60, 30, 0.04), 0 8px 28px rgba(76, 60, 30, 0.05);
+  --radius:       12px;
+  --radius-sm:    8px;
+  --font-sans:    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  --font-serif:   "Noto Serif SC", "Songti SC", "STSong", serif;
+  --font-mono:    "SF Mono", Menlo, monospace;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(1200px 600px at 20% 0%,  rgba(241, 233, 219, 0.55), transparent 60%),
+    radial-gradient(900px 500px at 90% 20%,  rgba(232, 226, 211, 0.45), transparent 60%);
+  background-attachment: fixed;
+  color: var(--ink-1);
+  min-height: 100vh;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 顶部条 */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--line);
+  background: rgba(253, 251, 246, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 10;
+}
+.brand { display: flex; align-items: center; gap: 0.6rem; }
+.brand-name {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink-1);
+  letter-spacing: 0.04em;
+}
+.topbar-links { display: flex; gap: 1.5rem; }
+.topbar-links a { color: var(--ink-3); font-size: 0.9rem; }
+.topbar-links a:hover { color: var(--celadon-2); }
+
+/* 印章 */
+.seal {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  background: var(--cinnabar);
+  color: #f7ecd8;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: 5px;
+  box-shadow:
+    0 0 0 2px #f7ecd8,
+    0 0 0 3px var(--cinnabar),
+    0 4px 10px rgba(168, 65, 46, 0.18);
+  transform: rotate(-3deg);
+  line-height: 1;
+  padding-bottom: 2px;
+}
+
+/* 登录卡片 */
+.login-wrap {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 6rem 1.5rem 3rem;
+}
+.login-card {
+  width: 100%; max-width: 420px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 2.4rem 2.6rem;
+  box-shadow: var(--shadow);
+}
+.login-card h1 {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-serif);
+  font-size: 1.7rem;
+  font-weight: 600;
+  color: var(--ink-1);
+  letter-spacing: 0.04em;
+}
+.login-card .sub {
+  margin: 0 0 1.8rem;
+  color: var(--ink-3);
+  font-size: 0.92rem;
+}
+
+.field { margin-bottom: 1rem; }
+.field label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--ink-2);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.field input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  background: var(--paper-2);
+  color: var(--ink-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.field input:focus {
+  outline: none;
+  border-color: var(--celadon);
+  background: var(--card);
+  box-shadow: 0 0 0 3px var(--celadon-bg);
+}
+
+.row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 0.3rem 0 1.5rem;
+  font-size: 0.88rem;
+}
+.row label { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--ink-2); cursor: pointer; }
+.row input[type="checkbox"] { accent-color: var(--celadon); cursor: pointer; }
+.row a { color: var(--ochre); }
+
+button.primary {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--celadon);
+  color: #f7f4ee;
+  border: 1px solid var(--celadon);
+  border-radius: var(--radius-sm);
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0.04em;
+  transition: all 0.2s;
+}
+button.primary:hover {
+  background: var(--celadon-2);
+  border-color: var(--celadon-2);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(95, 110, 88, 0.22);
+}
+
+.divider {
+  display: flex; align-items: center; gap: 0.8rem;
+  margin: 1.6rem 0 1.2rem;
+  color: var(--ink-4);
+  font-size: 0.82rem;
+}
+.divider::before, .divider::after {
+  content: ""; flex: 1; height: 1px; background: var(--line);
+}
+
+.alt-login {
+  display: flex; gap: 0.6rem;
+}
+.alt-login button {
+  flex: 1;
+  padding: 0.55rem;
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  color: var(--ink-2);
+  font-size: 0.88rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.alt-login button:hover {
+  background: var(--celadon-bg);
+  border-color: var(--celadon);
+  color: var(--celadon-2);
+}
+
+.signup {
+  text-align: center;
+  margin-top: 1.4rem;
+  font-size: 0.88rem;
+  color: var(--ink-3);
+}
+.signup a { color: var(--celadon-2); font-weight: 500; }
+
+::selection { background: var(--celadon-bg); color: var(--celadon-2); }
