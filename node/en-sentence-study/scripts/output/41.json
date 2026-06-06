@@ -1,0 +1,46 @@
+{
+  "scene_en": "Social Gathering",
+  "scene_zh": "社交聚会",
+  "task_en": "Canceling Plans",
+  "task_zh": "取消约定",
+  "context": "你和一个朋友约好了今晚下班后一起吃饭看展，但下午突然收到公司紧急通知需要加班，你不得不取消晚上的约定。你需要打电话或发消息给朋友道歉并解释情况。",
+  "sentence_zh": "真是不好意思，突然临时有事，今晚的约能不能改一下？",
+  "translations": [
+    {
+      "sentence": "Hey, I'm really sorry but something came up. Can we reschedule for another night?",
+      "style": "casual",
+      "note": "朋友间的随意表达，轻松但礼貌",
+      "literal_translation": "嘿，真的很抱歉但是出了点事。我们能改到另一个晚上吗？",
+      "phonetic": "heɪ, aɪm ˌrili ˈsɑːri bət ˈsʌmθɪŋ keɪm ʌp. kæn wiː riːˈʃedjuːl fər əˈnʌðər naɪt?"
+    },
+    {
+      "sentence": "I'm so sorry to do this, but something urgent came up and I won't be able to make it tonight.",
+      "style": "neutral",
+      "note": "中性正式程度，既道歉又说明紧急原因",
+      "literal_translation": "真的很抱歉这样做，但是有紧急事情出现了，我今晚无法到场了。",
+      "phonetic": "aɪm soʊ ˈsɑːri tə duː ˈðɪs, bət ˈsʌmθɪŋ ˈɜːrdʒənt keɪm ʌp ænd aɪ woʊnt biː ˈeɪbl tə meɪk ɪt təˈnaɪt."
+    },
+    {
+      "sentence": "I hate to bail on you, but something came up at work. Can we rain check?",
+      "style": "casual",
+      "note": "口语化，用bail on和rain check是年轻人常用的俚语",
+      "literal_translation": "我不想放你鸽子，但是工作上出了点事。我们能改天吗？",
+      "phonetic": "aɪ heɪt tə beɪl ɒn juː, bət ˈsʌmθɪŋ keɪm ʌp æt wɜːrk. kæn wiː reɪn tʃek?"
+    },
+    {
+      "sentence": "I apologize for the last-minute change, but I'm afraid I won't be able to join you tonight due to an unexpected commitment.",
+      "style": "polite",
+      "note": "正式商务风格，使用apologize和unexpected显得很有礼貌",
+      "literal_translation": "我对这个临时变动表示道歉，但由于一个意外的承诺，恐怕我今晚无法加入你们了。",
+      "phonetic": "aɪ əˈpɒlədʒaɪz fər ðə ˈlɑːst ˈmɪnɪt tʃeɪndʒ, bət aɪm əˈfreɪd aɪ woʊnt biː ˈeɪbl tə dʒɔɪn juː təˈnaɪt djuː tə ʌn ˌʌnɪkˈspektɪd ˈkɒmɪtmənt."
+    },
+    {
+      "sentence": "Ugh, I really hate to do this, but I need to cancel tonight. Work emergency.",
+      "style": "casual",
+      "note": "语气词开头表示无奈，然后简短说明原因",
+      "literal_translation": "啊，我真的不想这样做，但是我需要取消今晚的约定。工作紧急情况。",
+      "phonetic": "ʌf, aɪ ˈrili heɪt tə duː ˈðɪs, bət aɪ niːd tə ˈkænsəl təˈnaɪt. wɜːrk ɪˈmɜːrdʒənsi."
+    }
+  ],
+  "explanation": "取消约定是社交中常见的情况，关键是在诚实说明原因的同时表达歉意。口语化的场景可以用 'bail on' 或 'rain check' 这样轻松的表达；如果是比较重要的约定或对方花了很多时间准备，建议使用更正式的道歉方式。注意避免给出模糊的借口，因为这可能给人不够真诚的感觉。最好直接说明原因（如工作、家庭事务）并主动提出改约时间。音标中的重音标记（ˈ）表示该音节需要重读，读者可以根据这个来调整自己的语调，使表达更自然。"
+}
