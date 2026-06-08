@@ -1,0 +1,46 @@
+{
+  "scene_en": "Shopping",
+  "scene_zh": "购物",
+  "task_en": "Warranty Service",
+  "task_zh": "保修服务",
+  "context": "顾客小李在电子产品店选购笔记本电脑，店员向他介绍了不同型号后，小李想了解这款电脑的保修政策和期限，于是询问店员。",
+  "sentence_zh": "请问这款电脑的保修期是多久？",
+  "translations": [
+    {
+      "sentence": "Could you please tell me how long the warranty lasts for this laptop?",
+      "style": "polite",
+      "note": "最礼貌的说法，用 could 和 please，适合与陌生人或正式场合交流",
+      "literal_translation": "您能请告诉我保修在这台笔记本电脑上持续多久吗？",
+      "phonetic": "/kʊd ˈjuː pliːz tel mi haʊ lɒŋ ðə ˈwɔːrənti lɑːsts fɔː ðɪs ˈlæptɒp/"
+    },
+    {
+      "sentence": "How long is the warranty on this computer?",
+      "style": "neutral",
+      "note": "直接询问，中性友好，适合日常购物场景",
+      "literal_translation": "这台电脑的保修期有多长？",
+      "phonetic": "/haʊ lɒŋ ɪz ðə ˈwɔːrənti ɒn ðɪs kəmˈpjuːtər/"
+    },
+    {
+      "sentence": "What's the warranty period on this thing?",
+      "style": "casual",
+      "note": "口语化表达，用 'this thing' 比较随意轻松",
+      "literal_translation": "这个东西的保修期是多久？",
+      "phonetic": "/wɒts ðə ˈwɔːrənti ˈpɪəriəd ɒn ðɪs θɪŋ/"
+    },
+    {
+      "sentence": "Does this come with a warranty? And for how long?",
+      "style": "neutral",
+      "note": "分两部分提问，先确认是否有保修，再问期限，逻辑清晰",
+      "literal_translation": "这个带保修吗？保修多久？",
+      "phonetic": "/dʌz ðɪs kʌm wɪð ə ˈwɔːrənti ænd fɔː haʊ lɒŋ/"
+    },
+    {
+      "sentence": "I'd like to know the warranty details for this model.",
+      "style": "polite",
+      "note": "正式表达，想了解更多保修细节，适合认真研究产品的顾客",
+      "literal_translation": "我想知道这款型号的保修详情。",
+      "phonetic": "/aɪd laɪk tə nəʊ ðə ˈwɔːrənti ˈdiːteɪlz fɔː ðɪs ˈmɒdl/"
+    }
+  ],
+  "explanation": "在购物时询问保修期是非常常见的场景。上面的中文句子'请问这款电脑的保修期是多久？'是标准的礼貌问法。英文表达中，polite 风格适合在高档商店或面对态度一般的店员时使用；neutral 风格是最通用的，适合大多数购物场景；casual 风格则适合在轻松的小店或与熟悉的店员交流时使用。注意 warranty 和 guarantee 在这种情况下可以互换，但 warranty 更常用于电子产品。另外，如果想了解具体的保修条款，可以追问 'What does the warranty cover?'（保修包括哪些内容？）"
+}
