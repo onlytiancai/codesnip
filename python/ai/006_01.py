@@ -16,14 +16,21 @@ class MLP:
     损失: 二元交叉熵
     """
     def __init__(self, n_in, n_hidden=4, lr=0.5, seed=0):
+        # n_in   : 输入层维度（特征数量）
+        # n_hidden: 隐藏层神经元个数
+        # lr     : 学习率（梯度下降步长）
+        # seed   : 随机种子，保证结果可复现
         rng = np.random.default_rng(seed)
-        # He 初始化 改写：sigmoid 用 Xavier 更稳
+        # Xavier 初始化：以 N(0, 1/√n_in) 采样第一层权重
+        #   相比纯 He 初始化，更适配 sigmoid 这类对称激活函数，
+        #   有助于避免训练初期梯度消失/爆炸
         self.W1 = rng.normal(0, 1/np.sqrt(n_in),   size=(n_in, n_hidden))
-        self.b1 = np.zeros(n_hidden)
+        self.b1 = np.zeros(n_hidden)                # 隐藏层偏置，初始化为 0
+        # 第二层权重同样使用 Xavier，方差按上一层的 fan-in (n_hidden) 计算
         self.W2 = rng.normal(0, 1/np.sqrt(n_hidden), size=(n_hidden, 1))
-        self.b2 = np.zeros(1)
-        self.lr = lr
-        self.loss_history = []
+        self.b2 = np.zeros(1)                       # 输出层偏置，初始化为 0
+        self.lr = lr                                # 记录学习率，供 backward 使用
+        self.loss_history = []                      # 保存每轮的损失值，便于观察收敛曲线
 
     def forward(self, X):
         self.z1 = X @ self.W1 + self.b1            # (N, h)
