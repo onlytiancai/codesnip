@@ -4,9 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>MLP 训练可视化 — 2 → 4 → 1 (XOR)</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/katex.min.css" rel="stylesheet">
+<script src="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <style>
 :root, [data-theme="dark"]{
   --bg:#0b1220;
@@ -125,7 +125,10 @@ section.charts canvas{flex:1;min-height:0;width:100%!important;height:100%!impor
 /* ====== Variables panel ====== */
 .vars-content{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;overflow-y:auto;align-content:start;flex:1;min-height:0}
 .var-block{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:8px;font-family:ui-monospace,monospace}
-.var-block .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.var-block .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;padding-bottom:3px;border-bottom:1px solid var(--border)}
+.var-block .formula{padding:3px 0 4px;font-size:11px;line-height:1;overflow-x:auto;color:var(--accent2)}
+.var-block .formula .katex{font-size:1em;color:var(--accent2)}
+.var-block .formula .katex-display{margin:0}
 .var-block .name{color:var(--accent);font-weight:600;font-size:12px}
 .var-block .shape{color:var(--muted);font-size:10px}
 .var-block .val{color:var(--accent2);font-size:10px}
@@ -230,6 +233,26 @@ section.charts canvas{flex:1;min-height:0;width:100%!important;height:100%!impor
       </div>
       <div style="font-size:10px;color:var(--muted);font-style:italic">
         提示：变量面板右下角可拖动调整高度。
+      </div>
+
+      <h2 style="margin-top:6px">指标说明</h2>
+      <div style="font-size:10.5px;color:var(--text);line-height:1.5;display:flex;flex-direction:column;gap:4px;background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:8px">
+        <div><b style="color:var(--accent2)">Loss (BCE)</b>：二元交叉熵损失。<span style="color:var(--muted)">越小越好。理论下界 0，越接近 0 预测越准。</span></div>
+        <div><b style="color:var(--accent2)">Accuracy</b>：分类正确率。<span style="color:var(--muted)">0–1 之间的比例，越接近 1 越好。</span></div>
+        <div><b style="color:var(--accent2)">|dW| Frobenius</b>：权重梯度的 Frobenius 范数。
+          <span style="color:var(--muted)">是矩阵"长度"的推广：</span>
+          <span data-tex="\|dW\|_F = \sqrt{\sum_{i,j} dW_{ij}^{2}}" style="display:inline-block;margin:0 2px"></span>
+          <span style="color:var(--muted)">。不是逐元素绝对值之和，而是所有元素平方和的平方根，类似向量的 L2 范数。反映梯度整体的"大小"，训练初期会冲一冲峰值，训练稳定后衰减。</span>
+        </div>
+        <div><b style="color:var(--accent2)">|db| / |dz|</b>：偏置 / 误差项的 L2 范数。
+          <span data-tex="\|v\|_2 = \sqrt{\sum_i v_i^{2}}" style="display:inline-block;margin:0 2px"></span>
+          <span style="color:var(--muted)">。同理，向量长度。</span>
+        </div>
+        <div><b style="color:var(--accent2)">W mean</b>：权重矩阵元素平均值。<span style="color:var(--muted)">观察权重有无漂移（应基本在 0 附近）。</span></div>
+        <div><b style="color:var(--accent2)">a mean</b>：激活值平均。<span style="color:var(--muted)">隐藏层 a1≈0.5 表示饱和；a2 反映输出概率均值。</span></div>
+        <div style="color:var(--muted);font-style:italic;margin-top:4px;padding-top:4px;border-top:1px solid var(--border)">
+          范数（Frobenius / L2）可统一理解为"张量里所有元素平方和开根号"，标量越大代表该层信号越强。
+        </div>
       </div>
     </div>
   </aside>
@@ -510,24 +533,24 @@ function renderVars() {
   const G = state.grads;
   const nH = state.hyper.nHidden;
   const blocks = [
-    {name: 'X', kind: 'mat', M: X, shape: shapeOf(X)},
-    {name: 'y', kind: 'vec', V: y, shape: vecShape(y)},
-    {name: 'W1', kind: 'mat', M: P.W1, shape: shapeOf(P.W1), color: true},
-    {name: 'b1', kind: 'vec', V: P.b1, shape: vecShape(P.b1), color: true},
-    {name: 'W2', kind: 'mat', M: P.W2, shape: shapeOf(P.W2), color: true},
-    {name: 'b2', kind: 'vec', V: P.b2, shape: vecShape(P.b2), color: true},
-    {name: 'z1', kind: 'mat', M: C.z1, shape: shapeOf(C.z1), color: true},
-    {name: 'a1', kind: 'mat', M: C.a1, shape: shapeOf(C.a1), color: true},
-    {name: 'z2', kind: 'mat', M: C.z2, shape: shapeOf(C.z2), color: true},
-    {name: 'a2', kind: 'vec', V: C.a2, shape: vecShape(C.a2), color: true},
-    {name: 'dz2', kind: 'mat', M: G.dz2, shape: shapeOf(G.dz2), color: true},
-    {name: 'dW2', kind: 'mat', M: G.dW2, shape: shapeOf(G.dW2), color: true},
-    {name: 'db2', kind: 'vec', M: G.db2 ? [G.db2] : null, shape: G.db2 ? `(1,${G.db2.length})` : '(?,?)', color: true},
-    {name: 'da1', kind: 'mat', M: G.dz2 ? matmul(G.dz2, transpose(P.W2)) : null,
+    {name: 'X',   tex: 'X \\in \\mathbb{R}^{N \\times 2}',           kind: 'mat', M: X,                shape: shapeOf(X)},
+    {name: 'y',   tex: 'y \\in \\{0,1\\}^{N}',                       kind: 'vec', V: y,                shape: vecShape(y)},
+    {name: 'W1',  tex: 'W^{(1)} \\in \\mathbb{R}^{2 \\times h}',     kind: 'mat', M: P.W1,             shape: shapeOf(P.W1), color: true},
+    {name: 'b1',  tex: 'b^{(1)} \\in \\mathbb{R}^{h}',               kind: 'vec', V: P.b1,             shape: vecShape(P.b1), color: true},
+    {name: 'W2',  tex: 'W^{(2)} \\in \\mathbb{R}^{h \\times 1}',     kind: 'mat', M: P.W2,             shape: shapeOf(P.W2), color: true},
+    {name: 'b2',  tex: 'b^{(2)} \\in \\mathbb{R}',                   kind: 'vec', V: P.b2,             shape: vecShape(P.b2), color: true},
+    {name: 'z1',  tex: 'z^{(1)} = X\\,W^{(1)} + b^{(1)}',            kind: 'mat', M: C.z1,             shape: shapeOf(C.z1), color: true},
+    {name: 'a1',  tex: 'a^{(1)} = \\sigma\\!\\left(z^{(1)}\\right)', kind: 'mat', M: C.a1,             shape: shapeOf(C.a1), color: true},
+    {name: 'z2',  tex: 'z^{(2)} = a^{(1)}\\,W^{(2)} + b^{(2)}',      kind: 'mat', M: C.z2,             shape: shapeOf(C.z2), color: true},
+    {name: 'a2',  tex: 'a^{(2)} = \\hat{y} = \\sigma\\!\\left(z^{(2)}\\right)', kind: 'vec', V: C.a2, shape: vecShape(C.a2), color: true},
+    {name: 'dz2', tex: 'dz^{(2)} = a^{(2)} - y',                     kind: 'mat', M: G.dz2,            shape: shapeOf(G.dz2), color: true},
+    {name: 'dW2', tex: 'dW^{(2)} = \\tfrac{1}{N}\\,{a^{(1)}}^{\\!\\top} dz^{(2)}', kind: 'mat', M: G.dW2, shape: shapeOf(G.dW2), color: true},
+    {name: 'db2', tex: 'db^{(2)} = \\tfrac{1}{N}\\!\\sum dz^{(2)}',   kind: 'vec', M: G.db2 ? [G.db2] : null, shape: G.db2 ? `(1,${G.db2.length})` : '(?,?)', color: true},
+    {name: 'da1', tex: 'da^{(1)} = dz^{(2)}\\,{W^{(2)}}^{\\!\\top}',  kind: 'mat', M: G.dz2 ? matmul(G.dz2, transpose(P.W2)) : null,
      shape: G.dz2 ? `(${X.length},${nH})` : '(?,?)', color: true},
-    {name: 'dz1', kind: 'mat', M: G.dz1, shape: shapeOf(G.dz1), color: true},
-    {name: 'dW1', kind: 'mat', M: G.dW1, shape: shapeOf(G.dW1), color: true},
-    {name: 'db1', kind: 'vec', M: G.db1 ? [G.db1] : null, shape: G.db1 ? `(1,${G.db1.length})` : '(?,?)', color: true},
+    {name: 'dz1', tex: 'dz^{(1)} = da^{(1)} \\odot \\sigma^{\\prime}\\!\\left(a^{(1)}\\right)', kind: 'mat', M: G.dz1, shape: shapeOf(G.dz1), color: true},
+    {name: 'dW1', tex: 'dW^{(1)} = \\tfrac{1}{N}\\,X^{\\!\\top} dz^{(1)}', kind: 'mat', M: G.dW1, shape: shapeOf(G.dW1), color: true},
+    {name: 'db1', tex: 'db^{(1)} = \\tfrac{1}{N}\\!\\sum dz^{(1)}',   kind: 'vec', M: G.db1 ? [G.db1] : null, shape: G.db1 ? `(1,${G.db1.length})` : '(?,?)', color: true},
   ];
   const html = blocks.map(b => {
     let body = '';
@@ -543,11 +566,23 @@ function renderVars() {
       body = `<div class="val">${fmtVec(b.M[0])}</div>`;
     }
     return `<div class="var-block">
-      <div class="head"><span class="name">${b.name}</span><span class="shape">${b.shape}</span></div>
+      <div class="head">
+        <span class="name">${b.name}</span>
+        <span class="shape">${b.shape}</span>
+      </div>
+      <div class="formula" data-tex="${b.tex.replace(/"/g, '&quot;')}"></div>
       ${body}
     </div>`;
   }).join('');
   $('varsContent').innerHTML = html;
+  // 渲染公式
+  if (typeof katex !== 'undefined') {
+    document.querySelectorAll('#varsContent .formula').forEach(el => {
+      const tex = el.getAttribute('data-tex');
+      try { katex.render(tex, el, {throwOnError: false, displayMode: true}); }
+      catch (e) { el.textContent = tex; }
+    });
+  }
 }
 
 // ================== Network SVG ==================
@@ -929,7 +964,17 @@ function renderFormulas() {
     setTimeout(renderFormulas, 50);
     return;
   }
+  // 左侧公式区
   document.querySelectorAll('#formulas .eq').forEach(el => {
+    const tex = el.getAttribute('data-tex');
+    try { katex.render(tex, el, {throwOnError: false, displayMode: false}); }
+    catch (e) { el.textContent = tex; }
+  });
+  // 指标说明区里的内联公式
+  document.querySelectorAll('[data-tex]').forEach(el => {
+    if (el.closest('#formulas')) return;  // 已处理
+    if (el.closest('#varsContent')) return;  // 由 renderVars 处理
+    if (el.querySelector('.katex')) return;  // 已渲染
     const tex = el.getAttribute('data-tex');
     try { katex.render(tex, el, {throwOnError: false, displayMode: false}); }
     catch (e) { el.textContent = tex; }
