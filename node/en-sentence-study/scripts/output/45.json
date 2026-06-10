@@ -1,0 +1,46 @@
+{
+  "scene_en": "Hotel",
+  "scene_zh": "酒店",
+  "task_en": "Wake-up Call",
+  "task_zh": "叫醒服务",
+  "context": "客人入住酒店后，深夜或傍晚时分致电前台，表示想预约一个明早的叫醒服务，以免自己睡过头误事。",
+  "sentence_zh": "我想预约一个明早七点的叫醒电话。",
+  "translations": [
+    {
+      "sentence": "Could I arrange a wake-up call for tomorrow morning, please?",
+      "style": "polite",
+      "note": "最常用的酒店前台用语，礼貌且专业",
+      "literal_translation": "我能安排一个叫醒电话在明天早上吗，请？",
+      "phonetic": "/kʊd aɪ əˈreɪndʒ ə ˈweɪk-ʌp kɔːl fɔːr təˈmɒrəʊ ˈmɔːnɪŋ pliːz/"
+    },
+    {
+      "sentence": "I'd like to request a wake-up call for 7 AM tomorrow.",
+      "style": "neutral",
+      "note": "直接说明具体时间，清晰明了",
+      "literal_translation": "我想要请求一个叫醒电话在明天早上7点。",
+      "phonetic": "/aɪd laɪk tuː rɪˈkwest ə ˈweɪk-ʌp kɔːl fɔːr ˈseɪvən eɪˈem təˈmɒrəʊ/"
+    },
+    {
+      "sentence": "Can you set a morning call for me at 7 tomorrow?",
+      "style": "casual",
+      "note": "口语化简略表达，'morning call'是常见说法",
+      "literal_translation": "你能帮我设一个早上电话在明天7点吗？",
+      "phonetic": "/kæn juː set ə ˈmɔːnɪŋ kɔːl fɔːr miː æt ˈseɪvən təˈmɒrəʊ/"
+    },
+    {
+      "sentence": "Could you give me a wake-up call at 6:30 tomorrow morning?",
+      "style": "neutral",
+      "note": "使用'give me'表达，询问具体时间点",
+      "literal_translation": "你能给我一个叫醒电话在明天早上6:30吗？",
+      "phonetic": "/kʊd juː ɡɪv miː ə ˈweɪk-ʌp kɔːl æt ˈsɪks-ˈθɜːrti təˈmɒrəʊ ˈmɔːnɪŋ/"
+    },
+    {
+      "sentence": "I need a wake-up call tomorrow, around 8 o'clock.",
+      "style": "casual",
+      "note": "直接陈述需求，带有期望时间的大致范围",
+      "literal_translation": "我需要一个叫醒电话明天，大概8点。",
+      "phonetic": "/aɪ niːd ə ˈweɪk-ʌp kɔːl təˈmɒrəʊ əˈraʊnd ˈeɪt əˈklɒk/"
+    }
+  ],
+  "explanation": "在酒店场景中，叫醒服务是非常实用的前台服务项目。需要设置叫醒服务时，如果是电话预订或正式场合，推荐使用'Could I arrange...'或'I'd like to request...'的表达方式，既礼貌又专业。如果时间紧迫或关系较为轻松，可以用'Can you set...'等更口语化的表达。需要注意的是，wake-up call和morning call都是酒店场景中常用的表达，前者更正式。注意在询问时提供具体时间（如7 AM或6:30），以便前台准确记录。"
+}

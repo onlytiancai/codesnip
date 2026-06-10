@@ -1,0 +1,947 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MLP 训练可视化 — 2 → 4 → 1 (XOR)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<style>
+:root, [data-theme="dark"]{
+  --bg:#0b1220;
+  --panel:rgba(15,23,36,0.85);
+  --panel2:rgba(20,30,48,0.6);
+  --border:rgba(255,255,255,0.08);
+  --text:#e6eef6;
+  --muted:#9aa6b2;
+  --accent:#6ee7b7;
+  --accent2:#7dd3fc;
+  --danger:#ff7b7b;
+  --warn:#fbbf24;
+  --pos:#7dd3fc;
+  --neg:#fb7185;
+  --chart-tick:#9aa6b2;
+  --chart-grid:rgba(255,255,255,0.05);
+  --node-shadow:0 10px 30px rgba(2,6,23,0.6);
+  --bg-grad-1:#071021;
+  --bg-grad-2:#0b1220;
+  --btn-bg:rgba(20,30,48,0.6);
+  --input-bg:rgba(20,30,48,0.6);
+}
+[data-theme="light"]{
+  --bg:#f1f5f9;
+  --panel:rgba(255,255,255,0.95);
+  --panel2:rgba(241,245,249,0.7);
+  --border:rgba(15,23,42,0.1);
+  --text:#0f172a;
+  --muted:#64748b;
+  --accent:#059669;
+  --accent2:#0284c7;
+  --danger:#dc2626;
+  --warn:#d97706;
+  --pos:#0284c7;
+  --neg:#e11d48;
+  --chart-tick:#64748b;
+  --chart-grid:rgba(15,23,42,0.08);
+  --node-shadow:0 4px 12px rgba(15,23,42,0.08);
+  --bg-grad-1:#e2e8f0;
+  --bg-grad-2:#f1f5f9;
+  --btn-bg:rgba(241,245,249,0.9);
+  --input-bg:#ffffff;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,var(--bg-grad-1) 0%,var(--bg-grad-2) 100%);color:var(--text);font-size:13px}
+body{padding:12px;display:flex;flex-direction:column;gap:12px;min-height:100vh}
+button{font:inherit;color:inherit;background:var(--btn-bg);border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;transition:all .15s}
+button:hover:not(:disabled){background:rgba(110,231,183,0.15);border-color:var(--accent)}
+button:active:not(:disabled){transform:scale(0.97)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.primary{background:linear-gradient(135deg,#10b981,#0ea5e9);color:#fff;border:none;font-weight:600}
+button.primary:hover{filter:brightness(.92);box-shadow:0 2px 8px rgba(16,185,129,0.3)}
+[data-theme="light"] button.primary:hover{color:#0f172a}
+button.danger{background:rgba(251,113,133,0.15);border-color:rgba(251,113,133,0.4);color:var(--neg)}
+button.danger:hover{background:rgba(251,113,133,0.25)}
+input[type="number"],select{background:var(--input-bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font:inherit;width:80px}
+input[type="range"]{width:100%}
+input:focus,select:focus{outline:none;border-color:var(--accent)}
+label{display:flex;align-items:center;gap:8px;justify-content:space-between;font-size:12px;color:var(--muted)}
+label span{color:var(--text)}
+h1,h2,h3{margin:0}
+h1{font-size:16px;font-weight:600}
+h2{font-size:13px;font-weight:600;color:var(--accent);letter-spacing:.5px;text-transform:uppercase}
+h3{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+
+/* ====== Header ====== */
+header{display:flex;align-items:center;gap:16px;padding:10px 16px;background:var(--panel);border:1px solid var(--border);border-radius:8px;backdrop-filter:blur(8px)}
+header .title{font-weight:700;font-size:15px;flex:0 0 auto}
+header .stats{display:flex;gap:16px;flex:1;flex-wrap:wrap}
+header .stat{display:flex;flex-direction:column;align-items:flex-start;line-height:1.1}
+header .stat .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+header .stat .val{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+header .stat .val.loss{color:var(--danger)}
+header .stat .val.acc{color:var(--accent)}
+header .stat .val.lr{color:var(--accent2)}
+header .hint{font-size:11px;color:var(--warn);font-style:italic;min-width:140px;text-align:right}
+
+/* ====== Grid layout ====== */
+main{display:grid;grid-template-columns:280px 1fr;grid-template-rows:auto auto auto;gap:12px;flex:1;min-height:0}
+aside.panel{grid-row:1/4;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+section.network-wrap{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:200px;height:480px;resize:vertical;overflow:hidden}
+section.vars{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:200px;height:340px;resize:vertical;overflow:auto}
+section.charts{grid-column:1/3;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(5,1fr);gap:10px;min-height:600px}
+section.charts .chart-box{display:flex;flex-direction:column;gap:6px;min-height:0;position:relative;background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:8px}
+section.charts .chart-box.main{grid-column:1/-1;background:var(--panel2);border:1px solid rgba(255,123,123,0.3)}
+section.charts canvas{flex:1;min-height:0;width:100%!important;height:100%!important}
+
+.right-col{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;min-width:0;height:480px}
+
+/* ====== Panel controls ====== */
+.controls{display:flex;flex-direction:column;gap:10px}
+.controls .row{display:flex;flex-direction:column;gap:6px}
+.controls .btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.controls .btns button{padding:8px 4px;font-size:12px}
+.speed-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
+.speed-row span{min-width:54px;text-align:right;font-variant-numeric:tabular-nums}
+#formulas .sec-h{color:var(--accent2);font-weight:600;margin-top:5px;letter-spacing:.5px;text-transform:uppercase;font-size:11px;line-height:1.1}
+#formulas .sec-h:first-child{margin-top:0}
+#formulas .eq{padding:1px 0;overflow-x:auto;line-height:1.2}
+#formulas .eq .katex{font-size:1.1em;color:var(--text)}
+#formulas .katex-display{margin:0}
+
+/* ====== Network SVG ====== */
+#net{width:100%;height:100%}
+.edge{stroke-opacity:.85}
+.edge-text{fill:var(--text);font-size:9px;font-family:ui-monospace,monospace;pointer-events:none;text-anchor:middle;paint-order:stroke;stroke:var(--panel);stroke-width:2.5px;stroke-linejoin:round}
+.node-circle{stroke:var(--text);stroke-width:1.5}
+.node-text{fill:var(--text);font-size:10px;font-weight:600;font-family:ui-monospace,monospace;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.shape-text{fill:var(--muted);font-size:9px;font-family:ui-monospace,monospace;text-anchor:middle}
+
+/* ====== Boundary canvas ====== */
+.boundary-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px}
+.boundary-wrap canvas{border:1px solid var(--border);border-radius:4px;max-width:100%}
+.boundary-legend{display:flex;gap:12px;font-size:11px;color:var(--muted);align-items:center}
+
+/* ====== Variables panel ====== */
+.vars-content{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;overflow-y:auto;align-content:start;flex:1;min-height:0}
+.var-block{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:8px;font-family:ui-monospace,monospace}
+.var-block .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.var-block .name{color:var(--accent);font-weight:600;font-size:12px}
+.var-block .shape{color:var(--muted);font-size:10px}
+.var-block .val{color:var(--accent2);font-size:10px}
+.var-block table{border-collapse:collapse;width:100%;font-size:10px;line-height:1.4;margin-top:2px}
+.var-block td{padding:1px 4px;text-align:right;font-variant-numeric:tabular-nums}
+.var-block td.pos{color:var(--accent)}
+.var-block td.neg{color:var(--neg)}
+.var-block td.zero{color:var(--muted)}
+
+/* ====== Toast / status ====== */
+.toast{position:fixed;bottom:16px;right:16px;padding:8px 14px;background:rgba(0,0,0,0.85);border:1px solid var(--warn);border-radius:6px;font-size:12px;color:var(--warn);opacity:0;transition:opacity .3s;pointer-events:none;z-index:1000}
+.toast.show{opacity:1}
+
+/* ====== Scrollbar ====== */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.2)}
+
+@media (max-width:1000px){
+  main{grid-template-columns:1fr}
+  aside.panel{grid-row:auto}
+  .right-col{grid-template-rows:auto auto auto}
+  section.charts{grid-column:1;grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">MLP 训练可视化</div>
+  <div class="stats">
+    <div class="stat"><span class="lbl">Epoch</span><span class="val" id="hdrEpoch">0</span></div>
+    <div class="stat"><span class="lbl">Loss</span><span class="val loss" id="hdrLoss">—</span></div>
+    <div class="stat"><span class="lbl">Accuracy</span><span class="val acc" id="hdrAcc">—</span></div>
+    <div class="stat"><span class="lbl">lr</span><span class="val lr" id="hdrLr">1.0</span></div>
+    <div class="stat"><span class="lbl">|dW| (L1)</span><span class="val" id="hdrGnorm" style="color:var(--warn)">—</span></div>
+  </div>
+  <div class="hint" id="hdrHint">Space=Step · A=Auto · R=Reset</div>
+  <button id="btnTheme" title="切换主题" style="font-size:14px;padding:6px 10px;min-width:40px">🌙</button>
+</header>
+
+<main>
+  <aside class="panel">
+    <h2>超参数</h2>
+    <div class="controls">
+      <div class="row">
+        <label><span>学习率 lr</span><input type="number" id="inLr" value="1.0" step="0.05" min="0.001" max="10"></label>
+        <label><span>隐藏层 hidden</span><input type="number" id="inHidden" value="4" step="1" min="2" max="8"></label>
+        <label><span>随机种子 seed</span><input type="number" id="inSeed" value="1" step="1"></label>
+        <label><span>Auto 步数</span><input type="number" id="inEpochs" value="1000" step="100" min="1"></label>
+        <label><span>Step 步数</span>
+          <select id="inStepN">
+            <option value="1">1</option>
+            <option value="10">10</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </label>
+      </div>
+      <div class="speed-row">
+        <span>速度</span>
+        <input type="range" id="inSpeed" min="0" max="500" value="50">
+        <span id="spdVal">50ms</span>
+      </div>
+      <div class="btns">
+        <button id="btnStep" class="primary">Step</button>
+        <button id="btnAuto">Auto</button>
+        <button id="btnReset" class="danger">Reset</button>
+      </div>
+      <button id="btnBoundary" style="font-size:11px;padding:5px">重绘决策边界</button>
+    </div>
+
+    <h2>说明 / 公式</h2>
+    <div style="font-size:11px;color:var(--muted);line-height:1.5;display:flex;flex-direction:column;gap:8px">
+      <div>2 → 4 → 1 两层感知机，sigmoid + sigmoid 激活，BCE 损失。XOR 数据。
+        边：<span style="color:var(--pos)">蓝=正</span> / <span style="color:var(--neg)">红=负</span>，粗细=|w|。
+      </div>
+      <div id="formulas" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:11px;color:var(--text);display:flex;flex-direction:column;gap:1px;max-height:440px;overflow-y:auto">
+        <div class="sec-h">Forward</div>
+        <div class="eq" data-tex="z^{(1)} = X \cdot W^{(1)} + b^{(1)}"></div>
+        <div class="eq" data-tex="a^{(1)} = \sigma\!\left(z^{(1)}\right)"></div>
+        <div class="eq" data-tex="z^{(2)} = a^{(1)} \cdot W^{(2)} + b^{(2)}"></div>
+        <div class="eq" data-tex="a^{(2)} = \sigma\!\left(z^{(2)}\right)"></div>
+        <div class="sec-h">Loss (BCE)</div>
+        <div class="eq" data-tex="L = -\frac{1}{N}\sum_{i=1}^{N}\!\Big[y_i \log a^{(2)}_i + (1-y_i)\log(1-a^{(2)}_i)\Big]"></div>
+        <div class="sec-h">Backward</div>
+        <div class="eq" data-tex="dz^{(2)} = a^{(2)} - y"></div>
+        <div class="eq" data-tex="dW^{(2)} = \frac{1}{N}\,{a^{(1)}}^{\!\top} \!\cdot dz^{(2)}"></div>
+        <div class="eq" data-tex="db^{(2)} = \frac{1}{N}\sum_{i} dz^{(2)}_i"></div>
+        <div class="eq" data-tex="da^{(1)} = dz^{(2)} \cdot {W^{(2)}}^{\!\top}"></div>
+        <div class="eq" data-tex="dz^{(1)} = da^{(1)} \odot \sigma'\!\left(a^{(1)}\right)"></div>
+        <div class="eq" data-tex="dW^{(1)} = \frac{1}{N}\,X^{\!\top} \!\cdot dz^{(1)}"></div>
+        <div class="eq" data-tex="db^{(1)} = \frac{1}{N}\sum_{i} dz^{(1)}_i"></div>
+        <div class="sec-h">Update</div>
+        <div class="eq" data-tex="\theta \leftarrow \theta - \eta \cdot d\theta"></div>
+        <div class="sec-h">Init (Xavier)</div>
+        <div class="eq" data-tex="W \sim \mathcal{N}\!\left(0,\; 1/\sqrt{\text{fan\_in}}\right)"></div>
+        <div class="sec-h">Activations</div>
+        <div class="eq" data-tex="\sigma(z) = \frac{1}{1 + e^{-z}}"></div>
+        <div class="eq" data-tex="\sigma'(a) = a(1-a)"></div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);font-style:italic">
+        提示：变量面板右下角可拖动调整高度。
+      </div>
+    </div>
+  </aside>
+
+  <div class="right-col">
+    <section class="network-wrap">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h2>网络结构</h2>
+        <span style="font-size:10px;color:var(--muted)">每 step 更新</span>
+      </div>
+      <svg id="net" viewBox="0 0 600 320" preserveAspectRatio="xMidYMid meet"></svg>
+    </section>
+
+    <section class="boundary-wrap">
+      <div style="width:100%;display:flex;justify-content:space-between;align-items:center">
+        <h2>决策边界 P(y=1)</h2>
+        <div class="boundary-legend">
+          <span>0</span>
+          <div style="width:120px;height:10px;background:linear-gradient(90deg,rgba(251,113,133,1) 0%,rgba(251,113,133,.3) 50%,rgba(125,211,252,.3) 50%,rgba(125,211,252,1) 100%);border-radius:2px"></div>
+          <span>1</span>
+        </div>
+      </div>
+      <canvas id="boundary" width="280" height="280"></canvas>
+    </section>
+  </div>
+
+  <section class="vars">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h2>变量 (Forward · Gradients · Parameters)</h2>
+      <span style="font-size:10px;color:var(--muted)">绿色=正 · 红色=负</span>
+    </div>
+    <div class="vars-content" id="varsContent"></div>
+  </section>
+
+  <section class="charts">
+    <div class="chart-box main">
+      <h2>Loss (BCE) — 主指标</h2>
+      <canvas id="lossChart"></canvas>
+    </div>
+    <div class="chart-box"><h2>Accuracy</h2><canvas id="accChart"></canvas></div>
+    <div class="chart-box"><h2>|dW1| Frobenius</h2><canvas id="dW1Chart"></canvas></div>
+    <div class="chart-box"><h2>|dW2| Frobenius</h2><canvas id="dW2Chart"></canvas></div>
+    <div class="chart-box"><h2>|db1|</h2><canvas id="db1Chart"></canvas></div>
+    <div class="chart-box"><h2>|db2|</h2><canvas id="db2Chart"></canvas></div>
+    <div class="chart-box"><h2>|dz1|</h2><canvas id="dz1Chart"></canvas></div>
+    <div class="chart-box"><h2>|dz2|</h2><canvas id="dz2Chart"></canvas></div>
+    <div class="chart-box"><h2>W1 mean</h2><canvas id="W1MeanChart"></canvas></div>
+    <div class="chart-box"><h2>W2 mean</h2><canvas id="W2MeanChart"></canvas></div>
+    <div class="chart-box"><h2>a1 mean</h2><canvas id="a1MeanChart"></canvas></div>
+    <div class="chart-box"><h2>a2 mean</h2><canvas id="a2MeanChart"></canvas></div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+// ================== 矩阵工具 ==================
+const matmul = (A, B) => {
+  const rA = A.length, cA = A[0].length, cB = B[0].length;
+  const M = Array.from({length: rA}, () => new Array(cB).fill(0));
+  for (let i = 0; i < rA; i++)
+    for (let k = 0; k < cA; k++) {
+      const aik = A[i][k];
+      for (let j = 0; j < cB; j++) M[i][j] += aik * B[k][j];
+    }
+  return M;
+};
+const transpose = (M) => M[0].map((_, j) => M.map(row => row[j]));
+const addBiasRow = (M, b) => M.map(row => row.map((v, j) => v + b[j]));
+const meanRows = (M) => M[0].map((_, j) => M.reduce((s, r) => s + r[j], 0) / M.length);
+const hadamard = (A, B) => A.map((row, i) => row.map((v, j) => v * B[i][j]));
+const sigmoid = (z) => 1 / (1 + Math.exp(-Math.max(-500, Math.min(500, z))));
+const sigmoidMat = (M) => M.map(row => row.map(sigmoid));
+const dsigmoid = (a) => a * (1 - a);
+const hadamardConst = (A, c) => A.map(row => row.map(v => v * c));
+const flatten = (M) => M.map(r => r[0]);
+
+// 标量统计
+const matNorm = (M) => Math.sqrt(M.flat().reduce((s, v) => s + v * v, 0));
+const matMean = (M) => {
+  const all = M.flat();
+  return all.reduce((s, v) => s + v, 0) / all.length;
+};
+
+// ================== RNG (mulberry32 + Box-Muller) ==================
+function mulberry32(seed) {
+  let t = seed | 0;
+  return () => {
+    t = (t + 0x6D2B79F5) | 0;
+    let r = Math.imul(t ^ (t >>> 15), t | 1);
+    r ^= r + Math.imul(r ^ (r >>> 7), r | 61);
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function makeRandn(rng) {
+  let spare = null;
+  return () => {
+    if (spare !== null) { const v = spare; spare = null; return v; }
+    const u = 1 - rng(), v = rng();
+    const mag = Math.sqrt(-2 * Math.log(u));
+    spare = mag * Math.sin(2 * Math.PI * v);
+    return mag * Math.cos(2 * Math.PI * v);
+  };
+}
+
+// ================== 数据 (XOR) ==================
+const X = [[0,0],[0,1],[1,0],[1,1]];
+const y = [0,1,1,0];
+
+// ================== MLP ==================
+function initParams({nIn=2, nHidden=4, lr=1.0, seed=1}) {
+  const rng = mulberry32(seed);
+  const randn = makeRandn(rng);
+  const std1 = 1 / Math.sqrt(nIn);
+  const std2 = 1 / Math.sqrt(nHidden);
+  const W1 = Array.from({length: nIn}, () =>
+    Array.from({length: nHidden}, () => randn() * std1));
+  const W2 = Array.from({length: nHidden}, () => [randn() * std2]);
+  return {W1, b1: new Array(nHidden).fill(0), W2, b2: [0], lr};
+}
+
+function forward(X, P) {
+  const z1 = addBiasRow(matmul(X, P.W1), P.b1);   // (N, h)
+  const a1 = sigmoidMat(z1);                       // (N, h)
+  const z2 = addBiasRow(matmul(a1, P.W2), P.b2);  // (N, 1)
+  const a2 = flatten(sigmoidMat(z2));              // (N,)
+  return {z1, a1, z2, a2};
+}
+
+function backward(X, y, cache, P) {
+  const N = X.length;
+  const dz2 = cache.a2.map((v, i) => [v - y[i]]);                  // (N,1)
+  const dW2 = hadamardConst(matmul(transpose(cache.a1), dz2), 1 / N);
+  const db2 = meanRows(dz2);
+  const da1 = matmul(dz2, transpose(P.W2));                         // (N, h)
+  const dz1 = hadamard(da1, cache.a1.map(row => row.map(dsigmoid))); // (N, h)
+  const dW1 = hadamardConst(matmul(transpose(X), dz1), 1 / N);
+  const db1 = meanRows(dz1);
+  return {dz1, dz2, dW1, dW2, db1, db2};
+}
+
+function bceLoss(y, yPred) {
+  const eps = 1e-8;
+  let s = 0;
+  for (let i = 0; i < y.length; i++)
+    s += y[i] * Math.log(yPred[i] + eps) + (1 - y[i]) * Math.log(1 - yPred[i] + eps);
+  return -s / y.length;
+}
+function accuracy(y, yPred) {
+  let c = 0;
+  for (let i = 0; i < y.length; i++) if (Math.round(yPred[i]) === y[i]) c++;
+  return c / y.length;
+}
+
+// ================== State ==================
+const state = {
+  epoch: 0,
+  params: null,
+  cache:  {z1: null, a1: null, z2: null, a2: null},
+  grads:  {dz1: null, dz2: null, dW1: null, dW2: null, db1: null, db2: null},
+  history: {
+    loss: [], acc: [],
+    dW1Norm: [], dW2Norm: [], db1Norm: [], db2Norm: [],
+    dz1Norm: [], dz2Norm: [],
+    W1Mean: [], W2Mean: [],
+    a1Mean: [], a2Mean: [],
+  },
+  data: {X, y},
+  hyper: {nHidden: 4, lr: 1.0, seed: 1, epochs: 1000, intervalMs: 50},
+  running: false,
+  lastLrChange: null,
+  lastLoss: null,
+  lastAcc: null,
+};
+
+function reset() {
+  const {nHidden, lr, seed} = state.hyper;
+  state.params = initParams({nIn: 2, nHidden, lr, seed});
+  state.epoch = 0;
+  for (const k of Object.keys(state.history)) state.history[k] = [];
+  state.lastLoss = null;
+  state.lastAcc = null;
+  // 跑一次前向拿初始 cache
+  state.cache = forward(state.data.X, state.params);
+  state.grads = {dz1: null, dz2: null, dW1: null, dW2: null, db1: null, db2: null};
+  renderAll();
+  // 首次重绘决策边界
+  drawBoundary();
+  lastBoundaryEpoch = 0;
+}
+
+function doStep() {
+  const P = state.params;
+  const cache = forward(state.data.X, P);
+  const loss = bceLoss(state.data.y, cache.a2);
+  const acc = accuracy(state.data.y, cache.a2);
+  const grads = backward(state.data.X, state.data.y, cache, P);
+
+  // 梯度下降 (in-place)
+  P.W1 = P.W1.map((row, i) => row.map((v, j) => v - P.lr * grads.dW1[i][j]));
+  P.b1 = P.b1.map((v, j) => v - P.lr * grads.db1[j]);
+  P.W2 = P.W2.map((row, i) => row.map((v, j) => v - P.lr * grads.dW2[i][j]));
+  P.b2 = P.b2.map((v, j) => v - P.lr * grads.db2[j]);
+
+  state.cache = cache;
+  state.grads = grads;
+  state.epoch += 1;
+  state.lastLoss = loss;
+  state.lastAcc = acc;
+
+  // 记录历史
+  const h = state.history;
+  h.loss.push(loss);
+  h.acc.push(acc);
+  h.dW1Norm.push(matNorm(grads.dW1));
+  h.dW2Norm.push(matNorm(grads.dW2));
+  h.db1Norm.push(matNorm([grads.db1]));
+  h.db2Norm.push(matNorm([grads.db2]));
+  h.dz1Norm.push(matNorm(grads.dz1));
+  h.dz2Norm.push(matNorm(grads.dz2));
+  h.W1Mean.push(matMean(P.W1));
+  h.W2Mean.push(matMean(P.W2));
+  h.a1Mean.push(matMean(cache.a1));
+  h.a2Mean.push(matMean(cache.a2));
+}
+
+// ================== 渲染 ==================
+const $ = (id) => document.getElementById(id);
+
+const SHAPES = {
+  X: [4, 2], y: [4],
+  W1: '?', W2: '?', b1: '?', b2: '?',
+  z1: '?', a1: '?', z2: '?', a2: '?',
+  dz1: '?', dz2: '?', dW1: '?', dW2: '?', db1: '?', db2: '?',
+};
+
+function fmt(v) {
+  if (Math.abs(v) < 1e-4 && v !== 0) return v.toExponential(2);
+  return v.toFixed(4);
+}
+function fmtScalar(v) {
+  if (Math.abs(v) < 1e-3 && v !== 0) return v.toExponential(2);
+  return v.toFixed(4);
+}
+function fmtVec(v) {
+  return '[' + v.map(fmtScalar).join(', ') + ']';
+}
+
+function mat2vec(M) {
+  if (M.length === 1) return M[0];
+  if (M[0].length === 1) return M.map(r => r[0]);
+  return M;
+}
+
+function shapeOf(M) {
+  if (!M) return '(?,?)';
+  return `(${M.length},${M[0].length})`;
+}
+function vecShape(v) { return `(${v.length},)`; }
+
+function renderHeader() {
+  $('hdrEpoch').textContent = state.epoch;
+  $('hdrLoss').textContent = state.lastLoss == null ? '—' : state.lastLoss.toFixed(4);
+  $('hdrAcc').textContent = state.lastAcc == null ? '—' : (state.lastAcc * 100).toFixed(1) + '%';
+  $('hdrLr').textContent = state.hyper.lr.toFixed(3);
+  if (state.grads.dW1) {
+    const g = matNorm(state.grads.dW1) + matNorm(state.grads.dW2) +
+              matNorm([state.grads.db1]) + matNorm([state.grads.db2]);
+    $('hdrGnorm').textContent = g.toFixed(4);
+  }
+}
+
+function renderVars() {
+  const P = state.params;
+  const C = state.cache;
+  const G = state.grads;
+  const nH = state.hyper.nHidden;
+  const blocks = [
+    {name: 'X', kind: 'mat', M: X, shape: shapeOf(X)},
+    {name: 'y', kind: 'vec', V: y, shape: vecShape(y)},
+    {name: 'W1', kind: 'mat', M: P.W1, shape: shapeOf(P.W1), color: true},
+    {name: 'b1', kind: 'vec', V: P.b1, shape: vecShape(P.b1), color: true},
+    {name: 'W2', kind: 'mat', M: P.W2, shape: shapeOf(P.W2), color: true},
+    {name: 'b2', kind: 'vec', V: P.b2, shape: vecShape(P.b2), color: true},
+    {name: 'z1', kind: 'mat', M: C.z1, shape: shapeOf(C.z1), color: true},
+    {name: 'a1', kind: 'mat', M: C.a1, shape: shapeOf(C.a1), color: true},
+    {name: 'z2', kind: 'mat', M: C.z2, shape: shapeOf(C.z2), color: true},
+    {name: 'a2', kind: 'vec', V: C.a2, shape: vecShape(C.a2), color: true},
+    {name: 'dz2', kind: 'mat', M: G.dz2, shape: shapeOf(G.dz2), color: true},
+    {name: 'dW2', kind: 'mat', M: G.dW2, shape: shapeOf(G.dW2), color: true},
+    {name: 'db2', kind: 'vec', M: G.db2 ? [G.db2] : null, shape: G.db2 ? `(1,${G.db2.length})` : '(?,?)', color: true},
+    {name: 'da1', kind: 'mat', M: G.dz2 ? matmul(G.dz2, transpose(P.W2)) : null,
+     shape: G.dz2 ? `(${X.length},${nH})` : '(?,?)', color: true},
+    {name: 'dz1', kind: 'mat', M: G.dz1, shape: shapeOf(G.dz1), color: true},
+    {name: 'dW1', kind: 'mat', M: G.dW1, shape: shapeOf(G.dW1), color: true},
+    {name: 'db1', kind: 'vec', M: G.db1 ? [G.db1] : null, shape: G.db1 ? `(1,${G.db1.length})` : '(?,?)', color: true},
+  ];
+  const html = blocks.map(b => {
+    let body = '';
+    if (!b.M && !b.V) body = '<div style="color:var(--muted);font-size:10px;margin-top:2px">— 等待第一次 step —</div>';
+    else if (b.kind === 'vec' && b.V) body = `<div class="val">${fmtVec(b.V)}</div>`;
+    else if (b.kind === 'mat' && b.M) {
+      const rows = b.M.map(row => '<tr>' + row.map(v => {
+        const cls = v > 1e-8 ? 'pos' : v < -1e-8 ? 'neg' : 'zero';
+        return `<td class="${cls}">${fmt(v)}</td>`;
+      }).join('') + '</tr>').join('');
+      body = `<table>${rows}</table>`;
+    } else if (b.kind === 'vec' && b.M) {
+      body = `<div class="val">${fmtVec(b.M[0])}</div>`;
+    }
+    return `<div class="var-block">
+      <div class="head"><span class="name">${b.name}</span><span class="shape">${b.shape}</span></div>
+      ${body}
+    </div>`;
+  }).join('');
+  $('varsContent').innerHTML = html;
+}
+
+// ================== Network SVG ==================
+function renderNetwork() {
+  const svg = $('net');
+  const P = state.params;
+  const C = state.cache;
+  const nIn = 2, nH = state.hyper.nHidden, nOut = 1;
+  const W = 600, H = 320;
+  const xIn = 80, xH = 300, xOut = 520;
+  const r = 22;
+  const cy = (n) => H / 2;
+  const yPos = (i, n) => {
+    const top = 50, bot = H - 50;
+    if (n === 1) return cy();
+    return top + (bot - top) * i / (n - 1);
+  };
+
+  const inPos = Array.from({length: nIn}, (_, i) => ({x: xIn, y: yPos(i, nIn)}));
+  const hPos  = Array.from({length: nH}, (_, i) => ({x: xH, y: yPos(i, nH)}));
+  const oPos  = [{x: xOut, y: cy()}];
+
+  // 计算 |W| 最大用于归一化粗细
+  const allW = [...P.W1.flat(), ...P.W2.flat()];
+  const maxAbs = Math.max(...allW.map(Math.abs), 1e-8);
+
+  // 激活值色阶
+  const actColor = (a) => {
+    // a 在 [0,1]，0=红、1=绿
+    const r = Math.round(255 * (1 - a));
+    const g = Math.round(255 * a);
+    return `rgb(${r},${g},80)`;
+  };
+  const zColor = (z) => {
+    // z -> [-1,1] 大致范围；用蓝(负)↔白(0)↔红(正)
+    const t = Math.max(-1, Math.min(1, z / 3));
+    if (t >= 0) {
+      const k = t;
+      return `rgb(${Math.round(255*k)},${Math.round(200*(1-k))},${Math.round(200*(1-k))})`;
+    } else {
+      const k = -t;
+      return `rgb(${Math.round(200*(1-k))},${Math.round(200*(1-k))},${Math.round(255*k)})`;
+    }
+  };
+
+  let parts = [];
+
+  // 边
+  // W1: input -> hidden
+  for (let i = 0; i < nIn; i++) {
+    for (let j = 0; j < nH; j++) {
+      const w = P.W1[i][j];
+      const op = Math.min(1, Math.abs(w) / maxAbs);
+      const color = w >= 0 ? 'var(--pos)' : 'var(--neg)';
+      const sw = 1 + 4 * op;
+      parts.push(`<line class="edge" x1="${inPos[i].x}" y1="${inPos[i].y}" x2="${hPos[j].x}" y2="${hPos[j].y}" stroke="${color}" stroke-width="${sw.toFixed(2)}" stroke-opacity="${(0.4 + 0.5*op).toFixed(2)}"/>`);
+      const mx = (inPos[i].x + hPos[j].x) / 2;
+      const my = (inPos[i].y + hPos[j].y) / 2;
+      parts.push(`<text class="edge-text" x="${mx}" y="${my - 2}">${fmtScalar(w)}</text>`);
+    }
+  }
+  // W2: hidden -> output
+  for (let j = 0; j < nH; j++) {
+    const w = P.W2[j][0];
+    const op = Math.min(1, Math.abs(w) / maxAbs);
+    const color = w >= 0 ? 'var(--pos)' : 'var(--neg)';
+    const sw = 1 + 4 * op;
+    parts.push(`<line class="edge" x1="${hPos[j].x}" y1="${hPos[j].y}" x2="${oPos[0].x}" y2="${oPos[0].y}" stroke="${color}" stroke-width="${sw.toFixed(2)}" stroke-opacity="${(0.4 + 0.5*op).toFixed(2)}"/>`);
+    const mx = (hPos[j].x + oPos[0].x) / 2;
+    const my = (hPos[j].y + oPos[0].y) / 2;
+    parts.push(`<text class="edge-text" x="${mx}" y="${my - 2}">${fmtScalar(w)}</text>`);
+  }
+
+  // 节点
+  // 输入层
+  for (let i = 0; i < nIn; i++) {
+    parts.push(`<circle class="node-circle" cx="${inPos[i].x}" cy="${inPos[i].y}" r="${r}" fill="rgba(125,211,252,0.25)"/>`);
+    parts.push(`<text class="node-text" x="${inPos[i].x}" y="${inPos[i].y}">x${i+1}</text>`);
+    parts.push(`<text class="shape-text" x="${inPos[i].x}" y="${inPos[i].y + r + 12}">in (${nIn})</text>`);
+  }
+  // 隐藏层：节点填色按 a1[0][j]（样本0 的激活），文本显示 a1 所有样本均值
+  for (let j = 0; j < nH; j++) {
+    const aMean = C.a1 ? C.a1.reduce((s, r) => s + r[j], 0) / C.a1.length : 0;
+    parts.push(`<circle class="node-circle" cx="${hPos[j].x}" cy="${hPos[j].y}" r="${r}" fill="${actColor(aMean)}"/>`);
+    parts.push(`<text class="node-text" x="${hPos[j].x}" y="${hPos[j].y}">${fmtScalar(aMean)}</text>`);
+    parts.push(`<text class="shape-text" x="${hPos[j].x}" y="${hPos[j].y + r + 12}">h${j+1} σ</text>`);
+  }
+  // 输出层
+  const a2Mean = C.a2 ? C.a2.reduce((s, v) => s + v, 0) / C.a2.length : 0;
+  parts.push(`<circle class="node-circle" cx="${oPos[0].x}" cy="${oPos[0].y}" r="${r}" fill="${actColor(a2Mean)}"/>`);
+  parts.push(`<text class="node-text" x="${oPos[0].x}" y="${oPos[0].y}">${fmtScalar(a2Mean)}</text>`);
+  parts.push(`<text class="shape-text" x="${oPos[0].x}" y="${oPos[0].y + r + 12}">out σ</text>`);
+
+  // 标题
+  parts.push(`<text x="${xIn}" y="22" class="shape-text" text-anchor="middle" style="font-size:11px;fill:var(--muted)">Input (2)</text>`);
+  parts.push(`<text x="${xH}" y="22" class="shape-text" text-anchor="middle" style="font-size:11px;fill:var(--muted)">Hidden (${nH}, sigmoid)</text>`);
+  parts.push(`<text x="${xOut}" y="22" class="shape-text" text-anchor="middle" style="font-size:11px;fill:var(--muted)">Output (1, sigmoid)</text>`);
+
+  svg.innerHTML = parts.join('');
+}
+
+// ================== Decision Boundary ==================
+let lastBoundaryEpoch = 0;
+function drawBoundary() {
+  const canvas = $('boundary');
+  const ctx = canvas.getContext('2d');
+  const N = 60;
+  const W = canvas.width, H = canvas.height;
+  const lo = -0.1, hi = 1.1;
+  const P = state.params;
+  if (!P) return;
+
+  // 计算网格概率
+  const grid = [];
+  for (let i = 0; i < N; i++) {
+    const row = [];
+    for (let j = 0; j < N; j++) {
+      const x1 = lo + (hi - lo) * j / (N - 1);
+      const x2 = lo + (hi - lo) * i / (N - 1);
+      const c = forward([[x1, x2]], P);
+      row.push(c.a2[0]);
+    }
+    grid.push(row);
+  }
+
+  const cellW = W / N, cellH = H / N;
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      const p = grid[i][j];
+      // 红(1-p) 蓝(p)
+      const r = Math.round(251 * (1 - p) + 125 * p);
+      const g = Math.round(113 * (1 - p) + 211 * p);
+      const b = Math.round(133 * (1 - p) + 252 * p);
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(j * cellW, i * cellH, cellW + 1, cellH + 1);
+    }
+  }
+
+  // 网格线
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= N; i += 10) {
+    ctx.beginPath(); ctx.moveTo(i * cellW, 0); ctx.lineTo(i * cellW, H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, i * cellH); ctx.lineTo(W, i * cellH); ctx.stroke();
+  }
+
+  // XOR 样本点
+  for (let i = 0; i < X.length; i++) {
+    const px = ((X[i][0] - lo) / (hi - lo)) * W;
+    const py = ((X[i][1] - lo) / (hi - lo)) * H;
+    ctx.beginPath();
+    ctx.arc(px, py, 6, 0, Math.PI * 2);
+    ctx.fillStyle = y[i] === 1 ? '#10b981' : '#fbbf24';
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.font = '10px ui-monospace,monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`y=${y[i]}`, px, py - 12);
+  }
+}
+
+// ================== Charts ==================
+const CHART_DEFS = [
+  {id: 'lossChart',  key: 'loss',    color: 'rgb(255,123,123)', label: 'BCE Loss'},
+  {id: 'accChart',   key: 'acc',     color: 'rgb(110,231,183)', label: 'Accuracy'},
+  {id: 'dW1Chart',   key: 'dW1Norm', color: 'rgb(125,211,252)', label: '|dW1|'},
+  {id: 'dW2Chart',   key: 'dW2Norm', color: 'rgb(251,191,36)',  label: '|dW2|'},
+  {id: 'db1Chart',   key: 'db1Norm', color: 'rgb(167,139,250)', label: '|db1|'},
+  {id: 'db2Chart',   key: 'db2Norm', color: 'rgb(244,114,182)', label: '|db2|'},
+  {id: 'dz1Chart',   key: 'dz1Norm', color: 'rgb(34,211,238)',  label: '|dz1|'},
+  {id: 'dz2Chart',   key: 'dz2Norm', color: 'rgb(45,212,191)',  label: '|dz2|'},
+  {id: 'W1MeanChart',key: 'W1Mean',  color: 'rgb(148,163,184)', label: 'W1 mean'},
+  {id: 'W2MeanChart',key: 'W2Mean',  color: 'rgb(203,213,225)', label: 'W2 mean'},
+  {id: 'a1MeanChart',key: 'a1Mean',  color: 'rgb(252,211,77)',  label: 'a1 mean'},
+  {id: 'a2MeanChart',key: 'a2Mean',  color: 'rgb(94,234,212)',  label: 'a2 mean'},
+];
+const charts = {};
+
+function makeLineChart(canvasId, color, label) {
+  const ctx = $(canvasId).getContext('2d');
+  const tickColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-tick').trim() || '#9aa6b2';
+  const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim() || 'rgba(255,255,255,0.05)';
+  return new Chart(ctx, {
+    type: 'line',
+    data: {labels: [], datasets: [{
+      label, data: [], borderColor: color,
+      backgroundColor: color.replace(')', ',0.1)').replace('rgb', 'rgba'),
+      borderWidth: 1.5, pointRadius: 0, tension: 0.1,
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: false, parsing: false,
+      scales: {
+        x: {display: true, ticks: {color: tickColor, maxTicksLimit: 5, font: {size: 9}},
+            grid: {color: gridColor}},
+        y: {display: true, ticks: {color: tickColor, font: {size: 9}},
+            grid: {color: gridColor}},
+      },
+      plugins: {legend: {display: false}},
+    },
+  });
+}
+
+function applyChartTheme() {
+  const tickColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-tick').trim() || '#9aa6b2';
+  const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim() || 'rgba(255,255,255,0.05)';
+  for (const k of Object.keys(charts)) {
+    const c = charts[k];
+    c.options.scales.x.ticks.color = tickColor;
+    c.options.scales.y.ticks.color = tickColor;
+    c.options.scales.x.grid.color = gridColor;
+    c.options.scales.y.grid.color = gridColor;
+    c.update('none');
+  }
+}
+
+function initCharts() {
+  for (const d of CHART_DEFS) charts[d.key] = makeLineChart(d.id, d.color, d.label);
+}
+
+function updateCharts() {
+  const h = state.history;
+  const n = h.loss.length;
+  const xs = Array.from({length: n}, (_, i) => i + 1);
+  for (const d of CHART_DEFS) {
+    const chart = charts[d.key];
+    const arr = h[d.key] || [];
+    chart.data.labels = xs;
+    chart.data.datasets[0].data = arr.map((v, i) => ({x: i + 1, y: v}));
+    chart.update('none');
+  }
+}
+
+// ================== Auto 模式 ==================
+let autoTimer = null;
+function startAuto(maxEpochs) {
+  state.running = true;
+  $('btnAuto').textContent = 'Pause';
+  $('btnAuto').classList.add('primary');
+  const tick = () => {
+    if (!state.running) return;
+    if (state.epoch >= maxEpochs) { stopAuto(); toast(`完成 ${maxEpochs} 步`); return; }
+    doStep();
+    renderAll();
+    if (state.epoch - lastBoundaryEpoch >= 5) { drawBoundary(); lastBoundaryEpoch = state.epoch; }
+    autoTimer = setTimeout(tick, state.hyper.intervalMs);
+  };
+  tick();
+}
+function stopAuto() {
+  state.running = false;
+  $('btnAuto').textContent = 'Auto';
+  $('btnAuto').classList.remove('primary');
+  if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+}
+function toggleAuto() {
+  if (state.running) stopAuto();
+  else startAuto(state.hyper.epochs);
+}
+
+// ================== Render ==================
+function renderAll() {
+  renderHeader();
+  renderVars();
+  renderNetwork();
+  updateCharts();
+}
+
+// ================== Toast ==================
+let toastTimer = null;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ================== 事件绑定 ==================
+function bindEvents() {
+  $('btnStep').addEventListener('click', () => {
+    if (state.running) stopAuto();
+    const n = parseInt($('inStepN').value) || 1;
+    for (let i = 0; i < n; i++) doStep();
+    renderAll();
+    drawBoundary();
+    lastBoundaryEpoch = state.epoch;
+  });
+  $('btnAuto').addEventListener('click', toggleAuto);
+  $('btnReset').addEventListener('click', () => {
+    if (state.running) stopAuto();
+    reset();
+    toast('已重置');
+  });
+  $('btnBoundary').addEventListener('click', () => { drawBoundary(); lastBoundaryEpoch = state.epoch; });
+
+  const applyLr = () => {
+    const v = parseFloat($('inLr').value);
+    if (!isNaN(v) && v > 0) {
+      const old = state.params.lr;
+      state.hyper.lr = v;
+      state.params.lr = v;
+      if (old !== v) {
+        state.lastLrChange = state.epoch;
+        toast(`lr → ${v} @ epoch ${state.epoch}`);
+      }
+    }
+  };
+  $('inLr').addEventListener('change', applyLr);
+
+  $('inHidden').addEventListener('change', () => {
+    const v = parseInt($('inHidden').value);
+    if (!isNaN(v) && v >= 2 && v <= 8) {
+      if (v !== state.hyper.nHidden) {
+        if (confirm(`结构变更（hidden ${state.hyper.nHidden} → ${v}）将 Reset，确认？`)) {
+          state.hyper.nHidden = v;
+          if (state.running) stopAuto();
+          reset();
+          toast(`hidden=${v}，已重置`);
+        } else {
+          $('inHidden').value = state.hyper.nHidden;
+        }
+      }
+    } else {
+      $('inHidden').value = state.hyper.nHidden;
+    }
+  });
+
+  $('inSeed').addEventListener('change', () => {
+    const v = parseInt($('inSeed').value);
+    if (!isNaN(v)) {
+      state.hyper.seed = v;
+      if (state.running) stopAuto();
+      reset();
+      toast(`seed=${v}，已重置`);
+    }
+  });
+
+  $('inEpochs').addEventListener('change', () => {
+    const v = parseInt($('inEpochs').value);
+    if (!isNaN(v) && v > 0) state.hyper.epochs = v;
+  });
+
+  $('inSpeed').addEventListener('input', () => {
+    state.hyper.intervalMs = parseInt($('inSpeed').value);
+    $('spdVal').textContent = state.hyper.intervalMs + 'ms';
+  });
+
+  $('metricSel')?.remove?.();
+
+  // 主题切换
+  const savedTheme = localStorage.getItem('mlp-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  $('btnTheme').textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+  $('btnTheme').addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    $('btnTheme').textContent = next === 'dark' ? '🌙' : '☀️';
+    localStorage.setItem('mlp-theme', next);
+    applyChartTheme();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return;
+    if (e.code === 'Space') { e.preventDefault(); $('btnStep').click(); }
+    else if (e.key === 'a' || e.key === 'A') { e.preventDefault(); toggleAuto(); }
+    else if (e.key === 'r' || e.key === 'R') { e.preventDefault(); $('btnReset').click(); }
+  });
+}
+
+// ================== 启动 ==================
+function renderFormulas() {
+  if (typeof katex === 'undefined') {
+    setTimeout(renderFormulas, 50);
+    return;
+  }
+  document.querySelectorAll('#formulas .eq').forEach(el => {
+    const tex = el.getAttribute('data-tex');
+    try { katex.render(tex, el, {throwOnError: false, displayMode: false}); }
+    catch (e) { el.textContent = tex; }
+  });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  initCharts();
+  bindEvents();
+  renderFormulas();
+  reset();
+});
+</script>
+</body>
+</html>
