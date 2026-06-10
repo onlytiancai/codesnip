@@ -85,10 +85,22 @@ header .stat .val.lr{color:var(--accent2)}
 header .hint{font-size:11px;color:var(--warn);font-style:italic;min-width:140px;text-align:right}
 
 /* ====== Grid layout ====== */
-main{display:grid;grid-template-columns:280px 1fr;grid-template-rows:auto auto auto;gap:12px;flex:1;min-height:0}
-aside.panel{grid-row:1/4;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+main{display:grid;grid-template-columns:280px 1fr;grid-template-rows:auto auto auto auto;gap:12px;flex:1;min-height:0}
+aside.panel{grid-row:1/5;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
 section.network-wrap{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:200px;height:480px;resize:vertical;overflow:hidden}
 section.vars{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:200px;height:340px;resize:vertical;overflow:auto}
+section.compute-wrap{grid-column:1/3;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+#compute{width:100%;height:100%;min-height:200px;max-height:340px}
+#compute .cg-tensor{fill:rgba(110,231,183,0.18);stroke:var(--text);stroke-width:1.5}
+#compute .cg-loss{fill:rgba(255,123,123,0.25);stroke:var(--danger);stroke-width:1.8}
+#compute .cg-op{fill:rgba(251,191,36,0.18);stroke:var(--warn);stroke-width:1.5}
+#compute .cg-edge{fill:none;stroke:var(--text);stroke-width:1.6;stroke-opacity:.85}
+#compute .cg-edge-param{fill:none;stroke:var(--accent2);stroke-width:1.4;stroke-opacity:.75;stroke-dasharray:4 3}
+#compute .cg-edge-y{fill:none;stroke:var(--warn);stroke-width:1.4;stroke-opacity:.75;stroke-dasharray:4 3}
+#compute .cg-node-name{fill:var(--text);font-size:11px;font-weight:600;font-family:ui-monospace,monospace;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+#compute .cg-node-val{fill:var(--accent2);font-size:8.5px;font-family:ui-monospace,monospace;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+#compute .cg-node-lossname{fill:var(--danger);font-size:11px;font-weight:600;font-family:ui-monospace,monospace;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+#compute .cg-section-h{fill:var(--muted);font-size:10px;font-family:ui-monospace,monospace;text-anchor:middle}
 section.charts{grid-column:1/3;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(5,1fr);gap:10px;min-height:600px}
 section.charts .chart-box{display:flex;flex-direction:column;gap:6px;min-height:0;position:relative;background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:8px}
 section.charts .chart-box.main{grid-column:1/-1;background:var(--panel2);border:1px solid rgba(255,123,123,0.3)}
@@ -165,7 +177,7 @@ section.charts canvas{flex:1;min-height:0;width:100%!important;height:100%!impor
     <div class="stat"><span class="lbl">Loss</span><span class="val loss" id="hdrLoss">—</span></div>
     <div class="stat"><span class="lbl">Accuracy</span><span class="val acc" id="hdrAcc">—</span></div>
     <div class="stat"><span class="lbl">lr</span><span class="val lr" id="hdrLr">1.0</span></div>
-    <div class="stat"><span class="lbl">|dW| (L1)</span><span class="val" id="hdrGnorm" style="color:var(--warn)">—</span></div>
+    <div class="stat"><span class="lbl">|∇θ| Frobenius</span><span class="val" id="hdrGnorm" style="color:var(--warn)">—</span></div>
   </div>
   <div class="hint" id="hdrHint">Space=Step · A=Auto · R=Reset</div>
   <button id="btnTheme" title="切换主题" style="font-size:14px;padding:6px 10px;min-width:40px">🌙</button>
@@ -248,10 +260,14 @@ section.charts canvas{flex:1;min-height:0;width:100%!important;height:100%!impor
           <span data-tex="\|v\|_2 = \sqrt{\sum_i v_i^{2}}" style="display:inline-block;margin:0 2px"></span>
           <span style="color:var(--muted)">。同理，向量长度。</span>
         </div>
+        <div><b style="color:var(--accent2)">|∇θ| Frobenius</b>：header 里的"总梯度幅度"。把所有参数梯度的 Frobenius 范数求和：
+          <span data-tex="\sum_{p \in \theta} \|d\theta^{(p)}\|_F = \|dW^{(1)}\|_F + \|dW^{(2)}\|_F + \|db^{(1)}\|_2 + \|db^{(2)}\|_2" style="display:inline-block;margin:2px 0;vertical-align:middle"></span>
+          <span style="color:var(--muted)">。一次前向后整体梯度有多大，决定本次 lr × 梯度 的更新步长。训练初期会冲一冲峰值，逼近最优点时衰减。**不是 L1**（L1 = |元素| 之和；本指标是 L2 / Frobenius）。</span>
+        </div>
         <div><b style="color:var(--accent2)">W mean</b>：权重矩阵元素平均值。<span style="color:var(--muted)">观察权重有无漂移（应基本在 0 附近）。</span></div>
         <div><b style="color:var(--accent2)">a mean</b>：激活值平均。<span style="color:var(--muted)">隐藏层 a1≈0.5 表示饱和；a2 反映输出概率均值。</span></div>
         <div style="color:var(--muted);font-style:italic;margin-top:4px;padding-top:4px;border-top:1px solid var(--border)">
-          范数（Frobenius / L2）可统一理解为"张量里所有元素平方和开根号"，标量越大代表该层信号越强。
+          <b>L1 vs L2 vs Frobenius</b>：L1 = <span data-tex="\sum |x_i|" style="display:inline-block;margin:0 1px"></span>，L2 = <span data-tex="\sqrt{\sum x_i^{2}}" style="display:inline-block;margin:0 1px"></span>，Frobenius = L2 推广到矩阵 = <span data-tex="\sqrt{\sum_{i,j} M_{ij}^{2}}" style="display:inline-block;margin:0 1px"></span>。本页面所有 |·| 范数指标都是 L2 / Frobenius。
         </div>
       </div>
     </div>
@@ -285,6 +301,14 @@ section.charts canvas{flex:1;min-height:0;width:100%!important;height:100%!impor
       <span style="font-size:10px;color:var(--muted)">绿色=正 · 红色=负</span>
     </div>
     <div class="vars-content" id="varsContent"></div>
+  </section>
+
+  <section class="compute-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <h2>MLP 计算图 (Computation Graph · Forward)</h2>
+      <span style="font-size:10px;color:var(--muted)">圆=张量 · 圆角=算子 · 蓝线=参数 · 黄线=目标</span>
+    </div>
+    <svg id="compute" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid meet"></svg>
   </section>
 
   <section class="charts">
@@ -847,11 +871,156 @@ function toggleAuto() {
   else startAuto(state.hyper.epochs);
 }
 
+// ================== Computation Graph (SVG) ==================
+function renderComputeGraph() {
+  const svg = $('compute');
+  if (!svg) return;
+  const P = state.params, C = state.cache, G = state.grads;
+
+  // 主轴 13 个槽位的 x 坐标
+  const xMain = {X:60, mulW1:140, addB1:215, z1:290, sig1:360, a1:430,
+                 mulW2:505, addB2:580, z2:655, sig2:725, a2:795, bce:880, L:970};
+  const yMain = 160;
+  const yTop  = 60;   // 参数行
+  const yBot  = 260;  // 目标 y 行
+
+  // 节点取值（标量摘要：均/和/单值）
+  const meanOf = M => Array.isArray(M[0]) ? matMean(M) : M.reduce((s,v)=>s+v,0)/M.length;
+  const vstr = (v, digits=3) => v == null ? '—' : (Math.abs(v) < 1e-3 && v !== 0 ? v.toExponential(1) : v.toFixed(digits));
+  const valOf = (k) => {
+    if (k === 'X')  return `[${X[0].map(v=>v.toFixed(0)).join(',')}] · N=${X.length}`;
+    if (k === 'W1') return `μ=${vstr(meanOf(P.W1))}`;
+    if (k === 'b1') return `[${P.b1.slice(0,2).map(v=>v.toFixed(2)).join(',')},…]`;
+    if (k === 'W2') return `μ=${vstr(meanOf(P.W2))}`;
+    if (k === 'b2') return `[${P.b2.map(v=>v.toFixed(2)).join(',')}]`;
+    if (k === 'z1' || k === 'z2') return C[k] ? `μ=${vstr(meanOf(C[k]))}` : '—';
+    if (k === 'a1') return C.a1 ? `μ=${vstr(meanOf(C.a1))}` : '—';
+    if (k === 'a2') return C.a2 ? `μ=${vstr(meanOf(C.a2))}` : '—';
+    if (k === 'y')  return `[${y.join(',')}]`;
+    if (k === 'L')  return state.lastLoss != null ? vstr(state.lastLoss) : '—';
+    return '';
+  };
+
+  // 边：取节点边界（圆/矩形）作为端点
+  const onCircle = (cx, cy, tx, ty, r=22) => {
+    const dx = tx - cx, dy = ty - cy;
+    const len = Math.hypot(dx, dy);
+    if (len === 0) return [cx, cy];
+    return [cx + dx * r / len, cy + dy * r / len];
+  };
+  const onRect = (cx, cy, tx, ty, hw=26, hh=16) => {
+    const dx = tx - cx, dy = ty - cy;
+    if (dx === 0 && dy === 0) return [cx, cy];
+    const sx = dx !== 0 ? Math.abs(hw / dx) : Infinity;
+    const sy = dy !== 0 ? Math.abs(hh / dy) : Infinity;
+    const s = Math.min(sx, sy);
+    return [cx + dx * s, cy + dy * s];
+  };
+  const isOpKey = (k) => ['mulW1','addB1','sig1','mulW2','addB2','sig2','bce'].includes(k);
+  const onNode = (k, tx, ty) => {
+    const [cx, cy] = nodeXY(k);
+    return isOpKey(k) ? onRect(cx, cy, tx, ty, 26, 16) : onCircle(cx, cy, tx, ty, 22);
+  };
+  const edge = (ax, ay, bx, by, cls='cg-edge') => {
+    const mx = (ax + bx) / 2;
+    return `<path class="${cls}" d="M ${ax} ${ay} C ${mx} ${ay}, ${mx} ${by}, ${bx} ${by}"/>`;
+  };
+  // 节点定义：x → 主轴或顶/底
+  const nodeXY = (k) => {
+    if (['W1','b1','W2','b2'].includes(k)) {
+      const x = {W1:xMain.mulW1, b1:xMain.addB1, W2:xMain.mulW2, b2:xMain.addB2}[k];
+      return [x, yTop];
+    }
+    if (k === 'y') return [xMain.bce, yBot];
+    return [xMain[k], yMain];
+  };
+
+  // 算子形状（圆角矩形）
+  const opBox = (x, y, label, sub) => `
+    <rect class="cg-op" x="${x-26}" y="${y-16}" width="52" height="32" rx="6"/>
+    <text class="cg-node-name" x="${x}" y="${y-1}">${label}</text>
+    ${sub ? `<text class="cg-node-val" x="${x}" y="${y+12}">${sub}</text>` : ''}`;
+
+  // 张量圆（绿/红）
+  const tensorCircle = (x, y, name, val, isLoss=false) => `
+    <circle class="${isLoss ? 'cg-loss' : 'cg-tensor'}" cx="${x}" cy="${y}" r="22"/>
+    <text class="${isLoss ? 'cg-node-lossname' : 'cg-node-name'}" x="${x}" y="${y-2}">${name}</text>
+    <text class="cg-node-val" x="${x}" y="${y+33}">${val}</text>`;
+
+  // 边集合：主流动 + 参数 + 目标
+  let paths = '';
+  // 主流：X→mulW1→addB1→z1→sig1→a1→mulW2→addB2→z2→sig2→a2→bce→L
+  const mainSeq = [
+    ['X','mulW1'],['mulW1','addB1'],['addB1','z1'],['z1','sig1'],
+    ['sig1','a1'],['a1','mulW2'],['mulW2','addB2'],['addB2','z2'],
+    ['z2','sig2'],['sig2','a2'],['a2','bce'],['bce','L']
+  ];
+  for (const [a, b] of mainSeq) {
+    const [ax, ay] = nodeXY(a), [bx, by] = nodeXY(b);
+    const [x1, y1] = onNode(a, bx, by);
+    const [x2, y2] = onNode(b, ax, ay);
+    paths += edge(x1, y1, x2, y2, 'cg-edge');
+  }
+  // 参数边（蓝虚线）
+  for (const p of ['W1','b1','W2','b2']) {
+    const [ax, ay] = nodeXY(p);
+    const tgt = {W1:'mulW1', b1:'addB1', W2:'mulW2', b2:'addB2'}[p];
+    const [bx, by] = nodeXY(tgt);
+    const [x1, y1] = onNode(p, bx, by);
+    const [x2, y2] = onNode(tgt, ax, ay);
+    paths += edge(x1, y1, x2, y2, 'cg-edge-param');
+  }
+  // y 边（黄虚线）
+  {
+    const [ax, ay] = nodeXY('y'), [bx, by] = nodeXY('bce');
+    const [x1, y1] = onNode('y', bx, by);
+    const [x2, y2] = onNode('bce', ax, ay);
+    paths += edge(x1, y1, x2, y2, 'cg-edge-y');
+  }
+
+  // 节点内容
+  let nodes = '';
+  // 主流节点（圆 + 算子交替）
+  const mainOrder = [
+    ['X', false], ['mulW1', 'op', '×W¹'], ['addB1', 'op', '+b¹'],
+    ['z1', false], ['sig1', 'op', 'σ'], ['a1', false],
+    ['mulW2', 'op', '×W²'], ['addB2', 'op', '+b²'],
+    ['z2', false], ['sig2', 'op', 'σ'], ['a2', false],
+    ['bce', 'op', 'BCE'], ['L', 'loss'],
+  ];
+  for (const [k, type, label] of mainOrder) {
+    const [x, y] = nodeXY(k);
+    if (type === 'op') nodes += opBox(x, y, label);
+    else if (k === 'L') nodes += tensorCircle(x, y, 'L', valOf('L'), true);
+    else nodes += tensorCircle(x, y, k, valOf(k));
+  }
+  // 参数节点（顶行）
+  for (const p of ['W1','b1','W2','b2']) {
+    const [x, y] = nodeXY(p);
+    nodes += tensorCircle(x, y, p, valOf(p));
+  }
+  // y 节点（底行）
+  {
+    const [x, y] = nodeXY('y');
+    nodes += tensorCircle(x, y, 'y', valOf('y'));
+  }
+
+  // 区域标题
+  const sections = `
+    <text class="cg-section-h" x="${xMain.mulW1}" y="20">Parameters</text>
+    <text class="cg-section-h" x="${xMain.X}" y="132">Forward</text>
+    <text class="cg-section-h" x="${xMain.bce}" y="215">Target</text>
+  `;
+
+  svg.innerHTML = sections + paths + nodes;
+}
+
 // ================== Render ==================
 function renderAll() {
   renderHeader();
   renderVars();
   renderNetwork();
+  renderComputeGraph();
   updateCharts();
 }
 
