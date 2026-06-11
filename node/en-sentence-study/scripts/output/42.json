@@ -1,0 +1,46 @@
+{
+  "scene_en": "Hotel",
+  "scene_zh": "酒店",
+  "task_en": "Late Checkout",
+  "task_zh": "延迟退房",
+  "context": "张先生在美国旅游，最后一天准备退房但还有几个小时的行程安排。他不想拖着行李到处走，想问问酒店延迟退房的收费情况。",
+  "sentence_zh": "请问延迟退房需要额外收费吗？",
+  "translations": [
+    {
+      "sentence": "I was wondering if there would be an extra charge for a late checkout.",
+      "style": "polite",
+      "note": "委婉询问费用，用I was wondering表达礼貌",
+      "literal_translation": "我想知道延迟退房是否会有额外收费。",
+      "phonetic": "aɪ wʌz ˈwʌndərɪŋ ɪf ðeə wʊd bi ən ˈekstrə tʃɑːrdʒ fɔːr ə leɪt ˈtʃekaʊt"
+    },
+    {
+      "sentence": "Could you please tell me if late checkout is subject to an additional fee?",
+      "style": "polite",
+      "note": "正式询问，用please和if条件句保持礼貌",
+      "literal_translation": "您能告诉我延迟退房是否需要支付额外费用吗？",
+      "phonetic": "kʊd juː pliːz tel miː ɪf leɪt ˈtʃekaʊt ɪz ˈsʌbdʒɪkt tuː ən əˈdɪʃənl fiː"
+    },
+    {
+      "sentence": "Is there a fee for checking out late?",
+      "style": "neutral",
+      "note": "直接询问费用，普通日常表达",
+      "literal_translation": "晚点退房有费用吗？",
+      "phonetic": "ɪz ðeər ə fiː fɔːr ˈtʃekɪŋ aʊt leɪt"
+    },
+    {
+      "sentence": "Do you charge for late checkout?",
+      "style": "neutral",
+      "note": "简洁明了地询问是否收费",
+      "literal_translation": "延迟退房你们收费吗？",
+      "phonetic": "duː juː tʃɑːrdʒ fɔːr leɪt ˈtʃekaʊt"
+    },
+    {
+      "sentence": "How much is late checkout?",
+      "style": "casual",
+      "note": "口语化直接问价格，轻松随意",
+      "literal_translation": "延迟退房多少钱？",
+      "phonetic": "haʊ mʌtʃ ɪz leɪt ˈtʃekaʊt"
+    }
+  ],
+  "explanation": "在酒店场景中询问延迟退房费用时，美国人通常会比较直接地询问是否有额外收费。这个句子适用于需要了解费用后再决定是否延迟退房的情况。注意：不同酒店对延迟退房的政策不同，一般延迟到下午1-2点可能免费或收取少量费用，延迟到傍晚可能收费较高。建议在入住时就了解酒店的延迟退房政策。"
+}

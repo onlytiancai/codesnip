@@ -1,0 +1,10 @@
+{
+  "name": "test-stream",
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.87.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0"
+  }
+}

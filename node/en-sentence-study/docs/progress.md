@@ -1,0 +1,182 @@
+# 项目进度追踪
+
+> 英语口语学习 Web App - SpeakFlow MVP 开发进度
+
+## 总体进度
+
+| 阶段 | 状态 | 完成度 |
+|------|------|--------|
+| Phase 1: 基础架构 | 🟡 进行中 | 20% |
+| Phase 2: 用户系统 | ⬜ 未开始 | 0% |
+| Phase 3: 核心练习 | ⬜ 未开始 | 0% |
+| Phase 4: 提示系统 | ⬜ 未开始 | 0% |
+| Phase 5: 复习系统 | ⬜ 未开始 | 0% |
+| Phase 6: 统计 | ⬜ 未开始 | 0% |
+
+---
+
+## Phase 1: 基础架构
+
+| 任务 | 状态 | 完成度 |
+|------|------|--------|
+| 1.1 初始化 Nuxt4 项目 | ✅ | 100% |
+| 1.2 配置 Nuxt UI + Tailwind | ⬜ | 0% |
+| 1.3 安装依赖（better-sqlite3, prisma, openai 等） | ⬜ | 0% |
+| 1.4 创建 Prisma schema | ⬜ | 0% |
+| 1.5 创建数据库初始化脚本 | ⬜ | 0% |
+| 1.6 创建基础 layouts | ⬜ | 0% |
+
+### Phase 1 详细说明
+
+- [x] 1.1 初始化 Nuxt4 项目
+  - 完成时间: 2026-05-14
+  - 使用模板: minimal
+  - 包管理器: pnpm
+
+- [ ] 1.2 配置 Nuxt UI + Tailwind
+  - 需要配置 nuxt.config.ts
+  - 需要创建 assets/css/main.css
+
+- [ ] 1.3 安装依赖
+  - @nuxt/ui
+  - @nuxt/icon
+  - nuxt-auth-utils
+  - better-sqlite3
+  - @prisma/client
+  - @prisma/adapter-better-sqlite3
+  - openai
+  - zod
+  - bcryptjs
+  - prisma
+
+- [ ] 1.4 创建 Prisma schema
+  - 需要配置 prisma/schema.prisma
+  - 需要配置 prisma/seed.ts
+
+- [ ] 1.5 创建数据库初始化脚本
+  - server/database/index.ts
+  - 数据库迁移脚本
+
+- [ ] 1.6 创建基础 layouts
+  - layouts/default.vue
+  - layouts/auth.vue
+
+---
+
+## Phase 2: 用户系统
+
+| 任务 | 状态 | 完成度 |
+|------|------|--------|
+| 2.1 邮箱注册 API | ⬜ | 0% |
+| 2.2 邮箱登录 API | ⬜ | 0% |
+| 2.3 Session 管理 | ⬜ | 0% |
+| 2.4 登录/注册页面 | ⬜ | 0% |
+| 2.5 用户资料页面 | ⬜ | 0% |
+
+---
+
+## Phase 3: 核心练习
+
+| 任务 | 状态 | 完成度 |
+|------|------|--------|
+| 3.1 场景/任务列表页 | ⬜ | 0% |
+| 3.2 句子展示组件 | ⬜ | 0% |
+| 3.3 OpenAI 集成 | ⬜ | 0% |
+| 3.4 AI 点评流程 | ⬜ | 0% |
+| 3.5 练习页面 | ⬜ | 0% |
+
+---
+
+## Phase 4: 提示系统
+
+| 任务 | 状态 | 完成度 |
+|------|------|--------|
+| 4.1 候选句子 API | ⬜ | 0% |
+| 4.2 提示展示组件 | ⬜ | 0% |
+
+---
+
+## Phase 5: 复习系统
+
+| 任务 | 状态 | 完成度 |
+|------|------|--------|
+| 5.1 闪卡组件 | ⬜ | 0% |
+| 5.2 复习设置 | ⬜ | 0% |
+| 5.3 播放功能 | ⬜ | 0% |
+
+---
+
+## Phase 6: 统计
+
+| 任务 | 状态 | 完成度 |
+|------|------|--------|
+| 6.1 学习统计 API | ⬜ | 0% |
+| 6.2 统计展示页面 | ⬜ | 0% |
+
+---
+
+## 数据初始化进度
+
+| 场景 | 状态 | 句子数 |
+|------|------|--------|
+| 机场 | ⬜ | 12 |
+| 酒店 | ⬜ | 10 |
+| 打车 | ⬜ | 6 |
+| 餐厅 | ⬜ | 10 |
+| 购物 | ⬜ | 10 |
+| 工作 | ⬜ | 12 |
+| 看病 | ⬜ | 8 |
+| 问路 | ⬜ | 6 |
+| **总计** | ⬜ | **74** |
+
+---
+
+## 问题与 blockers
+
+| 日期 | 问题 | 状态 | 解决方案 |
+|------|------|------|----------|
+| - | - | - | - |
+
+---
+
+## 更新日志
+
+| 日期 | 更新内容 |
+|------|----------|
+| 2026-05-14 | 项目初始化，开始创建文档 |
+| 2026-05-14 | 创建文档：plan.md, pitch-deck.md, progress.md, scenarios.md |
+| 2026-05-14 | 重构 scripts/：新增 markdown_parser.py, llm_caller.py, generate_sentence.py |
+
+---
+
+## Scripts 目录结构
+
+| 文件 | 功能 |
+|------|------|
+| `markdown_parser.py` | 解析 docs/scenarios.md，使用第三方 Markdown 解析器 |
+| `llm_caller.py` | LLM API 调用封装，支持 debug 模式和自动重试 |
+| `generate_sentence.py` | 主脚本，随机生成场景口语练习数据 |
+
+### generate_sentence.py 使用方法
+
+```bash
+# 普通运行
+python scripts/generate_sentence.py
+
+# 开启 debug 模式（打印请求、响应、耗时）
+python scripts/generate_sentence.py --debug
+```
+
+### 输出示例
+
+```
+📍 场景：娱乐休闲 (Entertainment)
+📋 任务：看演唱会 (Concert)
+💬 中文：这演唱会太燃了！
+
+🌐 英文翻译：
+  1. [casual] This concert is absolutely electrifying!
+     直译：这场演唱会绝对让人热血沸腾！
+     说明：非常口语化且夸张的表达...
+     重点：concert /ˈkɒnsət/ (演唱会), electrifying /ɪˈlektrɪfaɪɪŋ/ (激动人心的)...
+```

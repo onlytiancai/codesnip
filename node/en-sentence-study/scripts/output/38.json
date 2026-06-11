@@ -1,0 +1,46 @@
+{
+  "scene_en": "Directions",
+  "scene_zh": "问路",
+  "task_en": "Metro Lines",
+  "task_zh": "地铁线路",
+  "context": "你刚到一个新地方，想坐地铁但不知道最近的地铁站在哪里，于是向路人或工作人员问路。",
+  "sentence_zh": "请问，最近的地铁站在哪儿？",
+  "translations": [
+    {
+      "sentence": "Excuse me, where is the nearest metro station?",
+      "style": "polite",
+      "note": "最常见、最标准的问路表达，'Excuse me'是礼貌的开场白",
+      "literal_translation": "打扰一下，最近的地铁站在哪里？",
+      "phonetic": "ɪkˈskjuːz miː | wɛr ɪz ðə ˈnɪrəst ˈmetroʊ ˈsteɪʃən"
+    },
+    {
+      "sentence": "Hi, how do I get to the subway from here?",
+      "style": "casual",
+      "note": "口语化的表达，用'subway'是美国英语，'from here'强调当前位置",
+      "literal_translation": "嗨，从这里怎么去地铁站？",
+      "phonetic": "haɪ | haʊ duː aɪ ɡɛt tuː ðə ˈsʌbweɪ frʌm hɪr"
+    },
+    {
+      "sentence": "Could you tell me the way to the nearest underground station?",
+      "style": "polite",
+      "note": "'underground'是英式英语，句式比较正式客气",
+      "literal_translation": "您能告诉我去最近的地铁站的路吗？",
+      "phonetic": "kʊd juː tɛl miː ðə weɪ tuː ðə ˈnɪrəst ˈʌndəɡraʊnd ˈsteɪʃən"
+    },
+    {
+      "sentence": "Is there a metro station around here?",
+      "style": "neutral",
+      "note": "先确认附近有没有地铁站，适合不确定附近设施的情况下使用",
+      "literal_translation": "这附近有地铁站吗？",
+      "phonetic": "ɪz ðɛr ə ˈmetroʊ ˈsteɪʃən əˈraʊnd hɪr"
+    },
+    {
+      "sentence": "Where can I catch the metro?",
+      "style": "neutral",
+      "note": "'catch the metro'表示乘坐地铁，口语中常用这种说法",
+      "literal_translation": "我在哪里可以乘坐地铁？",
+      "phonetic": "wɛr kæn aɪ kætʃ ðə ˈmetroʊ"
+    }
+  ],
+  "explanation": "在英语国家问路时，通常先用'Excuse me'或'Hi'引起注意再提问。关于地铁的说法，美国常用'subway'，英国常用'underground'或'tube'，国际场合和香港则用'metro'。如果要具体问某条线路，可以说'Which line do I take for...?（要坐哪条线去...）'。"
+}

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文章脚本预览</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .brand-primary { color: #6B8E8E; }
+    .brand-bg { background: linear-gradient(135deg, #6B8E8E 0%, #7BA3A3 100%); }
+    .brand-border { border-color: #6B8E8E; }
+    .slide-container {
+      aspect-ratio: 9/16;
+      max-height: 90vh;
+    }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: #f1f1f1; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #6B8E8E; border-radius: 3px; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div id="app" class="min-h-screen flex flex-col items-center justify-center p-4">
+    <!-- Navigation -->
+    <div class="mb-4 flex items-center gap-4">
+      <button
+        @click="prev"
+        :disabled="currentPage === 0"
+        class="px-6 py-2 bg-white rounded-lg shadow hover:shadow-md disabled:opacity-30 disabled:cursor-not-allowed transition-shadow brand-primary font-semibold"
+      >
+        ← Prev
+      </button>
+      <span class="text-gray-600 font-medium">{{ currentPage + 1 }} / {{ totalPages }}</span>
+      <button
+        @click="next"
+        :disabled="currentPage === totalPages - 1"
+        class="px-6 py-2 bg-white rounded-lg shadow hover:shadow-md disabled:opacity-30 disabled:cursor-not-allowed transition-shadow brand-primary font-semibold"
+      >
+        Next →
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="loading" class="text-gray-500 text-lg">Loading...</div>
+
+    <!-- Error -->
+    <div v-else-if="error" class="text-red-500 text-lg">{{ error }}</div>
+
+    <!-- Slide -->
+    <div v-else class="slide-container w-full max-w-[405px] bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <!-- INTRO Slide -->
+      <div v-if="currentSlide.type === 'intro'" class="h-full flex flex-col">
+        <div class="brand-bg h-16 flex items-center px-6">
+          <div class="w-8 h-8 bg-white/20 rounded-lg mr-3"></div>
+          <span class="text-white font-bold text-lg">English Reader</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center justify-center p-8 text-center">
+          <div class="text-sm tracking-widest brand-primary uppercase mb-6">Introduction</div>
+          <h1 class="text-2xl font-bold text-gray-800 mb-6">{{ currentSlide.title }}</h1>
+          <p class="text-gray-600 leading-relaxed text-sm">{{ currentSlide.script }}</p>
+        </div>
+        <div class="brand-bg h-12 flex items-center justify-center">
+          <span class="text-white text-sm">让学习成为乐趣</span>
+        </div>
+      </div>
+
+      <!-- SEGMENT READING Slide -->
+      <div v-else-if="currentSlide.type === 'segment-reading'" class="h-full flex flex-col">
+        <div class="brand-bg h-16 flex items-center px-6">
+          <div class="w-8 h-8 bg-white/20 rounded-lg mr-3"></div>
+          <span class="text-white font-bold text-lg">English Reader</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+          <div class="text-xs tracking-widest brand-primary uppercase mb-4">Segment {{ currentSlide.segmentId }} - Reading</div>
+          <p class="text-gray-800 leading-relaxed text-sm font-medium">{{ currentSlide.originalText }}</p>
+        </div>
+        <div class="brand-bg h-12 flex items-center justify-center">
+          <span class="text-white text-sm">{{ currentSlide.segmentId }} / {{ totalSegments }}</span>
+        </div>
+      </div>
+
+      <!-- SEGMENT TRANSLATION Slide -->
+      <div v-else-if="currentSlide.type === 'segment-translation'" class="h-full flex flex-col">
+        <div class="brand-bg h-16 flex items-center px-6">
+          <div class="w-8 h-8 bg-white/20 rounded-lg mr-3"></div>
+          <span class="text-white font-bold text-lg">English Reader</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+          <div class="text-xs tracking-widest brand-primary uppercase mb-4">Segment {{ currentSlide.segmentId }} - Translation</div>
+          <p class="text-gray-600 leading-relaxed text-sm">{{ currentSlide.script }}</p>
+        </div>
+        <div class="brand-bg h-12 flex items-center justify-center">
+          <span class="text-white text-sm">{{ currentSlide.segmentId }} / {{ totalSegments }}</span>
+        </div>
+      </div>
+
+      <!-- SEGMENT VOCABULARY Slide -->
+      <div v-else-if="currentSlide.type === 'segment-vocabulary'" class="h-full flex flex-col">
+        <div class="brand-bg h-16 flex items-center px-6">
+          <div class="w-8 h-8 bg-white/20 rounded-lg mr-3"></div>
+          <span class="text-white font-bold text-lg">English Reader</span>
+        </div>
+        <div class="flex-1 p-4 overflow-y-auto scrollbar-thin">
+          <div class="text-xs tracking-widest brand-primary uppercase mb-3 text-center">Segment {{ currentSlide.segmentId }} - Vocabulary</div>
+          <p class="text-gray-600 text-xs leading-relaxed mb-4">{{ currentSlide.script }}</p>
+          <div class="space-y-2">
+            <div
+              v-for="(item, idx) in currentSlide.vocabulary"
+              :key="idx"
+              class="bg-gray-50 rounded-lg p-2 border-l-4 brand-border"
+            >
+              <div class="flex items-baseline gap-2">
+                <span class="font-bold text-gray-800 text-sm">{{ item.word }}</span>
+                <span class="text-gray-400 text-xs">{{ item.phonetic }}</span>
+                <span class="text-gray-500 text-xs">{{ item.partOfSpeech }}</span>
+              </div>
+              <div class="text-gray-600 text-xs mt-1">{{ item.definition }}</div>
+              <div class="text-gray-400 text-xs mt-1 italic">"{{ item.example }}"</div>
+            </div>
+          </div>
+        </div>
+        <div class="brand-bg h-12 flex items-center justify-center">
+          <span class="text-white text-sm">{{ currentSlide.segmentId }} / {{ totalSegments }}</span>
+        </div>
+      </div>
+
+      <!-- SEGMENT GRAMMAR Slide -->
+      <div v-else-if="currentSlide.type === 'segment-grammar'" class="h-full flex flex-col">
+        <div class="brand-bg h-16 flex items-center px-6">
+          <div class="w-8 h-8 bg-white/20 rounded-lg mr-3"></div>
+          <span class="text-white font-bold text-lg">English Reader</span>
+        </div>
+        <div class="flex-1 p-4 overflow-y-auto scrollbar-thin">
+          <div class="text-xs tracking-widest brand-primary uppercase mb-3 text-center">Segment {{ currentSlide.segmentId }} - Grammar</div>
+          <p class="text-gray-600 text-xs leading-relaxed mb-4">{{ currentSlide.script }}</p>
+          <div class="space-y-2">
+            <div
+              v-for="(point, idx) in currentSlide.grammarPoints"
+              :key="idx"
+              class="bg-gray-50 rounded-lg p-2 border-l-4 brand-border"
+            >
+              <div class="font-bold text-gray-800 text-sm mb-1">{{ point.rule }}</div>
+              <div class="text-gray-600 text-xs">{{ point.explanation }}</div>
+              <div class="text-gray-400 text-xs mt-1 italic">"{{ point.example }}"</div>
+            </div>
+          </div>
+        </div>
+        <div class="brand-bg h-12 flex items-center justify-center">
+          <span class="text-white text-sm">{{ currentSlide.segmentId }} / {{ totalSegments }}</span>
+        </div>
+      </div>
+
+      <!-- SEGMENT EXPLANATION Slide -->
+      <div v-else-if="currentSlide.type === 'segment-explanation'" class="h-full flex flex-col">
+        <div class="brand-bg h-16 flex items-center px-6">
+          <div class="w-8 h-8 bg-white/20 rounded-lg mr-3"></div>
+          <span class="text-white font-bold text-lg">English Reader</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+          <div class="text-xs tracking-widest brand-primary uppercase mb-4">Segment {{ currentSlide.segmentId }} - Explanation</div>
+          <p class="text-gray-600 leading-relaxed text-sm">{{ currentSlide.script }}</p>
+        </div>
+        <div class="brand-bg h-12 flex items-center justify-center">
+          <span class="text-white text-sm">{{ currentSlide.segmentId }} / {{ totalSegments }}</span>
+        </div>
+      </div>
+
+      <!-- OUTRO Slide -->
+      <div v-else-if="currentSlide.type === 'outro'" class="h-full flex flex-col">
+        <div class="brand-bg h-16 flex items-center px-6">
+          <div class="w-8 h-8 bg-white/20 rounded-lg mr-3"></div>
+          <span class="text-white font-bold text-lg">English Reader</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+          <div class="text-xs tracking-widest brand-primary uppercase mb-4">Outro</div>
+          <p class="text-gray-600 leading-relaxed text-sm whitespace-pre-line">{{ currentSlide.script }}</p>
+        </div>
+        <div class="brand-bg h-12 flex items-center justify-center">
+          <span class="text-white text-sm">让学习成为乐趣</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Keyboard hint -->
+    <div class="mt-4 text-gray-400 text-sm">Use ← → arrow keys to navigate</div>
+  </div>
+
+  <script>
+    const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
+
+    createApp({
+      setup() {
+        const loading = ref(true);
+        const error = ref(null);
+        const scriptData = ref(null);
+        const currentPage = ref(0);
+
+        const slides = computed(() => {
+          if (!scriptData.value) return [];
+
+          const result = [];
+
+          // INTRO
+          result.push({
+            type: 'intro',
+            title: scriptData.value.intro.title,
+            script: scriptData.value.intro.script,
+          });
+
+          // SEGMENTS
+          for (const segment of scriptData.value.segments) {
+            for (const part of segment.parts) {
+              if (part.type === 'reading' && part.id === 1) {
+                result.push({
+                  type: 'segment-reading',
+                  segmentId: segment.id,
+                  originalText: segment.originalText,
+                });
+              } else if (part.type === 'translation') {
+                result.push({
+                  type: 'segment-translation',
+                  segmentId: segment.id,
+                  script: part.script || part.translation,
+                });
+              } else if (part.type === 'vocabulary') {
+                result.push({
+                  type: 'segment-vocabulary',
+                  segmentId: segment.id,
+                  script: part.script,
+                  vocabulary: part.vocabulary || [],
+                });
+              } else if (part.type === 'grammar') {
+                result.push({
+                  type: 'segment-grammar',
+                  segmentId: segment.id,
+                  script: part.script,
+                  grammarPoints: part.grammarPoints || [],
+                });
+              } else if (part.type === 'explanation') {
+                result.push({
+                  type: 'segment-explanation',
+                  segmentId: segment.id,
+                  script: part.script,
+                });
+              }
+            }
+          }
+
+          // OUTRO
+          result.push({
+            type: 'outro',
+            script: scriptData.value.outro.script,
+          });
+
+          return result;
+        });
+
+        const totalPages = computed(() => slides.value.length);
+        const totalSegments = computed(() => scriptData.value?.segments?.length || 0);
+        const currentSlide = computed(() => slides.value[currentPage.value] || {});
+
+        function prev() {
+          if (currentPage.value > 0) currentPage.value--;
+        }
+
+        function next() {
+          if (currentPage.value < totalPages.value - 1) currentPage.value++;
+        }
+
+        function handleKeydown(e) {
+          if (e.key === 'ArrowLeft') prev();
+          else if (e.key === 'ArrowRight') next();
+        }
+
+        onMounted(async () => {
+          try {
+            const response = await fetch('/article-script.json');
+            if (!response.ok) throw new Error('Failed to load article-script.json');
+            scriptData.value = await response.json();
+          } catch (err) {
+            error.value = err.message;
+          } finally {
+            loading.value = false;
+          }
+
+          window.addEventListener('keydown', handleKeydown);
+        });
+
+        onUnmounted(() => {
+          window.removeEventListener('keydown', handleKeydown);
+        });
+
+        return {
+          loading,
+          error,
+          currentPage,
+          totalPages,
+          totalSegments,
+          currentSlide,
+          prev,
+          next,
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+{
+  "scene_en": "Taxi/Ride-hailing",
+  "scene_zh": "打车",
+  "task_en": "Paying the Fare",
+  "task_zh": "支付车费",
+  "context": "乘客到达目的地，司机说了车费金额，乘客想确认用哪种方式支付车费。",
+  "sentence_zh": "微信还是支付宝？",
+  "translations": [
+    {
+      "sentence": "Do you take WeChat Pay or Alipay?",
+      "style": "neutral",
+      "note": "直接询问是否接受微信或支付宝，是最常用的表达方式",
+      "literal_translation": "你们接受微信支付或支付宝吗？",
+      "phonetic": "duː juː teɪk wiːtʃæt peɪ ɔːr ˈælɪpeɪ"
+    },
+    {
+      "sentence": "Can I pay with WeChat or Alipay?",
+      "style": "casual",
+      "note": "口语化询问能否用微信或支付宝支付，适合轻松的场景",
+      "literal_translation": "我可以用微信或支付宝支付吗？",
+      "phonetic": "kæn aɪ peɪ wɪð wiːtʃæt ɔːr ˈælɪpeɪ"
+    },
+    {
+      "sentence": "May I pay by mobile payment?",
+      "style": "polite",
+      "note": "正式礼貌的表达方式，用mobile payment泛指移动支付",
+      "literal_translation": "我可以用移动支付付款吗？",
+      "phonetic": "meɪ aɪ peɪ baɪ ˈmoʊbaɪl ˈmentɪ"
+    },
+    {
+      "sentence": "Is mobile payment okay with you?",
+      "style": "casual",
+      "note": "轻松随意的问法，okay比acceptable更口语化",
+      "literal_translation": "移动支付可以吗？",
+      "phonetic": "ɪz ˈmoʊbaɪl ˈmentɪ oʊˈkeɪ wɪð juː"
+    }
+  ],
+  "explanation": "在中国打车时，用手机支付（微信或支付宝）是最常见的方式。这个句子用来询问司机是否接受移动支付。需要注意的是，WeChat Pay和Alipay是固定的英文表达，在国外打车时如果用 mobile payment 会更通用。另外，有些司机可能更偏好其中一种支付方式，所以问清楚会比较方便。"
+}

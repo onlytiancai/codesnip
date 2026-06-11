@@ -1,0 +1,46 @@
+{
+  "scene_en": "Shopping",
+  "scene_zh": "购物",
+  "task_en": "Size Inquiry",
+  "task_zh": "尺码询问",
+  "context": "顾客在服装店的试衣间里，发现看中的这件T恤或牛仔裤尺码不太合适，希望店员帮忙查看是否有其他尺码可选。",
+  "sentence_zh": "这件有别的尺码吗？",
+  "translations": [
+    {
+      "sentence": "Excuse me, do you have this in another size?",
+      "style": "polite",
+      "note": "最标准的询问方式，加了Excuse me表示礼貌，适用于面对店员或陌生人",
+      "literal_translation": "打扰一下，你们这件有另一个尺码吗？",
+      "phonetic": "ɪkˈskjuːz miː, duː juː hæv ðɪs ɪn əˈnʌðər saɪz?"
+    },
+    {
+      "sentence": "Do you have this in a different size?",
+      "style": "neutral",
+      "note": "自然流畅的中性格调，购物时最常用的表达",
+      "literal_translation": "你们这件有不同尺码吗？",
+      "phonetic": "duː juː hæv ðɪs ɪn ə ˈdɪfrənt saɪz?"
+    },
+    {
+      "sentence": "Is this available in another size?",
+      "style": "neutral",
+      "note": "强调'是否有货'，更正式一点，暗示想购买",
+      "literal_translation": "这件有另一个尺码可用的吗？",
+      "phonetic": "ɪz ðɪs əˈveɪləbl ɪn əˈnʌðər saɪz?"
+    },
+    {
+      "sentence": "Do you have this in medium/large?",
+      "style": "casual",
+      "note": "口语化，直接说出具体想要的尺码，更直接高效",
+      "literal_translation": "这件有中码/大码吗？",
+      "phonetic": "duː juː hæv ðɪs ɪn ˈmiːdiəm/lɑːdʒ?"
+    },
+    {
+      "sentence": "Any other sizes for this one?",
+      "style": "casual",
+      "note": "简洁随意的问法，朋友之间或轻松场合适用",
+      "literal_translation": "这件有其他尺码吗？",
+      "phonetic": "ˈeni ˈʌðər saɪzɪz fɔːr ðɪs wʌn?"
+    }
+  ],
+  "explanation": "在服装店询问尺码时，'Do you have this in another size?'是最万金油的说法。如果想要更具体的尺码，可以直接说'Do you have this in a smaller/bigger size?'或具体码数。需要注意的是，在英语国家购物时，店员通常会主动询问是否需要帮助，如果你已经拿着衣服，可以用手指着衣服说'Do you have this in a medium?'更自然。另外，'size'在英美略有差异，美国常用数字（0, 2, 4...），英国多用XS/S/M/L。表达尺寸时注意单复数：'What's the size?'问尺码，'Do you have these in other sizes?'问多种尺码。"
+}

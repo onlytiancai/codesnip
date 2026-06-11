@@ -1,0 +1,46 @@
+{
+  "scene_en": "Home Life",
+  "scene_zh": "家居生活",
+  "task_en": "Waste Sorting",
+  "task_zh": "垃圾分类",
+  "context": "周末早上，妈妈在厨房整理垃圾，9岁的儿子拿着一个喝完的塑料瓶跑过来问应该扔到哪个垃圾桶。",
+  "sentence_zh": "宝贝，把这个塑料瓶扔到可回收垃圾桶里哦。",
+  "translations": [
+    {
+      "sentence": "Sweetie, put this plastic bottle in the recycling bin.",
+      "style": "neutral",
+      "note": "对孩子说话时的温柔语气，使用 recycling bin 指代可回收垃圾桶",
+      "literal_translation": "甜心，把这个塑料瓶放进回收箱里。",
+      "phonetic": "'SWEET·ie, pʊt ðɪs plə'STIK 'BOT·əl ɪn ðə ri'SAI·kel·ɪŋ bɪn"
+    },
+    {
+      "sentence": "Honey, the plastic bottle goes in the yellow bin.",
+      "style": "casual",
+      "note": "亲密称呼 honey，yellow bin 在有些国家指可回收垃圾箱",
+      "literal_translation": "亲爱的，塑料瓶放进黄色垃圾箱。",
+      "phonetic": "'HʌN·i, ðə plə'STIK 'BOT·əl gəʊz ɪn ðə 'JEL·əʊ bɪn"
+    },
+    {
+      "sentence": "Sweetheart, that's a recyclable item — please put it in the recycling container.",
+      "style": "polite",
+      "note": "正式且温和的教育性表达，强调物品可回收的特性",
+      "literal_translation": "亲爱的，那是一个可回收物品——请把它放进回收容器里。",
+      "phonetic": "'SWEET·hɑːt, ðæts ə ri'SAI·kel·ə·bəl 'Aİ·təm — pliːz pʊt ɪt ɪn ðə ri'SAI·kel·ɪŋ kən'teI·nər"
+    },
+    {
+      "sentence": "Hey kiddo, bottle goes in the recycling trash — not the regular one!",
+      "style": "casual",
+      "note": "轻松活泼的语气，对孩子说话用 kiddo，强调区别于普通垃圾",
+      "literal_translation": "嘿小家伙，瓶子扔到回收垃圾里——不是普通那个！",
+      "phonetic": "heɪ 'KID·əu, 'BOT·əl gəʊz ɪn ðə ri'SAI·kel·ɪŋ træʃ — nɒt ðə 'REG·yə·lər wʌn"
+    },
+    {
+      "sentence": "Remember, plastic items belong in the recycling bin, sweetheart.",
+      "style": "neutral",
+      "note": "教育性陈述，带有提醒意味，用 belie 替代 remember 更温和",
+      "literal_translation": "记住，塑料物品应该放进可回收垃圾桶，亲爱的。",
+      "phonetic": "ri'MEM·bə, 'PLAS·tɪk 'Aİ·təmz bɪ'Lɒŋ ɪn ðə ri'SAI·kel·ɪŋ bɪn, 'SWEET·hɑːt"
+    }
+  ],
+  "explanation": "这个场景是家长教孩子进行垃圾分类的日常对话。英文表达中，根据对孩子的称呼（sweetie、honey、sweetheart、kiddo）和语气，可以自然地展现亲子间的亲密关系。要注意 recycling bin/recycling trash 是可回收垃圾的常用表达，而 yellow bin 在某些西方国家特指可回收垃圾箱。语气上，正式程度依次为 polite > neutral > casual，家长可以根据孩子的年龄和熟悉程度选择合适的表达方式。"
+}

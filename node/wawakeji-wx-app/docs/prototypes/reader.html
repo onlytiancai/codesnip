@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>沉浸式阅读 - 程序员英语阅读 App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .sentence-highlight { background-color: #fef3c7; }
+    .sentence-hover { transition: background-color 0.2s; }
+    .sentence-hover:hover { background-color: #fef9e7; }
+    .word-hover:hover { background-color: #dbeafe; cursor: pointer; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-white min-h-screen">
+  <!-- Top Bar -->
+  <div class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100">
+    <div class="max-w-4xl mx-auto px-4 py-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <a href="article-list.html" class="text-gray-600 hover:text-gray-900">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+          </a>
+          <span class="text-sm text-gray-500 truncate max-w-xs">Understanding React Server Components</span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <!-- Settings Dropdown Trigger -->
+          <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg" title="设置">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </button>
+          <!-- Practice Mode Button -->
+          <a href="practice.html" class="px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors">
+            🎤 跟读模式
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Article Content -->
+  <article class="max-w-3xl mx-auto px-4 py-12">
+    <!-- Article Header -->
+    <header class="mb-8">
+      <div class="flex items-center space-x-3 mb-4">
+        <span class="px-3 py-1 bg-blue-100 text-blue-600 text-sm font-medium rounded-full">前端开发</span>
+        <span class="text-sm text-gray-500">🟡 中级</span>
+      </div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-4">
+        Understanding React Server Components: A Deep Dive
+      </h1>
+      <div class="flex items-center space-x-6 text-sm text-gray-500">
+        <span>📖 1,234 词</span>
+        <span>⏱️ 约 8 分钟</span>
+        <span>🎤 128 人跟读</span>
+      </div>
+    </header>
+
+    <!-- Content with Sentence-by-Sentence -->
+    <div class="prose prose-lg max-w-none">
+      <!-- Paragraph 1 -->
+      <div class="mb-6">
+        <p class="text-gray-800 leading-relaxed text-lg">
+          <span class="sentence sentence-hover px-1 -mx-1 cursor-pointer" data-sentence="1">React Server Components represent a paradigm shift in how we build React applications.</span>
+          <span class="sentence sentence-hover px-1 -mx-1 cursor-pointer" data-sentence="2">They allow us to write components that render exclusively on the server,
+            reducing the amount of JavaScript sent to the client and improving initial page load performance.</span>
+        </p>
+        <!-- Translation for current sentence -->
+        <div class="mt-2 text-gray-600 text-base">
+          <span class="hidden translation" data-for="1">React 服务器组件代表了构建 React 应用程序的范式转变。</span>
+        </div>
+      </div>
+
+      <!-- Paragraph 2 -->
+      <div class="mb-6">
+        <p class="text-gray-800 leading-relaxed text-lg">
+          <span class="sentence sentence-hover px-1 -mx-1 cursor-pointer" data-sentence="3">Traditional React components run on both the server and the client,
+            which means they need to include all the code necessary for hydration.</span>
+          <span class="sentence sentence-hover px-1 -mx-1 cursor-pointer" data-sentence="4">Server Components, on the other hand, never run on the client.</span>
+          <span class="sentence sentence-hover px-1 -mx-1 cursor-pointer" data-sentence="5">This allows them to import and use server-side only dependencies like database clients directly.</span>
+        </p>
+      </div>
+
+      <!-- Code Block -->
+      <div class="my-6">
+        <div class="bg-gray-900 rounded-xl overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-2 bg-gray-800">
+            <span class="text-sm text-gray-400">ExampleComponent.tsx</span>
+            <button class="text-xs text-gray-400 hover:text-white">Copy</button>
+          </div>
+          <pre class="p-4 overflow-x-auto"><code class="text-sm text-gray-100"><span class="text-purple-400">import</span> db <span class="text-purple-400">from</span> <span class="text-green-400">'./database'</span>
+<span class="text-purple-400">import</span> { Note } <span class="text-purple-400">from</span> <span class="text-green-400">'./Note'</span>
+
+<span class="text-purple-400">export</span> <span class="text-purple-400">async function</span> <span class="text-blue-400">NoteList</span>({ playerId }) {
+  <span class="text-purple-400">const</span> notes = <span class="text-purple-400">await</span> db.notes(playerId).all()
+  <span class="text-purple-400">return</span> &lt;ul&gt;{notes.<span class="text-blue-400">map</span>(note =&gt; &lt;Note key={note.id} note={note} /&gt;)}</ul>
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Paragraph 3 -->
+      <div class="mb-6">
+        <p class="text-gray-800 leading-relaxed text-lg">
+          <span class="sentence sentence-hover px-1 -mx-1 cursor-pointer" data-sentence="6">The key insight is that Server Components send UI as a serialized format to the client.</span>
+          <span class="sentence sentence-hover px-1 -mx-1 cursor-pointer" data-sentence="7">This format is not HTML or JSON, but a custom wire format designed specifically for React.</span>
+          <span class="sentence sentence-hover px-1 -mx-1 cursor-pointer" data-sentence="8">The client receives this format and seamlessly integrates it with existing client components.</span>
+        </p>
+      </div>
+
+      <!-- Paragraph 4 -->
+      <div class="mb-6">
+        <p class="text-gray-800 leading-relaxed text-lg">
+          <span class="sentence sentence-hover px-1 -mx-1 cursor-pointer" data-sentence="9">One of the most powerful features is automatic code-splitting.</span>
+          <span class="sentence sentence-hover px-1 -mx-1 cursor-pointer" data-sentence="10">When you use a Server Component, its dependencies are automatically split into separate bundles.</span>
+          <span class="sentence sentence-hover px-1 -mx-1 cursor-pointer" data-sentence="11">This happens without any additional configuration from the developer.</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Word Lookup Tooltip (Hidden by default) -->
+    <div id="wordTooltip" class="hidden fixed bg-white rounded-xl shadow-lg border border-gray-100 p-4 max-w-xs z-50">
+      <div class="flex items-start justify-between mb-2">
+        <h4 class="font-bold text-gray-900 text-lg">paradigm</h4>
+        <button class="text-gray-400 hover:text-gray-600">✕</button>
+      </div>
+      <div class="text-gray-500 text-sm mb-2">/ˈpærədaɪm/</div>
+      <div class="text-gray-700 mb-3">
+        <span class="font-medium">n.</span> 范例，模式; 模范
+      </div>
+      <div class="text-sm text-gray-600 italic">
+        "a paradigm shift in how we build applications"
+      </div>
+    </div>
+  </article>
+
+  <!-- Bottom Settings Bar -->
+  <div class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-gray-100 py-3">
+    <div class="max-w-4xl mx-auto px-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <!-- Font Size -->
+          <div class="flex items-center space-x-2">
+            <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">A-</button>
+            <span class="text-sm text-gray-500">18px</span>
+            <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">A+</button>
+          </div>
+          <!-- Toggle Translation -->
+          <label class="flex items-center space-x-2 cursor-pointer">
+            <input type="checkbox" class="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500" checked>
+            <span class="text-sm text-gray-600">显示翻译</span>
+          </label>
+          <!-- Toggle IPA -->
+          <label class="flex items-center space-x-2 cursor-pointer">
+            <input type="checkbox" class="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500">
+            <span class="text-sm text-gray-600">显示音标</span>
+          </label>
+        </div>
+        <!-- Progress -->
+        <div class="flex items-center space-x-3">
+          <span class="text-sm text-gray-500">进度 35%</span>
+          <div class="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div class="w-1/3 h-full bg-blue-500 rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Padding for fixed bar -->
+  <div class="h-20"></div>
+</body>
+</html>

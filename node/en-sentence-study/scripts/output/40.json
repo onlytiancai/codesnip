@@ -1,0 +1,46 @@
+{
+  "scene_en": "Medical",
+  "scene_zh": "看病",
+  "task_en": "Medical History",
+  "task_zh": "既往病史",
+  "context": "张伟因为持续头痛去医院就诊，医生接诊后需要了解他的既往病史，特别是药物过敏情况，以便安全开药。",
+  "sentence_zh": "你之前有没有对什么药物过敏？",
+  "translations": [
+    {
+      "sentence": "Do you have any drug allergies?",
+      "style": "polite",
+      "note": "医生询问药物过敏史的常用正式问法，清晰直接",
+      "literal_translation": "你有任何药物过敏吗？",
+      "phonetic": "/duː juː hæv ˈeni drʌɡ ˈælədʒiz/"
+    },
+    {
+      "sentence": "Are you allergic to any medications?",
+      "style": "neutral",
+      "note": "中性表达，用'allergic'强调过敏反应，适用范围广",
+      "literal_translation": "你对任何药物过敏吗？",
+      "phonetic": "/ɑːr juː əˈlɜːrdʒɪk tuː ˈeni ˌmedɪˈkeɪʃənz/"
+    },
+    {
+      "sentence": "Any allergies to medicines?",
+      "style": "casual",
+      "note": "口语化简化表达，医生在繁忙诊所中常用",
+      "literal_translation": "对药物有过敏吗？",
+      "phonetic": "/ˈeni ˈælədʒiz tuː ˈmedɪsɪnz/"
+    },
+    {
+      "sentence": "Have you ever had any adverse reactions to drugs?",
+      "style": "polite",
+      "note": "更详细地询问是否有药物不良反应，包含更广义的过敏概念",
+      "literal_translation": "你曾经有任何对药物的不良反应吗？",
+      "phonetic": "/hæv juː ˈevər hæd ˈeni ˈædvɜːrs riˈækʃənz tuː drʌɡz/"
+    },
+    {
+      "sentence": "Do any medications disagree with you?",
+      "style": "neutral",
+      "note": "用'disagree'表达药物不适的概念，语气温和",
+      "literal_translation": "有任何药物和你不合吗？",
+      "phonetic": "/duː ˈeni ˌmedɪˈkeɪʃənz ˌdɪsəˈɡriː wɪð juː/"
+    }
+  ],
+  "explanation": "在医疗场景中，询问既往病史和药物过敏是每次问诊的必要环节。上述句子根据场景需要可分为：正式场合（如首次门诊）使用完整句型；日常诊疗中可用简化表达；询问更详细病史时可用'adverse reactions'。注意医生在获得患者回答后，应记录并告知患者避免使用过敏药物。"
+}

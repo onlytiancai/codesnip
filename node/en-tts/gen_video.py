@@ -9,20 +9,25 @@ from faster_whisper import WhisperModel
 
 # ================== 配置 ==================
 TEXT = """
-The software industry sits at a strange inflection point. AI coding has evolved from autocomplete on steroids to agents that can autonomously execute development tasks. The economic boom that fueled tech’s hiring spree has given way to an efficiency mandate: companies now often favor profitability over growth, experienced hires over fresh graduates, and smaller teams armed with better tools.
+Why has email never become a mainstream office tool in China?
 
-Meanwhile, a new generation of developers is entering the workforce with a different calculus: pragmatic about career stability, skeptical of hustle culture, and raised on AI assistance from day one.
+Because of my work, I communicate with overseas partners on a long-term basis, almost entirely through email. The more I use it, the more I feel that something about email is quite counter-intuitive. Email seems slow, but in reality, it is highly efficient. Its efficiency does not come from quick replies, but from three built-in assumptions.
 
-What happens next is genuinely uncertain. Below are five critical questions that may shape software engineering through 2026, with two contrasting scenarios for each. These aren’t really predictions, but lenses for preparation. The goal is a clear roadmap for handling what comes next, grounded in current data and tempered by the healthy skepticism this community is known for.
+First, you need to think carefully before you write. Second, you are expected to explain everything clearly in one message. Third, it naturally respects each other’s time boundaries.
 
-The bottom line: Junior developer hiring could collapse as AI automates entry-level tasks, or rebound as software spreads into every industry. Both futures require different survival strategies.
+Because of this, a clear difference becomes obvious. When working with companies in Hong Kong or other overseas regions, email communication naturally stops after work hours. No one pushes for immediate replies, and no one suddenly adds a late-night message saying, “I just forgot to mention…”
 
-The traditional pathway of “learn to code, get junior job, grow into senior” is wobbling. A Harvard study of 62 million workers found that when companies adopt generative AI, junior developer employment drops by about 9-10% within six quarters, while senior employment barely budges. Big tech hired 50% fewer fresh graduates over the past three years. As one engineer cynically put it: ~”Why hire a junior for $90K when an AI coding agent costs less?”
+Once the workday ends, everyone seems to step out of their work role automatically.
+
+However, email has never become truly popular in mainland China. There appear to be many reasons on the surface, but the core reason is simple: email places relatively high demands on people.
+
+It requires basic writing skills—knowing how to write a subject line, how to organize paragraphs, and how to clearly present background, problems, and conclusions. And this is exactly the kind of ability that is most lacking in many workplaces.
+
 """
 
 # 将文本按空行分割成段落
 PARAGRAPHS = [p.strip() for p in TEXT.split('\n\n') if p.strip()]
-VOICE = "en-US-AriaNeural"
+VOICE = "en-US-ChristopherNeural"
 
 AUDIO_FILE = "audio.wav"
 VIDEO_FILE = "output.mp4"
@@ -55,7 +60,7 @@ async def generate_audio():
             continue
             
         print(f"  - Generating audio for paragraph {i+1}...")
-        tts = edge_tts.Communicate(paragraph, VOICE)
+        tts = edge_tts.Communicate(paragraph, VOICE, rate="-20%", volume='+50%')
         await tts.save(audio_file)
     
     return paragraph_audio_files
@@ -377,10 +382,6 @@ def make_frame(t, words, paragraph_timings):
     )
 
     return np.array(img)
-
-
-
-
 
 # ---------- 4. 生成视频 ----------
 def generate_video(words, paragraph_timings):

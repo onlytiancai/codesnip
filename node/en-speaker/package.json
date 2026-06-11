@@ -1,0 +1,30 @@
+{
+  "name": "en-speaker",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@ffmpeg/core": "^0.12.10",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@huggingface/transformers": "^3.8.1",
+    "@tailwindcss/vite": "^4.1.18",
+    "howler": "^2.2.4",
+    "kokoro-js": "^1.2.1",
+    "onnxruntime-web": "^1.23.2",
+    "tailwindcss": "^4.1.18",
+    "vue": "^3.5.24"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/tsconfig": "^0.8.1",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.4",
+    "vue-tsc": "^3.1.4"
+  }
+}

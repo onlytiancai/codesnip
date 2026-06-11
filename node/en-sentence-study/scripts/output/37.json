@@ -1,0 +1,46 @@
+{
+  "scene_en": "Express Delivery",
+  "scene_zh": "快递",
+  "task_en": "Packaging Service",
+  "task_zh": "包装服务",
+  "context": "用户来到顺丰快递网点，想寄一件易碎的陶瓷摆件。由于物品比较脆弱且形状不规则，用户需要专业的包装服务。用户正在前台询问是否有包装服务可以使用。",
+  "sentence_zh": "请问这里有包装服务吗？我想寄一件易碎的东西。",
+  "translations": [
+    {
+      "sentence": "Do you offer packing service here? I'd like to ship something fragile.",
+      "style": "polite",
+      "note": "正式询问，使用offer表示提供，语气礼貌委婉",
+      "literal_translation": "你们这里提供包装服务吗？我想寄一些易碎的东西。",
+      "phonetic": "/duː juː ˈɔːfər ˈpækɪŋ ˈsɜːvɪs hɪə//aɪd laɪk tuː ʃɪp ˈsʌmθɪŋ ˈfreɪdʒaɪl/"
+    },
+    {
+      "sentence": "Can I get this packed here? It's kind of delicate.",
+      "style": "neutral",
+      "note": "中性表达，用get something packed表示请人帮忙包装",
+      "literal_translation": "我能在这里包装这个吗？它有点易碎。",
+      "phonetic": "/kæn aɪ ɡet ðɪs pækt hɪə//ɪts kaɪnd əv dɪˈlaɪt/"
+    },
+    {
+      "sentence": "Do you have a packing service for fragile items?",
+      "style": "neutral",
+      "note": "询问是否提供易碎物品的专门包装服务，措辞专业",
+      "literal_translation": "你们有易碎物品的包装服务吗？",
+      "phonetic": "/duː juː hæv ə ˈpækɪŋ ˈsɜːvɪs fɔːr ˈfreɪdʒaɪl ˈaɪtəmz/"
+    },
+    {
+      "sentence": "I need this packaged. It's breakable.",
+      "style": "casual",
+      "note": "简洁直接，口语化表达need something packaged",
+      "literal_translation": "我需要把这个包装一下，它容易碎。",
+      "phonetic": "/aɪ niːd ðɪs ˈpækɪdʒd//ɪts ˈbreɪkəbl/"
+    },
+    {
+      "sentence": "Is there someone who can help me pack this properly?",
+      "style": "neutral",
+      "note": "强调需要专业人员帮忙妥善包装，措辞带有请求帮助的意味",
+      "literal_translation": "有人能帮我把这个妥善包装一下吗？",
+      "phonetic": "/ɪz ðɛər ˈsʌmwʌn huː kæn help miː pæk ðɪs ˈprɒpəli/"
+    }
+  ],
+  "explanation": "在快递场景中询问包装服务时，通常有两种情况：一是直接询问有没有包装服务，二是说明自己要寄的物品特点并请求包装帮助。正式场合用Do you offer，中性场合用Can I get，口语用I need。关键词汇包括：packing service（包装服务）、pack/packaged（包装）、fragile/breakable（易碎的）。注意在美国英语中常用packing，在英国英语中常用packaging，但两者都可通用。如果要强调物品的特殊性，可以在句中加入fragile、delicate、breakable等形容词，让对方了解需要特殊处理。"
+}

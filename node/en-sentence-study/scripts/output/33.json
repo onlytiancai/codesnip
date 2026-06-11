@@ -1,0 +1,46 @@
+{
+  "scene_en": "Hotel",
+  "scene_zh": "酒店",
+  "task_en": "Late Checkout",
+  "task_zh": "延迟退房",
+  "context": "你正住在一家酒店，今天早上你要去前台办理退房手续，但因为下午有重要的会议，你需要多待几个小时才能离开房间。你来到前台，向工作人员询问是否可以延迟退房。",
+  "sentence_zh": "我想延迟退房，可以吗？",
+  "translations": [
+    {
+      "sentence": "Could I have a late checkout, please?",
+      "style": "polite",
+      "note": "最常见、最礼貌的请求方式，正式场合首选",
+      "literal_translation": "我可以有一个延迟退房吗，请？",
+      "phonetic": "kʊd aɪ hæv ə leɪt tʃekaʊt pliːz"
+    },
+    {
+      "sentence": "Is it possible to check out later?",
+      "style": "neutral",
+      "note": "询问可能性，询问式表达，较为通用",
+      "literal_translation": "有可能晚点退房吗？",
+      "phonetic": "ɪz ɪt pəˈsɪbəl tuː tʃek aʊt ˈleɪtər"
+    },
+    {
+      "sentence": "Can I check out at 3 PM instead?",
+      "style": "neutral",
+      "note": "明确提出具体时间，表达清晰",
+      "literal_translation": "我能改成下午3点退房吗？",
+      "phonetic": "kæn aɪ tʃek aʊt æt θriː piː em ɪnˈstɛd"
+    },
+    {
+      "sentence": "I'd like to extend my checkout time.",
+      "style": "polite",
+      "note": "使用 extend 表达延长，语气友好且正式",
+      "literal_translation": "我想延长我的退房时间。",
+      "phonetic": "aɪd laɪk tuː ɪkˈstɛnd maɪ tʃek-aʊt taɪm"
+    },
+    {
+      "sentence": "Can we push checkout back a few hours?",
+      "style": "casual",
+      "note": "口语化表达，push back 表示推迟",
+      "literal_translation": "能把退房时间往后推几个小时吗？",
+      "phonetic": "kæn wiː pʊʃ tʃek-aʊt bæk ə fjuː ˈaʊərz"
+    }
+  ],
+  "explanation": "在酒店请求延迟退房时，根据场合和与工作人员的熟悉程度选择不同的表达方式。正式场合优先使用 'Could I...' 或 'I'd like to...'；一般情况可用 'Is it possible...' 或提出具体时间；如果和工作人员比较熟悉，可以用更口语化的 'push back' 表达。询问时注意说清楚具体想延迟到几点，酒店通常会有规定的最晚退房时间（如下午2点、3点或6点），可能会根据情况收取一定费用。"
+}

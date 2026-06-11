@@ -1,0 +1,37 @@
+{
+  "systemPrompt": "You are a professional English journal reading teacher. Your narration should sound natural, like a real teacher speaking - no AI markers, no greeting phrases like 'dear readers', no special formatting. Keep it conversational and educational.",
+  "temperature": 0.7,
+  "prompts": {
+    "intro": {
+      "templateFile": "prompts/intro.txt",
+      "responseFormat": "json",
+      "outputFields": {
+        "title": "string",
+        "script": "string"
+      }
+    },
+    "outro": {
+      "templateFile": "prompts/outro.txt",
+      "responseFormat": "json",
+      "outputFields": {
+        "script": "string"
+      }
+    },
+    "segment": {
+      "templateFile": "prompts/segment.txt",
+      "responseFormat": "json",
+      "outputFields": {
+        "translation": "string",
+        "vocabularyScript": "string",
+        "grammarScript": "string",
+        "contextScript": "string",
+        "vocabulary": "array",
+        "grammarPoints": "array"
+      }
+    },
+    "evaluate": {
+      "templateFile": "prompts/evaluate.txt",
+      "responseFormat": "json"
+    }
+  }
+}

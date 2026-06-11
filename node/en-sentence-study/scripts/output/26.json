@@ -1,0 +1,46 @@
+{
+  "scene_en": "Dating",
+  "scene_zh": "约会",
+  "task_en": "Getting Contact Info",
+  "task_zh": "要联系方式",
+  "context": "你和刚认识的人在咖啡馆聊了半小时，觉得很投缘，你想继续保持联系，于是问对方能否交换联系方式。",
+  "sentence_zh": "能加个微信吗？",
+  "translations": [
+    {
+      "sentence": "Could I get your number?",
+      "style": "neutral",
+      "note": "最直接常见的方式，适用于刚认识时使用",
+      "literal_translation": "我能得到你的号码吗？",
+      "phonetic": "kʊd aɪ ɡɛt jɔːr ˈnʌmbər"
+    },
+    {
+      "sentence": "Would you mind giving me your WeChat?",
+      "style": "polite",
+      "note": "礼貌地询问是否介意给微信，适合对方有些犹豫时使用",
+      "literal_translation": "你介意给我你的微信吗？",
+      "phonetic": "wʊd juː maɪnd ˈɡɪvɪŋ miː jɔːr ˈwiːtʃæt"
+    },
+    {
+      "sentence": "Can I add you on WeChat?",
+      "style": "casual",
+      "note": "随意口语化，像朋友间说话，轻松自然",
+      "literal_translation": "我能加你微信吗？",
+      "phonetic": "kæn aɪ æd juː ɒn ˈwiːtʃæt"
+    },
+    {
+      "sentence": "Let me give you my number — maybe we can grab coffee sometime?",
+      "style": "neutral",
+      "note": "先主动给出自己的号码，表达想再见面，更有诚意",
+      "literal_translation": "让我给你我的号码——也许我们可以找个时间喝咖啡？",
+      "phonetic": "lɛt miː ɡɪv juː maɪ ˈnʌmbər — ˈmeɪbiː wiː kæn ɡræb ˈkɒfiː ˈsʌmtaɪm"
+    },
+    {
+      "sentence": "You seem really cool — we should hang out sometime. Can I get your number?",
+      "style": "casual",
+      "note": "先夸对方再要号码，带点搭讪感觉，轻松俏皮",
+      "literal_translation": "你看起来真的很酷——我们应该找时间出去玩。我能要你的号码吗？",
+      "phonetic": "juː siːm ˈrɪəli kuːl — wiː ʃʊd hæŋ aʊt ˈsʌmtaɪm. kæn aɪ ɡɛt jɔːr ˈnʌmbər"
+    }
+  ],
+  "explanation": "在约会场景中要联系方式是推进关系的关键一步。英文中根据对方反应和场景氛围，灵活选择不同表达方式。如果是中国人之间的约会，用'Can I add you on WeChat?'最地道；如果对方是外国人，则用'Could I get your number?'更通用。表达时加入'Maybe we can hang out sometime'或'should grab coffee'等后续邀约暗示，会显得更有诚意而不只是单纯要联系方式。"
+}

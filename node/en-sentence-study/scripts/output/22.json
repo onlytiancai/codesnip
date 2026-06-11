@@ -1,0 +1,46 @@
+{
+  "scene_en": "Airport",
+  "scene_zh": "机场",
+  "task_en": "Baggage Tracking",
+  "task_zh": "行李查询",
+  "context": "场景：旅客刚刚从国际航班抵达，在行李提取转盘处等了很久，发现自己的行李一直没有出来。他走到机场行李服务柜台前，向工作人员寻求帮助。",
+  "sentence_zh": "我的行李好像没有出来，能帮我查一下吗？",
+  "translations": [
+    {
+      "sentence": "My luggage hasn't shown up yet. Could you help me track it down?",
+      "style": "neutral",
+      "note": "友好且直接的表达，适合大多数乘客使用",
+      "literal_translation": "我的行李还没有出现。您能帮我追踪它吗？",
+      "phonetic": "maɪ ˈlʌɡɪdʒ hæznt ʃoʊn ʌp jɛt. ˈkʊd juː hɛlp miː træk ɪt daʊn?"
+    },
+    {
+      "sentence": "I think my baggage is missing. Could you please check on it for me?",
+      "style": "polite",
+      "note": "正式礼貌用语，使用'missing'强调问题的严重性",
+      "literal_translation": "我认为我的行李不见了。您能帮我查一下吗？",
+      "phonetic": "aɪ θɪŋk maɪ ˈbæɡɪdʒ ɪz ˈmɪsɪŋ. ˈkʊd juː pliːz tʃɛk ɒn ɪt fɔː miː?"
+    },
+    {
+      "sentence": "My bag never came out on the carousel. Where do I file a report?",
+      "style": "neutral",
+      "note": "询问如何提交行李丢失报告，适合需要正式处理的情况",
+      "literal_translation": "我的包没有在传送带上出来。我在哪里提交报告？",
+      "phonetic": "maɪ bæɡ ˈnɛvər keɪm aʊt ɒn ðə ˈkærəsɛl. wɛr duː aɪ faɪl ə rɪˈpɔːt?"
+    },
+    {
+      "sentence": "Hey, I've been waiting for 20 minutes and my suitcase never showed up.",
+      "style": "casual",
+      "note": "口语化表达，带有时间信息，帮助工作人员快速了解情况",
+      "literal_translation": "嘿，我已经等了20分钟，我的行李箱根本没有出现。",
+      "phonetic": "heɪ, aɪv biːn ˈweɪtɪŋ fɔːr ˈtwɛnti ˈmɪnɪts ænd maɪ ˈsuːtkeɪs ˈnɛvər ʃoʊd ʌp."
+    },
+    {
+      "sentence": "Excuse me, my checked luggage appears to be lost. What should I do?",
+      "style": "polite",
+      "note": "使用'appears to be lost'显得较为委婉，避免直接指责",
+      "literal_translation": "打扰一下，我托运的行李似乎是丢了。我应该怎么做？",
+      "phonetic": "ɪkˈskjuːz miː, maɪ tʃɛkt ˈlʌɡɪdʒ əˈpɪrz tuː biː lɒst. wɒt ʃʊd aɪ duː?"
+    }
+  ],
+  "explanation": "在机场查询行李时，首先要用礼貌的方式引起注意，然后清楚说明问题。最好提供航班号和行李特征信息。如果行李确实丢失，工作人员会让你填写PIR（Property Irregularity Report）表格。日常生活中，neutral和casual风格更常用；如果是正式投诉或需要强调严重性，建议使用polite风格中的'missing'或'lost'等词汇。记住保持冷静，提供详细信息有助于快速解决问题。"
+}

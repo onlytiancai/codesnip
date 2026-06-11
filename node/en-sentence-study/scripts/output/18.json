@@ -1,0 +1,46 @@
+{
+  "scene_en": "Pets",
+  "scene_zh": "宠物",
+  "task_en": "Pet Store",
+  "task_zh": "宠物店",
+  "context": "小李走进一家宠物店，看到一个玻璃柜里的小仓鼠很可爱，想询问价格。店员走过来准备提供服务。",
+  "sentence_zh": "这只仓鼠多少钱？",
+  "translations": [
+    {
+      "sentence": "How much is this hamster, please?",
+      "style": "polite",
+      "note": "有礼貌地向店员询问，语气友好客气",
+      "literal_translation": "这只仓鼠多少钱，请问？",
+      "phonetic": "hau mʌtʃ ɪz ðɪs ˈhæmstər pliːz"
+    },
+    {
+      "sentence": "What's the price on this hamster?",
+      "style": "neutral",
+      "note": "日常通用的询问方式，正式但不疏远",
+      "literal_translation": "这只仓鼠的价格是多少？",
+      "phonetic": "wɒts ðə praɪs ɒn ðɪs ˈhæmstər"
+    },
+    {
+      "sentence": "How much for this little guy?",
+      "style": "casual",
+      "note": "轻松随意的口语表达，带有喜爱的语气",
+      "literal_translation": "这个小家伙多少钱？",
+      "phonetic": "hau mʌtʃ fɔːr ðɪs ˈlɪtl gaɪ"
+    },
+    {
+      "sentence": "How much would this hamster cost?",
+      "style": "neutral",
+      "note": "用would和cost更正式一些，显得更认真",
+      "literal_translation": "这只仓鼠需要多少钱？",
+      "phonetic": "hau mʌtʃ wʊd ðɪs ˈhæmstər kɒst"
+    },
+    {
+      "sentence": "Can I get a price on this hamster?",
+      "style": "casual",
+      "note": "美式口语表达，询问能否得知价格",
+      "literal_translation": "我能问一下这只仓鼠的价格吗？",
+      "phonetic": "kæn aɪ get ə praɪs ɒn ðɪs ˈhæmstər"
+    }
+  ],
+  "explanation": "在宠物店询问价格是最常见的场景之一。这句话用了仓鼠作为例子，你也可以替换成其他宠物（如小狗、小猫、小鸟等）或宠物用品（如笼子、食物、玩具等）。Polite风格适合正式场合或有礼貌的顾客；casual风格适合朋友间的轻松交流或年轻顾客。购买宠物前，除了价格，还可以询问宠物的年龄、品种、饲养注意事项等。"
+}

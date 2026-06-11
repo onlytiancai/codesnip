@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+.markdown-preview {
+  @apply text-gray-800 leading-relaxed;
+}
+
+.markdown-preview h1 {
+  @apply text-2xl font-bold mb-4 mt-6;
+}
+
+.markdown-preview h2 {
+  @apply text-xl font-semibold mb-3 mt-5;
+}
+
+.markdown-preview h3 {
+  @apply text-lg font-medium mb-2 mt-4;
+}
+
+.markdown-preview p {
+  @apply mb-4;
+}
+
+.markdown-preview ul, .markdown-preview ol {
+  @apply mb-4 pl-6;
+}
+
+.markdown-preview li {
+  @apply mb-1;
+}
+
+.markdown-preview code {
+  @apply bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono;
+}
+
+.markdown-preview pre {
+  @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4;
+}
+
+.markdown-preview pre code {
+  @apply bg-transparent p-0;
+}
+
+.markdown-preview blockquote {
+  @apply border-l-4 border-gray-300 pl-4 italic text-gray-600 my-4;
+}
+
+.markdown-preview table {
+  @apply w-full border-collapse mb-4;
+}
+
+.markdown-preview th, .markdown-preview td {
+  @apply border border-gray-300 px-4 py-2;
+}
+
+.markdown-preview th {
+  @apply bg-gray-100 font-semibold;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
+
+/* Animation for loading states */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

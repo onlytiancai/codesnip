@@ -1,0 +1,29 @@
+{
+  "name": "html-to-md-converter",
+  "version": "1.0.0",
+  "description": "Command-line tool to convert HTML to Markdown",
+  "main": "html-to-md.js",
+  "bin": {
+    "html-to-md": "./html-to-md.js"
+  },
+  "scripts": {
+    "test": "node html-to-md.js --input 1.html --output 1.md --verbose"
+  },
+  "keywords": [
+    "html",
+    "markdown",
+    "converter",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "jsdom": "^28.1.0",
+    "minimist": "^1.2.8",
+    "turndown": "^7.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0"
+  }
+}

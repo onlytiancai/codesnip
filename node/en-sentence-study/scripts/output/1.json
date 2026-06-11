@@ -1,0 +1,46 @@
+{
+  "scene_en": "Shopping",
+  "scene_zh": "购物",
+  "task_en": "Gift Wrapping",
+  "task_zh": "礼品包装",
+  "context": "在商场收银台结账时，顾客刚买了一件商品，想让店员帮忙把商品包装成礼品，适合送人。",
+  "sentence_zh": "可以帮我把这个包装成礼物吗？",
+  "translations": [
+    {
+      "sentence": "Could you gift wrap this, please?",
+      "style": "polite",
+      "note": "最常用且礼貌的说法，gift wrap 是固定搭配",
+      "literal_translation": "您能把这个礼品包装一下吗？",
+      "phonetic": "kuːd juː ɡɪft ræp ðɪs pliːz"
+    },
+    {
+      "sentence": "Can I get this gift wrapped?",
+      "style": "neutral",
+      "note": "中性表达，常见于北美地区",
+      "literal_translation": "我可以把这个礼品包装吗？",
+      "phonetic": "kæn aɪ ɡet ðɪs ɡɪft ræpt"
+    },
+    {
+      "sentence": "Do you offer gift wrapping?",
+      "style": "neutral",
+      "note": "询问是否有gift wrapping服务，比较正式",
+      "literal_translation": "你们提供礼品包装服务吗？",
+      "phonetic": "duː juː ˈɔfər ɡɪft ˈræpɪŋ"
+    },
+    {
+      "sentence": "I'd like this wrapped, please.",
+      "style": "neutral",
+      "note": "简洁表达，暗示作为礼物包装",
+      "literal_translation": "我想要这个包装一下，谢谢。",
+      "phonetic": "aɪd laɪk ðɪs ræpt pliːz"
+    },
+    {
+      "sentence": "Can you wrap this as a gift?",
+      "style": "casual",
+      "note": "口语化，直接自然的表达",
+      "literal_translation": "你能把这个包成礼物吗？",
+      "phonetic": "kæn juː ræp ðɪs æz ə ɡɪft"
+    }
+  ],
+  "explanation": "在购物结账时请求礼品包装，'gift wrap' 是最专业的表达。需要注意的是，有些商店的 gift wrap 是免费服务，有些则需要额外收费，所以有时还会听到 'Is there a charge for gift wrapping?' 这样的问句。正式场合建议使用 Could you...，口语中 Can I... 也很自然。"
+}

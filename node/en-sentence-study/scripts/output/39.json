@@ -1,0 +1,46 @@
+{
+  "scene_en": "Fitness",
+  "scene_zh": "健身运动",
+  "task_en": "Discussing Scores",
+  "task_zh": "讨论比分",
+  "context": "在健身房，David刚结束力量训练，正在和私人教练Mike聊天。他刚完成卧推训练，Mike想了解他今天的表现。",
+  "sentence_zh": "你卧推能推多少公斤？",
+  "translations": [
+    {
+      "sentence": "How much can you bench press?",
+      "style": "neutral",
+      "note": "最常见的询问方式，简洁直接",
+      "literal_translation": "你能卧推多少？",
+      "phonetic": "/haʊ ˈmʌtʃ kən juː bentʃ pres/"
+    },
+    {
+      "sentence": "What weight did you hit on bench press today?",
+      "style": "casual",
+      "note": "口语化表达，带有对今天成绩的关注",
+      "literal_translation": "你今天卧推推了多重？",
+      "phonetic": "/wɒt weɪt dɪd juː hɪt ɒn bentʃ pres ˈtədeɪ/"
+    },
+    {
+      "sentence": "How heavy did you go on the bench press?",
+      "style": "neutral",
+      "note": "强调使用的重量，适合健身场景",
+      "literal_translation": "你卧推用了多重的重量？",
+      "phonetic": "/haʊ ˈhevi dɪd juː ɡəʊ ɒn ðə bentʃ pres/"
+    },
+    {
+      "sentence": "What's your bench press one-rep max?",
+      "style": "casual",
+      "note": "专业健身术语，询问最大重量",
+      "literal_translation": "你卧推的单次最大重量是多少？",
+      "phonetic": "/wɒts jɔː bentʃ pres wʌn rep mæks/"
+    },
+    {
+      "sentence": "How much were you lifting on the bench today?",
+      "style": "polite",
+      "note": "正式礼貌的表达方式，关心对方训练情况",
+      "literal_translation": "你今天在卧推架上举了多少？",
+      "phonetic": "/haʊ ˈmʌtʃ wɜː juː ˈlɪftɪŋ ɒn ðə bentʃ ˈtədeɪ/"
+    }
+  ],
+  "explanation": "这个句子用于健身房场景中询问他人的力量训练成绩。bench press（卧推）是力量训练中最经典的动作之一，因此也是健身房里最常被问到的成绩指标。不同表达方式的区别在于：'How much can you bench press?'是最标准的问法；'What weight did you hit...'强调今天的成绩；'one-rep max'是专业健身术语，询问最大重量。根据对话对象的熟悉程度和场合选择合适的表达，正式场合可用最后一种更礼貌的说法。"
+}

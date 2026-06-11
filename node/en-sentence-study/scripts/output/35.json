@@ -1,0 +1,46 @@
+{
+  "scene_en": "Pets",
+  "scene_zh": "宠物",
+  "task_en": "Pet Supplies",
+  "task_zh": "宠物用品",
+  "context": "小李在宠物店里，正在挑选狗粮。店员推荐了一款大袋狗粮，小李想确认这袋狗粮的量是否够他家金毛吃一个月，于是向店员询问。",
+  "sentence_zh": "这袋狗粮够我家金毛吃一个月吗？",
+  "translations": [
+    {
+      "sentence": "Will this bag of dog food last my Golden Retriever a month?",
+      "style": "neutral",
+      "note": "最自然的询问方式，直接问能用多久",
+      "literal_translation": "这袋狗粮能持续我的金毛一个月吗？",
+      "phonetic": "wɪl ðɪs bæɡ əv dɔːɡ fuːd lɑːst maɪ ˈɡoʊldən rɪˈtriːvər ə mʌnθ"
+    },
+    {
+      "sentence": "Is this enough dog food to last a month for my Golden?",
+      "style": "polite",
+      "note": "用enough表达'够不够'的意思，更委婉",
+      "literal_translation": "这是足够狗粮来持续一个月给我的金毛吗？",
+      "phonetic": "ɪz ðɪs ɪˈnʌf dɔːɡ fuːd tuː lɑːst ə mʌnθ fər maɪ ˈɡoʊldən"
+    },
+    {
+      "sentence": "How long will this bag of dog food last?",
+      "style": "casual",
+      "note": "简洁提问，不特指具体宠物",
+      "literal_translation": "这袋狗粮会持续多久？",
+      "phonetic": "haʊ lɔŋ wɪl ðɪs bæɡ əv dɔːɡ fuːd lɑːst"
+    },
+    {
+      "sentence": "Do you think this would be enough food for a Golden Retriever for a month?",
+      "style": "polite",
+      "note": "用Do you think询问店员意见，更有礼貌",
+      "literal_translation": "你觉得这够一只金毛一个月的食物吗？",
+      "phonetic": "duː juː θɪŋk ðɪs wʊd biː ɪˈnʌf fuːd fər ə ˈɡoʊldən rɪˈtriːvər fər ə mʌnθ"
+    },
+    {
+      "sentence": "How much dog food does a Golden Retriever usually go through in a month?",
+      "style": "neutral",
+      "note": "反问式，先了解一般用量再判断",
+      "literal_translation": "金毛通常一个月会用掉多少狗粮？",
+      "phonetic": "haʊ mʌtʃ dɔːɡ fuːd dʌz ə ˈɡoʊldən rɪˈtriːvər ˈjuːʒuəli ɡoʊ θruː ɪn ə mʌnθ"
+    }
+  ],
+  "explanation": "这个场景是在宠物店购买宠物用品时非常实用的一句口语。注意英文中表达'够不够'、'能用多久'通常用 'last' 或 'enough' 来表达。在宠物店里询问用量是很常见的对话，因为不同体型、不同品牌的宠物食量差异很大。第一种和第二种表达最常用，第三种最简洁，第四种更礼貌适合正式场合，第五种则是在做出购买决定前收集信息的问法。用户可以根据不同场景选择合适的表达方式。"
+}

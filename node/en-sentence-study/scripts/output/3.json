@@ -1,0 +1,39 @@
+{
+  "scene_en": "Weather",
+  "scene_zh": "天气聊天",
+  "task_en": "Weather Forecast",
+  "task_zh": "天气预报",
+  "context": "早上出门前，小李看了看手机上的天气APP，转头跟室友小王说今天可能会下雨。",
+  "sentence_zh": "天气预报说今天会下雨，记得带伞。",
+  "translations": [
+    {
+      "sentence": "The forecast says it's going to rain today, so remember to bring an umbrella.",
+      "style": "neutral",
+      "note": "最常用、最自然的表达方式",
+      "literal_translation": "天气预报说今天会下雨，所以记得带伞。",
+      "phonetic": "ðə ˈfɔːrkɑːst sɛz ɪts ˈɡoʊɪŋ tuː reɪn təˈdeɪ, soʊ rɪˈmɛmbər tuː brɪŋ ən ˈʌmbərəl"
+    },
+    {
+      "sentence": "According to the weather forecast, it's supposed to rain later.",
+      "style": "polite",
+      "note": "更加正式，用according to强调信息来源",
+      "literal_translation": "根据天气预报，预计稍后会下雨。",
+      "phonetic": "əˈkɔːrdɪŋ tuː ðə ˈwɛðər ˈfɔːrkɑːst, ɪts səˈpoʊzd tuː reɪn ˈleɪtər"
+    },
+    {
+      "sentence": "The weather app says rain is coming, grab an umbrella!",
+      "style": "casual",
+      "note": "口语化，grab表示随手拿起，感叹号体现轻松语气",
+      "literal_translation": "天气APP说雨要来了，拿把伞！",
+      "phonetic": "ðə ˈwɛðər æp sɛz reɪn ɪz ˈkʌmɪŋ, ɡræb ən ˈʌmbərəl"
+    },
+    {
+      "sentence": "There's a chance of rain today, don't forget your umbrella.",
+      "style": "neutral",
+      "note": "用there's a chance表达可能性，语气较温和",
+      "literal_translation": "今天有下雨的可能性，别忘了你的伞。",
+      "phonetic": "ðɛrz ə tʃæns əv reɪn təˈdeɪ, doʊnt fərˈɡɛt jʊər ˈʌmbərəl"
+    }
+  ],
+  "explanation": "这个场景在日常生活中非常常见。注意：正式场合可以用according to the forecast或it's expected to...，日常对话用forecast says或weather app says更自然。提醒别人带东西时，可以用so remember...或don't forget...结构。口语中常用grab表示随手拿起某物，比bring更轻松。"
+}

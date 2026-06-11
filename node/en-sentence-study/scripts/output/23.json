@@ -1,0 +1,46 @@
+{
+  "scene_en": "Entertainment",
+  "scene_zh": "娱乐休闲",
+  "task_en": "Karaoke",
+  "task_zh": "唱KTV",
+  "context": "在KTV包厢里，朋友们正在唱歌，气氛很嗨。一个朋友拿起麦克风，热情地邀请你也来唱一首。",
+  "sentence_zh": "你也来唱一首呗！",
+  "translations": [
+    {
+      "sentence": "Come on, join in and sing a song!",
+      "style": "casual",
+      "note": "热情邀请朋友一起唱，语气轻松活泼",
+      "literal_translation": "来吧，加入一起唱首歌！",
+      "phonetic": "kʌm ɒn, dʒɔɪn ɪn ænd sɪŋ ə sɒŋ"
+    },
+    {
+      "sentence": "How about you sing a song too?",
+      "style": "neutral",
+      "note": "比较自然的询问方式，既不强势也不冷淡",
+      "literal_translation": "你也唱首歌怎么样？",
+      "phonetic": "haʊ ə'baʊt juː sɪŋ ə sɒŋ tuː"
+    },
+    {
+      "sentence": "Would you like to give it a try?",
+      "style": "polite",
+      "note": "委婉邀请，适合不太熟悉的人或初次见面",
+      "literal_translation": "你想要试试吗？",
+      "phonetic": "wʊd juː laɪk tuː gɪv ɪt ə traɪ"
+    },
+    {
+      "sentence": "Get up there and sing something!",
+      "style": "casual",
+      "note": "催促鼓励对方上台唱歌，语气比较直接有力",
+      "literal_translation": "站起来唱一首！",
+      "phonetic": "ɡet ʌp ðeər ænd sɪŋ 'sʌmθɪŋ"
+    },
+    {
+      "sentence": "It's your turn, pick a song!",
+      "style": "casual",
+      "note": "轮到你唱了，催促选歌的说法",
+      "literal_translation": "轮到你了，选首歌！",
+      "phonetic": "ɪts jɔː tɜːn, pɪk ə sɒŋ"
+    }
+  ],
+  "explanation": "在KTV邀请朋友唱歌是很常见的社交场景。如果是关系亲密的朋友，可以用比较随意的表达如 'Get up there' 或 'Come on'；如果对方比较害羞或不太熟悉，可以用 'Would you like to' 这样的礼貌说法。'Give it a try' 特别适合鼓励第一次唱歌或不太自信的人。"
+}

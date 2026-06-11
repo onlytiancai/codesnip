@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>首页 - 程序员英语阅读 App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white">
+  <!-- Navigation -->
+  <nav class="border-b border-gray-100">
+    <div class="max-w-6xl mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+            <span class="text-white text-xl">📚</span>
+          </div>
+          <span class="text-xl font-bold text-gray-900">DevReader</span>
+        </div>
+        <div class="flex items-center space-x-4">
+          <a href="article-list.html" class="text-gray-600 hover:text-gray-900">文章</a>
+          <a href="login.html" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+            登录
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="py-20 px-4">
+    <div class="max-w-4xl mx-auto text-center">
+      <h1 class="text-5xl font-bold text-gray-900 mb-6 leading-tight">
+        程序员的<br/>
+        <span class="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">英语阅读提升计划</span>
+      </h1>
+      <p class="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
+        沉浸式阅读英文技术文章，逐句跟读练习，AI 发音评分，<br/>让英语学习更高效
+      </p>
+      <div class="flex justify-center space-x-4">
+        <a href="article-list.html" class="px-8 py-4 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/30">
+          开始阅读
+        </a>
+        <a href="#features" class="px-8 py-4 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
+          了解更多
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-20 px-4 bg-gray-50">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">核心功能</h2>
+      <div class="grid md:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="bg-white rounded-2xl p-8 shadow-sm">
+          <div class="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+            <span class="text-2xl">📖</span>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">沉浸式阅读</h3>
+          <p class="text-gray-600 leading-relaxed">
+            简洁干净的阅读界面，专注于内容本身。支持代码高亮、公式渲染，完美呈现技术文章。
+          </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="bg-white rounded-2xl p-8 shadow-sm">
+          <div class="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
+            <span class="text-2xl">🎤</span>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">逐句跟读</h3>
+          <p class="text-gray-600 leading-relaxed">
+            AI 朗读每个句子，自动停顿等待你跟读。录音后获得发音评分，针对性改进。
+          </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="bg-white rounded-2xl p-8 shadow-sm">
+          <div class="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mb-6">
+            <span class="text-2xl">🔤</span>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">即点即查</h3>
+          <p class="text-gray-600 leading-relaxed">
+            遇到生词？点击即可查看释义、音标和例句，无需切换应用。
+          </p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="bg-white rounded-2xl p-8 shadow-sm">
+          <div class="w-14 h-14 bg-yellow-100 rounded-xl flex items-center justify-center mb-6">
+            <span class="text-2xl">📊</span>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">学习进度</h3>
+          <p class="text-gray-600 leading-relaxed">
+            记录每篇文章的阅读和跟读历史，可视化学习数据，见证自己的成长。
+          </p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="bg-white rounded-2xl p-8 shadow-sm">
+          <div class="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center mb-6">
+            <span class="text-2xl">🔗</span>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">分享成果</h3>
+          <p class="text-gray-600 leading-relaxed">
+            完成文章后生成学习卡片，分享给朋友或社交媒体，互相激励。
+          </p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="bg-white rounded-2xl p-8 shadow-sm">
+          <div class="w-14 h-14 bg-indigo-100 rounded-xl flex items-center justify-center mb-6">
+            <span class="text-2xl">📱</span>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">多端同步</h3>
+          <p class="text-gray-600 leading-relaxed">
+            Web 端和微信小程序数据实时同步，随时随地开始学习。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories Preview -->
+  <section class="py-20 px-4">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">文章分类</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <a href="article-list.html" class="p-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl text-white text-center hover:shadow-lg transition-shadow">
+          <span class="text-3xl mb-2 block">⚛️</span>
+          <span class="font-semibold">前端开发</span>
+        </a>
+        <a href="article-list.html" class="p-6 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl text-white text-center hover:shadow-lg transition-shadow">
+          <span class="text-3xl mb-2 block">🔧</span>
+          <span class="font-semibold">后端架构</span>
+        </a>
+        <a href="article-list.html" class="p-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl text-white text-center hover:shadow-lg transition-shadow">
+          <span class="text-3xl mb-2 block">🤖</span>
+          <span class="font-semibold">人工智能</span>
+        </a>
+        <a href="article-list.html" class="p-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl text-white text-center hover:shadow-lg transition-shadow">
+          <span class="text-3xl mb-2 block">☁️</span>
+          <span class="font-semibold">云计算</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-20 px-4 bg-gradient-to-r from-blue-500 to-purple-600">
+    <div class="max-w-2xl mx-auto text-center">
+      <h2 class="text-3xl font-bold text-white mb-4">准备好开始了吗？</h2>
+      <p class="text-blue-100 mb-8">注册账户，立即体验沉浸式英语阅读</p>
+      <a href="login.html" class="inline-block px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold hover:bg-gray-100 transition-colors shadow-lg">
+        免费注册
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-8 px-4 border-t border-gray-100">
+    <div class="max-w-6xl mx-auto text-center text-gray-500 text-sm">
+      <p>&copy; 2026 DevReader. Made with ❤️ for developers.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <h2>English Reader</h2>
+
+    <div class="form-group">
+      <label for="voice-select">Voice:</label>
+      <select id="voice-select">
+        <option value="af_bella">af_bella (Female)</option>
+        <option value="af_nicole">af_nicole (Female)</option>
+        <option value="af_sarah">af_sarah (Female)</option>
+        <option value="af_sky">af_sky (Female)</option>
+        <option value="male_cody">male_cody (Male)</option>
+        <option value="male_daxon">male_daxon (Male)</option>
+      </select>
+    </div>
+
+    <button id="select-btn" class="primary-btn">Select Content</button>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

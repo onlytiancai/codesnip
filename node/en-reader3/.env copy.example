@@ -1,0 +1,17 @@
+# LLM Configuration (required)
+# Supports Anthropic, OpenAI, or any OpenAI-compatible endpoint
+LLM_BASE_URL=https://api.minimaxi.com/anthropic
+LLM_API_KEY=your-api-key
+LLM_MODEL=MiniMax-M2.7
+
+# TTS Provider (default: edge)
+# Options: 'edge' or 'bytedance'
+TTS_PROVIDER=edge
+
+# ByteDance TTS (if using bytedance)
+BYTEDANCE_APP_ID=your-app-id
+BYTEDANCE_ACCESS_KEY=your-access-key
+BYTEDANCE_RESOURCE_ID=your-resource-id
+
+# Server Configuration
+PORT=3000

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文章编辑器 - 管理员控制台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-100 min-h-screen fixed left-0 top-0">
+      <div class="p-6">
+        <div class="flex items-center space-x-2 mb-8">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+            <span class="text-white text-xl">⚙️</span>
+          </div>
+          <span class="text-xl font-bold text-gray-900">Admin</span>
+        </div>
+
+        <nav class="space-y-1">
+          <a href="dashboard.html" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+            </svg>
+            <span>概览</span>
+          </a>
+          <a href="#" class="flex items-center space-x-3 px-4 py-3 bg-purple-50 text-purple-600 rounded-xl font-medium">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+            <span>文章管理</span>
+          </a>
+          <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+            <span>用户管理</span>
+          </a>
+          <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span>数据统计</span>
+          </a>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-64 flex-1 p-8">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <div class="flex items-center space-x-2 text-sm text-gray-500 mb-1">
+            <a href="dashboard.html" class="hover:text-gray-700">文章管理</a>
+            <span>/</span>
+            <span class="text-gray-900 font-medium">新建文章</span>
+          </div>
+          <h1 class="text-2xl font-bold text-gray-900">文章编辑器</h1>
+        </div>
+        <div class="flex items-center space-x-3">
+          <button class="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+            保存草稿
+          </button>
+          <button class="px-4 py-2 bg-purple-500 text-white rounded-lg font-medium hover:bg-purple-600 transition-colors">
+            发布文章
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-6">
+        <!-- Editor Column -->
+        <div class="col-span-2 space-y-6">
+          <!-- Title Input -->
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">文章标题</label>
+            <input type="text" placeholder="输入文章标题..."
+                   class="w-full px-4 py-3 text-lg border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                   value="Understanding React Server Components: A Deep Dive">
+          </div>
+
+          <!-- Markdown Editor -->
+          <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="border-b border-gray-100 p-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                  <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                  </button>
+                  <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg font-bold">B</button>
+                  <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg italic">I</button>
+                  <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg underline">U</button>
+                  <div class="w-px h-6 bg-gray-200"></div>
+                  <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">H1</button>
+                  <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">H2</button>
+                  <div class="w-px h-6 bg-gray-200"></div>
+                  <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">{"<>"}</button>
+                  <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">🔗</button>
+                  <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">🖼️</button>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">预览</button>
+                  <button class="px-3 py-1 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600">编辑</button>
+                </div>
+              </div>
+            </div>
+            <textarea class="w-full h-96 p-4 font-mono text-sm border-none focus:outline-none resize-none"
+                      placeholder="输入 Markdown 内容...">React Server Components represent a paradigm shift in how we build React applications. They allow us to write components that render exclusively on the server, reducing the amount of JavaScript sent to the client and improving initial page load performance.
+
+Traditional React components run on both the server and the client, which means they need to include all the code necessary for hydration. Server Components, on the other hand, never run on the client. This allows them to import and use server-side only dependencies like database clients directly.
+
+## Example Code
+
+```tsx
+import db from './database'
+import { Note } from './Note'
+
+export async function NoteList({ playerId }) {
+  const notes = await db.notes(playerId).all()
+  return <ul>{notes.map(note => <Note key={note.id} note={note} />)}</ul>
+}
+```
+
+The key insight is that Server Components send UI as a serialized format to the client. This format is not HTML or JSON, but a custom wire format designed specifically for React. The client receives this format and seamlessly integrates it with existing client components.</textarea>
+          </div>
+
+          <!-- Sentences Preview -->
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-gray-900">句子拆分预览</h3>
+              <button class="px-3 py-1 text-sm bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 font-medium">
+                重新拆分
+              </button>
+            </div>
+            <div class="space-y-2 max-h-64 overflow-y-auto">
+              <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 text-xs font-medium rounded">1</span>
+                <span class="flex-1 text-sm text-gray-700">React Server Components represent a paradigm shift in how we build React applications.</span>
+                <span class="text-xs text-gray-400">15 词</span>
+              </div>
+              <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 text-xs font-medium rounded">2</span>
+                <span class="flex-1 text-sm text-gray-700">They allow us to write components that render exclusively on the server, reducing the amount of JavaScript sent to the client and improving initial page load performance.</span>
+                <span class="text-xs text-gray-400">28 词</span>
+              </div>
+              <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 text-xs font-medium rounded">3</span>
+                <span class="flex-1 text-sm text-gray-700">Traditional React components run on both the server and the client, which means they need to include all the code necessary for hydration.</span>
+                <span class="text-xs text-gray-400">24 词</span>
+              </div>
+              <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 text-xs font-medium rounded">4</span>
+                <span class="flex-1 text-sm text-gray-700">Server Components, on the other hand, never run on the client.</span>
+                <span class="text-xs text-gray-400">12 词</span>
+              </div>
+              <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 text-xs font-medium rounded">5</span>
+                <span class="flex-1 text-sm text-gray-700">This allows them to import and use server-side only dependencies like database clients directly.</span>
+                <span class="text-xs text-gray-400">16 词</span>
+              </div>
+            </div>
+            <div class="mt-4 flex items-center justify-between text-sm text-gray-500">
+              <span>共 5 个句子</span>
+              <span>平均句长：19 词</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings Column -->
+        <div class="space-y-6">
+          <!-- Category -->
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">分类</label>
+            <select class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+              <option value="">选择分类...</option>
+              <option value="frontend" selected>⚛️ 前端开发</option>
+              <option value="backend">🔧 后端架构</option>
+              <option value="ai">🤖 人工智能</option>
+              <option value="cloud">☁️ 云计算</option>
+              <option value="devops">🚀 DevOps</option>
+            </select>
+          </div>
+
+          <!-- Difficulty -->
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">难度等级</label>
+            <div class="space-y-2">
+              <label class="flex items-center justify-between p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
+                <div class="flex items-center space-x-2">
+                  <input type="radio" name="difficulty" class="w-4 h-4 text-purple-500 border-gray-300 focus:ring-purple-500">
+                  <span class="text-sm text-gray-700">🟢 初级</span>
+                </div>
+                <span class="text-xs text-gray-400">CEFR A1-A2</span>
+              </label>
+              <label class="flex items-center justify-between p-3 border border-purple-200 bg-purple-50 rounded-xl cursor-pointer">
+                <div class="flex items-center space-x-2">
+                  <input type="radio" name="difficulty" checked class="w-4 h-4 text-purple-500 border-gray-300 focus:ring-purple-500">
+                  <span class="text-sm text-gray-700">🟡 中级</span>
+                </div>
+                <span class="text-xs text-gray-400">CEFR B1-B2</span>
+              </label>
+              <label class="flex items-center justify-between p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
+                <div class="flex items-center space-x-2">
+                  <input type="radio" name="difficulty" class="w-4 h-4 text-purple-500 border-gray-300 focus:ring-purple-500">
+                  <span class="text-sm text-gray-700">🔴 高级</span>
+                </div>
+                <span class="text-xs text-gray-400">CEFR C1-C2</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Cover Image -->
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">封面图片</label>
+            <div class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-purple-300 transition-colors cursor-pointer">
+              <div class="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <p class="text-sm text-gray-600 mb-1">点击或拖拽上传图片</p>
+              <p class="text-xs text-gray-400">PNG, JPG 最大 5MB</p>
+            </div>
+          </div>
+
+          <!-- AI Generation -->
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="font-bold text-gray-900 mb-4">AI 生成</h3>
+            <div class="space-y-3">
+              <button class="w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium hover:opacity-90 transition-opacity flex items-center justify-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <span>一键生成所有内容</span>
+              </button>
+              <div class="grid grid-cols-2 gap-2">
+                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm">
+                  📝 拆分句子
+                </button>
+                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm">
+                  🌐 生成翻译
+                </button>
+                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm">
+                  🔤 生成音标
+                </button>
+                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm">
+                  🎤 生成音频
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Generation Status -->
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="font-bold text-gray-900 mb-4">生成状态</h3>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-600">句子拆分</span>
+                <span class="flex items-center space-x-1 text-green-600 text-sm">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  <span>完成</span>
+                </span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-600">中文翻译</span>
+                <span class="flex items-center space-x-1 text-green-600 text-sm">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  <span>完成</span>
+                </span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-600">IPA 音标</span>
+                <span class="flex items-center space-x-1 text-yellow-600 text-sm">
+                  <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                  </svg>
+                  <span>生成中...</span>
+                </span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-600">TTS 音频</span>
+                <span class="flex items-center space-x-1 text-gray-400 text-sm">
+                  <span>待处理</span>
+                </span>
+              </div>
+            </div>
+            <!-- Progress Bar -->
+            <div class="mt-4">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs text-gray-500">总体进度</span>
+                <span class="text-xs font-medium text-gray-700">50%</span>
+              </div>
+              <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="w-1/2 h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

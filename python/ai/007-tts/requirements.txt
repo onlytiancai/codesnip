@@ -1,0 +1,11 @@
+# Kokoro TTS Web Demo 依赖
+# 推荐环境：pyenv 的 qlib（或任意含 torch 的 Python 3.11 环境）
+
+kokoro>=0.9
+misaki>=0.9
+soundfile>=0.13
+fastapi>=0.110
+uvicorn>=0.29
+pydantic>=2.0
+numpy>=1.24
+torch>=2.0

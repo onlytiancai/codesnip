@@ -1,0 +1,373 @@
+/* ============================================================
+   「茶韵 · 宋雅」  一键复制的完整 CSS 基础
+   适用于：纯 HTML / 静态站 / 任何前端项目
+   使用方法：复制到项目 style.css，HTML head 引入 Google Fonts
+
+   依赖的 HTML 结构见 SKILL.md「装饰元素」章节
+   ============================================================ */
+
+:root {
+  /* —— 纸 · 墨 —— */
+  --paper:        #f5f1ea;
+  --paper-2:      #faf7f1;
+  --card:         #fdfbf6;
+  --card-2:       #f8f4ec;
+  --line:         #e8e1d3;
+  --line-2:       #d9d0bd;
+
+  /* —— 墨阶 —— */
+  --ink-1:        #2e2a24;
+  --ink-2:        #5b5247;
+  --ink-3:        #8a8273;
+  --ink-4:        #b3aa9b;
+
+  /* —— 点彩 —— */
+  --celadon:      #6f7e6a;
+  --celadon-2:    #5b6a56;
+  --celadon-bg:   #e9eee5;
+  --ochre:        #a07a5b;
+  --ochre-bg:     #f1e9dd;
+  --cinnabar:     #a8412e;
+  --clay:         #b56b5a;
+  --clay-bg:      #f4e3dd;
+  --moss:         #5e7d65;
+  --moss-bg:      #e3ebe2;
+
+  /* —— 阴影：极淡的暖色 —— */
+  --shadow-sm:    0 1px 2px rgba(76, 60, 30, 0.04);
+  --shadow:       0 1px 2px rgba(76, 60, 30, 0.04), 0 8px 28px rgba(76, 60, 30, 0.05);
+  --shadow-lg:    0 4px 12px rgba(76, 60, 30, 0.06), 0 20px 50px rgba(76, 60, 30, 0.08);
+
+  /* —— 圆角 —— */
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    16px;
+
+  /* —— 字体 —— */
+  --font-sans:    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                  "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-serif:   "Noto Serif SC", "Songti SC", "STSong", serif;
+  --font-mono:    "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* ---------- Reset ---------- */
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--paper);
+  /* 极淡的暖色径向晕染：模拟宣纸层次 */
+  background-image:
+    radial-gradient(1200px 600px at 20% 0%,  rgba(241, 233, 219, 0.55), transparent 60%),
+    radial-gradient(900px 500px at 90% 20%,  rgba(232, 226, 211, 0.45), transparent 60%);
+  background-attachment: fixed;
+  color: var(--ink-1);
+  min-height: 100vh;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a { color: var(--ochre); text-decoration: none; transition: color 0.2s; }
+a:hover { color: var(--celadon-2); }
+
+code {
+  font-family: var(--font-mono);
+  background: var(--card-2);
+  padding: 0.12em 0.45em;
+  border-radius: 4px;
+  font-size: 0.88em;
+  color: var(--celadon-2);
+  border: 1px solid var(--line);
+}
+
+::selection { background: var(--celadon-bg); color: var(--celadon-2); }
+
+.hidden { display: none !important; }
+
+/* ---------- 头部 ---------- */
+.hero {
+  padding: 3.5rem 1.5rem 2.5rem;
+  text-align: center;
+  position: relative;
+  border-bottom: 1px solid var(--line);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  top: 1.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 1px;
+  background: var(--line-2);
+}
+
+.hero-inner { max-width: 760px; margin: 0 auto; }
+
+.hero-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  margin: 0 0 0.7rem;
+  font-family: var(--font-serif);
+  font-size: 2.1rem;
+  font-weight: 600;
+  color: var(--ink-1);
+  letter-spacing: 0.04em;
+}
+
+/* 印章 logo */
+.seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: var(--cinnabar);
+  color: #f7ecd8;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.05em;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 2px #f7ecd8,
+    0 0 0 3px var(--cinnabar),
+    0 4px 10px rgba(168, 65, 46, 0.18);
+  transform: rotate(-3deg);
+  user-select: none;
+  line-height: 1;
+  padding-bottom: 2px;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+.subtitle code { font-size: 0.85em; margin: 0 0.15em; }
+
+/* ---------- 容器与面板 ---------- */
+.container {
+  max-width: 1180px;
+  margin: 2.2rem auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 860px) {
+  .container { grid-template-columns: 1fr; padding: 0 1rem; margin: 1.4rem auto; }
+  .hero { padding: 2.2rem 1rem 1.6rem; }
+  .hero-title { font-size: 1.7rem; }
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.4rem 1.6rem;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+
+.panel h2 {
+  margin: 1.4rem 0 0.6rem;
+  font-family: var(--font-serif);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.panel h2:first-child { margin-top: 0; }
+.panel h2::before {
+  content: "";
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--celadon);
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+.panel h2:first-child::before { display: none; }
+
+/* ---------- 表单 ---------- */
+textarea, input[type="text"], input[type="email"], input[type="password"], input[type="search"], select {
+  width: 100%;
+  padding: 0.95rem 1.05rem;
+  background: var(--paper-2);
+  color: var(--ink-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 0.96rem;
+  line-height: 1.75;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+textarea { min-height: 200px; resize: vertical; }
+
+textarea::placeholder, input::placeholder { color: var(--ink-4); }
+
+textarea:hover, input:hover, select:hover { border-color: var(--line-2); }
+
+textarea:focus, input:focus, select:focus {
+  outline: none;
+  border-color: var(--celadon);
+  background: var(--card);
+  box-shadow: 0 0 0 3px var(--celadon-bg);
+}
+
+/* ---------- 滑块 ---------- */
+input[type="range"] { accent-color: var(--celadon); width: 100%; }
+
+/* ---------- 按钮 ---------- */
+button {
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  background: var(--card);
+  color: var(--ink-1);
+  letter-spacing: 0.02em;
+}
+
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+button.primary {
+  background: var(--celadon);
+  color: #f7f4ee;
+  border-color: var(--celadon);
+  font-weight: 600;
+}
+button.primary:hover:not(:disabled) {
+  background: var(--celadon-2);
+  border-color: var(--celadon-2);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(95, 110, 88, 0.22);
+}
+button.primary:active:not(:disabled) { transform: translateY(0); }
+
+button.secondary {
+  background: var(--card);
+  color: var(--ink-1);
+  border-color: var(--line-2);
+}
+button.secondary:hover:not(:disabled) {
+  background: var(--celadon-bg);
+  border-color: var(--celadon);
+  color: var(--celadon-2);
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--ink-2);
+  border-color: var(--line);
+}
+button.ghost:hover:not(:disabled) {
+  background: var(--card-2);
+  color: var(--ink-1);
+}
+
+/* ---------- 单选 / 复选 ---------- */
+input[type="radio"], input[type="checkbox"] {
+  accent-color: var(--celadon);
+  cursor: pointer;
+}
+
+/* ---------- 徽章 ---------- */
+.badge {
+  background: var(--card-2);
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  color: var(--ink-3);
+  border: 1px solid var(--line);
+  font-size: 0.7rem;
+}
+.badge.lang {
+  background: var(--celadon-bg);
+  color: var(--celadon-2);
+  border-color: transparent;
+}
+
+/* ---------- 错误框 ---------- */
+.error-box {
+  margin-top: 1rem;
+  padding: 0.75rem 0.95rem;
+  border-radius: var(--radius-sm);
+  background: var(--clay-bg);
+  border: 1px solid #e8c9bf;
+  color: var(--clay);
+  font-size: 0.88rem;
+}
+
+/* ---------- 加载 / 空状态 ---------- */
+.loading, .empty {
+  text-align: center;
+  padding: 1.8rem 1rem;
+  color: var(--ink-4);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* ---------- 页脚 ---------- */
+.footer {
+  text-align: center;
+  padding: 2rem 1rem 2.5rem;
+  color: var(--ink-3);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--line);
+  letter-spacing: 0.04em;
+}
+.footer::before {
+  content: "";
+  display: block;
+  width: 36px;
+  height: 1px;
+  background: var(--line-2);
+  margin: 0 auto 1.2rem;
+}
+.footer a {
+  color: var(--ochre);
+  text-decoration: none;
+  transition: color 0.2s;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+.footer a:hover { color: var(--celadon-2); }
+.footer span { margin: 0 0.5rem; color: var(--ink-4); }
+
+/* ---------- 滚动条（统一） ---------- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
+}
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 4px; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------- 动画：水墨脉冲 ---------- */
+@keyframes inkPulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50%      { opacity: 1;    transform: scale(1.15); }
+}
+
+/* ---------- 动画：抽屉滑入 ---------- */
+@keyframes drawerIn {
+  from { transform: translateX(20px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}

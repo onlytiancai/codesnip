@@ -1,0 +1,46 @@
+{
+  "scene_en": "Work",
+  "scene_zh": "工作",
+  "task_en": "Email Reply",
+  "task_zh": "邮件回复",
+  "context": "你是一家公司的项目经理，今天早上收到了一位重要客户的邮件，客户询问上周提交的项目方案的修改意见。由于需要内部讨论后才能给出完整回复，你先回复一封简短的邮件确认收到，并告知会尽快正式回复。",
+  "sentence_zh": "您的邮件已收到，我会尽快回复您。",
+  "translations": [
+    {
+      "sentence": "Thank you for your email. I will get back to you as soon as possible.",
+      "style": "polite",
+      "note": "最常用的正式回复开头，礼貌且专业",
+      "literal_translation": "感谢您的邮件。我会尽快回复您。",
+      "phonetic": "/ˈθæŋk juː fɔːr jɔːr ˈiːmeɪl. aɪ wɪl ɡet ˈbæk tuː juː æz suːn æz ˈpɒsəbəl/"
+    },
+    {
+      "sentence": "I have received your email and will respond shortly.",
+      "style": "polite",
+      "note": "确认收到邮件并承诺近期回复，适合商务场合",
+      "literal_translation": "我已经收到您的邮件并将很快回复。",
+      "phonetic": "/aɪ hæv rɪˈsiːvd jɔːr ˈiːmeɪl ænd wɪl rɪˈspɒnd ˈʃɔːrtli/"
+    },
+    {
+      "sentence": "Thanks for reaching out. I'll get back to you shortly.",
+      "style": "neutral",
+      "note": "中等正式程度，友好且专业",
+      "literal_translation": "谢谢您联系我。我会很快回复您。",
+      "phonetic": "/θæŋks fɔːr ˈriːtʃɪŋ aʊt. aɪl ɡet ˈbæk tuː juː ˈʃɔːrtli/"
+    },
+    {
+      "sentence": "Got your email. Will reply soon.",
+      "style": "casual",
+      "note": "简洁直接，适合内部邮件或熟悉的工作伙伴",
+      "literal_translation": "收到您的邮件。会尽快回复。",
+      "phonetic": "/ɡɒt jɔːr ˈiːmeɪl. wɪl rɪˈplaɪ suːn/"
+    },
+    {
+      "sentence": "Thanks for your message. I'll follow up soon.",
+      "style": "neutral",
+      "note": "用'message'替代'email'，表达会更跟进的意思",
+      "literal_translation": "谢谢您的消息。我会很快跟进。",
+      "phonetic": "/θæŋks fɔːr jɔːr ˈmesɪdʒ. aɪl ˈfɒləʊ ʌp suːn/"
+    }
+  ],
+  "explanation": "这是一个非常通用的邮件回复开场白，适用于各种工作场合。使用时需要注意：正式场合（如客户邮件、第一次联系）建议用'polite'风格；内部沟通或熟悉的同事间可用'neutral'或'casual'风格。注意'get back to you'和'respond'是商务邮件中最常见的表达。'shortly'和'soon'都表示'很快'，但'shortly'更正式一些。"
+}

@@ -1,0 +1,46 @@
+{
+  "scene_en": "Hotel",
+  "scene_zh": "酒店",
+  "task_en": "Food Delivery",
+  "task_zh": "送餐服务",
+  "context": "早晨7点半，你刚睡醒，躺在床上想慵懒地享用早餐但又不想去餐厅下楼。你拿起房间里的电话拨打送餐服务，告诉前台服务员你想把早餐送到房间来。",
+  "sentence_zh": "请帮我把早餐送到房间，谢谢。",
+  "translations": [
+    {
+      "sentence": "Could you bring breakfast to my room, please?",
+      "style": "polite",
+      "note": "最常用且礼貌的请求方式",
+      "literal_translation": "能否请你们把早餐送到我房间？",
+      "phonetic": "kəˈniː bʁɪŋ ˈbrekfəst tə maɪ ruːm, pliːz"
+    },
+    {
+      "sentence": "I'd like to order breakfast to my room.",
+      "style": "neutral",
+      "note": "用order表达点餐的意愿",
+      "literal_translation": "我想要点早餐送到我房间。",
+      "phonetic": "aɪd laɪk tə ˈɔːrdər ˈbrekfəst tə maɪ ruːm"
+    },
+    {
+      "sentence": "Can you send breakfast up to my room?",
+      "style": "neutral",
+      "note": "send up表示送上来的方向感，很自然",
+      "literal_translation": "能把早餐送上我房间吗？",
+      "phonetic": "kən juː sɛnd ˈbrekfəst ʌp tə maɪ ruːm"
+    },
+    {
+      "sentence": "Room service, please. I'd like some breakfast.",
+      "style": "casual",
+      "note": "简洁表达，'room service'本身就能表达送餐请求",
+      "literal_translation": "送餐服务，请。我想要一些早餐。",
+      "phonetic": "ruːm ˈsɜːrvɪs, pliːz. aɪd laɪk səm ˈbrekfəst"
+    },
+    {
+      "sentence": "Could I get breakfast delivered to my room?",
+      "style": "polite",
+      "note": "delivered强调送货上门服务",
+      "literal_translation": "我可以得到早餐送到我房间吗？",
+      "phonetic": "kəd aɪ gɛt ˈbrekfəst dɪˈlɪvərd tə maɪ ruːm"
+    }
+  ],
+  "explanation": "这个场景在酒店非常常见。'room service'是送餐服务的专有名词，几乎所有酒店工作人员都能理解。用'Could you...'开头是最礼貌客气的方式，适合对服务人员说话。如果比较着急或随意，用'Can you...'或直接说'Room service'也可以。'send up'和'delivered'都是实用的词汇，前者强调方向（上来），后者强调服务（送货）。注意用'my room'而不是'the room'，这样更显个性化。早餐通常是breakfast，早餐送餐服务就是breakfast room service。"
+}
