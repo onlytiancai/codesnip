@@ -1,0 +1,46 @@
+{
+  "scene_en": "Daily Expressions",
+  "scene_zh": "日常表达",
+  "task_en": "Agreement",
+  "task_zh": "同意",
+  "context": "你和同事在办公室里讨论下周的工作安排。同事提出了一个新的分工方案，你觉得这个方案很合理，于是表示同意和支持。",
+  "sentence_zh": "我觉得可以，这样安排挺合理的。",
+  "translations": [
+    {
+      "sentence": "That sounds good to me.",
+      "style": "neutral",
+      "note": "最常用的同意表达，轻松自然，适用于同事间的日常交流",
+      "literal_translation": "那对我来说听起来不错",
+      "phonetic": "/ðæt saʊndz ɡʊd tu mi/"
+    },
+    {
+      "sentence": "I think that works.",
+      "style": "neutral",
+      "note": "表示觉得某个想法或方案可行，语气温和",
+      "literal_translation": "我觉得那个可行",
+      "phonetic": "/aɪ θɪŋk ðæt wɜːrks/"
+    },
+    {
+      "sentence": "That makes sense.",
+      "style": "casual",
+      "note": "口语化表达，表示认为对方的想法有道理、合理",
+      "literal_translation": "那说得通",
+      "phonetic": "/ðæt meɪks sens/"
+    },
+    {
+      "sentence": "I'm on board with that.",
+      "style": "casual",
+      "note": "俚语化表达，表示全力支持和同意，带有'加入团队'的意味",
+      "literal_translation": "我上船了，支持那个",
+      "phonetic": "/aɪm ɒn bɔːrd wɪð ðæt/"
+    },
+    {
+      "sentence": "Absolutely, I think that's a great idea.",
+      "style": "polite",
+      "note": "正式且热情的同意，强调对方提议的价值",
+      "literal_translation": "当然，我认为那是个很棒的想法",
+      "phonetic": "/ˈæbsəluːtli aɪ θɪŋks ðæts ə ɡreɪt aɪˈdɪə/"
+    }
+  ],
+  "explanation": "在日常工作中表达同意时，要根据关系亲疏和场合选择合适的表达。正式场合用'Absolutely'或'I think that's a great idea'显得更有礼貌；同事间的日常交流用'That sounds good'或'That makes sense'更自然轻松。注意不要用太生硬的'I agree'，在现代英语口语中听起来略显正式。"
+}
