@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>神经网络小课堂 · 互动教程</title>
+  <meta name="description" content="面向小学生 / 初中生的神经网络互动教程，手写 MLP、可视化训练、互动测试，10 章 0 门槛入门。" />
+
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+
+  <!-- ============= importmap: 让 import "vue" 解析到 ESM 版本 ============= -->
+  <script type="importmap">
+  {
+    "imports": {
+      "vue": "https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.esm-browser.prod.js",
+      "vue-router": "https://cdn.jsdelivr.net/npm/vue-router@4.4.5/dist/vue-router.esm-browser.js",
+      "@vue/devtools-api": "https://cdn.jsdelivr.net/npm/@vue/devtools-api@6.6.4/lib/esm/index.js"
+    }
+  }
+  </script>
+
+  <!-- ============= 公共 CDN: marked + DOMPurify + html2canvas（UMD 全局变量） ============= -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@14.1.3/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <!-- ============= 自托管镜像 CDN: chart.js + KaTeX (auto-render 用 jsdelivr 镜像) ============= -->
+  <link rel="stylesheet" href="https://cdn.ihuhao.com/libs/katex/0.16.9/katex.min.css" />
+  <script defer src="https://cdn.ihuhao.com/libs/katex/0.16.9/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script src="https://cdn.ihuhao.com/libs/chart.js/4.4.1/chart.umd.min.js"></script>
+
+  <!-- ============= 应用样式 ============= -->
+  <link rel="stylesheet" href="assets/css/theme.css" />
+  <link rel="stylesheet" href="assets/css/app.css" />
+  <link rel="stylesheet" href="assets/css/quiz.css" />
+  <link rel="stylesheet" href="assets/css/cert.css" />
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- ============= 进度配置（必须在 app.js 之前） ============= -->
+  <script src="progress.config.js"></script>
+
+  <!-- ============= 应用脚本（ES Module，依赖 importmap 解析 "vue"） ============= -->
+  <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>

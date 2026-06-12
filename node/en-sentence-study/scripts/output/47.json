@@ -1,0 +1,46 @@
+{
+  "scene_en": "Medical",
+  "scene_zh": "看病",
+  "task_en": "Doctor Appointment",
+  "task_zh": "预约医生",
+  "context": "场景设定：一位病人感到身体有些不适，决定打电话给医生诊所预约看病。电话接通后，诊所接待员接起电话问候，病人需要说明自己想要预约看医生的需求。",
+  "sentence_zh": "我想预约一个医生看病。",
+  "translations": [
+    {
+      "sentence": "I'd like to schedule an appointment with a doctor.",
+      "style": "polite",
+      "note": "最正式的预约请求表达方式，适合与诊所接待员通话时使用",
+      "literal_translation": "我想要安排一个与医生的预约",
+      "phonetic": "aɪd laɪk tuː ˈskedʒuːl ən əˈpɔɪntmənt wɪð ə ˈdɑːtər"
+    },
+    {
+      "sentence": "I need to make a doctor's appointment.",
+      "style": "neutral",
+      "note": "中性表达，直接说明需要预约医生，日常生活和正式场合都适用",
+      "literal_translation": "我需要做一个医生的预约",
+      "phonetic": "aɪ niːd tuː meɪk ə ˈdɑːtərz əˈpɔɪntmənt"
+    },
+    {
+      "sentence": "I want to see a doctor.",
+      "style": "casual",
+      "note": "口语化表达，语气直接轻松，适用于熟悉的医生或非正式场景",
+      "literal_translation": "我想看医生",
+      "phonetic": "aɪ wɑːnt tuː siː ə ˈdɑːtər"
+    },
+    {
+      "sentence": "I'd like to book an appointment, please.",
+      "style": "polite",
+      "note": "另一种正式表达，用'book'替代'schedule'，显得更有礼貌",
+      "literal_translation": "我想要预订一个预约，拜托了",
+      "phonetic": "aɪd laɪk tuː bʊk ən əˈpɔɪntmənt pliːz"
+    },
+    {
+      "sentence": "Can I get an appointment?",
+      "style": "casual",
+      "note": "口语化询问句，简洁直接，适合快速询问时使用",
+      "literal_translation": "我能得到一个预约吗",
+      "phonetic": "kæn aɪ ɡet ən əˈpɔɪntmənt"
+    }
+  ],
+  "explanation": "预约医生是日常生活中的常见场景。在英语中，根据场合和对象的熟悉程度，有多种表达方式可以选择。正式场合（如初次联系诊所）推荐使用'I'd like to...'开头，表达礼貌和尊重；中性场合可使用'I need to...'直接明了；如果是熟悉的医生或非正式交流，则可用'I want to...'或疑问句。注意'schedule'和'book'都表示预约，但'schedule'更强调具体时间的安排，而'book'强调预订的动作。预约时通常还需要说明想预约哪位医生、预约原因和时间，这些内容会在后续对话中逐步涉及。"
+}

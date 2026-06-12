@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# 一键生成所有章节配图
+# 使用前先 pyenv activate qlib
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PYTHON="${PYTHON:-/Users/huhao/.pyenv/versions/3.11.9/bin/python3}"
+
+cd "$SCRIPT_DIR/.."  # 切到 009 项目根
+
+for f in scripts/gen_ch*.py; do
+  echo "==> $f"
+  "$PYTHON" "$f"
+done
+
+echo ""
+echo "✅ 全部配图生成完成"
+echo "图片目录：assets/images/"
+ls -1 assets/images/ | wc -l

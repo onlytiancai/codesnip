@@ -1,0 +1,144 @@
+/* ====== 证书页面 ====== */
+.cert-page {
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 32px;
+  margin: 0 auto;
+  max-width: 880px;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+.cert-page .cert-bg {
+  width: 100%;
+  height: auto;
+  margin-bottom: -8px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(14, 165, 233, 0.06));
+  padding: 24px;
+  border: 2px solid var(--accent);
+  position: relative;
+}
+.cert-page h1 {
+  font-size: 32px;
+  margin: 0 0 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.cert-page .cert-subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+.cert-page .cert-name {
+  font-size: 36px;
+  font-weight: 800;
+  margin: 16px 0;
+  color: var(--text);
+  font-family: "Brush Script MT", "STKaiti", "KaiTi", cursive;
+}
+.cert-page .cert-score {
+  display: inline-block;
+  font-size: 48px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 12px 0;
+}
+.cert-page .cert-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 24px 0;
+  padding: 16px;
+  background: var(--panel2);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.cert-page .cert-meta .lbl {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+.cert-page .cert-meta .val {
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.cert-page .cert-chapters {
+  text-align: left;
+  margin: 24px 0;
+  padding: 16px 20px;
+  background: var(--panel2);
+  border-radius: 8px;
+}
+.cert-page .cert-chapters h3 {
+  font-size: 14px;
+  margin: 0 0 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.cert-page .cert-chapters ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.cert-page .cert-chapters li {
+  font-size: 13px;
+  padding: 4px 0;
+  color: var(--text);
+}
+.cert-page .cert-chapters li::before {
+  content: "✓ ";
+  color: var(--accent);
+  font-weight: 700;
+  margin-right: 6px;
+}
+.cert-page .cert-id {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: ui-monospace, monospace;
+  margin-top: 16px;
+  letter-spacing: 0.5px;
+}
+.cert-page .cert-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 24px;
+}
+.cert-locked {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+.cert-locked h2 { color: var(--text); }
+.cert-locked .lock-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+.cert-locked .progress-info {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--panel);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  display: inline-block;
+}
+
+/* ====== 证书打印样式 ====== */
+@media print {
+  header, aside.sidebar, .cert-actions, .cert-locked, .no-print { display: none !important; }
+  body, #app, .app-body, main.content { background: #fff !important; padding: 0 !important; }
+  .cert-page { box-shadow: none; max-width: 100%; padding: 0; }
+  .cert-page .cert-bg { border: 2px solid #10b981; }
+  @page { size: A4 landscape; margin: 1cm; }
+}

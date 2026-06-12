@@ -1,0 +1,163 @@
+/* ====== 测试题组件样式 ====== */
+.quiz {
+  background: var(--panel);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin: 24px 0;
+  position: relative;
+}
+.quiz::before {
+  content: "测试题";
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.quiz.q-short::before { content: "简答题"; }
+.quiz.q-multiple::before { content: "多选题"; }
+
+.quiz .quiz-prompt {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.quiz .quiz-prompt code {
+  font-size: 0.9em;
+  background: var(--code-bg);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.quiz .options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0;
+}
+.quiz .option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: var(--panel2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.quiz .option:hover:not(.disabled) {
+  border-color: var(--accent);
+  background: var(--hover-bg);
+}
+.quiz .option.selected {
+  border-color: var(--accent);
+  background: var(--hover-bg);
+}
+.quiz .option.correct {
+  border-color: var(--success);
+  background: rgba(16, 185, 129, 0.12);
+}
+.quiz .option.wrong {
+  border-color: var(--danger);
+  background: rgba(239, 68, 68, 0.1);
+}
+.quiz .option.disabled { cursor: default; opacity: 0.7; }
+.quiz .option .key {
+  flex: 0 0 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.quiz .option.selected .key { background: var(--accent); color: #fff; border-color: var(--accent); }
+.quiz .option.correct .key { background: var(--success); color: #fff; border-color: var(--success); }
+.quiz .option.wrong .key { background: var(--danger); color: #fff; border-color: var(--danger); }
+.quiz .option .text { flex: 1; }
+
+.quiz .actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.quiz .feedback {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.quiz .feedback.correct {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+  border: 1px solid var(--success);
+}
+.quiz .feedback.wrong {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.quiz .explain {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: var(--blockquote-bg);
+  border-left: 3px solid var(--warn);
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+}
+.quiz .explain::before {
+  content: "💡 答案解析";
+  display: block;
+  font-weight: 700;
+  color: var(--warn);
+  margin-bottom: 6px;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.quiz .short-answer {
+  width: 100%;
+  min-height: 100px;
+  resize: vertical;
+  margin: 10px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 10px 12px;
+}
+
+.quiz .answered-badge {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 10px;
+  padding: 3px 8px;
+  background: var(--accent2);
+  color: #fff;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.quiz .answered-badge.correct { background: var(--success); }
+.quiz .answered-badge.wrong { background: var(--danger); }
