@@ -21,5 +21,6 @@ window.PROGRESS_CONFIG = {
   },
 
   // 进度 schema 版本（未来加字段时升级以触发数据迁移）
-  PROGRESS_SCHEMA_VERSION: 1,
+  // v2: 章节状态按语言拆分（ch.zh / ch.en），quiz key 加 :lang 后缀
+  PROGRESS_SCHEMA_VERSION: 2,
 };

@@ -14,7 +14,9 @@ export const CertView = {
     const isZh = computed(() => state.language === "zh");
 
     const completedCount = computed(() =>
-      Object.values(state.progress?.chapters || {}).filter((c) => c.status === "completed").length
+      Object.values(state.progress?.chapters || {}).filter(
+        (c) => c[state.language]?.status === "completed"
+      ).length
     );
     const totalChapters = computed(() => state.chapters.filter((c) => !c.is_optional).length);
     const allCompleted = computed(() => completedCount.value >= totalChapters.value);

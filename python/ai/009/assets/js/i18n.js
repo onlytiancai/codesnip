@@ -52,6 +52,11 @@ export const I18N = {
     quizExplain: { zh: "💡 答案解析", en: "💡 Explanation" },
     certTitle: { zh: "结业", en: "Certificate" },
     certLink: { zh: "结业证书", en: "Certificate" },
+    resetProgress: { zh: "重置进度，重新学习", en: "Reset Progress" },
+    resetTitle: {
+      zh: "清空所有进度、答题记录和证书，从头开始（保留主题和语言偏好）",
+      en: "Clear all progress, quiz answers, and certificate. Start over. (Theme and language are kept.)",
+    },
   },
   quiz: {
     noAnswer: { zh: "请先选择一个选项", en: "Please select an option first" },

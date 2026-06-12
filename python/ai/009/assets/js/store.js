@@ -6,8 +6,9 @@ import {
   loadTheme, saveTheme, loadLang, saveLang,
   loadStudentName, saveStudentName,
   loadCert, saveCert,
-  getChapterProgress, setQuizAnswer, markChapterOpened,
+  setQuizAnswer, markChapterOpened,
   markChapterCompleted, updateScrollPercent, calcSummary,
+  resetAllProgress,
 } from "./progress.js";
 
 const state = reactive({
@@ -41,6 +42,13 @@ export function createStore(chapters, certMeta) {
   state.progress = loadProgress();
   state.ready = true;
   applyTheme(state.theme);
+
+  // 诊断日志：用户可在 DevTools 控制台查看数据结构和版本
+  console.log("[009] store ready, language:", state.language);
+  console.log("[009] progress chapters keys:", Object.keys(state.progress.chapters));
+  console.log("[009] first chapter sample:", JSON.parse(JSON.stringify(
+    Object.values(state.progress.chapters)[0] || null
+  )));
 }
 
 export function applyTheme(theme) {
@@ -71,6 +79,20 @@ export const actions = {
   setLanguage(lang) {
     state.language = lang;
     saveLang(lang);
+    // summary 是缓存值，切换语言后必须重算（之前切到英文仍显示中文的统计）
+    if (state.progress) {
+      state.progress.summary = calcSummary(state.progress, state.chapters, lang);
+      // 诊断：每次切语言后打印当前的 chapter 状态分布
+      const dist = { zh: { done: 0, inprog: 0 }, en: { done: 0, inprog: 0 } };
+      for (const ch of Object.values(state.progress.chapters)) {
+        for (const L of ["zh", "en"]) {
+          const s = ch[L]?.status;
+          if (s === "completed") dist[L].done++;
+          else if (s === "in_progress") dist[L].inprog++;
+        }
+      }
+      console.log(`[009] setLanguage(${lang}) → summary=`, JSON.parse(JSON.stringify(state.progress.summary)), "dist=", dist);
+    }
   },
   setStudentName(name) {
     state.studentName = name;
@@ -78,7 +100,8 @@ export const actions = {
   },
   openChapter(chapterId) {
     state.currentChapterId = chapterId;
-    markChapterOpened(state.progress, chapterId);
+    // 章节打开也按语言记录
+    markChapterOpened(state.progress, chapterId, state.language);
   },
   answerQuiz(chapterId, qid, answerObj) {
     setQuizAnswer(state.progress, chapterId, qid, answerObj);
@@ -86,16 +109,21 @@ export const actions = {
     state.progress.summary = calcSummary(state.progress, state.chapters, state.language);
   },
   scrollChapter(chapterId, pct) {
-    updateScrollPercent(state.progress, chapterId, pct);
+    updateScrollPercent(state.progress, chapterId, state.language, pct);
   },
   completeChapter(chapterId) {
-    markChapterCompleted(state.progress, chapterId);
+    markChapterCompleted(state.progress, chapterId, state.language);
     state.progress.summary = calcSummary(state.progress, state.chapters, state.language);
   },
   issueCert(certObj) {
     saveCert(certObj);
   },
   getCert() { return loadCert(); },
+  // 重置进度：清空 PROGRESS/CERT/STUDENT_NAME，保留主题和语言偏好，然后 reload
+  resetAll() {
+    resetAllProgress();
+    window.location.reload();
+  },
 };
 
 // ====== Provide/Inject 桥 ======

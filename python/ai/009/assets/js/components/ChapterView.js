@@ -40,8 +40,9 @@ export const ChapterView = {
     function t(key) { return pick(I18N.ui[key] || { zh: key, en: key }, state.language); }
 
     function meta() { return state.chaptersMap[props.id]; }
+    // 章节状态严格按语言切分：ch[state.language].status
     function isCompleted(id) {
-      return state.progress?.chapters?.[id]?.status === "completed";
+      return state.progress?.chapters?.[id]?.[state.language]?.status === "completed";
     }
     function isLocked(id) {
       const m = state.chaptersMap[id];
@@ -272,7 +273,8 @@ export const ChapterView = {
     function checkCompletion() {
       const m = meta();
       const ch = state.progress.chapters[m.id];
-      if (!ch || ch.status === "completed") return;
+      const langState = ch && ch[state.language];
+      if (!ch || langState?.status === "completed") return;
       // 只取当前语言的答题
       const answered = Object.values(ch.quiz || {}).filter(
         (q) => q.lang === state.language
@@ -287,7 +289,7 @@ export const ChapterView = {
       if (rate < 0.6) return;
       const totalQuizzes = m.quiz_count || 0;
       const allAnswered = totalQuizzes > 0 && answered.length >= totalQuizzes;
-      const scrolled = (ch.scroll_percent || 0) >= 80;
+      const scrolled = (langState?.scroll_percent || 0) >= 80;
       if (!allAnswered && !scrolled) return;
       actions.completeChapter(m.id);
       showToast(t("chapterCompleted") + " 🎉");
