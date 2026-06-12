@@ -32,15 +32,15 @@ def chain_rule_backprop():
     title = "Backprop: from L back to W₁ (chain rule, 4 steps)" if IS_EN else "反向传播：从 L 一路反推到 W₁（4 步链式法则）"
     ax.text(7, 5.5, title, ha="center", fontsize=14, fontweight="bold", color=TEXT)
 
-    # 节点（同 ch06）
+    # 节点（同 ch06，用 mathtext 下标保持一致）
     nodes = [
         (1, 3, "X", ACCENT2),
-        (3, 3, "W₁", ACCENT),
-        (5, 3, "z₁", WARN),
+        (3, 3, r"$W_1$", ACCENT),
+        (5, 3, r"$z_1$", WARN),
         (7, 3, "σ", ACCENT2),
-        (9, 3, "a₁", WARN),
-        (11, 3, "W₂", ACCENT),
-        (12.5, 3, "z₂", WARN),
+        (9, 3, r"$a_1$", WARN),
+        (11, 3, r"$W_2$", ACCENT),
+        (12.5, 3, r"$z_2$", WARN),
         (13.5, 3, "L", DANGER),
     ]
     for x, y, lbl, c in nodes:

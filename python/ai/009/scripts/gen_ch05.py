@@ -31,9 +31,9 @@ def mlp_topology(lang="zh"):
 
     # 3 层节点
     layers = [
-        ([(1.5, 4.5), (1.5, 3.0)], ["x₁", "x₂"], ACCENT2, "输入层" if not is_en else "Input"),
-        ([(5, 5.5), (5, 4.2), (5, 2.9), (5, 1.6)], ["h₁", "h₂", "h₃", "h₄"], ACCENT, "隐藏层" if not is_en else "Hidden"),
-        ([(8.5, 3.5)], ["ŷ"], DANGER, "输出层" if not is_en else "Output"),
+        ([(1.5, 4.5), (1.5, 3.0)], [r"$x_1$", r"$x_2$"], ACCENT2, "输入层" if not is_en else "Input"),
+        ([(5, 5.5), (5, 4.2), (5, 2.9), (5, 1.6)], [r"$h_1$", r"$h_2$", r"$h_3$", r"$h_4$"], ACCENT, "隐藏层" if not is_en else "Hidden"),
+        ([(8.5, 3.5)], [r"$\hat{y}$"], DANGER, "输出层" if not is_en else "Output"),
     ]
     for li, (positions, labels, color, layer_name) in enumerate(layers):
         for (px, py), lbl in zip(positions, labels):
@@ -81,7 +81,7 @@ def two_lines_compose():
                     fontsize=10, color=TEXT)
 
     ax.set_xlim(-0.5, 1.5); ax.set_ylim(-0.5, 1.5)
-    ax.set_xlabel("x₁"); ax.set_ylabel("x₂")
+    ax.set_xlabel(r"$x_1$"); ax.set_ylabel(r"$x_2$")
     ax.text(1.1, 1.35, "黄线 OR 蓝线 = 弯线", fontsize=10, color=ACCENT, fontweight="bold")
     save(fig, f"{OUT_DIR}/ch05_two_lines_compose.png")
 

@@ -97,8 +97,8 @@ def gradient_descent():
     ax.plot(path_w1, path_w2, path_L + 0.1, "o-", color=ACCENT, lw=2, markersize=4, label=path_label)
     ax.scatter([0], [0], [0], color="red", s=200, marker="*", label=opt_label)
 
-    ax.set_xlabel("w₁", fontsize=10, color=MUTED)
-    ax.set_ylabel("w₂", fontsize=10, color=MUTED)
+    ax.set_xlabel(r"$w_1$", fontsize=10, color=MUTED)
+    ax.set_ylabel(r"$w_2$", fontsize=10, color=MUTED)
     ax.set_zlabel("Loss", fontsize=10, color=MUTED)
     ax.set_title(title, fontsize=12, fontweight="bold", color=TEXT)
     ax.view_init(elev=30, azim=45)

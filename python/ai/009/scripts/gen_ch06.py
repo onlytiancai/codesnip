@@ -38,25 +38,25 @@ def compute_graph():
     if IS_EN:
         nodes = [
             (1, 2, "X", ACCENT2, "Input (2,)"),
-            (3, 2, "W₁, b₁", MUTED, "Params"),
-            (5, 2, "z₁", ACCENT, "Linear (4,)"),
+            (3, 2, r"$W_1, b_1$", MUTED, "Params"),
+            (5, 2, r"$z_1$", ACCENT, "Linear (4,)"),
             (7, 2, "σ", WARN, "Activate"),
-            (9, 2, "a₁", ACCENT, "(4,)"),
-            (11, 2, "z₂", ACCENT, "(1,)"),
-            (13, 2, "ŷ", DANGER, "Predict"),
+            (9, 2, r"$a_1$", ACCENT, "(4,)"),
+            (11, 2, r"$z_2$", ACCENT, "(1,)"),
+            (13, 2, r"$\hat{y}$", DANGER, "Predict"),
         ]
     else:
         nodes = [
             (1, 2, "X", ACCENT2, "输入 (2,)"),
-            (3, 2, "W₁, b₁", MUTED, "参数"),
-            (5, 2, "z₁", ACCENT, "线性 (4,)"),
+            (3, 2, r"$W_1, b_1$", MUTED, "参数"),
+            (5, 2, r"$z_1$", ACCENT, "线性 (4,)"),
             (7, 2, "σ", WARN, "激活"),
-            (9, 2, "a₁", ACCENT, "(4,)"),
-            (11, 2, "z₂", ACCENT, "(1,)"),
-            (13, 2, "ŷ", DANGER, "预测"),
+            (9, 2, r"$a_1$", ACCENT, "(4,)"),
+            (11, 2, r"$z_2$", ACCENT, "(1,)"),
+            (13, 2, r"$\hat{y}$", DANGER, "预测"),
         ]
     for x, y, lbl, c, sub in nodes:
-        size = 0.6 if lbl not in ["W₁, b₁", "σ"] else 0.45
+        size = 0.6 if lbl not in [r"$W_1, b_1$", "σ"] else 0.45
         if lbl == "σ":
             ax.add_patch(mpatches.FancyBboxPatch((x-0.55, y-0.45), 1.1, 0.9,
                 boxstyle="round,pad=0.05", fc=c, ec=c, alpha=0.18, lw=2))
@@ -69,8 +69,8 @@ def compute_graph():
 
     # 箭头
     for i in range(len(nodes) - 1):
-        if nodes[i][2] == "W₁, b₁" or nodes[i+1][2] == "W₁, b₁":
-            # 跳过 W₁, b₁（连到 W₁, b₁ 的特殊样式）
+        if nodes[i][2] == r"$W_1, b_1$" or nodes[i+1][2] == r"$W_1, b_1$":
+            # 跳过 W_1, b_1（连到 W_1, b_1 的特殊样式）
             continue
         x1, x2 = nodes[i][0] + 0.6, nodes[i+1][0] - 0.6
         if nodes[i+1][2] == "σ":
@@ -78,7 +78,7 @@ def compute_graph():
         ax.annotate("", xy=(x2, 2), xytext=(x1, 2),
                     arrowprops=dict(arrowstyle="->", lw=1.8, color=TEXT))
 
-    # 标注 W₁, b₁ 从 W₁, b₁ 指向 z₁
+    # 标注 W_1, b_1 从 W_1, b_1 指向 z_1
     w_x = nodes[1][0]
     z_x = nodes[2][0]
     ax.annotate("", xy=(z_x - 0.6, 2), xytext=(w_x + 0.5, 2.5),

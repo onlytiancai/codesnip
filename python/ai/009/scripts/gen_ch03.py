@@ -50,8 +50,8 @@ def perceptron_boundary():
                     fontsize=10, color=TEXT)
 
     ax.set_xlim(-0.5, 1.5); ax.set_ylim(-0.5, 1.5)
-    ax.set_xlabel("x₁", fontsize=12, color=MUTED)
-    ax.set_ylabel("x₂", fontsize=12, color=MUTED)
+    ax.set_xlabel(r"$x_1$", fontsize=12, color=MUTED)
+    ax.set_ylabel(r"$x_2$", fontsize=12, color=MUTED)
     boundary_label = r"Boundary: $0.5 x_1 + 0.7 x_2 - 0.6 = 0$" if IS_EN else r"分界线：$0.5 x_1 + 0.7 x_2 - 0.6 = 0$"
     ax.text(1.1, 1.35, boundary_label, fontsize=10, color=DANGER, fontweight="bold")
 
@@ -72,7 +72,7 @@ def and_or_scatter():
         ax.set_xlim(-0.5, 1.5); ax.set_ylim(-0.5, 1.5)
         sub_title = f"{name}: separable by one line" if IS_EN else f"{name}：一条直线分得开"
         ax.set_title(sub_title, fontsize=12, fontweight="bold", color=TEXT)
-        ax.set_xlabel("x₁"); ax.set_ylabel("x₂")
+        ax.set_xlabel(r"$x_1$"); ax.set_ylabel(r"$x_2$")
         ax.grid(True, alpha=0.3)
 
     suptitle = "AND / OR are both linearly separable" if IS_EN else "AND / OR 都是线性可分的"

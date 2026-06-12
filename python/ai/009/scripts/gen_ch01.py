@@ -30,9 +30,10 @@ def neuron_cartoon(lang="zh"):
     ax.text(6, 6.5, "一个神经元" if not is_en else "One Neuron",
             ha="center", fontsize=18, fontweight="bold", color=TEXT)
 
-    # 输入（左 3 个圆球）
-    for i, lbl in enumerate(["x₁", "x₂", "x₃"]):
+    # 输入（左 3 个圆球，用 mathtext 下标与底部公式保持一致）
+    for i in range(3):
         y = 4.5 - i * 1.5
+        lbl = rf"$x_{i+1}$"
         c = plt.Circle((1.5, y), 0.5, color=ACCENT2, alpha=0.7, ec=ACCENT2, lw=2)
         ax.add_patch(c)
         ax.text(1.5, y, lbl, ha="center", va="center", fontsize=14, fontweight="bold", color="white")
@@ -50,8 +51,8 @@ def neuron_cartoon(lang="zh"):
         y = 4.5 - i * 1.5
         ax.annotate("", xy=(4.8, 3), xytext=(2.0, y),
                     arrowprops=dict(arrowstyle="->", lw=1.5, color=MUTED, alpha=0.6))
-        # 权重标签
-        ax.text((2.0 + 4.8) / 2, (y + 3) / 2 - 0.1, f"w{i+1}", fontsize=10, color=ACCENT,
+        # 权重标签（mathtext 下标与公式一致）
+        ax.text((2.0 + 4.8) / 2, (y + 3) / 2 - 0.1, rf"$w_{i+1}$", fontsize=11, color=ACCENT,
                 fontweight="bold", ha="center", bbox=dict(boxstyle="round,pad=0.2",
                 fc="white", ec=ACCENT, lw=0.5))
 
@@ -68,9 +69,9 @@ def neuron_cartoon(lang="zh"):
     ax.text(11, 3, "y", ha="center", va="center", fontsize=14, fontweight="bold", color="white")
     ax.text(11, 2, "输出" if not is_en else "output", ha="center", fontsize=10, color=MUTED)
 
-    # 标签
-    ax.text(1.5, 1, "输入 (Input)" if not is_en else "Inputs", ha="center", fontsize=10, color=MUTED)
-    ax.text(6, 1, "神经元 (Neuron)" if not is_en else "Neuron", ha="center", fontsize=10, color=MUTED)
+    # 标签（y=0.6 避开 x₃ 圆圈底边 y=1.0，又不与公式 y=0.3 冲突）
+    ax.text(1.5, 0.6, "输入 (Input)" if not is_en else "Inputs", ha="center", fontsize=10, color=MUTED)
+    ax.text(6, 0.6, "神经元 (Neuron)" if not is_en else "Neuron", ha="center", fontsize=10, color=MUTED)
     ax.text(6, 0.3, r"$y = \sigma(w_1 x_1 + w_2 x_2 + w_3 x_3 + b)$",
             ha="center", fontsize=12, color=TEXT, style="italic")
 

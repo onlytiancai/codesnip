@@ -63,7 +63,7 @@ def decision_boundary():
 
         ax.set_xlim(-0.5, 1.5); ax.set_ylim(-0.5, 1.5)
         ax.set_title(title, fontsize=10, fontweight="bold", color=TEXT)
-        ax.set_xlabel("x₁"); ax.set_ylabel("x₂")
+        ax.set_xlabel(r"$x_1$"); ax.set_ylabel(r"$x_2$")
 
     fig.suptitle(suptitle, fontsize=13, fontweight="bold", color=TEXT, y=1.02)
     save(fig, f"{OUT_DIR}/ch10_decision_boundary_{LANG}.png")
