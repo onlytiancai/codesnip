@@ -7,7 +7,7 @@ import {
   loadStudentName, saveStudentName,
   loadCert, saveCert,
   getChapterProgress, setQuizAnswer, markChapterOpened,
-  markChapterCompleted, updateScrollPercent,
+  markChapterCompleted, updateScrollPercent, calcSummary,
 } from "./progress.js";
 
 const state = reactive({
@@ -45,6 +45,13 @@ export function createStore(chapters, certMeta) {
 
 export function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
+  // 同步切换 highlight.js 主题
+  const hljsLink = document.getElementById("hljs-theme");
+  if (hljsLink) {
+    hljsLink.href = theme === "dark"
+      ? "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/github-dark.min.css"
+      : "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/github.min.css";
+  }
 }
 
 export function getState() { return state; }
@@ -75,12 +82,14 @@ export const actions = {
   },
   answerQuiz(chapterId, qid, answerObj) {
     setQuizAnswer(state.progress, chapterId, qid, answerObj);
+    state.progress.summary = calcSummary(state.progress, state.chapters);
   },
   scrollChapter(chapterId, pct) {
     updateScrollPercent(state.progress, chapterId, pct);
   },
   completeChapter(chapterId) {
     markChapterCompleted(state.progress, chapterId);
+    state.progress.summary = calcSummary(state.progress, state.chapters);
   },
   issueCert(certObj) {
     saveCert(certObj);

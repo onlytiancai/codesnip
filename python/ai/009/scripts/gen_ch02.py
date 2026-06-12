@@ -1,13 +1,18 @@
 """
-ch02_neuron: 神经元公式对照图
+ch02_neuron: 神经元公式对照图（双语）
 """
 import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# 让 OUT_DIR = "../assets/images" 解析到 009/assets/images/
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from _fonts import new_figure, save, CHOSEN_FONT
+
+LANG = sys.argv[1] if len(sys.argv) > 1 else "zh"
+IS_EN = LANG == "en"
 
 OUT_DIR = "../assets/images"
 ACCENT = "#10b981"
@@ -23,16 +28,26 @@ def neuron_function():
     ax.set_xlim(0, 14); ax.set_ylim(0, 6)
     ax.axis("off")
 
-    ax.text(7, 5.5, "神经元 = 函数", ha="center", fontsize=18, fontweight="bold", color=TEXT)
+    title = "Neuron = Function" if IS_EN else "神经元 = 函数"
+    ax.text(7, 5.5, title, ha="center", fontsize=18, fontweight="bold", color=TEXT)
 
     # 5 步流水线
-    steps = [
-        ("x", "输入", ACCENT2, 1.5),
-        ("w·x + b", "线性变换", ACCENT, 4.3),
-        ("z", "求和结果", ACCENT, 7),
-        ("σ(z)", "激活", WARN, 9.7),
-        ("y", "输出", DANGER, 12.3),
-    ]
+    if IS_EN:
+        steps = [
+            ("x", "Input", ACCENT2, 1.5),
+            ("w·x + b", "Linear", ACCENT, 4.3),
+            ("z", "Sum", ACCENT, 7),
+            ("σ(z)", "Activate", WARN, 9.7),
+            ("y", "Output", DANGER, 12.3),
+        ]
+    else:
+        steps = [
+            ("x", "输入", ACCENT2, 1.5),
+            ("w·x + b", "线性变换", ACCENT, 4.3),
+            ("z", "求和结果", ACCENT, 7),
+            ("σ(z)", "激活", WARN, 9.7),
+            ("y", "输出", DANGER, 12.3),
+        ]
     for i, (lbl, sub, c, x) in enumerate(steps):
         box = mpatches.FancyBboxPatch((x-1.0, 1.5), 2.0, 2.0, boxstyle="round,pad=0.1",
                                        fc=c, ec=c, alpha=0.15, lw=2)
@@ -46,13 +61,16 @@ def neuron_function():
                         arrowprops=dict(arrowstyle="->", lw=1.8, color=TEXT))
 
     # 底部公式
-    ax.text(7, 0.5, r"整体看：$y = \sigma(w \cdot x + b)$ —— 一个『装』了 4 个数 $(x, w, b, \sigma)$ 的函数",
-            ha="center", fontsize=12, color=TEXT, style="italic")
+    if IS_EN:
+        caption = r"Overall: $y = \sigma(w \cdot x + b)$ — a function of 4 numbers $(x, w, b, \sigma)$"
+    else:
+        caption = r"整体看：$y = \sigma(w \cdot x + b)$ —— 一个『装』了 4 个数 $(x, w, b, \sigma)$ 的函数"
+    ax.text(7, 0.5, caption, ha="center", fontsize=12, color=TEXT, style="italic")
 
-    save(fig, f"{OUT_DIR}/ch02_neuron_function.png")
+    save(fig, f"{OUT_DIR}/ch02_neuron_function_{LANG}.png")
 
 
 if __name__ == "__main__":
-    print(f"== ch02_neuron（使用字体：{CHOSEN_FONT}）==")
+    print(f"== ch02_neuron [{LANG}]（使用字体：{CHOSEN_FONT}）==")
     neuron_function()
-    print(f"完成 1 张神经元公式图")
+    print(f"完成 1 张神经元公式图（{LANG}）")

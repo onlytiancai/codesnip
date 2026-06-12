@@ -1,14 +1,19 @@
 """
-ch08_backprop: 反向传播计算图
+ch08_backprop: 反向传播计算图（双语）
 """
 import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# 让 OUT_DIR = "../assets/images" 解析到 009/assets/images/
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from _fonts import new_figure, save, CHOSEN_FONT
+
+LANG = sys.argv[1] if len(sys.argv) > 1 else "zh"
+IS_EN = LANG == "en"
 
 OUT_DIR = "../assets/images"
 ACCENT = "#10b981"
@@ -24,8 +29,8 @@ def chain_rule_backprop():
     ax.set_xlim(0, 14); ax.set_ylim(0, 6)
     ax.axis("off")
 
-    ax.text(7, 5.5, "反向传播：从 L 一路反推到 W₁（4 步链式法则）",
-            ha="center", fontsize=14, fontweight="bold", color=TEXT)
+    title = "Backprop: from L back to W₁ (chain rule, 4 steps)" if IS_EN else "反向传播：从 L 一路反推到 W₁（4 步链式法则）"
+    ax.text(7, 5.5, title, ha="center", fontsize=14, fontweight="bold", color=TEXT)
 
     # 节点（同 ch06）
     nodes = [
@@ -67,13 +72,14 @@ def chain_rule_backprop():
                     ha="center", fontsize=11, color=DANGER, fontweight="bold")
 
     # 关键公式
-    ax.text(7, 0.3, r"$\frac{\partial L}{\partial W_1} = \frac{\partial L}{\partial z_2} \cdot \frac{\partial z_2}{\partial a_1} \cdot \frac{\partial a_1}{\partial z_1} \cdot \frac{\partial z_1}{\partial W_1}$  (链式法则：4 个偏导相乘)",
-            ha="center", fontsize=12, color=TEXT, style="italic")
+    formula = r"$\frac{\partial L}{\partial W_1} = \frac{\partial L}{\partial z_2} \cdot \frac{\partial z_2}{\partial a_1} \cdot \frac{\partial a_1}{\partial z_1} \cdot \frac{\partial z_1}{\partial W_1}$"
+    suffix = "  (chain rule: 4 partial derivatives multiplied)" if IS_EN else "  (链式法则：4 个偏导相乘)"
+    ax.text(7, 0.3, formula + suffix, ha="center", fontsize=12, color=TEXT, style="italic")
 
-    save(fig, f"{OUT_DIR}/ch08_chain_rule.png")
+    save(fig, f"{OUT_DIR}/ch08_chain_rule_{LANG}.png")
 
 
 if __name__ == "__main__":
-    print(f"== ch08_backprop（使用字体：{CHOSEN_FONT}）==")
+    print(f"== ch08_backprop [{LANG}]（使用字体：{CHOSEN_FONT}）==")
     chain_rule_backprop()
-    print(f"完成 1 张反向传播图")
+    print(f"完成 1 张反向传播图（{LANG}）")

@@ -73,7 +73,17 @@ export const ChapterView = {
         if (!res.ok) throw new Error(`Failed to load: ${res.status}`);
         const text = await res.text();
         const result = await renderMarkdown(text);
-        mdHtml.value = result.html;
+        // 按当前语言切换图片（要求 assets/images/ 下的图都有 _zh/_en 双版本）
+        const langSuffix = state.language === 'en' ? '_en' : '_zh';
+        const localizedHtml = result.html.replace(
+          /(<img[^>]+src=["'])([^"']*?\/([^/'" ]+))\.png(["'])/g,
+          (m, pre, _path, name, post) => {
+            if (!_path.includes('assets/images/')) return m;
+            if (/_zh$/.test(name) || /_en$/.test(name)) return m;
+            return `${pre}${_path}${langSuffix}.png${post}`;
+          }
+        );
+        mdHtml.value = localizedHtml;
         pendingBlocks.value = result.blocks;
         actions.openChapter(m.id);
         // 用户回头看章节时，若之前已满足条件则补标记完成
@@ -84,6 +94,7 @@ export const ChapterView = {
         await new Promise(r => requestAnimationFrame(r));
         mountBlocks();
         renderMath();
+        highlightCode();
         setupScrollTracking();
       } catch (e) {
         error.value = e.message;
@@ -91,6 +102,32 @@ export const ChapterView = {
       } finally {
         loading.value = false;
       }
+    }
+
+    // 对 body 里的图片路径加语言后缀（支持 markdown 格式 ![alt](url) 和 HTML <img src="...">）
+    function localizeImagesInBody(body) {
+      if (!body) return body;
+      const suffix = state.language === 'en' ? '_en' : '_zh';
+      // 1) markdown 格式：![alt](path/xxx.png)
+      let out = body.replace(
+        /(!\[[^\]]*\]\()([^)]*?\/([^/)]+))\.png(\))/g,
+        (m, pre, path, name, post) => {
+          if (!path.includes('assets/images/')) return m;
+          // 跳过已带 _zh / _en 后缀的（ch01/ch05 旧 markdown 写死）
+          if (/_zh$/.test(name) || /_en$/.test(name)) return m;
+          return `${pre}${path}${suffix}.png${post}`;
+        }
+      );
+      // 2) HTML 格式：<img src="path/xxx.png">（防止未来扩展）
+      out = out.replace(
+        /(<img[^>]+src=["'])([^"']*?\/([^/'" ]+))\.png(["'])/g,
+        (m, pre, path, name, post) => {
+          if (!path.includes('assets/images/')) return m;
+          if (/_zh$/.test(name) || /_en$/.test(name)) return m;
+          return `${pre}${path}${suffix}.png${post}`;
+        }
+      );
+      return out;
     }
 
     function mountBlocks(attempt = 0) {
@@ -122,12 +159,15 @@ export const ChapterView = {
         // 解析参数
         let parsed;
         try {
-          if (type === "quiz") parsed = parseQuizBlock(args, body);
-          else if (type === "chart") parsed = parseChartBlock(args, body);
-          else if (type === "graph") parsed = parseGraphBlock(args, body);
-          else if (type === "network") parsed = parseNetworkBlock(args, body);
-          else if (type === "train-demo") parsed = parseTrainDemoBlock(args, body);
-          else if (type === "formula") parsed = parseFormulaBlock(args, body);
+          // 对 body 跑一次图片语言后缀替换（::: 块在 markdown 阶段被替换成占位 div，
+          // img 标签仍在 body 里没经过 result.html 的后缀处理）
+          const localizedBody = localizeImagesInBody(body);
+          if (type === "quiz") parsed = parseQuizBlock(args, localizedBody);
+          else if (type === "chart") parsed = parseChartBlock(args, localizedBody);
+          else if (type === "graph") parsed = parseGraphBlock(args, localizedBody);
+          else if (type === "network") parsed = parseNetworkBlock(args, localizedBody);
+          else if (type === "train-demo") parsed = parseTrainDemoBlock(args, localizedBody);
+          else if (type === "formula") parsed = parseFormulaBlock(args, localizedBody);
         } catch (e) {
           console.error(`[mountBlocks] parse error for block ${blockId} (${type}):`, e);
           return;
@@ -172,6 +212,30 @@ export const ChapterView = {
           strict: "ignore",  // \text{} 里出现 → 等未识别 Unicode 时不再 warn
         });
       } catch (e) { console.warn("KaTeX render failed:", e); }
+    }
+
+    // 高亮代码块（必须在 DOMPurify sanitize 之后、且 hljs 已加载）
+    // hljs 是 UMD CDN，可能比 v-html 晚几个 tick；未加载则轮询重试
+    let hljsTimer = null;
+    function highlightCode() {
+      if (typeof window.hljs === "undefined") {
+        if (hljsTimer) clearTimeout(hljsTimer);
+        hljsTimer = setTimeout(highlightCode, 50);
+        return;
+      }
+      const root = document.getElementById("chapter-content");
+      if (!root) {
+        // 章节内容尚未渲染（router-view 异步切换）
+        if (hljsTimer) clearTimeout(hljsTimer);
+        hljsTimer = setTimeout(highlightCode, 100);
+        return;
+      }
+      try {
+        root.querySelectorAll("pre code").forEach((el) => {
+          if (el.classList && el.classList.contains("hljs")) return;
+          window.hljs.highlightElement(el);
+        });
+      } catch (e) { console.warn("hljs highlight failed:", e); }
     }
 
     function setupScrollTracking() {
@@ -235,6 +299,7 @@ export const ChapterView = {
         ChapterView._scrollListener = null;
       }
       if (katexTimer) clearTimeout(katexTimer);
+      if (hljsTimer) clearTimeout(hljsTimer);
     });
 
     watch(() => props.id, loadChapter);

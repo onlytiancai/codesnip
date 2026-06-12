@@ -188,6 +188,10 @@ aside.sidebar {
   border-right: 1px solid var(--border);
   overflow-y: auto;
   padding: 16px 12px;
+  position: sticky;          /* 悬浮：滚动时跟随视口 */
+  top: 56px;                 /* 避开 header (~50px) */
+  align-self: start;         /* grid 子项必须，否则 sticky 失效 */
+  max-height: calc(100vh - 56px);  /* 防止内容超视口 */
 }
 .sidebar h3 {
   font-size: 11px;
@@ -392,6 +396,7 @@ main.content > * { max-width: 900px; margin: 0 auto; }
     border-right: none;
     border-bottom: 1px solid var(--border);
     max-height: 200px;
+    position: static;        /* 移动端不悬浮 */
   }
   main.content { padding: 20px; }
   header { padding: 10px 14px; flex-wrap: wrap; }

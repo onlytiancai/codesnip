@@ -4,6 +4,8 @@ ch01_intro: 神经元卡通
 import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# 让 OUT_DIR = "../assets/images" 解析到 009/assets/images/
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -76,7 +78,7 @@ def neuron_cartoon(lang="zh"):
 
 
 if __name__ == "__main__":
-    print(f"== ch01_intro（使用字体：{CHOSEN_FONT}）==")
-    neuron_cartoon("zh")
-    neuron_cartoon("en")
-    print(f"完成 2 张神经元配图")
+    LANG = sys.argv[1] if len(sys.argv) > 1 else "zh"
+    print(f"== ch01_intro [{LANG}]（使用字体：{CHOSEN_FONT}）==")
+    neuron_cartoon(LANG)
+    print(f"完成 1 张神经元配图（{LANG}）")

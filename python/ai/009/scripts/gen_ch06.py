@@ -1,13 +1,18 @@
 """
-ch06_forward: 前向计算图
+ch06_forward: 前向计算图（双语）
 """
 import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# 让 OUT_DIR = "../assets/images" 解析到 009/assets/images/
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from _fonts import new_figure, save, CHOSEN_FONT
+
+LANG = sys.argv[1] if len(sys.argv) > 1 else "zh"
+IS_EN = LANG == "en"
 
 OUT_DIR = "../assets/images"
 ACCENT = "#10b981"
@@ -23,19 +28,33 @@ def compute_graph():
     ax.set_xlim(0, 14); ax.set_ylim(0, 5)
     ax.axis("off")
 
-    ax.text(7, 4.5, "前向传播 (Forward Pass): $X \\to z_1 \\to a_1 \\to z_2 \\to a_2 = \\hat{y}$",
-            ha="center", fontsize=14, fontweight="bold", color=TEXT)
+    if IS_EN:
+        title = "Forward Pass: $X \\to z_1 \\to a_1 \\to z_2 \\to a_2 = \\hat{y}$"
+    else:
+        title = "前向传播 (Forward Pass): $X \\to z_1 \\to a_1 \\to z_2 \\to a_2 = \\hat{y}$"
+    ax.text(7, 4.5, title, ha="center", fontsize=14, fontweight="bold", color=TEXT)
 
     # 节点
-    nodes = [
-        (1, 2, "X", ACCENT2, "输入 (2,)"),
-        (3, 2, "W₁, b₁", MUTED, "参数"),
-        (5, 2, "z₁", ACCENT, "线性 (4,)"),
-        (7, 2, "σ", WARN, "激活"),
-        (9, 2, "a₁", ACCENT, "(4,)"),
-        (11, 2, "z₂", ACCENT, "(1,)"),
-        (13, 2, "ŷ", DANGER, "预测"),
-    ]
+    if IS_EN:
+        nodes = [
+            (1, 2, "X", ACCENT2, "Input (2,)"),
+            (3, 2, "W₁, b₁", MUTED, "Params"),
+            (5, 2, "z₁", ACCENT, "Linear (4,)"),
+            (7, 2, "σ", WARN, "Activate"),
+            (9, 2, "a₁", ACCENT, "(4,)"),
+            (11, 2, "z₂", ACCENT, "(1,)"),
+            (13, 2, "ŷ", DANGER, "Predict"),
+        ]
+    else:
+        nodes = [
+            (1, 2, "X", ACCENT2, "输入 (2,)"),
+            (3, 2, "W₁, b₁", MUTED, "参数"),
+            (5, 2, "z₁", ACCENT, "线性 (4,)"),
+            (7, 2, "σ", WARN, "激活"),
+            (9, 2, "a₁", ACCENT, "(4,)"),
+            (11, 2, "z₂", ACCENT, "(1,)"),
+            (13, 2, "ŷ", DANGER, "预测"),
+        ]
     for x, y, lbl, c, sub in nodes:
         size = 0.6 if lbl not in ["W₁, b₁", "σ"] else 0.45
         if lbl == "σ":
@@ -67,13 +86,13 @@ def compute_graph():
     ax.annotate("", xy=(nodes[5][0] - 0.6, 2), xytext=(w_x + 0.5, 1.5),
                 arrowprops=dict(arrowstyle="->", lw=1.5, color=ACCENT2, linestyle="--"))
 
-    ax.text(7, 0.2, "实线 = 数据流；虚线 = 参数作用",
-            ha="center", fontsize=10, color=MUTED, style="italic")
+    legend = "Solid = data flow; dashed = params" if IS_EN else "实线 = 数据流；虚线 = 参数作用"
+    ax.text(7, 0.2, legend, ha="center", fontsize=10, color=MUTED, style="italic")
 
-    save(fig, f"{OUT_DIR}/ch06_compute_graph.png")
+    save(fig, f"{OUT_DIR}/ch06_compute_graph_{LANG}.png")
 
 
 if __name__ == "__main__":
-    print(f"== ch06_forward（使用字体：{CHOSEN_FONT}）==")
+    print(f"== ch06_forward [{LANG}]（使用字体：{CHOSEN_FONT}）==")
     compute_graph()
-    print(f"完成 1 张前向计算图")
+    print(f"完成 1 张前向计算图（{LANG}）")

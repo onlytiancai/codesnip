@@ -1,13 +1,18 @@
 """
-ch10_train: 决策边界演化（训练前/中/后 3 子图）
+ch10_train: 决策边界演化（训练前/中/后 3 子图）（双语）
 """
 import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# 让 OUT_DIR = "../assets/images" 解析到 009/assets/images/
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
 import matplotlib.pyplot as plt
 from _fonts import new_figure, save, CHOSEN_FONT
+
+LANG = sys.argv[1] if len(sys.argv) > 1 else "zh"
+IS_EN = LANG == "en"
 
 OUT_DIR = "../assets/images"
 ACCENT = "#10b981"
@@ -29,11 +34,20 @@ def decision_boundary():
     xx, yy = np.meshgrid(np.linspace(-0.5, 1.5, 200), np.linspace(-0.5, 1.5, 200))
 
     # 模拟 3 个训练阶段的决策边界
-    stages = [
-        ("训练前 (epoch 0)\nloss ≈ 0.69, acc = 50%", lambda x, y: 0.5 * np.ones_like(x)),
-        ("训练中 (epoch 100)\nloss ≈ 0.35, acc = 75%", lambda x, y: 0.4 * (x - 0.5) + 0.3 * (y - 0.5)),
-        ("训练后 (epoch 1000)\nloss ≈ 0.05, acc = 100%", lambda x, y: 0.7 * np.sin(2 * np.pi * x) * np.cos(2 * np.pi * y)),
-    ]
+    if IS_EN:
+        stages = [
+            ("Before training (epoch 0)\nloss ≈ 0.69, acc = 50%", lambda x, y: 0.5 * np.ones_like(x)),
+            ("Mid training (epoch 100)\nloss ≈ 0.35, acc = 75%", lambda x, y: 0.4 * (x - 0.5) + 0.3 * (y - 0.5)),
+            ("After training (epoch 1000)\nloss ≈ 0.05, acc = 100%", lambda x, y: 0.7 * np.sin(2 * np.pi * x) * np.cos(2 * np.pi * y)),
+        ]
+        suptitle = "1000 training steps: decision boundary from flat to curved"
+    else:
+        stages = [
+            ("训练前 (epoch 0)\nloss ≈ 0.69, acc = 50%", lambda x, y: 0.5 * np.ones_like(x)),
+            ("训练中 (epoch 100)\nloss ≈ 0.35, acc = 75%", lambda x, y: 0.4 * (x - 0.5) + 0.3 * (y - 0.5)),
+            ("训练后 (epoch 1000)\nloss ≈ 0.05, acc = 100%", lambda x, y: 0.7 * np.sin(2 * np.pi * x) * np.cos(2 * np.pi * y)),
+        ]
+        suptitle = "训练 1000 步：决策边界从无到弯线"
 
     for ax, (title, boundary_fn) in zip(axes, stages):
         Z = boundary_fn(xx, yy)
@@ -51,11 +65,11 @@ def decision_boundary():
         ax.set_title(title, fontsize=10, fontweight="bold", color=TEXT)
         ax.set_xlabel("x₁"); ax.set_ylabel("x₂")
 
-    fig.suptitle("训练 1000 步：决策边界从无到弯线", fontsize=13, fontweight="bold", color=TEXT, y=1.02)
-    save(fig, f"{OUT_DIR}/ch10_decision_boundary.png")
+    fig.suptitle(suptitle, fontsize=13, fontweight="bold", color=TEXT, y=1.02)
+    save(fig, f"{OUT_DIR}/ch10_decision_boundary_{LANG}.png")
 
 
 if __name__ == "__main__":
-    print(f"== ch10_train（使用字体：{CHOSEN_FONT}）==")
+    print(f"== ch10_train [{LANG}]（使用字体：{CHOSEN_FONT}）==")
     decision_boundary()
-    print(f"完成 1 张决策边界图")
+    print(f"完成 1 张决策边界图（{LANG}）")

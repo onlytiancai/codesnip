@@ -54,3 +54,7 @@ def save(fig, path, transparent=False):
 
 # 模块 import 时自动配置
 CHOSEN_FONT = configure_cjk()
+
+# LaTeX 风格数学公式（Computer Modern 字体集，最接近 LaTeX 默认）
+# 比 matplotlib 默认的 DejaVu Sans 更好看，且不依赖 usetex（无需 texlive）
+matplotlib.rcParams["mathtext.fontset"] = "cm"

@@ -28,7 +28,7 @@ export const TrainDemo = {
       const W1 = [[1.5, -1.0, 0.5, 1.2], [-1.0, 1.5, 1.2, 0.5]];
       const b1 = [-0.5, 0.3, -0.2, 0.1];
       const W2 = [1.0, 1.0, 1.0, 1.0];
-      const b2 = -1.5;
+      let b2 = -1.5;
 
       const losses = [];
       const accs = [];

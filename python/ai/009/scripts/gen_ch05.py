@@ -4,6 +4,8 @@ ch05_mlp: MLP 拓扑 + 两条直线组合
 import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# 让 OUT_DIR = "../assets/images" 解析到 009/assets/images/
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -85,8 +87,9 @@ def two_lines_compose():
 
 
 if __name__ == "__main__":
-    print(f"== ch05_mlp（使用字体：{CHOSEN_FONT}）==")
-    mlp_topology("zh")
-    mlp_topology("en")
-    two_lines_compose()
-    print(f"完成 3 张 MLP 配图")
+    LANG = sys.argv[1] if len(sys.argv) > 1 else "zh"
+    print(f"== ch05_mlp [{LANG}]（使用字体：{CHOSEN_FONT}）==")
+    mlp_topology(LANG)
+    if LANG == "zh":
+        two_lines_compose()  # 仅中文版本需要这张图
+    print(f"完成 MLP 配图（{LANG}）")
