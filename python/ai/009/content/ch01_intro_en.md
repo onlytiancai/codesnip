@@ -91,6 +91,14 @@ answer: A,B
 > Different: structure differs (C ✗); brain uses electrochemical pulses, not just electrical (D ✗).
 :::
 
+::: quiz q1-3 short placeholder="Explain neural networks to your parents in 1 sentence"
+Explain "what is a neural network" to your parents in **one sentence**.
+
+> Reference answer (not unique):
+> - "A neural network is a bunch of math formulas that 'learn' patterns from data — e.g., after seeing 1000 cat photos, it can recognize whether a new photo has a cat."
+> - "A neural network is a program that mimics the brain's way of working: it summarizes patterns by itself from many examples."
+> - "A neural network is many tiny 'yes/no' decision-makers, connected together to make complex decisions."
+
 ---
 
 ## Summary

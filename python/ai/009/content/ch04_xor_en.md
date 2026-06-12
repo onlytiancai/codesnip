@@ -80,6 +80,14 @@ answer: A,B
 > D ✗: Minsky didn't oppose all of AI.
 :::
 
+::: quiz q4-3 short placeholder="Explain in 1 sentence to a friend"
+Explain to a friend in **one sentence**: why does XOR stump the perceptron?
+
+> Reference answer (not unique):
+> - "XOR's 4 points are on a diagonal — no matter how you draw a straight line, both classes are on the same side."
+> - "XOR requires 'different = 1' — that rule is not the job of a straight line."
+> - "A perceptron only draws straight lines to separate two sides; XOR's boundary is curved, so a straight line can't do it."
+
 ---
 
 ## Summary

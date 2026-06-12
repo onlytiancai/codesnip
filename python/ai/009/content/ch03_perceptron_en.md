@@ -108,6 +108,14 @@ answer: C
 > Rule of thumb: start with 0.1, watch the loss curve.
 :::
 
+::: quiz q3-3 short placeholder="Answer about the perceptron's learning rule"
+**Question**: Why doesn't the perceptron update weights when it gets the answer right? What would happen if it did update even on correct answers?
+
+> Reference answer (not unique):
+> When the answer is right, $y - \hat{y} = 0$, so the update is $0 \cdot x = 0$ — nothing changes. If we forced an update (even adding tiny noise), it's like perturbing correct answers, causing the model to oscillate on already-correct samples and never converge.
+>
+> In short: **make right answers more right, fix wrong answers faster** — only adjust what's wrong.
+
 ---
 
 ## Summary

@@ -112,6 +112,20 @@ answer: C
 > Debug: print intermediate values, try a simpler model.
 :::
 
+::: quiz q9-3 short placeholder="Explain the benefits of Adam optimizer"
+**Question**: Modern deep learning almost always uses the **Adam** optimizer (adaptive learning rate). What is its main advantage over plain gradient descent?
+
+> Reference answer (not unique):
+> Plain SGD uses the same $\alpha$ for every direction → tends to oscillate in steep directions and stall in shallow ones.
+>
+> Adam's improvements:
+> 1. **Adaptive $\alpha$**: each parameter has its own learning rate (big-gradient params → small $\alpha$; small-gradient params → large $\alpha$)
+> 2. **Momentum**: accumulates past gradients as "inertia" to skip small local bumps
+> 3. **Bias correction**: corrects statistics in the first few updates
+>
+> Practical effect: easier to tune (defaults work well), faster and more stable training.
+:::
+
 ---
 
 ## Summary

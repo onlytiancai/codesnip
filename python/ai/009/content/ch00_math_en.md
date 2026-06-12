@@ -62,6 +62,16 @@ answer: A
 > Substitute: $3 \times 4 - 5 = 12 - 5 = 7$. Order of operations: multiplication before subtraction.
 :::
 
+::: quiz q0-1-3 short placeholder="Give an example of a function in your daily life"
+Write a **real-life function** (not a math formula). Example: "I sleep at 9 PM every night" — input is "today", output is "9 PM".
+
+> Reference answer (not unique):
+> - "Temperature → what I wear": input today's temperature (°C), output how many layers of clothing
+> - "Steps walked → calories burned": input step count, output approximate calories burned
+> - "Birthday → age": input birthday, output today's age
+>
+> Key idea: **every input produces exactly one output**.
+
 ---
 
 ## 0.2 Coordinate System: Plotting numbers on a map
@@ -93,6 +103,13 @@ answer: D
 
 > $x=3 > 0$ (right), $y=-2 < 0$ (down), so it's bottom-right → fourth quadrant.
 :::
+
+::: quiz q0-2-2 short placeholder="Describe your home location with (x, y) coordinates"
+Use a **pair of coordinates** to describe your home's location (a real map is not needed; make up a coordinate system).
+
+> Reference answer:
+> - "My home is at $(2, 3)$ — using the school as origin, 2 km east, 3 km north."
+> - "My home is at $(-1, 4)$ — 1 km west, 4 km north of school."
 
 ---
 
@@ -128,6 +145,13 @@ answer: A
 
 > In $y = mx + b$, the slope is $m$. Here $m=2$.
 :::
+
+::: quiz q0-3-2 short placeholder="Explain slope in 1 sentence"
+Explain to your mom in **one sentence** what "slope" is.
+
+> Reference answer (not unique):
+> - "Slope is how steep the road is — big slope = steep; small slope = flat; negative slope = going the other way."
+> - "Slope is a function's 'temper' at a point — impatient (big slope), a small push changes the output a lot; calm (small slope), a big push changes it only a little."
 
 ---
 
@@ -165,6 +189,13 @@ answer: B
 
 > Count the numbers: 3, 5, 7, 9 — 4 numbers, so it's 4-dimensional.
 :::
+
+::: quiz q0-4-2 short placeholder="Write a 5-dimensional vector describing yourself"
+Write a vector of **5 numbers** that describes you.
+
+> Reference answer (not unique):
+> - $[12, 165, 50, 92, 7]$: age 12, height 165 cm, weight 50 kg, math grade 92, favorite number 7
+> - $[165, 50, 165, 50, 165]$: just height-weight repeated
 
 ---
 
@@ -211,6 +242,13 @@ answer: A
 > Check: left cols (3) = right rows (3) ✓
 :::
 
+::: quiz q0-5-2 short placeholder="Describe a real scenario for matrix multiplication"
+Imagine a **real scenario** that needs "batch math" — e.g., computing total scores for a whole class at once.
+
+> Reference answer (not unique):
+> - "Whole class's 3-subject scores (30×3 matrix) times per-subject weights (3×1 vector) = each student's total score (30×1 vector)."
+> - "Restaurant's 5 dish sales (5×1) times profit margin per dish (1×1) = total profit" (this is 1×1, too simple).
+
 ---
 
 ## 0.6 Partial Derivative + Chain Rule: Signal in nested machines
@@ -251,6 +289,13 @@ answer: A
 
 > Hold $y$ fixed, only $x$ varies. $f = 4x + (\text{stuff not depending on } x)$, so $\partial f / \partial x = 4$.
 :::
+
+::: quiz q0-6-2 short placeholder="Use chain rule to explain a real scenario"
+Use the **chain rule** to explain a real-life scenario.
+
+> Reference answer (not unique):
+> - "Probability of getting A on homework = effort × teacher's mood × problem difficulty. If I add effort (+1), the boost to the final grade = effort→efficiency × efficiency→grade."
+> - "Stock price change = economy × industry outlook × company management. In a good economy, companies with both good industry and good management rise the most."
 
 ---
 

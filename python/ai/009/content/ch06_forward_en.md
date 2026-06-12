@@ -106,6 +106,35 @@ answer: B
 > Activation introduces **nonlinearity** = multi-layer matters.
 :::
 
+::: quiz q6-3 short placeholder="Explain the key role of activation function"
+**Question**: If we replace sigmoid with the identity function $f(z) = z$, can the MLP still solve XOR? Why?
+
+> Reference answer (not unique):
+> No. **The identity function is linear** ($f(z) = z$ has no "nonlinearity"). If the hidden layer uses identity activation, then:
+>
+> Layer 1: $a_1 = z_1 = W_1 \cdot x + b_1$ (linear)
+> Layer 2: $\hat{y} = z_2 = W_2 \cdot a_1 + b_2 = W_2 \cdot (W_1 \cdot x + b_1) + b_2 = (W_2 W_1) \cdot x + (W_2 b_1 + b_2)$ (still linear)
+>
+> Equivalent to a single-layer network → can't solve XOR.
+>
+> **Conclusion**: the "nonlinearity" of the activation function is the **fundamental reason** MLPs can learn complex functions.
+:::
+
+::: quiz q6-4 short placeholder="Hand-compute XOR sample (0, 0)"
+Using the $W_1, b_1, W_2, b_2$ above, **hand-compute** XOR's 2nd sample $(0, 0)$ and give an approximate $\hat{y}$.
+> Hint: $z_1 = W_1 \cdot [0, 0] + b_1 = b_1$, $a_1 = \sigma(b_1)$, $z_2 = W_2 \cdot a_1 + b_2$.
+
+> Reference answer:
+> Step 1: $z_1 = b_1 = [-0.1, 0.2, -0.1, 0.3]$
+> Step 2: $a_1 = \sigma(z_1) \approx [0.475, 0.550, 0.475, 0.574]$
+> Step 3: $z_2 = 0.5·0.475 + (-0.4)·0.550 + 0.6·0.475 + 0.3·0.574 + (-0.2)$
+>           $\approx 0.2375 - 0.220 + 0.285 + 0.1722 - 0.2$
+>           $\approx 0.275$
+> Step 4: $a_2 = \sigma(0.275) \approx 0.568$... wait, XOR(0,0) truth is 0, so prediction should be close to 0
+>
+> This parameter set isn't perfect (it's just for teaching). The learned $W$ would give a more accurate result.
+> The point is: **you walked through the 4 steps**.
+
 ---
 
 ## Summary

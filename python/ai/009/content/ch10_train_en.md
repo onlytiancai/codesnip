@@ -144,6 +144,28 @@ answer: A
 > This is what MLP does that single-layer perceptron can't — multi-layer + nonlinear activation.
 :::
 
+::: quiz q10-2 multiple
+In the 4-step training loop, what does the "backward" step compute? (Multiple choice)
+- A: Model prediction $\hat{y}$
+- B: Loss $L$
+- C: Gradient $\partial L / \partial W$
+- D: Bias gradient $\partial L / \partial b$
+
+answer: C,D
+
+> Backpropagation computes the **gradient of every parameter**: $\partial L / \partial W$ (C ✓) and $\partial L / \partial b$ (D ✓).
+> A is forward; B is loss computation; backward is C+D.
+:::
+
+::: quiz q10-3 short placeholder="Summarize this tutorial"
+Summarize in **2-3 sentences** the most important lesson of this tutorial.
+
+> Reference answer (not unique):
+> - "A neural network = a bunch of weights $w$ + activation $\sigma$ + gradient descent. Training is the loop: forward, backward, update. Simple, but can solve complex problems."
+> - "Neural networks aren't a black box — they're matrix multiplication + sigmoid + chain rule. Hand-compute one 2-4-1 MLP backward pass, and you'll fully understand it."
+> - "Hand-coding an MLP = entry ticket for AI jobs. XOR is the simplest test — solve XOR with a 2-4-1, and you've mastered all the basics of deep learning."
+:::
+
 ---
 
 ## 🎉 Congratulations on completing the tutorial!

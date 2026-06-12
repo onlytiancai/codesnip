@@ -98,6 +98,14 @@ answer: C
 > σ squashes any real number to the open interval (0, 1) (never quite 0 or 1, but can get arbitrarily close).
 :::
 
+::: quiz q2-3 short placeholder="Explain weight in 1 sentence to a friend"
+Explain "what is a weight" to your friend in **one sentence**.
+
+> Reference answer (not unique):
+> - "A weight is the importance score of a feature — high score means it has a big impact on the final result; negative score means it's a deduction."
+> - "A weight is 'favoritism' — features with large weights get more 'attention' from the neuron."
+> - "A weight is a volume knob — bigger weight, louder feature."
+
 ---
 
 ## Summary

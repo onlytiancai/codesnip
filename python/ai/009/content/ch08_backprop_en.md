@@ -91,6 +91,30 @@ answer: B
 > Note: bigger batch makes loss **more stable** (averages out noise).
 :::
 
+::: quiz q8-3 multiple
+What are the steps of backpropagation? (Multiple choice)
+- A: Forward pass to compute loss
+- B: Backward pass to compute gradients
+- C: Use gradients to update weights
+- D: Delete half the neurons
+
+answer: A,B,C
+
+> Standard pipeline: A → B → C → repeat.
+> A: feed in $x$, compute $\hat{y}$ and loss $L$.
+> B: chain rule from $L$ back to each $W$.
+> C: $W \leftarrow W - \alpha \cdot \frac{\partial L}{\partial W}$.
+> D ✗: deleting neurons is dropout, not backprop.
+:::
+
+::: quiz q8-4 short placeholder="Explain to your 6-year-old sibling in 1 sentence"
+Explain to your 6-year-old sibling in **one sentence**: what is "training a neural network"?
+
+> Reference answer (not unique):
+> - "Training a neural network is 'guess → see how wrong → adjust the guess' — the more you guess, the more accurate you get."
+> - "Just like learning to ride a bike — try to ride (guess), see if you fall (compute error), fall means adjust posture (update weights), and slowly you learn to ride."
+> - "Training is 'test + fix mistakes' — do a problem (guess), check the answer (compute error), correct the wrong ones (adjust)."
+
 ---
 
 ## Summary

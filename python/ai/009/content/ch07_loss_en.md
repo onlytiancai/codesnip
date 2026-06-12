@@ -80,6 +80,20 @@ answer: A,C,D
 > D ✓: loss $\geq 0$ (distance).
 :::
 
+::: quiz q7-3 short placeholder="Explain why BCE resists vanishing gradient"
+**Question**: If we replace BCE with MSE ($(y - \hat{y})^2$) and use a sigmoid output, what vanishing-gradient problem arises?
+
+> Reference answer (not unique):
+> Assume $y=1$, $\hat{y} = \sigma(z) \approx 0$ (z is very small).
+> - MSE gradient: $\frac{\partial L}{\partial z} = 2(\sigma(z) - y) \cdot \sigma'(z) = 2(0 - 1) \cdot \sigma'(z) \approx -2\,\sigma'(z)$.
+> - When z is small, $\sigma'(z) \approx 0$ → gradient ≈ 0 → weights barely update.
+>
+> Compare with BCE gradient: $\frac{\partial L}{\partial z} = \sigma(z) - y = 0 - 1 = -1$ (does **not** contain $\sigma'$).
+> - Even when z is small, the gradient is still -1 → learning is not "stuck".
+>
+> **BCE's clever "cancelling"**: it eliminates $\sigma'$ in the gradient, bypassing the vanishing-gradient problem.
+:::
+
 ---
 
 ## Summary
