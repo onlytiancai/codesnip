@@ -20,9 +20,10 @@ export const Quiz = {
     const isShort = props.data.type === "short";
     const isSingle = !isMultiple && !isShort;
 
-    // 加载已答过的状态
+    // 加载已答过的状态（key = qid:lang，中英互不覆盖）
     const existing = computed(() => {
-      return state.progress?.chapters?.[props.chapterId]?.quiz?.[props.data.id] || null;
+      const key = `${props.data.id}:${state.language}`;
+      return state.progress?.chapters?.[props.chapterId]?.quiz?.[key] || null;
     });
 
     onMounted(() => {
@@ -73,11 +74,13 @@ export const Quiz = {
     }
 
     function submit() {
+      // 存储 key 带 :lang 后缀，让 zh/en 互不覆盖
+      const key = `${props.data.id}:${state.language}`;
       if (isShort) {
         if (!shortText.value.trim()) { showToast(t("emptyShort")); return; }
         submitted.value = true;
         showExplain.value = true;
-        actions.answerQuiz(props.chapterId, props.data.id, {
+        actions.answerQuiz(props.chapterId, key, {
           type: "short",
           given: shortText.value.trim(),
           correct: null,
@@ -89,7 +92,7 @@ export const Quiz = {
       submitted.value = true;
       showExplain.value = true;
       const correct = isAnsweredCorrectly.value;
-      actions.answerQuiz(props.chapterId, props.data.id, {
+      actions.answerQuiz(props.chapterId, key, {
         type: props.data.type,
         given: selected.value.join(","),
         correct,

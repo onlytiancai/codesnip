@@ -261,19 +261,29 @@ export const ChapterView = {
     // 章节完成判定：60% 答题正确率 + (滚动到底 80% 或已答完所有题)
     // 答完所有题本身就说明看完了内容（题嵌在文中、答不出来不行）
     //
-    // 正确率分母只用"判了分"的题（单选/多选 correct=true/false）。
-    // 简答题 correct=null（不判分）只算"参与"不计入分母，
-    // 否则 4 道题里 2 道简答会把正确率压到 ≤50%、永远过不了 60% 阈值。
+    // 准确率口径：
+    //   - 单选/多选：correct=true/false 直接计入分子分母
+    //   - 简答：correct=null（不可自动判分）→ 提交即视为"已参与"，
+    //           计入分母当 1、计入分子当 1（参与 = 正确）
+    //   这样补完简答题后 60% 门槛仍可触达，不会因为分母小卡死
+    //
+    // 语言隔离：只统计当前语言的答题（answer.lang === state.language）
+    // 中英答题互不干扰；章节 status 是单一字段，任何语言达标后即标记完成
     function checkCompletion() {
       const m = meta();
       const ch = state.progress.chapters[m.id];
       if (!ch || ch.status === "completed") return;
-      const answered = Object.values(ch.quiz || {});
+      // 只取当前语言的答题
+      const answered = Object.values(ch.quiz || {}).filter(
+        (q) => q.lang === state.language
+      );
       if (answered.length === 0) return;
       const graded = answered.filter((q) => q.correct === true || q.correct === false);
-      // 没有任何可判分题（全是简答）→ 仅按"已参与"算通过
-      const correct = graded.filter((q) => q.correct === true).length;
-      const rate = graded.length === 0 ? 1 : correct / graded.length;
+      const shortAnswered = answered.filter((q) => q.correct === null).length;
+      const correct = graded.filter((q) => q.correct === true).length + shortAnswered;
+      const total = graded.length + shortAnswered;
+      // 没有任何答题记录 → 1（兜底）；否则按上面口径算
+      const rate = total === 0 ? 1 : correct / total;
       if (rate < 0.6) return;
       const totalQuizzes = m.quiz_count || 0;
       const allAnswered = totalQuizzes > 0 && answered.length >= totalQuizzes;

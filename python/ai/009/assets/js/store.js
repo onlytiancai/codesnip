@@ -82,14 +82,15 @@ export const actions = {
   },
   answerQuiz(chapterId, qid, answerObj) {
     setQuizAnswer(state.progress, chapterId, qid, answerObj);
-    state.progress.summary = calcSummary(state.progress, state.chapters);
+    // 按当前语言统计（quiz.js 传入的 key 已带 :lang 后缀，summary 也按语言分）
+    state.progress.summary = calcSummary(state.progress, state.chapters, state.language);
   },
   scrollChapter(chapterId, pct) {
     updateScrollPercent(state.progress, chapterId, pct);
   },
   completeChapter(chapterId) {
     markChapterCompleted(state.progress, chapterId);
-    state.progress.summary = calcSummary(state.progress, state.chapters);
+    state.progress.summary = calcSummary(state.progress, state.chapters, state.language);
   },
   issueCert(certObj) {
     saveCert(certObj);

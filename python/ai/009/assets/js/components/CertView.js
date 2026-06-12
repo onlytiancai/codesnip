@@ -24,8 +24,8 @@ export const CertView = {
       return s.quizzes_correct / s.quizzes_total;
     });
 
-    const passThreshold = window.PROGRESS_CONFIG.CERT_PASS_RATE;
-    const eligible = computed(() => allCompleted.value && overallScore.value >= passThreshold);
+    // 证书 = 完成证明：只看章节完成，不看准确率
+    const eligible = computed(() => allCompleted.value);
 
     const name = ref(state.studentName || "");
     const certId = ref("");
@@ -105,7 +105,6 @@ export const CertView = {
     return {
       state, t, isZh,
       completedCount, totalChapters, allCompleted, overallScore, eligible,
-      passThreshold,
       name, certId, issuedAt, issueDate,
       issue, downloadPng, print,
     };
@@ -117,7 +116,6 @@ export const CertView = {
       <p>{{ t('lockDesc') }}</p>
       <div class="progress-info">
         <div>{{ t('chaptersCompleted') }}：<strong>{{ completedCount }} / {{ totalChapters }}</strong></div>
-        <div>{{ t('correctRate') }}：<strong>{{ (overallScore * 100).toFixed(0) }}%</strong> (≥ {{ (passThreshold * 100).toFixed(0) }}%)</div>
       </div>
     </div>
 
