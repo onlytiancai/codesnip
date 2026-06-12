@@ -70,7 +70,7 @@ export const ComputeGraph = {
             " fill-opacity="0.18" :stroke="
               n.type === 'input' ? 'var(--accent2)' :
               n.type === 'hidden' ? 'var(--accent)' :
-              n.type === 'act' ? 'var(--warn)' : 'var(--danger')
+              n.type === 'act' ? 'var(--warn)' : 'var(--danger)'
             " stroke-width="1.5"/>
             <text :x="n.x" :y="n.y" text-anchor="middle" dominant-baseline="central"
                   fill="currentColor" font-size="13" font-weight="600" font-family="ui-monospace, monospace">

@@ -158,6 +158,9 @@ export const Quiz = {
         <textarea
           v-model="shortText"
           class="short-answer"
+          :name="'q-' + data.id"
+          :id="'q-' + data.id"
+          :aria-label="data.placeholder || (state.language === 'en' ? 'Short answer' : '简答')"
           :placeholder="data.placeholder || (state.language === 'en' ? 'Type your answer here...' : '在这里输入你的回答…')"
           :disabled="submitted"
         ></textarea>

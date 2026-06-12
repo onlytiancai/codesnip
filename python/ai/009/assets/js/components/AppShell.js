@@ -44,7 +44,7 @@ export const AppShell = {
 
         <div class="spacer"></div>
 
-        <select :value="state.language" @change="changeLang" aria-label="Language">
+        <select :value="state.language" @change="changeLang" name="language" id="language" aria-label="Language">
           <option value="zh">中文</option>
           <option value="en">English</option>
         </select>

@@ -76,6 +76,8 @@ export const ChapterView = {
         mdHtml.value = result.html;
         pendingBlocks.value = result.blocks;
         actions.openChapter(m.id);
+        // 用户回头看章节时，若之前已满足条件则补标记完成
+        checkCompletion();
 
         // 等两轮 microtask + 一个 rAF，确保 router-view 切完 + v-html 渲染完成
         await nextTick();
@@ -119,18 +121,27 @@ export const ChapterView = {
 
         // 解析参数
         let parsed;
-        if (type === "quiz") parsed = parseQuizBlock(args, body);
-        else if (type === "chart") parsed = parseChartBlock(args, body);
-        else if (type === "graph") parsed = parseGraphBlock(args, body);
-        else if (type === "network") parsed = parseNetworkBlock(args, body);
-        else if (type === "train-demo") parsed = parseTrainDemoBlock(args, body);
-        else if (type === "formula") parsed = parseFormulaBlock(args, body);
+        try {
+          if (type === "quiz") parsed = parseQuizBlock(args, body);
+          else if (type === "chart") parsed = parseChartBlock(args, body);
+          else if (type === "graph") parsed = parseGraphBlock(args, body);
+          else if (type === "network") parsed = parseNetworkBlock(args, body);
+          else if (type === "train-demo") parsed = parseTrainDemoBlock(args, body);
+          else if (type === "formula") parsed = parseFormulaBlock(args, body);
+        } catch (e) {
+          console.error(`[mountBlocks] parse error for block ${blockId} (${type}):`, e);
+          return;
+        }
 
-        // 用 Vue 创建子应用挂载到占位 div
-        const subApp = createApp({ render: () => h(Comp, { data: parsed, chapterId: props.id }) });
-        provideStore(subApp);  // 子 app 也注入同一个 store
-        subApp.mount(el);
-        mountedApps.push(subApp);
+        // 用 Vue 创建子应用挂载到占位 div（单块挂载失败不影响其他块）
+        try {
+          const subApp = createApp({ render: () => h(Comp, { data: parsed, chapterId: props.id }) });
+          provideStore(subApp);  // 子 app 也注入同一个 store
+          subApp.mount(el);
+          mountedApps.push(subApp);
+        } catch (e) {
+          console.error(`[mountBlocks] mount error for block ${blockId} (${type}):`, e);
+        }
       });
       pendingBlocks.value = [];
     }
@@ -158,6 +169,7 @@ export const ChapterView = {
             { left: "\\(", right: "\\)", display: false },
           ],
           throwOnError: false,
+          strict: "ignore",  // \text{} 里出现 → 等未识别 Unicode 时不再 warn
         });
       } catch (e) { console.warn("KaTeX render failed:", e); }
     }
@@ -174,8 +186,7 @@ export const ChapterView = {
         if (pct - lastPct >= 5) {
           lastPct = pct;
           actions.scrollChapter(m.id, pct);
-          // 80% 滚动 + 60% 答题正确率 = 完成
-          if (pct >= 80) checkCompletion();
+          checkCompletion();
         }
       };
       window.addEventListener("scroll", onScroll, { passive: true });
@@ -183,18 +194,29 @@ export const ChapterView = {
       ChapterView._scrollListener = onScroll;
     }
 
+    // 章节完成判定：60% 答题正确率 + (滚动到底 80% 或已答完所有题)
+    // 答完所有题本身就说明看完了内容（题嵌在文中、答不出来不行）
+    //
+    // 正确率分母只用"判了分"的题（单选/多选 correct=true/false）。
+    // 简答题 correct=null（不判分）只算"参与"不计入分母，
+    // 否则 4 道题里 2 道简答会把正确率压到 ≤50%、永远过不了 60% 阈值。
     function checkCompletion() {
       const m = meta();
       const ch = state.progress.chapters[m.id];
       if (!ch || ch.status === "completed") return;
       const answered = Object.values(ch.quiz || {});
       if (answered.length === 0) return;
-      const correct = answered.filter((q) => q.correct === true).length;
-      const rate = correct / Math.max(1, answered.length);
-      if (rate >= 0.6) {
-        actions.completeChapter(m.id);
-        showToast(t("chapterCompleted") + " 🎉");
-      }
+      const graded = answered.filter((q) => q.correct === true || q.correct === false);
+      // 没有任何可判分题（全是简答）→ 仅按"已参与"算通过
+      const correct = graded.filter((q) => q.correct === true).length;
+      const rate = graded.length === 0 ? 1 : correct / graded.length;
+      if (rate < 0.6) return;
+      const totalQuizzes = m.quiz_count || 0;
+      const allAnswered = totalQuizzes > 0 && answered.length >= totalQuizzes;
+      const scrolled = (ch.scroll_percent || 0) >= 80;
+      if (!allAnswered && !scrolled) return;
+      actions.completeChapter(m.id);
+      showToast(t("chapterCompleted") + " 🎉");
     }
 
     function showToast(msg) {
@@ -217,6 +239,12 @@ export const ChapterView = {
 
     watch(() => props.id, loadChapter);
     watch(() => state.language, loadChapter);
+    // 用户答题后立即重判完成状态（不依赖滚动事件）
+    watch(
+      () => state.progress?.chapters?.[props.id]?.quiz,
+      () => checkCompletion(),
+      { deep: true }
+    );
 
     return { state, mdHtml, loading, error, meta, getAdjacent, t };
   },

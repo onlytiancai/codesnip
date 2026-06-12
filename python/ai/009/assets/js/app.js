@@ -19,6 +19,35 @@ import { Formula } from "./components/Formula.js";
 import { SigmoidSlider } from "./components/SigmoidSlider.js";
 import { MathSlider } from "./components/MathSlider.js";
 
+// 给 KaTeX 默认关掉 strict 警告
+// （公式里 \text{...} 出现 → 等 Unicode 时，KaTeX 0.16.9 默认 strict="warn" 会刷屏，
+//  对正确渲染无影响，关掉即可）
+(function patchKaTeX() {
+  function tryPatch() {
+    if (!window.katex || window.__katexPatched) return;
+    const k = window.katex;
+    const origRender = k.render;
+    const origRenderToString = k.renderToString;
+    function withStrict(options) {
+      const o = options || {};
+      if (o.strict === undefined) o.strict = "ignore";
+      return o;
+    }
+    k.render = function (tex, node, options) {
+      return origRender.call(this, tex, node, withStrict(options));
+    };
+    k.renderToString = function (tex, options) {
+      return origRenderToString.call(this, tex, withStrict(options));
+    };
+    window.__katexPatched = true;
+  }
+  if (window.katex) tryPatch();
+  else window.addEventListener("DOMContentLoaded", tryPatch);
+  // katex 标签带 defer，等下一个 tick 再补一次
+  setTimeout(tryPatch, 0);
+  setTimeout(tryPatch, 200);
+})();
+
 async function bootstrap() {
   // 1) 加载 chapters.json
   const res = await fetch("chapters.json");
