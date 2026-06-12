@@ -5,6 +5,7 @@ import { I18N, pick } from "../i18n.js";
 export const Sidebar = {
   setup() {
     const { state } = useStore();
+    const t = (key) => pick(I18N.ui[key] || { zh: key, en: key }, state.language);
 
     function chapterStatus(id) {
       return state.progress?.chapters?.[id]?.status || "locked";
@@ -25,11 +26,11 @@ export const Sidebar = {
       return state.chaptersMap[id]?.is_optional || false;
     }
 
-    return { state, chapterStatus, isCompleted, isLocked, go, isOptional };
+    return { state, t, chapterStatus, isCompleted, isLocked, go, isOptional };
   },
   template: `
     <aside class="sidebar">
-      <h3>📚 章节目录</h3>
+      <h3>📚 {{ t('chaptersTitle') }}</h3>
       <a
         v-for="ch in state.chapters"
         :key="ch.id"
@@ -48,14 +49,14 @@ export const Sidebar = {
         </span>
       </a>
 
-      <h3 style="margin-top:24px">🏆 结业</h3>
+      <h3 style="margin-top:24px">🏆 {{ t('certTitle') }}</h3>
       <a
         href="#/cert"
         class="chapter-link"
         :class="{ active: $route.name === 'cert' }"
       >
         <span class="chapter-num">🎓</span>
-        <span class="chapter-title">结业证书 / Certificate</span>
+        <span class="chapter-title">{{ t('certLink') }}</span>
       </a>
     </aside>
   `,

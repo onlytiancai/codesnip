@@ -31,13 +31,12 @@ button:hover:not(:disabled) {
 button:active:not(:disabled) { transform: scale(0.97); }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 button.primary {
-  background: linear-gradient(135deg, #10b981, #0ea5e9);
+  background: var(--accent);
   color: #fff;
   border: none;
   font-weight: 600;
 }
-button.primary:hover:not(:disabled) { filter: brightness(1.05); }
-[data-theme="dark"] button.primary:hover { color: #0f172a; }
+button.primary:hover:not(:disabled) { filter: brightness(0.9); }
 button.ghost { background: transparent; }
 
 input, textarea, select {

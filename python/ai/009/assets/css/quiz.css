@@ -7,8 +7,7 @@
   margin: 24px 0;
   position: relative;
 }
-.quiz::before {
-  content: "测试题";
+.quiz .quiz-label {
   position: absolute;
   top: -10px;
   left: 20px;
@@ -20,8 +19,6 @@
   font-weight: 700;
   letter-spacing: 0.5px;
 }
-.quiz.q-short::before { content: "简答题"; }
-.quiz.q-multiple::before { content: "多选题"; }
 
 .quiz .quiz-prompt {
   font-size: 15px;
@@ -126,8 +123,7 @@
   line-height: 1.6;
   color: var(--text);
 }
-.quiz .explain::before {
-  content: "💡 答案解析";
+.quiz .explain .explain-label {
   display: block;
   font-weight: 700;
   color: var(--warn);

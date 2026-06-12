@@ -124,6 +124,10 @@ export const Quiz = {
   },
   template: `
     <div :class="['quiz', isMultiple ? 'q-multiple' : '', isShort ? 'q-short' : '']">
+      <div class="quiz-label">
+        {{ isShort ? t('quizShort') : (isMultiple ? t('quizMultiple') : t('quizLabel')) }}
+      </div>
+
       <div v-if="existing && submitted" :class="['answered-badge', existing.correct === true ? 'correct' : (existing.correct === false ? 'wrong' : '')]">
         {{ t('answered') }}
       </div>
@@ -191,11 +195,12 @@ export const Quiz = {
       </div>
 
       <!-- 答案解析（折叠） -->
-      <div v-if="showExplain && data.explain" class="explain" v-html="renderMarkdownSafe(data.explain)"></div>
+      <div v-if="showExplain && data.explain" class="explain">
+        <div class="explain-label">{{ t('quizExplain') }}</div>
+        <div v-html="renderMarkdownSafe(data.explain)"></div>
+      </div>
       <div v-if="showExplain && isShort && data.model_answer" class="explain">
-        <div style="font-weight:700; color:var(--warn); margin-bottom:6px; font-size:12px; letter-spacing:0.5px">
-          💡 {{ t('refAnswer') }}
-        </div>
+        <div class="explain-label">{{ t('refAnswer') }}</div>
         <div v-html="renderMarkdownSafe(data.model_answer)"></div>
       </div>
     </div>

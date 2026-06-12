@@ -46,6 +46,12 @@ export const I18N = {
     overallScore: { zh: "总得分", en: "Overall Score" },
     chaptersCompleted: { zh: "完成章节", en: "Chapters" },
     certificateId: { zh: "证书编号", en: "Cert ID" },
+    quizLabel: { zh: "测试题", en: "Quiz" },
+    quizMultiple: { zh: "多选题", en: "Multiple Choice" },
+    quizShort: { zh: "简答题", en: "Short Answer" },
+    quizExplain: { zh: "💡 答案解析", en: "💡 Explanation" },
+    certTitle: { zh: "结业", en: "Certificate" },
+    certLink: { zh: "结业证书", en: "Certificate" },
   },
   quiz: {
     noAnswer: { zh: "请先选择一个选项", en: "Please select an option first" },
