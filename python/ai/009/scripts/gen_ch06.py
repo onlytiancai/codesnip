@@ -64,13 +64,13 @@ def compute_graph():
         else:
             circle = plt.Circle((x, y), size, fc=c, ec=c, alpha=0.3, lw=2.5)
             ax.add_patch(circle)
-            ax.text(x, y, lbl, ha="center", va="center", fontsize=12, fontweight="bold", color="white")
+            # alpha=0.3 时白字在白底上不可见，改用深色字
+            ax.text(x, y, lbl, ha="center", va="center", fontsize=12, fontweight="bold", color=TEXT)
         ax.text(x, y - 1.0, sub, ha="center", fontsize=9, color=MUTED)
 
-    # 箭头
+    # 数据流实线：主循环跳过涉及 W_1, b_1 的连接，由下面手动绘制
     for i in range(len(nodes) - 1):
         if nodes[i][2] == r"$W_1, b_1$" or nodes[i+1][2] == r"$W_1, b_1$":
-            # 跳过 W_1, b_1（连到 W_1, b_1 的特殊样式）
             continue
         x1, x2 = nodes[i][0] + 0.6, nodes[i+1][0] - 0.6
         if nodes[i+1][2] == "σ":
@@ -78,12 +78,15 @@ def compute_graph():
         ax.annotate("", xy=(x2, 2), xytext=(x1, 2),
                     arrowprops=dict(arrowstyle="->", lw=1.8, color=TEXT))
 
-    # 标注 W_1, b_1 从 W_1, b_1 指向 z_1
+    # X → z_1（数据流实线，跨过 W_1, b_1，从上方绕弧）
+    ax.annotate("", xy=(nodes[2][0] - 0.6, 2), xytext=(nodes[0][0] + 0.6, 2),
+                arrowprops=dict(arrowstyle="->", lw=1.8, color=TEXT,
+                                connectionstyle="arc3,rad=-0.5"))
+
+    # W_1, b_1 → z_1（参数虚线，从 W_1, b_1 右上方引出）
     w_x = nodes[1][0]
     z_x = nodes[2][0]
-    ax.annotate("", xy=(z_x - 0.6, 2), xytext=(w_x + 0.5, 2.5),
-                arrowprops=dict(arrowstyle="->", lw=1.5, color=ACCENT2, linestyle="--"))
-    ax.annotate("", xy=(nodes[5][0] - 0.6, 2), xytext=(w_x + 0.5, 1.5),
+    ax.annotate("", xy=(z_x - 0.6, 2), xytext=(w_x + 0.45, 2.4),
                 arrowprops=dict(arrowstyle="->", lw=1.5, color=ACCENT2, linestyle="--"))
 
     legend = "Solid = data flow; dashed = params" if IS_EN else "实线 = 数据流；虚线 = 参数作用"

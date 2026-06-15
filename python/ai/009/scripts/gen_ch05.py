@@ -27,7 +27,8 @@ def mlp_topology(lang="zh"):
     ax.set_xlim(0, 10); ax.set_ylim(0, 7)
     ax.axis("off")
 
-    ax.text(5, 6.5, "2 → 4 → 1 MLP 拓扑", ha="center", fontsize=16, fontweight="bold", color=TEXT)
+    ax.text(5, 6.5, "2 → 4 → 1 MLP " + ("Topology" if is_en else "拓扑"),
+            ha="center", fontsize=16, fontweight="bold", color=TEXT)
 
     # 3 层节点
     layers = [
@@ -39,7 +40,8 @@ def mlp_topology(lang="zh"):
         for (px, py), lbl in zip(positions, labels):
             c = plt.Circle((px, py), 0.4, fc=color, ec=color, alpha=0.4, lw=2.5)
             ax.add_patch(c)
-            ax.text(px, py, lbl, ha="center", va="center", fontsize=11, fontweight="bold", color="white")
+            # alpha=0.4 时白字在白底上不可见，改用深色字
+            ax.text(px, py, lbl, ha="center", va="center", fontsize=12, fontweight="bold", color=TEXT)
         ax.text(positions[0][0], 0.4, f"{layer_name} ({len(positions)})",
                 ha="center", fontsize=10, color=MUTED)
 

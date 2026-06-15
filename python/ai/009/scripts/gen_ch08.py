@@ -29,7 +29,7 @@ def chain_rule_backprop():
     ax.set_xlim(0, 14); ax.set_ylim(0, 6)
     ax.axis("off")
 
-    title = "Backprop: from L back to W₁ (chain rule, 4 steps)" if IS_EN else "反向传播：从 L 一路反推到 W₁（4 步链式法则）"
+    title = r"Backprop: from $L$ back to $W_1$ (chain rule, 4 steps)" if IS_EN else r"反向传播：从 $L$ 一路反推到 $W_1$（4 步链式法则）"
     ax.text(7, 5.5, title, ha="center", fontsize=14, fontweight="bold", color=TEXT)
 
     # 节点（同 ch06，用 mathtext 下标保持一致）
@@ -49,7 +49,8 @@ def chain_rule_backprop():
                 boxstyle="round,pad=0.05", fc=c, ec=c, alpha=0.2, lw=2))
         else:
             ax.add_patch(plt.Circle((x, y), 0.4, fc=c, ec=c, alpha=0.3, lw=2.5))
-        ax.text(x, y, lbl, ha="center", va="center", fontsize=11, fontweight="bold", color="white")
+        # alpha=0.2~0.3 时白字在白底上不可见，改用深色字（σ 也一样）
+        ax.text(x, y, lbl, ha="center", va="center", fontsize=12, fontweight="bold", color=TEXT)
 
     # 前向箭头（黑色实线，向右）
     for i in range(len(nodes) - 1):
