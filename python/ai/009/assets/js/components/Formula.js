@@ -12,13 +12,21 @@ export const Formula = {
         setTimeout(() => onMounted(), 50);
         return;
       }
+      // ::: formula 块的 body 形如 "$$\n...\n$$"（display）或 "$...$"（inline）。
+      // 把整段喂给 KaTeX 会让它把首尾的 $ 当函数 token 报错，
+      // 因此 display 模式先剥掉首尾的 $$\n...\n$$ 包裹符再渲染。
+      const display = props.data.display !== false;
+      const raw = props.data.body;
+      const tex = display
+        ? (raw.match(/^\$\$([\s\S]*?)\$\$$/) ? RegExp.$1.trim() : raw)
+        : raw;
       try {
-        window.katex.render(props.data.body, ref0.value, {
+        window.katex.render(tex, ref0.value, {
           throwOnError: false,
-          displayMode: props.data.display !== false,
+          displayMode: display,
         });
       } catch (e) {
-        ref0.value.textContent = props.data.body;
+        ref0.value.textContent = raw;
       }
     });
 

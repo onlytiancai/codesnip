@@ -58,8 +58,9 @@ function makePlaceholder(type, args, body, idx) {
   // 用 data-block-type 标记，ChapterView 扫描后用对应 Vue 组件替换
   const safeArgs = encodeURIComponent(args);
   const safeBody = encodeURIComponent(body);
-  // 用一个唯一占位 ID（虽然同一章节里 id 唯一即可）
-  return `<div data-block-id="${idx}" data-block-type="${type}" data-block-args="${safeArgs}" data-block-body="${safeBody}"></div>`;
+  // 占位 div 前后各加一个空行，强制 marked 把它当作独立 block。
+  // 否则紧跟 `> 引用` 时 marked 的 HTML block 规则会把引用吞进 div 当 inline 文本。
+  return `\n\n<div data-block-id="${idx}" data-block-type="${type}" data-block-args="${safeArgs}" data-block-body="${safeBody}"></div>\n\n`;
 }
 
 // ====== 解析 quiz 块 ======
