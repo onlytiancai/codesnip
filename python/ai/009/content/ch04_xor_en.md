@@ -21,6 +21,14 @@ Visually: 4 points on a diagonal. $(0,0)$ and $(1,1)$ are "off" (y=0); $(0,1)$ a
 ![XOR](assets/images/ch04_xor_scatter.png)
 :::
 
+::: perceptron-playground
+:::
+
+**How can the 4 points be split?** Drag the sliders to move the line—
+- **AND**: put (1,1) in the bright region, the other 3 in the dark region
+- **OR**: put (0,0) in the dark region, the other 3 in the bright region
+- **XOR**: try it — can you classify all 4 points correctly?
+
 **Try**:
 - A line with positive slope? $(0,1)$ and $(1,0)$ on one side, but $(0,0)$ and $(1,1)$ end up on the same side ✗
 - A line with negative slope? Same problem ✗

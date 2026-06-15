@@ -18,6 +18,7 @@ import { TrainDemo } from "./components/TrainDemo.js";
 import { Formula } from "./components/Formula.js";
 import { SigmoidSlider } from "./components/SigmoidSlider.js";
 import { MathSlider } from "./components/MathSlider.js";
+import { PerceptronPlayground } from "./components/PerceptronPlayground.js";
 
 // 给 KaTeX 默认关掉 strict 警告
 // （公式里 \text{...} 出现 → 等 Unicode 时，KaTeX 0.16.9 默认 strict="warn" 会刷屏，
@@ -75,6 +76,7 @@ async function bootstrap() {
   app.component("Formula", Formula);
   app.component("SigmoidSlider", SigmoidSlider);
   app.component("MathSlider", MathSlider);
+  app.component("PerceptronPlayground", PerceptronPlayground);
 
   // 6) 挂载
   app.mount("#app");

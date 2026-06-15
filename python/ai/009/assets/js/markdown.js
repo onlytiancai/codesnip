@@ -8,7 +8,7 @@
 const { marked } = window.marked;
 const DOMPurify = window.DOMPurify;
 
-export const BLOCK_TYPES = ["quiz", "chart", "graph", "network", "train-demo", "formula"];
+export const BLOCK_TYPES = ["quiz", "chart", "graph", "network", "train-demo", "formula", "perceptron-playground"];
 
 // 配置 marked
 function configureMarked() {
@@ -167,6 +167,10 @@ export function parseNetworkBlock(args, body) { return { args, body: body.trim()
 export function parseTrainDemoBlock(args, body) { return { args, body: body.trim() }; }
 export function parseFormulaBlock(args, body) {
   return { body: body.trim(), display: !args.includes("inline") };
+}
+
+export function parsePerceptronPlaygroundBlock(args, body) {
+  return { args: args.trim(), body: body.trim() };
 }
 
 // ====== 等待 KaTeX 加载 ======

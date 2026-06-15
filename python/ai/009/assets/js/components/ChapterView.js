@@ -8,13 +8,15 @@
 import { ref, onMounted, onBeforeUnmount, watch, nextTick, createApp, h } from "vue";
 import { useStore, provideStore } from "../store.js";
 import { renderMarkdown, parseQuizBlock, parseChartBlock,
-         parseGraphBlock, parseNetworkBlock, parseTrainDemoBlock, parseFormulaBlock } from "../markdown.js";
+         parseGraphBlock, parseNetworkBlock, parseTrainDemoBlock, parseFormulaBlock,
+         parsePerceptronPlaygroundBlock } from "../markdown.js";
 import { Quiz } from "./Quiz.js";
 import { ChartBlock } from "./ChartBlock.js";
 import { ComputeGraph } from "./ComputeGraph.js";
 import { NetworkViz } from "./NetworkViz.js";
 import { TrainDemo } from "./TrainDemo.js";
 import { Formula } from "./Formula.js";
+import { PerceptronPlayground } from "./PerceptronPlayground.js";
 import { I18N, pick } from "../i18n.js";
 
 const COMP_MAP = {
@@ -24,6 +26,7 @@ const COMP_MAP = {
   "network": NetworkViz,
   "train-demo": TrainDemo,
   "formula": Formula,
+  "perceptron-playground": PerceptronPlayground,
 };
 
 export const ChapterView = {
@@ -169,6 +172,7 @@ export const ChapterView = {
           else if (type === "network") parsed = parseNetworkBlock(args, localizedBody);
           else if (type === "train-demo") parsed = parseTrainDemoBlock(args, localizedBody);
           else if (type === "formula") parsed = parseFormulaBlock(args, localizedBody);
+          else if (type === "perceptron-playground") parsed = parsePerceptronPlaygroundBlock(args, localizedBody);
         } catch (e) {
           console.error(`[mountBlocks] parse error for block ${blockId} (${type}):`, e);
           return;
