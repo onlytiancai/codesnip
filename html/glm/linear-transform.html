@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>向量线性变换演示 · Linear Transform</title>
+<style>
+  :root {
+    --bg: #eef2ff;
+    --bg2: #f8faff;
+    --panel: #ffffff;
+    --panel-2: #f1f5f9;
+    --border: #d8e0ea;
+    --text: #0f172a;
+    --muted: #64748b;
+    --accent: #2563eb;
+    --accent2: #7c3aed;
+    --i-hat: #dc2626;
+    --j-hat: #16a34a;
+    --vec: #2563eb;
+    --vec-out: #7c3aed;
+    --warn: #d97706;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, var(--bg), var(--bg2));
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px;
+    line-height: 1.6;
+  }
+  .head { max-width: 1200px; margin: 0 auto 20px; }
+  h1 {
+    font-size: 1.7rem;
+    font-weight: 800;
+    background: linear-gradient(120deg, #2563eb, #7c3aed);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4px;
+  }
+  .subtitle { color: var(--muted); font-size: 0.95rem; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  @media (max-width: 960px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 30px rgba(37,99,235,0.08);
+  }
+  .card + .card { margin-top: 18px; }
+
+  .canvas-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+  canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: 12px;
+    background: #fbfdff;
+    cursor: crosshair;
+  }
+
+  /* preset chips */
+  .preset-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .pbtn {
+    flex: 1 1 auto;
+    min-width: 72px;
+    padding: 10px 8px;
+    background: var(--panel-2);
+    border: 2px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .pbtn:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .pbtn.active {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(37,99,235,0.35);
+  }
+
+  /* matrix display */
+  .matrix-block {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: center;
+    margin: 6px 0 4px;
+  }
+  .bracket {
+    width: 14px; height: 96px;
+    border: 3px solid var(--accent);
+    border-radius: 4px;
+  }
+  .bracket.left { border-right: none; }
+  .bracket.right { border-left: none; }
+  .matrix-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 4px 18px;
+  }
+  .mcell {
+    width: 64px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "SF Mono", "Consolas", monospace;
+    font-size: 1rem; font-weight: 700;
+    border-radius: 8px;
+    background: var(--panel-2);
+  }
+  .mcell.a { color: var(--i-hat); }
+  .mcell.d { color: var(--j-hat); }
+
+  .legend {
+    display: flex; gap: 18px; justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    font-size: 0.85rem; color: var(--muted);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i {
+    width: 14px; height: 4px; border-radius: 2px; display: inline-block;
+  }
+
+  /* sliders */
+  .slider-group { margin-bottom: 14px; }
+  .slider-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+  }
+  .slider-label .name { font-weight: 700; }
+  .slider-label .name sub { font-size: 0.72rem; }
+  .slider-label .val {
+    font-family: "SF Mono", "Consolas", monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    min-width: 48px; text-align: right;
+  }
+  .slider-label .val.a { color: var(--i-hat); }
+  .slider-label .val.d { color: var(--j-hat); }
+  .slider-label .val.b, .slider-label .val.c { color: var(--accent2); }
+
+  input[type=range] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    background: linear-gradient(90deg, #dc2626, #cbd5e1, #16a34a);
+    border-radius: 5px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: 3px solid var(--accent);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: 3px solid var(--accent);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+
+  .actions { display: flex; gap: 8px; margin-top: 6px; }
+  .small-btn {
+    flex: 1;
+    padding: 9px;
+    background: var(--panel-2);
+    border: 2px solid var(--border);
+    color: var(--text);
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all .15s;
+  }
+  .small-btn:hover { border-color: var(--accent); background: #e0e7ff; }
+  .small-btn.primary {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff; border-color: var(--accent);
+  }
+  .small-btn.primary:hover { filter: brightness(1.05); }
+
+  .stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--panel-2);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  .stat .big {
+    font-size: 1.05rem;
+    font-weight: 800;
+    font-family: "SF Mono", monospace;
+    color: var(--text);
+  }
+  .stat.det-zero { background: #fef3c7; }
+  .stat.det-zero .big { color: var(--warn); }
+
+  .hint {
+    font-size: 0.82rem; color: var(--muted);
+    margin-top: 12px; text-align: center;
+  }
+  kbd {
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1px 6px; font-size: 0.78rem;
+  }
+  .section-title {
+    font-size: 0.82rem; font-weight: 800; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin: 4px 0 12px;
+  }
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>向量线性变换演示</h1>
+  <div class="subtitle">拖动滑杆改变 2×2 矩阵 A，观察任意输入向量 v 如何被映射到 Av。也可选择经典变换预设。</div>
+</div>
+
+<div class="layout">
+  <!-- LEFT: visualization -->
+  <div>
+    <div class="card">
+      <div class="canvas-wrap">
+        <canvas id="cv"></canvas>
+      </div>
+      <div class="legend">
+        <span><i style="background:#94a3b8"></i> 原始单位基向量</span>
+        <span><i style="background:var(--i-hat)"></i> î' = A·(1,0)</span>
+        <span><i style="background:var(--j-hat)"></i> ĵ' = A·(0,1)</span>
+        <span><i style="background:var(--vec)"></i> 输入 v</span>
+        <span><i style="background:var(--vec-out)"></i> 输出 Av</span>
+      </div>
+      <div class="hint">提示：在画布上 <kbd>拖动</kbd> 蓝色向量 v 可改变输入；<kbd>双击</kbd> 随机生成新的 v。</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: controls -->
+  <div>
+    <div class="card">
+      <div class="section-title">经典变换预设</div>
+      <div class="preset-row">
+        <button class="pbtn" data-preset="identity">单位</button>
+        <button class="pbtn" data-preset="rotate">旋转</button>
+        <button class="pbtn" data-preset="mirrorX">x 轴镜像</button>
+        <button class="pbtn" data-preset="mirrorY">y 轴镜像</button>
+      </div>
+      <div class="preset-row">
+        <button class="pbtn" data-preset="scale">均匀拉伸</button>
+        <button class="pbtn" data-preset="shearX">水平剪切</button>
+        <button class="pbtn" data-preset="shearY">垂直剪切</button>
+        <button class="pbtn" data-preset="random">随机</button>
+      </div>
+
+      <div class="section-title" style="margin-top:6px">变换矩阵 A</div>
+      <div class="matrix-block">
+        <div class="bracket left"></div>
+        <div class="matrix-grid">
+          <div class="mcell a" id="m-a">1.00</div>
+          <div class="mcell d" id="m-d">0.00</div>
+          <div class="mcell b" id="m-b">0.00</div>
+          <div class="mcell c" id="m-c">1.00</div>
+        </div>
+        <div class="bracket right"></div>
+      </div>
+      <div class="hint" style="margin-top:8px">列向量即变换后的基：第 1 列是 î'，第 2 列是 ĵ'。</div>
+
+      <div class="actions" style="margin-top:14px">
+        <button class="small-btn" id="btn-reset">重置为单位阵</button>
+        <button class="small-btn primary" id="btn-animate">播放变换动画</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">矩阵分量（拖动滑杆）</div>
+
+      <div class="slider-group">
+        <div class="slider-label">
+          <span class="name">a &nbsp;(<span style="color:var(--i-hat)">î'</span>.x)</span>
+          <span class="val a" id="v-a">1.00</span>
+        </div>
+        <input type="range" id="s-a" min="-3" max="3" step="0.01" value="1">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label">
+          <span class="name">b &nbsp;(<span style="color:var(--j-hat)">ĵ'</span>.x)</span>
+          <span class="val b" id="v-b">0.00</span>
+        </div>
+        <input type="range" id="s-b" min="-3" max="3" step="0.01" value="0">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label">
+          <span class="name">c &nbsp;(<span style="color:var(--i-hat)">î'</span>.y)</span>
+          <span class="val c" id="v-c">0.00</span>
+        </div>
+        <input type="range" id="s-c" min="-3" max="3" step="0.01" value="0">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label">
+          <span class="name">d &nbsp;(<span style="color:var(--j-hat)">ĵ'</span>.y)</span>
+          <span class="val d" id="v-d">1.00</span>
+        </div>
+        <input type="range" id="s-d" min="-3" max="3" step="0.01" value="1">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">信息</div>
+      <div class="stat">
+        <span>输入向量 v</span>
+        <span class="big" id="info-v">(1.00, 1.00)</span>
+      </div>
+      <div class="stat">
+        <span>输出 Av</span>
+        <span class="big" id="info-av">(1.00, 1.00)</span>
+      </div>
+      <div class="stat" id="stat-det">
+        <span>行列式 det(A)</span>
+        <span class="big" id="info-det">1.00</span>
+      </div>
+      <div class="stat">
+        <span>面积缩放</span>
+        <span class="big" id="info-area">×1.00</span>
+      </div>
+      <div class="hint" style="text-align:left">
+        det &gt; 0：保持方向（不翻转） · det = 0：降维坍缩 · det &lt; 0：翻转方向
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const canvas = document.getElementById('cv');
+  const ctx = canvas.getContext('2d');
+
+  // ---- state ----
+  // Matrix stored column-major visually: A = [[a,b],[c,d]]
+  // first column = image of î = (a, c); second column = image of ĵ = (b, d)
+  const state = {
+    a: 1, b: 0, c: 0, d: 1,
+    v: { x: 1.2, y: 1.6 },      // input vector (in math coords)
+    dragging: false,
+    // animation
+    animating: false,
+    animFrom: null, animTo: null, animStart: 0, animDur: 800,
+  };
+
+  const RANGE = 4;            // visible coordinate half-range (math units)
+  let SIZE = 560, SCALE = 1, CX = 0, CY = 0;
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    SIZE = Math.min(rect.width, rect.height);
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    SCALE = (Math.min(rect.width, rect.height) / 2) * 0.92 / RANGE;
+    CX = rect.width / 2;
+    CY = rect.height / 2;
+  }
+  window.addEventListener('resize', () => { resize(); draw(); });
+
+  // math -> screen
+  function sx(x) { return CX + x * SCALE; }
+  function sy(y) { return CY - y * SCALE; }
+  // screen -> math
+  function mx(px) { return (px - CX) / SCALE; }
+  function my(py) { return -(py - CY) / SCALE; }
+
+  // apply current matrix (or a provided one) to a vector
+  function apply(m, x, y) {
+    return {
+      x: m.a * x + m.b * y,
+      y: m.c * x + m.d * y,
+    };
+  }
+  function curMat() { return { a: state.a, b: state.b, c: state.c, d: state.d }; }
+  function interpMat(t) {
+    const f = state.animFrom, to = state.animTo;
+    return {
+      a: f.a + (to.a - f.a) * t,
+      b: f.b + (to.b - f.b) * t,
+      c: f.c + (to.c - f.c) * t,
+      d: f.d + (to.d - f.d) * t,
+    };
+  }
+
+  // ---- drawing ----
+  function drawGrid(m) {
+    // transformed grid lines (light), drawn through the whole viewport
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(148,163,184,0.35)';
+    // We sample a coarse set of grid lines x = k, y = k for k in [-RANGE..RANGE]
+    const N = RANGE;
+    for (let k = -N; k <= N; k++) {
+      // vertical line x=k from y=-N..N
+      drawSeg(apply(m, k, -N), apply(m, k, N));
+      // horizontal line y=k
+      drawSeg(apply(m, -N, k), apply(m, N, k));
+    }
+    // also faint original grid
+    ctx.strokeStyle = 'rgba(203,213,225,0.35)';
+    ctx.setLineDash([3, 4]);
+    for (let k = -N; k <= N; k++) {
+      drawSegRaw(k, -N, k, N);
+      drawSegRaw(-N, k, N, k);
+    }
+    ctx.setLineDash([]);
+  }
+
+  function drawAxes(m) {
+    ctx.lineWidth = 1.6;
+    ctx.strokeStyle = 'rgba(71,85,105,0.65)';
+    // x-axis: transform the line y=0
+    drawSeg(apply(m, -N_AXIS(), 0), apply(m, N_AXIS(), 0));
+    // y-axis: transform line x=0
+    drawSeg(apply(m, 0, -N_AXIS()), apply(m, 0, N_AXIS()));
+  }
+  function N_AXIS() { return RANGE; }
+
+  function drawSeg(p, q) { // math coords
+    ctx.beginPath();
+    ctx.moveTo(sx(p.x), sy(p.y));
+    ctx.lineTo(sx(q.x), sy(q.y));
+    ctx.stroke();
+  }
+  function drawSegRaw(x1, y1, x2, q2) {
+    ctx.beginPath();
+    ctx.moveTo(sx(x1), sy(y1));
+    ctx.lineTo(sx(x2), sy(q2));
+    ctx.stroke();
+  }
+
+  function drawArrow(from, to, color, width, dashed) {
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = width;
+    if (dashed) ctx.setLineDash([6, 5]); else ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(sx(from.x), sy(from.y));
+    ctx.lineTo(sx(to.x), sy(to.y));
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // arrowhead
+    const ang = Math.atan2(sy(to.y) - sy(from.y), sx(to.x) - sx(from.x));
+    const h = 11;
+    ctx.beginPath();
+    ctx.moveTo(sx(to.x), sy(to.y));
+    ctx.lineTo(sx(to.x) - h * Math.cos(ang - 0.4), sy(to.y) + h * Math.sin(ang - 0.4));
+    ctx.lineTo(sx(to.x) - h * Math.cos(ang + 0.4), sy(to.y) + h * Math.sin(ang + 0.4));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawVectorLabel(to, text, color) {
+    ctx.fillStyle = color;
+    ctx.font = '700 13px "SF Mono", Consolas, monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, sx(to.x) + 8, sy(to.y) - 8);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let m;
+    if (state.animating) {
+      const t = Math.min(1, (performance.now() - state.animStart) / state.animDur);
+      const e = easeInOut(t);
+      m = interpMat(e);
+      if (t >= 1) { state.animating = false; m = curMat(); }
+    } else {
+      m = curMat();
+    }
+
+    // background transformed grid
+    drawGrid(m);
+    drawAxes(m);
+
+    // origin
+    ctx.fillStyle = '#334155';
+    ctx.beginPath(); ctx.arc(sx(0), sy(0), 3.5, 0, Math.PI*2); ctx.fill();
+
+    // original basis (very faint reference)
+    drawArrow({x:0,y:0}, {x:1,y:0}, 'rgba(148,163,184,0.55)', 2.2);
+    drawArrow({x:0,y:0}, {x:0,y:1}, 'rgba(148,163,184,0.55)', 2.2);
+
+    // transformed basis: î' = first column (a,c), ĵ' = second column (b,d)
+    const iHat = { x: m.a, y: m.c };
+    const jHat = { x: m.b, y: m.d };
+    drawArrow({x:0,y:0}, iHat, getCss('--i-hat'), 3.2);
+    drawVectorLabel(iHat, "î'", getCss('--i-hat'));
+    drawArrow({x:0,y:0}, jHat, getCss('--j-hat'), 3.2);
+    drawVectorLabel(jHat, "ĵ'", getCss('--j-hat'));
+
+    // parallelogram spanned by î', ĵ' (the image of the unit square)
+    ctx.fillStyle = 'rgba(124,58,237,0.08)';
+    ctx.beginPath();
+    ctx.moveTo(sx(0), sy(0));
+    ctx.lineTo(sx(iHat.x), sy(iHat.y));
+    ctx.lineTo(sx(iHat.x + jHat.x), sy(iHat.y + jHat.y));
+    ctx.lineTo(sx(jHat.x), sy(jHat.y));
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(124,58,237,0.4)';
+    ctx.setLineDash([4,4]); ctx.lineWidth = 1.2; ctx.stroke(); ctx.setLineDash([]);
+
+    // input vector v (original)
+    drawArrow({x:0,y:0}, state.v, getCss('--vec'), 3.4);
+    drawVectorLabel(state.v, 'v', getCss('--vec'));
+
+    // output Av
+    const out = apply(m, state.v.x, state.v.y);
+    drawArrow({x:0,y:0}, out, getCss('--vec-out'), 3.4);
+    drawVectorLabel(out, 'Av', getCss('--vec-out'));
+
+    // faint dashed connector from v to Av
+    ctx.strokeStyle = 'rgba(124,58,237,0.35)';
+    ctx.setLineDash([3,4]); ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(sx(state.v.x), sy(state.v.y));
+    ctx.lineTo(sx(out.x), sy(out.y));
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    if (state.animating) requestAnimationFrame(draw);
+  }
+
+  function easeInOut(t){ return t<0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2; }
+  function getCss(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+  // ---- UI sync ----
+  function fmt(n){ return (Math.round(n*100)/100).toFixed(2); }
+
+  function syncControls() {
+    ['a','b','c','d'].forEach(k => {
+      document.getElementById('s-'+k).value = state[k];
+      document.getElementById('v-'+k).textContent = fmt(state[k]);
+      document.getElementById('m-'+k).textContent = fmt(state[k]);
+    });
+    const det = state.a*state.d - state.b*state.c;
+    document.getElementById('info-det').textContent = fmt(det);
+    document.getElementById('info-area').textContent = '×' + fmt(Math.abs(det));
+    document.getElementById('stat-det').classList.toggle('det-zero', Math.abs(det) < 0.01);
+    const out = apply(curMat(), state.v.x, state.v.y);
+    document.getElementById('info-v').textContent = `(${fmt(state.v.x)}, ${fmt(state.v.y)})`;
+    document.getElementById('info-av').textContent = `(${fmt(out.x)}, ${fmt(out.y)})`;
+  }
+
+  function refresh(){ syncControls(); if(!state.animating) draw(); }
+
+  // ---- slider events ----
+  ['a','b','c','d'].forEach(k => {
+    document.getElementById('s-'+k).addEventListener('input', e => {
+      state[k] = parseFloat(e.target.value);
+      clearActivePreset();
+      refresh();
+    });
+  });
+
+  // ---- presets ----
+  const PRESETS = {
+    identity: () => ({a:1,b:0,c:0,d:1}),
+    rotate:   () => { const t = Math.PI/3; return {a:Math.cos(t), b:-Math.sin(t), c:Math.sin(t), d:Math.cos(t)}; },
+    mirrorX:  () => ({a:1,b:0,c:0,d:-1}),
+    mirrorY:  () => ({a:-1,b:0,c:0,d:1}),
+    scale:    () => ({a:2,b:0,c:0,d:2}),
+    shearX:   () => ({a:1,b:1,c:0,d:1}),
+    shearY:   () => ({a:1,b:0,c:1,d:1}),
+    random:   () => ({
+      a: +(Math.random()*4-2).toFixed(2),
+      b: +(Math.random()*4-2).toFixed(2),
+      c: +(Math.random()*4-2).toFixed(2),
+      d: +(Math.random()*4-2).toFixed(2),
+    }),
+  };
+
+  function clearActivePreset(){
+    document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));
+  }
+
+  function applyPreset(name, animate) {
+    const target = PRESETS[name]();
+    const btn = document.querySelector(`.pbtn[data-preset="${name}"]`);
+    clearActivePreset();
+    if (btn) btn.classList.add('active');
+    if (animate) {
+      animateTo(target);
+    } else {
+      Object.assign(state, target);
+      syncSlidersFromState();
+      refresh();
+    }
+  }
+
+  function syncSlidersFromState(){
+    ['a','b','c','d'].forEach(k => { document.getElementById('s-'+k).value = state[k]; });
+  }
+
+  function animateTo(target) {
+    state.animFrom = curMat();
+    state.animTo = target;
+    state.animStart = performance.now();
+    state.animating = true;
+    requestAnimationFrame(() => {
+      draw();
+      // after animation, commit target to state & sliders
+      setTimeout(() => {
+        Object.assign(state, target);
+        syncSlidersFromState();
+        refresh();
+      }, state.animDur + 20);
+    });
+  }
+
+  document.querySelectorAll('.pbtn').forEach(btn => {
+    btn.addEventListener('click', () => applyPreset(btn.dataset.preset, true));
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', () => applyPreset('identity', true));
+  document.getElementById('btn-animate').addEventListener('click', () => {
+    // animate from identity to current matrix
+    state.animFrom = PRESETS.identity();
+    state.animTo = curMat();
+    state.animStart = performance.now();
+    state.animating = true;
+    requestAnimationFrame(() => draw());
+  });
+
+  // ---- canvas interaction: drag input vector v ----
+  function hitInputVector(px, py) {
+    const dx = px - sx(state.v.x);
+    const dy = py - sy(state.v.y);
+    return Math.hypot(dx, dy) < 16;
+  }
+  function pointerPos(e){
+    const r = canvas.getBoundingClientRect();
+    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+    return { px: cx, py: cy };
+  }
+
+  canvas.addEventListener('mousedown', e => {
+    const { px, py } = pointerPos(e);
+    if (hitInputVector(px, py)) { state.dragging = true; }
+  });
+  canvas.addEventListener('mousemove', e => {
+    if (!state.dragging) return;
+    const { px, py } = pointerPos(e);
+    state.v.x = clamp(mx(px), -RANGE*1.2, RANGE*1.2);
+    state.v.y = clamp(my(py), -RANGE*1.2, RANGE*1.2);
+    refresh();
+  });
+  window.addEventListener('mouseup', () => { state.dragging = false; });
+
+  // touch
+  canvas.addEventListener('touchstart', e => {
+    const { px, py } = pointerPos(e);
+    if (hitInputVector(px, py)) { state.dragging = true; e.preventDefault(); }
+  }, {passive:false});
+  canvas.addEventListener('touchmove', e => {
+    if (!state.dragging) return;
+    const { px, py } = pointerPos(e);
+    state.v.x = clamp(mx(px), -RANGE*1.2, RANGE*1.2);
+    state.v.y = clamp(my(py), -RANGE*1.2, RANGE*1.2);
+    refresh();
+    e.preventDefault();
+  }, {passive:false});
+  window.addEventListener('touchend', () => { state.dragging = false; });
+
+  canvas.addEventListener('dblclick', () => {
+    state.v.x = +(Math.random()*4-2).toFixed(2);
+    state.v.y = +(Math.random()*4-2).toFixed(2);
+    refresh();
+  });
+
+  function clamp(x, lo, hi){ return Math.max(lo, Math.min(hi, x)); }
+
+  // random initial vector
+  state.v.x = +(Math.random()*3-0.5).toFixed(2);
+  state.v.y = +(Math.random()*3-0.5).toFixed(2);
+
+  resize();
+  refresh();
+})();
+</script>
+</body>
+</html>
