@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>铁鹰式期权学习测试 / Iron Condor Quiz</title>
+  <meta name="description" content="基于铁鹰式期权完全指南的学习测试题库，覆盖全部 18 个章节。">
+
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Favicon（用 emoji 兜底） -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🦅%3C/text%3E%3C/svg%3E">
+
+  <!-- CDN 资源（staticfile.org 镜像） -->
+  <script src="https://cdn.staticfile.org/vue/3.4.27/vue.global.prod.js"></script>
+  <script src="https://cdn.staticfile.org/marked/12.0.2/marked.min.js"></script>
+  <script src="https://cdn.staticfile.org/dompurify/3.1.6/purify.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- 加载占位（JS 接管前显示） -->
+    <div class="center-screen">
+      <div class="spinner" aria-label="加载中"></div>
+      <p style="color: var(--text-muted);">正在加载题目…</p>
+    </div>
+  </div>
+
+  <script src="parser.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
