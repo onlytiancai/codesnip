@@ -30,6 +30,7 @@
     padding: 24px;
     line-height: 1.6;
   }
+  [v-cloak] { display: none; }
   .head { max-width: 1200px; margin: 0 auto 20px; }
   h1 {
     font-size: 1.7rem;
@@ -253,479 +254,497 @@
 </style>
 </head>
 <body>
-<div class="head">
-  <h1>向量线性变换演示</h1>
-  <div class="subtitle">拖动滑杆改变 2×2 矩阵 A，观察任意输入向量 v 如何被映射到 Av。也可选择经典变换预设。</div>
-</div>
-
-<div class="layout">
-  <!-- LEFT: visualization -->
-  <div>
-    <div class="card">
-      <div class="canvas-wrap">
-        <canvas id="cv"></canvas>
-      </div>
-      <div class="legend">
-        <span><i style="background:#94a3b8"></i> 原始单位基向量</span>
-        <span><i style="background:var(--i-hat)"></i> î' = A·(1,0)</span>
-        <span><i style="background:var(--j-hat)"></i> ĵ' = A·(0,1)</span>
-        <span><i style="background:var(--vec)"></i> 输入 v</span>
-        <span><i style="background:var(--vec-out)"></i> 输出 Av</span>
-      </div>
-      <div class="hint">提示：在画布上 <kbd>拖动</kbd> 蓝色向量 v 可改变输入；<kbd>双击</kbd> 随机生成新的 v。</div>
-    </div>
+<div id="app" v-cloak>
+  <div class="head">
+    <h1>向量线性变换演示</h1>
+    <div class="subtitle">拖动滑杆改变 2×2 矩阵 A，观察任意输入向量 v 如何被映射到 Av。也可选择经典变换预设。</div>
   </div>
 
-  <!-- RIGHT: controls -->
-  <div>
-    <div class="card">
-      <div class="section-title">经典变换预设</div>
-      <div class="preset-row">
-        <button class="pbtn" data-preset="identity">单位</button>
-        <button class="pbtn" data-preset="rotate">旋转</button>
-        <button class="pbtn" data-preset="mirrorX">x 轴镜像</button>
-        <button class="pbtn" data-preset="mirrorY">y 轴镜像</button>
-      </div>
-      <div class="preset-row">
-        <button class="pbtn" data-preset="scale">均匀拉伸</button>
-        <button class="pbtn" data-preset="shearX">水平剪切</button>
-        <button class="pbtn" data-preset="shearY">垂直剪切</button>
-        <button class="pbtn" data-preset="random">随机</button>
-      </div>
-
-      <div class="section-title" style="margin-top:6px">变换矩阵 A</div>
-      <div class="matrix-block">
-        <div class="bracket left"></div>
-        <div class="matrix-grid">
-          <div class="mcell a" id="m-a">1.00</div>
-          <div class="mcell d" id="m-d">0.00</div>
-          <div class="mcell b" id="m-b">0.00</div>
-          <div class="mcell c" id="m-c">1.00</div>
+  <div class="layout">
+    <!-- LEFT: visualization -->
+    <div>
+      <div class="card">
+        <div class="canvas-wrap">
+          <canvas
+            ref="canvas"
+            @mousedown="onDown"
+            @mousemove="onMove"
+            @dblclick="onDblClick"
+            @touchstart="onTouchStart"
+            @touchmove="onTouchMove"
+          ></canvas>
         </div>
-        <div class="bracket right"></div>
-      </div>
-      <div class="hint" style="margin-top:8px">列向量即变换后的基：第 1 列是 î'，第 2 列是 ĵ'。</div>
-
-      <div class="actions" style="margin-top:14px">
-        <button class="small-btn" id="btn-reset">重置为单位阵</button>
-        <button class="small-btn primary" id="btn-animate">播放变换动画</button>
+        <div class="legend">
+          <span><i style="background:#94a3b8"></i> 原始单位基向量</span>
+          <span><i :style="{ background: iHatColor }"></i> î' = A·(1,0)</span>
+          <span><i :style="{ background: jHatColor }"></i> ĵ' = A·(0,1)</span>
+          <span><i style="background:var(--vec)"></i> 输入 v</span>
+          <span><i style="background:var(--vec-out)"></i> 输出 Av</span>
+        </div>
+        <div class="hint">提示：在画布上 <kbd>拖动</kbd> 蓝色向量 v 可改变输入；<kbd>双击</kbd> 随机生成新的 v。</div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="section-title">矩阵分量（拖动滑杆）</div>
+    <!-- RIGHT: controls -->
+    <div>
+      <div class="card">
+        <div class="section-title">经典变换预设</div>
+        <div class="preset-row">
+          <button
+            v-for="p in presetGroups[0]"
+            :key="p.key"
+            class="pbtn"
+            :class="{ active: activePreset === p.key }"
+            @click="applyPreset(p.key)"
+          >{{ p.label }}</button>
+        </div>
+        <div class="preset-row">
+          <button
+            v-for="p in presetGroups[1]"
+            :key="p.key"
+            class="pbtn"
+            :class="{ active: activePreset === p.key }"
+            @click="applyPreset(p.key)"
+          >{{ p.label }}</button>
+        </div>
 
-      <div class="slider-group">
-        <div class="slider-label">
-          <span class="name">a &nbsp;(<span style="color:var(--i-hat)">î'</span>.x)</span>
-          <span class="val a" id="v-a">1.00</span>
+        <div class="section-title" style="margin-top:6px">变换矩阵 A</div>
+        <div class="matrix-block">
+          <div class="bracket left"></div>
+          <div class="matrix-grid">
+            <div class="mcell a">{{ fmt(a) }}</div>
+            <div class="mcell d">{{ fmt(d) }}</div>
+            <div class="mcell b">{{ fmt(b) }}</div>
+            <div class="mcell c">{{ fmt(c) }}</div>
+          </div>
+          <div class="bracket right"></div>
         </div>
-        <input type="range" id="s-a" min="-3" max="3" step="0.01" value="1">
-      </div>
-      <div class="slider-group">
-        <div class="slider-label">
-          <span class="name">b &nbsp;(<span style="color:var(--j-hat)">ĵ'</span>.x)</span>
-          <span class="val b" id="v-b">0.00</span>
-        </div>
-        <input type="range" id="s-b" min="-3" max="3" step="0.01" value="0">
-      </div>
-      <div class="slider-group">
-        <div class="slider-label">
-          <span class="name">c &nbsp;(<span style="color:var(--i-hat)">î'</span>.y)</span>
-          <span class="val c" id="v-c">0.00</span>
-        </div>
-        <input type="range" id="s-c" min="-3" max="3" step="0.01" value="0">
-      </div>
-      <div class="slider-group">
-        <div class="slider-label">
-          <span class="name">d &nbsp;(<span style="color:var(--j-hat)">ĵ'</span>.y)</span>
-          <span class="val d" id="v-d">1.00</span>
-        </div>
-        <input type="range" id="s-d" min="-3" max="3" step="0.01" value="1">
-      </div>
-    </div>
+        <div class="hint" style="margin-top:8px">列向量即变换后的基：第 1 列是 î'，第 2 列是 ĵ'。</div>
 
-    <div class="card">
-      <div class="section-title">信息</div>
-      <div class="stat">
-        <span>输入向量 v</span>
-        <span class="big" id="info-v">(1.00, 1.00)</span>
+        <div class="actions" style="margin-top:14px">
+          <button class="small-btn" @click="reset">重置为单位阵</button>
+          <button class="small-btn primary" @click="playAnimation">播放变换动画</button>
+        </div>
       </div>
-      <div class="stat">
-        <span>输出 Av</span>
-        <span class="big" id="info-av">(1.00, 1.00)</span>
+
+      <div class="card">
+        <div class="section-title">矩阵分量（拖动滑杆）</div>
+
+        <div class="slider-group">
+          <div class="slider-label">
+            <span class="name">a &nbsp;(<span :style="{ color: iHatColor }">î'</span>.x)</span>
+            <span class="val a">{{ fmt(a) }}</span>
+          </div>
+          <input type="range" min="-3" max="3" step="0.01" v-model.number="a">
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">
+            <span class="name">b &nbsp;(<span :style="{ color: jHatColor }">ĵ'</span>.x)</span>
+            <span class="val b">{{ fmt(b) }}</span>
+          </div>
+          <input type="range" min="-3" max="3" step="0.01" v-model.number="b">
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">
+            <span class="name">c &nbsp;(<span :style="{ color: iHatColor }">î'</span>.y)</span>
+            <span class="val c">{{ fmt(c) }}</span>
+          </div>
+          <input type="range" min="-3" max="3" step="0.01" v-model.number="c">
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">
+            <span class="name">d &nbsp;(<span :style="{ color: jHatColor }">ĵ'</span>.y)</span>
+            <span class="val d">{{ fmt(d) }}</span>
+          </div>
+          <input type="range" min="-3" max="3" step="0.01" v-model.number="d">
+        </div>
       </div>
-      <div class="stat" id="stat-det">
-        <span>行列式 det(A)</span>
-        <span class="big" id="info-det">1.00</span>
-      </div>
-      <div class="stat">
-        <span>面积缩放</span>
-        <span class="big" id="info-area">×1.00</span>
-      </div>
-      <div class="hint" style="text-align:left">
-        det &gt; 0：保持方向（不翻转） · det = 0：降维坍缩 · det &lt; 0：翻转方向
+
+      <div class="card">
+        <div class="section-title">信息</div>
+        <div class="stat">
+          <span>输入向量 v</span>
+          <span class="big">( {{ fmt(vx) }}, {{ fmt(vy) }} )</span>
+        </div>
+        <div class="stat">
+          <span>输出 Av</span>
+          <span class="big">( {{ fmt(out.x) }}, {{ fmt(out.y) }} )</span>
+        </div>
+        <div class="stat" :class="{ 'det-zero': isSingular }">
+          <span>行列式 det(A)</span>
+          <span class="big">{{ fmt(det) }}</span>
+        </div>
+        <div class="stat">
+          <span>面积缩放</span>
+          <span class="big">×{{ fmt(areaScale) }}</span>
+        </div>
+        <div class="hint" style="text-align:left">
+          det &gt; 0：保持方向（不翻转） · det = 0：降维坍缩 · det &lt; 0：翻转方向
+        </div>
       </div>
     </div>
   </div>
 </div>
 
+<script src="https://cdn.staticfile.net/vue/3.5.22/vue.global.js"></script>
 <script>
-(function () {
-  const canvas = document.getElementById('cv');
-  const ctx = canvas.getContext('2d');
+const { createApp, ref, reactive, computed, watch, onMounted, onBeforeUnmount } = Vue;
 
-  // ---- state ----
-  // Matrix stored column-major visually: A = [[a,b],[c,d]]
-  // first column = image of î = (a, c); second column = image of ĵ = (b, d)
-  const state = {
-    a: 1, b: 0, c: 0, d: 1,
-    v: { x: 1.2, y: 1.6 },      // input vector (in math coords)
-    dragging: false,
-    // animation
-    animating: false,
-    animFrom: null, animTo: null, animStart: 0, animDur: 800,
-  };
-
-  const RANGE = 4;            // visible coordinate half-range (math units)
-  let SIZE = 560, SCALE = 1, CX = 0, CY = 0;
-
-  function resize() {
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    SIZE = Math.min(rect.width, rect.height);
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    SCALE = (Math.min(rect.width, rect.height) / 2) * 0.92 / RANGE;
-    CX = rect.width / 2;
-    CY = rect.height / 2;
-  }
-  window.addEventListener('resize', () => { resize(); draw(); });
-
-  // math -> screen
-  function sx(x) { return CX + x * SCALE; }
-  function sy(y) { return CY - y * SCALE; }
-  // screen -> math
-  function mx(px) { return (px - CX) / SCALE; }
-  function my(py) { return -(py - CY) / SCALE; }
-
-  // apply current matrix (or a provided one) to a vector
-  function apply(m, x, y) {
-    return {
-      x: m.a * x + m.b * y,
-      y: m.c * x + m.d * y,
+createApp({
+  setup() {
+    // ---- 预设矩阵 ----
+    const PRESETS = {
+      identity: () => ({ a: 1, b: 0, c: 0, d: 1 }),
+      rotate:   () => { const t = Math.PI / 3; return { a: Math.cos(t), b: -Math.sin(t), c: Math.sin(t), d: Math.cos(t) }; },
+      mirrorX:  () => ({ a: 1, b: 0, c: 0, d: -1 }),
+      mirrorY:  () => ({ a: -1, b: 0, c: 0, d: 1 }),
+      scale:    () => ({ a: 2, b: 0, c: 0, d: 2 }),
+      shearX:   () => ({ a: 1, b: 1, c: 0, d: 1 }),
+      shearY:   () => ({ a: 1, b: 0, c: 1, d: 1 }),
+      random:   () => ({
+        a: +(Math.random() * 4 - 2).toFixed(2),
+        b: +(Math.random() * 4 - 2).toFixed(2),
+        c: +(Math.random() * 4 - 2).toFixed(2),
+        d: +(Math.random() * 4 - 2).toFixed(2),
+      }),
     };
-  }
-  function curMat() { return { a: state.a, b: state.b, c: state.c, d: state.d }; }
-  function interpMat(t) {
-    const f = state.animFrom, to = state.animTo;
-    return {
-      a: f.a + (to.a - f.a) * t,
-      b: f.b + (to.b - f.b) * t,
-      c: f.c + (to.c - f.c) * t,
-      d: f.d + (to.d - f.d) * t,
-    };
-  }
+    const presetGroups = [
+      [
+        { key: 'identity', label: '单位' },
+        { key: 'rotate',   label: '旋转' },
+        { key: 'mirrorX',  label: 'x 轴镜像' },
+        { key: 'mirrorY',  label: 'y 轴镜像' },
+      ],
+      [
+        { key: 'scale',  label: '均匀拉伸' },
+        { key: 'shearX', label: '水平剪切' },
+        { key: 'shearY', label: '垂直剪切' },
+        { key: 'random', label: '随机' },
+      ],
+    ];
 
-  // ---- drawing ----
-  function drawGrid(m) {
-    // transformed grid lines (light), drawn through the whole viewport
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = 'rgba(148,163,184,0.35)';
-    // We sample a coarse set of grid lines x = k, y = k for k in [-RANGE..RANGE]
-    const N = RANGE;
-    for (let k = -N; k <= N; k++) {
-      // vertical line x=k from y=-N..N
-      drawSeg(apply(m, k, -N), apply(m, k, N));
-      // horizontal line y=k
-      drawSeg(apply(m, -N, k), apply(m, N, k));
+    // ---- 状态 ----
+    const canvas = ref(null);
+    // 矩阵分量：A = [[a, b], [c, d]]，第 1 列 = (a,c) 是 î'，第 2 列 = (b,d) 是 ĵ'
+    const a = ref(1), b = ref(0), c = ref(0), d = ref(1);
+    const vx = ref(+(Math.random() * 3 - 0.5).toFixed(2));
+    const vy = ref(+(Math.random() * 3 - 0.5).toFixed(2));
+    const activePreset = ref('identity');
+
+    // 主题色（CSS 变量），供 legend 内联样式使用
+    const iHatColor = '#dc2626';
+    const jHatColor = '#16a34a';
+
+    const fmt = (n) => (Math.round(n * 100) / 100).toFixed(2);
+
+    // ---- 派生 ----
+    const det = computed(() => a.value * d.value - b.value * c.value);
+    const isSingular = computed(() => Math.abs(det.value) < 0.01);
+    const areaScale = computed(() => Math.abs(det.value));
+    const out = computed(() => ({
+      x: a.value * vx.value + b.value * vy.value,
+      y: c.value * vx.value + d.value * vy.value,
+    }));
+
+    // ---- 视图常量 ----
+    const RANGE = 4;
+    let SIZE = 560, SCALE = 1, CX = 0, CY = 0;
+    // 动画用的"当前绘制矩阵"（不一定是 state，动画时插值）
+    let drawMat = { a: 1, b: 0, c: 0, d: 1 };
+    let animating = false, animFrom = null, animTo = null, animStart = 0;
+    const ANIM_DUR = 800;
+    let dragging = false;
+    let rafId = null;
+
+    function resize() {
+      const cv = canvas.value;
+      if (!cv) return;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = cv.getBoundingClientRect();
+      SIZE = Math.min(rect.width, rect.height);
+      cv.width = rect.width * dpr;
+      cv.height = rect.height * dpr;
+      const ctx = cv.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      SCALE = (Math.min(rect.width, rect.height) / 2) * 0.92 / RANGE;
+      CX = rect.width / 2;
+      CY = rect.height / 2;
     }
-    // also faint original grid
-    ctx.strokeStyle = 'rgba(203,213,225,0.35)';
-    ctx.setLineDash([3, 4]);
-    for (let k = -N; k <= N; k++) {
-      drawSegRaw(k, -N, k, N);
-      drawSegRaw(-N, k, N, k);
-    }
-    ctx.setLineDash([]);
-  }
+    const onResize = () => { resize(); requestDraw(); };
 
-  function drawAxes(m) {
-    ctx.lineWidth = 1.6;
-    ctx.strokeStyle = 'rgba(71,85,105,0.65)';
-    // x-axis: transform the line y=0
-    drawSeg(apply(m, -N_AXIS(), 0), apply(m, N_AXIS(), 0));
-    // y-axis: transform line x=0
-    drawSeg(apply(m, 0, -N_AXIS()), apply(m, 0, N_AXIS()));
-  }
-  function N_AXIS() { return RANGE; }
+    // 坐标转换
+    const sx = (x) => CX + x * SCALE;
+    const sy = (y) => CY - y * SCALE;
+    const mxp = (px) => (px - CX) / SCALE;
+    const myp = (py) => -(py - CY) / SCALE;
 
-  function drawSeg(p, q) { // math coords
-    ctx.beginPath();
-    ctx.moveTo(sx(p.x), sy(p.y));
-    ctx.lineTo(sx(q.x), sy(q.y));
-    ctx.stroke();
-  }
-  function drawSegRaw(x1, y1, x2, q2) {
-    ctx.beginPath();
-    ctx.moveTo(sx(x1), sy(y1));
-    ctx.lineTo(sx(x2), sy(q2));
-    ctx.stroke();
-  }
+    const apply = (m, x, y) => ({ x: m.a * x + m.b * y, y: m.c * x + m.d * y });
+    const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+    const easeInOut = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 
-  function drawArrow(from, to, color, width, dashed) {
-    ctx.strokeStyle = color;
-    ctx.fillStyle = color;
-    ctx.lineWidth = width;
-    if (dashed) ctx.setLineDash([6, 5]); else ctx.setLineDash([]);
-    ctx.beginPath();
-    ctx.moveTo(sx(from.x), sy(from.y));
-    ctx.lineTo(sx(to.x), sy(to.y));
-    ctx.stroke();
-    ctx.setLineDash([]);
-    // arrowhead
-    const ang = Math.atan2(sy(to.y) - sy(from.y), sx(to.x) - sx(from.x));
-    const h = 11;
-    ctx.beginPath();
-    ctx.moveTo(sx(to.x), sy(to.y));
-    ctx.lineTo(sx(to.x) - h * Math.cos(ang - 0.4), sy(to.y) + h * Math.sin(ang - 0.4));
-    ctx.lineTo(sx(to.x) - h * Math.cos(ang + 0.4), sy(to.y) + h * Math.sin(ang + 0.4));
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  function drawVectorLabel(to, text, color) {
-    ctx.fillStyle = color;
-    ctx.font = '700 13px "SF Mono", Consolas, monospace';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, sx(to.x) + 8, sy(to.y) - 8);
-  }
-
-  function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    let m;
-    if (state.animating) {
-      const t = Math.min(1, (performance.now() - state.animStart) / state.animDur);
-      const e = easeInOut(t);
-      m = interpMat(e);
-      if (t >= 1) { state.animating = false; m = curMat(); }
-    } else {
-      m = curMat();
+    function cssVar(v) {
+      return getComputedStyle(document.documentElement).getPropertyValue(v).trim();
     }
 
-    // background transformed grid
-    drawGrid(m);
-    drawAxes(m);
+    // ---- 绘制 ----
+    function draw() {
+      const cv = canvas.value;
+      if (!cv) return;
+      const ctx = cv.getContext('2d');
+      ctx.clearRect(0, 0, cv.width, cv.height);
 
-    // origin
-    ctx.fillStyle = '#334155';
-    ctx.beginPath(); ctx.arc(sx(0), sy(0), 3.5, 0, Math.PI*2); ctx.fill();
+      // 决定当前绘制矩阵
+      if (animating) {
+        const t = Math.min(1, (performance.now() - animStart) / ANIM_DUR);
+        const e = easeInOut(t);
+        drawMat = {
+          a: animFrom.a + (animTo.a - animFrom.a) * e,
+          b: animFrom.b + (animTo.b - animFrom.b) * e,
+          c: animFrom.c + (animTo.c - animFrom.c) * e,
+          d: animFrom.d + (animTo.d - animFrom.d) * e,
+        };
+        if (t >= 1) { animating = false; drawMat = { a: a.value, b: b.value, c: c.value, d: d.value }; }
+      } else {
+        drawMat = { a: a.value, b: b.value, c: c.value, d: d.value };
+      }
+      const m = drawMat;
 
-    // original basis (very faint reference)
-    drawArrow({x:0,y:0}, {x:1,y:0}, 'rgba(148,163,184,0.55)', 2.2);
-    drawArrow({x:0,y:0}, {x:0,y:1}, 'rgba(148,163,184,0.55)', 2.2);
+      // 变换后的网格
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(148,163,184,0.35)';
+      const N = RANGE;
+      for (let k = -N; k <= N; k++) {
+        drawSeg(ctx, apply(m, k, -N), apply(m, k, N));
+        drawSeg(ctx, apply(m, -N, k), apply(m, N, k));
+      }
+      // 原始网格（虚线）
+      ctx.strokeStyle = 'rgba(203,213,225,0.35)';
+      ctx.setLineDash([3, 4]);
+      for (let k = -N; k <= N; k++) {
+        drawSegRaw(ctx, k, -N, k, N);
+        drawSegRaw(ctx, -N, k, N, k);
+      }
+      ctx.setLineDash([]);
 
-    // transformed basis: î' = first column (a,c), ĵ' = second column (b,d)
-    const iHat = { x: m.a, y: m.c };
-    const jHat = { x: m.b, y: m.d };
-    drawArrow({x:0,y:0}, iHat, getCss('--i-hat'), 3.2);
-    drawVectorLabel(iHat, "î'", getCss('--i-hat'));
-    drawArrow({x:0,y:0}, jHat, getCss('--j-hat'), 3.2);
-    drawVectorLabel(jHat, "ĵ'", getCss('--j-hat'));
+      // 坐标轴（变换后）
+      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = 'rgba(71,85,105,0.65)';
+      drawSeg(ctx, apply(m, -N, 0), apply(m, N, 0));
+      drawSeg(ctx, apply(m, 0, -N), apply(m, 0, N));
 
-    // parallelogram spanned by î', ĵ' (the image of the unit square)
-    ctx.fillStyle = 'rgba(124,58,237,0.08)';
-    ctx.beginPath();
-    ctx.moveTo(sx(0), sy(0));
-    ctx.lineTo(sx(iHat.x), sy(iHat.y));
-    ctx.lineTo(sx(iHat.x + jHat.x), sy(iHat.y + jHat.y));
-    ctx.lineTo(sx(jHat.x), sy(jHat.y));
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(124,58,237,0.4)';
-    ctx.setLineDash([4,4]); ctx.lineWidth = 1.2; ctx.stroke(); ctx.setLineDash([]);
+      // 原点
+      ctx.fillStyle = '#334155';
+      ctx.beginPath(); ctx.arc(sx(0), sy(0), 3.5, 0, Math.PI * 2); ctx.fill();
 
-    // input vector v (original)
-    drawArrow({x:0,y:0}, state.v, getCss('--vec'), 3.4);
-    drawVectorLabel(state.v, 'v', getCss('--vec'));
+      // 原始单位基向量（淡）
+      const gray = 'rgba(148,163,184,0.55)';
+      drawArrow(ctx, { x: 0, y: 0 }, { x: 1, y: 0 }, gray, 2.2);
+      drawArrow(ctx, { x: 0, y: 0 }, { x: 0, y: 1 }, gray, 2.2);
 
-    // output Av
-    const out = apply(m, state.v.x, state.v.y);
-    drawArrow({x:0,y:0}, out, getCss('--vec-out'), 3.4);
-    drawVectorLabel(out, 'Av', getCss('--vec-out'));
+      // 变换后基向量
+      const iHat = { x: m.a, y: m.c };
+      const jHat = { x: m.b, y: m.d };
+      const iColor = cssVar('--i-hat');
+      const jColor = cssVar('--j-hat');
+      drawArrow(ctx, { x: 0, y: 0 }, iHat, iColor, 3.2);
+      drawLabel(ctx, iHat, "î'", iColor);
+      drawArrow(ctx, { x: 0, y: 0 }, jHat, jColor, 3.2);
+      drawLabel(ctx, jHat, "ĵ'", jColor);
 
-    // faint dashed connector from v to Av
-    ctx.strokeStyle = 'rgba(124,58,237,0.35)';
-    ctx.setLineDash([3,4]); ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(sx(state.v.x), sy(state.v.y));
-    ctx.lineTo(sx(out.x), sy(out.y));
-    ctx.stroke();
-    ctx.setLineDash([]);
+      // 平行四边形（单位正方形的像）
+      ctx.fillStyle = 'rgba(124,58,237,0.08)';
+      ctx.beginPath();
+      ctx.moveTo(sx(0), sy(0));
+      ctx.lineTo(sx(iHat.x), sy(iHat.y));
+      ctx.lineTo(sx(iHat.x + jHat.x), sy(iHat.y + jHat.y));
+      ctx.lineTo(sx(jHat.x), sy(jHat.y));
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(124,58,237,0.4)';
+      ctx.setLineDash([4, 4]); ctx.lineWidth = 1.2; ctx.stroke(); ctx.setLineDash([]);
 
-    if (state.animating) requestAnimationFrame(draw);
-  }
+      // 输入向量 v
+      const vVec = { x: vx.value, y: vy.value };
+      drawArrow(ctx, { x: 0, y: 0 }, vVec, cssVar('--vec'), 3.4);
+      drawLabel(ctx, vVec, 'v', cssVar('--vec'));
 
-  function easeInOut(t){ return t<0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2; }
-  function getCss(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+      // 输出 Av
+      const outV = apply(m, vVec.x, vVec.y);
+      drawArrow(ctx, { x: 0, y: 0 }, outV, cssVar('--vec-out'), 3.4);
+      drawLabel(ctx, outV, 'Av', cssVar('--vec-out'));
 
-  // ---- UI sync ----
-  function fmt(n){ return (Math.round(n*100)/100).toFixed(2); }
+      // v -> Av 虚线
+      ctx.strokeStyle = 'rgba(124,58,237,0.35)';
+      ctx.setLineDash([3, 4]); ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(sx(vVec.x), sy(vVec.y));
+      ctx.lineTo(sx(outV.x), sy(outV.y));
+      ctx.stroke();
+      ctx.setLineDash([]);
 
-  function syncControls() {
-    ['a','b','c','d'].forEach(k => {
-      document.getElementById('s-'+k).value = state[k];
-      document.getElementById('v-'+k).textContent = fmt(state[k]);
-      document.getElementById('m-'+k).textContent = fmt(state[k]);
+      if (animating) rafId = requestAnimationFrame(draw);
+    }
+
+    function drawSeg(ctx, p, q) {
+      ctx.beginPath();
+      ctx.moveTo(sx(p.x), sy(p.y));
+      ctx.lineTo(sx(q.x), sy(q.y));
+      ctx.stroke();
+    }
+    function drawSegRaw(ctx, x1, y1, x2, y2) {
+      ctx.beginPath();
+      ctx.moveTo(sx(x1), sy(y1));
+      ctx.lineTo(sx(x2), sy(y2));
+      ctx.stroke();
+    }
+    function drawArrow(ctx, from, to, color, width, dashed) {
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      if (dashed) ctx.setLineDash([6, 5]); else ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(sx(from.x), sy(from.y));
+      ctx.lineTo(sx(to.x), sy(to.y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+      const ang = Math.atan2(sy(to.y) - sy(from.y), sx(to.x) - sx(from.x));
+      const h = 11;
+      ctx.beginPath();
+      ctx.moveTo(sx(to.x), sy(to.y));
+      ctx.lineTo(sx(to.x) - h * Math.cos(ang - 0.4), sy(to.y) + h * Math.sin(ang - 0.4));
+      ctx.lineTo(sx(to.x) - h * Math.cos(ang + 0.4), sy(to.y) + h * Math.sin(ang + 0.4));
+      ctx.closePath();
+      ctx.fill();
+    }
+    function drawLabel(ctx, to, text, color) {
+      ctx.fillStyle = color;
+      ctx.font = '700 13px "SF Mono", Consolas, monospace';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, sx(to.x) + 8, sy(to.y) - 8);
+    }
+
+    function requestDraw() {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(draw);
+    }
+
+    // ---- 预设 / 动画 ----
+    function animateTo(target) {
+      animFrom = { a: a.value, b: b.value, c: c.value, d: d.value };
+      animTo = target;
+      animStart = performance.now();
+      animating = true;
+      requestAnimationFrame(() => {
+        draw();
+        // 动画结束后把目标写入状态
+        setTimeout(() => {
+          a.value = target.a; b.value = target.b;
+          c.value = target.c; d.value = target.d;
+          animating = false;
+          requestDraw();
+        }, ANIM_DUR + 20);
+      });
+    }
+    function applyPreset(key) {
+      activePreset.value = key;
+      animateTo(PRESETS[key]());
+    }
+    function reset() { applyPreset('identity'); }
+    function playAnimation() {
+      const cur = { a: a.value, b: b.value, c: c.value, d: d.value };
+      const I = PRESETS.identity();
+      // 从单位阵动画到当前矩阵：临时把状态设为单位阵再 animate 到 cur
+      animFrom = I;
+      animTo = cur;
+      animStart = performance.now();
+      animating = true;
+      activePreset.value = '';
+      requestAnimationFrame(() => {
+        draw();
+        setTimeout(() => { animating = false; requestDraw(); }, ANIM_DUR + 20);
+      });
+    }
+
+    // 滑杆改变时清除预设高亮
+    watch([a, b, c, d], () => {
+      activePreset.value = '';
+      if (!animating) requestDraw();
     });
-    const det = state.a*state.d - state.b*state.c;
-    document.getElementById('info-det').textContent = fmt(det);
-    document.getElementById('info-area').textContent = '×' + fmt(Math.abs(det));
-    document.getElementById('stat-det').classList.toggle('det-zero', Math.abs(det) < 0.01);
-    const out = apply(curMat(), state.v.x, state.v.y);
-    document.getElementById('info-v').textContent = `(${fmt(state.v.x)}, ${fmt(state.v.y)})`;
-    document.getElementById('info-av').textContent = `(${fmt(out.x)}, ${fmt(out.y)})`;
-  }
 
-  function refresh(){ syncControls(); if(!state.animating) draw(); }
+    // 拖动 v 时重绘
+    watch([vx, vy], () => { if (!animating) requestDraw(); });
 
-  // ---- slider events ----
-  ['a','b','c','d'].forEach(k => {
-    document.getElementById('s-'+k).addEventListener('input', e => {
-      state[k] = parseFloat(e.target.value);
-      clearActivePreset();
-      refresh();
-    });
-  });
-
-  // ---- presets ----
-  const PRESETS = {
-    identity: () => ({a:1,b:0,c:0,d:1}),
-    rotate:   () => { const t = Math.PI/3; return {a:Math.cos(t), b:-Math.sin(t), c:Math.sin(t), d:Math.cos(t)}; },
-    mirrorX:  () => ({a:1,b:0,c:0,d:-1}),
-    mirrorY:  () => ({a:-1,b:0,c:0,d:1}),
-    scale:    () => ({a:2,b:0,c:0,d:2}),
-    shearX:   () => ({a:1,b:1,c:0,d:1}),
-    shearY:   () => ({a:1,b:0,c:1,d:1}),
-    random:   () => ({
-      a: +(Math.random()*4-2).toFixed(2),
-      b: +(Math.random()*4-2).toFixed(2),
-      c: +(Math.random()*4-2).toFixed(2),
-      d: +(Math.random()*4-2).toFixed(2),
-    }),
-  };
-
-  function clearActivePreset(){
-    document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));
-  }
-
-  function applyPreset(name, animate) {
-    const target = PRESETS[name]();
-    const btn = document.querySelector(`.pbtn[data-preset="${name}"]`);
-    clearActivePreset();
-    if (btn) btn.classList.add('active');
-    if (animate) {
-      animateTo(target);
-    } else {
-      Object.assign(state, target);
-      syncSlidersFromState();
-      refresh();
+    // ---- 画布交互 ----
+    function hitInput(px, py) {
+      const dx = px - sx(vx.value);
+      const dy = py - sy(vy.value);
+      return Math.hypot(dx, dy) < 16;
     }
-  }
+    function clientToCanvas(e, touchKey) {
+      const r = canvas.value.getBoundingClientRect();
+      const pt = touchKey ? e.touches[0] : e;
+      return { px: pt.clientX - r.left, py: pt.clientY - r.top };
+    }
+    function onDown(e) {
+      const { px, py } = clientToCanvas(e, false);
+      if (hitInput(px, py)) dragging = true;
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      vx.value = +clamp(mxp(e.offsetX), -RANGE * 1.2, RANGE * 1.2).toFixed(2);
+      vy.value = +clamp(myp(e.offsetY), -RANGE * 1.2, RANGE * 1.2).toFixed(2);
+    }
+    function onDblClick() {
+      vx.value = +(Math.random() * 4 - 2).toFixed(2);
+      vy.value = +(Math.random() * 4 - 2).toFixed(2);
+    }
+    function onTouchStart(e) {
+      const { px, py } = clientToCanvas(e, true);
+      if (hitInput(px, py)) { dragging = true; e.preventDefault(); }
+    }
+    function onTouchMove(e) {
+      if (!dragging) return;
+      const r = canvas.value.getBoundingClientRect();
+      const t = e.touches[0];
+      vx.value = +clamp(mxp(t.clientX - r.left), -RANGE * 1.2, RANGE * 1.2).toFixed(2);
+      vy.value = +clamp(myp(t.clientY - r.top), -RANGE * 1.2, RANGE * 1.2).toFixed(2);
+      e.preventDefault();
+    }
+    const onTouchEnd = () => { dragging = false; };
+    const onMouseUp = () => { dragging = false; };
 
-  function syncSlidersFromState(){
-    ['a','b','c','d'].forEach(k => { document.getElementById('s-'+k).value = state[k]; });
-  }
-
-  function animateTo(target) {
-    state.animFrom = curMat();
-    state.animTo = target;
-    state.animStart = performance.now();
-    state.animating = true;
-    requestAnimationFrame(() => {
+    onMounted(() => {
+      resize();
       draw();
-      // after animation, commit target to state & sliders
-      setTimeout(() => {
-        Object.assign(state, target);
-        syncSlidersFromState();
-        refresh();
-      }, state.animDur + 20);
+      window.addEventListener('resize', onResize);
+      window.addEventListener('mouseup', onMouseUp);
+      window.addEventListener('touchend', onTouchEnd);
     });
+    onBeforeUnmount(() => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('touchend', onTouchEnd);
+      if (rafId) cancelAnimationFrame(rafId);
+    });
+
+    return {
+      // ref（canvas 模板引用，必须在 setup 返回值中暴露才能被绑定）
+      canvas,
+      // state
+      a, b, c, d, vx, vy, activePreset,
+      // data
+      presetGroups, iHatColor, jHatColor,
+      // computed
+      det, isSingular, areaScale, out,
+      // helpers
+      fmt,
+      // methods
+      applyPreset, reset, playAnimation,
+      onDown, onMove, onDblClick, onTouchStart, onTouchMove,
+    };
   }
-
-  document.querySelectorAll('.pbtn').forEach(btn => {
-    btn.addEventListener('click', () => applyPreset(btn.dataset.preset, true));
-  });
-
-  document.getElementById('btn-reset').addEventListener('click', () => applyPreset('identity', true));
-  document.getElementById('btn-animate').addEventListener('click', () => {
-    // animate from identity to current matrix
-    state.animFrom = PRESETS.identity();
-    state.animTo = curMat();
-    state.animStart = performance.now();
-    state.animating = true;
-    requestAnimationFrame(() => draw());
-  });
-
-  // ---- canvas interaction: drag input vector v ----
-  function hitInputVector(px, py) {
-    const dx = px - sx(state.v.x);
-    const dy = py - sy(state.v.y);
-    return Math.hypot(dx, dy) < 16;
-  }
-  function pointerPos(e){
-    const r = canvas.getBoundingClientRect();
-    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
-    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
-    return { px: cx, py: cy };
-  }
-
-  canvas.addEventListener('mousedown', e => {
-    const { px, py } = pointerPos(e);
-    if (hitInputVector(px, py)) { state.dragging = true; }
-  });
-  canvas.addEventListener('mousemove', e => {
-    if (!state.dragging) return;
-    const { px, py } = pointerPos(e);
-    state.v.x = clamp(mx(px), -RANGE*1.2, RANGE*1.2);
-    state.v.y = clamp(my(py), -RANGE*1.2, RANGE*1.2);
-    refresh();
-  });
-  window.addEventListener('mouseup', () => { state.dragging = false; });
-
-  // touch
-  canvas.addEventListener('touchstart', e => {
-    const { px, py } = pointerPos(e);
-    if (hitInputVector(px, py)) { state.dragging = true; e.preventDefault(); }
-  }, {passive:false});
-  canvas.addEventListener('touchmove', e => {
-    if (!state.dragging) return;
-    const { px, py } = pointerPos(e);
-    state.v.x = clamp(mx(px), -RANGE*1.2, RANGE*1.2);
-    state.v.y = clamp(my(py), -RANGE*1.2, RANGE*1.2);
-    refresh();
-    e.preventDefault();
-  }, {passive:false});
-  window.addEventListener('touchend', () => { state.dragging = false; });
-
-  canvas.addEventListener('dblclick', () => {
-    state.v.x = +(Math.random()*4-2).toFixed(2);
-    state.v.y = +(Math.random()*4-2).toFixed(2);
-    refresh();
-  });
-
-  function clamp(x, lo, hi){ return Math.max(lo, Math.min(hi, x)); }
-
-  // random initial vector
-  state.v.x = +(Math.random()*3-0.5).toFixed(2);
-  state.v.y = +(Math.random()*3-0.5).toFixed(2);
-
-  resize();
-  refresh();
-})();
+}).mount('#app');
 </script>
 </body>
 </html>
