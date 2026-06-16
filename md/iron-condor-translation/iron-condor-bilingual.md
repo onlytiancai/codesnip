@@ -56,7 +56,7 @@ Stock investors would make money in the first two of the above five scenarios. I
 
 An Iron Condor is actually a combination of a **Bull Put Spread** and a **Bear Call Spread**.
 
-> 铁鹰本质上是**牛市认沽价差（Bull Put Spread）**与**熊市认购价差（Bear Call Spread）**的组合。
+> 铁鹰本质上是 **牛市认沽价差（Bull Put Spread）** 与 **熊市认购价差（Bear Call Spread）** 的组合。
 
 The Bull Put Credit Spread strategy involves selling a put option and buying another put option with a lower strike price in the same expiry month. As the name suggests, this is a bullish option strategy. Your outlook on the underlying stock is neutral to slightly bullish. Let's look at an example:
 
@@ -72,6 +72,8 @@ The Bull Put Credit Spread strategy involves selling a put option and buying ano
 
 > 这笔交易的**最大风险**为 **$400**（行权价差 $5 减去已收权利金 $1，再乘以 100）。
 > 到期时，如果 ABC 的股价收在 $45 之上，交易员即可稳稳赚取这 $100 权利金，相当于**风险资本 20%** 的回报。
+
+![](images/img-001.jpg)
 
 ---
 
@@ -90,6 +92,8 @@ The Bear Call Credit Spread strategy involves selling a call option and buying a
 > At expiry, if ABC finishes below $50, the trader keeps the $100 premium for a return of 20% on capital at risk.
 
 > 最大风险为 **$400**；到期时股价收在 $50 之下即可稳赚 $100，同样是**风险资本 20%** 的回报。
+
+![](images/img-002.jpg)
 
 ---
 
@@ -115,6 +119,8 @@ Let's look at the details of an Iron Condor using the above examples:
 
 > *(注：最大亏损 = 行权价差 $5 × 100 - 已收权利金 $200 = $300；回报率 = 200 / 300 ≈ 66.67%)*
 
+![IV Rank 示意](images/img-003.jpg)
+
 ---
 
 ## 何时建仓铁鹰 / When to Enter Iron Condors
@@ -133,7 +139,7 @@ In the chart below, you can see there was a massive range expansion in November 
 
 > 下图展示了 2016 年 11 月份发生的一次**巨大区间扩张**——背景是特朗普意外赢得大选。布林带（Bollinger Bands）当时开口到了近些年的**最大**水平。
 
-![RUT 大选后走势](images/img-001.jpg)
+
 
 > *图 1：罗素 2000 指数（$RUT）日线图，2016 年 6 月 – 2018 年 4 月。布林带在 2016 年 11 月特朗普当选后大幅开口，随后 RSI 长时间维持在 70 以上的"超买"区间。底部波动率指标也形成尖锐的"山峰"。数据截至 2018-04-09，当日收 1514.46。*
 
@@ -144,6 +150,8 @@ In the chart below, you can see there was a massive range expansion in November 
 Yes, Condor traders, myself included, suffered losses in November 2016, but what followed was one of the best periods on record for Iron Condor traders. If a new trader gave up after November just because they had a bad loss, they would have missed eight months of good times.
 
 > 是的，包括我在内的铁鹰交易员，在 2016 年 11 月那波都亏过钱；但紧随其后的，是铁鹰历史上**最黄金的时期之一**。如果一个新交易员因为 11 月的亏损就放弃了，那他将错失后面整整 8 个月的好光景。
+
+![](images/img-004.jpg)
 
 ---
 
@@ -173,7 +181,7 @@ The below chart shows the implied volatility and historical volatility for RUT.
 
 > 下图展示了 RUT 指数的**隐含波动率（IV）**与**历史波动率（HV）**对比。
 
-![IV vs HV](images/img-002.jpg)
+
 
 > *图 2：RUT 的 IV Index Mean（IV 指数均值，金线）与 30D HV（30 日历史波动率，蓝线）近 1 年走势对比。IV 长期高于 HV（波动率溢价），但在 2 月初恐慌时 IV 急速飙升至 30% 以上，随后回落；HV 因计算滞后反而维持高位。数据来源：IVolatility.com。*
 
@@ -189,7 +197,7 @@ The way it works is that an option's current implied volatility is compared agai
 
 > 工作原理是：把该期权**当前的 IV**与**过去 IV 的极值范围**做比较，然后赋一个 **0 ~ 100** 的排名（0 = 历史最低，100 = 历史最高）。
 
-![IV Rank 示意](images/img-003.jpg)
+
 
 > *图 3：IV Rank 计算示例图示。横轴为不同日期，纵轴为 IV 数值及对应的 Rank。*
 
@@ -283,7 +291,7 @@ Given that the monthly condor had the highest negative delta, you might think th
 
 - **Monthly Condor**：亏 **$550**
 
-![Monthly Condor 表现](images/img-004.jpg)
+
 
 > *图 4：月度铁鹰（Delta = -16）在 2018-03-20 暴跌次日表现。*
 
