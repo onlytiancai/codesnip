@@ -97,6 +97,7 @@ Explain: **why is it called a "hidden" layer?** Are its inputs/outputs visible t
 > Reference answer (not unique):
 > The "hidden" in "hidden layer" means — its output is **not directly the data label**, but the "intermediate features" it has learned. Training data has two visible pieces of info: "input" and "label". The hidden layer sits in the middle, inventing its own "internal language".
 > For example, recognizing cats: training data has "image" (input) and "is it a cat" (label), but no "shape of cat's ear" label — that label is something the hidden layer **learns by itself**.
+:::
 
 ---
 

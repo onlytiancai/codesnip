@@ -115,6 +115,7 @@ answer: C
 > When the answer is right, $y - \hat{y} = 0$, so the update is $0 \cdot x = 0$ — nothing changes. If we forced an update (even adding tiny noise), it's like perturbing correct answers, causing the model to oscillate on already-correct samples and never converge.
 >
 > In short: **make right answers more right, fix wrong answers faster** — only adjust what's wrong.
+:::
 
 ---
 

@@ -105,6 +105,7 @@ Explain "what is a weight" to your friend in **one sentence**.
 > - "A weight is the importance score of a feature — high score means it has a big impact on the final result; negative score means it's a deduction."
 > - "A weight is 'favoritism' — features with large weights get more 'attention' from the neuron."
 > - "A weight is a volume knob — bigger weight, louder feature."
+:::
 
 ---
 

@@ -71,6 +71,7 @@ Write a **real-life function** (not a math formula). Example: "I sleep at 9 PM e
 > - "Birthday → age": input birthday, output today's age
 >
 > Key idea: **every input produces exactly one output**.
+:::
 
 ---
 
@@ -110,6 +111,7 @@ Use a **pair of coordinates** to describe your home's location (a real map is no
 > Reference answer:
 > - "My home is at $(2, 3)$ — using the school as origin, 2 km east, 3 km north."
 > - "My home is at $(-1, 4)$ — 1 km west, 4 km north of school."
+:::
 
 ---
 
@@ -152,6 +154,7 @@ Explain to your mom in **one sentence** what "slope" is.
 > Reference answer (not unique):
 > - "Slope is how steep the road is — big slope = steep; small slope = flat; negative slope = going the other way."
 > - "Slope is a function's 'temper' at a point — impatient (big slope), a small push changes the output a lot; calm (small slope), a big push changes it only a little."
+:::
 
 ---
 
@@ -196,6 +199,7 @@ Write a vector of **5 numbers** that describes you.
 > Reference answer (not unique):
 > - $[12, 165, 50, 92, 7]$: age 12, height 165 cm, weight 50 kg, math grade 92, favorite number 7
 > - $[165, 50, 165, 50, 165]$: just height-weight repeated
+:::
 
 ---
 
@@ -248,6 +252,7 @@ Imagine a **real scenario** that needs "batch math" — e.g., computing total sc
 > Reference answer (not unique):
 > - "Whole class's 3-subject scores (30×3 matrix) times per-subject weights (3×1 vector) = each student's total score (30×1 vector)."
 > - "Restaurant's 5 dish sales (5×1) times profit margin per dish (1×1) = total profit" (this is 1×1, too simple).
+:::
 
 ---
 
@@ -296,6 +301,7 @@ Use the **chain rule** to explain a real-life scenario.
 > Reference answer (not unique):
 > - "Probability of getting A on homework = effort × teacher's mood × problem difficulty. If I add effort (+1), the boost to the final grade = effort→efficiency × efficiency→grade."
 > - "Stock price change = economy × industry outlook × company management. In a good economy, companies with both good industry and good management rise the most."
+:::
 
 ---
 

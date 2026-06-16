@@ -114,6 +114,7 @@ Explain to your 6-year-old sibling in **one sentence**: what is "training a neur
 > - "Training a neural network is 'guess → see how wrong → adjust the guess' — the more you guess, the more accurate you get."
 > - "Just like learning to ride a bike — try to ride (guess), see if you fall (compute error), fall means adjust posture (update weights), and slowly you learn to ride."
 > - "Training is 'test + fix mistakes' — do a problem (guess), check the answer (compute error), correct the wrong ones (adjust)."
+:::
 
 ---
 

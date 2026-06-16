@@ -26,6 +26,23 @@ bash scripts/gen_all.sh
 
 依赖 `numpy` + `matplotlib`（见 `scripts/requirements.txt`）。`scripts/_fonts.py` 自动处理 CJK 字体回退（macOS → Windows → Linux）。
 
+## markdown 块配平检查（必跑）
+
+所有 `content/ch##_*.md` 里的 `::: type ... :::` 容器**必须闭合**，否则：
+
+- `markdown.js` 的非贪婪正则 `([\s\S]*?)\n:::[ \t]*$` 会让未闭合块"借"下一个 `:::` 假装闭合 → 整个 quiz/chart 不挂载、用户少看到一道题
+- 章节完成判定 `checkCompletion` 用 `answered.length >= totalQuizzes`，少一题永远 `allAnswered=false`，配 80% 滚动阈值仍可能不满足
+- 后续 prerequisites 链上的章节**全部锁住**（en/zh 各自独立判定）
+
+```bash
+/Users/huhao/.pyenv/versions/3.11.9/bin/python3 scripts/verify_blocks.py
+# 期望：all N files OK
+```
+
+`scripts/verify_blocks.py` 用**栈式 line-by-line 扫描**（不能复用 markdown.js 的非贪婪正则——同样的 bug 会让验证永远通过）。改任何 markdown 块后必跑。
+
+历史教训：英文版 ch00/ch01/ch02/ch03/ch04/ch05/ch06/ch08 共 13 个 `::: quiz ... short` 块漏了闭合标签，导致英文版一长串章节连锁锁住。
+
 ## 代码架构
 
 ### 入口与启动顺序（`index.html` → `app.js`）
@@ -71,6 +88,7 @@ bash scripts/gen_all.sh
 | `::: network` | `parseNetworkBlock()` | `NetworkViz.js` |
 | `::: train-demo :steps=200 :lr=0.5` | `parseTrainDemoBlock()` | `TrainDemo.js` |
 | `::: formula` | `parseFormulaBlock()` | `Formula.js` |
+| `::: perceptron-playground` | `parsePerceptronPlaygroundBlock()` | `PerceptronPlayground.js` |
 
 新增容器类型需要：(1) `BLOCK_TYPES` 数组；(2) 解析器；(3) `COMP_MAP` 注册；(4) `app.js` 全局注册组件。
 
@@ -88,9 +106,10 @@ bash scripts/gen_all.sh
 ## 加新章节流程（参见 README.md "如何加新章"）
 
 1. `content/` 下创建 `ch##_xxx_zh.md` 和 `ch##_xxx_en.md`（保持章节 id 前缀与 `chapters.json` 一致）
-2. `chapters.json` 追加新章（注意 `prerequisites` 数组决定章节解锁）
+2. `chapters.json` 追加新章（注意 `prerequisites` 数组决定章节解锁；zh/en 独立判定）
 3. `scripts/gen_ch##.py`（可选，配图脚本）
-4. 重新加载浏览器即可
+4. **跑一次 `scripts/verify_blocks.py`**，确保所有 `::: type ... :::` 块闭合
+5. 重新加载浏览器即可
 
 ## 关键文件速查
 
@@ -110,3 +129,4 @@ bash scripts/gen_all.sh
 | `content/ch##_*.md` | 章节 markdown 内容（zh/en） |
 | `scripts/_fonts.py` | CJK 字体配置（其他 gen 脚本都先 import 它） |
 | `scripts/gen_ch##.py` | 配图生成脚本（numpy + matplotlib） |
+| `scripts/verify_blocks.py` | markdown 块配平检查（栈式解析） |

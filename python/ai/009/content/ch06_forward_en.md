@@ -134,6 +134,7 @@ Using the $W_1, b_1, W_2, b_2$ above, **hand-compute** XOR's 2nd sample $(0, 0)$
 >
 > This parameter set isn't perfect (it's just for teaching). The learned $W$ would give a more accurate result.
 > The point is: **you walked through the 4 steps**.
+:::
 
 ---
 

@@ -98,6 +98,7 @@ Explain "what is a neural network" to your parents in **one sentence**.
 > - "A neural network is a bunch of math formulas that 'learn' patterns from data — e.g., after seeing 1000 cat photos, it can recognize whether a new photo has a cat."
 > - "A neural network is a program that mimics the brain's way of working: it summarizes patterns by itself from many examples."
 > - "A neural network is many tiny 'yes/no' decision-makers, connected together to make complex decisions."
+:::
 
 ---
 
