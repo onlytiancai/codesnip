@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>交互式感知机演示 · Interactive Perceptron</title>
+<style>
+  :root {
+    --bg: #eef2ff;
+    --bg2: #f8faff;
+    --panel: #ffffff;
+    --panel-2: #f1f5f9;
+    --border: #d8e0ea;
+    --text: #0f172a;
+    --muted: #64748b;
+    --accent: #2563eb;
+    --pos: #16a34a;
+    --neg: #dc2626;
+    --warn: #d97706;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, var(--bg), var(--bg2));
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px;
+    line-height: 1.6;
+  }
+  .head { max-width: 1180px; margin: 0 auto 20px; }
+  h1 {
+    font-size: 1.7rem;
+    font-weight: 800;
+    background: linear-gradient(120deg, #2563eb, #7c3aed);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4px;
+  }
+  .subtitle { color: var(--muted); font-size: 0.95rem; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 24px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 30px rgba(37,99,235,0.08);
+  }
+
+  .canvas-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-width: 540px;
+    margin: 0 auto;
+  }
+  canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: 12px;
+    background: #fbfdff;
+  }
+
+  .problem-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .pbtn {
+    flex: 1;
+    min-width: 80px;
+    padding: 11px 8px;
+    background: var(--panel-2);
+    border: 2px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .pbtn:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .pbtn.active {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(37,99,235,0.35);
+  }
+
+  .truth-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin-top: 10px;
+  }
+  .truth-table th, .truth-table td {
+    padding: 8px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .truth-table th { color: var(--muted); font-weight: 700; }
+  .truth-table td.ok { color: var(--pos); font-weight: 700; }
+  .truth-table td.bad { color: var(--neg); font-weight: 700; }
+
+  .slider-group { margin-bottom: 16px; }
+  .slider-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+  }
+  .slider-label .name { font-weight: 700; }
+  .slider-label .val {
+    font-family: "SF Mono", "Consolas", monospace;
+    color: var(--accent);
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+  input[type=range] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    background: linear-gradient(90deg, #dc2626, #cbd5e1, #16a34a);
+    border-radius: 5px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: 3px solid var(--accent);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: 3px solid var(--accent);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+
+  .actions { display: flex; gap: 8px; margin-top: 6px; }
+  .small-btn {
+    flex: 1;
+    padding: 9px;
+    background: var(--panel-2);
+    border: 2px solid var(--border);
+    color: var(--text);
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all .15s;
+  }
+  .small-btn:hover { border-color: var(--accent); background: #e0e7ff; }
+
+  .stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--panel-2);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  .stat .big {
+    font-size: 1.35rem;
+    font-weight: 800;
+    font-family: "SF Mono", monospace;
+    color: var(--muted);
+  }
+  .stat.perfect { background: #dcfce7; }
+  .stat.perfect .big { color: var(--pos); }
+  .stat.partial { background: #fef3c7; }
+  .stat.partial .big { color: var(--warn); }
+  .stat.failed { background: #fee2e2; }
+  .stat.failed .big { color: var(--neg); }
+
+  .equation {
+    font-family: "SF Mono", "Consolas", monospace;
+    background: linear-gradient(135deg, #eff6ff, #ede9fe);
+    border: 1px solid var(--border);
+    padding: 13px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 14px;
+    word-break: break-all;
+  }
+
+  .note {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: #eff6ff;
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    font-size: 0.86rem;
+    color: #334155;
+  }
+  .note.xor {
+    background: #fef2f2;
+    border-left-color: var(--neg);
+  }
+  .note b { color: var(--text); }
+
+  .legend {
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    margin-top: 12px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 13px; height: 13px; border-radius: 50%; display: inline-block; }
+  .dot.pos { background: var(--pos); }
+  .dot.neg { background: var(--neg); }
+  .line { width: 18px; height: 3px; background: var(--accent); display: inline-block; border-radius: 2px; }
+</style>
+</head>
+<body>
+  <div class="head">
+    <h1>🧠 交互式感知机演示</h1>
+    <p class="subtitle">拖动滑块调节权重 w₁, w₂ 与偏置 b，用一条直线把绿色点和红色点分开</p>
+  </div>
+
+  <div class="layout">
+    <!-- 左侧：可视化 -->
+    <div class="card">
+      <div class="canvas-wrap">
+        <canvas id="cv" width="540" height="540"></canvas>
+      </div>
+      <div class="legend">
+        <span><span class="dot pos"></span> 输出 = 1</span>
+        <span><span class="dot neg"></span> 输出 = 0</span>
+        <span><span class="line"></span> 决策边界</span>
+      </div>
+    </div>
+
+    <!-- 右侧：控制 -->
+    <div class="card">
+      <div class="problem-row">
+        <button class="pbtn active" data-prob="AND">AND</button>
+        <button class="pbtn" data-prob="OR">OR</button>
+        <button class="pbtn" data-prob="NAND">NAND</button>
+        <button class="pbtn" data-prob="XOR">XOR</button>
+      </div>
+
+      <div class="equation" id="equation">y = step(0·x₁ + 0·x₂ + 0)</div>
+
+      <div class="slider-group">
+        <div class="slider-label"><span class="name">权重 w₁</span><span class="val" id="w1v">0.0</span></div>
+        <input type="range" id="w1" min="-5" max="5" step="0.1" value="2">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label"><span class="name">权重 w₂</span><span class="val" id="w2v">0.0</span></div>
+        <input type="range" id="w2" min="-5" max="5" step="0.1" value="2">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label"><span class="name">偏置 b</span><span class="val" id="bv">0.0</span></div>
+        <input type="range" id="b" min="-5" max="5" step="0.1" value="-3">
+      </div>
+
+      <div class="actions">
+        <button class="small-btn" id="reset">↺ 随机参数</button>
+        <button class="small-btn" id="solve">✓ 显示正确解</button>
+      </div>
+
+      <div style="margin-top:18px;">
+        <div class="stat" id="accStat"><span>正确率</span><span class="big" id="acc">0 / 4</span></div>
+      </div>
+
+      <table class="truth-table">
+        <thead>
+          <tr><th>x₁</th><th>x₂</th><th>真值</th><th>预测</th></tr>
+        </thead>
+        <tbody id="ttbody"></tbody>
+      </table>
+
+      <div class="note" id="note"></div>
+    </div>
+  </div>
+
+<script>
+// ====== 数据：四种逻辑问题 ======
+const PROBLEMS = {
+  AND:  { data: [[0,0,0],[0,1,0],[1,0,0],[1,1,1]], sol: [2, 2, -3] },
+  OR:   { data: [[0,0,0],[0,1,1],[1,0,1],[1,1,1]], sol: [2, 2, -1] },
+  NAND: { data: [[0,0,1],[0,1,1],[1,0,1],[1,1,0]], sol: [-2,-2, 3] },
+  XOR:  { data: [[0,0,0],[0,1,1],[1,0,1],[1,1,0]], sol: null }
+};
+
+let current = "AND";
+let w1 = 2, w2 = 2, b = -3;
+
+const canvas = document.getElementById('cv');
+const ctx = canvas.getContext('2d');
+
+// ====== 坐标映射：数据空间 [-0.5, 1.5] -> 像素 ======
+const DMIN = -0.5, DMAX = 1.5;
+const SIZE = 540;
+const PAD = 44;
+function toPx(x) { return PAD + (x - DMIN) / (DMAX - DMIN) * (SIZE - 2 * PAD); }
+
+// 感知机输出（阶跃函数）
+function predict(x1, x2) {
+  return (w1 * x1 + w2 * x2 + b) >= 0 ? 1 : 0;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, SIZE, SIZE);
+
+  // —— 背景分类区域：对每个像素点判定，分块着色 ——
+  const step = 10;
+  for (let py = PAD; py < SIZE - PAD; py += step) {
+    for (let px = PAD; px < SIZE - PAD; px += step) {
+      const cx = DMIN + (px + step/2 - PAD) / (SIZE - 2*PAD) * (DMAX - DMIN);
+      const cy = DMAX - (py + step/2 - PAD) / (SIZE - 2*PAD) * (DMAX - DMIN);
+      const p = predict(cx, cy);
+      ctx.fillStyle = p === 1 ? 'rgba(34,197,94,0.22)' : 'rgba(239,68,68,0.18)';
+      ctx.fillRect(px, py, step, step);
+    }
+  }
+
+  // —— 网格 + 坐标 ——
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 1;
+  ctx.font = '13px "SF Mono", monospace';
+  ctx.fillStyle = '#64748b';
+  for (let v = 0; v <= 1; v++) {
+    ctx.beginPath();
+    ctx.moveTo(toPx(v), PAD); ctx.lineTo(toPx(v), SIZE - PAD); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(PAD, toPx(v)); ctx.lineTo(SIZE - PAD, toPx(v)); ctx.stroke();
+    ctx.fillText(v, toPx(v) - 3, SIZE - PAD + 20);
+    ctx.fillText(v, PAD - 26, toPx(v) + 4);
+  }
+  ctx.font = 'bold 14px "SF Mono", monospace';
+  ctx.fillStyle = '#475569';
+  ctx.fillText('x₁', SIZE/2 - 8, SIZE - 10);
+  ctx.save(); ctx.translate(16, SIZE/2); ctx.rotate(-Math.PI/2); ctx.fillText('x₂', 0, 0); ctx.restore();
+
+  // —— 决策边界：w1*x1 + w2*x2 + b = 0 ——
+  drawBoundary();
+
+  // —— 数据点 ——
+  const prob = PROBLEMS[current];
+  prob.data.forEach(([x1, x2, y]) => {
+    const X = toPx(x1), Y = toPx(x2); // y 是标签，不是坐标
+    const pred = predict(x1, x2);
+    // 外圈：真值颜色
+    ctx.beginPath();
+    ctx.arc(X, Y, 15, 0, Math.PI * 2);
+    ctx.fillStyle = y === 1 ? '#16a34a' : '#dc2626';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+    // 内圈：预测正确显示白色实心圆，错误画红叉
+    ctx.lineWidth = 3.5;
+    if (pred === y) {
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(X, Y, 5, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.strokeStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(X - 7, Y - 7); ctx.lineTo(X + 7, Y + 7);
+      ctx.moveTo(X + 7, Y - 7); ctx.lineTo(X - 7, Y + 7);
+      ctx.stroke();
+    }
+    // 标签
+    ctx.fillStyle = '#1e293b';
+    ctx.font = 'bold 11px "SF Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`(${x1},${x2})`, X, Y - 24);
+    ctx.textAlign = 'start';
+  });
+}
+
+function drawBoundary() {
+  ctx.save();
+  if (Math.abs(w2) > 1e-6) {
+    const x1a = DMIN, x1b = DMAX;
+    const x2a = -(w1 * x1a + b) / w2;
+    const x2b = -(w1 * x1b + b) / w2;
+    ctx.strokeStyle = '#2563eb';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(toPx(x1a), toPx(x2a));
+    ctx.lineTo(toPx(x1b), toPx(x2b));
+    ctx.stroke();
+  } else if (Math.abs(w1) > 1e-6) {
+    const xv = -b / w1;
+    ctx.strokeStyle = '#2563eb';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(toPx(xv), PAD);
+    ctx.lineTo(toPx(xv), SIZE - PAD);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// ====== UI 更新 ======
+function fmt(v) { return (Math.round(v * 10) / 10).toFixed(1); }
+
+function update() {
+  document.getElementById('w1v').textContent = fmt(w1);
+  document.getElementById('w2v').textContent = fmt(w2);
+  document.getElementById('bv').textContent = fmt(b);
+
+  document.getElementById('equation').textContent =
+    `y = step(${fmt(w1)}·x₁ + ${fmt(w2)}·x₂ + ${fmt(b)})`;
+
+  draw();
+
+  // 真值表 + 正确率
+  const prob = PROBLEMS[current];
+  let correct = 0;
+  const rows = prob.data.map(([x1, x2, y]) => {
+    const pred = predict(x1, x2);
+    if (pred === y) correct++;
+    return `<tr>
+      <td>${x1}</td><td>${x2}</td>
+      <td class="${y===1?'ok':'bad'}">${y}</td>
+      <td class="${pred===y?'ok':'bad'}">${pred}${pred===y?' ✓':' ✗'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('ttbody').innerHTML = rows;
+
+  const stat = document.getElementById('accStat');
+  stat.className = 'stat ' + (correct === 4 ? 'perfect' : correct >= 2 ? 'partial' : 'failed');
+  document.getElementById('acc').textContent = `${correct} / 4`;
+
+  updateNote(correct);
+}
+
+function updateNote(correct) {
+  const note = document.getElementById('note');
+  if (current === 'XOR') {
+    note.className = 'note xor';
+    note.innerHTML = correct === 4
+      ? `⚠️ <b>这不科学！</b>XOR 是<b>线性不可分</b>的——一条直线无法把对角线分布的点分开，你钻了数值空子 😉`
+      : `🔴 <b>XOR 不可解。</b>无论怎么拖动滑块都分不开！XOR 的两类点呈<b>对角线分布</b>，没有任何直线能隔开它们。这正是 1969 年 Minsky 指出、让神经网络陷入"寒冬"的经典难题，需要<b>多层网络</b>（隐藏层）才能解决。`;
+  } else {
+    note.className = 'note';
+    note.innerHTML = correct === 4
+      ? `✅ <b>完美！</b>你的感知机已学会 <b>${current}</b> 运算——它是<b>线性可分</b>问题，一条直线就能分开两类点。`
+      : `💡 继续调节 w₁, w₂, b。让绿色点（=1）落在蓝线上方区域、红色点（=0）落在下方区域。点 "✓ 显示正确解" 可看答案。`;
+  }
+}
+
+// ====== 事件：滑块（直接写入 w1/w2/b 变量，触发重绘）======
+function bindSlider(id, setter) {
+  document.getElementById(id).addEventListener('input', e => {
+    setter(parseFloat(e.target.value));
+    update();
+  });
+}
+bindSlider('w1', v => { w1 = v; });
+bindSlider('w2', v => { w2 = v; });
+bindSlider('b',  v => { b  = v; });
+
+document.querySelectorAll('.pbtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.pbtn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    current = btn.dataset.prob;
+    w1 = 1; w2 = 1; b = -1;
+    document.getElementById('w1').value = w1;
+    document.getElementById('w2').value = w2;
+    document.getElementById('b').value = b;
+    update();
+  });
+});
+
+document.getElementById('reset').addEventListener('click', () => {
+  w1 = +(Math.random() * 6 - 3).toFixed(1);
+  w2 = +(Math.random() * 6 - 3).toFixed(1);
+  b  = +(Math.random() * 6 - 3).toFixed(1);
+  document.getElementById('w1').value = w1;
+  document.getElementById('w2').value = w2;
+  document.getElementById('b').value = b;
+  update();
+});
+
+document.getElementById('solve').addEventListener('click', () => {
+  const sol = PROBLEMS[current].sol;
+  if (!sol) {
+    w1 = 0; w2 = 0; b = 0;
+  } else {
+    w1 = sol[0]; w2 = sol[1]; b = sol[2];
+  }
+  document.getElementById('w1').value = w1;
+  document.getElementById('w2').value = w2;
+  document.getElementById('b').value = b;
+  update();
+});
+
+update();
+</script>
+</body>
+</html>
