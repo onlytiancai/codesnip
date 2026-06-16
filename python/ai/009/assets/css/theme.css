@@ -1,0 +1,54 @@
+/* ====== 主题：清亮淡雅 ====== */
+:root, [data-theme="light"] {
+  --bg: #fafbff;
+  --bg-grad-1: #f0f3fa;
+  --bg-grad-2: #fafbff;
+  --panel: rgba(255, 255, 255, 0.95);
+  --panel2: rgba(248, 250, 255, 0.85);
+  --border: rgba(15, 23, 42, 0.08);
+  --text: #1e293b;
+  --muted: #64748b;
+  --accent: #10b981;       /* 薄荷绿 */
+  --accent2: #0ea5e9;      /* 天蓝 */
+  --success: #10b981;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --pos: #0ea5e9;
+  --neg: #e11d48;
+  --code-bg: #f1f5f9;
+  --code-text: #0f172a;
+  --shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --btn-bg: rgba(241, 245, 249, 0.9);
+  --input-bg: #ffffff;
+  --hover-bg: rgba(16, 185, 129, 0.08);
+  --blockquote-bg: rgba(16, 185, 129, 0.08);
+  --blockquote-border: #10b981;
+}
+
+[data-theme="dark"] {
+  --bg: #0f1419;
+  --bg-grad-1: #161b22;
+  --bg-grad-2: #0f1419;
+  --panel: rgba(22, 27, 34, 0.92);
+  --panel2: rgba(30, 38, 48, 0.7);
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #e6edf3;
+  --muted: #8b95a4;
+  --accent: #34d399;
+  --accent2: #38bdf8;
+  --success: #34d399;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --pos: #38bdf8;
+  --neg: #f87171;
+  --code-bg: #161b22;
+  --code-text: #e6edf3;
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.4);
+  --btn-bg: rgba(30, 38, 48, 0.6);
+  --input-bg: rgba(22, 27, 34, 0.6);
+  --hover-bg: rgba(52, 211, 153, 0.1);
+  --blockquote-bg: rgba(52, 211, 153, 0.08);
+  --blockquote-border: #34d399;
+}
