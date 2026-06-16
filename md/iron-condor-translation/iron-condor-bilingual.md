@@ -141,7 +141,7 @@ In the chart below, you can see there was a massive range expansion in November 
 
 
 
-> *图 1：罗素 2000 指数（$RUT）日线图，2016 年 6 月 – 2018 年 4 月。布林带在 2016 年 11 月特朗普当选后大幅开口，随后 RSI 长时间维持在 70 以上的"超买"区间。底部波动率指标也形成尖锐的"山峰"。数据截至 2018-04-09，当日收 1514.46。*
+
 
 **What happened after that?** RUT stayed in a range between 1350 and 1450 for the best part of **eight months**!
 
@@ -153,13 +153,14 @@ Yes, Condor traders, myself included, suffered losses in November 2016, but what
 
 ![](images/img-004.jpg)
 
+> *罗素 2000 指数（$RUT）日线图，2016 年 6 月 – 2018 年 4 月。布林带在 2016 年 11 月特朗普当选后大幅开口，随后 RSI 长时间维持在 70 以上的"超买"区间。底部波动率指标也形成尖锐的"山峰"。数据截至 2018-04-09，当日收 1514.46。*
 ---
 
 ### 波动率飙升时 / On a Volatility Spike
 
 These are short **Vega** trades. We're selling vol, so we want to open trades when vol is high. **Sell high, buy low.** The caveat to that is that sometimes we've seen some pretty aggressive V-shaped reversals which is where some traders have gotten into trouble.
 
-> 铁鹰是**做空 Vega** 的交易——我们在卖出波动率，所以希望**在波动率高时建仓**。**卖高买低**嘛。但要注意的是，市场有时会出现剧烈的 **V 形反转**——这正是很多人栽跟头的地方。
+> 铁鹰是 **做空 Vega** 的交易——我们在卖出波动率，所以希望 **在波动率高时建仓**。**卖高买低** 嘛。但要注意的是，市场有时会出现剧烈的 **V 形反转**——这正是很多人栽跟头的地方。
 
 We get a big drop in the market and a massive vol spike and they think, "Great, vol is super high, this is a perfect time for an Iron Condor". But, sometimes that's not the case and it can even be the worst time to enter.
 
@@ -167,7 +168,7 @@ We get a big drop in the market and a massive vol spike and they think, "Great, 
 
 If markets have a big V-shaped reversal, then the call side of an Iron Condor is going to come under pressure pretty quickly. I've seen it many times in recent years.
 
-> 一旦市场出现 V 形反转，铁鹰的**认购端（Call side）**会立刻承压。过去几年我见过太多次。
+> 一旦市场出现 V 形反转，铁鹰的 **认购端（Call side）** 会立刻承压。过去几年我见过太多次。
 
 A good idea is to **wait a week or two** after those big vol spikes, you don't necessarily want to get the absolute top in volatility.
 
@@ -179,11 +180,11 @@ A great place to find volatility data is [www.ivolatility.com](http://www.ivolat
 
 The below chart shows the implied volatility and historical volatility for RUT.
 
-> 下图展示了 RUT 指数的**隐含波动率（IV）**与**历史波动率（HV）**对比。
+> 下图展示了 RUT 指数的 **隐含波动率（IV）** 与 **历史波动率（HV）** 对比。
 
+![](images/img-005.jpg)
 
-
-> *图 2：RUT 的 IV Index Mean（IV 指数均值，金线）与 30D HV（30 日历史波动率，蓝线）近 1 年走势对比。IV 长期高于 HV（波动率溢价），但在 2 月初恐慌时 IV 急速飙升至 30% 以上，随后回落；HV 因计算滞后反而维持高位。数据来源：IVolatility.com。*
+> *RUT 的 IV Index Mean（IV 指数均值，金线）与 30D HV（30 日历史波动率，蓝线）近 1 年走势对比。IV 长期高于 HV（波动率溢价），但在 2 月初恐慌时 IV 急速飙升至 30% 以上，随后回落；HV 因计算滞后反而维持高位。数据来源：IVolatility.com。*
 
 ---
 
@@ -199,7 +200,6 @@ The way it works is that an option's current implied volatility is compared agai
 
 
 
-> *图 3：IV Rank 计算示例图示。横轴为不同日期，纵轴为 IV 数值及对应的 Rank。*
 
 > This rank shows how low or high the current implied volatility is compared to where it has been at different times in the past.
 
@@ -216,6 +216,9 @@ The way it works is that an option's current implied volatility is compared agai
 A good free scanner for IV Rank is available from [www.marketchameleon.com](http://www.marketchameleon.com). You can access this data for free and can be a good way to find trade ideas. They also have a scanner for low IV Rank stocks.
 
 > 一个免费的 IV Rank 扫描器：[www.marketchameleon.com](http://www.marketchameleon.com)。免费版就能用，是挖交易思路的好工具。他们还提供**低 IV Rank** 股票的扫描器。
+
+![](images/img-006.jpg)
+
 
 You can find a more detailed guide on IV Rank [here](https://optionstradingiq.com).
 
@@ -293,19 +296,26 @@ Given that the monthly condor had the highest negative delta, you might think th
 
 
 
-> *图 4：月度铁鹰（Delta = -16）在 2018-03-20 暴跌次日表现。*
+> *月度铁鹰（Delta = -16）在 2018-03-20 暴跌次日表现。*
+
+![](images/img-007.jpg)
 
 - **Weekly Condor**：亏 **$2,150**
 
-![Weekly Condor 表现](images/img-005.jpg)
 
-> *图 5：周度铁鹰（Delta = -12）在同一次暴跌中的表现。*
+
+> *周度铁鹰（Delta = -12）在同一次暴跌中的表现。*
+
+
+![](images/img-008.jpg)
 
 - **90 Day Condor**：反而**赚**了 **$100**
 
-![90 Day Condor 表现](images/img-006.jpg)
 
-> *图 6：90 日铁鹰（Delta = -10）"稳如老狗"，不亏反赚 $100。*
+
+> *90 日铁鹰（Delta = -10）"稳如老狗"，不亏反赚 $100。*
+
+![](images/img-009.jpg)
 
 > You can see the **90 day condor performed by far the best** out of the 3. Yes, the trade-off is slower time decay and lower profits in quiet markets, but I'll take that in return for **reduced P&L volatility**.
 
@@ -333,7 +343,7 @@ So, funny names, but important concepts.
 
 **Contango** and **Backwardation** refer to the shape of the **volatility term structure**. You can find the full details at the [VIX Term Structure Guide](https://optionstradingiq.com/everything-you-need-to-know-about-vix-term-structure/), but the general idea is that the level of implied volatility is different for each different option expiration period.
 
-> Contango 与 Backwardation 描述的是**波动率期限结构（Volatility Term Structure）**的形状。完整内容可见 [VIX 期限结构指南](https://optionstradingiq.com/everything-you-need-to-know-about-vix-term-structure/)。简单说：不同到期月的期权，IV 高低各不相同。
+> Contango 与 Backwardation 描述的是 **波动率期限结构（Volatility Term Structure）** 的形状。完整内容可见 [VIX 期限结构指南](https://optionstradingiq.com/everything-you-need-to-know-about-vix-term-structure/)。简单说：不同到期月的期权，IV 高低各不相同。
 
 The normal situation is that volatility is lower in the front months and the back months are higher. This makes sense if you think about it, because the further out in time you go, the more chance that a volatility event can occur, so traders want to be compensated for that risk. This situation is called **Contango** and occurs most of the time in the market, particularly during bull markets.
 
@@ -374,9 +384,10 @@ Below, you can see what happened to the VIX Term Structure on that day.
 
 > 下图展示了**当天**VIX 期限结构的变化。
 
-![VIX Term Structure Volpocalypse](images/img-007.jpg)
 
-> *图 7：2018 年 2 月 Volpocalypse 当天的 VIX 期货期限结构。绿线 = 2 月 1 日（Contango，向上倾斜）；黑线 = 2 月 5 日（Backwardation，向下倒挂、近月 IV 飙至 33+）。近月 IV 的剧烈抬升是导致 XIV 等做空 VIX 产品爆仓的元凶。*
+![](images/img-010.jpg)
+
+> *2018 年 2 月 Volpocalypse 当天的 VIX 期货期限结构。绿线 = 2 月 1 日（Contango，向上倾斜）；黑线 = 2 月 5 日（Backwardation，向下倒挂、近月 IV 飙至 33+）。近月 IV 的剧烈抬升是导致 XIV 等做空 VIX 产品爆仓的元凶。*
 
 > You can see that the market went from Contango to Backwardation and the impact of the volatility spike was greatest in the front month options. The back months weren't impacted much at all.
 
@@ -385,6 +396,7 @@ Below, you can see what happened to the VIX Term Structure on that day.
 **Now you might realize why I prefer long-term Iron Condors!**
 
 > **现在你应该明白我为什么偏爱长期铁鹰了！**
+
 
 ---
 
@@ -514,9 +526,9 @@ Assume you have an iron condor on RUT that is risking $20,000. If the Delta Doll
 
 > 假设 RUT 上的一笔铁鹰占用风险 $20,000。一旦 Delta Dollars 偏离中性超过 **±$40,000**，就该考虑**调整仓位、回到中性**。
 
-![Delta Dollars 实战图](images/img-008.jpg)
+![](images/img-011.jpg)
 
-> *图 8：RUT 铁鹰头寸的 Delta Dollars 监控示意。*红框处特别标注："KEEP AN EYE ON THIS METRIC TO MAKE SURE IT DOESN'T GET TOO FAR AWAY FROM YOUR CAPITAL AT RISK"（紧盯这个指标，确保它不要过度偏离你的风险资本）。该案例中：总 Delta = -8，看似中性；但 Delta Dollars = -$11,168，已接近最大风险 $16,600 的水平，需警惕。*
+> *RUT 铁鹰头寸的 Delta Dollars 监控示意。*红框处特别标注："KEEP AN EYE ON THIS METRIC TO MAKE SURE IT DOESN'T GET TOO FAR AWAY FROM YOUR CAPITAL AT RISK"（紧盯这个指标，确保它不要过度偏离你的风险资本）。该案例中：总 Delta = -8，看似中性；但 Delta Dollars = -$11,168，已接近最大风险 $16,600 的水平，需警惕。*
 
 ---
 
@@ -534,9 +546,8 @@ Let's say we have the following Iron Condor that is showing too much **positive 
 
 > 假设下面这笔铁鹰，随着**市场下跌**，**正 Delta** 变得过大（即"方向性偏空"被放大）：
 
-![Delta 对冲前](images/img-008.jpg)
+![](images/img-012.jpg)
 
-> *图 9：Delta 对冲前的铁鹰头寸 T+0 损益图。注意 T+0 曲线（点线）的最高点偏右（位于约 +2.6% / 1382 处），代表在当前价位的斜率为正 → **净 Delta = +20**。*
 
 > Assuming we decide we don't want to adjust the Condor, and we want to give it a bit more time to see if the market will bounce. But, we are concerned that further downside will see our losses start to pile up pretty quickly.
 
@@ -550,9 +561,9 @@ Let's say we have the following Iron Condor that is showing too much **positive 
 
 > 上图显示净头寸 Delta = **20**。所以**买一份 20 Delta 的 Put**，"啪"的一下，就**回到 Delta 中性**了。
 
-![Delta 对冲后](images/img-009.jpg)
 
-> *图 10：Delta 对冲后的损益图。T+0 曲线的顶点已被"压"回到中央 0.0% 垂线处，斜率为 0 → **Delta = 0**。*
+![](images/img-013.jpg)
+
 
 > If the market continues to fall, the long put acts as a hedge and will **reduce the losses** on the Condor.
 >
@@ -704,7 +715,7 @@ Ideally, you want to have around **$5,000 to $10,000** at a minimum to start tra
 
 You can even start trading with as little as **$2,000**. In fact, in some respects, it's better to start with a small account while you are learning. That way, if a trade goes bad you haven't done too much damage to your net worth.
 
-> 实际上**$2,000** 就能开始。甚至某种程度上，小资金起步**更好**——亏了也不会伤筋动骨。
+> 实际上 **$2,000** 就能开始。甚至某种程度上，小资金起步**更好**——亏了也不会伤筋动骨。
 
 Even if you have **$200,000** available for trading options, just start with **$10,000** and get a feel for how things work. Then, when you've been trading for a year or so, **SLOWLY** build your account from there.
 
@@ -716,7 +727,7 @@ You don't want to jump from $10,000 to $200,000 overnight.
 
 The psychological aspect of trading a $200k account is much different to a $10k account.
 
-> **$20 万账户**和**$1 万账户**承受的心理压力完全是两码事。
+> **$20 万账户** 和 **$1 万账户** 承受的心理压力完全是两码事。
 
 Iron Condors are **risk defined trades**. The required capital for a trade is equal to the **maximum loss**. Unless the market makes a catastrophic move, you are unlikely to suffer a max loss on a trade. The only time that would happen is if a trader is **too stubborn to stick to a stop loss**.
 
@@ -903,7 +914,7 @@ Let's put theory into practice and look at a couple of Iron Condor examples.
 
 > 第一个是 **2018 年 1 月 30 日** 建仓的**长期铁鹰**，到期月是 **6 月**。
 
-![RUT Iron Condor 初始建仓](images/img-011.jpg)
+![](images/img-014.jpg)
 
 > *图 11：RUT 长期铁鹰**初始建仓**截图。*
 > * **标的 / Underlying**：RUT（罗素 2000 指数）*
@@ -920,23 +931,23 @@ Let's put theory into practice and look at a couple of Iron Condor examples.
 >
 > The delta of the short put had also hit **20** which was my adjustment point.
 
-> 几天之内，RUT 从 1575 跌到 1508，仓位**正 Delta 过大**（方向性偏多）。Short Put 的 Delta 也到了 **20**——这就是我的**调整触发线**。
+> 几天之内，RUT 从 1575 跌到 1508，仓位 **正 Delta 过大**（方向性偏多）。Short Put 的 Delta 也到了 **20** ——这就是我的 **调整触发线**。
 
 > I decided to **roll the entire position down** so the puts went from 1360-1340 to 1330-1310 and the calls came down from 1760-1780 to 1700-1720.
 
-> 我决定**整体往下 Roll（移仓）**——Put 端从 1360/1340 移到 1330/1310，Call 端从 1760/1780 移到 1700/1720。
+> 我决定 **整体往下 Roll（移仓）** ——Put 端从 1360/1340 移到 1330/1310，Call 端从 1760/1780 移到 1700/1720。
 
 **调整前 / Before Adjustment**
 
-![RUT 第一次调整前](images/img-012.jpg)
+![](images/img-015.jpg)
 
-> *图 12：RUT 铁鹰**第一次调整前**的损益图。注意此时 RUT 已跌到 1508 附近，Call 端远离价位造成收益曲线被压扁。*
+*RUT 铁鹰 **第一次调整前** 的损益图。注意此时 RUT 已跌到 1508 附近，Call 端远离价位造成收益曲线被压扁。*
 
 **调整后 / After Adjustment**
 
-![RUT 第一次调整后](images/img-013.jpg)
+![](images/img-016.jpg)
 
-> *图 13：RUT 铁鹰**第一次调整后**的损益图。整体下移后，Put 端保护位 1330、Call 端保护位 1700，回到相对中性的位置。*
+*RUT 铁鹰 **第一次调整后** 的损益图。整体下移后，Put 端保护位 1330、Call 端保护位 1700，回到相对中性的位置。*
 
 > On **February 14th**, I **double the size of the trade** from 3 to 6.
 
@@ -944,15 +955,15 @@ Let's put theory into practice and look at a couple of Iron Condor examples.
 
 **调整前 / Before Adjustment**（2 月 14 日加仓前）
 
-![RUT 第二次调整前](images/img-014.jpg)
+![](images/img-017.jpg)
 
-> *图 14：2 月 14 日加仓前 6 手规模的头寸截图。此时 P&L 已经有正向贡献。*
+*2 月 14 日加仓前 6 手规模的头寸截图。此时 P&L 已经有正向贡献。*
 
 **调整后 / After Adjustment**
 
-![RUT 第二次调整后](images/img-015.jpg)
+![](images/img-018.jpg)
 
-> *图 15：加仓到 6 手后的损益图。最大收益约 **$2,000**（(2.00+1.35)×100×6=$2,010），最大亏损约 **-$10,000**。*
+*加仓到 6 手后的损益图。最大收益约 **$2,000**（(2.00+1.35)×100×6=$2,010），最大亏损约 **-$10,000**。*
 
 > No further adjustments were needed for the trade and on **April 18th** I was able to close it out for a **$1,075 gain**.
 
@@ -966,11 +977,13 @@ Let's put theory into practice and look at a couple of Iron Condor examples.
 >
 > Here is the initial setup:
 
+![](images/img-019.jpg)
+
 > 第二个案例是 **NFLX（奈飞）**，**2018 年 7 月 18 日** 建仓，当天股价 **$376**。
 
-![NFLX Iron Condor 初始建仓](images/img-016.jpg)
 
-> *图 16：NFLX 铁鹰**初始建仓**截图。*
+
+> *NFLX 铁鹰**初始建仓**截图。*
 > * **标的 / Underlying**：NFLX（奈飞）*
 > * **到期日 / Expiration**：**2018-09-21***
 > * **建仓日期**：2018-07-18（股价约 **$376**）*
@@ -995,13 +1008,13 @@ Let's put theory into practice and look at a couple of Iron Condor examples.
 
 **调整前 / Before Adjustment**
 
-![NFLX 调整前](images/img-017.jpg)
+![](images/img-020.jpg)
 
 > *图 17：NFLX 铁鹰**调整前**的损益图。NFLX 从 $376 跌到 $356，Call 端因深度虚值几乎失效。*
 
 **调整后 / After Adjustment**
 
-![NFLX 调整后](images/img-018.jpg)
+![](images/img-021.jpg)
 
 > *图 18：NFLX 铁鹰**调整后**的损益图。Call 端下移到 440/450，仓位回到 Delta 中性。*
 > * **新 Call 端**：卖 5 手 440 Call（@1.53），买 5 手 450 Call（@1.16）*
@@ -1059,28 +1072,3 @@ Iron Condors are one of the **best option strategies**. I've been in the options
 > **免责声明 / Disclaimer**: The information above is for **educational purposes only** and should not be treated as **investment advice**. The strategy presented would not be suitable for investors who are not familiar with exchange traded options. Any readers interested in this strategy should do their own research and seek advice from a licensed financial adviser.
 >
 > **本文内容仅供学习参考，不构成任何投资建议**。该策略不适用于不熟悉交易所交易期权的投资者。任何感兴趣的读者，请**自行研究并咨询有资质的财务顾问**。
-
----
-
-## 附录：图片清单 / Appendix: Image Index
-
-| 编号 | 章节 | 主题 |
-| --- | --- | --- |
-| [图 1](images/img-001.jpg) | After a Range Expansion | RUT 2016 大选后走势图（布林带爆开） |
-| [图 2](images/img-002.jpg) | On a Volatility Spike | RUT 隐含波动率 vs 历史波动率 |
-| [图 3](images/img-003.jpg) | Based on IV Rank | IV Rank 计算示意 |
-| [图 4](images/img-004.jpg) | Slow Movers | 月度铁鹰在暴跌中的表现 |
-| [图 5](images/img-005.jpg) | Slow Movers | 周度铁鹰在暴跌中的表现 |
-| [图 6](images/img-006.jpg) | Slow Movers | 90 日铁鹰在暴跌中的表现 |
-| [图 7](images/img-007.jpg) | The "Volpocalypse" | VIX Term Structure 期限结构剧变 |
-| [图 8](images/img-008.jpg) | Delta Dollars | Delta Dollars 实战图示 |
-| [图 9](images/img-008.jpg) | Delta Hedging | Delta 对冲前的损益图 |
-| [图 10](images/img-009.jpg) | Delta Hedging | Delta 对冲后的损益图 |
-| [图 11](images/img-011.jpg) | Iron Condor Examples | RUT 长期铁鹰初始建仓 |
-| [图 12](images/img-012.jpg) | Iron Condor Examples | RUT 第一次调整前 |
-| [图 13](images/img-013.jpg) | Iron Condor Examples | RUT 第一次调整后 |
-| [图 14](images/img-014.jpg) | Iron Condor Examples | RUT 第二次调整前（2 月 14 日加仓） |
-| [图 15](images/img-015.jpg) | Iron Condor Examples | RUT 第二次调整后 |
-| [图 16](images/img-016.jpg) | Iron Condor Examples | NFLX 铁鹰初始建仓 |
-| [图 17](images/img-017.jpg) | Iron Condor Examples | NFLX 铁鹰调整前 |
-| [图 18](images/img-018.jpg) | Iron Condor Examples | NFLX 铁鹰调整后 |
