@@ -218,16 +218,17 @@ section: timing
 difficulty: easy
 tags: iv-rank
 question: |
-  作者建议铁鹰建仓的 IV Rank 阈值约为多少？
+  根据原文，文中推荐的免费 IV Rank 扫描器来自哪个网站？
 options:
-  - { key: A, text: "IV Rank > 20" }
-  - { key: B, text: "IV Rank > 50" }
-  - { key: C, text: "IV Rank > 80" }
-  - { key: D, text: "无所谓" }
+  - { key: A, text: "optionstradingiq.com" }
+  - { key: B, text: "marketchameleon.com" }
+  - { key: C, text: "ivolatility.com" }
+  - { key: D, text: "CBOE.com" }
 answer: B
 explanation: |
-  原文：'I personally like to use an **IV Rank of 50 or higher** for selling Iron Condors.'
-  越高越好，但 ≥50 即可启动。
+  原文（L216）：'A good free scanner for IV Rank is available from
+  **www.marketchameleon.com**.'
+  这是一家提供免费 IV Rank 数据的扫描器网站，还提供低 IV Rank 股票筛选。
 :::
 
 <!-- ### 随时建仓 / Any Time -->
@@ -262,16 +263,18 @@ section: timeframe
 difficulty: easy
 tags: preference
 question: |
-  作者本人在文章中明确表示更偏好哪种到期时间的铁鹰？
+  作者本人在文章中表示更偏好哪种到期时间的铁鹰？
 options:
   - { key: A, text: "周度（Weekly）" }
   - { key: B, text: "月度（Monthly）" }
-  - { key: C, text: "90 日（90 DTE）长期" }
+  - { key: C, text: "长期（Long-term）" }
   - { key: D, text: "LEAPS（>1 年）" }
 answer: C
 explanation: |
-  原文：'For my own personal trading, I really do prefer to trade **90 day iron condors**.'
-  长期铁鹰 Theta 慢、Gamma 低、容错空间大。
+  原文：'**I much prefer long term iron condors to short term condors**'
+  （我**更偏好长期铁鹰，而非短期**）。转向长期最初是因搬回墨尔本的时差问题，
+  长期铁鹰走得慢、对调整及时性要求低。
+  文章用 2018-03 案例对比了 90 日、月度、周度 3 种铁鹰，**90 day condor performed by far the best**。
 :::
 
 ::: quiz q-tf-2 single
@@ -340,7 +343,7 @@ section: contango
 difficulty: hard
 tags: volpocalypse
 question: |
-  2018-02 "Volpocalypse" 事件中，VIX 在某日盘中涨幅约为？
+  2018-02 "Volpocalypse" 事件中，VIX 单日涨幅约为？
 options:
   - { key: A, text: "20%" }
   - { key: B, text: "50%" }
@@ -348,8 +351,9 @@ options:
   - { key: D, text: "300%" }
 answer: C
 explanation: |
-  原文：'the VIX went from 17 to 37 in a single day. That's about a **115.6% intraday move**.'
+  原文（L375）：'when VIX spiked an almighty **115.6%** from **17.31 to 37.32**'.
   这是教科书级"短 Gamma 爆仓"案例：反向 VIX ETN（XIV）当日清零。
+  在此之前（不计 1987 崩盘），最大单日涨幅是 2007 年 2 月的 **64.20%**。
 :::
 
 <!-- section: legging -->
@@ -385,14 +389,17 @@ question: |
   关于分腿建仓的风险，下列哪些说法正确？（多选）
 options:
   - { key: A, text: "单边裸奔（naked）风险显著增加" }
-  - { key: B, text: "可能因监管保证金不足被强平" }
-  - { key: C, text: "没有交易手续费的差异" }
-  - { key: D, text: "可能因行情剧烈无法成交" }
+  - { key: B, text: "另一侧对冲完全失效，承压方独自扛" }
+  - { key: C, text: "完全没有额外风险" }
+  - { key: D, text: "可能因行情剧烈无法成交另一侧" }
 answer: A, B, D
 explanation: |
-  原文：'The biggest risk is that you get one side on, then the market moves against you, and you can't get the other side on at all, or you can but at much worse prices.'
-  监管可能提高 naked 仓位保证金要求，导致强平。
-  C 错：分腿建仓通常因为单腿一次成交手续费更高。
+  原文（L425-429）：'If a trader is bullish they might start by selling a bull put spread.
+  Then, if the market declines, that spread is placed under pressure with **no offsetting gains**
+  from the declining price of the bear call spread.'
+  也就是说当一侧承压时，**另一侧并没有提供对冲收益**（"单边裸奔"）。
+  反之亦然，上涨时 Put 端独自受益 / 风险。行情剧烈时另一侧可能无法成交。
+  C 错：分腿必然带来额外风险。
 :::
 
 <!-- section: strikes -->
@@ -433,7 +440,10 @@ options:
   - { key: D, text: "随机、激进、保守" }
 answer: A
 explanation: |
-  原文：'I know of three different ways that people pick their strikes: **the delta method, the standard deviation method, and a technical analysis method**'.
+  原文（L448-451）给出 3 种思路：
+  1. **Use delta**（如卖 10/15 Delta）
+  2. **Use standard deviation**（卖出现价 ±1~2 个标准差之外的行权价）
+  3. **Use technical analysis**（参考支撑位、阻力位、趋势线）
   关键不是用哪种，而是选定后**保持一致**。
 :::
 
@@ -549,18 +559,21 @@ explanation: |
 id: q-ie-1
 section: idx-vs-etf
 difficulty: medium
-tags: liquidity
+tags: liquidity, capital
 question: |
-  关于 SPX（指数期权）与 SPY（ETF 期权）的流动性差异，下列哪些说法正确？（多选）
+  关于 SPX（指数期权）与 SPY（ETF 期权）的对比，下列哪些说法正确？（多选）
 options:
-  - { key: A, text: "SPX 名义合约价值大 10 倍，滑点更明显" }
-  - { key: B, text: "SPY 单张名义小，更适合新手" }
-  - { key: C, text: "两者买卖价差相当" }
-  - { key: D, text: "深度虚值时 SPX 流动性反而可能更好" }
-answer: A, B, D
+  - { key: A, text: "SPY 的价格大约是 SPX 的 1/10" }
+  - { key: B, text: "SPY 单张名义小，更适合小资金账户" }
+  - { key: C, text: "两者在主流指数上流动性差异不大" }
+  - { key: D, text: "新手或担心流动性时优先选 ETF" }
+answer: A, B, C, D
 explanation: |
-  原文：'SPX 流动性总体更好，但每张合约价值 10 倍于 SPY'，滑点按百分比算可能更严重。
-  新手建议从 SPY 起步；大资金 / 经验者多用 SPX。
+  原文（L659-660）'The **SPY** ETF is approximately **1/10 the value** of the **SPX** Index.'（SPY 大约是 SPX 的 1/10）。
+  原文（L610）'When comparing liquidity on the major indexes, there is not much difference
+  between index options and ETF options as both are very, very liquid.'（主流指数上两者都极好，差异不大）。
+  原文（L607）'Traders who are worried about liquidity, or are just starting out,
+  should stick to the **ETFs** as there will be less slippage.'（担心流动性或新手优先 ETF）。
 :::
 
 ::: quiz q-ie-2 single
@@ -611,16 +624,18 @@ section: small-account
 difficulty: easy
 tags: capital
 question: |
-  作者建议小资金铁鹰的起步账户规模约为？
+  根据原文，小资金铁鹰的最低起步资金约为？
 options:
-  - { key: A, text: "$500-$1,000" }
-  - { key: B, text: "$2,000-$10,000" }
-  - { key: C, text: "$50,000-$100,000" }
-  - { key: D, text: "$500,000+" }
+  - { key: A, text: "$500" }
+  - { key: B, text: "$2,000" }
+  - { key: C, text: "$5,000 ~ $10,000" }
+  - { key: D, text: "$100,000+" }
 answer: B
 explanation: |
-  原文：'you can get started with as little as **$2,000 to $10,000**'.
-  心理上不要把 $10k 账户当 $200k 玩。
+  原文（L716）：'You can even start trading with as little as **$2,000**.'
+  （**$2,000** 就能开始）。
+  同时原文（L712）也建议理想情况下"**$5,000 to $10,000**"起步。
+  即便手头有 $200,000，也建议从 $10,000 起步慢慢建仓。
 :::
 
 ::: quiz q-sa-2 multiple
@@ -743,7 +758,9 @@ options:
   - { key: D, text: "每月调一次" }
 answer: A
 explanation: |
-  原文：'**Hoping is not a strategy**'。调整规则必须提前写入交易计划，临场决策容易情绪化。
+  原文（L840）：'What you don't want to do, is **close your eyes, cross your fingers and hope that the position comes back into profit**.
+  **Hope is not a strategy.**'
+  调整规则必须提前写入交易计划，临场决策容易情绪化。
 :::
 
 ::: quiz q-adj-2 multiple
@@ -853,7 +870,7 @@ section: examples
 difficulty: medium
 tags: stop-loss
 question: |
-  作者对单笔铁仓的硬止损阈值（无论怎么想扛）是多少？
+  作者对单笔铁鹰的硬止损阈值（无论怎么想扛）是多少？
 options:
   - { key: A, text: "$200" }
   - { key: B, text: "$500" }
@@ -861,7 +878,7 @@ options:
   - { key: D, text: "无硬止损" }
 answer: C
 explanation: |
-  原文：'I have a hard stop loss of **$1,000 per position**'.
+  原文（L1032）：'I have a hard stop loss of **$1,000 per Iron Condor trade**'.
   这是风控底线——"Hope is not a strategy" 的具体化。
 :::
 
