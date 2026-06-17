@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>小精灵走迷宫 · 可视化编程启蒙</title>
+<script src="https://cdn.staticfile.net/vue/3.5.22/vue.global.js"></script>
+<style>
+  :root {
+    --bg: #eef2ff;
+    --bg2: #f8faff;
+    --panel: #ffffff;
+    --panel-2: #f1f5f9;
+    --border: #d8e0ea;
+    --text: #0f172a;
+    --muted: #64748b;
+    --accent: #2563eb;
+    --accent2: #7c3aed;
+    --pos: #16a34a;
+    --neg: #dc2626;
+    --warn: #d97706;
+    --b-move: #16a34a;   --b-move-bg: #dcfce7;
+    --b-turn: #2563eb;   --b-turn-bg: #dbeafe;
+    --b-repeat: #d97706; --b-repeat-bg: #fef3c7;
+    --b-if: #db2777;     --b-if-bg: #fce7f3;
+    --b-while: #7c3aed;  --b-while-bg: #ede9fe;
+    --b-var: #0891b2;    --b-var-bg: #cffafe;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, var(--bg), var(--bg2));
+    color: var(--text);
+    min-height: 100vh;
+    padding: 16px;
+    line-height: 1.55;
+  }
+  [v-cloak] { display: none; }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+
+  .head { margin-bottom: 16px; }
+  h1 {
+    font-size: 1.6rem; font-weight: 800;
+    background: linear-gradient(120deg, #2563eb, #7c3aed);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 2px;
+  }
+  .subtitle { color: var(--muted); font-size: 0.9rem; }
+
+  /* 关卡选择 */
+  .levels {
+    display: flex; gap: 8px; overflow-x: auto;
+    padding: 8px 2px 10px; margin-bottom: 14px; scrollbar-width: thin;
+  }
+  .levels::-webkit-scrollbar { height: 6px; }
+  .levels::-webkit-scrollbar-thumb { background: #c3ccda; border-radius: 3px; }
+  .lvl-chip {
+    flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 1px;
+    padding: 8px 14px; border-radius: 12px; border: 2px solid var(--border);
+    background: var(--panel); color: var(--muted); cursor: pointer; min-width: 66px;
+    transition: all .15s;
+  }
+  .lvl-chip .ln { font-size: 0.95rem; font-weight: 700; }
+  .lvl-chip .ln-name { font-size: 0.68rem; max-width: 84px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lvl-chip.locked { opacity: .45; cursor: not-allowed; }
+  .lvl-chip.active { border-color: var(--accent); background: #eff6ff; color: var(--accent); transform: translateY(-1px); }
+  .lvl-chip.done .ln::after { content: " ✓"; color: var(--pos); }
+
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 18px; }
+  @media (max-width: 920px) { .layout { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+    padding: 16px; box-shadow: 0 8px 30px rgba(37,99,235,0.08);
+  }
+  .card + .card { margin-top: 14px; }
+  .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .card-title .badge { font-size: .7rem; font-weight: 600; color: var(--accent); background: #eff6ff; border: 1px solid #dbeafe; border-radius: 999px; padding: 2px 8px; }
+
+  .hint-card {
+    background: linear-gradient(120deg, #fffbeb, #fef3c7); border: 1px solid #fde68a; color: #92400e;
+    border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; font-size: .92rem;
+  }
+  .hint-card .ht { font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: 2px; flex-wrap: wrap; }
+  .hint-card .goal-concept { display: inline-block; font-size: .76rem; background: #fff; border: 1px solid #fde68a; color: #b45309; padding: 1px 8px; border-radius: 999px; }
+
+  .canvas-wrap { position: relative; width: 100%; aspect-ratio: 1 / 1; max-width: 520px; margin: 0 auto 12px; }
+  canvas.maze { width: 100%; height: 100%; display: block; border-radius: 14px; background: #f8fbff; touch-action: manipulation; }
+
+  .status-bar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; font-size: .82rem; color: var(--muted); margin-bottom: 12px; }
+  .status-bar .pill { background: var(--panel-2); border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px; }
+  .status-bar .pill b { color: var(--text); }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .pbtn {
+    border: 1px solid var(--border); cursor: pointer; border-radius: 12px;
+    padding: 11px 18px; font-size: .95rem; font-weight: 600;
+    background: var(--panel-2); color: var(--text); transition: all .15s; min-height: 44px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .pbtn:active { transform: scale(.97); }
+  .pbtn:disabled { opacity: .5; cursor: not-allowed; }
+  .pbtn.primary { background: linear-gradient(120deg, var(--accent), var(--accent2)); color: #fff; border-color: transparent; }
+  .pbtn.danger { background: #fef2f2; color: var(--neg); border-color: #fecaca; }
+
+  .palette { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .pal-btn {
+    border: 2px solid transparent; cursor: pointer; border-radius: 12px;
+    padding: 10px 8px; font-size: .85rem; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 46px; transition: all .12s;
+  }
+  .pal-btn:active { transform: scale(.96); }
+  .pal-btn .ico { font-size: 1.05rem; }
+  .pal-move   { background: var(--b-move-bg);   color: var(--b-move);   border-color: #bbf7d0; }
+  .pal-turn   { background: var(--b-turn-bg);   color: var(--b-turn);   border-color: #bfdbfe; }
+  .pal-repeat { background: var(--b-repeat-bg); color: var(--b-repeat); border-color: #fde68a; }
+  .pal-if     { background: var(--b-if-bg);     color: var(--b-if);     border-color: #fbcfe8; }
+  .pal-while  { background: var(--b-while-bg);  color: var(--b-while);  border-color: #ddd6fe; }
+  .pal-var    { background: var(--b-var-bg);    color: var(--b-var);    border-color: #a5f3fc; }
+
+  .program { background: var(--panel-2); border: 1px dashed var(--border); border-radius: 12px; padding: 10px; min-height: 180px; }
+  .program-empty { color: var(--muted); font-size: .85rem; text-align: center; padding: 28px 8px; }
+  .program-empty b { color: var(--accent); }
+
+  .block {
+    border-radius: 10px; margin: 5px 0; padding: 6px 8px 6px 10px;
+    border: 1px solid; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    font-size: .85rem; position: relative; transition: box-shadow .12s; cursor: pointer;
+  }
+  .block.selected { box-shadow: 0 0 0 3px rgba(37,99,235,.4); }
+  .block .label { font-weight: 700; white-space: nowrap; }
+  .block input[type=number], .block input[type=text], .block select {
+    width: auto; font: inherit; font-size: .82rem; padding: 2px 4px;
+    border: 1px solid var(--border); border-radius: 6px; background: #fff; text-align: center;
+  }
+  .block input[type=number] { width: 52px; }
+  .block input[type=text] { width: 46px; }
+  .block .spacer { flex: 1; }
+  .block .ops { display: flex; gap: 2px; }
+  .block .op {
+    border: none; cursor: pointer; width: 24px; height: 24px; border-radius: 6px;
+    background: rgba(255,255,255,.7); color: var(--muted); font-size: .8rem;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .block .op:hover { background: #fff; color: var(--text); }
+  .block .op.del:hover { color: var(--neg); }
+
+  .block.move      { background: var(--b-move-bg);   border-color: #bbf7d0; color: var(--b-move); }
+  .block.turn      { background: var(--b-turn-bg);   border-color: #bfdbfe; color: var(--b-turn); }
+  .block.repeat    { background: var(--b-repeat-bg); border-color: #fde68a; color: var(--b-repeat); }
+  .block.if        { background: var(--b-if-bg);     border-color: #fbcfe8; color: var(--b-if); }
+  .block.while     { background: var(--b-while-bg);  border-color: #ddd6fe; color: var(--b-while); }
+  .block.setvar,
+  .block.changevar { background: var(--b-var-bg);    border-color: #a5f3fc; color: var(--b-var); }
+
+  .container-body { margin: 4px 0 2px 12px; padding: 4px 6px 6px; border-left: 3px solid; min-height: 28px; }
+  .block.repeat .container-body { border-color: #fcd34d; }
+  .block.if .container-body { border-color: #f9a8d4; }
+  .block.while .container-body { border-color: #c4b5fd; }
+  .container-empty { font-size: .76rem; color: var(--muted); padding: 4px 2px; }
+  .seq { list-style: none; }
+
+  .vars-display { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; justify-content: center; font-size: .8rem; }
+  .var-chip {
+    background: var(--b-var-bg); border: 1px solid #a5f3fc; color: var(--b-var);
+    border-radius: 999px; padding: 2px 10px; font-family: "SF Mono", Consolas, monospace;
+  }
+  .var-chip b { font-weight: 700; }
+
+  .toast-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.15); }
+  .toast {
+    pointer-events: auto; background: var(--panel); border-radius: 16px; padding: 22px 26px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.25); text-align: center; max-width: 320px; animation: pop .3s ease;
+  }
+  @keyframes pop { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .toast .t-ico { font-size: 2.6rem; margin-bottom: 6px; }
+  .toast .t-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 4px; }
+  .toast .t-msg { color: var(--muted); font-size: .9rem; margin-bottom: 14px; }
+  .toast .t-btn { border: none; cursor: pointer; border-radius: 10px; padding: 9px 22px; font-weight: 700; font-size: .92rem; background: linear-gradient(120deg, var(--accent), var(--accent2)); color: #fff; }
+  .toast.win .t-title { color: var(--pos); }
+  .toast.lose .t-title { color: var(--neg); }
+
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 49; }
+
+  .foot-note { text-align: center; color: var(--muted); font-size: .76rem; margin-top: 18px; }
+  .running-overlay { opacity: .55; pointer-events: none; }
+
+  @media (max-width: 520px) {
+    body { padding: 10px; }
+    h1 { font-size: 1.35rem; }
+    .card { padding: 13px; border-radius: 14px; }
+    .pbtn { padding: 10px 14px; font-size: .9rem; }
+    .block { font-size: .82rem; }
+  }
+</style>
+</head>
+<body>
+<div id="app" v-cloak class="wrap">
+
+  <header class="head">
+    <h1>🧭 小精灵走迷宫</h1>
+    <div class="subtitle">用积木拼出程序，指挥小精灵到达终点 ⭐ · 可视化编程启蒙</div>
+  </header>
+
+  <div class="levels">
+    <div
+      v-for="lvl in levels" :key="lvl.id"
+      class="lvl-chip"
+      :class="{ active: lvl.id === current.id, locked: !isUnlocked(lvl.id), done: doneSet.includes(lvl.id) }"
+      @click="selectLevel(lvl.id)"
+    >
+      <span class="ln">{{ lvl.id }}</span>
+      <span class="ln-name">{{ isUnlocked(lvl.id) ? lvl.name : '🔒' }}</span>
+    </div>
+  </div>
+
+  <div class="hint-card">
+    <div class="ht">💡 第 {{ current.id }} 关 · {{ current.name }}
+      <span class="goal-concept">学到：{{ current.concept }}</span>
+    </div>
+    <div>{{ current.hint }}</div>
+  </div>
+
+  <div class="layout">
+    <div>
+      <div class="card" :class="{ 'running-overlay': running }">
+        <div class="card-title">🗺️ 迷宫 <span class="badge">{{ current.name }}</span></div>
+        <div class="canvas-wrap">
+          <canvas class="maze" ref="cv" width="520" height="520"></canvas>
+        </div>
+        <div class="status-bar">
+          <span class="pill">📍 步数 <b>{{ steps }}</b></span>
+          <span class="pill">↻ 朝向 <b>{{ dirName(sprite.dir) }}</b></span>
+          <span class="pill" v-if="current.maxBlocks">🧩 建议积木 ≤ <b>{{ current.maxBlocks }}</b></span>
+        </div>
+        <div class="controls">
+          <button class="pbtn primary" @click="runProgram" :disabled="running">▶️ 运行</button>
+          <button class="pbtn" @click="reset" :disabled="false">🔄 重置</button>
+          <button class="pbtn danger" @click="clearProgram" :disabled="running">🗑️ 清空</button>
+        </div>
+        <div class="vars-display" v-if="Object.keys(runtimeVars).length">
+          <span class="var-chip" v-for="(v,k) in runtimeVars" :key="k">{{ k }} = <b>{{ v }}</b></span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" :class="{ 'running-overlay': running }">
+        <div class="card-title">🧱 积木库 <span style="font-weight:400;color:var(--muted);font-size:.78rem;">点击添加到程序</span></div>
+        <div class="palette">
+          <button class="pal-btn pal-move" @click="addBlock('move')"><span class="ico">⬆️</span>前进</button>
+          <button class="pal-btn pal-turn" @click="addBlock('turn')"><span class="ico">↪️</span>转向</button>
+          <button class="pal-btn pal-repeat" @click="addBlock('repeat')"><span class="ico">🔁</span>重复N次</button>
+          <button class="pal-btn pal-if" @click="addBlock('if')"><span class="ico">❓</span>如果</button>
+          <button class="pal-btn pal-while" @click="addBlock('while')"><span class="ico">🔄</span>当…循环</button>
+          <button class="pal-btn pal-var" @click="addBlock('setvar')"><span class="ico">📦</span>设变量</button>
+        </div>
+      </div>
+
+      <div class="card" :class="{ 'running-overlay': running }">
+        <div class="card-title">
+          📜 程序区
+          <span v-if="selectedBlock" style="font-weight:400;color:var(--muted);font-size:.76rem;">
+            （选中：{{ selectedBlockLabel }} · 新积木会加到这里）
+          </span>
+        </div>
+        <div class="program">
+          <block-view
+            v-if="program.length"
+            :blocks="program"
+            :selected-id="selectedId"
+            @select="selectBlock"
+            @move="moveBlock"
+            @del="deleteBlock"
+          ></block-view>
+          <div v-else class="program-empty">
+            程序还是空的<br><b>↑ 点击上方积木</b>开始拼装你的程序吧！
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot-note">
+    提示：撞墙就失败 · 到达 ⭐ 终点就胜利 · 程序从上到下执行，循环会重复里面的积木
+  </div>
+
+  <div class="toast-wrap" v-if="toast.show">
+    <div class="toast" :class="toast.type">
+      <div class="t-ico">{{ toast.type === 'win' ? '🎉' : toast.type === 'lose' ? '💥' : 'ℹ️' }}</div>
+      <div class="t-title">{{ toast.title }}</div>
+      <div class="t-msg">{{ toast.msg }}</div>
+      <button class="t-btn" @click="dismissToast">{{ toast.btn }}</button>
+    </div>
+  </div>
+
+  <canvas id="confetti"></canvas>
+</div>
+
+<script>
+const { createApp, ref, reactive, computed, watch, onMounted, nextTick } = Vue;
+
+/* ============ 积木组件（递归） ============ */
+const BlockView = {
+  name: 'BlockView',
+  props: { blocks: Array, selectedId: String },
+  emits: ['select', 'move', 'del'],
+  setup() {
+    const labels = {
+      move: '⬆️ 前进', turn: '↪️ 转向', repeat: '🔁 重复', if: '❓ 如果',
+      while: '🔄 当…', setvar: '📦 设', changevar: '➕ 改变量'
+    };
+    return { labels };
+  },
+  template: `
+    <ul class="seq">
+      <li v-for="(b, i) in blocks" :key="b.id">
+        <div class="block" :class="[b.type, { selected: selectedId === b.id }]" @click.stop="$emit('select', b.id)">
+          <span class="label">{{ labels[b.type] }}</span>
+
+          <template v-if="b.type==='turn'">
+            <select v-model="b.dir">
+              <option value="right">↻ 右转</option>
+              <option value="left">↺ 左转</option>
+            </select>
+          </template>
+
+          <template v-if="b.type==='repeat'">
+            <span>次数</span>
+            <input type="number" min="1" max="20" v-model.number="b.count">
+          </template>
+
+          <template v-if="b.type==='if'">
+            <select v-model="b.cond">
+              <option value="path">前方有路</option>
+              <option value="wall">前方有墙</option>
+              <option value="goal">已到终点</option>
+            </select>
+          </template>
+
+          <template v-if="b.type==='while'">
+            <span>条件</span>
+            <select v-model="b.cond">
+              <option value="path">前方有路</option>
+              <option value="wall">前方有墙</option>
+              <option value="notgoal">还没到终点</option>
+            </select>
+          </template>
+
+          <template v-if="b.type==='setvar'">
+            <input type="text" v-model="b.name">
+            <span>=</span>
+            <input type="number" v-model.number="b.value">
+          </template>
+
+          <template v-if="b.type==='changevar'">
+            <input type="text" v-model="b.name">
+            <select v-model.number="b.delta" style="min-width:54px">
+              <option :value="1">+ 1</option>
+              <option :value="-1">− 1</option>
+            </select>
+          </template>
+
+          <span class="spacer"></span>
+          <span class="ops">
+            <button class="op" title="上移" @click.stop="$emit('move', { id: b.id, dir: -1 })">▲</button>
+            <button class="op" title="下移" @click.stop="$emit('move', { id: b.id, dir: 1 })">▼</button>
+            <button class="op del" title="删除" @click.stop="$emit('del', b.id)">✕</button>
+          </span>
+        </div>
+
+        <div v-if="b.children" class="container-body">
+          <block-view v-if="b.children.length"
+            :blocks="b.children" :selected-id="selectedId"
+            @select="(e)=>$emit('select',e)"
+            @move="(e)=>$emit('move',e)"
+            @del="(e)=>$emit('del',e)">
+          </block-view>
+          <div v-else class="container-empty">（这里为空，选中此块后点积木库可加入）</div>
+        </div>
+      </li>
+    </ul>
+  `
+};
+
+/* ============ 关卡数据 ============ */
+const RAW_LEVELS = [
+  {
+    id: 1, name: '走直线', concept: '前进指令',
+    hint: '点【⬆️ 前进】加到程序里，再点【▶️ 运行】。让小精灵一路走到 ⭐ 终点吧！',
+    maxBlocks: 3,
+    map: ['S...G']
+  },
+  {
+    id: 2, name: '拐个弯', concept: '转向',
+    hint: '先前进两步，再【↪️ 转向 右转】，然后继续前进到达终点。',
+    maxBlocks: 4,
+    map: ['S..',
+          '..G']
+  },
+  {
+    id: 3, name: '重复的力量', concept: '重复循环',
+    hint: '要走很远？把【⬆️ 前进】放进【🔁 重复 5 次】里，比一块块加更聪明！',
+    maxBlocks: 2,
+    map: ['S.....G']
+  },
+  {
+    id: 4, name: '重复+转向', concept: '循环里放多个动作',
+    hint: '终点在右下方：先【🔁 重复 4 次】前进走到尽头，再转向、前进到终点。',
+    maxBlocks: 5,
+    map: ['S....',
+          '....G']
+  },
+  {
+    id: 5, name: '会判断', concept: '如果（条件）',
+    hint: '走到尽头要转弯：用【❓ 如果 前方有墙 → 右转】，配合【🔁 重复】里的前进，遇墙自动转弯。',
+    maxBlocks: 8,
+    map: ['S...#',
+          '....#',
+          '###G.']
+  },
+  {
+    id: 6, name: '聪明的小路', concept: '条件 + 循环组合',
+    hint: '中间有堵墙挡路：前进、遇墙就【❓ 如果 前方有墙 → 转向】，换个方向继续前进，绕过障碍到达终点。',
+    maxBlocks: 10,
+    map: ['S.#..',
+          '..#..',
+          '..#..',
+          '...G.']
+  },
+  {
+    id: 7, name: '不知道走几步', concept: '当…循环',
+    hint: '终点距离不确定？用【🔄 当…循环 还没到终点】：里面放前进，遇墙就转向。',
+    maxBlocks: 8,
+    map: ['S....#',
+          '....#.',
+          '.#..#.',
+          '.#.G..']
+  },
+  {
+    id: 8, name: '用变量计数', concept: '变量',
+    hint: '终极挑战：先用【📦 设变量 n = 0】，每走一步【➕ 改变量 n +1】，看看你走了几步到达终点！',
+    maxBlocks: 12,
+    map: ['S......G']
+  }
+];
+
+// 把字符串地图规整为矩形（缺位用 # 填充）
+function normalize(strs) {
+  const w = Math.max(...strs.map(s => s.length));
+  return strs.map(s => (s + '########').slice(0, w));
+}
+function parseMap(strs) {
+  const grid = []; let start = null, goal = null;
+  for (let r = 0; r < strs.length; r++) {
+    const row = [];
+    for (let c = 0; c < strs[r].length; c++) {
+      const ch = strs[r][c];
+      row.push(ch === '#' ? 1 : 0);
+      if (ch === 'S') start = { r, c };
+      if (ch === 'G') goal = { r, c };
+    }
+    grid.push(row);
+  }
+  return { grid, start, goal, rows: grid.length, cols: grid[0].length };
+}
+
+let _uid = 1;
+const uid = () => 'b' + (_uid++);
+function newBlock(type) {
+  const b = { id: uid(), type };
+  if (type === 'turn') b.dir = 'right';
+  else if (type === 'repeat') { b.count = 3; b.children = []; }
+  else if (type === 'if') { b.cond = 'path'; b.children = []; }
+  else if (type === 'while') { b.cond = 'path'; b.children = []; }
+  else if (type === 'setvar') { b.name = 'n'; b.value = 0; }
+  else if (type === 'changevar') { b.name = 'n'; b.delta = 1; }
+  return b;
+}
+
+const app = createApp({
+  components: { BlockView },
+  setup() {
+    const levels = RAW_LEVELS.map(l => {
+      const map = normalize(l.map);
+      const m = parseMap(map);
+      return { ...l, grid: m.grid, start: m.start, goal: m.goal, rows: m.rows, cols: m.cols };
+    });
+
+    const currentId = ref(1);
+    const current = computed(() => levels.find(l => l.id === currentId.value));
+
+    const cv = ref(null);
+
+    // 每关独立的程序
+    const programs = reactive({});
+    const program = computed(() => {
+      if (!programs[currentId.value]) programs[currentId.value] = [];
+      return programs[currentId.value];
+    });
+
+    const selectedId = ref(null);
+    const selectedBlock = computed(() => {
+      function rec(list) {
+        for (const b of list) {
+          if (b.id === selectedId.value) return b;
+          if (b.children) { const r = rec(b.children); if (r) return r; }
+        }
+        return null;
+      }
+      return selectedId.value ? rec(program.value) : null;
+    });
+    const selectedBlockLabel = computed(() => {
+      const b = selectedBlock.value;
+      if (!b) return '';
+      const map = { move:'前进', turn:'转向', repeat:'重复', if:'如果', while:'当…', setvar:'设变量', changevar:'改变量' };
+      return map[b.type];
+    });
+
+    // 运行时状态
+    const sprite = reactive({ r: 0, c: 0, dir: 0, animR: 0, animC: 0 });
+    const steps = ref(0);
+    const runtimeVars = reactive({});
+    const running = ref(false);
+    const done = ref(false);
+    const toast = reactive({ show: false, type: 'info', title: '', msg: '', btn: '好的' });
+
+    const doneSet = ref(JSON.parse(localStorage.getItem('maze_done') || '[]'));
+    const unlockedSet = computed(() => {
+      const s = new Set([1]);
+      doneSet.value.forEach(d => s.add(d + 1));
+      return s;
+    });
+    const isUnlocked = (id) => unlockedSet.value.has(id);
+
+    /* ---------- 绘制 ---------- */
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+    function drawGoal(ctx, x, y, R) {
+      ctx.save(); ctx.translate(x, y);
+      ctx.shadowColor = 'rgba(245,158,11,.5)'; ctx.shadowBlur = 12;
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const ang = -Math.PI/2 + i * Math.PI/5;
+        const rad = i % 2 === 0 ? R : R*0.45;
+        ctx.lineTo(Math.cos(ang)*rad, Math.sin(ang)*rad);
+      }
+      ctx.closePath(); ctx.fill();
+      ctx.shadowBlur = 0; ctx.fillStyle = '#fde68a';
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const ang = -Math.PI/2 + i * Math.PI/5;
+        const rad = i % 2 === 0 ? R*0.55 : R*0.25;
+        ctx.lineTo(Math.cos(ang)*rad, Math.sin(ang)*rad);
+      }
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+    function drawSprite(ctx, x, y, R, dir) {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(dir * Math.PI/2);
+      const g = ctx.createRadialGradient(0, -R*0.2, R*0.2, 0, 0, R);
+      g.addColorStop(0, '#86efac'); g.addColorStop(1, '#16a34a');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#15803d'; ctx.lineWidth = 2; ctx.stroke();
+      // 眼睛（朝右）
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(R*0.28, -R*0.22, R*0.26, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(R*0.28,  R*0.22, R*0.26, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath(); ctx.arc(R*0.40, -R*0.22, R*0.12, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(R*0.40,  R*0.22, R*0.12, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(R*0.22, 0, R*0.28, -0.6, 0.6); ctx.stroke();
+      ctx.restore();
+    }
+    function draw() {
+      const canvas = cv.value; if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const lvl = current.value;
+      const W = canvas.width, H = canvas.height;
+      const cell = Math.min(W / lvl.cols, H / lvl.rows);
+      const offX = (W - cell * lvl.cols) / 2;
+      const offY = (H - cell * lvl.rows) / 2;
+      ctx.clearRect(0, 0, W, H);
+
+      for (let r = 0; r < lvl.rows; r++) {
+        for (let c = 0; c < lvl.cols; c++) {
+          const x = offX + c*cell, y = offY + r*cell;
+          if (lvl.grid[r][c]) {
+            ctx.fillStyle = '#dbe3ee'; ctx.fillRect(x, y, cell, cell);
+            roundRect(ctx, x+2, y+2, cell-4, cell-4, 6); ctx.fillStyle = '#94a3b8'; ctx.fill();
+          } else {
+            ctx.fillStyle = (r+c)%2===0 ? '#f1f6ff' : '#ffffff';
+            ctx.fillRect(x, y, cell, cell);
+          }
+        }
+      }
+      ctx.strokeStyle = '#e3e9f2'; ctx.lineWidth = 1;
+      for (let r = 0; r <= lvl.rows; r++) {
+        ctx.beginPath(); ctx.moveTo(offX, offY + r*cell); ctx.lineTo(offX + cell*lvl.cols, offY + r*cell); ctx.stroke();
+      }
+      for (let c = 0; c <= lvl.cols; c++) {
+        ctx.beginPath(); ctx.moveTo(offX + c*cell, offY); ctx.lineTo(offX + c*cell, offY + cell*lvl.rows); ctx.stroke();
+      }
+
+      // 起点
+      const sx = offX + lvl.start.c*cell + cell/2;
+      const sy = offY + lvl.start.r*cell + cell/2;
+      ctx.fillStyle = 'rgba(37,99,235,.12)';
+      ctx.beginPath(); ctx.arc(sx, sy, cell*0.36, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = 'rgba(37,99,235,.5)';
+      ctx.font = 'bold ' + Math.floor(cell*0.22) + 'px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('起', sx, sy);
+
+      // 终点
+      const gx = offX + lvl.goal.c*cell + cell/2;
+      const gy = offY + lvl.goal.r*cell + cell/2;
+      drawGoal(ctx, gx, gy, cell*0.4);
+
+      // 精灵
+      const px = offX + sprite.animC*cell + cell/2;
+      const py = offY + sprite.animR*cell + cell/2;
+      drawSprite(ctx, px, py, cell*0.34, sprite.dir);
+    }
+    watch([sprite, current, steps], draw, { deep: true });
+
+    /* ---------- 积木 CRUD ---------- */
+    function findContainer(id) {
+      if (id == null) return program.value;
+      function rec(list) {
+        for (const b of list) {
+          if (b.id === id) return list;
+          if (b.children) { const r = rec(b.children); if (r) return r; }
+        }
+        return null;
+      }
+      // 若选中块本身是容器，则加入它内部
+      function findBlock(list) {
+        for (const b of list) {
+          if (b.id === id) return b;
+          if (b.children) { const r = findBlock(b.children); if (r) return r; }
+        }
+        return null;
+      }
+      const blk = findBlock(program.value);
+      if (blk && blk.children) return blk.children;
+      return rec(program.value) || program.value;
+    }
+    function addBlock(type) {
+      if (running.value) return;
+      const target = findContainer(selectedId.value);
+      target.push(newBlock(type));
+    }
+    function deleteBlock(id) {
+      function rec(list) {
+        const i = list.findIndex(b => b.id === id);
+        if (i >= 0) { list.splice(i, 1); return true; }
+        for (const b of list) if (b.children && rec(b.children)) return true;
+        return false;
+      }
+      rec(program.value);
+      if (selectedId.value === id) selectedId.value = null;
+    }
+    function moveBlock({ id, dir }) {
+      const list = findSiblingList(id);
+      const i = list.findIndex(b => b.id === id);
+      const j = i + dir;
+      if (j < 0 || j >= list.length) return;
+      const [it] = list.splice(i, 1);
+      list.splice(j, 0, it);
+    }
+    function findSiblingList(id) {
+      function rec(list) {
+        if (list.some(b => b.id === id)) return list;
+        for (const b of list) if (b.children) { const r = rec(b.children); if (r) return r; }
+        return null;
+      }
+      return rec(program.value) || program.value;
+    }
+    function selectBlock(id) { selectedId.value = id; }
+    function clearProgram() {
+      if (running.value) return;
+      program.value.splice(0, program.value.length);
+      selectedId.value = null;
+    }
+
+    /* ---------- 运行时执行 ---------- */
+    const DIRS = [[0,1],[1,0],[0,-1],[-1,0]]; // 右 下 左 上
+    function cellAt(r, c) {
+      const g = current.value.grid;
+      if (r < 0 || c < 0 || r >= current.value.rows || c >= current.value.cols) return true;
+      return g[r][c];
+    }
+    function atGoal() {
+      return sprite.r === current.value.goal.r && sprite.c === current.value.goal.c;
+    }
+    function aheadIs(kind) {
+      const [dr, dc] = DIRS[sprite.dir];
+      const wall = cellAt(sprite.r + dr, sprite.c + dc);
+      if (kind === 'path') return !wall;
+      if (kind === 'wall') return !!wall;
+      if (kind === 'goal') return atGoal();
+      if (kind === 'notgoal') return !atGoal();
+      return false;
+    }
+
+    let cancelRun = false;
+    const delay = (ms) => new Promise(res => setTimeout(res, ms));
+    function animMove(fromR, fromC, toR, toC) {
+      return new Promise(resolve => {
+        const dur = 220, t0 = performance.now();
+        function step(t) {
+          const k = Math.min(1, (t - t0) / dur);
+          const e = k < .5 ? 2*k*k : 1 - Math.pow(-2*k+2, 2)/2;
+          sprite.animR = fromR + (toR - fromR) * e;
+          sprite.animC = fromC + (toC - fromC) * e;
+          if (k < 1 && !cancelRun) requestAnimationFrame(step);
+          else { sprite.animR = toR; sprite.animC = toC; resolve(); }
+        }
+        requestAnimationFrame(step);
+      });
+    }
+
+    async function execMove() {
+      const [dr, dc] = DIRS[sprite.dir];
+      const nr = sprite.r + dr, nc = sprite.c + dc;
+      if (cellAt(nr, nc)) { sprite.animR = sprite.r; sprite.animC = sprite.c; throw { kind: 'wall' }; }
+      await animMove(sprite.r, sprite.c, nr, nc);
+      sprite.r = nr; sprite.c = nc;
+      steps.value++;
+      if (atGoal()) throw { kind: 'win' };
+      if (steps.value > 400) throw { kind: 'loop' };
+    }
+    async function execTurn(d) {
+      sprite.dir = (sprite.dir + (d === 'right' ? 1 : 3)) % 4;
+      await delay(150);
+    }
+
+    // 边走边判断条件（递归解释器）
+    async function runBlocks(list) {
+      for (const b of list) {
+        if (cancelRun) return;
+        switch (b.type) {
+          case 'move': await execMove(); break;
+          case 'turn': await execTurn(b.dir); break;
+          case 'repeat': {
+            const n = Math.max(0, Math.min(50, Number(b.count) || 0));
+            for (let i = 0; i < n; i++) { if (cancelRun) return; await runBlocks(b.children); }
+            break;
+          }
+          case 'if':
+            if (aheadIs(b.cond)) await runBlocks(b.children);
+            break;
+          case 'while': {
+            let guard = 0;
+            while (aheadIs(b.cond)) {
+              if (cancelRun || ++guard > 250) break;
+              await runBlocks(b.children);
+            }
+            break;
+          }
+          case 'setvar':
+            runtimeVars[b.name] = Number(b.value) || 0;
+            await delay(60);
+            break;
+          case 'changevar':
+            runtimeVars[b.name] = (runtimeVars[b.name] || 0) + Number(b.delta);
+            await delay(60);
+            break;
+        }
+      }
+    }
+
+    async function runProgram() {
+      if (running.value) return;
+      if (!program.value.length) { showToast('info', '空的程序', '先从积木库添加几块积木吧～', '好的'); return; }
+      doReset(true);
+      running.value = true;
+      cancelRun = false;
+      try {
+        await runBlocks(program.value);
+        if (!done.value) showToast('info', '🤔 走完了', '程序执行结束，但还没到终点。再调整一下程序试试？', '再想想');
+      } catch (e) {
+        if (e && e.kind === 'win') handleWin();
+        else if (e && e.kind === 'wall') showToast('lose', '💥 撞墙了！', '小精灵撞到了墙。检查转向和前进的顺序吧～', '再试一次');
+        else if (e && e.kind === 'loop') showToast('lose', '♾️ 走太久啦', '步数超过 400，可能陷入了死循环。', '再试一次');
+      } finally {
+        running.value = false;
+      }
+    }
+
+    function handleWin() {
+      done.value = true;
+      if (!doneSet.value.includes(current.value.id)) {
+        doneSet.value.push(current.value.id);
+        localStorage.setItem('maze_done', JSON.stringify(doneSet.value));
+      }
+      showToast('win', '🎉 太棒了！', '小精灵到达终点！你学会了：' + current.value.concept, '太棒了');
+      launchConfetti();
+    }
+
+    function showToast(type, title, msg, btn='好的') {
+      Object.assign(toast, { show: true, type, title, msg, btn });
+    }
+    function dismissToast() { toast.show = false; }
+
+    function doReset(soft) {
+      cancelRun = true;
+      const lvl = current.value;
+      sprite.r = lvl.start.r; sprite.c = lvl.start.c;
+      sprite.animR = lvl.start.r; sprite.animC = lvl.start.c;
+      sprite.dir = 0;
+      steps.value = 0;
+      done.value = false;
+      Object.keys(runtimeVars).forEach(k => delete runtimeVars[k]);
+      running.value = false;
+    }
+    function reset() { doReset(false); nextTick(draw); }
+
+    function selectLevel(id) {
+      if (!isUnlocked(id)) return;
+      if (running.value) return;
+      currentId.value = id;
+      selectedId.value = null;
+      nextTick(() => { doReset(true); draw(); });
+    }
+
+    /* ---------- 撒花 ---------- */
+    function launchConfetti() {
+      const c = document.getElementById('confetti');
+      if (!c) return;
+      c.width = innerWidth; c.height = innerHeight;
+      const ctx = c.getContext('2d');
+      const parts = [];
+      const colors = ['#ef4444','#f59e0b','#16a34a','#2563eb','#7c3aed','#ec4899'];
+      for (let i = 0; i < 140; i++) {
+        parts.push({
+          x: innerWidth/2, y: innerHeight/2,
+          vx: (Math.random()-.5)*14, vy: (Math.random()-.8)*-14,
+          g: .35, c: colors[i%colors.length], s: 4+Math.random()*6, life: 1
+        });
+      }
+      let last = performance.now();
+      function loop(t) {
+        const dt = (t - last)/16; last = t;
+        ctx.clearRect(0, 0, c.width, c.height);
+        let alive = false;
+        for (const p of parts) {
+          p.vy += p.g * dt; p.x += p.vx*dt; p.y += p.vy*dt; p.life -= 0.012*dt;
+          if (p.life > 0 && p.y < c.height + 20) {
+            alive = true;
+            ctx.globalAlpha = Math.max(0, p.life);
+            ctx.fillStyle = p.c;
+            ctx.fillRect(p.x, p.y, p.s, p.s*0.6);
+          }
+        }
+        if (alive) requestAnimationFrame(loop); else ctx.clearRect(0, 0, c.width, c.height);
+      }
+      requestAnimationFrame(loop);
+    }
+
+    function dirName(d) { return ['右 ➡','下 ⬇','左 ⬅','上 ⬆'][d]; }
+
+    onMounted(() => {
+      doReset(true);
+      nextTick(draw);
+      window.addEventListener('resize', draw);
+    });
+
+    return {
+      levels, current, currentId, cv,
+      program, selectedId, selectedBlock, selectedBlockLabel,
+      sprite, steps, runtimeVars, running, done, toast,
+      doneSet, isUnlocked,
+      addBlock, deleteBlock, moveBlock, selectBlock, clearProgram,
+      runProgram, reset, selectLevel, dismissToast, dirName,
+    };
+  }
+});
+
+app.mount('#app');
+</script>
+</body>
+</html>
