@@ -21,6 +21,7 @@
     questions: [],
     sections: [],
     answers: {},          // { [qid]: string[] }
+    explanationOpen: new Set(), // 答题中点开过解析的 qid
     submitted: false,
     results: null,        // { perQuestion, perSection, overall }
     currentSectionIdx: 0,
@@ -47,6 +48,15 @@
       state.answers[qid] = cur.includes(key)
         ? cur.filter(k => k !== key)
         : [...cur, key];
+    }
+  }
+
+  function toggleExplanation(qid) {
+    if (state.submitted) return; // 提交后由 <details open> 自行处理
+    if (state.explanationOpen.has(qid)) {
+      state.explanationOpen.delete(qid);
+    } else {
+      state.explanationOpen.add(qid);
     }
   }
 
@@ -124,6 +134,7 @@
   function reset() {
     console.log('[Quiz] reset()');
     state.answers = {};
+    state.explanationOpen.clear();
     state.submitted = false;
     state.results = null;
     state.currentSectionIdx = 0;
@@ -258,6 +269,7 @@
             <small>Iron Condor Quiz</small>
           </div>
         </div>
+        <a class="quiz-header-article-link" href="./article.html" title="阅读完整原文（支持中英切换）">📖 阅读原文</a>
         <div class="quiz-header-spacer"></div>
         <div v-if="!state.submitted" class="quiz-header-progress">
           <div class="quiz-header-progress-text">
@@ -351,7 +363,9 @@
           :picked="(state.answers[q.id] || [])"
           :result="state.results && state.results.perQuestion[q.id]"
           :submitted="state.submitted"
-          @pick="(key) => handlePick(q.id, key)" />
+          :state="state"
+          @pick="(key) => handlePick(q.id, key)"
+          @toggle-explanation="(qid) => handleToggleExplanation(qid)" />
 
         <div class="empty-state" v-if="!currentSection || !sectionQuestions.length">
           本章节暂无题目
@@ -401,6 +415,7 @@
     },
     methods: {
       handlePick(qid, key) { this.onPick && this.onPick(qid, key); },
+      handleToggleExplanation(qid) { toggleExplanation(qid); },
       handleSubmit() {
         console.log('[SectionView] submit-bar button clicked');
         this.onSubmit && this.onSubmit();
@@ -426,6 +441,7 @@
         :class="cardClass">
         <div class="question-header">
           <span class="question-number">Q{{ index }}</span>
+          <span class="question-id">{{ q.id }}</span>
           <span class="question-type" :class="q.type">
             {{ q.type === 'single' ? '单选' : '多选' }}
           </span>
@@ -451,7 +467,14 @@
             <span v-if="submitted && isPicked(opt.key) && !isRight(opt.key)" class="option-badge is-wrong">你的选择</span>
           </div>
         </div>
-        <details v-if="submitted" class="question-explanation" open>
+        <button v-if="!submitted"
+          type="button"
+          class="btn-explanation-toggle"
+          @click="$emit('toggle-explanation', q.id)">
+          <span class="btn-explanation-toggle-icon">💡</span>
+          {{ isExplanationOpen ? '收起解析' : '查看解析' }}
+        </button>
+        <details v-if="showExplanation" class="question-explanation" :open="isExplanationOpen">
           <summary>
             答案解析
             <span v-if="result && result.partial" style="color: var(--warning); font-weight: 700; margin-left: 4px;">
@@ -460,7 +483,7 @@
             <span v-else-if="result && result.correct" style="color: var(--success); font-weight: 700; margin-left: 4px;">
               ✓ 答对了
             </span>
-            <span v-else style="color: var(--danger); font-weight: 700; margin-left: 4px;">
+            <span v-else-if="submitted" style="color: var(--danger); font-weight: 700; margin-left: 4px;">
               ✗ 答错了
             </span>
           </summary>
@@ -468,8 +491,8 @@
         </details>
       </article>
     `,
-    props: ['q', 'index', 'picked', 'result', 'submitted'],
-    emits: ['pick'],
+    props: ['q', 'index', 'picked', 'result', 'submitted', 'state'],
+    emits: ['pick', 'toggle-explanation'],
     computed: {
       diffLabel() {
         return { easy: '简单', medium: '中等', hard: '困难' }[this.q.difficulty] || '';
@@ -479,6 +502,16 @@
         if (this.result && this.result.correct) return 'correct';
         if (this.result && this.result.partial) return 'partial';
         return 'wrong';
+      },
+      isExplanationOpen() {
+        if (this.submitted) return true;
+        return this.state && this.state.explanationOpen
+          ? this.state.explanationOpen.has(this.q.id)
+          : false;
+      },
+      showExplanation() {
+        if (this.submitted) return true;
+        return this.isExplanationOpen;
       },
     },
     methods: {
@@ -547,7 +580,8 @@
               :index="i + 1"
               :picked="state.answers[q.id] || []"
               :result="state.results.perQuestion[q.id]"
-              :submitted="true" />
+              :submitted="true"
+              :state="state" />
           </div>
         </div>
 
@@ -622,5 +656,5 @@
   app.mount('#app');
 
   // 调试用：暴露到 window
-  window.__quiz = { state, submit, reset, pickAnswer, goSection };
+  window.__quiz = { state, submit, reset, pickAnswer, toggleExplanation, goSection };
 })();

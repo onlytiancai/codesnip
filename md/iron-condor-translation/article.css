@@ -1,0 +1,266 @@
+/* ============================================
+   article.css — 文章页专属样式
+   - 三种语言模式：双语 / 仅英文 / 仅中文
+   - 双语标题切分显示
+   - 排版与移动端响应式
+   ============================================ */
+
+/* ============================================
+   顶部 header
+   ============================================ */
+.article-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.article-back {
+  align-self: flex-start;
+  color: var(--text-soft);
+  font-size: 13px;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-btn);
+  border: 1px solid var(--border);
+  font-weight: 500;
+  transition: all 150ms ease;
+}
+.article-back:hover {
+  background: var(--bg-soft);
+  color: var(--text);
+  border-color: var(--primary-soft);
+}
+
+.article-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+}
+
+/* ============================================
+   语言切换器
+   ============================================ */
+.lang-switch {
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-chip);
+}
+.lang-switch button {
+  border: 0;
+  background: transparent;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-soft);
+  border-radius: var(--radius-chip);
+  cursor: pointer;
+  transition: all 150ms ease;
+  font-family: inherit;
+}
+.lang-switch button:hover {
+  color: var(--text);
+}
+.lang-switch button.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: var(--shadow-primary);
+}
+
+/* ============================================
+   文章主体
+   ============================================ */
+.article-body {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--text);
+}
+
+.article-body h1,
+.article-body h2,
+.article-body h3,
+.article-body h4 {
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+  line-height: 1.3;
+  font-weight: 700;
+  color: var(--text);
+}
+.article-body h1 { font-size: 28px; }
+.article-body h2 {
+  font-size: 22px;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--border-soft);
+}
+.article-body h3 { font-size: 18px; }
+.article-body h4 { font-size: 16px; }
+
+.article-body p {
+  margin: 0.8em 0;
+}
+
+.article-body blockquote {
+  margin: 0.8em 0;
+  padding: 0.6em 1em;
+  border-left: 3px solid var(--primary);
+  background: var(--bg-soft);
+  color: var(--text-soft);
+  border-radius: 0 6px 6px 0;
+}
+.article-body blockquote p {
+  margin: 0.4em 0;
+}
+
+.article-body img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.2em auto;
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
+}
+
+.article-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 14.5px;
+  display: table;
+}
+.article-body table th,
+.article-body table td {
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+.article-body table th {
+  background: var(--bg-soft);
+  font-weight: 700;
+}
+
+.article-body hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 2em 0;
+}
+
+.article-body ul,
+.article-body ol {
+  padding-left: 1.6em;
+  margin: 0.8em 0;
+}
+.article-body li { margin: 0.3em 0; }
+
+.article-body a {
+  color: var(--primary-deep);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.article-body a:hover { color: var(--primary); }
+
+.article-body code {
+  background: var(--bg-code);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  color: var(--text);
+  border: 1px solid var(--border-soft);
+}
+.article-body pre {
+  background: var(--bg-code);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.article-body pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+.article-body strong { color: var(--text); font-weight: 700; }
+.article-body em { color: var(--text-soft); }
+
+/* ============================================
+   三大语言模式的显隐（关键！）
+   - 默认（即 both）：所有内容显示
+   - 仅英文：隐藏 data-lang="zh" 的块
+   - 仅中文：隐藏 data-lang="en" 的块
+   - 未标记的内容（标题、图片、表格、目录、disclaimer）始终显示
+   ============================================ */
+html[data-article-mode="en"] .lang-block[data-lang="zh"] { display: none; }
+html[data-article-mode="zh"] .lang-block[data-lang="en"] { display: none; }
+
+/* ============================================
+   双语标题 / 单元格切分
+   ============================================ */
+.bilingual-heading ._zh,
+.bilingual-heading ._en,
+.bilingual-cell ._zh,
+.bilingual-cell ._en { display: inline; }
+
+html[data-article-mode="en"] .bilingual-heading ._zh,
+html[data-article-mode="en"] .bilingual-heading ._sep,
+html[data-article-mode="en"] .bilingual-cell ._zh,
+html[data-article-mode="en"] .bilingual-cell ._sep { display: none; }
+
+html[data-article-mode="zh"] .bilingual-heading ._en,
+html[data-article-mode="zh"] .bilingual-heading ._sep,
+html[data-article-mode="zh"] .bilingual-cell ._en,
+html[data-article-mode="zh"] .bilingual-cell ._sep { display: none; }
+
+/* ============================================
+   底部
+   ============================================ */
+.article-footer {
+  text-align: center;
+  padding: 40px 20px 60px;
+  border-top: 1px solid var(--border-soft);
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+/* ============================================
+   移动端响应式
+   ============================================ */
+@media (max-width: 720px) {
+  .article-header { padding: 10px 12px; gap: 8px; }
+  .article-title { font-size: 15px; }
+  .article-back { font-size: 12px; padding: 5px 10px; }
+  .lang-switch button { padding: 5px 10px; font-size: 12px; }
+  .article-body { padding: 20px 14px 60px; font-size: 15px; }
+  .article-body h1 { font-size: 22px; }
+  .article-body h2 { font-size: 19px; }
+  .article-body h3 { font-size: 16px; }
+  .article-body table {
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
+  }
+  .article-body pre {
+    font-size: 12px;
+    padding: 10px;
+  }
+}

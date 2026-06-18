@@ -62,6 +62,7 @@ html, body {
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 #app {
@@ -129,6 +130,23 @@ button {
 
 .quiz-header-spacer {
   flex: 1;
+}
+
+.quiz-header-article-link {
+  color: var(--text-soft);
+  font-size: 13px;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-btn);
+  border: 1px solid var(--border);
+  font-weight: 500;
+  transition: all 150ms ease;
+  white-space: nowrap;
+}
+.quiz-header-article-link:hover {
+  background: var(--bg-soft);
+  color: var(--text);
+  border-color: var(--primary-soft);
 }
 
 .quiz-header-progress {
@@ -471,6 +489,17 @@ button {
   font-size: 11px;
   letter-spacing: 0.02em;
 }
+.question-id {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  background: var(--bg-soft);
+  color: var(--text-muted);
+  padding: 3px 8px;
+  border-radius: var(--radius-chip);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
 .question-type {
   background: var(--bg-soft);
   color: var(--text-soft);
@@ -613,6 +642,32 @@ button {
 }
 .option-badge.is-correct { background: var(--success); color: #fff; }
 .option-badge.is-wrong { background: var(--danger); color: #fff; }
+
+.btn-explanation-toggle {
+  margin-top: 12px;
+  background: transparent;
+  border: 1px dashed var(--primary);
+  color: var(--primary-deep);
+  padding: 6px 14px;
+  border-radius: var(--radius-btn);
+  font-size: 12.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 150ms ease;
+  font-family: inherit;
+}
+.btn-explanation-toggle:hover {
+  background: var(--primary-soft);
+  border-style: solid;
+}
+.btn-explanation-toggle:active {
+  transform: translateY(1px);
+}
+.btn-explanation-toggle-icon {
+  font-size: 13px;
+}
 
 /* 答案解析折叠 */
 .question-explanation {
@@ -983,4 +1038,28 @@ button {
   .section-heading h2 { font-size: 19px; }
   .section-intro { padding: 12px 14px; font-size: 13px; }
   .fab-top { right: 16px; bottom: 16px; width: 40px; height: 40px; }
+  .quiz-header-article-link { display: none; }
+  .question-header { flex-wrap: wrap; }
+  .question-body,
+  .question-explanation-body,
+  .option-text,
+  .section-result-name,
+  .section-result-stat,
+  .score-card-meta {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .question-explanation-body pre,
+  .question-explanation-body code {
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .question-body table,
+  .question-explanation-body table,
+  .results-page table {
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
+  }
+  .btn-explanation-toggle { font-size: 12px; padding: 5px 12px; }
 }

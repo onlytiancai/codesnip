@@ -104,16 +104,21 @@
   .pbtn:disabled { opacity: .5; cursor: not-allowed; }
   .pbtn.primary { background: linear-gradient(120deg, var(--accent), var(--accent2)); color: #fff; border-color: transparent; }
   .pbtn.danger { background: #fef2f2; color: var(--neg); border-color: #fecaca; }
+  .pbtn.stop { background: linear-gradient(120deg, #ef4444, #b91c1c); color: #fff; border-color: transparent; }
+  .pbtn.warn { background: #fffbeb; color: var(--warn); border-color: #fde68a; font-size: .82rem; padding: 6px 12px; min-height: 36px; }
 
   .palette { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .pal-btn {
     border: 2px solid transparent; cursor: pointer; border-radius: 12px;
-    padding: 10px 8px; font-size: .85rem; font-weight: 600;
+    padding: 10px 8px; font-size: .82rem; font-weight: 600;
     display: flex; align-items: center; justify-content: center; gap: 6px;
-    min-height: 46px; transition: all .12s;
+    min-height: 46px; transition: all .12s; position: relative;
   }
   .pal-btn:active { transform: scale(.96); }
   .pal-btn .ico { font-size: 1.05rem; }
+  .pal-btn:disabled { opacity: .35; cursor: not-allowed; position: relative; }
+  .pal-btn:disabled::after { content: "🔒"; position: absolute; top: 2px; right: 4px; font-size: .7rem; }
+  .pal-btn:disabled:active { transform: none; }
   .pal-move   { background: var(--b-move-bg);   color: var(--b-move);   border-color: #bbf7d0; }
   .pal-turn   { background: var(--b-turn-bg);   color: var(--b-turn);   border-color: #bfdbfe; }
   .pal-repeat { background: var(--b-repeat-bg); color: var(--b-repeat); border-color: #fde68a; }
@@ -237,8 +242,9 @@
           <span class="pill" v-if="current.maxBlocks">🧩 建议积木 ≤ <b>{{ current.maxBlocks }}</b></span>
         </div>
         <div class="controls">
-          <button class="pbtn primary" @click="runProgram" :disabled="running">▶️ 运行</button>
-          <button class="pbtn" @click="reset" :disabled="false">🔄 重置</button>
+          <button v-if="!running" class="pbtn primary" @click="runProgram" :disabled="false">▶️ 运行</button>
+          <button v-else class="pbtn stop" @click="stopProgram">⏹️ 停止</button>
+          <button class="pbtn" @click="reset" :disabled="running">🔄 重置</button>
           <button class="pbtn danger" @click="clearProgram" :disabled="running">🗑️ 清空</button>
         </div>
         <div class="vars-display" v-if="Object.keys(runtimeVars).length">
@@ -251,12 +257,13 @@
       <div class="card" :class="{ 'running-overlay': running }">
         <div class="card-title">🧱 积木库 <span style="font-weight:400;color:var(--muted);font-size:.78rem;">点击添加到程序</span></div>
         <div class="palette">
-          <button class="pal-btn pal-move" @click="addBlock('move')"><span class="ico">⬆️</span>前进</button>
-          <button class="pal-btn pal-turn" @click="addBlock('turn')"><span class="ico">↪️</span>转向</button>
-          <button class="pal-btn pal-repeat" @click="addBlock('repeat')"><span class="ico">🔁</span>重复N次</button>
-          <button class="pal-btn pal-if" @click="addBlock('if')"><span class="ico">❓</span>如果</button>
-          <button class="pal-btn pal-while" @click="addBlock('while')"><span class="ico">🔄</span>当…循环</button>
-          <button class="pal-btn pal-var" @click="addBlock('setvar')"><span class="ico">📦</span>设变量</button>
+          <button class="pal-btn pal-move" @click="addBlock('move')" :disabled="!allowed('move')"><span class="ico">⬆️</span>前进</button>
+          <button class="pal-btn pal-turn" @click="addBlock('turn')" :disabled="!allowed('turn')"><span class="ico">↪️</span>转向</button>
+          <button class="pal-btn pal-repeat" @click="addBlock('repeat')" :disabled="!allowed('repeat')"><span class="ico">🔁</span>重复N次</button>
+          <button class="pal-btn pal-if" @click="addBlock('if')" :disabled="!allowed('if')"><span class="ico">❓</span>如果</button>
+          <button class="pal-btn pal-while" @click="addBlock('while')" :disabled="!allowed('while')"><span class="ico">🔄</span>当…循环</button>
+          <button class="pal-btn pal-var" @click="addBlock('setvar')" :disabled="!allowed('setvar')"><span class="ico">📦</span>设变量</button>
+          <button class="pal-btn pal-var" @click="addBlock('changevar')" :disabled="!allowed('changevar')"><span class="ico">➕</span>变量+1</button>
         </div>
       </div>
 
@@ -266,6 +273,7 @@
           <span v-if="selectedBlock" style="font-weight:400;color:var(--muted);font-size:.76rem;">
             （选中：{{ selectedBlockLabel }} · 新积木会加到这里）
           </span>
+          <button v-if="selectedId" class="pbtn warn" style="margin-left:auto;" @click="deselectBlock">✕ 取消选中</button>
         </div>
         <div class="program">
           <block-view
@@ -311,7 +319,7 @@ const BlockView = {
   setup() {
     const labels = {
       move: '⬆️ 前进', turn: '↪️ 转向', repeat: '🔁 重复', if: '❓ 如果',
-      while: '🔄 当…', setvar: '📦 设', changevar: '➕ 改变量'
+      while: '🔄 当…', setvar: '📦 设', changevar: '➕ 变量'
     };
     return { labels };
   },
@@ -358,9 +366,10 @@ const BlockView = {
 
           <template v-if="b.type==='changevar'">
             <input type="text" v-model="b.name">
+            <span>+=</span>
             <select v-model.number="b.delta" style="min-width:54px">
-              <option :value="1">+ 1</option>
-              <option :value="-1">− 1</option>
+              <option :value="1">1</option>
+              <option :value="-1">1（减）</option>
             </select>
           </template>
 
@@ -391,13 +400,15 @@ const RAW_LEVELS = [
   {
     id: 1, name: '走直线', concept: '前进指令',
     hint: '点【⬆️ 前进】加到程序里，再点【▶️ 运行】。让小精灵一路走到 ⭐ 终点吧！',
-    maxBlocks: 3,
+    maxBlocks: 4,
+    blocks: ['move'],
     map: ['S...G']
   },
   {
     id: 2, name: '拐个弯', concept: '转向',
     hint: '先前进两步，再【↪️ 转向 右转】，然后继续前进到达终点。',
     maxBlocks: 4,
+    blocks: ['move', 'turn'],
     map: ['S..',
           '..G']
   },
@@ -405,12 +416,14 @@ const RAW_LEVELS = [
     id: 3, name: '重复的力量', concept: '重复循环',
     hint: '要走很远？把【⬆️ 前进】放进【🔁 重复 5 次】里，比一块块加更聪明！',
     maxBlocks: 2,
+    blocks: ['move', 'repeat'],
     map: ['S.....G']
   },
   {
     id: 4, name: '重复+转向', concept: '循环里放多个动作',
     hint: '终点在右下方：先【🔁 重复 4 次】前进走到尽头，再转向、前进到终点。',
     maxBlocks: 5,
+    blocks: ['move', 'turn', 'repeat'],
     map: ['S....',
           '....G']
   },
@@ -418,6 +431,7 @@ const RAW_LEVELS = [
     id: 5, name: '会判断', concept: '如果（条件）',
     hint: '走到尽头要转弯：用【❓ 如果 前方有墙 → 右转】，配合【🔁 重复】里的前进，遇墙自动转弯。',
     maxBlocks: 8,
+    blocks: ['move', 'turn', 'repeat', 'if'],
     map: ['S...#',
           '....#',
           '###G.']
@@ -426,6 +440,7 @@ const RAW_LEVELS = [
     id: 6, name: '聪明的小路', concept: '条件 + 循环组合',
     hint: '中间有堵墙挡路：前进、遇墙就【❓ 如果 前方有墙 → 转向】，换个方向继续前进，绕过障碍到达终点。',
     maxBlocks: 10,
+    blocks: ['move', 'turn', 'repeat', 'if'],
     map: ['S.#..',
           '..#..',
           '..#..',
@@ -433,17 +448,18 @@ const RAW_LEVELS = [
   },
   {
     id: 7, name: '不知道走几步', concept: '当…循环',
-    hint: '终点距离不确定？用【🔄 当…循环 还没到终点】：里面放前进，遇墙就转向。',
+    hint: '这一关路很长，还不知道有几步！用【🔄 当…循环 还没到终点】：循环里【❓ 如果 前方有路→前进】，【❓ 如果 前方有墙→右转】，一直走到终点。（本关禁用了"重复"积木，试试用"当…循环"吧！）',
     maxBlocks: 8,
-    map: ['S....#',
-          '....#.',
-          '.#..#.',
-          '.#.G..']
+    blocks: ['move', 'turn', 'if', 'while'],
+    map: ['S.........',
+          '#########.',
+          '.........G']
   },
   {
     id: 8, name: '用变量计数', concept: '变量',
-    hint: '终极挑战：先用【📦 设变量 n = 0】，每走一步【➕ 改变量 n +1】，看看你走了几步到达终点！',
+    hint: '终极挑战：先用【📦 设变量 n = 0】，每走一步【变量】里的【+1】让 n 加 1，看看走完全程 n 变成几！把"设变量"和"改变量(+1)"放进重复循环里使用。',
     maxBlocks: 12,
+    blocks: ['move', 'turn', 'repeat', 'if', 'while', 'setvar', 'changevar'],
     map: ['S......G']
   }
 ];
@@ -516,7 +532,7 @@ const app = createApp({
     const selectedBlockLabel = computed(() => {
       const b = selectedBlock.value;
       if (!b) return '';
-      const map = { move:'前进', turn:'转向', repeat:'重复', if:'如果', while:'当…', setvar:'设变量', changevar:'改变量' };
+      const map = { move:'前进', turn:'转向', repeat:'重复', if:'如果', while:'当…循环', setvar:'设变量', changevar:'变量+1' };
       return map[b.type];
     });
 
@@ -659,11 +675,17 @@ const app = createApp({
       if (blk && blk.children) return blk.children;
       return rec(program.value) || program.value;
     }
+    function allowed(type) {
+      const bl = current.value.blocks;
+      return bl && bl.includes(type);
+    }
     function addBlock(type) {
       if (running.value) return;
+      if (!allowed(type)) return;
       const target = findContainer(selectedId.value);
       target.push(newBlock(type));
     }
+    function deselectBlock() { selectedId.value = null; }
     function deleteBlock(id) {
       function rec(list) {
         const i = list.findIndex(b => b.id === id);
@@ -718,16 +740,23 @@ const app = createApp({
     }
 
     let cancelRun = false;
-    const delay = (ms) => new Promise(res => setTimeout(res, ms));
+    function ensureNotCancelled() { if (cancelRun) throw { kind: 'stopped' }; }
+    function delay(ms) {
+      return new Promise(res => {
+        const timer = setTimeout(() => { if (!cancelRun) res(); }, ms);
+      });
+    }
     function animMove(fromR, fromC, toR, toC) {
       return new Promise(resolve => {
+        if (cancelRun) { sprite.animR = sprite.r; sprite.animC = sprite.c; resolve(); return; }
         const dur = 220, t0 = performance.now();
         function step(t) {
+          if (cancelRun) { sprite.animR = sprite.r; sprite.animC = sprite.c; resolve(); return; }
           const k = Math.min(1, (t - t0) / dur);
           const e = k < .5 ? 2*k*k : 1 - Math.pow(-2*k+2, 2)/2;
           sprite.animR = fromR + (toR - fromR) * e;
           sprite.animC = fromC + (toC - fromC) * e;
-          if (k < 1 && !cancelRun) requestAnimationFrame(step);
+          if (k < 1) requestAnimationFrame(step);
           else { sprite.animR = toR; sprite.animC = toC; resolve(); }
         }
         requestAnimationFrame(step);
@@ -735,30 +764,34 @@ const app = createApp({
     }
 
     async function execMove() {
+      ensureNotCancelled();
       const [dr, dc] = DIRS[sprite.dir];
       const nr = sprite.r + dr, nc = sprite.c + dc;
       if (cellAt(nr, nc)) { sprite.animR = sprite.r; sprite.animC = sprite.c; throw { kind: 'wall' }; }
       await animMove(sprite.r, sprite.c, nr, nc);
+      ensureNotCancelled();
       sprite.r = nr; sprite.c = nc;
       steps.value++;
       if (atGoal()) throw { kind: 'win' };
-      if (steps.value > 400) throw { kind: 'loop' };
+      if (steps.value > 100) throw { kind: 'loop' };
     }
     async function execTurn(d) {
+      ensureNotCancelled();
       sprite.dir = (sprite.dir + (d === 'right' ? 1 : 3)) % 4;
       await delay(150);
+      ensureNotCancelled();
     }
 
     // 边走边判断条件（递归解释器）
     async function runBlocks(list) {
       for (const b of list) {
-        if (cancelRun) return;
+        ensureNotCancelled();
         switch (b.type) {
           case 'move': await execMove(); break;
           case 'turn': await execTurn(b.dir); break;
           case 'repeat': {
             const n = Math.max(0, Math.min(50, Number(b.count) || 0));
-            for (let i = 0; i < n; i++) { if (cancelRun) return; await runBlocks(b.children); }
+            for (let i = 0; i < n; i++) { ensureNotCancelled(); await runBlocks(b.children); }
             break;
           }
           case 'if':
@@ -767,7 +800,8 @@ const app = createApp({
           case 'while': {
             let guard = 0;
             while (aheadIs(b.cond)) {
-              if (cancelRun || ++guard > 250) break;
+              if (++guard > 250) break;
+              ensureNotCancelled();
               await runBlocks(b.children);
             }
             break;
@@ -792,14 +826,25 @@ const app = createApp({
       cancelRun = false;
       try {
         await runBlocks(program.value);
-        if (!done.value) showToast('info', '🤔 走完了', '程序执行结束，但还没到终点。再调整一下程序试试？', '再想想');
+        if (cancelRun) { showToast('info', '⏹️ 已停止', '程序被手动停止了，小精灵回到起点。', '好的'); }
+        else if (!done.value) showToast('info', '🤔 走完了', '程序执行结束，但还没到终点。再调整一下程序试试？', '再想想');
       } catch (e) {
         if (e && e.kind === 'win') handleWin();
         else if (e && e.kind === 'wall') showToast('lose', '💥 撞墙了！', '小精灵撞到了墙。检查转向和前进的顺序吧～', '再试一次');
-        else if (e && e.kind === 'loop') showToast('lose', '♾️ 走太久啦', '步数超过 400，可能陷入了死循环。', '再试一次');
+        else if (e && e.kind === 'loop') showToast('lose', '♾️ 走太多步啦！', '已经走了 100 步还没到终点，可能走进了死循环。点【⏹️ 停止】可以随时中断哦～', '再试一次');
       } finally {
         running.value = false;
       }
+    }
+
+    function stopProgram() {
+      if (!running.value) return;
+      cancelRun = true;
+      running.value = false;
+      // 中断动画，把精灵归位到当前格子（非起点，保留已走位置）
+      sprite.animR = sprite.r;
+      sprite.animC = sprite.c;
+      showToast('info', '⏹️ 已停止', '程序已停止运行。点【🔄 重置】让小精灵回到起点。', '好的');
     }
 
     function handleWin() {
@@ -885,8 +930,8 @@ const app = createApp({
       program, selectedId, selectedBlock, selectedBlockLabel,
       sprite, steps, runtimeVars, running, done, toast,
       doneSet, isUnlocked,
-      addBlock, deleteBlock, moveBlock, selectBlock, clearProgram,
-      runProgram, reset, selectLevel, dismissToast, dirName,
+      allowed, addBlock, deleteBlock, moveBlock, selectBlock, deselectBlock, clearProgram,
+      runProgram, stopProgram, reset, selectLevel, dismissToast, dirName,
     };
   }
 });

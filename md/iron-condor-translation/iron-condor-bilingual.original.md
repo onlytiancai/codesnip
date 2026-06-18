@@ -40,8 +40,9 @@
 
 ## 引言 / Introduction
 
-::: en
 **Iron Condor** is an income strategy that profits if the underlying stock or index stays within a certain range over the life of the trade. Over the course of any trade, stocks can move one of five ways:
+
+> 铁鹰（Iron Condor）是一种**收入型策略**——只要在持仓期内标的股票或指数维持在某个区间内，就可以获利。在任意一笔交易的存续期内，股价的走势无非以下 5 种：
 
 1. Up a lot — 大涨
 2. Up a little — 小涨
@@ -51,37 +52,26 @@
 
 Stock investors would make money in the first two of the above five scenarios. Iron condors will make money in the middle 3 situations and sometimes, if they are managed well, can make money in **ALL** of the five scenarios.
 
+> 股票投资者只能在上述前两种情形下赚钱。而铁鹰策略可以在**中间 3 种**情形中盈利；如果管理得当，有时甚至可以在**全部 5 种**情形下都盈利。
+
 An Iron Condor is actually a combination of a **Bull Put Spread** and a **Bear Call Spread**.
+
+> 铁鹰本质上是 **牛市认沽价差（Bull Put Spread）** 与 **熊市认购价差（Bear Call Spread）** 的组合。
 
 The Bull Put Credit Spread strategy involves selling a put option and buying another put option with a lower strike price in the same expiry month. As the name suggests, this is a bullish option strategy. Your outlook on the underlying stock is neutral to slightly bullish. Let's look at an example:
 
+> 牛市认沽价差（Bull Put Credit Spread）的做法是：卖出一份 Put，同时在**同一到期月**内买入一份行权价**更低**的 Put。顾名思义，这是一种**看多**的期权策略——你对标的的预期是**中性偏多**。来看个例子：
+
 > ABC stock is trading at $47.50 in September. A trader thinks that ABC will not fall below $45 before October options expiration. He enters a Bull Put spread by selling an October $45 put for $2 and buying an October $40 put for $1. The net premium received in the trader's account is $100 ($1 × 100 shares per contract).
+
+> 假设 9 月份 ABC 股价为 **$47.50**。交易员认为 ABC 在 10 月期权到期前不会跌破 $45。他卖出一份 10 月到期、行权价 $45 的 Put，收取 $2；同时买入一份 10 月到期、行权价 $40 的 Put，付出 $1。账户净收到的权利金为 **$100**（即 $1 × 100 股/张）。
 
 > The maximum risk on the trade is $400 ($5 difference in strike prices, less $1 premium received times 100).
 >
 > At expiry, if ABC finishes above $45, the trader keeps the $100 premium for a return of 20% on capital at risk.
-:::
-
-::: zh
-> 铁鹰（Iron Condor）是一种**收入型策略**——只要在持仓期内标的股票或指数维持在某个区间内，就可以获利。在任意一笔交易的存续期内，股价的走势无非以下 5 种：
-
-1. 大涨
-2. 小涨
-3. 横盘
-4. 小跌
-5. 大跌
-
-> 股票投资者只能在上述前两种情形下赚钱。而铁鹰策略可以在**中间 3 种**情形中盈利；如果管理得当，有时甚至可以在**全部 5 种**情形下都盈利。
-
-> 铁鹰本质上是 **牛市认沽价差（Bull Put Spread）** 与 **熊市认购价差（Bear Call Spread）** 的组合。
-
-> 牛市认沽价差（Bull Put Credit Spread）的做法是：卖出一份 Put，同时在**同一到期月**内买入一份行权价**更低**的 Put。顾名思义，这是一种**看多**的期权策略——你对标的的预期是**中性偏多**。来看个例子：
-
-> 假设 9 月份 ABC 股价为 **$47.50**。交易员认为 ABC 在 10 月期权到期前不会跌破 $45。他卖出一份 10 月到期、行权价 $45 的 Put，收取 $2；同时买入一份 10 月到期、行权价 $40 的 Put，付出 $1。账户净收到的权利金为 **$100**（即 $1 × 100 股/张）。
 
 > 这笔交易的**最大风险**为 **$400**（行权价差 $5 减去已收权利金 $1，再乘以 100）。
 > 到期时，如果 ABC 的股价收在 $45 之上，交易员即可稳稳赚取这 $100 权利金，相当于**风险资本 20%** 的回报。
-:::
 
 ![](images/img-001.jpg)
 
@@ -89,23 +79,19 @@ The Bull Put Credit Spread strategy involves selling a put option and buying ano
 
 ## 熊市认购价差 / Bear Call Spread
 
-::: en
 The Bear Call Credit Spread strategy involves selling a call option and buying another call option with a higher strike price in the same expiry month. This is a bearish option strategy. Your outlook on the underlying stock is neutral to slightly bearish. Let's look at an example:
 
+> 熊市认购价差（Bear Call Credit Spread）的做法是：卖出一份 Call，同时在**同一到期月**内买入一份行权价**更高**的 Call。这是一种**看空**的期权策略——你对标的的预期是**中性偏空**。继续看例子：
+
 > ABC stock is trading at $47.50 in September. A trader thinks that ABC will not rise above $50 before October options expiration. He enters a Bear Call spread by selling an October $50 call for $2 and buying an October $55 call for $1. The net premium received in the trader's account is $100 ($1 × 100 shares per contract).
+
+> 假设 9 月份 ABC 股价为 **$47.50**。交易员认为 ABC 在 10 月期权到期前不会涨破 $50。他卖出一份 10 月到期、行权价 $50 的 Call，收取 $2；同时买入一份 10 月到期、行权价 $55 的 Call，付出 $1。账户净收到的权利金为 **$100**。
 
 > The maximum risk on the trade is $400 ($5 difference in strike prices, less $1 premium received times 100).
 >
 > At expiry, if ABC finishes below $50, the trader keeps the $100 premium for a return of 20% on capital at risk.
-:::
-
-::: zh
-> 熊市认购价差（Bear Call Credit Spread）的做法是：卖出一份 Call，同时在**同一到期月**内买入一份行权价**更高**的 Call。这是一种**看空**的期权策略——你对标的的预期是**中性偏空**。继续看例子：
-
-> 假设 9 月份 ABC 股价为 **$47.50**。交易员认为 ABC 在 10 月期权到期前不会涨破 $50。他卖出一份 10 月到期、行权价 $50 的 Call，收取 $2；同时买入一份 10 月到期、行权价 $55 的 Call，付出 $1。账户净收到的权利金为 **$100**。
 
 > 最大风险为 **$400**；到期时股价收在 $50 之下即可稳赚 $100，同样是**风险资本 20%** 的回报。
-:::
 
 ![](images/img-002.jpg)
 
