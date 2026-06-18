@@ -1,0 +1,39 @@
+{
+  "scene_en": "Home Life",
+  "scene_zh": "家居生活",
+  "task_en": "Roommate Life",
+  "task_zh": "室友相处",
+  "context": "你和室友合租一套公寓。室友有一个吸尘器，你正好需要打扫房间，想借用一下。但这不是理所当然的事，你需要先征得室友的同意。",
+  "sentence_zh": "我能借你的吸尘器用一下吗？",
+  "translations": [
+    {
+      "sentence": "Could I use your vacuum cleaner?",
+      "style": "polite",
+      "note": "最常用的礼貌请求方式，could表达委婉语气",
+      "literal_translation": "我可以使用你的吸尘器吗？",
+      "phonetic": "kʊd aɪ juːz jɔː ˈvækwəm ˈkliːnə"
+    },
+    {
+      "sentence": "Would it be okay if I borrowed your vacuum?",
+      "style": "polite",
+      "note": "用条件句更显礼貌，borrowed强调借用行为",
+      "literal_translation": "如果我借用你的吸尘器可以吗？",
+      "phonetic": "wʊd ɪt bi əˈkeɪ ɪf aɪ ˈbɒrəʊd jɔː ˈvækwəm"
+    },
+    {
+      "sentence": "Do you mind if I use your vacuum cleaner for a bit?",
+      "style": "neutral",
+      "note": "用Do you mind开头是中性且自然的表达",
+      "literal_translation": "你介意我用一下你的吸尘器吗？",
+      "phonetic": "duː juː maɪnd ɪf aɪ juːz jɔː ˈvækwəm ˈkliːnə fɔː ə bɪt"
+    },
+    {
+      "sentence": "Hey, can I borrow your vacuum?",
+      "style": "casual",
+      "note": "口语化表达，室友间随意自然的请求",
+      "literal_translation": "嘿，我能借下你的吸尘器吗？",
+      "phonetic": "heɪ kæn aɪ ˈbɒrəʊ jɔː ˈvækwəm"
+    }
+  ],
+  "explanation": "在室友相处中，借用物品是很常见的场景。英文表达根据关系亲疏和场景选择不同：polite适合不太熟悉的室友或借用较贵重的物品；neutral适合日常情况；casual适合关系较好、经常互相借东西的室友。注意用'borrow'强调借用行为，用'use'则更通用。"
+}
