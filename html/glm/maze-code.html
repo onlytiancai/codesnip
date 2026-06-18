@@ -191,7 +191,71 @@
   #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 49; }
 
   .foot-note { text-align: center; color: var(--muted); font-size: .76rem; margin-top: 18px; }
-  .running-overlay { opacity: .55; pointer-events: none; }
+  .running-overlay { opacity: .55; }
+
+  /* 毕业证书弹窗 */
+  .cert-trigger {
+    display: block; margin: 12px auto 0;
+    background: linear-gradient(120deg, #f59e0b, #d97706); color: #fff;
+    border-color: transparent;
+    animation: cert-glow 2.2s ease-in-out infinite;
+  }
+  @keyframes cert-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,.45); }
+    50%      { box-shadow: 0 0 0 10px rgba(245,158,11,0); }
+  }
+  .cert-modal-wrap {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(15,23,42,.55);
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px; overflow-y: auto;
+    animation: fadeIn .25s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .cert-modal {
+    background: var(--panel); border-radius: 18px; padding: 22px;
+    max-width: 740px; width: 100%;
+    max-height: 95vh; overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    animation: pop .3s ease;
+  }
+  .cert-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .cert-head h2 {
+    font-size: 1.3rem;
+    background: linear-gradient(120deg, #b45309, #d97706);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .cert-close {
+    border: none; background: var(--panel-2); cursor: pointer;
+    width: 34px; height: 34px; border-radius: 50%;
+    font-size: 1.05rem; color: var(--muted);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .cert-close:hover { background: #fee2e2; color: #dc2626; }
+  .cert-canvas-wrap { margin-bottom: 14px; }
+  .cert-canvas-wrap canvas {
+    width: 100%; height: auto; display: block; border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.12);
+  }
+  .cert-form {
+    display: flex; align-items: center; gap: 10px; justify-content: center;
+    margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .cert-form label { font-weight: 700; color: var(--text); }
+  .cert-form input {
+    padding: 10px 14px; border: 2px solid #fde68a; border-radius: 10px;
+    font-size: 1.05rem; min-width: 240px; text-align: center;
+    transition: border-color .15s;
+    font-family: "Kaiti", "STKaiti", "PingFang SC", serif;
+  }
+  .cert-form input:focus { outline: none; border-color: #d97706; }
+  .cert-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .cert-hint { text-align: center; color: var(--muted); font-size: .82rem; margin-top: 8px; }
 
   @media (max-width: 520px) {
     body { padding: 10px; }
@@ -208,6 +272,9 @@
   <header class="head">
     <h1>🧭 小精灵走迷宫</h1>
     <div class="subtitle">用积木拼出程序，指挥小精灵到达终点 ⭐ · 可视化编程启蒙</div>
+    <button v-if="allDone" class="pbtn cert-trigger" @click="showCertificate">
+      🏆 查看我的毕业证书
+    </button>
   </header>
 
   <div class="levels">
@@ -231,21 +298,23 @@
 
   <div class="layout">
     <div>
-      <div class="card" :class="{ 'running-overlay': running }">
+      <div class="card">
         <div class="card-title">🗺️ 迷宫 <span class="badge">{{ current.name }}</span></div>
-        <div class="canvas-wrap">
-          <canvas class="maze" ref="cv" width="520" height="520"></canvas>
-        </div>
-        <div class="status-bar">
-          <span class="pill">📍 步数 <b>{{ steps }}</b></span>
-          <span class="pill">↻ 朝向 <b>{{ dirName(sprite.dir) }}</b></span>
-          <span class="pill" v-if="current.maxBlocks">🧩 建议积木 ≤ <b>{{ current.maxBlocks }}</b></span>
+        <div :class="{ 'running-overlay': executing }">
+          <div class="canvas-wrap">
+            <canvas class="maze" ref="cv" width="520" height="520"></canvas>
+          </div>
+          <div class="status-bar">
+            <span class="pill">📍 步数 <b>{{ steps }}</b></span>
+            <span class="pill">↻ 朝向 <b>{{ dirName(sprite.dir) }}</b></span>
+            <span class="pill" v-if="current.maxBlocks">🧩 建议积木 ≤ <b>{{ current.maxBlocks }}</b></span>
+          </div>
         </div>
         <div class="controls">
-          <button v-if="!running" class="pbtn primary" @click="runProgram" :disabled="false">▶️ 运行</button>
+          <button v-if="!executing" class="pbtn primary" @click="runProgram">▶️ 运行</button>
           <button v-else class="pbtn stop" @click="stopProgram">⏹️ 停止</button>
-          <button class="pbtn" @click="reset" :disabled="running">🔄 重置</button>
-          <button class="pbtn danger" @click="clearProgram" :disabled="running">🗑️ 清空</button>
+          <button class="pbtn" @click="reset" :disabled="executing">🔄 重置</button>
+          <button class="pbtn danger" @click="clearProgram" :disabled="executing">🗑️ 清空</button>
         </div>
         <div class="vars-display" v-if="Object.keys(runtimeVars).length">
           <span class="var-chip" v-for="(v,k) in runtimeVars" :key="k">{{ k }} = <b>{{ v }}</b></span>
@@ -254,20 +323,20 @@
     </div>
 
     <div>
-      <div class="card" :class="{ 'running-overlay': running }">
+      <div class="card">
         <div class="card-title">🧱 积木库 <span style="font-weight:400;color:var(--muted);font-size:.78rem;">点击添加到程序</span></div>
         <div class="palette">
-          <button class="pal-btn pal-move" @click="addBlock('move')" :disabled="!allowed('move')"><span class="ico">⬆️</span>前进</button>
-          <button class="pal-btn pal-turn" @click="addBlock('turn')" :disabled="!allowed('turn')"><span class="ico">↪️</span>转向</button>
-          <button class="pal-btn pal-repeat" @click="addBlock('repeat')" :disabled="!allowed('repeat')"><span class="ico">🔁</span>重复N次</button>
-          <button class="pal-btn pal-if" @click="addBlock('if')" :disabled="!allowed('if')"><span class="ico">❓</span>如果</button>
-          <button class="pal-btn pal-while" @click="addBlock('while')" :disabled="!allowed('while')"><span class="ico">🔄</span>当…循环</button>
-          <button class="pal-btn pal-var" @click="addBlock('setvar')" :disabled="!allowed('setvar')"><span class="ico">📦</span>设变量</button>
-          <button class="pal-btn pal-var" @click="addBlock('changevar')" :disabled="!allowed('changevar')"><span class="ico">➕</span>变量+1</button>
+          <button class="pal-btn pal-move" @click="addBlock('move')" :disabled="!allowed('move') || executing"><span class="ico">⬆️</span>前进</button>
+          <button class="pal-btn pal-turn" @click="addBlock('turn')" :disabled="!allowed('turn') || executing"><span class="ico">↪️</span>转向</button>
+          <button class="pal-btn pal-repeat" @click="addBlock('repeat')" :disabled="!allowed('repeat') || executing"><span class="ico">🔁</span>重复N次</button>
+          <button class="pal-btn pal-if" @click="addBlock('if')" :disabled="!allowed('if') || executing"><span class="ico">❓</span>如果</button>
+          <button class="pal-btn pal-while" @click="addBlock('while')" :disabled="!allowed('while') || executing"><span class="ico">🔄</span>当…循环</button>
+          <button class="pal-btn pal-var" @click="addBlock('setvar')" :disabled="!allowed('setvar') || executing"><span class="ico">📦</span>设变量</button>
+          <button class="pal-btn pal-var" @click="addBlock('changevar')" :disabled="!allowed('changevar') || executing"><span class="ico">➕</span>变量+1</button>
         </div>
       </div>
 
-      <div class="card" :class="{ 'running-overlay': running }">
+      <div class="card">
         <div class="card-title">
           📜 程序区
           <span v-if="selectedBlock" style="font-weight:400;color:var(--muted);font-size:.76rem;">
@@ -302,6 +371,27 @@
       <div class="t-title">{{ toast.title }}</div>
       <div class="t-msg">{{ toast.msg }}</div>
       <button class="t-btn" @click="dismissToast">{{ toast.btn }}</button>
+    </div>
+  </div>
+
+  <div class="cert-modal-wrap" v-if="showCert" @click.self="showCert = false">
+    <div class="cert-modal">
+      <div class="cert-head">
+        <h2>🎓 恭喜毕业！</h2>
+        <button class="cert-close" @click="showCert = false" aria-label="关闭">✕</button>
+      </div>
+      <div class="cert-canvas-wrap">
+        <canvas ref="certCv" width="900" height="640"></canvas>
+      </div>
+      <div class="cert-form">
+        <label for="cert-name">你的名字</label>
+        <input id="cert-name" type="text" v-model="certName" @input="drawCertificate" placeholder="请输入你的姓名" maxlength="20">
+      </div>
+      <div class="cert-actions">
+        <button class="pbtn primary" @click="downloadCert">📥 下载证书（PNG）</button>
+        <button class="pbtn" @click="showCert = false">关闭</button>
+      </div>
+      <div class="cert-hint">输入名字后画布会实时更新 · 下载的文件名为「毕业证书_姓名_日期.png」</div>
     </div>
   </div>
 
@@ -551,6 +641,12 @@ const app = createApp({
       return s;
     });
     const isUnlocked = (id) => unlockedSet.value.has(id);
+    const allDone = computed(() => doneSet.value.length >= levels.length);
+
+    // 证书相关
+    const showCert = ref(false);
+    const certName = ref(localStorage.getItem('maze_name') || '');
+    const certCv = ref(null);
 
     /* ---------- 绘制 ---------- */
     function roundRect(ctx, x, y, w, h, r) {
@@ -561,6 +657,17 @@ const app = createApp({
       ctx.arcTo(x, y + h, x, y, r);
       ctx.arcTo(x, y, x + w, y, r);
       ctx.closePath();
+    }
+    function drawStar(ctx, cx, cy, r, color) {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const ang = -Math.PI/2 + i * Math.PI/5;
+        const rad = i % 2 === 0 ? r : r*0.42;
+        ctx.lineTo(cx + Math.cos(ang)*rad, cy + Math.sin(ang)*rad);
+      }
+      ctx.closePath();
+      ctx.fill();
     }
     function drawGoal(ctx, x, y, R) {
       ctx.save(); ctx.translate(x, y);
@@ -680,13 +787,14 @@ const app = createApp({
       return bl && bl.includes(type);
     }
     function addBlock(type) {
-      if (running.value) return;
+      if (executing.value) return;
       if (!allowed(type)) return;
       const target = findContainer(selectedId.value);
       target.push(newBlock(type));
     }
     function deselectBlock() { selectedId.value = null; }
     function deleteBlock(id) {
+      if (executing.value) return;
       function rec(list) {
         const i = list.findIndex(b => b.id === id);
         if (i >= 0) { list.splice(i, 1); return true; }
@@ -697,6 +805,7 @@ const app = createApp({
       if (selectedId.value === id) selectedId.value = null;
     }
     function moveBlock({ id, dir }) {
+      if (executing.value) return;
       const list = findSiblingList(id);
       const i = list.findIndex(b => b.id === id);
       const j = i + dir;
@@ -714,7 +823,7 @@ const app = createApp({
     }
     function selectBlock(id) { selectedId.value = id; }
     function clearProgram() {
-      if (running.value) return;
+      if (executing.value) return;
       program.value.splice(0, program.value.length);
       selectedId.value = null;
     }
@@ -740,10 +849,18 @@ const app = createApp({
     }
 
     let cancelRun = false;
+    let userStopped = false;
+    const executing = ref(false);
     function ensureNotCancelled() { if (cancelRun) throw { kind: 'stopped' }; }
     function delay(ms) {
       return new Promise(res => {
-        const timer = setTimeout(() => { if (!cancelRun) res(); }, ms);
+        const start = performance.now();
+        const tick = () => {
+          if (cancelRun) { res(); return; }
+          if (performance.now() - start >= ms) { res(); return; }
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
       });
     }
     function animMove(fromR, fromC, toR, toC) {
@@ -819,29 +936,42 @@ const app = createApp({
     }
 
     async function runProgram() {
-      if (running.value) return;
+      if (executing.value) return;
       if (!program.value.length) { showToast('info', '空的程序', '先从积木库添加几块积木吧～', '好的'); return; }
       doReset(true);
-      running.value = true;
+      executing.value = true;
       cancelRun = false;
+      userStopped = false;
+      // 快照程序，防止运行中修改影响本次执行
+      const snapshot = JSON.parse(JSON.stringify(program.value));
       try {
-        await runBlocks(program.value);
-        if (cancelRun) { showToast('info', '⏹️ 已停止', '程序被手动停止了，小精灵回到起点。', '好的'); }
-        else if (!done.value) showToast('info', '🤔 走完了', '程序执行结束，但还没到终点。再调整一下程序试试？', '再想想');
+        await runBlocks(snapshot);
+        if (userStopped) {
+          // 停止 toast 已在 stopProgram 弹过，不再重复
+        } else if (cancelRun) {
+          // 重置触发的取消，安静退出
+        } else if (!done.value) {
+          showToast('info', '🤔 走完了', '程序执行结束，但还没到终点。再调整一下程序试试？', '再想想');
+        }
       } catch (e) {
         if (e && e.kind === 'win') handleWin();
-        else if (e && e.kind === 'wall') showToast('lose', '💥 撞墙了！', '小精灵撞到了墙。检查转向和前进的顺序吧～', '再试一次');
-        else if (e && e.kind === 'loop') showToast('lose', '♾️ 走太多步啦！', '已经走了 100 步还没到终点，可能走进了死循环。点【⏹️ 停止】可以随时中断哦～', '再试一次');
+        else if (e && e.kind === 'wall') {
+          if (!userStopped) showToast('lose', '💥 撞墙了！', '小精灵撞到了墙。检查转向和前进的顺序吧～', '再试一次');
+        }
+        else if (e && e.kind === 'loop') {
+          if (!userStopped) showToast('lose', '♾️ 走太多步啦！', '已经走了 100 步还没到终点，可能走进了死循环。点【⏹️ 停止】可以随时中断哦～', '再试一次');
+        }
       } finally {
-        running.value = false;
+        executing.value = false;
       }
     }
 
     function stopProgram() {
-      if (!running.value) return;
+      if (!executing.value) return;
+      if (userStopped) return; // 已经在停止流程中，忽略重复点击
+      userStopped = true;
       cancelRun = true;
-      running.value = false;
-      // 中断动画，把精灵归位到当前格子（非起点，保留已走位置）
+      // 中断动画，把精灵归位到当前格子（保留已走位置，不强制回起点）
       sprite.animR = sprite.r;
       sprite.animC = sprite.c;
       showToast('info', '⏹️ 已停止', '程序已停止运行。点【🔄 重置】让小精灵回到起点。', '好的');
@@ -853,8 +983,151 @@ const app = createApp({
         doneSet.value.push(current.value.id);
         localStorage.setItem('maze_done', JSON.stringify(doneSet.value));
       }
-      showToast('win', '🎉 太棒了！', '小精灵到达终点！你学会了：' + current.value.concept, '太棒了');
       launchConfetti();
+      if (allDone.value) {
+        // 全部通关 → 弹出毕业证书
+        nextTick(() => showCertificate());
+      } else {
+        showToast('win', '🎉 太棒了！', '小精灵到达终点！你学会了：' + current.value.concept, '太棒了');
+      }
+    }
+
+    /* ---------- 毕业证书 ---------- */
+    function showCertificate() {
+      showCert.value = true;
+      nextTick(drawCertificate);
+    }
+    function drawCertificate() {
+      const canvas = certCv.value;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+
+      // 背景渐变
+      const bg = ctx.createLinearGradient(0, 0, W, H);
+      bg.addColorStop(0, '#fffbeb');
+      bg.addColorStop(0.5, '#fef9c3');
+      bg.addColorStop(1, '#fde68a');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+
+      // 装饰星点（伪随机，确保每次绘制一致）
+      ctx.save();
+      ctx.globalAlpha = 0.06;
+      const seed = 137;
+      let s = seed;
+      const rand = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+      for (let i = 0; i < 28; i++) {
+        const x = rand() * W, y = rand() * H;
+        drawStar(ctx, x, y, 6 + rand() * 8, '#d97706');
+      }
+      ctx.restore();
+
+      // 双层边框
+      ctx.strokeStyle = '#b45309';
+      ctx.lineWidth = 14;
+      roundRect(ctx, 20, 20, W - 40, H - 40, 24);
+      ctx.stroke();
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 3;
+      roundRect(ctx, 50, 50, W - 100, H - 100, 18);
+      ctx.stroke();
+
+      // 四角星
+      const corners = [[78, 78], [W - 78, 78], [78, H - 78], [W - 78, H - 78]];
+      for (const [cx, cy] of corners) drawStar(ctx, cx, cy, 14, '#f59e0b');
+
+      // 标题
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#92400e';
+      ctx.font = 'bold 60px "PingFang SC", "Microsoft YaHei", sans-serif';
+      ctx.fillText('🎓 毕业证书', W / 2, 140);
+
+      // 副标题
+      ctx.font = 'italic 18px "Times New Roman", serif';
+      ctx.fillStyle = '#a16207';
+      ctx.fillText('CERTIFICATE OF COMPLETION', W / 2, 188);
+
+      // 装饰横线 + 两端小星
+      ctx.strokeStyle = '#d97706';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(W / 2 - 120, 215);
+      ctx.lineTo(W / 2 + 120, 215);
+      ctx.stroke();
+      drawStar(ctx, W / 2 - 132, 215, 6, '#d97706');
+      drawStar(ctx, W / 2 + 132, 215, 6, '#d97706');
+
+      // 兹证明
+      ctx.font = '24px "Kaiti", "STKaiti", "PingFang SC", serif';
+      ctx.fillStyle = '#451a03';
+      ctx.fillText('兹 证 明', W / 2, 265);
+
+      // 姓名
+      const nameText = (certName.value || '').trim() || '小程序员';
+      ctx.fillStyle = '#1e40af';
+      ctx.font = 'bold 56px "Kaiti", "STKaiti", "PingFang SC", serif';
+      ctx.fillText(nameText, W / 2, 335);
+
+      // 姓名下划线
+      ctx.strokeStyle = '#1e40af';
+      ctx.lineWidth = 2;
+      const nameWidth = ctx.measureText(nameText).width;
+      ctx.beginPath();
+      ctx.moveTo(W / 2 - nameWidth / 2 - 30, 365);
+      ctx.lineTo(W / 2 + nameWidth / 2 + 30, 365);
+      ctx.stroke();
+
+      // 描述
+      ctx.fillStyle = '#451a03';
+      ctx.font = '20px "Kaiti", "STKaiti", "PingFang SC", serif';
+      ctx.fillText('同学已成功通过「小精灵走迷宫」全部 ' + levels.length + ' 关编程挑战', W / 2, 410);
+      ctx.font = '17px "PingFang SC", sans-serif';
+      ctx.fillStyle = '#7c2d12';
+      ctx.fillText('掌握了：前进 · 转向 · 重复循环 · 条件判断 · 当…循环 · 变量', W / 2, 442);
+
+      // 鼓励语
+      ctx.fillStyle = '#b45309';
+      ctx.font = 'italic 18px "Kaiti", "STKaiti", serif';
+      ctx.fillText('愿你在编程的世界里继续探索，创造无限可能！', W / 2, 482);
+
+      // 颁发日期
+      const today = new Date();
+      const dateStr = `${today.getFullYear()} 年 ${today.getMonth() + 1} 月 ${today.getDate()} 日`;
+      ctx.font = '20px "Kaiti", "STKaiti", serif';
+      ctx.fillStyle = '#7c2d12';
+      ctx.fillText('颁发日期：' + dateStr, W / 2, 538);
+
+      // 印章
+      ctx.save();
+      ctx.translate(W - 135, H - 110);
+      ctx.rotate(-Math.PI / 14);
+      ctx.strokeStyle = '#dc2626';
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(0, 0, 55, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, 46, 0, Math.PI * 2); ctx.stroke();
+      ctx.font = 'bold 12px "PingFang SC", sans-serif';
+      ctx.fillStyle = '#dc2626';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('编程启蒙', 0, -14);
+      ctx.fillText('认  证', 0, 4);
+      ctx.font = '10px sans-serif';
+      ctx.fillText('MAZE  CODE', 0, 26);
+      ctx.restore();
+    }
+    function downloadCert() {
+      const canvas = certCv.value;
+      if (!canvas) return;
+      const name = (certName.value || '').trim() || '小程序员';
+      localStorage.setItem('maze_name', certName.value || '');
+      const today = new Date();
+      const ds = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+      const link = document.createElement('a');
+      link.download = `毕业证书_${name}_${ds}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
     }
 
     function showToast(type, title, msg, btn='好的') {
@@ -864,6 +1137,7 @@ const app = createApp({
 
     function doReset(soft) {
       cancelRun = true;
+      userStopped = false;
       const lvl = current.value;
       sprite.r = lvl.start.r; sprite.c = lvl.start.c;
       sprite.animR = lvl.start.r; sprite.animC = lvl.start.c;
@@ -925,11 +1199,15 @@ const app = createApp({
       window.addEventListener('resize', draw);
     });
 
+    // 姓名变化时实时重绘证书
+    watch(certName, () => { if (showCert.value) drawCertificate(); });
+
     return {
       levels, current, currentId, cv,
       program, selectedId, selectedBlock, selectedBlockLabel,
-      sprite, steps, runtimeVars, running, done, toast,
-      doneSet, isUnlocked,
+      sprite, steps, runtimeVars, executing, running, done, toast,
+      doneSet, isUnlocked, allDone,
+      showCert, certName, certCv, showCertificate, drawCertificate, downloadCert,
       allowed, addBlock, deleteBlock, moveBlock, selectBlock, deselectBlock, clearProgram,
       runProgram, stopProgram, reset, selectLevel, dismissToast, dirName,
     };

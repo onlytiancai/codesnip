@@ -104,17 +104,39 @@
       // 实际上 data-lang 内的标题也是单语，不参与 split
       if (h.closest('.lang-block')) return;
       const txt = h.textContent;
-      if (!txt.includes(' / ')) return;
-      // 只切分一次（避免 "A / B / C" 拆错）
-      const idx = txt.indexOf(' / ');
-      const zh = txt.slice(0, idx).trim();
-      const en = txt.slice(idx + 3).trim();
+      // 优先匹配 " / " 分隔（最常见）
+      let sepIdx = txt.indexOf(' / ');
+      let sepStr = ' / ';
+      let splitKind = 'slash';
+      // 退化到 " (xxx)" 括号分隔（用于 H1 文档主标题）
+      if (sepIdx === -1) {
+        const m = txt.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+        if (m) {
+          sepIdx = m[1].length;
+          sepStr = ' (';
+        } else {
+          return;
+        }
+      }
+      const zh = txt.slice(0, sepIdx).trim();
+      const en = txt.slice(sepIdx + sepStr.length).replace(/\)\s*$/, '').trim();
       if (!zh || !en) return;
       h.classList.add('bilingual-heading');
-      h.innerHTML =
-        `<span class="_zh">${escapeHtml(zh)}</span>` +
-        `<span class="_sep"> / </span>` +
-        `<span class="_en">${escapeHtml(en)}</span>`;
+      const sepHtml = splitKind === 'slash'
+        ? `<span class="_sep"> / </span>`
+        : `<span class="_sep"> (</span><span class="_en">)</span>`;
+      // 把括号一起塞进 _en：中文模式隐藏 _en 时把括号也带掉
+      if (splitKind === 'paren') {
+        h.innerHTML =
+          `<span class="_zh">${escapeHtml(zh)}</span>` +
+          `<span class="_sep"> (</span>` +
+          `<span class="_en">${escapeHtml(en)})</span>`;
+      } else {
+        h.innerHTML =
+          `<span class="_zh">${escapeHtml(zh)}</span>` +
+          `<span class="_sep"> / </span>` +
+          `<span class="_en">${escapeHtml(en)}</span>`;
+      }
     });
     // 表格中含 " / " 的单元格
     root.querySelectorAll('table th, table td').forEach(cell => {
@@ -127,6 +149,40 @@
       if (!zh || !en) return;
       cell.classList.add('bilingual-cell');
       cell.innerHTML =
+        `<span class="_zh">${escapeHtml(zh)}</span>` +
+        `<span class="_sep"> / </span>` +
+        `<span class="_en">${escapeHtml(en)}</span>`;
+    });
+    // 译者注 / 免责声明 / 图注 blockquote（单语标记）→ EN/ZH 模式分别隐藏
+    root.querySelectorAll('blockquote').forEach(bq => {
+      if (bq.closest('.lang-block')) return;
+      const txt = bq.textContent;
+      if (txt.includes('译者注') || txt.includes('免责声明')) {
+        bq.classList.add('zh-only');
+      } else if (txt.includes('原文出处') || /^\s*Disclaimer\b/i.test(txt)) {
+        bq.classList.add('en-only');
+      } else if (/[一-鿿]/.test(txt)) {
+        // 含中文字符 → 中文模式显示
+        bq.classList.add('zh-only');
+      } else {
+        // 纯英文/数字 → 英文模式显示
+        bq.classList.add('en-only');
+      }
+    });
+    // 目录条目 li 里的 a 链接含 " / "（如 - [引言 / Introduction](#...））
+    root.querySelectorAll('li > a').forEach(a => {
+      // 跳过已经在 .lang-block[data-lang] 内部的（避免冲突）
+      if (a.closest('.lang-block')) return;
+      const txt = a.textContent;
+      if (!txt.includes(' / ')) return;
+      const idx = txt.indexOf(' / ');
+      const zh = txt.slice(0, idx).trim();
+      const en = txt.slice(idx + 3).trim();
+      if (!zh || !en) return;
+      const li = a.parentElement;
+      li.classList.add('bilingual-link');
+      // 只替换 a 内的文本节点，保留 href
+      a.innerHTML =
         `<span class="_zh">${escapeHtml(zh)}</span>` +
         `<span class="_sep"> / </span>` +
         `<span class="_en">${escapeHtml(en)}</span>`;

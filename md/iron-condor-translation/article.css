@@ -218,18 +218,30 @@ html[data-article-mode="zh"] .lang-block[data-lang="en"] { display: none; }
    ============================================ */
 .bilingual-heading ._zh,
 .bilingual-heading ._en,
+.bilingual-link ._zh,
+.bilingual-link ._en,
 .bilingual-cell ._zh,
 .bilingual-cell ._en { display: inline; }
 
 html[data-article-mode="en"] .bilingual-heading ._zh,
 html[data-article-mode="en"] .bilingual-heading ._sep,
+html[data-article-mode="en"] .bilingual-link ._zh,
+html[data-article-mode="en"] .bilingual-link ._sep,
 html[data-article-mode="en"] .bilingual-cell ._zh,
 html[data-article-mode="en"] .bilingual-cell ._sep { display: none; }
 
 html[data-article-mode="zh"] .bilingual-heading ._en,
 html[data-article-mode="zh"] .bilingual-heading ._sep,
+html[data-article-mode="zh"] .bilingual-link ._en,
+html[data-article-mode="zh"] .bilingual-link ._sep,
 html[data-article-mode="zh"] .bilingual-cell ._en,
 html[data-article-mode="zh"] .bilingual-cell ._sep { display: none; }
+
+/* 单语标记：EN 模式隐藏中文、ZH 模式隐藏英文 */
+html[data-article-mode="en"] .zh-only,
+html[data-article-mode="en"] [data-lang-only="zh"] { display: none; }
+html[data-article-mode="zh"] .en-only,
+html[data-article-mode="zh"] [data-lang-only="en"] { display: none; }
 
 /* ============================================
    底部
