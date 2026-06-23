@@ -1,0 +1,5 @@
+bench/*.m4a
+bench/wavs/*.wav
+build
+*.wav
+*.m4a
