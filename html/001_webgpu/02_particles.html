@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>02 · GPU 粒子星系 · WebGPU Demo</title>
+  <style>
+    :root {
+      --panel-bg: rgba(20, 20, 40, 0.78);
+      --panel-border: rgba(255, 255, 255, 0.12);
+      --text-1: #f3f4f6;
+      --text-2: #cbd5e1;
+      --text-3: #94a3b8;
+      --accent: #a78bfa;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+      color: var(--text-1);
+      background: #05051a;
+      overflow: hidden;
+    }
+    canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; gap: 1.2rem;
+      padding: 0.7rem 1.4rem;
+      background: rgba(10, 10, 30, 0.6);
+      backdrop-filter: saturate(180%) blur(14px);
+      -webkit-backdrop-filter: saturate(180%) blur(14px);
+      border-bottom: 1px solid var(--panel-border);
+      z-index: 10;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-weight: 700; font-size: 0.95rem;
+      text-decoration: none; color: var(--text-1);
+    }
+    .brand-logo {
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      background: conic-gradient(from 0deg, #6366f1, #ec4899, #f59e0b, #14b8a6, #6366f1);
+    }
+    .nav-links { display: flex; gap: 0.2rem; flex: 1; flex-wrap: wrap; }
+    .nav-links a {
+      padding: 0.3rem 0.7rem; border-radius: 999px;
+      color: var(--text-2); text-decoration: none; font-size: 0.85rem;
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav-links a:hover { background: rgba(167,139,250,0.18); color: var(--accent); }
+    .nav-links a.active { background: rgba(167,139,250,0.28); color: var(--accent); }
+    .fps {
+      font-family: ui-monospace, monospace; font-size: 0.78rem;
+      color: var(--text-3); padding: 0.2rem 0.6rem;
+      background: rgba(255,255,255,0.06); border-radius: 6px;
+    }
+
+    .panel {
+      position: fixed; top: 64px; right: 16px;
+      width: 230px; padding: 1rem 1.1rem;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      z-index: 5;
+    }
+    .panel h3 {
+      margin: 0 0 0.8rem; font-size: 0.9rem;
+      color: var(--accent); letter-spacing: 0.02em;
+    }
+    .field { margin-bottom: 0.7rem; }
+    .field label {
+      display: flex; justify-content: space-between;
+      font-size: 0.78rem; color: var(--text-2);
+      margin-bottom: 0.25rem;
+    }
+    .field input[type=range] {
+      width: 100%; height: 4px;
+      -webkit-appearance: none; appearance: none;
+      background: rgba(167,139,250,0.25); border-radius: 2px;
+      outline: none;
+    }
+    .field input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); cursor: pointer;
+    }
+    .field input[type=range]::-moz-range-thumb {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); border: none; cursor: pointer;
+    }
+    .field select {
+      width: 100%; padding: 0.35rem 0.5rem;
+      font-size: 0.82rem; color: var(--text-1);
+      background: rgba(255,255,255,0.08); border: 1px solid var(--panel-border);
+      border-radius: 6px; outline: none;
+    }
+    .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.3rem; margin-bottom: 0.7rem; }
+    .modes button {
+      padding: 0.4rem 0; font-size: 0.75rem; color: var(--text-2);
+      background: rgba(255,255,255,0.06); border: 1px solid var(--panel-border);
+      border-radius: 8px; cursor: pointer;
+    }
+    .modes button.on { background: rgba(167,139,250,0.35); color: var(--text-1); border-color: var(--accent); }
+
+    .help {
+      position: fixed; left: 16px; bottom: 16px;
+      max-width: 280px; padding: 0.8rem 1rem;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-size: 0.78rem; line-height: 1.6;
+      color: var(--text-2);
+      z-index: 5;
+    }
+    .help strong { color: var(--accent); }
+    kbd {
+      padding: 0.1rem 0.4rem; border-radius: 4px;
+      background: rgba(255,255,255,0.1); font-family: ui-monospace, monospace;
+      font-size: 0.75rem;
+    }
+
+    .fallback {
+      position: fixed; inset: 0;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(5,5,26,0.95); z-index: 100;
+    }
+    .fallback.show { display: flex; }
+    .fallback-card {
+      max-width: 420px; padding: 2rem;
+      text-align: center; background: #1a1a3a;
+      border-radius: 16px; color: var(--text-1);
+    }
+    .fallback-card h2 { margin: 0 0 0.5rem; color: var(--accent); }
+    .fallback-card p { color: var(--text-2); line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="brand" href="index.html">
+      <span class="brand-logo"></span>
+      <span>WebGPU Demos</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="01_terrain.html">01 地形</a>
+      <a href="02_particles.html" class="active">02 粒子</a>
+      <a href="03_raytrace.html">03 光追</a>
+      <a href="04_fractal.html">04 分形</a>
+    </div>
+    <span class="fps" id="fps">— fps</span>
+  </nav>
+
+  <canvas id="c"></canvas>
+
+  <div class="panel">
+    <h3>参数</h3>
+    <div class="field">
+      <label>模式</label>
+      <div class="modes">
+        <button data-m="0" class="on">漩涡</button>
+        <button data-m="1">星云</button>
+        <button data-m="2">爆炸</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>粒子数 <span id="countV">60000</span></label>
+      <input type="range" id="count" min="10000" max="120000" step="5000" value="60000">
+    </div>
+    <div class="field">
+      <label>调色板</label>
+      <select id="palette">
+        <option value="0">紫粉</option>
+        <option value="1">蓝青</option>
+        <option value="2">彩虹</option>
+        <option value="3">熔岩</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>鼠标力 <span id="forceV">12</span></label>
+      <input type="range" id="force" min="0" max="40" step="0.5" value="12">
+    </div>
+    <div class="field">
+      <label>点大小 <span id="sizeV">2.5</span></label>
+      <input type="range" id="size" min="0.5" max="8" step="0.1" value="2.5">
+    </div>
+  </div>
+
+  <div class="help">
+    <strong>鼠标</strong>：移动 = 吸引 · 点击 = 爆破 · <kbd>Shift</kbd>+移动 = 排斥<br>
+    <strong>数字键</strong>：<kbd>1</kbd> 漩涡 · <kbd>2</kbd> 星云 · <kbd>3</kbd> 爆炸
+  </div>
+
+  <div class="fallback" id="fallback">
+    <div class="fallback-card">
+      <h2>需要 WebGPU 支持</h2>
+      <p>请使用 Chrome 113+ / Edge 113+ / Firefox Nightly 访问本页面，并在浏览器设置中启用 WebGPU。</p>
+    </div>
+  </div>
+
+  <script type="module">
+    const fallback = document.getElementById('fallback');
+    const adapter = await navigator.gpu?.requestAdapter();
+    const device = await adapter?.requestDevice();
+    if (!device) { fallback.classList.add('show'); throw new Error('no WebGPU'); }
+
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('webgpu');
+    const fmt = navigator.gpu.getPreferredCanvasFormat();
+    ctx.configure({ device, format: fmt });
+
+    // ---------- 初始状态 ----------
+    const MAX_PARTICLES = 120000;
+    const state = {
+      count: 60000,
+      mode: 0,
+      palette: 0,
+      force: 12,
+      size: 2.5,
+      mouse: { x: 0, y: 0, active: 0, repel: 0 },
+      time: 0
+    };
+
+    function makeInitData(n) {
+      const pos = new Float32Array(MAX_PARTICLES * 2);
+      const vel = new Float32Array(MAX_PARTICLES * 2);
+      const seed = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        // 初始：分布在整个圆盘上
+        const a = Math.random() * Math.PI * 2;
+        const r = 0.2 + Math.sqrt(Math.random()) * 1.3; // r in [0.2, 1.5]
+        pos[i*2]     = Math.cos(a) * r;
+        pos[i*2 + 1] = Math.sin(a) * r;
+        // 切向初速度（弱）
+        vel[i*2]     = -Math.sin(a) * 0.2;
+        vel[i*2 + 1] =  Math.cos(a) * 0.2;
+        seed[i] = Math.random();
+      }
+      // 未使用粒子放远处
+      for (let i = n; i < MAX_PARTICLES; i++) {
+        pos[i*2] = 0; pos[i*2+1] = 0;
+        vel[i*2] = 0; vel[i*2+1] = 0;
+        seed[i] = 0;
+      }
+      return { pos, vel, seed };
+    }
+    let init = makeInitData(state.count);
+
+    const posBuf = device.createBuffer({ size: MAX_PARTICLES * 2 * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    device.queue.writeBuffer(posBuf, 0, init.pos);
+
+    // ---------- uniform ----------
+    // 64 字节 mat4x4f + 36 字节 scalar
+    const uBuf = device.createBuffer({ size: 128, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    const uData = new ArrayBuffer(128);
+    const uView = new DataView(uData);
+    function writeUniforms() {
+      for (let i = 0; i < 16; i++) uView.setFloat32(i * 4, state.vp[i], true);
+      uView.setFloat32(64, state.time, true);
+      uView.setFloat32(68, state.dt, true);
+      uView.setUint32(72, state.count, true);
+      uView.setUint32(76, state.mode, true);
+      uView.setFloat32(80, state.palette, true);
+      uView.setFloat32(84, state.force, true);
+      uView.setFloat32(88, state.size, true);
+      uView.setFloat32(92, 0.3, true);     // mouseRadius
+      uView.setFloat32(96, state.mouse.x, true);
+      uView.setFloat32(100, state.mouse.y, true);
+      uView.setUint32(104, state.mouse.active, true);
+      uView.setUint32(108, state.mouse.repel, true);
+      device.queue.writeBuffer(uBuf, 0, uData);
+    }
+
+    // ---------- 矩阵 ----------
+    function mat4Ortho(l, r, b, t, n, f) {
+      return [
+        2/(r-l), 0, 0, 0,
+        0, 2/(t-b), 0, 0,
+        0, 0, -2/(f-n), 0,
+        -(r+l)/(r-l), -(t+b)/(t-b), -(f+n)/(f-n), 1
+      ];
+    }
+    state.vp = mat4Ortho(-1.6, 1.6, -1.0, 1.0, -1, 1);
+
+    // ---------- 着色器 ----------
+    const wgslCompute = /* wgsl */`
+struct Params {
+  vpMatrix: mat4x4f,
+  time: f32,
+  dt: f32,
+  count: u32,
+  mode: u32,
+  palette: f32,
+  force: f32,
+  size: f32,
+  mouseRadius: f32,
+  mouse: vec2f,
+  mouseActive: u32,
+  mouseRepel: u32,
+};
+@group(0) @binding(0) var<uniform> params: Params;
+@group(0) @binding(1) var<storage, read_write> posBuf: array<vec2f>;
+
+fn hash21(p: vec2f) -> f32 {
+  return fract(sin(dot(p, vec2f(127.1, 311.7))) * 43758.5453);
+}
+fn noise2d(p: vec2f) -> f32 {
+  let i = floor(p);
+  let f = fract(p);
+  let u = f * f * (3.0 - 2.0 * f);
+  let a = hash21(i);
+  let b = hash21(i + vec2f(1.0, 0.0));
+  let c = hash21(i + vec2f(0.0, 1.0));
+  let d = hash21(i + vec2f(1.0, 1.0));
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+fn curl(p: vec2f, t: f32) -> vec2f {
+  let e = 0.01;
+  let n1 = noise2d(p + vec2f(0.0, e) + vec2f(t * 0.1, 0.0));
+  let n2 = noise2d(p - vec2f(0.0, e) + vec2f(t * 0.1, 0.0));
+  let n3 = noise2d(p + vec2f(e, 0.0) + vec2f(0.0, t * 0.1));
+  let n4 = noise2d(p - vec2f(e, 0.0) + vec2f(0.0, t * 0.1));
+  return vec2f((n1 - n2) / (2.0 * e), -(n3 - n4) / (2.0 * e));
+}
+
+// 直接流场（不用 v 累积）— 避免大 dt 失稳
+@compute @workgroup_size(64)
+fn main(@builtin(global_invocation_id) gid: vec3u) {
+  let i = gid.x;
+  if (i >= params.count) { return; }
+  let p = posBuf[i];
+  let t = params.time;
+  // 限 dt 避免大 dt 数值失稳
+  let dt = min(0.033, params.dt);
+  var dp = vec2f(0.0, 0.0);
+
+  if (params.mode == 0u) {
+    // 漩涡：切向位移 + 弱中心 + noise 扰动让 d 分布
+    let d = length(p) + 0.001;
+    let tangent = vec2f(-p.y, p.x) / d;
+    dp = tangent * 0.5 * dt;
+    dp -= p / d * 0.05 * dt;  // 极弱中心
+    // noise 扰动让 d 分布更广
+    let n = noise2d(p * 1.5 + vec2f(t * 0.2, 0.0));
+    dp += vec2f(cos(n * 6.28), sin(n * 6.28)) * 0.3 * dt;
+  } else if (params.mode == 1u) {
+    // 星云：curl noise 流场
+    dp = curl(p * 0.8, t) * 0.8;
+  } else {
+    // 爆炸：径向脉动
+    let d = length(p) + 0.001;
+    let r = 0.5 + sin(t * 1.5) * 0.3;
+    dp = p / d * (r - d) * 1.5;
+  }
+
+  // 鼠标力
+  if (params.mouseActive == 1u) {
+    let mp = params.mouse;
+    let d2m = mp - p;
+    let md = length(d2m);
+    if (md < params.mouseRadius) {
+      let dir = d2m / max(md, 0.001);
+      let strength = params.force * (1.0 - md / params.mouseRadius) * dt;
+      if (params.mouseRepel == 1u) {
+        dp -= dir * strength;
+      } else {
+        dp += dir * strength;
+      }
+    }
+  }
+
+  var newP = p + dp;
+  let pl = length(newP);
+  if (pl > 1.7) {
+    newP = newP / pl * 1.7;
+  }
+  posBuf[i] = newP;
+}
+    `;
+
+    const wgslRender = /* wgsl */`
+struct Params {
+  vpMatrix: mat4x4f,
+  time: f32,
+  dt: f32,
+  count: u32,
+  mode: u32,
+  palette: f32,
+  force: f32,
+  size: f32,
+  mouseRadius: f32,
+  mouse: vec2f,
+  mouseActive: u32,
+  mouseRepel: u32,
+};
+@group(0) @binding(0) var<uniform> params: Params;
+@group(0) @binding(1) var<storage, read> posBuf: array<vec2f>;
+
+fn hsv2rgb(c: vec3f) -> vec3f {
+  let K = vec4f(1.0, 2.0/3.0, 1.0/3.0, 3.0);
+  let p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+  return c.z * mix(K.xxx, clamp(p - K.xxx, vec3f(0.0), vec3f(1.0)), c.y);
+}
+fn paletteFn(s: f32, idx: f32) -> vec3f {
+  let t = clamp(s, 0.0, 1.0);
+  if (idx < 0.5) {
+    return hsv2rgb(vec3f(0.75 + t * 0.15, 0.65, 0.6 + t * 0.4));
+  } else if (idx < 1.5) {
+    return hsv2rgb(vec3f(0.55 - t * 0.1, 0.7, 0.4 + t * 0.6));
+  } else if (idx < 2.5) {
+    return hsv2rgb(vec3f(t * 0.85, 0.85, 0.5 + t * 0.5));
+  } else {
+    return hsv2rgb(vec3f(0.05 + t * 0.05, 0.95, 0.3 + t * 0.7));
+  }
+}
+
+struct VsOut {
+  @builtin(position) pos: vec4f,
+  @location(0) color: vec3f,
+  @location(1) local: vec2f,
+};
+
+@vertex
+fn vs(@builtin(vertex_index) vi: u32, @builtin(instance_index) ii: u32) -> VsOut {
+  let corners = array<vec2f, 4>(
+    vec2f(-1.0, -1.0), vec2f( 1.0, -1.0),
+    vec2f(-1.0,  1.0), vec2f( 1.0,  1.0)
+  );
+  let corner = corners[vi];
+  let p = posBuf[ii];
+  let d = length(p);
+  // 颜色基于到中心距离
+  let t = clamp(d * 0.7, 0.0, 1.0);
+  let color = paletteFn(t, params.palette);
+  // 时间扰动让颜色有闪烁
+  let flicker = 0.85 + 0.15 * sin(params.time * 3.0 + d * 8.0);
+  let s = (params.size + t * 2.0) * 0.004 * flicker;
+  let worldPos = vec2f(p.x + corner.x * s, p.y + corner.y * s);
+  var out: VsOut;
+  out.pos = params.vpMatrix * vec4f(worldPos, 0.0, 1.0);
+  out.color = color;
+  out.local = corner;
+  return out;
+}
+
+@fragment
+fn fs(in: VsOut) -> @location(0) vec4f {
+  let r = length(in.local);
+  let a = smoothstep(1.0, 0.0, r);
+  return vec4f(in.color, a);
+}
+    `;
+
+    const module = device.createShaderModule({ code: wgslCompute });
+    const moduleR = device.createShaderModule({ code: wgslRender });
+
+    const computePipeline = device.createComputePipeline({
+      layout: 'auto',
+      compute: { module, entryPoint: 'main' }
+    });
+    const renderPipeline = device.createRenderPipeline({
+      layout: 'auto',
+      vertex: { module: moduleR, entryPoint: 'vs' },
+      fragment: {
+        module: moduleR, entryPoint: 'fs',
+        targets: [{
+          format: fmt,
+          blend: {
+            color: { srcFactor: 'src-alpha', dstFactor: 'one', operation: 'add' },
+            alpha: { srcFactor: 'one', dstFactor: 'one', operation: 'add' }
+          }
+        }]
+      },
+      primitive: { topology: 'triangle-strip' }
+    });
+
+    const computeBindGroup = device.createBindGroup({
+      layout: computePipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uBuf } },
+        { binding: 1, resource: { buffer: posBuf } }
+      ]
+    });
+    const renderBindGroup = device.createBindGroup({
+      layout: renderPipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uBuf } },
+        { binding: 1, resource: { buffer: posBuf } }
+      ]
+    });
+
+    // ---------- 交互 ----------
+    function toWorld(sx, sy) {
+      const rect = canvas.getBoundingClientRect();
+      const u = (sx - rect.left) / rect.width;
+      const v = (sy - rect.top) / rect.height;
+      const x = (u * 2 - 1) * (1.6 * (rect.width / rect.height) / (rect.width / rect.height));
+      // 适配 NDC 到世界：x in [-1.6*aspect, 1.6*aspect], y in [-1, 1]
+      const aspect = rect.width / rect.height;
+      return { x: (u * 2 - 1) * 1.6 * aspect, y: -(v * 2 - 1) };
+    }
+    canvas.addEventListener('pointermove', e => {
+      const w = toWorld(e.clientX, e.clientY);
+      state.mouse.x = w.x; state.mouse.y = w.y;
+      state.mouse.active = 1;
+      state.mouse.repel = e.shiftKey ? 1 : 0;
+    });
+    canvas.addEventListener('pointerleave', () => { state.mouse.active = 0; });
+    canvas.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      // 爆破：在所有粒子上施加径向推力
+      const w = toWorld(e.clientX, e.clientY);
+      state.mouse.x = w.x; state.mouse.y = w.y;
+      state.mouse.active = 1;
+      state.mouse.repel = 1;
+      state.force = 60;
+      setTimeout(() => { if (!e.shiftKey) state.force = +document.getElementById('force').value; }, 150);
+    });
+    window.addEventListener('keydown', e => {
+      if (e.key === '1') setMode(0);
+      else if (e.key === '2') setMode(1);
+      else if (e.key === '3') setMode(2);
+    });
+
+    // ---------- 控制 ----------
+    function setMode(m) {
+      state.mode = m;
+      document.querySelectorAll('.modes button').forEach(b => {
+        b.classList.toggle('on', +b.dataset.m === m);
+      });
+    }
+    document.querySelectorAll('.modes button').forEach(b => {
+      b.addEventListener('click', () => setMode(+b.dataset.m));
+    });
+    const countEl = document.getElementById('count');
+    const palEl = document.getElementById('palette');
+    const forceEl = document.getElementById('force');
+    const sizeEl = document.getElementById('size');
+    countEl.addEventListener('input', () => {
+      const n = +countEl.value;
+      document.getElementById('countV').textContent = n.toString();
+      if (n > state.count) {
+        // 增加粒子：在远处随机位置
+        const arr = new Float32Array((n - state.count) * 2);
+        for (let i = 0; i < arr.length / 2; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const r = Math.sqrt(Math.random()) * 0.6;
+          arr[i*2] = Math.cos(a) * r;
+          arr[i*2+1] = Math.sin(a) * r;
+        }
+        device.queue.writeBuffer(posBuf, state.count * 2 * 4, arr);
+      }
+      state.count = n;
+    });
+    palEl.addEventListener('change', () => { state.palette = +palEl.value; });
+    forceEl.addEventListener('input', () => {
+      state.force = +forceEl.value;
+      document.getElementById('forceV').textContent = state.force.toFixed(1);
+    });
+    sizeEl.addEventListener('input', () => {
+      state.size = +sizeEl.value;
+      document.getElementById('sizeV').textContent = state.size.toFixed(1);
+    });
+
+    // ---------- 渲染循环 ----------
+    const fpsEl = document.getElementById('fps');
+    let frames = 0, lastFpsT = performance.now(), lastFrameT = performance.now();
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = Math.max(1, Math.floor(canvas.clientWidth * dpr));
+      const h = Math.max(1, Math.floor(canvas.clientHeight * dpr));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w; canvas.height = h;
+      }
+      const aspect = w / h;
+      // 正交相机：x 范围 [-1.6*aspect, 1.6*aspect]，y 范围 [-1, 1]
+      const halfH = 1.0;
+      const halfW = halfH * aspect * 1.6 / 1.0; // 给 1.6 倍宽度裕量
+      // 用半角 = 0.8 时 x=±aspect*0.8 * 1.6/1
+      state.vp = [
+        1 / (halfW), 0, 0, 0,
+        0, 1 / (halfH), 0, 0,
+        0, 0, -1, 0,
+        0, 0, 0, 1
+      ];
+    }
+    new ResizeObserver(resize).observe(canvas);
+    resize();
+
+    function frame() {
+      const nowMs = performance.now();
+      const dt = Math.min(0.05, (nowMs - lastFrameT) / 1000);
+      lastFrameT = nowMs;
+      state.time += dt;
+      state.dt = dt;
+      writeUniforms();
+
+      const encoder = device.createCommandEncoder();
+
+      // Compute pass
+      const cpass = encoder.beginComputePass();
+      cpass.setPipeline(computePipeline);
+      cpass.setBindGroup(0, computeBindGroup);
+      cpass.dispatchWorkgroups(Math.ceil(state.count / 64));
+      cpass.end();
+
+      // Render pass
+      const rpass = encoder.beginRenderPass({
+        colorAttachments: [{
+          view: ctx.getCurrentTexture().createView(),
+          clearValue: [0.02, 0.02, 0.1, 1],
+          loadOp: 'clear', storeOp: 'store'
+        }]
+      });
+      rpass.setPipeline(renderPipeline);
+      rpass.setBindGroup(0, renderBindGroup);
+      rpass.draw(4, state.count, 0, 0);
+      rpass.end();
+
+      device.queue.submit([encoder.finish()]);
+
+      frames++;
+      if (nowMs - lastFpsT > 500) {
+        fpsEl.textContent = `${(frames * 1000 / (nowMs - lastFpsT)).toFixed(0)} fps`;
+        frames = 0; lastFpsT = nowMs;
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>04 · Mandelbrot · Julia 分形 · WebGPU Demo</title>
+  <style>
+    :root {
+      --panel-bg: rgba(10, 10, 30, 0.78);
+      --panel-border: rgba(255, 255, 255, 0.12);
+      --text-1: #f3f4f6;
+      --text-2: #cbd5e1;
+      --text-3: #94a3b8;
+      --accent: #a78bfa;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+      color: var(--text-1);
+      background: #000;
+      overflow: hidden;
+    }
+    canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; gap: 1.2rem;
+      padding: 0.7rem 1.4rem;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: saturate(180%) blur(14px);
+      -webkit-backdrop-filter: saturate(180%) blur(14px);
+      border-bottom: 1px solid var(--panel-border);
+      z-index: 10;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-weight: 700; font-size: 0.95rem;
+      text-decoration: none; color: var(--text-1);
+    }
+    .brand-logo {
+      width: 22px; height: 22px; border-radius: 6px;
+      background: conic-gradient(from 0deg, #6366f1, #ec4899, #f59e0b, #14b8a6, #6366f1);
+    }
+    .nav-links { display: flex; gap: 0.2rem; flex: 1; flex-wrap: wrap; }
+    .nav-links a {
+      padding: 0.3rem 0.7rem; border-radius: 999px;
+      color: var(--text-2); text-decoration: none; font-size: 0.85rem;
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav-links a:hover { background: rgba(167,139,250,0.18); color: var(--accent); }
+    .nav-links a.active { background: rgba(167,139,250,0.28); color: var(--accent); }
+    .fps {
+      font-family: ui-monospace, monospace; font-size: 0.78rem;
+      color: var(--text-3); padding: 0.2rem 0.6rem;
+      background: rgba(255,255,255,0.06); border-radius: 6px;
+    }
+
+    .panel {
+      position: fixed; top: 64px; right: 16px;
+      width: 230px; padding: 1rem 1.1rem;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      z-index: 5;
+    }
+    .panel h3 {
+      margin: 0 0 0.8rem; font-size: 0.9rem;
+      color: var(--accent); letter-spacing: 0.02em;
+    }
+    .field { margin-bottom: 0.7rem; }
+    .field label {
+      display: flex; justify-content: space-between;
+      font-size: 0.78rem; color: var(--text-2);
+      margin-bottom: 0.25rem;
+    }
+    .field input[type=range] {
+      width: 100%; height: 4px;
+      -webkit-appearance: none; appearance: none;
+      background: rgba(167,139,250,0.25); border-radius: 2px;
+      outline: none;
+    }
+    .field input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); cursor: pointer;
+    }
+    .field input[type=range]::-moz-range-thumb {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); border: none; cursor: pointer;
+    }
+    .field select {
+      width: 100%; padding: 0.35rem 0.5rem;
+      font-size: 0.82rem; color: var(--text-1);
+      background: rgba(255,255,255,0.08); border: 1px solid var(--panel-border);
+      border-radius: 6px; outline: none;
+    }
+    .modes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.3rem; margin-bottom: 0.7rem; }
+    .modes button {
+      padding: 0.4rem 0; font-size: 0.75rem; color: var(--text-2);
+      background: rgba(255,255,255,0.06); border: 1px solid var(--panel-border);
+      border-radius: 8px; cursor: pointer;
+    }
+    .modes button.on { background: rgba(167,139,250,0.35); color: var(--text-1); border-color: var(--accent); }
+    .preset {
+      display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.7rem;
+    }
+    .preset button {
+      padding: 0.3rem 0.5rem; font-size: 0.72rem; color: var(--text-2);
+      background: rgba(255,255,255,0.06); border: 1px solid var(--panel-border);
+      border-radius: 6px; cursor: pointer;
+    }
+    .preset button:hover { color: var(--accent); }
+
+    .info {
+      position: fixed; left: 16px; bottom: 16px;
+      max-width: 320px; padding: 0.8rem 1rem;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-size: 0.78rem; line-height: 1.6;
+      color: var(--text-2);
+      z-index: 5;
+      font-family: ui-monospace, monospace;
+    }
+    .info .k { color: var(--text-3); }
+    .info .v { color: var(--accent); }
+
+    .help {
+      position: fixed; left: 16px; top: 70px;
+      max-width: 260px; padding: 0.7rem 0.9rem;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-size: 0.76rem; line-height: 1.6;
+      color: var(--text-2);
+      z-index: 5;
+    }
+    .help strong { color: var(--accent); }
+    kbd {
+      padding: 0.05rem 0.35rem; border-radius: 3px;
+      background: rgba(255,255,255,0.1); font-family: ui-monospace, monospace;
+      font-size: 0.72rem;
+    }
+
+    .fallback {
+      position: fixed; inset: 0;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.95); z-index: 100;
+    }
+    .fallback.show { display: flex; }
+    .fallback-card {
+      max-width: 420px; padding: 2rem;
+      text-align: center; background: #1a1a3a;
+      border-radius: 16px; color: var(--text-1);
+    }
+    .fallback-card h2 { margin: 0 0 0.5rem; color: var(--accent); }
+    .fallback-card p { color: var(--text-2); line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="brand" href="index.html">
+      <span class="brand-logo"></span>
+      <span>WebGPU Demos</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="01_terrain.html">01 地形</a>
+      <a href="02_particles.html">02 粒子</a>
+      <a href="03_raytrace.html">03 光追</a>
+      <a href="04_fractal.html" class="active">04 分形</a>
+    </div>
+    <span class="fps" id="fps">— fps</span>
+  </nav>
+
+  <canvas id="c"></canvas>
+
+  <div class="panel">
+    <h3>参数</h3>
+    <div class="field">
+      <label>模式</label>
+      <div class="modes">
+        <button data-m="0" class="on">Mandelbrot</button>
+        <button data-m="1">Julia</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>调色板</label>
+      <select id="palette">
+        <option value="0">紫粉</option>
+        <option value="1">海洋</option>
+        <option value="2">火焰</option>
+        <option value="3">彩虹</option>
+        <option value="4">紫绿</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>最大迭代 <span id="iterV">256</span></label>
+      <input type="range" id="iter" min="32" max="1024" step="32" value="256">
+    </div>
+    <div class="field">
+      <label>缩放 <span id="zoomV">1.50</span></label>
+      <input type="range" id="zoom" min="0.0001" max="4" step="0.0001" value="1.5">
+    </div>
+    <div class="field">
+      <label>预设位置</label>
+      <div class="preset">
+        <button data-x="-0.5" data-y="0" data-s="1.5">默认</button>
+        <button data-x="-0.745" data-y="0.113" data-s="0.005">海马谷</button>
+        <button data-x="-0.16" data-y="1.0405" data-s="0.01">螺旋</button>
+        <button data-x="-1.7693" data-y="0.0042" data-s="0.0005">Misiurewicz</button>
+        <button data-x="0.275" data-y="0.008" data-s="0.004">象鼻</button>
+      </div>
+    </div>
+    <button id="reset" style="width:100%; padding: 0.45rem; font-size: 0.8rem; color: var(--text-1); background: rgba(167,139,250,0.25); border: 1px solid var(--accent); border-radius: 8px; cursor: pointer;">
+      ↻ 重置视图 (<kbd>R</kbd>)
+    </button>
+  </div>
+
+  <div class="help">
+    <strong>鼠标</strong>：拖拽 = 平移 · 滚轮 = 缩放<br>
+    <kbd>J</kbd> 切换 Julia · 鼠标位置 = c · <kbd>R</kbd> 重置
+  </div>
+
+  <div class="info" id="info">
+    <div><span class="k">center:</span> <span class="v" id="cx">-0.500000</span>, <span class="v" id="cy">0.000000</span></div>
+    <div><span class="k">scale:</span> <span class="v" id="cs">1.500</span></div>
+    <div><span class="k">mode:</span> <span class="v" id="cm">Mandelbrot</span></div>
+  </div>
+
+  <div class="fallback" id="fallback">
+    <div class="fallback-card">
+      <h2>需要 WebGPU 支持</h2>
+      <p>请使用 Chrome 113+ / Edge 113+ / Firefox Nightly 访问本页面，并在浏览器设置中启用 WebGPU。</p>
+    </div>
+  </div>
+
+  <script type="module">
+    const fallback = document.getElementById('fallback');
+    const adapter = await navigator.gpu?.requestAdapter();
+    const device = await adapter?.requestDevice();
+    if (!device) { fallback.classList.add('show'); throw new Error('no WebGPU'); }
+
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('webgpu');
+    const fmt = navigator.gpu.getPreferredCanvasFormat();
+    ctx.configure({ device, format: fmt });
+
+    // ---------- 状态 ----------
+    const state = {
+      cx: -0.5, cy: 0, scale: 1.5,
+      mode: 0, palette: 0, maxIter: 256,
+      juliaC: { x: -0.7, y: 0.27015 }
+    };
+    const DEFAULTS = { cx: -0.5, cy: 0, scale: 1.5 };
+
+    // ---------- uniform ----------
+    // center vec2 8, scale 4, mode 4, juliaC vec2 8, maxIter 4, palette 4, res vec2 8, time 4
+    // 8+4+4+8+4+4+8+4 = 44, round 48
+    const UNIFORM_SIZE = 64;
+    const uBuf = device.createBuffer({ size: UNIFORM_SIZE, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    const uData = new ArrayBuffer(UNIFORM_SIZE);
+    const uView = new DataView(uData);
+    function writeUniforms() {
+      uView.setFloat32(0,  state.cx, true);
+      uView.setFloat32(4,  state.cy, true);
+      uView.setFloat32(8,  state.scale, true);
+      uView.setUint32(12, state.mode, true);
+      uView.setFloat32(16, state.juliaC.x, true);
+      uView.setFloat32(20, state.juliaC.y, true);
+      uView.setUint32(24, state.maxIter, true);
+      uView.setUint32(28, state.palette, true);
+      uView.setFloat32(32, canvas.width, true);
+      uView.setFloat32(36, canvas.height, true);
+      uView.setFloat32(40, 0, true);
+      uView.setFloat32(44, 0, true);
+      uView.setFloat32(48, 0, true);
+      uView.setFloat32(52, 0, true);
+      uView.setFloat32(56, 0, true);
+      uView.setFloat32(60, 0, true);
+      device.queue.writeBuffer(uBuf, 0, uData);
+    }
+
+    // ---------- 着色器 ----------
+    const wgsl = /* wgsl */`
+struct Uniforms {
+  center: vec2f,
+  scale: f32,
+  mode: u32,
+  juliaC: vec2f,
+  maxIter: u32,
+  palette: u32,
+  res: vec2f,
+  _pad0: f32, _pad1: f32,
+  _pad2: f32, _pad3: f32, _pad4: f32,
+};
+@group(0) @binding(0) var<uniform> uni: Uniforms;
+
+struct VsOut {
+  @builtin(position) pos: vec4f,
+  @location(0) uv: vec2f,
+};
+
+@vertex
+fn vs(@builtin(vertex_index) vi: u32) -> VsOut {
+  let pos = array<vec2f, 4>(
+    vec2f(-1.0, -1.0), vec2f( 1.0, -1.0),
+    vec2f(-1.0,  1.0), vec2f( 1.0,  1.0)
+  );
+  let p = pos[vi];
+  var out: VsOut;
+  out.pos = vec4f(p, 0.0, 1.0);
+  out.uv = p;
+  return out;
+}
+
+fn paletteFn(t: f32, idx: u32) -> vec3f {
+  let x = t;
+  if (idx == 0u) {
+    // 紫粉
+    let a = vec3f(0.50, 0.30, 0.55);
+    let b = vec3f(0.80, 0.40, 0.70);
+    let c = vec3f(0.95, 0.70, 0.85);
+    let d = vec3f(0.20, 0.10, 0.35);
+    return a + b * cos(6.28318 * (c * x + d));
+  } else if (idx == 1u) {
+    // 海洋
+    let a = vec3f(0.30, 0.45, 0.55);
+    let b = vec3f(0.30, 0.40, 0.50);
+    let c = vec3f(0.80, 1.00, 1.20);
+    let d = vec3f(0.10, 0.35, 0.55);
+    return a + b * cos(6.28318 * (c * x + d));
+  } else if (idx == 2u) {
+    // 火焰
+    let a = vec3f(0.50, 0.20, 0.10);
+    let b = vec3f(0.55, 0.40, 0.15);
+    let c = vec3f(1.00, 1.00, 0.50);
+    let d = vec3f(0.00, 0.15, 0.20);
+    return a + b * cos(6.28318 * (c * x + d));
+  } else if (idx == 3u) {
+    // 彩虹
+    let a = vec3f(0.50);
+    let b = vec3f(0.50);
+    let c = vec3f(1.00);
+    let d = vec3f(0.00, 0.33, 0.67);
+    return a + b * cos(6.28318 * (c * x + d));
+  } else {
+    // 紫绿
+    let a = vec3f(0.40, 0.50, 0.30);
+    let b = vec3f(0.50, 0.45, 0.40);
+    let c = vec3f(1.00, 0.80, 0.50);
+    let d = vec3f(0.20, 0.40, 0.10);
+    return a + b * cos(6.28318 * (c * x + d));
+  }
+}
+
+@fragment
+fn fs(in: VsOut) -> @location(0) vec4f {
+  let uv = (in.uv + vec2f(1.0)) * 0.5;
+  // 反 y（webgpu clip space y 朝上）
+  let aspect = uni.res.x / uni.res.y;
+  // 屏幕坐标 -> 世界坐标
+  let sx = (uv.x * 2.0 - 1.0) * aspect * uni.scale + uni.center.x;
+  let sy = (uv.y * 2.0 - 1.0) * uni.scale + uni.center.y;
+
+  var z = vec2f(0.0);
+  var c = vec2f(0.0);
+  if (uni.mode == 0u) {
+    z = vec2f(0.0);
+    c = vec2f(sx, sy);
+  } else {
+    z = vec2f(sx, sy);
+    c = uni.juliaC;
+  }
+
+  var n: u32 = 0u;
+  var escaped = false;
+  for (var i = 0u; i < 1024u; i++) {
+    if (i >= uni.maxIter) { break; }
+    z = vec2f(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;
+    if (dot(z, z) > 256.0) {
+      n = i;
+      escaped = true;
+      break;
+    }
+    n = i;
+  }
+
+  if (!escaped) {
+    return vec4f(0.0, 0.0, 0.0, 1.0);
+  }
+
+  // 平滑着色
+  let zl = length(z);
+  let smoothI = f32(n) + 1.0 - log(log(zl)) / log(2.0);
+  let t = smoothI * 0.02;
+  let col = paletteFn(t, uni.palette);
+  // 简单色调映射
+  return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), 1.0);
+}
+    `;
+
+    const module = device.createShaderModule({ code: wgsl });
+    const pipeline = device.createRenderPipeline({
+      layout: 'auto',
+      vertex: { module, entryPoint: 'vs' },
+      fragment: { module, entryPoint: 'fs', targets: [{ format: fmt }] },
+      primitive: { topology: 'triangle-strip' }
+    });
+    const bindGroup = device.createBindGroup({
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [{ binding: 0, resource: { buffer: uBuf } }]
+    });
+
+    // ---------- 屏幕 -> 世界坐标 ----------
+    function screenToWorld(sx, sy) {
+      const rect = canvas.getBoundingClientRect();
+      const u = (sx - rect.left) / rect.width;
+      const v = (sy - rect.top) / rect.height;
+      const aspect = rect.width / rect.height;
+      const wx = (u * 2 - 1) * aspect * state.scale + state.cx;
+      const wy = (v * 2 - 1) * state.scale + state.cy;
+      return { x: wx, y: wy };
+    }
+    // 反推：世界坐标 -> 屏幕像素
+    function worldToScreen(wx, wy) {
+      const aspect = canvas.width / canvas.height;
+      const u = (wx - state.cx) / (aspect * state.scale) * 0.5 + 0.5;
+      const v = (wy - state.cy) / state.scale * 0.5 + 0.5;
+      return { u, v };
+    }
+
+    // ---------- 交互 ----------
+    let dragging = false, lastX = 0, lastY = 0;
+    let downX = 0, downY = 0;
+
+    canvas.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      dragging = true; lastX = downX = e.clientX; lastY = downY = e.clientY;
+      canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener('pointermove', e => {
+      // Julia 模式下 c 跟随鼠标
+      if (state.mode === 1) {
+        const w = screenToWorld(e.clientX, e.clientY);
+        state.juliaC.x = w.x;
+        state.juliaC.y = w.y;
+      }
+      if (dragging) {
+        const aspect = canvas.width / canvas.height;
+        const dx = (e.clientX - lastX) / canvas.clientWidth;
+        const dy = (e.clientY - lastY) / canvas.clientHeight;
+        state.cx -= dx * 2 * aspect * state.scale;
+        state.cy += dy * 2 * state.scale;
+        lastX = e.clientX; lastY = e.clientY;
+      }
+    });
+    canvas.addEventListener('pointerup', e => {
+      dragging = false;
+      try { canvas.releasePointerCapture(e.pointerId); } catch {}
+    });
+    canvas.addEventListener('pointercancel', () => { dragging = false; });
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      const w = screenToWorld(e.clientX, e.clientY);
+      // 以鼠标位置为中心缩放
+      const factor = e.deltaY > 0 ? 1.2 : 1 / 1.2;
+      const newScale = Math.max(1e-5, Math.min(5, state.scale * factor));
+      // 调整 cx, cy 让 w 仍落在屏幕同位置
+      const aspect = canvas.width / canvas.height;
+      const u = (e.clientX - canvas.getBoundingClientRect().left) / canvas.clientWidth;
+      const v = (e.clientY - canvas.getBoundingClientRect().top) / canvas.clientHeight;
+      // 新 center = w - (uv*2-1) * scale
+      state.cx = w.x - (u * 2 - 1) * aspect * newScale;
+      state.cy = w.y - (v * 2 - 1) * newScale;
+      state.scale = newScale;
+    }, { passive: false });
+
+    // 键盘
+    window.addEventListener('keydown', e => {
+      if (e.key === 'r' || e.key === 'R') reset();
+      else if (e.key === 'j' || e.key === 'J') setMode(state.mode === 0 ? 1 : 0);
+    });
+
+    // ---------- 控制 ----------
+    function setMode(m) {
+      state.mode = m;
+      document.querySelectorAll('.modes button').forEach(b => {
+        b.classList.toggle('on', +b.dataset.m === m);
+      });
+    }
+    function reset() {
+      state.cx = DEFAULTS.cx;
+      state.cy = DEFAULTS.cy;
+      state.scale = DEFAULTS.scale;
+    }
+    document.querySelectorAll('.modes button').forEach(b => {
+      b.addEventListener('click', () => setMode(+b.dataset.m));
+    });
+    document.querySelectorAll('.preset button').forEach(b => {
+      b.addEventListener('click', () => {
+        state.cx = +b.dataset.x;
+        state.cy = +b.dataset.y;
+        state.scale = +b.dataset.s;
+      });
+    });
+    const iterEl = document.getElementById('iter');
+    const zoomEl = document.getElementById('zoom');
+    const palEl = document.getElementById('palette');
+    iterEl.addEventListener('input', () => {
+      state.maxIter = +iterEl.value;
+      document.getElementById('iterV').textContent = state.maxIter;
+    });
+    zoomEl.addEventListener('input', () => {
+      state.scale = +zoomEl.value;
+      document.getElementById('zoomV').textContent = state.scale.toFixed(4);
+    });
+    palEl.addEventListener('change', () => { state.palette = +palEl.value; });
+    document.getElementById('reset').addEventListener('click', reset);
+
+    // ---------- 渲染循环 ----------
+    const fpsEl = document.getElementById('fps');
+    let frames = 0, lastFpsT = performance.now();
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const w = Math.max(1, Math.floor(canvas.clientWidth * dpr));
+      const h = Math.max(1, Math.floor(canvas.clientHeight * dpr));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w; canvas.height = h;
+      }
+    }
+    new ResizeObserver(resize).observe(canvas);
+    resize();
+
+    function frame() {
+      writeUniforms();
+      const encoder = device.createCommandEncoder();
+      const pass = encoder.beginRenderPass({
+        colorAttachments: [{
+          view: ctx.getCurrentTexture().createView(),
+          clearValue: [0, 0, 0, 1],
+          loadOp: 'clear', storeOp: 'store'
+        }]
+      });
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.draw(4);
+      pass.end();
+      device.queue.submit([encoder.finish()]);
+
+      // 更新 UI
+      document.getElementById('cx').textContent = state.cx.toFixed(6);
+      document.getElementById('cy').textContent = state.cy.toFixed(6);
+      document.getElementById('cs').textContent = state.scale.toFixed(6);
+      document.getElementById('cm').textContent = state.mode === 0 ? 'Mandelbrot' : `Julia (${state.juliaC.x.toFixed(3)}, ${state.juliaC.y.toFixed(3)})`;
+
+      frames++;
+      const now = performance.now();
+      if (now - lastFpsT > 500) {
+        fpsEl.textContent = `${(frames * 1000 / (now - lastFpsT)).toFixed(0)} fps`;
+        frames = 0; lastFpsT = now;
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>
