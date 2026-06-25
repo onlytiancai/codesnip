@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MD Viewer · 双语预览</title>
+<script src="https://cdn.staticfile.org/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdn.staticfile.org/dompurify/3.0.8/purify.min.js"></script>
+<script src="https://cdn.staticfile.org/highlight.js/11.9.0/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/11.9.0/styles/github.min.css" id="hljs-light">
+<link rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-dark" disabled>
+<link rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/5.5.0/github-markdown.min.css">
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1f2328;
+    --muted: #57606a;
+    --toolbar-bg: rgba(255,255,255,0.92);
+    --toolbar-border: #d0d7de;
+    --toc-bg: rgba(255,255,255,0.92);
+    --toc-border: #d0d7de;
+    --toc-link: #0969da;
+    --toc-link-active: #cf222e;
+    --error-bg: #ffebe9;
+    --error-fg: #82071e;
+    --error-border: #ff8182;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1117;
+    --fg: #e6edf3;
+    --muted: #8b949e;
+    --toolbar-bg: rgba(13,17,23,0.92);
+    --toolbar-border: #30363d;
+    --toc-bg: rgba(13,17,23,0.92);
+    --toc-border: #30363d;
+    --toc-link: #58a6ff;
+    --toc-link-active: #ff7b72;
+    --error-bg: #67060c;
+    --error-fg: #ffdcd7;
+    --error-border: #b35900;
+  }
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+  html, body {
+    background: var(--bg);
+    color: var(--fg);
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  }
+  /* 顶部工具栏 */
+  .toolbar {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 1000;
+    display: flex;
+    gap: 6px;
+    background: var(--toolbar-bg);
+    border: 1px solid var(--toolbar-border);
+    border-radius: 8px;
+    padding: 6px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .toolbar button {
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid var(--toolbar-border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .toolbar button:hover { background: rgba(0,0,0,0.05); }
+  .toolbar button.active { background: #0969da; color: #fff; border-color: #0969da; }
+  :root[data-theme="dark"] .toolbar button:hover { background: rgba(255,255,255,0.08); }
+  :root[data-theme="dark"] .toolbar button.active { background: #58a6ff; border-color: #58a6ff; }
+  .toolbar .sep { width: 1px; background: var(--toolbar-border); margin: 2px 4px; }
+
+  /* 主区域 */
+  .layout {
+    display: block;
+    max-width: 880px;
+    margin: 64px auto 80px;
+    padding: 32px 24px;
+  }
+  main { padding: 0; }
+  .markdown-body img { max-width: 100%; height: auto; }
+  .markdown-body { background: transparent; color: var(--fg); }
+
+  /* 错误条 */
+  .error {
+    background: var(--error-bg);
+    color: var(--error-fg);
+    border: 1px solid var(--error-border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .error code {
+    background: rgba(0,0,0,0.08);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+
+  /* 左侧目录栏（侧栏布局，大屏显示，小屏隐藏） */
+  .toc-sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    background: var(--toc-bg);
+    border: 1px solid var(--toc-border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .toc-sidebar h2 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    margin: 0 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .toc-sidebar ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .toc-sidebar li { margin: 4px 0; }
+  .toc-sidebar a {
+    color: var(--toc-link);
+    text-decoration: none;
+    font-size: 13px;
+    line-height: 1.5;
+    display: block;
+    padding: 3px 6px;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .toc-sidebar a.zh { color: var(--toc-link-active); }
+  .toc-sidebar a.h3 { padding-left: 18px; font-size: 12px; }
+  .toc-sidebar a:hover { background: rgba(0,0,0,0.05); text-decoration: underline; }
+  :root[data-theme="dark"] .toc-sidebar a:hover { background: rgba(255,255,255,0.06); }
+
+  /* 目录折叠按钮（小屏/手动收起时显示） */
+  .toc-toggle {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    z-index: 1001;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--toolbar-bg);
+    border: 1px solid var(--toolbar-border);
+    color: var(--fg);
+    font-size: 20px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transition: transform 0.2s;
+  }
+  .toc-toggle:hover { transform: translateY(-2px); }
+  .toc-toggle .badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: #0969da;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 1px 5px;
+    line-height: 1.2;
+  }
+  :root[data-theme="dark"] .toc-toggle .badge { background: #58a6ff; }
+
+  /* 目录弹出面板（小屏展开时） */
+  .toc-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.32);
+    z-index: 1000;
+    display: none;
+  }
+  .toc-overlay.visible { display: block; }
+  .toc-panel {
+    position: fixed;
+    bottom: 84px;
+    left: 24px;
+    width: min(320px, calc(100vw - 48px));
+    max-height: 70vh;
+    overflow-y: auto;
+    background: var(--toc-bg);
+    border: 1px solid var(--toc-border);
+    border-radius: 12px;
+    padding: 16px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    z-index: 1001;
+    display: none;
+  }
+  .toc-panel.visible { display: block; }
+  .toc-panel h2 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    margin: 0 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .toc-panel ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .toc-panel li { margin: 4px 0; }
+  .toc-panel a {
+    color: var(--toc-link);
+    text-decoration: none;
+    font-size: 14px;
+    line-height: 1.5;
+    display: block;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+  .toc-panel a.zh { color: var(--toc-link-active); }
+  .toc-panel a.h3 { padding-left: 20px; font-size: 13px; }
+  .toc-panel a:hover { background: rgba(0,0,0,0.05); }
+  :root[data-theme="dark"] .toc-panel a:hover { background: rgba(255,255,255,0.06); }
+
+  /* 大屏：grid 两栏布局（侧栏 + 内容），sidebar sticky 跟随滚动 */
+  @media (min-width: 1200px) {
+    .layout {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 32px;
+      max-width: 1320px;
+      align-items: stretch; /* 让 sidebar 所在列拉到全高，sticky 才能全程跟随 */
+    }
+    .toc-sidebar {
+      display: block;
+      position: sticky;
+      top: 80px;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+      align-self: start; /* 自身贴顶，但 track 仍是全高 */
+    }
+    .toc-toggle, .toc-panel, .toc-overlay { display: none !important; }
+  }
+  /* 小屏：单列 + toggle 按钮 */
+  @media (max-width: 1199.98px) {
+    .toc-sidebar { display: none !important; }
+    .toc-toggle.visible { display: flex; }
+  }
+
+  /* 回顶部按钮 */
+  .back-to-top {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 999;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--toolbar-bg);
+    border: 1px solid var(--toolbar-border);
+    color: var(--fg);
+    font-size: 20px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .back-to-top.visible { display: flex; }
+  .back-to-top:hover { transform: translateY(-2px); }
+</style>
+</head>
+<body data-theme="light">
+  <div class="toolbar" role="toolbar" aria-label="视图控制">
+    <button data-mode="bilingual" class="active" aria-label="双语模式">双语</button>
+    <button data-mode="zh" aria-label="仅中文">中文</button>
+    <button data-mode="en" aria-label="仅英文">英文</button>
+    <div class="sep"></div>
+    <button id="theme-toggle" aria-label="切换主题">🌙</button>
+  </div>
+  <div class="layout">
+    <aside id="toc-sidebar" class="toc-sidebar" aria-label="目录"></aside>
+    <main>
+      <article id="content" class="markdown-body"></article>
+    </main>
+  </div>
+  <button id="toc-toggle" class="toc-toggle" aria-label="目录" title="目录">
+    <span aria-hidden="true">📑</span>
+    <span class="badge" id="toc-badge" hidden></span>
+  </button>
+  <div id="toc-overlay" class="toc-overlay"></div>
+  <aside id="toc-panel" class="toc-panel" aria-label="目录"></aside>
+  <button id="back-to-top" class="back-to-top" aria-label="回顶部" title="回顶部">↑</button>
+  <script>
+  (function () {
+    'use strict';
+
+    // ---- 主题 ----
+    const root = document.documentElement;
+    const themeBtn = document.getElementById('theme-toggle');
+    const hljsLight = document.getElementById('hljs-light');
+    const hljsDark = document.getElementById('hljs-dark');
+
+    function applyTheme(theme) {
+      root.setAttribute('data-theme', theme);
+      document.body.setAttribute('data-theme', theme);
+      themeBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+      if (theme === 'dark') {
+        hljsLight.disabled = true;
+        hljsDark.disabled = false;
+      } else {
+        hljsLight.disabled = false;
+        hljsDark.disabled = true;
+      }
+    }
+    function getSavedTheme() {
+      try { return localStorage.getItem('mdview:theme'); } catch (e) { return null; }
+    }
+    function saveTheme(t) { try { localStorage.setItem('mdview:theme', t); } catch (e) {} }
+
+    const initialTheme = getSavedTheme()
+      || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    applyTheme(initialTheme);
+    themeBtn.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      saveTheme(next);
+    });
+
+    // ---- marked + highlight ----
+    marked.setOptions({ gfm: true, breaks: false });
+    if (window.hljs) {
+      marked.use({
+        walkTokens(token) {
+          if (token.type === 'code') {
+            const lang = token.lang && window.hljs.getLanguage(token.lang) ? token.lang : 'plaintext';
+            try {
+              token.text = window.hljs.highlight(token.text, { language: lang, ignoreIllegals: true }).value;
+            } catch (e) {
+              token.text = window.hljs.highlightAuto(token.text).value;
+            }
+          }
+        }
+      });
+    }
+
+    function renderMarkdown(text) {
+      const html = marked.parse(text);
+      return window.DOMPurify ? DOMPurify.sanitize(html) : html;
+    }
+
+    // ---- 块解析器 ----
+    // 严格匹配：::: en / ::: zh / :::（大小写不敏感）
+    const RE_OPEN_EN = /^:::\s*en\s*$/i;
+    const RE_OPEN_ZH = /^:::\s*zh\s*$/i;
+    const RE_CLOSE = /^:::\s*$/;
+
+    function slugify(s) {
+      return String(s)
+        .toLowerCase()
+        .replace(/[^\w\s\u4e00-\u9fa5-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+    }
+
+    function parseBlocks(md) {
+      const lines = md.split(/\r?\n/);
+      const segments = [];
+      const stack = [{ lang: 'root', buf: [] }];
+
+      function top() { return stack[stack.length - 1]; }
+      function flushAll() {
+        while (stack.length > 1) {
+          const cur = stack.pop();
+          const text = cur.buf.join('\n').replace(/^\n+|\n+$/g, '');
+          if (text.length > 0) top().buf.push(text);
+        }
+      }
+      function flushTop() {
+        const cur = top();
+        const text = cur.buf.join('\n').replace(/^\n+|\n+$/g, '');
+        if (text.length > 0) {
+          if (stack.length === 1) {
+            segments.push({ lang: 'raw', text });
+          } else if (stack.length === 2 && cur.lang) {
+            segments.push({ lang: cur.lang, text });
+          } else {
+            stack[stack.length - 2].buf.push(text);
+          }
+        }
+        cur.buf = [];
+      }
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (RE_OPEN_EN.test(line)) {
+          flushTop();
+          stack.push({ lang: 'en', buf: [] });
+        } else if (RE_OPEN_ZH.test(line)) {
+          flushTop();
+          stack.push({ lang: 'zh', buf: [] });
+        } else if (RE_CLOSE.test(line)) {
+          if (stack.length > 1) {
+            flushTop();
+            stack.pop();
+          } else {
+            top().buf.push(line);
+          }
+        } else {
+          top().buf.push(line);
+        }
+      }
+      flushAll();
+      flushTop();
+      return segments;
+    }
+
+    // ---- 状态 ----
+    let allSegments = [];
+    let currentMode = 'bilingual';
+    let tocOpen = false; // 小屏目录展开状态
+
+    // ---- 模式 ----
+    function getSavedMode() {
+      try {
+        const m = localStorage.getItem('mdview:mode');
+        if (m === 'bilingual' || m === 'zh' || m === 'en') return m;
+      } catch (e) {}
+      return 'bilingual';
+    }
+    function saveMode(m) { try { localStorage.setItem('mdview:mode', m); } catch (e) {} }
+
+    function getSavedTocOpen() {
+      try { return localStorage.getItem('mdview:tocOpen') === '1'; } catch (e) { return false; }
+    }
+    function saveTocOpen(v) { try { localStorage.setItem('mdview:tocOpen', v ? '1' : '0'); } catch (e) {} }
+
+    // 给所有 h1/h2/h3 添加共享 id（en 标题和紧接着的 zh 标题同 id）
+    function assignSharedIds() {
+      const headings = Array.from(document.querySelectorAll('#content h1, #content h2, #content h3'));
+      if (headings.length === 0) return;
+      let pendingEnSlug = null;
+      for (const h of headings) {
+        const text = h.textContent.trim();
+        const isAscii = /^[\x20-\x7E]+$/.test(text);
+        if (isAscii) {
+          pendingEnSlug = slugify(text);
+          h.id = pendingEnSlug;
+        } else {
+          if (pendingEnSlug) {
+            h.id = pendingEnSlug;
+            pendingEnSlug = null;
+          } else {
+            h.id = slugify(text);
+          }
+        }
+      }
+    }
+
+    // 从 #content 扫描所有标题构建 TOC 条目列表（[{level, text, id, lang}]）
+    function collectHeadings() {
+      const headings = Array.from(document.querySelectorAll('#content h1, #content h2, #content h3'));
+      return headings.map(h => ({
+        level: parseInt(h.tagName.slice(1), 10),
+        text: h.textContent.trim(),
+        id: h.id,
+        lang: /^[\x20-\x7E]+$/.test(h.textContent.trim()) ? 'en' : 'zh'
+      }));
+    }
+
+    // 把 en/zh 标题按相邻顺序配对 → [{level, en, zh}]
+    function pairHeadings(items) {
+      const pairs = [];
+      let i = 0;
+      while (i < items.length) {
+        if (items[i].lang === 'en' && items[i + 1] && items[i + 1].lang === 'zh') {
+          pairs.push({
+            level: items[i].level,
+            enText: items[i].text,
+            zhText: items[i + 1].text,
+            id: items[i].id
+          });
+          i += 2;
+        } else {
+          pairs.push({
+            level: items[i].level,
+            enText: items[i].lang === 'en' ? items[i].text : '',
+            zhText: items[i].lang === 'zh' ? items[i].text : '',
+            id: items[i].id
+          });
+          i += 1;
+        }
+      }
+      return pairs;
+    }
+
+    // 渲染 TOC 条目到指定容器
+    function renderTocItems(container, pairs, mode) {
+      container.innerHTML = '';
+      const ul = document.createElement('ul');
+      pairs.forEach(p => {
+        const li = document.createElement('li');
+        if (mode === 'bilingual' || mode === 'en') {
+          if (p.enText) {
+            const a = document.createElement('a');
+            a.href = '#' + p.id;
+            a.className = 'en' + (p.level === 3 ? ' h3' : '');
+            a.dataset.slug = p.id;
+            a.textContent = p.enText;
+            li.appendChild(a);
+          }
+        }
+        if (mode === 'bilingual' || mode === 'zh') {
+          if (p.zhText) {
+            const a = document.createElement('a');
+            a.href = '#' + p.id;
+            a.className = 'zh' + (p.level === 3 ? ' h3' : '');
+            a.dataset.slug = p.id;
+            a.textContent = p.zhText;
+            li.appendChild(a);
+          }
+        }
+        ul.appendChild(li);
+      });
+      container.appendChild(ul);
+    }
+
+    // 把目录点击 + 滚动到对应标题
+    function bindTocLinks(container) {
+      container.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          const slug = a.dataset.slug;
+          const target = document.getElementById(slug);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            history.replaceState(null, '', '#' + slug);
+          }
+          // 小屏点击后自动收起面板
+          if (window.innerWidth < 1200) {
+            setTocOpen(false);
+          }
+        });
+      });
+    }
+
+    // ---- 目录构建/刷新 ----
+    function refreshToc() {
+      const items = collectHeadings();
+      const pairs = pairHeadings(items);
+      const sidebar = document.getElementById('toc-sidebar');
+      const panel = document.getElementById('toc-panel');
+      const badge = document.getElementById('toc-badge');
+      const toggle = document.getElementById('toc-toggle');
+
+      if (pairs.length === 0) {
+        toggle.classList.remove('visible');
+        return;
+      }
+
+      // 大屏 sidebar + 小屏 panel 都渲染（renderTocItems 会清空容器再追加 ul）
+      renderTocItems(sidebar, pairs, currentMode);
+      renderTocItems(panel, pairs, currentMode);
+
+      // 标题：双语/中文/英文显示不同标题（render 之后再插入到 ul 之前）
+      const titleMap = { bilingual: '目录 · Contents', en: 'Contents', zh: '目录' };
+      [sidebar, panel].forEach(container => {
+        const h2 = document.createElement('h2');
+        h2.textContent = titleMap[currentMode];
+        container.insertBefore(h2, container.firstChild);
+      });
+
+      // 绑定点击
+      bindTocLinks(sidebar);
+      bindTocLinks(panel);
+
+      // 小屏：显示 toggle 按钮
+      toggle.classList.add('visible');
+      // badge 显示节数
+      if (badge) {
+        badge.textContent = pairs.length;
+        badge.hidden = false;
+      }
+      // 恢复小屏展开状态
+      if (window.innerWidth < 1200 && tocOpen) {
+        panel.classList.add('visible');
+        document.getElementById('toc-overlay').classList.add('visible');
+      }
+    }
+
+    function setTocOpen(open) {
+      tocOpen = open;
+      saveTocOpen(open);
+      const panel = document.getElementById('toc-panel');
+      const overlay = document.getElementById('toc-overlay');
+      if (open) {
+        panel.classList.add('visible');
+        overlay.classList.add('visible');
+      } else {
+        panel.classList.remove('visible');
+        overlay.classList.remove('visible');
+      }
+    }
+
+    function applyMode(mode) {
+      currentMode = mode;
+      document.querySelectorAll('.toolbar button[data-mode]').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
+      });
+      const filtered = allSegments.filter(s => {
+        if (mode === 'bilingual') return true;
+        if (mode === 'en') return s.lang !== 'zh';
+        if (mode === 'zh') return s.lang !== 'en';
+      });
+      const combined = filtered.map(s => s.text).join('\n\n');
+      const html = renderMarkdown(combined);
+      const root = document.getElementById('content');
+      root.innerHTML = html;
+      // 给标题加共享 id
+      assignSharedIds();
+      // 重建 TOC（基于当前 mode）
+      refreshToc();
+    }
+
+    document.querySelectorAll('.toolbar button[data-mode]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        applyMode(btn.getAttribute('data-mode'));
+        saveMode(btn.getAttribute('data-mode'));
+      });
+    });
+
+    // ---- 目录 toggle ----
+    document.getElementById('toc-toggle').addEventListener('click', () => {
+      setTocOpen(!tocOpen);
+    });
+    document.getElementById('toc-overlay').addEventListener('click', () => {
+      setTocOpen(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && tocOpen) setTocOpen(false);
+    });
+    // 视口跨越 1200px 边界时隐藏小屏面板
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 1200) {
+        document.getElementById('toc-panel').classList.remove('visible');
+        document.getElementById('toc-overlay').classList.remove('visible');
+      }
+    });
+
+    // ---- 错误条 ----
+    function showError(html) {
+      const root = document.getElementById('content');
+      const div = document.createElement('div');
+      div.className = 'error';
+      div.innerHTML = html;
+      root.innerHTML = '';
+      root.appendChild(div);
+      document.getElementById('toc-toggle').classList.remove('visible');
+      document.getElementById('toc-panel').classList.remove('visible');
+      document.getElementById('toc-overlay').classList.remove('visible');
+    }
+
+    // ---- URL 参数 & 加载 ----
+    const params = new URLSearchParams(location.search);
+    const mdParam = params.get('md');
+    const urlParam = params.get('url');
+
+    async function loadFromUrl(url) {
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) {
+          showError('加载失败：<code>' + escapeHtml(url) + '</code> HTTP ' + resp.status);
+          return;
+        }
+        const text = await resp.text();
+        allSegments = parseBlocks(text);
+        applyMode(currentMode);
+      } catch (err) {
+        showError('加载失败：<code>' + escapeHtml(url) + '</code><br>' + escapeHtml(String(err && err.message || err)));
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    if (mdParam) {
+      const url = new URL(mdParam, location.href).href;
+      loadFromUrl(url);
+    } else if (urlParam) {
+      loadFromUrl(urlParam);
+    } else {
+      showError(
+        '请提供 <code>?md=相对文件名</code> 或 <code>?url=完整URL</code> 参数。<br>' +
+        '示例：<code>show-md.html?md=how-llms-actually-work-zh-CN.md</code>'
+      );
+    }
+
+    // 初始化模式
+    currentMode = getSavedMode();
+    tocOpen = getSavedTocOpen();
+    document.querySelectorAll('.toolbar button[data-mode]').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-mode') === currentMode);
+    });
+
+    // ---- 回顶部按钮 ----
+    const backBtn = document.getElementById('back-to-top');
+    backBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    function onScroll() {
+      if (window.scrollY > 400) {
+        backBtn.classList.add('visible');
+      } else {
+        backBtn.classList.remove('visible');
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+  </script>
+</body>
+</html>
