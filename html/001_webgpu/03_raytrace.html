@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03 · 实时光线追踪 · WebGPU Demo</title>
+  <style>
+    :root {
+      --panel-bg: rgba(255, 255, 255, 0.85);
+      --panel-border: rgba(99, 102, 241, 0.15);
+      --text-1: #1f2937;
+      --text-2: #4b5563;
+      --text-3: #9ca3af;
+      --accent: #6366f1;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+      color: var(--text-1);
+      background: linear-gradient(180deg, #f0f9ff 0%, #fce7f3 100%);
+      overflow: hidden;
+    }
+    canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+    canvas:active { cursor: grabbing; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; gap: 1.2rem;
+      padding: 0.7rem 1.4rem;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: saturate(180%) blur(14px);
+      -webkit-backdrop-filter: saturate(180%) blur(14px);
+      border-bottom: 1px solid var(--panel-border);
+      z-index: 10;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-weight: 700; font-size: 0.95rem;
+      text-decoration: none; color: var(--text-1);
+    }
+    .brand-logo {
+      width: 22px; height: 22px; border-radius: 6px;
+      background: conic-gradient(from 0deg, #6366f1, #ec4899, #f59e0b, #14b8a6, #6366f1);
+    }
+    .nav-links { display: flex; gap: 0.2rem; flex: 1; flex-wrap: wrap; }
+    .nav-links a {
+      padding: 0.3rem 0.7rem; border-radius: 999px;
+      color: var(--text-2); text-decoration: none; font-size: 0.85rem;
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav-links a:hover { background: rgba(99,102,241,0.1); color: var(--accent); }
+    .nav-links a.active { background: rgba(99,102,241,0.18); color: var(--accent); }
+    .fps {
+      font-family: ui-monospace, monospace; font-size: 0.78rem;
+      color: var(--text-3); padding: 0.2rem 0.6rem;
+      background: rgba(99,102,241,0.08); border-radius: 6px;
+    }
+
+    .panel {
+      position: fixed; top: 64px; right: 16px;
+      width: 230px; padding: 1rem 1.1rem;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px -10px rgba(99,102,241,0.2);
+      z-index: 5;
+    }
+    .panel h3 {
+      margin: 0 0 0.8rem; font-size: 0.9rem;
+      color: var(--accent); letter-spacing: 0.02em;
+    }
+    .field { margin-bottom: 0.7rem; }
+    .field label {
+      display: flex; justify-content: space-between;
+      font-size: 0.78rem; color: var(--text-2);
+      margin-bottom: 0.25rem;
+    }
+    .field input[type=range] {
+      width: 100%; height: 4px;
+      -webkit-appearance: none; appearance: none;
+      background: rgba(99,102,241,0.2); border-radius: 2px;
+      outline: none;
+    }
+    .field input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); cursor: pointer;
+    }
+    .field input[type=range]::-moz-range-thumb {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); border: none; cursor: pointer;
+    }
+    .check {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.82rem; color: var(--text-2); cursor: pointer;
+    }
+    .sphere-list {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.3rem;
+      margin-top: 0.4rem;
+    }
+    .sphere-list button {
+      aspect-ratio: 1; border-radius: 50%;
+      border: 2px solid rgba(99,102,241,0.2); cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .sphere-list button:hover { transform: scale(1.1); }
+    .sphere-list button.on { border-color: var(--accent); transform: scale(1.1); }
+
+    .help {
+      position: fixed; left: 16px; bottom: 16px;
+      max-width: 280px; padding: 0.8rem 1rem;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-size: 0.78rem; line-height: 1.6;
+      color: var(--text-2);
+      z-index: 5;
+    }
+    .help strong { color: var(--accent); }
+
+    .fallback {
+      position: fixed; inset: 0;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.95); z-index: 100;
+    }
+    .fallback.show { display: flex; }
+    .fallback-card {
+      max-width: 420px; padding: 2rem;
+      text-align: center; background: white;
+      border-radius: 16px; box-shadow: 0 20px 60px -10px rgba(0,0,0,0.15);
+    }
+    .fallback-card h2 { margin: 0 0 0.5rem; color: var(--accent); }
+    .fallback-card p { color: var(--text-2); line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="brand" href="index.html">
+      <span class="brand-logo"></span>
+      <span>WebGPU Demos</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="01_terrain.html">01 地形</a>
+      <a href="02_particles.html">02 粒子</a>
+      <a href="03_raytrace.html" class="active">03 光追</a>
+      <a href="04_fractal.html">04 分形</a>
+    </div>
+    <span class="fps" id="fps">— fps</span>
+  </nav>
+
+  <canvas id="c"></canvas>
+
+  <div class="panel">
+    <h3>参数</h3>
+    <div class="field">
+      <label>反弹次数 <span id="bouncesV">4</span></label>
+      <input type="range" id="bounces" min="1" max="8" step="1" value="4">
+    </div>
+    <div class="field">
+      <label>分辨率 <span id="resV">0.7</span></label>
+      <input type="range" id="res" min="0.3" max="1.0" step="0.05" value="0.7">
+    </div>
+    <label class="check">
+      <input type="checkbox" id="floor" checked> 显示地面
+    </label>
+    <label class="check" style="margin-top: 0.3rem">
+      <input type="checkbox" id="auto" checked> 自动旋转
+    </label>
+    <div class="field" style="margin-top: 0.7rem">
+      <label>点击下方色块重新生成球体（双击画布随机替换）</label>
+      <div class="sphere-list" id="sphereList"></div>
+    </div>
+  </div>
+
+  <div class="help">
+    <strong>鼠标</strong>：左键拖拽 = 旋转 · 滚轮 = 缩放 · 双击画布 = 随机替换一个球体
+  </div>
+
+  <div class="fallback" id="fallback">
+    <div class="fallback-card">
+      <h2>需要 WebGPU 支持</h2>
+      <p>请使用 Chrome 113+ / Edge 113+ / Firefox Nightly 访问本页面，并在浏览器设置中启用 WebGPU。</p>
+    </div>
+  </div>
+
+  <script type="module">
+    const fallback = document.getElementById('fallback');
+    const adapter = await navigator.gpu?.requestAdapter();
+    const device = await adapter?.requestDevice();
+    if (!device) { fallback.classList.add('show'); throw new Error('no WebGPU'); }
+
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('webgpu');
+    const fmt = navigator.gpu.getPreferredCanvasFormat();
+    ctx.configure({ device, format: fmt });
+
+    // ---------- 球体 ----------
+    const sphereColors = [
+      [0.95, 0.30, 0.40], // 粉红
+      [0.30, 0.65, 0.95], // 蓝
+      [0.95, 0.75, 0.30], // 黄
+      [0.55, 0.90, 0.55], // 绿
+      [0.80, 0.45, 0.95], // 紫
+      [1.00, 0.55, 0.20], // 橙
+      [0.30, 0.85, 0.85], // 青
+      [0.90, 0.90, 0.90]  // 白
+    ];
+    const sphereListEl = document.getElementById('sphereList');
+    sphereColors.forEach((c, i) => {
+      const btn = document.createElement('button');
+      btn.style.background = `rgb(${c[0]*255}, ${c[1]*255}, ${c[2]*255})`;
+      btn.title = `球体 #${i+1}`;
+      sphereListEl.appendChild(btn);
+    });
+    sphereListEl.firstChild.classList.add('on');
+
+    // 球体定义：center, radius, color, material
+    // material: 0=漫反射, 1=金属, 2=玻璃
+    const SPHERE_COUNT = 5;
+    const spheres = [
+      { cx: -2.0, cy: 0.5, cz: 0.0, r: 1.2, mat: 1 }, // 金属
+      { cx:  0.0, cy: 0.5, cz: 0.0, r: 1.2, mat: 0 }, // 漫反射
+      { cx:  2.0, cy: 0.5, cz: 0.0, r: 1.2, mat: 2 }, // 玻璃
+      { cx: -1.0, cy:  2.0, cz: 0.5, r: 0.7, mat: 0 },
+      { cx:  1.0, cy:  2.0, cz: 0.5, r: 0.7, mat: 1 }
+    ];
+
+    const state = {
+      camYaw: 0.5, camPitch: 0.15, camDist: 8.5,
+      bounces: 4, resScale: 0.7,
+      showFloor: true, auto: true, time: 0,
+      sphereColorIdx: 0
+    };
+
+    // ---------- uniform ----------
+    // 64 (mat4x4f) + 4*7 = 28 + 4 pad + spheres(8 * 32) = 64 + 32 + 256 = 352
+    // mat4x4f invVP 64, sphereCount u32, bounces u32, resScale f32, time f32,
+    // showFloor u32, padding x2, spheres[8] (vec3 12 + f32 4 + vec3 12 + f32 4 = 32 each)
+    // 总: 64 + 4+4+4+4 + 4+4+4 + 256 = 348. round up to 384.
+    const UNIFORM_SIZE = 512;
+    const uBuf = device.createBuffer({ size: UNIFORM_SIZE, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    const uData = new ArrayBuffer(UNIFORM_SIZE);
+    const uView = new DataView(uData);
+
+    function writeUniforms() {
+      for (let i = 0; i < 16; i++) uView.setFloat32(i * 4, state.invVP[i], true);
+      uView.setUint32(64, SPHERE_COUNT, true);
+      uView.setUint32(68, state.bounces, true);
+      uView.setFloat32(72, state.resScale, true);
+      uView.setFloat32(76, state.time, true);
+      uView.setUint32(80, state.showFloor ? 1 : 0, true);
+      uView.setFloat32(84, 0, true);
+      uView.setFloat32(88, 0, true);
+      uView.setFloat32(92, 0, true);
+      // camera
+      uView.setFloat32(96, state.camYaw, true);
+      uView.setFloat32(100, state.camPitch, true);
+      uView.setFloat32(104, state.camDist, true);
+      uView.setFloat32(108, 0, true); // _pad3
+      // bg
+      uView.setFloat32(112, 0.85, true);
+      uView.setFloat32(116, 0.90, true);
+      uView.setFloat32(120, 0.95, true);
+      uView.setFloat32(124, 0, true); // _pad4
+      // light dir (normalized)
+      uView.setFloat32(128, 0.4, true);
+      uView.setFloat32(132, 0.8, true);
+      uView.setFloat32(136, 0.5, true);
+      uView.setFloat32(140, 0, true); // _pad5
+      // spheres
+      let off = 144;
+      for (let i = 0; i < 8; i++) {
+        if (i < SPHERE_COUNT) {
+          const s = spheres[i];
+          const c = sphereColors[state.sphereColorIdx];
+          uView.setFloat32(off + 0,  s.cx, true);
+          uView.setFloat32(off + 4,  s.cy, true);
+          uView.setFloat32(off + 8,  s.cz, true);
+          uView.setFloat32(off + 12, s.r, true);
+          // 颜色 = 主色 + 球体类型色彩微变
+          let co = c;
+          if (s.mat === 0) co = c.slice();  // 漫反射：原色
+          else if (s.mat === 1) {
+            // 金属：偏白
+            co = [Math.min(1, c[0]*0.7+0.3), Math.min(1, c[1]*0.7+0.3), Math.min(1, c[2]*0.7+0.3)];
+          } else {
+            // 玻璃：浅色
+            co = [Math.min(1, c[0]*0.4+0.55), Math.min(1, c[1]*0.4+0.55), Math.min(1, c[2]*0.4+0.55)];
+          }
+          uView.setFloat32(off + 16, co[0], true);
+          uView.setFloat32(off + 20, co[1], true);
+          uView.setFloat32(off + 24, co[2], true);
+          uView.setFloat32(off + 28, s.mat, true);
+        }
+        off += 32;
+      }
+      device.queue.writeBuffer(uBuf, 0, uData);
+    }
+
+    // ---------- 矩阵 ----------
+    function mat4Perspective(fovy, aspect, near, far) {
+      const f = 1.0 / Math.tan(fovy / 2);
+      const nf = 1 / (near - far);
+      return [
+        f/aspect, 0, 0, 0,
+        0, f, 0, 0,
+        0, 0, (far+near)*nf, -1,
+        0, 0, 2*far*near*nf, 0
+      ];
+    }
+    function mat4LookAt(eye, target, up) {
+      let zx = eye[0]-target[0], zy = eye[1]-target[1], zz = eye[2]-target[2];
+      let zl = Math.hypot(zx,zy,zz);
+      const z = [zx/zl, zy/zl, zz/zl];
+      let xx = z[1]*up[2]-z[2]*up[1], xy = z[2]*up[0]-z[0]*up[2], xz = z[0]*up[1]-z[1]*up[0];
+      let xl = Math.hypot(xx,xy,xz)||1;
+      const x = [xx/xl, xy/xl, xz/xl];
+      const y = [z[1]*x[2]-z[2]*x[1], z[2]*x[0]-z[0]*x[2], z[0]*x[1]-z[1]*x[0]];
+      return [
+        x[0], y[0], z[0], 0,
+        x[1], y[1], z[1], 0,
+        x[2], y[2], z[2], 0,
+        -(x[0]*eye[0]+x[1]*eye[1]+x[2]*eye[2]),
+        -(y[0]*eye[0]+y[1]*eye[1]+y[2]*eye[2]),
+        -(z[0]*eye[0]+z[1]*eye[1]+z[2]*eye[2]),
+        1
+      ];
+    }
+    function mat4Mul(a, b) {
+      const o = new Array(16);
+      for (let i = 0; i < 4; i++)
+        for (let j = 0; j < 4; j++) {
+          let s = 0;
+          for (let k = 0; k < 4; k++) s += a[k*4+j] * b[i*4+k];
+          o[i*4+j] = s;
+        }
+      return o;
+    }
+    function mat4Inverse(m) {
+      // 标准 4x4 逆矩阵
+      const inv = new Array(16);
+      inv[0]  =  m[5]*m[10]*m[15] - m[5]*m[11]*m[14] - m[9]*m[6]*m[15] + m[9]*m[7]*m[14] + m[13]*m[6]*m[11] - m[13]*m[7]*m[10];
+      inv[4]  = -m[4]*m[10]*m[15] + m[4]*m[11]*m[14] + m[8]*m[6]*m[15] - m[8]*m[7]*m[14] - m[12]*m[6]*m[11] + m[12]*m[7]*m[10];
+      inv[8]  =  m[4]*m[9]*m[15]  - m[4]*m[11]*m[13] - m[8]*m[5]*m[15] + m[8]*m[7]*m[13] + m[12]*m[5]*m[11] - m[12]*m[7]*m[9];
+      inv[12] = -m[4]*m[9]*m[14]  + m[4]*m[10]*m[13] + m[8]*m[5]*m[14] - m[8]*m[6]*m[13] - m[12]*m[5]*m[10] + m[12]*m[6]*m[9];
+      inv[1]  = -m[1]*m[10]*m[15] + m[1]*m[11]*m[14] + m[9]*m[2]*m[15] - m[9]*m[3]*m[14] - m[13]*m[2]*m[11] + m[13]*m[3]*m[10];
+      inv[5]  =  m[0]*m[10]*m[15] - m[0]*m[11]*m[14] - m[8]*m[2]*m[15] + m[8]*m[3]*m[14] + m[12]*m[2]*m[11] - m[12]*m[3]*m[10];
+      inv[9]  = -m[0]*m[9]*m[15]  + m[0]*m[11]*m[13] + m[8]*m[1]*m[15] - m[8]*m[3]*m[13] - m[12]*m[1]*m[11] + m[12]*m[3]*m[9];
+      inv[13] =  m[0]*m[9]*m[14]  - m[0]*m[10]*m[13] - m[8]*m[1]*m[14] + m[8]*m[2]*m[13] + m[12]*m[1]*m[10] - m[12]*m[2]*m[9];
+      inv[2]  =  m[1]*m[6]*m[15]  - m[1]*m[7]*m[14]  - m[5]*m[2]*m[15] + m[5]*m[3]*m[14] + m[13]*m[2]*m[7]  - m[13]*m[3]*m[6];
+      inv[6]  = -m[0]*m[6]*m[15]  + m[0]*m[7]*m[14]  + m[4]*m[2]*m[15] - m[4]*m[3]*m[14] - m[12]*m[2]*m[7]  + m[12]*m[3]*m[6];
+      inv[10] =  m[0]*m[5]*m[15]  - m[0]*m[7]*m[13]  - m[4]*m[1]*m[15] + m[4]*m[3]*m[13] + m[12]*m[1]*m[7]  - m[12]*m[3]*m[5];
+      inv[14] = -m[0]*m[5]*m[14]  + m[0]*m[6]*m[13]  + m[4]*m[1]*m[14] - m[4]*m[2]*m[13] - m[12]*m[1]*m[6]  + m[12]*m[2]*m[5];
+      inv[3]  = -m[1]*m[6]*m[11]  + m[1]*m[7]*m[10]  + m[5]*m[2]*m[11] - m[5]*m[3]*m[10] - m[9]*m[2]*m[7]   + m[9]*m[3]*m[6];
+      inv[7]  =  m[0]*m[6]*m[11]  - m[0]*m[7]*m[10]  - m[4]*m[2]*m[11] + m[4]*m[3]*m[10] + m[8]*m[2]*m[7]   - m[8]*m[3]*m[6];
+      inv[11] = -m[0]*m[5]*m[11]  + m[0]*m[7]*m[9]   + m[4]*m[1]*m[11] - m[4]*m[3]*m[9]  - m[8]*m[1]*m[7]   + m[8]*m[3]*m[5];
+      inv[15] =  m[0]*m[5]*m[10]  - m[0]*m[6]*m[9]   - m[4]*m[1]*m[10] + m[4]*m[2]*m[9]  + m[8]*m[1]*m[6]   - m[8]*m[2]*m[5];
+      let det = m[0]*inv[0] + m[1]*inv[4] + m[2]*inv[8] + m[3]*inv[12];
+      if (Math.abs(det) < 1e-9) return m;
+      det = 1.0 / det;
+      for (let i = 0; i < 16; i++) inv[i] *= det;
+      return inv;
+    }
+
+    function updateCamera() {
+      const eye = [
+        Math.cos(state.camPitch) * Math.cos(state.camYaw) * state.camDist,
+        Math.sin(state.camPitch) * state.camDist,
+        Math.cos(state.camPitch) * Math.sin(state.camYaw) * state.camDist
+      ];
+      const view = mat4LookAt(eye, [0, 0, 0], [0, 1, 0]);
+      const aspect = canvas.width / canvas.height;
+      const proj = mat4Perspective(Math.PI/3, aspect, 0.1, 100);
+      const vp = mat4Mul(proj, view);
+      state.invVP = mat4Inverse(vp);
+    }
+
+    // ---------- 着色器 ----------
+    const wgsl = /* wgsl */`
+struct Sphere {
+  cx: f32, cy: f32, cz: f32, radius: f32,
+  cr: f32, cg: f32, cb: f32, mat: f32
+};
+struct Uniforms {
+  invVP: mat4x4f,
+  sphereCount: u32,
+  bounces: u32,
+  resScale: f32,
+  time: f32,
+  showFloor: u32,
+  _pad0: f32, _pad1: f32, _pad2: f32,
+  camYaw: f32, camPitch: f32, camDist: f32, _pad3: f32,
+  bgR: f32, bgG: f32, bgB: f32, _pad4: f32,
+  lightR: f32, lightG: f32, lightB: f32, _pad5: f32,
+  spheres: array<Sphere, 8>,
+};
+@group(0) @binding(0) var<uniform> uni: Uniforms;
+
+struct VsOut {
+  @builtin(position) pos: vec4f,
+  @location(0) uv: vec2f,
+};
+
+@vertex
+fn vs(@builtin(vertex_index) vi: u32) -> VsOut {
+  let pos = array<vec2f, 4>(
+    vec2f(-1.0, -1.0), vec2f( 1.0, -1.0),
+    vec2f(-1.0,  1.0), vec2f( 1.0,  1.0)
+  );
+  let p = pos[vi];
+  var out: VsOut;
+  out.pos = vec4f(p, 0.0, 1.0);
+  out.uv = p;
+  return out;
+}
+
+struct Hit {
+  t: f32,
+  sphereIdx: i32,
+  pos: vec3f,
+  normal: vec3f,
+  isFloor: f32,
+};
+
+fn raySphere(ro: vec3f, rd: vec3f, c: vec3f, r: f32) -> f32 {
+  let oc = ro - c;
+  let b = dot(oc, rd);
+  let cc = dot(oc, oc) - r * r;
+  let h = b * b - cc;
+  if (h < 0.0) { return -1.0; }
+  let s = sqrt(h);
+  let t1 = -b - s;
+  let t2 = -b + s;
+  if (t1 > 0.001) { return t1; }
+  if (t2 > 0.001) { return t2; }
+  return -1.0;
+}
+
+fn intersect(ro: vec3f, rd: vec3f) -> Hit {
+  var hit: Hit;
+  hit.t = 1e9;
+  hit.sphereIdx = -1;
+  hit.isFloor = 0.0;
+  for (var i = 0; i < 8; i++) {
+    if (i >= i32(uni.sphereCount)) { break; }
+    let s = uni.spheres[i];
+    let t = raySphere(ro, rd, vec3f(s.cx, s.cy, s.cz), s.radius);
+    if (t > 0.0 && t < hit.t) {
+      hit.t = t;
+      hit.sphereIdx = i;
+      hit.pos = ro + rd * t;
+      hit.normal = normalize(hit.pos - vec3f(s.cx, s.cy, s.cz));
+      hit.isFloor = 0.0;
+    }
+  }
+  // 地面 y = -2.5
+  if (uni.showFloor == 1u) {
+    let t = (-2.5 - ro.y) / rd.y;
+    if (t > 0.001 && t < hit.t) {
+      hit.t = t;
+      hit.sphereIdx = -1;
+      hit.pos = ro + rd * t;
+      hit.normal = vec3f(0.0, 1.0, 0.0);
+      hit.isFloor = 1.0;
+    }
+  }
+  return hit;
+}
+
+fn randomDir(n: vec3f, seed: f32) -> vec3f {
+  // 简单半球采样
+  let u = fract(sin(seed * 12.9898) * 43758.5453);
+  let v = fract(sin(seed * 78.233) * 43758.5453);
+  let r = sqrt(1.0 - u * u);
+  let phi = 6.2831853 * v;
+  let t = vec3f(r * cos(phi), r * sin(phi), u);
+  // 构造 ONB
+  let a = select(vec3f(1.0, 0.0, 0.0), vec3f(0.0, 1.0, 0.0), abs(n.y) < 0.9);
+  let bb = normalize(cross(a, n));
+  let c2 = cross(n, bb);
+  return normalize(t.x * bb + t.y * c2 + t.z * n);
+}
+
+@fragment
+fn fs(in: VsOut) -> @location(0) vec4f {
+  // 屏幕坐标 -> 世界空间光线
+  let ro = vec3f(
+    cos(uni.camPitch) * cos(uni.camYaw) * uni.camDist,
+    sin(uni.camPitch) * uni.camDist,
+    cos(uni.camPitch) * sin(uni.camYaw) * uni.camDist
+  );
+  let worldH = uni.invVP * vec4f(in.uv, 1.0, 1.0);
+  let worldFar = worldH.xyz / worldH.w;
+  let rd = normalize(worldFar - ro);
+
+  // 单次光线求交
+  let hit = intersect(ro, rd);
+
+  // 命中球体
+  if (hit.sphereIdx >= 0) {
+    let s = uni.spheres[hit.sphereIdx];
+    let n = hit.normal;
+    let light = normalize(vec3f(uni.lightR, uni.lightG, uni.lightB));
+    let diff = max(dot(n, light), 0.0);
+    let hemi = clamp(n.y * 0.5 + 0.5, 0.0, 1.0);
+    let ambientCol = mix(vec3f(0.4, 0.5, 0.6), vec3f(0.9, 0.92, 0.95), hemi);
+    let base = vec3f(s.cr, s.cg, s.cb);
+    // 漫反射 / 金属
+    var col = base * (ambientCol * 0.4 + diff * 0.8);
+    if (s.mat == 1.0) {
+      // 金属：增加高光
+      let spec = pow(max(dot(reflect(-light, n), -rd), 0.0), 64.0);
+      col += vec3f(0.8) * spec * 0.6;
+      col = mix(col, base, 0.3);
+    } else if (s.mat == 2.0) {
+      // 玻璃：明亮 + 透明感
+      let f0 = 0.04;
+      let cosI = max(dot(-rd, n), 0.0);
+      let fschlick = f0 + (1.0 - f0) * pow(1.0 - cosI, 5.0);
+      col = mix(base * (ambientCol * 0.3 + diff * 0.5), vec3f(0.95, 0.97, 1.0), fschlick * 0.5);
+    }
+    return vec4f(col, 1.0);
+  }
+
+  // 命中地面
+  if (hit.isFloor > 0.5) {
+    let p = hit.pos;
+    // 网格 + 浅色
+    let gx = abs(fract(p.x * 0.5) - 0.5);
+    let gz = abs(fract(p.z * 0.5) - 0.5);
+    let lineDist = min(gx, gz);
+    let grid = smoothstep(0.02, 0.05, lineDist);
+    let base = vec3f(0.88, 0.88, 0.92);
+    let ln = vec3f(0.55, 0.55, 0.65);
+    let groundColor = mix(ln, base, grid);
+    return vec4f(groundColor, 1.0);
+  }
+
+  // 背景：渐变天空
+  let t = clamp(rd.y * 0.5 + 0.5, 0.0, 1.0);
+  let sky = mix(vec3f(0.6, 0.75, 0.95), vec3f(0.95, 0.97, 1.0), t);
+  return vec4f(sky * vec3f(uni.bgR, uni.bgG, uni.bgB), 1.0);
+}
+    `;
+
+    const module = device.createShaderModule({ code: wgsl });
+    const pipeline = device.createRenderPipeline({
+      layout: 'auto',
+      vertex: { module, entryPoint: 'vs' },
+      fragment: { module, entryPoint: 'fs', targets: [{ format: fmt }] },
+      primitive: { topology: 'triangle-strip', stripIndexFormat: undefined }
+    });
+    const bindGroup = device.createBindGroup({
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [{ binding: 0, resource: { buffer: uBuf } }]
+    });
+
+    // ---------- 交互 ----------
+    let dragging = false, lastX = 0, lastY = 0;
+    canvas.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      dragging = true; lastX = e.clientX; lastY = e.clientY;
+      canvas.setPointerCapture(e.pointerId);
+      state.auto = false;
+      document.getElementById('auto').checked = false;
+    });
+    canvas.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const dx = e.clientX - lastX, dy = e.clientY - lastY;
+      state.camYaw += dx * 0.005;
+      state.camPitch = Math.max(-1.4, Math.min(1.4, state.camPitch - dy * 0.005));
+      lastX = e.clientX; lastY = e.clientY;
+    });
+    canvas.addEventListener('pointerup', e => { dragging = false; try { canvas.releasePointerCapture(e.pointerId); } catch {} });
+    canvas.addEventListener('pointercancel', () => { dragging = false; });
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      state.camDist = Math.max(4, Math.min(20, state.camDist + e.deltaY * 0.01));
+    }, { passive: false });
+    canvas.addEventListener('dblclick', e => {
+      // 随机替换一个球体的位置/大小/材质
+      const i = Math.floor(Math.random() * SPHERE_COUNT);
+      const s = spheres[i];
+      s.cx = (Math.random() - 0.5) * 5;
+      s.cy = (Math.random() - 0.2) * 2;
+      s.cz = (Math.random() - 0.5) * 3;
+      s.r = 0.4 + Math.random() * 0.8;
+      s.mat = Math.floor(Math.random() * 3);
+    });
+
+    // 球体颜色选择
+    sphereListEl.addEventListener('click', e => {
+      if (e.target.tagName !== 'BUTTON') return;
+      const idx = [...sphereListEl.children].indexOf(e.target);
+      state.sphereColorIdx = idx;
+      sphereListEl.querySelectorAll('button').forEach((b, i) => b.classList.toggle('on', i === idx));
+    });
+
+    // ---------- 控制 ----------
+    const bouncesEl = document.getElementById('bounces');
+    const resEl = document.getElementById('res');
+    const floorEl = document.getElementById('floor');
+    const autoEl = document.getElementById('auto');
+    bouncesEl.addEventListener('input', () => {
+      state.bounces = +bouncesEl.value;
+      document.getElementById('bouncesV').textContent = state.bounces;
+    });
+    resEl.addEventListener('input', () => {
+      state.resScale = +resEl.value;
+      document.getElementById('resV').textContent = state.resScale.toFixed(2);
+    });
+    floorEl.addEventListener('change', () => { state.showFloor = floorEl.checked; });
+    autoEl.addEventListener('change', () => { state.auto = autoEl.checked; });
+
+    // ---------- 渲染循环 ----------
+    const fpsEl = document.getElementById('fps');
+    let frames = 0, lastFpsT = performance.now(), lastFrameT = performance.now();
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const w = Math.max(1, Math.floor(canvas.clientWidth * dpr));
+      const h = Math.max(1, Math.floor(canvas.clientHeight * dpr));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w; canvas.height = h;
+      }
+      updateCamera();
+    }
+    new ResizeObserver(resize).observe(canvas);
+    resize();
+
+    function frame() {
+      const nowMs = performance.now();
+      const dt = Math.min(0.1, (nowMs - lastFrameT) / 1000);
+      lastFrameT = nowMs;
+      state.time += dt;
+      if (state.auto) state.camYaw += dt * 0.15;
+      writeUniforms();
+
+      const encoder = device.createCommandEncoder();
+      const pass = encoder.beginRenderPass({
+        colorAttachments: [{
+          view: ctx.getCurrentTexture().createView(),
+          clearValue: [0.9, 0.93, 0.98, 1],
+          loadOp: 'clear', storeOp: 'store'
+        }]
+      });
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.draw(4);
+      pass.end();
+      device.queue.submit([encoder.finish()]);
+
+      frames++;
+      if (nowMs - lastFpsT > 500) {
+        fpsEl.textContent = `${(frames * 1000 / (nowMs - lastFpsT)).toFixed(0)} fps`;
+        frames = 0; lastFpsT = nowMs;
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

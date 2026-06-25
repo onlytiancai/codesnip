@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>01 · 3D 噪声波浪地形 · WebGPU Demo</title>
+  <style>
+    :root {
+      --panel-bg: rgba(255, 255, 255, 0.85);
+      --panel-border: rgba(99, 102, 241, 0.15);
+      --text-1: #1f2937;
+      --text-2: #4b5563;
+      --text-3: #9ca3af;
+      --accent: #6366f1;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+      color: var(--text-1);
+      background: linear-gradient(180deg, #e0f2fe 0%, #fef3c7 100%);
+      overflow: hidden;
+    }
+    canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+    canvas:active { cursor: grabbing; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; gap: 1.2rem;
+      padding: 0.7rem 1.4rem;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: saturate(180%) blur(14px);
+      -webkit-backdrop-filter: saturate(180%) blur(14px);
+      border-bottom: 1px solid var(--panel-border);
+      z-index: 10;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-weight: 700; font-size: 0.95rem;
+      text-decoration: none; color: var(--text-1);
+    }
+    .brand-logo {
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      background: conic-gradient(from 0deg, #6366f1, #ec4899, #f59e0b, #14b8a6, #6366f1);
+    }
+    .nav-links { display: flex; gap: 0.2rem; flex: 1; flex-wrap: wrap; }
+    .nav-links a {
+      padding: 0.3rem 0.7rem; border-radius: 999px;
+      color: var(--text-2); text-decoration: none; font-size: 0.85rem;
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav-links a:hover { background: rgba(99,102,241,0.1); color: var(--accent); }
+    .nav-links a.active { background: rgba(99,102,241,0.18); color: var(--accent); }
+    .fps {
+      font-family: ui-monospace, monospace; font-size: 0.78rem;
+      color: var(--text-3); padding: 0.2rem 0.6rem;
+      background: rgba(99,102,241,0.08); border-radius: 6px;
+    }
+
+    .panel {
+      position: fixed; top: 64px; right: 16px;
+      width: 240px; padding: 1rem 1.1rem;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px -10px rgba(99,102,241,0.2);
+      z-index: 5;
+    }
+    .panel h3 {
+      margin: 0 0 0.8rem; font-size: 0.9rem;
+      color: var(--accent); letter-spacing: 0.02em;
+    }
+    .field { margin-bottom: 0.7rem; }
+    .field label {
+      display: flex; justify-content: space-between;
+      font-size: 0.78rem; color: var(--text-2);
+      margin-bottom: 0.25rem;
+    }
+    .field input[type=range] {
+      width: 100%; height: 4px;
+      -webkit-appearance: none; appearance: none;
+      background: rgba(99,102,241,0.2); border-radius: 2px;
+      outline: none;
+    }
+    .field input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); cursor: pointer;
+      box-shadow: 0 2px 6px rgba(99,102,241,0.5);
+    }
+    .field input[type=range]::-moz-range-thumb {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); border: none; cursor: pointer;
+    }
+    .field select {
+      width: 100%; padding: 0.35rem 0.5rem;
+      font-size: 0.82rem; color: var(--text-1);
+      background: white; border: 1px solid var(--panel-border);
+      border-radius: 6px; outline: none;
+    }
+
+    .help {
+      position: fixed; left: 16px; bottom: 16px;
+      max-width: 280px; padding: 0.8rem 1rem;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-size: 0.78rem; line-height: 1.6;
+      color: var(--text-2);
+      z-index: 5;
+    }
+    .help strong { color: var(--accent); }
+
+    .fallback {
+      position: fixed; inset: 0;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.95); z-index: 100;
+    }
+    .fallback.show { display: flex; }
+    .fallback-card {
+      max-width: 420px; padding: 2rem;
+      text-align: center; background: white;
+      border-radius: 16px; box-shadow: 0 20px 60px -10px rgba(0,0,0,0.15);
+    }
+    .fallback-card h2 { margin: 0 0 0.5rem; color: var(--accent); }
+    .fallback-card p { color: var(--text-2); line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="brand" href="index.html">
+      <span class="brand-logo"></span>
+      <span>WebGPU Demos</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="01_terrain.html" class="active">01 地形</a>
+      <a href="02_particles.html">02 粒子</a>
+      <a href="03_raytrace.html">03 光追</a>
+      <a href="04_fractal.html">04 分形</a>
+    </div>
+    <span class="fps" id="fps">— fps</span>
+  </nav>
+
+  <canvas id="c"></canvas>
+
+  <div class="panel">
+    <h3>参数</h3>
+    <div class="field">
+      <label>振幅 <span id="ampV">1.4</span></label>
+      <input type="range" id="amp" min="0" max="3" step="0.05" value="1.4">
+    </div>
+    <div class="field">
+      <label>频率 <span id="freqV">0.45</span></label>
+      <input type="range" id="freq" min="0.05" max="1.5" step="0.01" value="0.45">
+    </div>
+    <div class="field">
+      <label>动画速度 <span id="speedV">1.0</span></label>
+      <input type="range" id="speed" min="0" max="3" step="0.05" value="1.0">
+    </div>
+    <div class="field">
+      <label>调色板</label>
+      <select id="palette">
+        <option value="0">黎明</option>
+        <option value="1">海洋</option>
+        <option value="2">彩虹</option>
+        <option value="3">熔岩</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="help">
+    <strong>鼠标</strong>：左键点击 = 注入涟漪 · 拖拽 = 旋转视角 · 滚轮 = 缩放<br>
+    <strong>移动</strong>：改变光源方向
+  </div>
+
+  <div class="fallback" id="fallback">
+    <div class="fallback-card">
+      <h2>需要 WebGPU 支持</h2>
+      <p>请使用 Chrome 113+ / Edge 113+ / Firefox Nightly 访问本页面，并在浏览器设置中启用 WebGPU。</p>
+    </div>
+  </div>
+
+  <script type="module">
+    const fallback = document.getElementById('fallback');
+    const adapter = await navigator.gpu?.requestAdapter();
+    const device = await adapter?.requestDevice();
+    if (!device) {
+      fallback.classList.add('show');
+      throw new Error('no WebGPU');
+    }
+
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('webgpu');
+    const fmt = navigator.gpu.getPreferredCanvasFormat();
+    ctx.configure({ device, format: fmt });
+
+    // ---------- 网格 ----------
+    const GRID = 200;
+    const SIZE = 20;
+    const vertCount = (GRID + 1) * (GRID + 1);
+    const idxCount = GRID * GRID * 6;
+
+    const vertData = new Float32Array(vertCount * 2);
+    for (let z = 0; z <= GRID; z++) {
+      for (let x = 0; x <= GRID; x++) {
+        const i = (z * (GRID + 1) + x) * 2;
+        vertData[i]     = (x / GRID - 0.5) * SIZE;
+        vertData[i + 1] = (z / GRID - 0.5) * SIZE;
+      }
+    }
+    const idxData = new Uint32Array(idxCount);
+    let p = 0;
+    for (let z = 0; z < GRID; z++) {
+      for (let x = 0; x < GRID; x++) {
+        const i = z * (GRID + 1) + x;
+        idxData[p++] = i;
+        idxData[p++] = i + 1;
+        idxData[p++] = i + GRID + 1;
+        idxData[p++] = i + 1;
+        idxData[p++] = i + GRID + 2;
+        idxData[p++] = i + GRID + 1;
+      }
+    }
+    const vBuf = device.createBuffer({ size: vertData.byteLength, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+    device.queue.writeBuffer(vBuf, 0, vertData);
+    const iBuf = device.createBuffer({ size: idxData.byteLength, usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST });
+    device.queue.writeBuffer(iBuf, 0, idxData);
+
+    // ---------- Uniform ----------
+    const UNIFORM_SIZE = 256;
+    const uBuf = device.createBuffer({ size: UNIFORM_SIZE, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    const uData = new ArrayBuffer(UNIFORM_SIZE);
+    const uView = new DataView(uData);
+
+    function writeUniforms(time, amp, freq, palette, light, cam, ripples) {
+      for (let i = 0; i < 16; i++) uView.setFloat32(i * 4, cam.vp[i], true);
+      uView.setFloat32(64, time, true);
+      uView.setFloat32(68, amp, true);
+      uView.setFloat32(72, freq, true);
+      uView.setFloat32(76, palette, true);
+      uView.setFloat32(80, light[0], true);
+      uView.setFloat32(84, light[1], true);
+      uView.setFloat32(88, light[2], true);
+      uView.setFloat32(92, 0, true); // pad
+      uView.setFloat32(96, cam.dist, true);
+      uView.setFloat32(100, cam.yaw, true);
+      uView.setFloat32(104, cam.pitch, true);
+      uView.setFloat32(108, 0, true);
+      uView.setFloat32(112, ripples.length, true);
+      for (let k = 116; k < 128; k += 4) uView.setFloat32(k, 0, true);
+      let off = 128;
+      for (let i = 0; i < 8; i++) {
+        if (i < ripples.length) {
+          uView.setFloat32(off + 0,  ripples[i].x, true);
+          uView.setFloat32(off + 4,  ripples[i].z, true);
+          uView.setFloat32(off + 8,  ripples[i].t0, true);
+          uView.setFloat32(off + 12, ripples[i].amp, true);
+        } else {
+          uView.setFloat32(off + 12, 0, true);
+        }
+        off += 16;
+      }
+      device.queue.writeBuffer(uBuf, 0, uData);
+    }
+
+    // ---------- 矩阵 ----------
+    function mat4Perspective(fovy, aspect, near, far) {
+      const f = 1.0 / Math.tan(fovy / 2);
+      const nf = 1 / (near - far);
+      return [
+        f/aspect, 0, 0, 0,
+        0, f, 0, 0,
+        0, 0, (far+near)*nf, -1,
+        0, 0, 2*far*near*nf, 0
+      ];
+    }
+    function mat4LookAt(eye, target, up) {
+      let zx = eye[0]-target[0], zy = eye[1]-target[1], zz = eye[2]-target[2];
+      let zl = Math.hypot(zx,zy,zz);
+      const z = [zx/zl, zy/zl, zz/zl];
+      let xx = z[1]*up[2]-z[2]*up[1], xy = z[2]*up[0]-z[0]*up[2], xz = z[0]*up[1]-z[1]*up[0];
+      let xl = Math.hypot(xx,xy,xz)||1;
+      const x = [xx/xl, xy/xl, xz/xl];
+      const y = [z[1]*x[2]-z[2]*x[1], z[2]*x[0]-z[0]*x[2], z[0]*x[1]-z[1]*x[0]];
+      return [
+        x[0], y[0], z[0], 0,
+        x[1], y[1], z[1], 0,
+        x[2], y[2], z[2], 0,
+        -(x[0]*eye[0]+x[1]*eye[1]+x[2]*eye[2]),
+        -(y[0]*eye[0]+y[1]*eye[1]+y[2]*eye[2]),
+        -(z[0]*eye[0]+z[1]*eye[1]+z[2]*eye[2]),
+        1
+      ];
+    }
+    function mat4Mul(a, b) {
+      const o = new Array(16);
+      for (let i = 0; i < 4; i++)
+        for (let j = 0; j < 4; j++) {
+          let s = 0;
+          for (let k = 0; k < 4; k++) s += a[k*4+j] * b[i*4+k];
+          o[i*4+j] = s;
+        }
+      return o;
+    }
+
+    const camera = { yaw: 0.6, pitch: 0.7, dist: 22, vp: new Array(16) };
+    function updateCamera(aspect) {
+      const eye = [
+        Math.cos(camera.pitch) * Math.cos(camera.yaw) * camera.dist,
+        Math.sin(camera.pitch) * camera.dist,
+        Math.cos(camera.pitch) * Math.sin(camera.yaw) * camera.dist
+      ];
+      camera.vp = mat4Mul(mat4Perspective(Math.PI/4, aspect, 0.1, 200),
+                          mat4LookAt(eye, [0, 0, 0], [0, 1, 0]));
+    }
+
+    // ---------- 屏幕坐标 -> 世界 XZ（ray-plane 交于 y=0） ----------
+    function screenToWorld(sx, sy) {
+      const rect = canvas.getBoundingClientRect();
+      const u = (sx - rect.left) / rect.width;
+      const v = (sy - rect.top) / rect.height;
+      const ndcX = u * 2 - 1;
+      const ndcY = -(v * 2 - 1);
+      const eye = [
+        Math.cos(camera.pitch) * Math.cos(camera.yaw) * camera.dist,
+        Math.sin(camera.pitch) * camera.dist,
+        Math.cos(camera.pitch) * Math.sin(camera.yaw) * camera.dist
+      ];
+      const fwd = [-eye[0]/camera.dist, -eye[1]/camera.dist, -eye[2]/camera.dist];
+      const worldUp = [0, 1, 0];
+      const right = [
+        fwd[1]*worldUp[2] - fwd[2]*worldUp[1],
+        fwd[2]*worldUp[0] - fwd[0]*worldUp[2],
+        fwd[0]*worldUp[1] - fwd[1]*worldUp[0]
+      ];
+      const rl = Math.hypot(right[0], right[1], right[2]) || 1;
+      right[0]/=rl; right[1]/=rl; right[2]/=rl;
+      const up = [
+        right[1]*fwd[2] - right[2]*fwd[1],
+        right[2]*fwd[0] - right[0]*fwd[2],
+        right[0]*fwd[1] - right[1]*fwd[0]
+      ];
+      const aspect = rect.width / rect.height;
+      const tanFov = Math.tan(Math.PI / 8);
+      const dx = ndcX * tanFov * aspect;
+      const dy = ndcY * tanFov;
+      const rd = [
+        fwd[0] + right[0]*dx + up[0]*dy,
+        fwd[1] + right[1]*dx + up[1]*dy,
+        fwd[2] + right[2]*dx + up[2]*dy
+      ];
+      if (Math.abs(rd[1]) < 1e-5) return null;
+      const t = -eye[1] / rd[1];
+      if (t < 0) return null;
+      return [eye[0] + rd[0]*t, eye[2] + rd[2]*t];
+    }
+
+    // ---------- 着色器 ----------
+    const wgsl = /* wgsl */`
+struct Ripple { x: f32, z: f32, t0: f32, amp: f32 };
+struct Uniforms {
+  vpMatrix: mat4x4f,
+  time: f32,
+  amplitude: f32,
+  frequency: f32,
+  palette: f32,
+  lightDir: vec3f,
+  cameraDist: f32,
+  cameraYaw: f32,
+  cameraPitch: f32,
+  _pad0: f32,
+  rippleCount: f32,
+  _pad1: f32, _pad2: f32, _pad3: f32,
+  ripples: array<Ripple, 8>,
+};
+@group(0) @binding(0) var<uniform> uni: Uniforms;
+
+fn hash2(p: vec2f) -> vec2f {
+  let q = vec2f(dot(p, vec2f(127.1, 311.7)), dot(p, vec2f(269.5, 183.3)));
+  return -1.0 + 2.0 * fract(sin(q) * 43758.5453123);
+}
+fn noise2(p: vec2f) -> f32 {
+  let i = floor(p);
+  let f = fract(p);
+  let u = f * f * (3.0 - 2.0 * f);
+  let a = dot(hash2(i + vec2f(0.0, 0.0)), f - vec2f(0.0, 0.0));
+  let b = dot(hash2(i + vec2f(1.0, 0.0)), f - vec2f(1.0, 0.0));
+  let c = dot(hash2(i + vec2f(0.0, 1.0)), f - vec2f(0.0, 1.0));
+  let d = dot(hash2(i + vec2f(1.0, 1.0)), f - vec2f(1.0, 1.0));
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+fn fbm(p: vec2f) -> f32 {
+  var v = 0.0; var a = 0.5; var q = p;
+  for (var i = 0; i < 4; i++) {
+    v += a * noise2(q);
+    q *= 2.0;
+    a *= 0.5;
+  }
+  return v;
+}
+fn heightAt(x: f32, z: f32) -> f32 {
+  let p = vec2f(x * uni.frequency + uni.time * 0.15,
+                z * uni.frequency + uni.time * 0.10);
+  let n = fbm(p) * uni.amplitude;
+  var h = n;
+  for (var i = 0; i < 8; i++) {
+    let rip = uni.ripples[i];
+    if (rip.amp == 0.0) { continue; }
+    let dx = x - rip.x;
+    let dz = z - rip.z;
+    let r = sqrt(dx * dx + dz * dz);
+    let age = uni.time - rip.t0;
+    if (age < 0.0 || age > 8.0) { continue; }
+    let wave = sin(r * 4.5 - age * 7.0) * exp(-(r * r) * 0.04) * exp(-age * 0.35);
+    h += wave * rip.amp * 0.7;
+  }
+  return h;
+}
+fn hsv2rgb(c: vec3f) -> vec3f {
+  let K = vec4f(1.0, 2.0/3.0, 1.0/3.0, 3.0);
+  let p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+  return c.z * mix(K.xxx, clamp(p - K.xxx, vec3f(0.0), vec3f(1.0)), c.y);
+}
+fn paletteFn(h: f32, idx: f32) -> vec3f {
+  let t = clamp(h, 0.0, 1.0);
+  if (idx < 0.5) {
+    let a = vec3f(0.95, 0.65, 0.85);
+    let b = vec3f(0.45, 0.75, 0.95);
+    let c = vec3f(1.00, 0.85, 0.55);
+    let d = vec3f(0.95, 0.50, 0.45);
+    return mix(mix(a, b, t), mix(c, d, t), smoothstep(0.3, 0.7, t));
+  } else if (idx < 1.5) {
+    return hsv2rgb(vec3f(0.55 - t * 0.15, 0.7, 0.45 + t * 0.55));
+  } else if (idx < 2.5) {
+    return hsv2rgb(vec3f(t * 0.85, 0.85, 0.5 + t * 0.5));
+  } else {
+    return hsv2rgb(vec3f(0.05 - t * 0.08, 0.9, 0.25 + t * 0.85));
+  }
+}
+
+struct VsOut {
+  @builtin(position) pos: vec4f,
+  @location(0) worldY: f32,
+  @location(1) normal: vec3f,
+  @location(2) heightNorm: f32,
+};
+
+@vertex
+fn vs(@location(0) pos: vec2f) -> VsOut {
+  let h = heightAt(pos.x, pos.y);
+  let eps = 0.06;
+  let hx = heightAt(pos.x + eps, pos.y) - h;
+  let hz = heightAt(pos.x, pos.y + eps) - h;
+  let n = normalize(vec3f(-hx, eps, -hz));
+  var out: VsOut;
+  out.pos = uni.vpMatrix * vec4f(pos.x, h, pos.y, 1.0);
+  out.worldY = h;
+  out.normal = n;
+  out.heightNorm = clamp((h + 3.0) / 6.0, 0.0, 1.0);
+  return out;
+}
+
+@fragment
+fn fs(in: VsOut) -> @location(0) vec4f {
+  let light = normalize(uni.lightDir);
+  let n = normalize(in.normal);
+  let diff = max(dot(n, light), 0.0);
+  let ambient = 0.5;
+  let spec = pow(max(dot(reflect(-light, n), vec3f(0.0, 1.0, 0.0)), 0.0), 24.0) * 0.3;
+  let base = paletteFn(in.heightNorm, uni.palette);
+  let lit = base * (ambient + diff * 0.85) + spec;
+  return vec4f(lit, 1.0);
+}
+    `;
+
+    const module = device.createShaderModule({ code: wgsl });
+    const pipeline = device.createRenderPipeline({
+      layout: 'auto',
+      vertex: {
+        module,
+        entryPoint: 'vs',
+        buffers: [{ arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }] }]
+      },
+      fragment: {
+        module,
+        entryPoint: 'fs',
+        targets: [{ format: fmt }]
+      },
+      primitive: { topology: 'triangle-list', cullMode: 'none' },
+      depthStencil: {
+        format: 'depth24plus',
+        depthWriteEnabled: true,
+        depthCompare: 'less'
+      }
+    });
+    const bindGroup = device.createBindGroup({
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [{ binding: 0, resource: { buffer: uBuf } }]
+    });
+
+    // ---------- depth ----------
+    let depthTex = null;
+    function ensureDepth(w, h) {
+      if (depthTex && depthTex.width === w && depthTex.height === h) return;
+      depthTex?.destroy();
+      depthTex = device.createTexture({
+        size: [w, h],
+        format: 'depth24plus',
+        usage: GPUTextureUsage.RENDER_ATTACHMENT
+      });
+    }
+
+    // ---------- 交互 ----------
+    const ripples = [];
+    const mouse = { light: [0.4, 0.8, 0.5] };
+    let dragging = false;
+    let downX = 0, downY = 0, lastX = 0, lastY = 0;
+
+    canvas.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      dragging = true;
+      downX = lastX = e.clientX;
+      downY = lastY = e.clientY;
+      canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener('pointermove', e => {
+      const rect = canvas.getBoundingClientRect();
+      const u = (e.clientX - rect.left) / rect.width;
+      const v = (e.clientY - rect.top) / rect.height;
+      mouse.light = [u * 2 - 1, 1.2, (1 - v) * 2 - 1];
+      if (dragging) {
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+        camera.yaw += dx * 0.005;
+        camera.pitch = Math.max(0.1, Math.min(1.5, camera.pitch + dy * 0.005));
+        lastX = e.clientX; lastY = e.clientY;
+      }
+    });
+    canvas.addEventListener('pointerup', e => {
+      if (!dragging) return;
+      dragging = false;
+      try { canvas.releasePointerCapture(e.pointerId); } catch {}
+      const moved = Math.hypot(e.clientX - downX, e.clientY - downY);
+      if (moved < 4) {
+        const w = screenToWorld(e.clientX, e.clientY);
+        if (w) addRipple(w[0], w[1]);
+      }
+    });
+    canvas.addEventListener('pointercancel', () => { dragging = false; });
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      camera.dist = Math.max(8, Math.min(60, camera.dist + e.deltaY * 0.02));
+    }, { passive: false });
+
+    function addRipple(x, z) {
+      if (ripples.length >= 8) ripples.shift();
+      ripples.push({ x, z, t0: state.time, amp: 1.2 });
+    }
+
+    // ---------- 控制 ----------
+    const state = { time: 0, amp: 1.4, freq: 0.45, speed: 1.0, palette: 0 };
+    const ampEl = document.getElementById('amp');
+    const freqEl = document.getElementById('freq');
+    const speedEl = document.getElementById('speed');
+    const palEl = document.getElementById('palette');
+    ampEl.addEventListener('input', () => {
+      state.amp = +ampEl.value;
+      document.getElementById('ampV').textContent = state.amp.toFixed(2);
+    });
+    freqEl.addEventListener('input', () => {
+      state.freq = +freqEl.value;
+      document.getElementById('freqV').textContent = state.freq.toFixed(2);
+    });
+    speedEl.addEventListener('input', () => {
+      state.speed = +speedEl.value;
+      document.getElementById('speedV').textContent = state.speed.toFixed(2);
+    });
+    palEl.addEventListener('change', () => { state.palette = +palEl.value; });
+
+    // ---------- 渲染循环 ----------
+    const fpsEl = document.getElementById('fps');
+    let frames = 0;
+    let lastFpsT = performance.now();
+    let lastFrameT = performance.now();
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = Math.max(1, Math.floor(canvas.clientWidth * dpr));
+      const h = Math.max(1, Math.floor(canvas.clientHeight * dpr));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w; canvas.height = h;
+      }
+      ensureDepth(w, h);
+      updateCamera(w / h);
+    }
+    new ResizeObserver(resize).observe(canvas);
+    resize();
+
+    function frame() {
+      const nowMs = performance.now();
+      const dt = Math.min(0.1, (nowMs - lastFrameT) / 1000);
+      lastFrameT = nowMs;
+      state.time += dt * state.speed;
+      while (ripples.length && state.time - ripples[0].t0 > 8) ripples.shift();
+      writeUniforms(state.time, state.amp, state.freq, state.palette, mouse.light, camera, ripples);
+
+      const encoder = device.createCommandEncoder();
+      const pass = encoder.beginRenderPass({
+        colorAttachments: [{
+          view: ctx.getCurrentTexture().createView(),
+          clearValue: [0.92, 0.95, 1.0, 1],
+          loadOp: 'clear', storeOp: 'store'
+        }],
+        depthStencilAttachment: {
+          view: depthTex.createView(),
+          depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'store'
+        }
+      });
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.setVertexBuffer(0, vBuf);
+      pass.setIndexBuffer(iBuf, 'uint32');
+      pass.drawIndexed(idxCount);
+      pass.end();
+      device.queue.submit([encoder.finish()]);
+
+      frames++;
+      if (nowMs - lastFpsT > 500) {
+        fpsEl.textContent = `${(frames * 1000 / (nowMs - lastFpsT)).toFixed(0)} fps`;
+        frames = 0;
+        lastFpsT = nowMs;
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

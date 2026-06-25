@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>小精灵走迷宫 · 可视化编程启蒙</title>
+<title>小蝌蚪找妈妈 · 可视化编程启蒙</title>
 <script src="https://cdn.staticfile.net/vue/3.5.22/vue.global.js"></script>
 <style>
   :root {
@@ -270,10 +270,10 @@
 <div id="app" v-cloak class="wrap">
 
   <header class="head">
-    <h1>🧭 小精灵走迷宫</h1>
-    <div class="subtitle">用积木拼出程序，指挥小精灵到达终点 ⭐ · 可视化编程启蒙</div>
+    <h1>🐸 小蝌蚪找妈妈</h1>
+    <div class="subtitle">用积木拼出程序，帮助小蝌蚪找到妈妈 🐸 · 可视化编程启蒙</div>
     <button v-if="allDone" class="pbtn cert-trigger" @click="showCertificate">
-      🏆 查看我的毕业证书
+      🐸 查看我的证书
     </button>
   </header>
 
@@ -293,7 +293,7 @@
     <div class="ht">💡 第 {{ current.id }} 关 · {{ current.name }}
       <span class="goal-concept">学到：{{ current.concept }}</span>
     </div>
-    <div>{{ current.hint }}</div>
+    <div>{{ current.hint.replace(/小精灵/g, '小蝌蚪').replace(/⭐ 终点/g, '🐸 妈妈') }}</div>
   </div>
 
   <div class="layout">
@@ -362,7 +362,7 @@
   </div>
 
   <div class="foot-note">
-    提示：撞墙就失败 · 到达 ⭐ 终点就胜利 · 程序从上到下执行，循环会重复里面的积木
+    提示：撞墙就失败 · 找到 🐸 妈妈就胜利 · 程序从上到下执行，循环会重复里面的积木
   </div>
 
   <div class="toast-wrap" v-if="toast.show">
@@ -377,7 +377,7 @@
   <div class="cert-modal-wrap" v-if="showCert" @click.self="showCert = false">
     <div class="cert-modal">
       <div class="cert-head">
-        <h2>🎓 恭喜毕业！</h2>
+        <h2>🎓 小蝌蚪找到妈妈啦！</h2>
         <button class="cert-close" @click="showCert = false" aria-label="关闭">✕</button>
       </div>
       <div class="cert-canvas-wrap">
@@ -391,7 +391,7 @@
         <button class="pbtn primary" @click="downloadCert">📥 下载证书（PNG）</button>
         <button class="pbtn" @click="showCert = false">关闭</button>
       </div>
-      <div class="cert-hint">输入名字后画布会实时更新 · 下载的文件名为「毕业证书_姓名_日期.png」</div>
+      <div class="cert-hint">输入名字后画布会实时更新 · 下载的文件名为「小蝌蚪找妈妈证书_姓名_日期.png」</div>
     </div>
   </div>
 
@@ -435,7 +435,7 @@ const BlockView = {
             <select v-model="b.cond">
               <option value="path">前方有路</option>
               <option value="wall">前方有墙</option>
-              <option value="goal">已到终点</option>
+              <option value="goal">找到妈妈</option>
             </select>
           </template>
 
@@ -444,7 +444,7 @@ const BlockView = {
             <select v-model="b.cond">
               <option value="path">前方有路</option>
               <option value="wall">前方有墙</option>
-              <option value="notgoal">还没到终点</option>
+              <option value="notgoal">还没找到妈妈</option>
             </select>
           </template>
 
@@ -488,15 +488,15 @@ const BlockView = {
 /* ============ 关卡数据 ============ */
 const RAW_LEVELS = [
   {
-    id: 1, name: '走直线', concept: '前进指令',
-    hint: '点【⬆️ 前进】加到程序里，再点【▶️ 运行】。让小精灵一路走到 ⭐ 终点吧！',
+    id: 1, name: '游直线', concept: '前进指令',
+    hint: '点【⬆️ 前进】加到程序里，再点【▶️ 运行】。让小蝌蚪一路找到妈妈吧！',
     maxBlocks: 4,
     blocks: ['move'],
     map: ['S...G']
   },
   {
     id: 2, name: '拐个弯', concept: '转向',
-    hint: '先前进两步，再【↪️ 转向 右转】，然后继续前进到达终点。',
+    hint: '先前进两步，再【↪️ 转向 右转】，然后继续前进找到妈妈。',
     maxBlocks: 4,
     blocks: ['move', 'turn'],
     map: ['S..',
@@ -504,14 +504,14 @@ const RAW_LEVELS = [
   },
   {
     id: 3, name: '重复的力量', concept: '重复循环',
-    hint: '要走很远？把【⬆️ 前进】放进【🔁 重复 5 次】里，比一块块加更聪明！',
+    hint: '要走很远？把【⬆️ 前进】放进【🔁 重复 6 次】里，比一块块加更聪明！先添加【重复】积木，点击选中它，再添加【前进】就可以把【前进】加入到【重复】里面，而不是【重复】后面。',
     maxBlocks: 2,
     blocks: ['move', 'repeat'],
     map: ['S.....G']
   },
   {
     id: 4, name: '重复+转向', concept: '循环里放多个动作',
-    hint: '终点在右下方：先【🔁 重复 4 次】前进走到尽头，再转向、前进到终点。',
+    hint: '妈妈在右下方：先【🔁 重复 4 次】前进走到尽头，再转向、前进找到妈妈。',
     maxBlocks: 5,
     blocks: ['move', 'turn', 'repeat'],
     map: ['S....',
@@ -527,8 +527,8 @@ const RAW_LEVELS = [
           '###G.']
   },
   {
-    id: 6, name: '聪明的小路', concept: '条件 + 循环组合',
-    hint: '中间有堵墙挡路：前进、遇墙就【❓ 如果 前方有墙 → 转向】，换个方向继续前进，绕过障碍到达终点。',
+    id: 6, name: '聪明的水路', concept: '条件 + 循环组合',
+    hint: '中间有堵墙挡路：前进、遇墙就【❓ 如果 前方有墙 → 转向】，换个方向继续前进，绕过障碍找到妈妈。',
     maxBlocks: 10,
     blocks: ['move', 'turn', 'repeat', 'if'],
     map: ['S.#..',
@@ -538,7 +538,7 @@ const RAW_LEVELS = [
   },
   {
     id: 7, name: '不知道走几步', concept: '当…循环',
-    hint: '这一关路很长，还不知道有几步！用【🔄 当…循环 还没到终点】：循环里【❓ 如果 前方有路→前进】，【❓ 如果 前方有墙→右转】，一直走到终点。（本关禁用了"重复"积木，试试用"当…循环"吧！）',
+    hint: '这一关路很长，还不知道有几步！用【🔄 当…循环 还没到妈妈身边】：循环里【❓ 如果 前方有路→前进】，【❓ 如果 前方有墙→右转】，一直游到妈妈身边。（本关禁用了"重复"积木，试试用"当…循环"吧！）',
     maxBlocks: 8,
     blocks: ['move', 'turn', 'if', 'while'],
     map: ['S.........',
@@ -671,41 +671,86 @@ const app = createApp({
     }
     function drawGoal(ctx, x, y, R) {
       ctx.save(); ctx.translate(x, y);
-      ctx.shadowColor = 'rgba(245,158,11,.5)'; ctx.shadowBlur = 12;
-      ctx.fillStyle = '#f59e0b';
-      ctx.beginPath();
-      for (let i = 0; i < 10; i++) {
-        const ang = -Math.PI/2 + i * Math.PI/5;
-        const rad = i % 2 === 0 ? R : R*0.45;
-        ctx.lineTo(Math.cos(ang)*rad, Math.sin(ang)*rad);
-      }
-      ctx.closePath(); ctx.fill();
-      ctx.shadowBlur = 0; ctx.fillStyle = '#fde68a';
-      ctx.beginPath();
-      for (let i = 0; i < 10; i++) {
-        const ang = -Math.PI/2 + i * Math.PI/5;
-        const rad = i % 2 === 0 ? R*0.55 : R*0.25;
-        ctx.lineTo(Math.cos(ang)*rad, Math.sin(ang)*rad);
-      }
-      ctx.closePath(); ctx.fill();
+      ctx.shadowColor = 'rgba(34,197,94,.4)'; ctx.shadowBlur = 14;
+      // 后腿
+      ctx.fillStyle = '#15803d';
+      ctx.beginPath(); ctx.ellipse(-R*0.6, R*0.5, R*0.3, R*0.15, -0.5, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(R*0.6, R*0.5, R*0.3, R*0.15, 0.5, 0, Math.PI*2); ctx.fill();
+      // 脚掌
+      ctx.fillStyle = '#166534';
+      ctx.beginPath(); ctx.ellipse(-R*0.75, R*0.65, R*0.18, R*0.1, -0.3, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(R*0.75, R*0.65, R*0.18, R*0.1, 0.3, 0, Math.PI*2); ctx.fill();
+      // 身体（椭圆，带肚皮）
+      const bodyGrad = ctx.createRadialGradient(0, R*0.1, R*0.1, 0, R*0.1, R*0.75);
+      bodyGrad.addColorStop(0, '#4ade80'); bodyGrad.addColorStop(0.7, '#22c55e'); bodyGrad.addColorStop(1, '#15803d');
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath(); ctx.ellipse(0, R*0.12, R*0.7, R*0.55, 0, 0, Math.PI*2); ctx.fill();
+      // 肚皮（浅色）
+      ctx.fillStyle = 'rgba(187,247,208,0.5)';
+      ctx.beginPath(); ctx.ellipse(0, R*0.2, R*0.4, R*0.35, 0, 0, Math.PI*2); ctx.fill();
+      // 头部
+      const headGrad = ctx.createRadialGradient(0, -R*0.35, R*0.1, 0, -R*0.35, R*0.55);
+      headGrad.addColorStop(0, '#4ade80'); headGrad.addColorStop(1, '#16a34a');
+      ctx.fillStyle = headGrad;
+      ctx.beginPath(); ctx.ellipse(0, -R*0.35, R*0.55, R*0.42, 0, 0, Math.PI*2); ctx.fill();
+      // 眼睛突起（眼眶）
+      ctx.fillStyle = '#22c55e';
+      ctx.beginPath(); ctx.arc(-R*0.3, -R*0.6, R*0.2, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(R*0.3, -R*0.6, R*0.2, 0, Math.PI*2); ctx.fill();
+      // 眼睛白色
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(-R*0.3, -R*0.62, R*0.16, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(R*0.3, -R*0.62, R*0.16, 0, Math.PI*2); ctx.fill();
+      // 瞳孔
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath(); ctx.arc(-R*0.27, -R*0.6, R*0.09, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(R*0.27, -R*0.6, R*0.09, 0, Math.PI*2); ctx.fill();
+      // 瞳孔高光
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(-R*0.25, -R*0.63, R*0.035, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(R*0.29, -R*0.63, R*0.035, 0, Math.PI*2); ctx.fill();
+      // 嘴巴（微笑）
+      ctx.strokeStyle = '#15803d'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.arc(0, -R*0.2, R*0.3, 0.3, Math.PI-0.3); ctx.stroke();
+      // 腮红
+      ctx.fillStyle = 'rgba(251,191,36,0.25)';
+      ctx.beginPath(); ctx.ellipse(-R*0.4, -R*0.3, R*0.1, R*0.06, 0, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(R*0.4, -R*0.3, R*0.1, R*0.06, 0, 0, Math.PI*2); ctx.fill();
+      // 前腿
+      ctx.fillStyle = '#16a34a';
+      ctx.beginPath(); ctx.ellipse(-R*0.45, R*0.35, R*0.2, R*0.1, -0.6, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(R*0.45, R*0.35, R*0.2, R*0.1, 0.6, 0, Math.PI*2); ctx.fill();
       ctx.restore();
     }
     function drawSprite(ctx, x, y, R, dir) {
       ctx.save(); ctx.translate(x, y); ctx.rotate(dir * Math.PI/2);
-      const g = ctx.createRadialGradient(0, -R*0.2, R*0.2, 0, 0, R);
-      g.addColorStop(0, '#86efac'); g.addColorStop(1, '#16a34a');
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle = '#15803d'; ctx.lineWidth = 2; ctx.stroke();
-      // 眼睛（朝右）
+      // 蝌蚪尾巴（朝后，黑色，摆动效果）
+      ctx.fillStyle = '#1a1a2e';
+      ctx.beginPath();
+      ctx.moveTo(-R*0.25, 0);
+      ctx.bezierCurveTo(-R*0.6, -R*0.5, -R*1.1, -R*0.3, -R*1.4, R*0.05);
+      ctx.bezierCurveTo(-R*1.1, R*0.35, -R*0.6, R*0.5, -R*0.25, 0);
+      ctx.fill();
+      // 蝌蚪身体（圆形，黑色带光泽）
+      const bodyGrad = ctx.createRadialGradient(R*0.1, -R*0.15, R*0.05, 0, 0, R*0.75);
+      bodyGrad.addColorStop(0, '#4a4a5a');
+      bodyGrad.addColorStop(0.6, '#1a1a2e');
+      bodyGrad.addColorStop(1, '#0d0d1a');
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath(); ctx.arc(0, 0, R*0.72, 0, Math.PI*2); ctx.fill();
+      // 眼睛（白色大眼，朝前方）
       ctx.fillStyle = '#fff';
-      ctx.beginPath(); ctx.arc(R*0.28, -R*0.22, R*0.26, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(R*0.28,  R*0.22, R*0.26, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#0f172a';
-      ctx.beginPath(); ctx.arc(R*0.40, -R*0.22, R*0.12, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(R*0.40,  R*0.22, R*0.12, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(R*0.22, 0, R*0.28, -0.6, 0.6); ctx.stroke();
+      ctx.beginPath(); ctx.arc(R*0.22, -R*0.25, R*0.2, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(R*0.22, R*0.25, R*0.2, 0, Math.PI*2); ctx.fill();
+      // 黑色瞳孔
+      ctx.fillStyle = '#0a0a12';
+      ctx.beginPath(); ctx.arc(R*0.30, -R*0.25, R*0.1, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(R*0.30, R*0.25, R*0.1, 0, Math.PI*2); ctx.fill();
+      // 瞳孔高光
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(R*0.33, -R*0.28, R*0.04, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(R*0.33, R*0.22, R*0.04, 0, Math.PI*2); ctx.fill();
       ctx.restore();
     }
     function draw() {
@@ -741,12 +786,12 @@ const app = createApp({
       // 起点
       const sx = offX + lvl.start.c*cell + cell/2;
       const sy = offY + lvl.start.r*cell + cell/2;
-      ctx.fillStyle = 'rgba(37,99,235,.12)';
+      ctx.fillStyle = 'rgba(26,26,46,.12)';
       ctx.beginPath(); ctx.arc(sx, sy, cell*0.36, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = 'rgba(37,99,235,.5)';
+      ctx.fillStyle = 'rgba(26,26,46,.5)';
       ctx.font = 'bold ' + Math.floor(cell*0.22) + 'px sans-serif';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('起', sx, sy);
+      ctx.fillText('蚪', sx, sy);
 
       // 终点
       const gx = offX + lvl.goal.c*cell + cell/2;
@@ -951,15 +996,15 @@ const app = createApp({
         } else if (cancelRun) {
           // 重置触发的取消，安静退出
         } else if (!done.value) {
-          showToast('info', '🤔 走完了', '程序执行结束，但还没到终点。再调整一下程序试试？', '再想想');
+          showToast('info', '🤔 游完了', '程序执行结束，但还没找到妈妈。再调整一下程序试试？', '再想想');
         }
       } catch (e) {
         if (e && e.kind === 'win') handleWin();
         else if (e && e.kind === 'wall') {
-          if (!userStopped) showToast('lose', '💥 撞墙了！', '小精灵撞到了墙。检查转向和前进的顺序吧～', '再试一次');
+          if (!userStopped) showToast('lose', '💥 撞墙了！', '小蝌蚪撞到了墙。检查转向和前进的顺序吧～', '再试一次');
         }
         else if (e && e.kind === 'loop') {
-          if (!userStopped) showToast('lose', '♾️ 走太多步啦！', '已经走了 100 步还没到终点，可能走进了死循环。点【⏹️ 停止】可以随时中断哦～', '再试一次');
+          if (!userStopped) showToast('lose', '♾️ 游太多步啦！', '已经游了 100 步还没找到妈妈，可能走进了死循环。点【⏹️ 停止】可以随时中断哦～', '再试一次');
         }
       } finally {
         executing.value = false;
@@ -974,7 +1019,7 @@ const app = createApp({
       // 中断动画，把精灵归位到当前格子（保留已走位置，不强制回起点）
       sprite.animR = sprite.r;
       sprite.animC = sprite.c;
-      showToast('info', '⏹️ 已停止', '程序已停止运行。点【🔄 重置】让小精灵回到起点。', '好的');
+      showToast('info', '⏹️ 已停止', '程序已停止运行。点【🔄 重置】让小蝌蚪回到起点。', '好的');
     }
 
     function handleWin() {
@@ -985,10 +1030,10 @@ const app = createApp({
       }
       launchConfetti();
       if (allDone.value) {
-        // 全部通关 → 弹出毕业证书
+        // 全部通关 → 弹出证书
         nextTick(() => showCertificate());
       } else {
-        showToast('win', '🎉 太棒了！', '小精灵到达终点！你学会了：' + current.value.concept, '太棒了');
+        showToast('win', '🎉 太棒了！', '小蝌蚪找到了妈妈！你学会了：' + current.value.concept, '太棒了');
       }
     }
 
@@ -1042,12 +1087,12 @@ const app = createApp({
       ctx.textBaseline = 'middle';
       ctx.fillStyle = '#92400e';
       ctx.font = 'bold 60px "PingFang SC", "Microsoft YaHei", sans-serif';
-      ctx.fillText('🎓 毕业证书', W / 2, 140);
+      ctx.fillText('🐸 编程高手证书', W / 2, 140);
 
       // 副标题
       ctx.font = 'italic 18px "Times New Roman", serif';
       ctx.fillStyle = '#a16207';
-      ctx.fillText('CERTIFICATE OF COMPLETION', W / 2, 188);
+      ctx.fillText('CERTIFICATE OF FINDING MAMA', W / 2, 188);
 
       // 装饰横线 + 两端小星
       ctx.strokeStyle = '#d97706';
@@ -1082,15 +1127,15 @@ const app = createApp({
       // 描述
       ctx.fillStyle = '#451a03';
       ctx.font = '20px "Kaiti", "STKaiti", "PingFang SC", serif';
-      ctx.fillText('同学已成功通过「小精灵走迷宫」全部 ' + levels.length + ' 关编程挑战', W / 2, 410);
+      ctx.fillText('同学已成功通过「小蝌蚪找妈妈」全部 ' + levels.length + ' 关编程挑战', W / 2, 410);
       ctx.font = '17px "PingFang SC", sans-serif';
       ctx.fillStyle = '#7c2d12';
-      ctx.fillText('掌握了：前进 · 转向 · 重复循环 · 条件判断 · 当…循环 · 变量', W / 2, 442);
+      ctx.fillText('掌握了：游泳 · 转向 · 重复循环 · 条件判断 · 当…循环 · 变量', W / 2, 442);
 
       // 鼓励语
       ctx.fillStyle = '#b45309';
       ctx.font = 'italic 18px "Kaiti", "STKaiti", serif';
-      ctx.fillText('愿你在编程的世界里继续探索，创造无限可能！', W / 2, 482);
+      ctx.fillText('愿你在探索的世界里继续前进，找到更多答案！', W / 2, 482);
 
       // 颁发日期
       const today = new Date();
@@ -1111,10 +1156,10 @@ const app = createApp({
       ctx.fillStyle = '#dc2626';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('编程启蒙', 0, -14);
+      ctx.fillText('小蝌蚪', 0, -14);
       ctx.fillText('认  证', 0, 4);
       ctx.font = '10px sans-serif';
-      ctx.fillText('MAZE  CODE', 0, 26);
+      ctx.fillText('TADPOLE', 0, 26);
       ctx.restore();
     }
     function downloadCert() {
@@ -1125,7 +1170,7 @@ const app = createApp({
       const today = new Date();
       const ds = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
       const link = document.createElement('a');
-      link.download = `毕业证书_${name}_${ds}.png`;
+      link.download = `小蝌蚪找妈妈证书_${name}_${ds}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     }
