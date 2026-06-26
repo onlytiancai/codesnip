@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<!--
+  002-preview.html — 专门为 002-transformer-attention.md 设计的预览页。
+  相对 show-md.html 的差异：
+    1. 加载 MathJax 3（tex2chtml）渲染 LaTeX 公式
+    2. 配置 marked：保护 $..$、$$..$$ 不被转义
+    3. 不做"双语/单语"切换——本文档只有中文
+    4. 顶部链接：打开原始 .md 文件、回顶部
+-->
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>002 · Transformer 注意力机制</title>
+
+  <!-- CDN: staticfile（按 CLAUDE.md 偏好） -->
+  <script src="https://cdn.staticfile.org/marked/12.0.2/marked.min.js"></script>
+  <script src="https://cdn.staticfile.org/dompurify/3.0.8/purify.min.js"></script>
+  <script src="https://cdn.staticfile.org/highlight.js/11.9.0/highlight.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/11.9.0/styles/github.min.css" id="hljs-light">
+  <link rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/5.5.0/github-markdown.min.css">
+
+  <!-- MathJax 3 配置 -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath:  [['$',  '$']],
+        displayMath: [['$$','$$']],
+        processEscapes: true,
+        processEnvironments: true
+      },
+      options: {
+        skipHtmlTags: ['script','noscript','style','textarea','pre','code']
+      }
+    };
+  </script>
+  <script src="https://cdn.staticfile.org/mathjax/3.2.2/es5/tex-mml-chtml.js" defer></script>
+
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #1f2328;
+      --muted: #57606a;
+      --toolbar-bg: rgba(255,255,255,0.92);
+      --toolbar-border: #d0d7de;
+      --link: #0969da;
+      --rule: #d0d7de;
+    }
+    html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+    html, body {
+      background: var(--bg);
+      color: var(--fg);
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                   "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    .toolbar {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 1000;
+      display: flex;
+      gap: 6px;
+      background: var(--toolbar-bg);
+      border: 1px solid var(--toolbar-border);
+      border-radius: 8px;
+      padding: 6px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .toolbar a {
+      display: inline-block;
+      color: var(--link);
+      text-decoration: none;
+      border: 1px solid var(--toolbar-border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .toolbar a:hover { background: rgba(9,105,218,0.08); }
+
+    .layout {
+      max-width: 920px;
+      margin: 64px auto 80px;
+      padding: 32px 24px;
+    }
+    .markdown-body img { max-width: 100%; height: auto; }
+    .markdown-body { background: transparent; }
+    .markdown-body :not(pre) > code {
+      background: #f6f8fa;
+      color: #1f2328;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 0.92em;
+    }
+    .markdown-body table {
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+    .markdown-body table th,
+    .markdown-body table td {
+      border: 1px solid var(--rule);
+      padding: 6px 12px;
+    }
+    .markdown-body table th { background: #f6f8fa; }
+    .markdown-body blockquote {
+      border-left: 4px solid var(--rule);
+      color: var(--muted);
+      padding: 0 14px;
+      margin: 16px 0;
+    }
+    .markdown-body h1 { border-bottom: 2px solid var(--rule); padding-bottom: 8px; }
+    .markdown-body h2 { border-bottom: 1px solid var(--rule); padding-bottom: 6px; margin-top: 36px; }
+    .markdown-body hr { border: none; border-top: 1px solid var(--rule); margin: 32px 0; }
+    .loading, .error {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+    }
+    .error { color: #cf222e; }
+    /* MathJax 公式外观微调 */
+    mjx-container { overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <nav class="toolbar">
+    <a id="view-md-link" href="#" target="_blank">查看 .md 原文</a>
+    <a href="#top">回顶部</a>
+  </nav>
+
+  <div class="layout">
+    <article id="content" class="markdown-body">
+      <p class="loading">加载中…</p>
+    </article>
+  </div>
+
+  <script>
+    // ---- 配置 marked，禁用 inline math 转义 ----
+    // 问题：marked 默认会把 $..$ 转成 <em>...</em>，与 MathJax 的 inline math 冲突。
+    // 解决：先把 LaTeX 段（block + inline）替换成不会触发 markdown 语法的占位符，
+    //      让 marked 把它当成普通文本通过；DOMPurify 清洗后再替换回 LaTeX 原文。
+    marked.setOptions({
+      gfm: true,
+      breaks: false,
+      pedantic: false
+    });
+
+    // 匹配 \[...\]、$$...$$、$...$（要求非空、非换行、非 \$ 转义）
+    const LATEX_RE = /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\$[^$\n]+\$)/g;
+    let latexStash = [];  // 缓存被替换的 LaTeX 段
+
+    function stashLatex(src) {
+      latexStash = [];
+      return src.replace(LATEX_RE, m => {
+        const idx = latexStash.length;
+        latexStash.push(m);
+        // 占位符：使用纯文本 token + ZWJ（零宽连字符）+ Unicode letter
+        // 这样不会被 markdown 识别成任何语法，也会被 DOMPurify 原样保留。
+        return `MXLPLACEHOLDER${idx}MXLENDPLACEHOLDER`;
+      });
+    }
+    function restoreLatex(html) {
+      return html.replace(/MXLPLACEHOLDER(\d+)MXLENDPLACEHOLDER/g, (_, i) => latexStash[Number(i)] ?? '');
+    }
+
+    // DOMPurify 允许 data-* 属性，但这里不需要；占位符是纯文本，安全
+    const PURIFY_OPTS = {
+      ADD_ATTR: ['target']
+    };
+
+    // ---- 从 URL 参数读取 md 文件路径 ----
+    function getMdPath() {
+      const params = new URLSearchParams(location.search);
+      return params.get('md') || '002-transformer-attention.md';
+    }
+
+    async function load() {
+      const mdFile = getMdPath();
+      // 更新 toolbar 链接
+      const link = document.getElementById('view-md-link');
+      if (link) link.href = mdFile;
+      // 更新页面标题
+      document.title = mdFile.replace(/\.md$/, '') + ' · MD Preview';
+
+      const mdUrl = new URL(mdFile + '?1', location.href).href;
+      try {
+        const resp = await fetch(mdUrl);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const text = await resp.text();
+        // 1. 先把 LaTeX 段换成占位符
+        // 2. marked 解析（占位符会被原样保留在 HTML 文本里，不会被任何规则误转义）
+        // 3. DOMPurify 清洗
+        // 4. 把占位符换回 LaTeX 原文
+        // 5. 喂给 MathJax
+        const stashed = stashLatex(text);
+        const html = marked.parse(stashed);
+        const safe = DOMPurify.sanitize(html, PURIFY_OPTS);
+        const final = restoreLatex(safe);
+        document.getElementById('content').innerHTML = final;
+        // highlight.js 上色
+        if (window.hljs) {
+          document.querySelectorAll('pre code').forEach(b => window.hljs.highlightElement(b));
+        }
+        // 触发 MathJax 重排
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          await window.MathJax.typesetPromise();
+        }
+      } catch (err) {
+        document.getElementById('content').innerHTML =
+          '<p class="error">加载失败：' + String(err.message || err) + '<br>请先启动 http server：<br><code>cd .. &amp;&amp; python3 -m http.server 18765</code></p>';
+      }
+    }
+
+    // 等 MathJax defer 加载完
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', load);
+    } else {
+      load();
+    }
+  </script>
+</body>
+</html>
