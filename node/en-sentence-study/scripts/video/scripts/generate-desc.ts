@@ -94,13 +94,13 @@ function validateSource(src: any): asserts src is Source {
 function buildCards(src: Source): Card[] {
   const cards: Card[] = [];
 
-  // Card 0: intro（仅中文）
+  // Card 0: intro（仅中文，包含场景+任务+背景 context）
   cards.push({
     index: 0,
     type: 'intro',
     duration_sec: -1,
     tts_segments: [
-      { lang: 'zh', text: `${src.scene_zh}：${src.task_zh}` },
+      { lang: 'zh', text: `${src.scene_zh}：${src.task_zh}。${src.context}` },
     ],
   });
 

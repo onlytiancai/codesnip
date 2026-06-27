@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>Card 1 Preview · 购物 · 礼品包装</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #2A2A2A;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 24px;
+  }
+  .meta {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    color: #DDD;
+    font-size: 13px;
+    line-height: 1.5;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    pointer-events: none;
+    z-index: 100;
+  }
+  .meta b { color: #19A974; }
+  .meta ul { margin: 4px 0 0 16px; padding: 0; }
+  .phone {
+    width: 375px;
+    height: 812px;
+    background: #F4FBF8;
+    border-radius: 44px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    position: relative;
+  }
+  /* 内部 stage 用 1080x1920 原生尺寸，缩放 0.347 适配 375x667 */
+  .stage {
+    position: absolute;
+    width: 1080px;
+    height: 1920px;
+    transform-origin: top left;
+    transform: scale(0.347);
+  }
+
+  /* ── Header / Footer ── */
+  .header, .footer {
+    position: absolute;
+    left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+  }
+  .header {
+    top: 0; height: 110px;
+    border-bottom: 2px solid #CFE9DC;
+  }
+  .footer {
+    bottom: 0; height: 90px;
+    border-top: 2px solid #CFE9DC;
+    font-size: 26px; color: #5A8475;
+    letter-spacing: 1px;
+  }
+  .header-content { display: flex; align-items: center; }
+  .header-bar {
+    width: 12px; height: 36px;
+    background: #19A974;
+    border-radius: 6px;
+    margin-right: 16px;
+  }
+  .header-text {
+    font-size: 38px; color: #0E3B2E;
+    font-weight: 700; letter-spacing: 2px;
+  }
+
+  /* ── 卡片区 ── */
+  .card-area {
+    position: absolute;
+    top: 110px; bottom: 90px;
+    left: 0; right: 0;
+    padding: 100px 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* ── Expression 卡片 ── */
+  .style-badge {
+    display: inline-block;
+    padding: 16px 36px;
+    border-radius: 100px;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 80px;
+    width: fit-content;
+  }
+  .zh-line {
+    font-size: 92px;
+    font-weight: 600;
+    color: #0E3B2E;
+    line-height: 1.25;
+    margin-bottom: 50px;
+    word-wrap: break-word;
+    word-break: break-word;
+  }
+  .en-line {
+    font-size: 76px;
+    font-weight: 600;
+    color: #19A974;
+    line-height: 1.25;
+    margin-bottom: 40px;
+    word-wrap: break-word;
+    word-break: break-word;
+  }
+  .phonetic {
+    font-size: 44px;
+    color: #5A8475;
+    font-style: italic;
+    margin-bottom: 60px;
+    word-wrap: break-word;
+  }
+  .note {
+    font-size: 42px;
+    color: #5A8475;
+    line-height: 1.5;
+    padding: 30px 40px;
+    background: rgba(207, 233, 220, 0.4);
+    border-radius: 24px;
+    border-left: 8px solid #19A974;
+    word-wrap: break-word;
+  }
+
+  /* ── Intro 卡片 ── */
+  .intro-eyebrow {
+    font-size: 36px;
+    color: #19A974;
+    font-weight: 600;
+    letter-spacing: 6px;
+    margin-bottom: 24px;
+  }
+  .intro-title {
+    font-size: 160px;
+    color: #0E3B2E;
+    font-weight: 800;
+    margin: 0 0 24px 0;
+    line-height: 1.1;
+    word-wrap: break-word;
+  }
+  .intro-divider {
+    width: 120px;
+    height: 6px;
+    background: #19A974;
+    margin: 60px 0;
+    border-radius: 3px;
+  }
+  .intro-task {
+    font-size: 100px;
+    color: #19A974;
+    font-weight: 700;
+    margin: 0 0 80px 0;
+    line-height: 1.2;
+    word-wrap: break-word;
+  }
+  .intro-sentence {
+    font-size: 56px;
+    color: #5A8475;
+    line-height: 1.4;
+    word-wrap: break-word;
+  }
+
+  /* ── Summary 卡片 ── */
+  .summary-eyebrow {
+    font-size: 44px;
+    color: #19A974;
+    font-weight: 700;
+    letter-spacing: 4px;
+    margin-bottom: 60px;
+  }
+  .summary-text {
+    font-size: 64px;
+    color: #0E3B2E;
+    line-height: 1.6;
+    word-wrap: break-word;
+    word-break: break-word;
+    margin: 0;
+  }
+</style>
+</head>
+<body>
+<div class="meta">
+  <b>Card 1</b> · type=expression · ⏳ 音频未生成（duration_sec = -1）<br/>
+  <b>Desc</b>: 1 · theme=mint<br/>
+  <b>TTS segments</b>: <ul><li><b>zh</b>: 您能把这个礼品包装一下吗？</li><li><b>en</b>: Could you gift wrap this, please?</li></ul>
+</div>
+
+<div class="phone">
+  <div class="stage">
+    <div class="header">
+      <div class="header-content">
+        <div class="header-bar"></div>
+        <span class="header-text">英语口语 · 每日一句</span>
+      </div>
+    </div>
+
+    <div class="card-area">
+      
+    <div class="style-badge" style="background:#A8E6CF; color:#0E3B2E">POLITE · 礼貌</div>
+    <div class="zh-line">您能把这个礼品包装一下吗？</div>
+    <div class="en-line">Could you gift wrap this, please?</div>
+    <div class="phonetic">/kuːd juː ɡɪft ræp ðɪs pliːz/</div>
+    <div class="note">最常用且礼貌的说法，gift wrap 是固定搭配</div>
+  
+    </div>
+
+    <div class="footer">@en-sentence-study</div>
+  </div>
+</div>
+
+</body>
+</html>
