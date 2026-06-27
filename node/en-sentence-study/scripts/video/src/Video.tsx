@@ -1,0 +1,116 @@
+import { AbsoluteFill, Sequence } from 'remotion';
+import { Header } from './components/Header';
+import { Footer } from './components/Footer';
+import { IntroCard } from './components/cards/IntroCard';
+import { ExpressionCard } from './components/cards/ExpressionCard';
+import { SummaryCard } from './components/cards/SummaryCard';
+import { THEME_COLORS, Theme } from './theme';
+
+// ── desc JSON 类型（与 generate-desc.ts 输出对齐）──
+export type TtsSegment = {
+  lang: 'zh' | 'en';
+  text: string;
+  audio_path: string;
+  duration_ms: number;
+};
+
+export type DescCard = {
+  index: number;
+  type: 'intro' | 'expression' | 'summary';
+  duration_sec: number;
+  tts_segments: TtsSegment[];
+  style?: 'polite' | 'neutral' | 'casual' | 'bold';
+  sentence_en?: string;
+  phonetic?: string;
+  literal_translation?: string;
+  note?: string;
+};
+
+export type DescJson = {
+  id: string;
+  fps: number;
+  theme: Theme;
+  meta: {
+    scene_en: string;
+    scene_zh: string;
+    task_en: string;
+    task_zh: string;
+    context: string;
+    sentence_zh: string;
+    explanation: string;
+  };
+  cards: DescCard[];
+  scene_image: {
+    prompt: string;
+    url: string | null;
+    local_path: string;
+  };
+  duration_sec: number;
+  duration_frames: number;
+};
+
+export type VideoProps = {
+  desc: DescJson;
+  headerText?: string;
+  footerText?: string;
+};
+
+/**
+ * 端到端视频主组合：
+ *   - 底色（薄荷/暖橙）
+ *   - 每张 card 用 <Sequence> 拼接到正确时间区间
+ *   - 场景插画放进 IntroCard 内部作为主题图（不再做全局背景）
+ */
+export const Video: React.FC<VideoProps> = ({ desc, headerText, footerText }) => {
+  // 计算每张卡片的起始帧（按 duration_sec * fps 累加）
+  let frameCursor = 0;
+  const cardTimings = desc.cards.map((card) => {
+    const startFrame = frameCursor;
+    const durFrames = Math.round(card.duration_sec * desc.fps);
+    frameCursor += durFrames;
+    return { card, startFrame, durFrames };
+  });
+
+  return (
+    <AbsoluteFill style={{ background: THEME_COLORS[desc.theme].bg }}>
+      {/* 各卡片 Sequence 拼接 */}
+      {cardTimings.map(({ card, startFrame, durFrames }) => (
+        <Sequence key={card.index} from={startFrame} durationInFrames={durFrames}>
+          {card.type === 'intro' && (
+            <IntroCard
+              meta={desc.meta}
+              tts_segments={card.tts_segments}
+              theme={desc.theme}
+              scene_image={desc.scene_image}
+            />
+          )}
+          {card.type === 'expression' && (
+            <ExpressionCard
+              card={{
+                index: card.index,
+                style: card.style ?? 'neutral',
+                literal_translation: card.literal_translation ?? '',
+                sentence_en: card.sentence_en ?? '',
+                phonetic: card.phonetic ?? '',
+                note: card.note ?? '',
+                tts_segments: card.tts_segments,
+              }}
+              theme={desc.theme}
+            />
+          )}
+          {card.type === 'summary' && (
+            <SummaryCard
+              meta={desc.meta}
+              tts_segments={card.tts_segments}
+              theme={desc.theme}
+            />
+          )}
+        </Sequence>
+      ))}
+
+      {/* 全局 Header / Footer（盖在最上层，全程可见） */}
+      <Header text={headerText ?? '英语口语 · 每日一句'} theme={desc.theme} />
+      <Footer text={footerText ?? '@en-sentence-study'} theme={desc.theme} />
+    </AbsoluteFill>
+  );
+};

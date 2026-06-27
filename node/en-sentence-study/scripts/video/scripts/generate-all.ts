@@ -33,6 +33,7 @@ const IMAGE_BASE = resolve(ROOT, 'public/images');
 const FORCE = process.argv.includes('--force');
 const MIN_DURATION_SEC = 4;
 const PADDING_SEC = 1;
+const PAUSE_MS = 700; // 段间停顿（与 src/theme.ts 同步）
 
 // ─── 复用：duration 公式 + 跳过已存在文件 ─────────────────────────
 function measureMs(audioPath: string, fallbackTextLength: number): number {
@@ -87,7 +88,12 @@ async function generateCardAudio(
     console.log(`      ✓ ${(buffer.length / 1024).toFixed(1)} KB · ${(durationMs / 1000).toFixed(2)}s`);
   }
 
-  const durationSec = Math.max(MIN_DURATION_SEC, Math.ceil(totalMs / 1000) + PADDING_SEC);
+  // 包含段间停顿
+  const pauseTotalMs = Math.max(0, card.tts_segments.length - 1) * PAUSE_MS;
+  const durationSec = Math.max(
+    MIN_DURATION_SEC,
+    Math.ceil((totalMs + pauseTotalMs) / 1000) + PADDING_SEC
+  );
   card.duration_sec = durationSec;
   return { totalMs, durationSec, regenerated, skipped };
 }

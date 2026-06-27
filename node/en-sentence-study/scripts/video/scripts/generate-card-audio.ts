@@ -24,6 +24,7 @@ const AUDIO_DIR = resolve(ROOT, 'public/audio');
 
 const MIN_DURATION_SEC = 4;
 const PADDING_SEC = 1;
+const PAUSE_MS = 700; // 段间停顿（与 src/theme.ts 同步）
 
 async function generateForCard(
   desc: any,
@@ -81,7 +82,12 @@ async function generateForCard(
     }
   }
 
-  const durationSec = Math.max(MIN_DURATION_SEC, Math.ceil(totalMs / 1000) + PADDING_SEC);
+  // 包含段间停顿：n 段 → n-1 个停顿
+  const pauseTotalMs = Math.max(0, segments.length - 1) * PAUSE_MS;
+  const durationSec = Math.max(
+    MIN_DURATION_SEC,
+    Math.ceil((totalMs + pauseTotalMs) / 1000) + PADDING_SEC
+  );
 
   // 回写到 card.tts_segments
   card.tts_segments = segments.map((s) => ({

@@ -29,7 +29,7 @@
     {
       "index": 1,
       "type": "expression",
-      "duration_sec": 6,
+      "duration_sec": 7,
       "tts_segments": [
         {
           "lang": "zh",
@@ -53,7 +53,7 @@
     {
       "index": 2,
       "type": "expression",
-      "duration_sec": 5,
+      "duration_sec": 6,
       "tts_segments": [
         {
           "lang": "zh",
@@ -77,7 +77,7 @@
     {
       "index": 3,
       "type": "expression",
-      "duration_sec": 5,
+      "duration_sec": 6,
       "tts_segments": [
         {
           "lang": "zh",
@@ -125,7 +125,7 @@
     {
       "index": 5,
       "type": "expression",
-      "duration_sec": 5,
+      "duration_sec": 6,
       "tts_segments": [
         {
           "lang": "zh",
@@ -165,6 +165,6 @@
     "url": null,
     "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/1.jpg"
   },
-  "duration_sec": 61,
-  "duration_frames": 1830
+  "duration_sec": 65,
+  "duration_frames": 1950
 }

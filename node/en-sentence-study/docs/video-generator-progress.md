@@ -6,9 +6,17 @@
 
 ## 当前状态
 
-**已完成 6 步**：Remotion demo → TTS+字幕 → Header/Footer/AI插画 → desc JSON 本地生成 → HTML 卡片预览 → 卡片音频生成+duration 回填。
+**已完成 9 步**：Remotion demo → TTS+字幕 → Header/Footer/AI插画 → desc JSON 本地生成 → HTML 卡片预览 → 卡片音频生成+duration 回填 → 全量资产生成 → **三种卡片 Remotion 组件** → **Video.tsx 端到端渲染**。
 
-当前能**纯本地**把 `scripts/output/N.json` 转成 `scripts/desc/N.draft.json`，用 HTML 预览卡片排版，再用 TTS 生成各卡片的音频（zh+en 双音色）并自动回填 duration。**距离渲染真实场景视频只差一步**：把 desc JSON 喂给 Remotion。
+当前能**纯本地**把 `scripts/output/N.json` 转成 `scripts/desc/N.draft.json`，TTS 生成所有卡片音频（zh+en 双音色 + 段间 700ms 停顿），AI 生成场景插画作为 IntroCard 封面，然后 Remotion 渲染端到端视频。**视频时长 65s，6.3 MB，1080×1920**，封面色 = 浅薄荷绿。
+
+---
+
+## 下一步建议
+
+- **Step 10**：写 `scripts/render.ts` CLI，输入 desc 路径 → 输出 .mp4（喂 inputProps）
+- **Step 11**：批量跑 49 个 desc → 49 个 mp4（先跑 1.json 端到端验证 render CLI）
+- **Step 12**（可选）：LLM 优化文案（人话化 TTS 文案 / 增加更多 expressions）
 
 ---
 
@@ -176,6 +184,106 @@ public/audio/<desc-id>/<cardIdx>-<segIdx>-<lang>.mp3
 
 ---
 
+### ✅ Step 7：全量资产生成（卡片音频 + 场景插画）
+
+**目标**：一条命令搞定所有卡片音频 + 场景插画。
+
+**新增文件**：
+- `scripts/generate-all.ts` — 复用 `synthesize()` + `generate()`，生成所有 audio + image + 回填 desc
+
+**关键设计**：
+- 复用 Step 3 的 `synthesize()` 和 `generate()`，零新代码
+- `--force` 强制重生成（默认跳过已存在）
+- 场景插画 prompt 派生：scene_en + task_en → `buildScenePrompt()`
+- 回写：每个 segment 的 audio_path/duration_ms + 每张 card 的 duration_sec + scene_image.{prompt,url,local_path} + 顶层 duration_sec/frames
+
+**7 张卡片总时长**：61s · 1830 帧
+
+**关键迭代**：card 0 音频太短（仅 1.8s 太突兀）→ 把 1.json 的 `context` 加进 tts_segments 文本 → 9.33s · duration_sec=11
+
+**关键迭代**：插画 prompt 加入 `Scene situation: ${context.split(/[，。]/)[0]}` 一句，让 AI 画图时考虑场景背景
+
+---
+
+### ✅ Step 9：Video.tsx 主组合（端到端渲染）
+
+**目标**：把 desc JSON 喂给 Remotion，渲染整段视频。
+
+**新增文件**：
+- `src/Video.tsx` — 主组合，`<Sequence>` 拼接所有卡片 + 全局 Header/Footer
+- `scripts/update-durations.ts` — 用新公式（含段间停顿）重算 duration_sec
+
+**Step 9 → Step 9.1 三轮迭代**：
+
+**v1（初次）**：bg 图 + overlay + 卡片 solid bg
+- ❌ bg 图看不见：每张卡 `background: c.bg` 把全局 bg 挡死
+- 修复：去掉卡片的 `background: c.bg`，让 Video 的 bg+overlay 透过来
+
+**v2（去 bg）**：bg 图能显示但偏厚（overlay 用 0.9 alpha 太厚）
+- 修复：overlay 改 0.2-0.25 alpha
+
+**v3（用户反馈三大问题）**：
+1. ❌ bg 图喧宾夺主：移到 IntroCard 内作为封面主题图，Video 不再有 bg 图层
+2. ❌ card 0 渐渐出现：去掉入场动画（entrance fadeIn + translateY），第 0 帧直接显示 = 封面
+3. ❌ 中英文一起读（音频重叠 bug）：
+   - 原因：`<Audio>` 默认从父组件 frame 0 开始播，多个 Audio 同时播放
+   - 修复：每段 Audio 包 `<Sequence from={startFrame} durationInFrames={durFrames}>` 串行播放
+   - 段间停顿 PAUSE_MS=700：zh → pause → en
+   - en/phonetic 淡入起始帧 = zh 段结束 + pause
+
+**v4（duration 重算）**：
+- 公式：`max(4, ceil((sum_seg_ms + (n-1)*PAUSE_MS) / 1000) + 1)`
+- card 0/6（单段）duration 不变；card 1-5（双段）增加 1s
+- 同步更新 `generate-card-audio.ts` 和 `generate-all.ts` 的公式
+
+**最终结果**：
+- 视频时长：65s · 1950 帧 · 6.3 MB
+- 验证帧：
+  - frame 0：cover 图（购物插画 + SCENE/购物 + TASK/礼品包装 + 一句话）✓
+  - frame 410（zh 段播完+停顿中）：只显示 zh ✓
+  - frame 460（en 段播完时）：zh + en + 音标 + note 全部显示 ✓
+
+**踩坑记录**：
+- ⚠️ `<Audio>` 默认从父 frame 0 播放，多个 Audio 同时播 → 一定要包 `<Sequence>` 或用 `startFrom` prop
+- ⚠️ 卡片的 outer AbsoluteFill 不能有 `background: c.bg`，会挡死全局 bg 图
+- ⚠️ 卡片 Duration 必须考虑段间停顿，否则 en 段会被截断
+
+---
+
+### ✅ Step 8：三种卡片 Remotion 组件
+
+**目标**：把 Step 5 的 HTML 预览布局直接复刻为 Remotion 组件，能用 `<Audio>` 真实播音 + 帧级动效。
+
+**新增文件**：
+- `src/theme.ts` — 共享常量（LAYOUT / THEME_COLORS / STYLE_COLORS / FONT_FAMILY / `toStaticFile()` 工具）
+- `src/components/cards/IntroCard.tsx` — SCENE → 大标题 → 分隔条 → TASK → task 标题 → 一句话（6 元素 stagger fade-in）
+- `src/components/cards/ExpressionCard.tsx` — style badge → 中文 → 英文 → 音标 → note（5 元素，en/phonetic 在 zh 段播完后才淡入）
+- `src/components/cards/SummaryCard.tsx` — eyebrow + 整段 explanation（按长度自适应字号 64/56/48/42px）
+
+**临时回归测试**：
+- `src/Card1Test.tsx` — 硬编码 desc 1.draft.json 的 card 1 数据
+- `src/Root.tsx` 注册 `Card1Test` Composition（180 帧）
+- 渲染 `out/card1-test.mp4`（635 KB）+ 抽 frame 108 截图验证
+
+**关键设计**：
+- **不渲染 Header/Footer**：这俩由 Step 9 的 Video.tsx 全局套，卡片组件不管
+- **Audio 偏移**：每个 `<Audio>` 放在 card 自己的 AbsoluteFill 里，按 card 局部 frame 0 开始播放。父组件用 `<Sequence from={startFrame} durationInFrames={...}>` 包裹即可自动偏移
+- **音频路径转换**：`audio_path` 是绝对路径，`toStaticFile()` 提取 `audio/...` 相对段给 `staticFile()`
+- **en 段出现时机**：zhEndFrame = `Math.round(zh.duration_ms/1000 * fps)`，en 的 fadeIn 起始帧 = zhEndFrame
+- **自适应 Summary 字号**：explanation < 200 字 → 64px，< 400 → 56px，< 600 → 48px，≥ 600 → 42px
+
+**回归测试截图**（card 1 frame 108）：
+- POLITE · 礼貌 徽章 ✓
+- 中文 "您能把这个礼品包装一/下吗？" 2 行换行 ✓
+- 英文 "Could you gift wrap this,/please?" 2 行换行 ✓
+- 音标 "/kuːd juː ɡɪft ræp ðɪs pliːz/" 斜体 ✓
+- Note 带绿色左色条 ✓
+
+**Step 8 typecheck**：✅ `tsc --noEmit` 无错误
+**Step 8 渲染回归**：✅ card1-test.mp4 6s 635 KB，布局与 HTML 预览一致
+
+---
+
 ## 当前文件结构
 
 ```
@@ -186,40 +294,61 @@ scripts/video/
 │
 ├── src/
 │   ├── index.ts                  # registerRoot
-│   ├── Root.tsx                  # Composition: HelloWorld, 180 帧
+│   ├── Root.tsx                  # Compositions: HelloWorld + Card1Test, 各 180 帧
 │   ├── HelloWorld.tsx            # 主组件（标题 + 字幕 + 音频 + 背景图 + Header/Footer）
+│   ├── Card1Test.tsx             # 🆕 Step 8 回归测试：硬编码 card 1 数据
 │   │
 │   ├── components/
 │   │   ├── Header.tsx            # 顶部条
-│   │   └── Footer.tsx            # 底部条
+│   │   ├── Footer.tsx            # 底部条
+│   │   └── cards/                # 🆕 三种卡片组件
+│   │       ├── IntroCard.tsx     # 场景引入卡（SCENE/TASK/sentence）
+│   │       ├── ExpressionCard.tsx# 表达卡（badge/zh/en/phonetic/note）
+│   │       └── SummaryCard.tsx   # 总结卡（eyebrow + explanation）
 │   │
-│   └── api/
-│       ├── minimax-tts.ts        # TTS 客户端（zh + en 双 voice）
-│       └── minimax-image.ts      # text_to_image 客户端（base64 模式）
+│   ├── api/
+│   │   ├── minimax-tts.ts        # TTS 客户端（zh + en 双 voice）
+│   │   └── minimax-image.ts      # text_to_image 客户端（base64 模式）
+│   │
+│   └── theme.ts                  # 🆕 全局主题常量（LAYOUT/THEME_COLORS/STYLE_COLORS/toStaticFile）
 │
 ├── scripts/
 │   ├── generate-assets.ts        # 旧：Hello 资源（audio + image）
 │   ├── generate-desc.ts          # 🆕 纯本地 desc JSON 生成
 │   ├── preview-card.ts           # 🆕 HTML 卡片预览
-│   └── generate-card-audio.ts    # 🆕 TTS 生成 + duration 回填
+│   ├── generate-card-audio.ts    # 🆕 TTS 生成 + duration 回填（单 card）
+│   └── generate-all.ts           # 🆕 全量资产生成（所有 audio + scene image）
 │
 ├── public/
 │   ├── audio/
 │   │   ├── hello.mp3             # 91.7 KB, 5.76s, female-shaonv（demo 用）
 │   │   └── 1/                    # 🆕 desc/1.draft.json 对应音频
-│   │       ├── 1-0-zh.mp3        # 38 KB, 2.27s
-│   │       └── 1-1-en.mp3        # 34.5 KB, 2.05s
+│   │       ├── 0-0-zh.mp3        # 9.33s（context 已加入）
+│   │       ├── 1-0-zh.mp3        # 2.33s
+│   │       ├── 1-1-en.mp3        # 2.20s
+│   │       ├── 2-0-zh.mp3        # 2.02s
+│   │       ├── 2-1-en.mp3        # 1.55s
+│   │       ├── 3-0-zh.mp3        # 2.05s
+│   │       ├── 3-1-en.mp3        # 1.40s
+│   │       ├── 4-0-zh.mp3        # 2.34s
+│   │       ├── 4-1-en.mp3        # 1.80s
+│   │       ├── 5-0-zh.mp3        # 2.02s
+│   │       ├── 5-1-en.mp3        # 1.76s
+│   │       └── 6-0-zh.mp3        # 21.82s
 │   └── images/
-│       └── scene.jpg             # 58.4 KB, 720x1280, image-01 + base64（demo 用）
+│       ├── scene.jpg             # 58.4 KB, 720x1280, image-01 + base64（demo 用）
+│       └── 1.jpg                 # 🆕 场景插画（含 Scene situation 提示）
 │
 ├── scripts/desc/                 # 🆕 视频描述 JSON（人工审核中间产物）
-│   └── 1.draft.json              # 7 张卡片，card 1 duration_sec=6（已生成音频）
+│   └── 1.draft.json              # 7 张卡片，total 61s · 1830 帧
 │
 ├── scripts/preview/              # 🆕 HTML 卡片预览
 │   └── 1-card-1.html             # 5.3 KB
 │
 └── out/
-    └── hello.mp4                 # 656.9 KB, 1080x1920, 6s, h264+aac
+    ├── hello.mp4                 # 656.9 KB, 1080x1920, 6s, h264+aac
+    ├── card1-test.mp4            # 🆕 Step 8 回归渲染
+    └── card1-frame108.png        # 🆕 Step 8 截图验收
 ```
 
 ---
@@ -243,6 +372,9 @@ scripts/video/
 | 纯本地 desc JSON 生成（无 API） | `tsx generate-desc.ts` | ✅ 7 张卡片 |
 | HTML 卡片预览（手机框 + 自动换行） | Chrome screenshot | ✅ card 1 排版清晰 |
 | TTS 双音色（zh + en）+ duration 回填 | `tsx generate-card-audio.ts` | ✅ card 1 duration_sec=6 |
+| 全量资产生成（一键 audio + image） | `tsx generate-all.ts` | ✅ 12 音频 + 1 插画，61s 总时长 |
+| 三种卡片 Remotion 组件 | `pnpm typecheck` + Card1Test render | ✅ card1-test.mp4 6s 635 KB |
+| ExpressionCard 布局与 HTML 一致 | ffmpeg 抽 frame 108 截图 | ✅ 5 元素排版正确 |
 
 ---
 
@@ -257,18 +389,6 @@ scripts/video/
 7. **desc JSON 字段最小化**：用户明确说"不必要的字段可以去掉"——LLM 还没接入，scene_image.prompt 也暂未生成（需要 text_to_image API）；先聚焦纯本地流程
 8. **duration_sec 必须等音频**：先填 `-1` 占位，TTS 后再回填，不要写死 6 秒这种魔法数字
 9. **Chrome DevTools MCP 需要 Chrome 启动带调试端口**：CLAUDE.md 提供了启动命令
-
----
-
-## 下一步建议
-
-按计划推进：
-
-- **Step 7**（最近）：把所有 7 张卡片的音频都生成（一条命令搞定），desc 1.draft.json 填齐全部 duration
-- **Step 8**：实现 IntroCard / ExpressionCard / SummaryCard 三个 Remotion 组件（基于 Step 5 的 HTML 预览布局直接复刻）
-- **Step 9**：实现 `Video.tsx` 主组合（Sequence 拼接 + Header/Footer 套全局），feed desc JSON 作为 inputProps
-- **Step 10**：替换 HelloWorld 为 EnSentenceVideo Composition，跑通 `scripts/output/1.json` 端到端
-- **Step 11**：批量处理 49 个 JSON（人工审核中间产物，可选 LLM 优化文案）
 
 ---
 
