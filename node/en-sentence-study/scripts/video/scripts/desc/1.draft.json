@@ -1,0 +1,192 @@
+{
+  "id": "1",
+  "source_json": "scripts/output/1.json",
+  "fps": 30,
+  "duration_frames": 1200,
+  "duration_sec": 40,
+  "theme": "mint",
+
+  "meta": {
+    "scene_en": "Shopping",
+    "scene_zh": "购物",
+    "task_en": "Gift Wrapping",
+    "task_zh": "礼品包装",
+    "context": "在商场收银台结账时，顾客刚买了一件商品，想让店员帮忙把商品包装成礼品，适合送人。",
+    "explanation": "在购物结账时请求礼品包装，'gift wrap' 是最专业的表达。需要注意的是，有些商店的 gift wrap 是免费服务，有些则需要额外收费，所以有时还会听到 'Is there a charge for gift wrapping?' 这样的问句。正式场合建议使用 Could you...，口语中 Can I... 也很自然。",
+
+    "header": {
+      "text": "英语口语 · 每日一句",
+      "bgColor": "rgba(255, 255, 255, 0.85)",
+      "textColor": "#0E3B2E",
+      "fontSize": 38,
+      "height": 110
+    },
+    "footer": {
+      "text": "@en-sentence-study",
+      "bgColor": "rgba(255, 255, 255, 0.85)",
+      "textColor": "#5A8475",
+      "fontSize": 26,
+      "height": 90
+    }
+  },
+
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of a shopping mall checkout counter. A smiling shopkeeper stands behind the counter wrapping a colorful gift box with a ribbon. Shopping bags and gift boxes nearby. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 9:16 portrait composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": null
+  },
+
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 4,
+      "duration_frames": 120,
+      "header_text": "英语口语 · 每日一句",
+      "footer_text": "@en-sentence-study",
+      "tts_text": "今天我们学习购物场景中的常用表达：礼品包装。请问店员能否帮忙把商品包成礼物。",
+      "tts_language": "zh",
+      "tts_voice_id": null,
+      "tts_audio_path": null,
+      "visual": {
+        "layout": "title-big",
+        "bg_color": "#F4FBF8",
+        "accent_text": "购物 · 礼品包装",
+        "caption": null
+      }
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 6,
+      "duration_frames": 180,
+      "header_text": "英语口语 · 每日一句",
+      "footer_text": "@en-sentence-study",
+      "tts_text": "Could you gift wrap this, please?",
+      "tts_language": "en",
+      "tts_voice_id": null,
+      "tts_audio_path": null,
+      "visual": {
+        "layout": "split",
+        "bg_color": "#FFFFFF",
+        "accent_text": null,
+        "caption": "最常用且礼貌 · 正式场合首选"
+      },
+      "style": "polite",
+      "sentence_en": "Could you gift wrap this, please?",
+      "phonetic": "kuːd juː ɡɪft ræp ðɪs pliːz",
+      "literal_translation": "您能把这个礼品包装一下吗？",
+      "note": "最常用且礼貌的说法，gift wrap 是固定搭配"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 6,
+      "duration_frames": 180,
+      "header_text": "英语口语 · 每日一句",
+      "footer_text": "@en-sentence-study",
+      "tts_text": "Can I get this gift wrapped?",
+      "tts_language": "en",
+      "tts_voice_id": null,
+      "tts_audio_path": null,
+      "visual": {
+        "layout": "split",
+        "bg_color": "#FFFFFF",
+        "accent_text": null,
+        "caption": "中性表达 · 常见于北美地区"
+      },
+      "style": "neutral",
+      "sentence_en": "Can I get this gift wrapped?",
+      "phonetic": "kæn aɪ ɡet ðɪs ɡɪft ræpt",
+      "literal_translation": "我可以把这个礼品包装吗？",
+      "note": "中性表达，常见于北美地区"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 6,
+      "duration_frames": 180,
+      "header_text": "英语口语 · 每日一句",
+      "footer_text": "@en-sentence-study",
+      "tts_text": "Do you offer gift wrapping?",
+      "tts_language": "en",
+      "tts_voice_id": null,
+      "tts_audio_path": null,
+      "visual": {
+        "layout": "split",
+        "bg_color": "#FFFFFF",
+        "accent_text": null,
+        "caption": "询问服务 · 比较正式"
+      },
+      "style": "neutral",
+      "sentence_en": "Do you offer gift wrapping?",
+      "phonetic": "duː juː ˈɔfər ɡɪft ˈræpɪŋ",
+      "literal_translation": "你们提供礼品包装服务吗？",
+      "note": "询问是否有gift wrapping服务，比较正式"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 6,
+      "duration_frames": 180,
+      "header_text": "英语口语 · 每日一句",
+      "footer_text": "@en-sentence-study",
+      "tts_text": "I'd like this wrapped, please.",
+      "tts_language": "en",
+      "tts_voice_id": null,
+      "tts_audio_path": null,
+      "visual": {
+        "layout": "split",
+        "bg_color": "#FFFFFF",
+        "accent_text": null,
+        "caption": "简洁表达 · 暗示作为礼物"
+      },
+      "style": "neutral",
+      "sentence_en": "I'd like this wrapped, please.",
+      "phonetic": "aɪd laɪk ðɪs ræpt pliːz",
+      "literal_translation": "我想要这个包装一下，谢谢。",
+      "note": "简洁表达，暗示作为礼物包装"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 6,
+      "duration_frames": 180,
+      "header_text": "英语口语 · 每日一句",
+      "footer_text": "@en-sentence-study",
+      "tts_text": "Can you wrap this as a gift?",
+      "tts_language": "en",
+      "tts_voice_id": null,
+      "tts_audio_path": null,
+      "visual": {
+        "layout": "split",
+        "bg_color": "#FFFFFF",
+        "accent_text": null,
+        "caption": "口语化 · 直接自然的表达"
+      },
+      "style": "casual",
+      "sentence_en": "Can you wrap this as a gift?",
+      "phonetic": "kæn juː ræp ðɪs æz ə ɡɪft",
+      "literal_translation": "你能把这个包成礼物吗？",
+      "note": "口语化，直接自然的表达"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 4,
+      "duration_frames": 120,
+      "header_text": "英语口语 · 每日一句",
+      "footer_text": "@en-sentence-study",
+      "tts_text": "购物结账时请求礼品包装，gift wrap 是最专业的表达。正式场合建议用 Could you 开头，口语中 Can I 也自然。注意部分商店需要额外收费。",
+      "tts_language": "zh",
+      "tts_voice_id": null,
+      "tts_audio_path": null,
+      "visual": {
+        "layout": "caption-bottom",
+        "bg_color": "#F4FBF8",
+        "accent_text": null,
+        "caption": "今日小结"
+      }
+    }
+  ]
+}
