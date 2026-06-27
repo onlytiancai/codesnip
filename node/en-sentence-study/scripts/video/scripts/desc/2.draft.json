@@ -22,7 +22,7 @@
           "lang": "zh",
           "text": "约会：发起约会。小李在图书馆学习时，偶然遇到了隔壁班的心仪女生小雨。两人正在讨论一本书，小李鼓起勇气想邀请她出去。",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/0-0-zh.mp3",
-          "duration_ms": 11916
+          "duration_ms": 11854
         }
       ]
     },
@@ -35,13 +35,13 @@
           "lang": "zh",
           "text": "这周末有新电影上映。你愿意和我一起去看吗？",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/1-0-zh.mp3",
-          "duration_ms": 3636
+          "duration_ms": 3576
         },
         {
           "lang": "en",
           "text": "There's a new movie out this weekend. Would you like to go see it with me?",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/1-1-en.mp3",
-          "duration_ms": 4104
+          "duration_ms": 4052
         }
       ],
       "style": "polite",
@@ -59,13 +59,13 @@
           "lang": "zh",
           "text": "你这周末想不想去看场电影？",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/2-0-zh.mp3",
-          "duration_ms": 2232
+          "duration_ms": 2171
         },
         {
           "lang": "en",
           "text": "Do you wanna catch a movie this weekend?",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/2-1-en.mp3",
-          "duration_ms": 2052
+          "duration_ms": 1997
         }
       ],
       "style": "casual",
@@ -83,13 +83,13 @@
           "lang": "zh",
           "text": "嘿，你周六有空吗？让我带你出去。",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/3-0-zh.mp3",
-          "duration_ms": 3384
+          "duration_ms": 3320
         },
         {
           "lang": "en",
           "text": "Hey, are you free Saturday? Let me take you out.",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/3-1-en.mp3",
-          "duration_ms": 3168
+          "duration_ms": 3112
         }
       ],
       "style": "neutral",
@@ -107,13 +107,13 @@
           "lang": "zh",
           "text": "你这周末有什么安排？也许我们可以出来玩？",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/4-0-zh.mp3",
-          "duration_ms": 3636
+          "duration_ms": 3576
         },
         {
           "lang": "en",
           "text": "What are you up to this weekend? Maybe we could hang out?",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/4-1-en.mp3",
-          "duration_ms": 2808
+          "duration_ms": 2763
         }
       ],
       "style": "casual",
@@ -131,13 +131,13 @@
           "lang": "zh",
           "text": "我一直想约你出来。晚餐加电影怎么样？",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/5-0-zh.mp3",
-          "duration_ms": 3276
+          "duration_ms": 3239
         },
         {
           "lang": "en",
           "text": "I've been wanting to ask you out. How about dinner and a movie?",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/5-1-en.mp3",
-          "duration_ms": 3564
+          "duration_ms": 3495
         }
       ],
       "style": "bold",

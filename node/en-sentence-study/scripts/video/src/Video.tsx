@@ -122,7 +122,7 @@ export const Video: React.FC<VideoProps> = ({ desc, headerText, footerText }) =>
       ))}
 
       {/* 全局 Header / Footer（盖在最上层，全程可见） */}
-      <Header text={headerText ?? '蛙蛙英语口语'} theme={desc.theme} />
+      <Header text={headerText ?? '蛙蛙英语口语 | 每日一句'} theme={desc.theme} />
       <Footer text={footerText ?? '@en-sentence-study'} theme={desc.theme} />
     </AbsoluteFill>
   );
