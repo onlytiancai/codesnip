@@ -1,12 +1,22 @@
-import { Composition } from 'remotion';
+import { CalculateMetadataFunction, Composition } from 'remotion';
 import { HelloWorld } from './HelloWorld';
 import { Card1Test } from './Card1Test';
 import { Video, type DescJson } from './Video';
 
-// 默认绑定 desc 1.draft.json；用 CLI --props=<json> 可覆盖（Step 10 写 render 脚本时用）
+// 默认绑定 desc 1.draft.json；用 CLI --props=<json> 可覆盖任意 desc
 import descData from '../scripts/desc/1.draft.json';
 
 const defaultDesc = descData as unknown as DescJson;
+
+// 根据 inputProps.desc 动态算 durationInFrames/fps，让 CLI 喂不同 desc 时不卡死
+const calculateMetadata: CalculateMetadataFunction<{ desc: DescJson }> = async ({
+  props,
+}) => ({
+  durationInFrames: props.desc.duration_frames,
+  fps: props.desc.fps,
+  width: 1080,
+  height: 1920,
+});
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -28,7 +38,7 @@ export const RemotionRoot: React.FC = () => {
         width={1080}
         height={1920}
       />
-      {/* Step 9：端到端视频组合（喂整份 desc JSON） */}
+      {/* Step 9/10：端到端视频组合（feed 整份 desc JSON，duration 动态） */}
       <Composition
         id="EnSentenceVideo"
         component={Video}
@@ -37,6 +47,7 @@ export const RemotionRoot: React.FC = () => {
         width={1080}
         height={1920}
         defaultProps={{ desc: defaultDesc }}
+        calculateMetadata={calculateMetadata}
       />
     </>
   );

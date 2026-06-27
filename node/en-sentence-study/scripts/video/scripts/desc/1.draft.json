@@ -22,14 +22,14 @@
           "lang": "zh",
           "text": "购物：礼品包装。在商场收银台结账时，顾客刚买了一件商品，想让店员帮忙把商品包装成礼品，适合送人。",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/1/0-0-zh.mp3",
-          "duration_ms": 9648
+          "duration_ms": 9108
         }
       ]
     },
     {
       "index": 1,
       "type": "expression",
-      "duration_sec": 7,
+      "duration_sec": 6,
       "tts_segments": [
         {
           "lang": "zh",
@@ -41,7 +41,7 @@
           "lang": "en",
           "text": "Could you gift wrap this, please?",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/1/1-1-en.mp3",
-          "duration_ms": 2196
+          "duration_ms": 1872
         }
       ],
       "style": "polite",
@@ -59,7 +59,7 @@
           "lang": "zh",
           "text": "我可以把这个礼品包装吗？",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/1/2-0-zh.mp3",
-          "duration_ms": 2016
+          "duration_ms": 2340
         },
         {
           "lang": "en",
@@ -83,13 +83,13 @@
           "lang": "zh",
           "text": "你们提供礼品包装服务吗？",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/1/3-0-zh.mp3",
-          "duration_ms": 2052
+          "duration_ms": 2232
         },
         {
           "lang": "en",
           "text": "Do you offer gift wrapping?",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/1/3-1-en.mp3",
-          "duration_ms": 1404
+          "duration_ms": 1584
         }
       ],
       "style": "neutral",
@@ -107,13 +107,13 @@
           "lang": "zh",
           "text": "我想要这个包装一下，谢谢。",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/1/4-0-zh.mp3",
-          "duration_ms": 2340
+          "duration_ms": 2592
         },
         {
           "lang": "en",
           "text": "I'd like this wrapped, please.",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/1/4-1-en.mp3",
-          "duration_ms": 1800
+          "duration_ms": 1620
         }
       ],
       "style": "neutral",
@@ -137,7 +137,7 @@
           "lang": "en",
           "text": "Can you wrap this as a gift?",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/1/5-1-en.mp3",
-          "duration_ms": 1764
+          "duration_ms": 1800
         }
       ],
       "style": "casual",
@@ -155,16 +155,16 @@
           "lang": "zh",
           "text": "在购物结账时请求礼品包装，'gift wrap' 是最专业的表达。需要注意的是，有些商店的 gift wrap 是免费服务，有些则需要额外收费，所以有时还会听到 'Is there a charge for gift wrapping?' 这样的问句。正式场合建议使用 Could you...，口语中 Can I... 也很自然。",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/1/6-0-zh.mp3",
-          "duration_ms": 21816
+          "duration_ms": 21528
         }
       ]
     }
   ],
   "scene_image": {
-    "prompt": "A bright, minimalist flat illustration of Shopping scene, Gift Wrapping task. Scene situation: 在商场收银台结账时. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 9:16 portrait composition, vector art style, cheerful mood.",
+    "prompt": "A bright, minimalist flat illustration of Shopping scene, Gift Wrapping task. Scene situation: 在商场收银台结账时. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
     "url": null,
     "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/1.jpg"
   },
-  "duration_sec": 65,
-  "duration_frames": 1950
+  "duration_sec": 64,
+  "duration_frames": 1920
 }

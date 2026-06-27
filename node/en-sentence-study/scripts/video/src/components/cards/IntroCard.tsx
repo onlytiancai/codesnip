@@ -9,6 +9,7 @@ type Props = {
   };
   tts_segments: TtsSegment[];
   theme: Theme;
+  dayNumber: number;
   scene_image?: {
     prompt: string;
     url: string | null;
@@ -18,10 +19,10 @@ type Props = {
 
 /**
  * 场景引入卡（card 0）— 作为视频封面
- * 布局：上半 60% = 主题插画（圆角面板），下半 40% = SCENE/TASK/sentence 文案
+ * 布局：上半 = 16:9 横版主题图（顶部 banner 圆角面板），下半 = Day N 徽章 + SCENE/TASK/sentence 文案
  * 动效：无入场（视频第 0 帧直接是图片作为封面）；保留淡出用于平滑过渡
  */
-export const IntroCard: React.FC<Props> = ({ meta, tts_segments, theme, scene_image }) => {
+export const IntroCard: React.FC<Props> = ({ meta, tts_segments, theme, dayNumber, scene_image }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
   const c = THEME_COLORS[theme];
@@ -36,35 +37,36 @@ export const IntroCard: React.FC<Props> = ({ meta, tts_segments, theme, scene_im
 
   const seg0 = tts_segments[0];
 
-  // 主题图区域：top=headerHeight+60, height=1100（约 57% 屏幕）
-  const imageTop = LAYOUT.headerHeight + 60;
-  const imageHeight = 1100;
+  // 横版主题图区域：宽度 90%（972px），水平居中，高度按 16:9 自适应（547px）
+  const imageWidth = 1080 * 0.9; // 972px
+  const imageLeft = (1080 - imageWidth) / 2; // 54px 居中
+  const imageHeight = imageWidth / (16 / 9); // 547px
+  const imageTop = LAYOUT.headerHeight + 40;
+  const textTop = imageTop + imageHeight + 40;
 
   return (
     <AbsoluteFill style={{ fontFamily: FONT_FAMILY, opacity: exit }}>
-      {/* ① 主题图（上 57%，圆角面板，居中） */}
+      {/* ① 16:9 横版主题图（顶部 banner，宽 90%，水平居中，高自适应） */}
       {scene_image?.local_path && (
         <Img
           src={staticFile(toStaticFile(scene_image.local_path))}
           style={{
             position: 'absolute',
             top: imageTop,
-            left: 60,
-            right: 60,
+            left: imageLeft,
+            width: imageWidth,
             height: imageHeight,
-            width: 'auto',
-            objectFit: 'cover',
-            borderRadius: 36,
+            borderRadius: 32,
             boxShadow: '0 12px 40px rgba(14, 59, 46, 0.18)',
           }}
         />
       )}
 
-      {/* ② 文案区（图下方到 footer 上方，居中） */}
+      {/* ② 文案区（横版图下方到 footer 上方） */}
       <div
         style={{
           position: 'absolute',
-          top: imageTop + imageHeight + 40,
+          top: textTop,
           bottom: LAYOUT.footerHeight + 60,
           left: LAYOUT.paddingX,
           right: LAYOUT.paddingX,
@@ -74,23 +76,41 @@ export const IntroCard: React.FC<Props> = ({ meta, tts_segments, theme, scene_im
           alignItems: 'flex-start',
         }}
       >
+        {/* Day N 徽章（从 desc.id 提取序号） */}
         <div
           style={{
+            display: 'inline-block',
+            padding: '12px 28px',
+            borderRadius: 100,
+            background: c.accent,
+            color: '#FFFFFF',
             fontSize: 32,
+            fontWeight: 700,
+            letterSpacing: '2px',
+            marginBottom: 28,
+            boxShadow: `0 6px 20px ${c.accent}55`,
+          }}
+        >
+          DAY {dayNumber}
+        </div>
+
+        <div
+          style={{
+            fontSize: 36,
             color: c.accent,
             fontWeight: 600,
-            letterSpacing: '5px',
-            marginBottom: 12,
+            letterSpacing: '6px',
+            marginBottom: 16,
           }}
         >
           SCENE
         </div>
         <h1
           style={{
-            fontSize: 96,
+            fontSize: 120,
             color: c.text,
             fontWeight: 800,
-            margin: '0 0 20px 0',
+            margin: '0 0 24px 0',
             lineHeight: 1.05,
             wordWrap: 'break-word',
             wordBreak: 'break-word',
@@ -100,30 +120,30 @@ export const IntroCard: React.FC<Props> = ({ meta, tts_segments, theme, scene_im
         </h1>
         <div
           style={{
-            width: 100,
-            height: 5,
+            width: 110,
+            height: 6,
             background: c.accent,
-            margin: '20px 0',
+            margin: '24px 0',
             borderRadius: 3,
           }}
         />
         <div
           style={{
-            fontSize: 32,
+            fontSize: 36,
             color: c.accent,
             fontWeight: 600,
-            letterSpacing: '5px',
-            marginBottom: 12,
+            letterSpacing: '6px',
+            marginBottom: 16,
           }}
         >
           TASK
         </div>
         <h2
           style={{
-            fontSize: 72,
+            fontSize: 88,
             color: c.accent,
             fontWeight: 700,
-            margin: '0 0 32px 0',
+            margin: '0 0 36px 0',
             lineHeight: 1.15,
             wordWrap: 'break-word',
             wordBreak: 'break-word',
@@ -133,7 +153,7 @@ export const IntroCard: React.FC<Props> = ({ meta, tts_segments, theme, scene_im
         </h2>
         <div
           style={{
-            fontSize: 40,
+            fontSize: 44,
             color: c.subtext,
             lineHeight: 1.4,
             wordWrap: 'break-word',

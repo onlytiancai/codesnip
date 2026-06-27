@@ -110,7 +110,7 @@ function buildScenePrompt(meta: {
     `Scene situation: ${situation}. ` +
     `Soft pastel colors (mint green, peach, light yellow). ` +
     `White background, no text, no real people faces, no watermark, ` +
-    `9:16 portrait composition, vector art style, cheerful mood.`;
+    `16:9 landscape composition, vector art style, cheerful mood.`;
 }
 
 // ─── 场景插画生成 ────────────────────────────────────────────
@@ -132,7 +132,7 @@ async function generateSceneImage(
   console.log(`   🎨 调用 text_to_image（base64 模式，避开签名 URL 403）...`);
   const imgs = await generate({
     prompt,
-    aspectRatio: '9:16',
+    aspectRatio: '16:9',
     model: 'image-01',
     responseFormat: 'base64',
   });

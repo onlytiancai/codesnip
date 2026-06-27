@@ -1,0 +1,170 @@
+{
+  "id": "2",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/2.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Dating",
+    "scene_zh": "约会",
+    "task_en": "Asking Someone Out",
+    "task_zh": "发起约会",
+    "context": "小李在图书馆学习时，偶然遇到了隔壁班的心仪女生小雨。两人正在讨论一本书，小李鼓起勇气想邀请她出去。",
+    "sentence_zh": "这周末有部新电影上映，想不想一起去看？",
+    "explanation": "在英语约会场景中，邀请对方出去的方式取决于你们的关系程度和对方的性格。polite风格适合刚认识不久或不太确定对方心意时使用；casual风格适合已经有些熟悉的人；bold风格则适合你很有把握对方会答应的情况。需要注意的是，'date'这个词在英语中比中文的'约会'更直接暗示浪漫意味，所以如果只是普通朋友出去，用'movie'或'hang out'会更安全。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 13,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "约会：发起约会。小李在图书馆学习时，偶然遇到了隔壁班的心仪女生小雨。两人正在讨论一本书，小李鼓起勇气想邀请她出去。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/0-0-zh.mp3",
+          "duration_ms": 11916
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 10,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "这周末有新电影上映。你愿意和我一起去看吗？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/1-0-zh.mp3",
+          "duration_ms": 3636
+        },
+        {
+          "lang": "en",
+          "text": "There's a new movie out this weekend. Would you like to go see it with me?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/1-1-en.mp3",
+          "duration_ms": 4104
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "There's a new movie out this weekend. Would you like to go see it with me?",
+      "phonetic": "ðɛrz ə njuː ˈmuːvi aʊt ðɪs ˈwiːkˌɛnd. wʊd juː laɪk tuː ɡoʊ siː ɪt wɪð miː?",
+      "literal_translation": "这周末有新电影上映。你愿意和我一起去看吗？",
+      "note": "礼貌且具体，提出了明确的邀约内容"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 6,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "你这周末想不想去看场电影？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/2-0-zh.mp3",
+          "duration_ms": 2232
+        },
+        {
+          "lang": "en",
+          "text": "Do you wanna catch a movie this weekend?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/2-1-en.mp3",
+          "duration_ms": 2052
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "Do you wanna catch a movie this weekend?",
+      "phonetic": "duː juː ˈwɒnə kætʃ ə ˈmuːvi ðɪs ˈwiːkˌɛnd?",
+      "literal_translation": "你这周末想不想去看场电影？",
+      "note": "口语化表达，'catch a movie'是常见俚语"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 9,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "嘿，你周六有空吗？让我带你出去。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/3-0-zh.mp3",
+          "duration_ms": 3384
+        },
+        {
+          "lang": "en",
+          "text": "Hey, are you free Saturday? Let me take you out.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/3-1-en.mp3",
+          "duration_ms": 3168
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "Hey, are you free Saturday? Let me take you out.",
+      "phonetic": "heɪ, ɑːr juː friː ˈsætərdeɪ? lɛt miː teɪk juː aʊt.",
+      "literal_translation": "嘿，你周六有空吗？让我带你出去。",
+      "note": "直接但友好的邀请，'take you out'暗示请客"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 9,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "你这周末有什么安排？也许我们可以出来玩？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/4-0-zh.mp3",
+          "duration_ms": 3636
+        },
+        {
+          "lang": "en",
+          "text": "What are you up to this weekend? Maybe we could hang out?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/4-1-en.mp3",
+          "duration_ms": 2808
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "What are you up to this weekend? Maybe we could hang out?",
+      "phonetic": "wɒt ɑːr juː ʌp tuː ðɪs ˈwiːkˌɛnd? ˈmeɪbiː wiː kʊd hæŋ aʊt?",
+      "literal_translation": "你这周末有什么安排？也许我们可以出来玩？",
+      "note": "轻松试探性的邀请，给对方留有余地"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 9,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我一直想约你出来。晚餐加电影怎么样？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/5-0-zh.mp3",
+          "duration_ms": 3276
+        },
+        {
+          "lang": "en",
+          "text": "I've been wanting to ask you out. How about dinner and a movie?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/5-1-en.mp3",
+          "duration_ms": 3564
+        }
+      ],
+      "style": "bold",
+      "sentence_en": "I've been wanting to ask you out. How about dinner and a movie?",
+      "phonetic": "aɪv biːn ˈwɒntɪŋ tuː æsk juː aʊt. haʊ əˈbaʊt ˈdɪnər ænd ə ˈmuːvi?",
+      "literal_translation": "我一直想约你出来。晚餐加电影怎么样？",
+      "note": "明确表示想约会，直接邀请共进晚餐和看电影"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 33,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "在英语约会场景中，邀请对方出去的方式取决于你们的关系程度和对方的性格。polite风格适合刚认识不久或不太确定对方心意时使用；casual风格适合已经有些熟悉的人；bold风格则适合你很有把握对方会答应的情况。需要注意的是，'date'这个词在英语中比中文的'约会'更直接暗示浪漫意味，所以如果只是普通朋友出去，用'movie'或'hang out'会更安全。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/2/6-0-zh.mp3",
+          "duration_ms": 31788
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Dating scene, Asking Someone Out task. Scene situation: 小李在图书馆学习时. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/2.jpg"
+  },
+  "duration_sec": 89,
+  "duration_frames": 2670
+}

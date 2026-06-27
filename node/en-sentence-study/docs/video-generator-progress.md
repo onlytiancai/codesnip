@@ -6,17 +6,17 @@
 
 ## 当前状态
 
-**已完成 9 步**：Remotion demo → TTS+字幕 → Header/Footer/AI插画 → desc JSON 本地生成 → HTML 卡片预览 → 卡片音频生成+duration 回填 → 全量资产生成 → **三种卡片 Remotion 组件** → **Video.tsx 端到端渲染**。
+**已完成 10 步 + 一轮 UI 升级**：Remotion demo → TTS+字幕 → Header/Footer/AI插画 → desc JSON 本地生成 → HTML 卡片预览 → 卡片音频生成+duration 回填 → 全量资产生成 → 三种卡片 Remotion 组件 → Video.tsx 端到端渲染 → **`scripts/render.ts` 分阶段 CLI** → **UI 升级（蛙蛙英语口语 + DAY N + i/M 进度）**。
 
-当前能**纯本地**把 `scripts/output/N.json` 转成 `scripts/desc/N.draft.json`，TTS 生成所有卡片音频（zh+en 双音色 + 段间 700ms 停顿），AI 生成场景插画作为 IntroCard 封面，然后 Remotion 渲染端到端视频。**视频时长 65s，6.3 MB，1080×1920**，封面色 = 浅薄荷绿。
+当前能一条命令 `tsx scripts/render.ts scripts/output/1.json` 端到端生成 mp4，或单独跑 `desc / assets / audio / video` 任一阶段；渲染后可加 `--clean` 自动清理中间产物。视频时长 64-89s，6.3-9.5 MB，1080×1920，封面色 = 浅薄荷绿；Header 显示"蛙蛙英语口语"，IntroCard 显示 DAY N，ExpressionCard 右上角显示 i/M 进度。
 
 ---
 
 ## 下一步建议
 
-- **Step 10**：写 `scripts/render.ts` CLI，输入 desc 路径 → 输出 .mp4（喂 inputProps）
-- **Step 11**：批量跑 49 个 desc → 49 个 mp4（先跑 1.json 端到端验证 render CLI）
+- **Step 11**：批量跑 49 个 desc → 49 个 mp4（render CLI 已就绪，循环 + 异常处理即可）
 - **Step 12**（可选）：LLM 优化文案（人话化 TTS 文案 / 增加更多 expressions）
+- **Step 13**（可选）：封面图 prompt 优化 / 添加动态元素 / 字体样式精修
 
 ---
 
@@ -416,3 +416,218 @@ scripts/video/
 | 自动换行 | CSS `word-wrap: break-word; word-break: break-word;` 应用到所有文字元素 |
 | 不需要人话化 | `generate-desc.ts` 直接用源字段原文，不调 LLM |
 | 纯本地生成 | `generate-desc.ts` 0 个外部依赖、0 次 API 调用 |
+
+---
+
+### ✅ Step 10：render.ts 分阶段 CLI + UI 升级
+
+**目标**：把"四步产物生成 + Remotion 渲染"打包成一条命令，且支持分阶段、强制、清理。
+
+**新增文件**：
+- `scripts/render.ts` — 端到端视频生成流水线 CLI
+
+**关键设计**：
+- **4 阶段 + 1 all**：`--phase=desc|assets|audio|video|all`，默认 `all`
+- **路径基准分离**：`PROJECT_ROOT = en-sentence-study/`（input 路径基准）vs `ROOT = scripts/video/`（产物路径基准）。这避免了用户 `scripts/output/N.json` 的相对路径在不同 cwd 下解析错乱
+- **复用 + 串行**：desc 阶段 spawn 到原有 `generate-desc.ts`；assets/audio/video 阶段直接 import minimax-tts/minimax-image API 调用，零重复逻辑
+- **--clean 清理**：渲染完成后删除 `public/images/N.jpg`、`public/audio/N/`、`scripts/desc/N.draft.json`，仅保留最终 mp4；支持 `--keep-images/--keep-audio/--keep-desc` 部分保留
+- **--force 强制**：跳过已存在检测，全部重生成
+- **自动推导 desc 路径**：当只给 `--input` 而非 `--phase=desc` 时，自动从 input 文件名推导 desc 路径
+
+**v1 → v2 迭代**：
+
+**v1**：input path 用 `resolve(opts.input)`，相对 ROOT（video）解析
+- ❌ 用户给 `scripts/output/2.json` → 解析为 `video/scripts/output/2.json`（错），找不到
+- 修复：`resolve(PROJECT_ROOT, opts.input)` → 用户给相对项目根的路径
+
+**v2**：PROJECT_ROOT 计算错误
+- ❌ `resolve(ROOT, '..')` → `scripts/`（错），input 变 `scripts/scripts/output/2.json`
+- 修复：`resolve(ROOT, '../..')` → `en-sentence-study/`
+
+**v3**：input 路径修复后，desc/2.draft.json 已存在 → phaseDesc 跳过 → 端到端成功（87s · 9.5 MB · 2670 帧）
+
+**验证**：
+```bash
+pnpm exec tsx scripts/render.ts scripts/output/1.json              # 端到端
+pnpm exec tsx scripts/render.ts scripts/output/1.json --phase assets --force  # 仅重新生成 1.jpg
+pnpm exec tsx scripts/render.ts scripts/output/1.json --phase video --clean   # 渲染 + 清理
+```
+
+**Step 10 typecheck**：✅ `tsc --noEmit` 无错误
+
+---
+
+### ✅ Step 10.1：UI 升级（蛙蛙英语口语 + DAY N + i/M 进度）
+
+**目标**：让视频更有"学习产品"的感觉：标识品牌、明确第几天、显示进度。
+
+**改动文件**：
+| 文件 | 改动 |
+|------|------|
+| `src/Video.tsx` | Header 默认 `英语口语·每日一句` → `蛙蛙英语口语`；计算 `dayNumber`（从 `desc.id` 末尾数字提取）和 `exprIdx/total`（expression card 进度） |
+| `src/components/cards/IntroCard.tsx` | 新增 `dayNumber: number` prop；在 SCENE 上方加绿色 "DAY N" 胶囊徽章 |
+| `src/components/cards/ExpressionCard.tsx` | 新增 `progress?: {current,total}` prop；右上角加绿色 "i/M" 胶囊（仅 expression card） |
+
+**关键设计**：
+- **Day N 提取**：`parseInt(desc.id.match(/(\d+)$/)?.[1] ?? '0', 10) || 1`，兼容 `1.json` / `49.json` / `draft-1.json` 等命名
+- **进度 i/M**：分子 = 当前 card 在 expression 列表中的位置（1-based），分母 = 所有 expression cards 总数
+- **胶囊样式**：圆角 100px，绿色背景 `c.accent`，白色文字 + 阴影；与 POLITE/NEUTRAL/CASUAL/BOLD 风格徽章视觉一致
+
+**验证（frame 抽帧）**：
+- `out/v3-cover-1.png`（1.json frame 0）：DAY 1 徽章 + SCENE/购物 + TASK/礼品包装 ✓
+- `out/v3-card1.png`（1.json frame 500）：Header "蛙蛙英语口语" + 右上角 "1/5" + POLITE 徽章 + 中文 + 英文 + 音标 + Note ✓
+- `out/v3-card3.png`（1.json frame 900）：右上角 "4/5"（i 动态变化）✓
+- `out/v3-cover-2.png`（2.json frame 0）：DAY 2 徽章 ✓
+
+**额外修复（图片裁剪）**：
+- 用户报告横版插图右侧被裁剪
+- 原代码：`width: 'auto'` + `left:60, right:60` + `height:760` + `objectFit: cover`
+  - 1280×720 图按 height=760 缩放后 width=1351px，超出 1080 画布
+- 改为：`width: 1080 × 0.9 = 972px`（宽 90%）+ `left: 54px`（水平居中）+ `height: 547px`（按 16:9 自适应）
+  - 完整显示无裁剪
+- 文字区起始位置下移：`textTop = imageTop + imageHeight + 40 = 737px`（原 950px）
+
+---
+
+### ✅ Step 10.2：图片裁剪问题最终修复
+
+**问题**：1280×720 横版插图按 height=760 缩放后 width=1351px，超出 1080 画布导致右侧被裁剪。
+
+**原代码**（`IntroCard.tsx`）：
+```tsx
+<Img
+  style={{
+    top: imageTop, left: 60, right: 60,
+    height: imageHeight,        // 760
+    width: 'auto',              // ← 罪魁！让 width 跟 height 算成 1351px
+    objectFit: 'cover',
+  }}
+/>
+```
+
+**修复**（`IntroCard.tsx`）：
+```tsx
+const imageWidth = 1080 * 0.9;             // 972px（90% 宽）
+const imageLeft = (1080 - imageWidth) / 2;  // 54px 居中
+const imageHeight = imageWidth / (16 / 9);  // 547px（16:9 自适应）
+
+<Img
+  style={{
+    top: imageTop, left: imageLeft,
+    width: imageWidth, height: imageHeight,
+    // 移除 width: 'auto' 和 objectFit: cover（精确尺寸无需裁切）
+    borderRadius: 32,
+    boxShadow: '0 12px 40px rgba(14, 59, 46, 0.18)',
+  }}
+/>
+```
+
+**效果**：插图完整显示，左右两侧不再被裁剪；下方文字区起始位置从 950px 下移到 737px，给文字更多呼吸空间。
+
+---
+
+## 当前文件结构
+
+```
+scripts/video/
+├── package.json                  # pnpm@10.26.0, type:module
+├── tsconfig.json                 # ES2022 + react-jsx
+├── remotion.config.ts            # jpeg 帧格式, overwrite, concurrency=1
+│
+├── src/
+│   ├── index.ts                  # registerRoot
+│   ├── Root.tsx                  # Compositions: HelloWorld / Card1Test / EnSentenceVideo
+│   ├── Video.tsx                 # 🆕 Step 9 主组合：Sequence 拼接 + 全局 Header/Footer
+│   ├── HelloWorld.tsx            # demo
+│   ├── Card1Test.tsx             # Step 8 回归测试
+│   │
+│   ├── components/
+│   │   ├── Header.tsx            # 顶部条（Step 10.1 文案改"蛙蛙英语口语"）
+│   │   ├── Footer.tsx            # 底部条
+│   │   └── cards/
+│   │       ├── IntroCard.tsx     # 🆕 Step 10.1 加 DAY N 徽章；Step 10.2 图片改 90% 宽自适应
+│   │       ├── ExpressionCard.tsx# 🆕 Step 10.1 加 i/M 进度；Step 9 zh→pause→en 音频错位修复
+│   │       └── SummaryCard.tsx   # 总结卡（eyebrow + explanation 自适应字号）
+│   │
+│   ├── api/
+│   │   ├── minimax-tts.ts        # TTS 客户端（zh + en 双 voice）
+│   │   └── minimax-image.ts      # text_to_image 客户端（base64 模式）
+│   │
+│   └── theme.ts                  # 全局主题常量（LAYOUT/THEME_COLORS/STYLE_COLORS/toStaticFile）
+│
+├── scripts/
+│   ├── generate-assets.ts        # 旧：Hello 资源（audio + image）
+│   ├── generate-desc.ts          # 纯本地 desc JSON 生成
+│   ├── preview-card.ts           # HTML 卡片预览
+│   ├── generate-card-audio.ts    # TTS 生成 + duration 回填（单 card）
+│   ├── generate-all.ts           # 全量资产生成（所有 audio + scene image）
+│   └── render.ts                 # 🆕 Step 10 端到端 CLI（desc/assets/audio/video 分阶段 + --clean）
+│
+├── public/
+│   ├── audio/
+│   │   ├── hello.mp3             # demo
+│   │   └── N/                    # desc N 对应音频（按 cardIdx-segIdx-lang 命名）
+│   └── images/
+│       ├── scene.jpg             # demo
+│       └── N.jpg                 # 🆕 场景插画（1280x720 横版，含 Scene situation 提示）
+│
+├── scripts/desc/                 # 视频描述 JSON（人工审核中间产物）
+├── scripts/preview/              # HTML 卡片预览
+└── out/                          # 渲染输出（mp4 + 帧截图）
+    ├── 1-desc.mp4                # 🆕 Step 10 端到端渲染（64s · 6.3 MB）
+    └── 2-desc.mp4                # 🆕 Step 10 端到端渲染（89s · 9.5 MB）
+```
+
+---
+
+## 已验证的技术点
+
+| 项 | 验证方式 | 结果 |
+|----|----------|------|
+| Remotion 4 在 arm64 macOS 安装 | `pnpm install` | ✅ 14.1s |
+| esbuild postinstall | `pnpm rebuild esbuild` | ✅ |
+| H.264 渲染 | `remotion render` | ✅ 597 KB / 6s |
+| MiniMax TTS hex 返回 | curl + node | ✅ 186,600 chars → 91.1 KB MP3 |
+| MiniMax TTS extra_info.audio_length | API response | ✅ 5724 ms 精确 |
+| MiniMax text_to_image endpoint | curl + docs | ✅ `/v1/image_generation` |
+| MiniMax base64 模式 | API call | ✅ 77,824 chars → 58.4 KB JPEG |
+| MiniMax url 模式（签名 URL 下载） | curl | ❌ 403（时钟漂移） |
+| `<Audio>` + `<Img>` 静态资源 | Remotion bundle | ✅ |
+| Header/Footer 动画 | `spring` + `interpolate` | ✅ |
+| ffmpeg ffprobe | 内置 | ✅ 校验视频流 |
+| Chrome DevTools MCP + 调试端口 | `--remote-debugging-port=9222` | ✅ 截图验收 HTML 预览 |
+| 纯本地 desc JSON 生成（无 API） | `tsx generate-desc.ts` | ✅ 7 张卡片 |
+| HTML 卡片预览（手机框 + 自动换行） | Chrome screenshot | ✅ card 1 排版清晰 |
+| TTS 双音色（zh + en）+ duration 回填 | `tsx generate-card-audio.ts` | ✅ card 1 duration_sec=6 |
+| 全量资产生成（一键 audio + image） | `tsx generate-all.ts` | ✅ 12 音频 + 1 插画，61s 总时长 |
+| 三种卡片 Remotion 组件 | `pnpm typecheck` + Card1Test render | ✅ card1-test.mp4 6s 635 KB |
+| ExpressionCard 布局与 HTML 一致 | ffmpeg 抽 frame 108 截图 | ✅ 5 元素排版正确 |
+| Video.tsx 端到端拼接 | `remotion render ... --props` | ✅ 1-desc.mp4 65s · 6.3 MB |
+| `<Audio>` 错位修复（zh → pause → en） | ffmpeg 抽多帧 + 听音 | ✅ zh 段播完停顿后再播 en |
+| Remotion `calculateMetadata` | desc 改 fps/duration 后重渲染 | ✅ 动态 durationInFrames |
+| `scripts/render.ts` 端到端 CLI | 跑 1.json/2.json | ✅ 64s/89s mp4 |
+| `scripts/render.ts` `--phase` 分阶段 | 单独跑 assets/video | ✅ 复用 + 增量 |
+| `scripts/render.ts` `--clean` 清理 | 渲染后删除中间产物 | ✅ 仅保留 mp4 |
+| IntroCard 90% 宽 + 自适应高（不裁剪） | ffmpeg 抽 frame 0 | ✅ 1280×720 图完整显示 |
+| DAY N 徽章（从 desc.id 提取） | ffmpeg 抽 cover 帧 | ✅ DAY 1 / DAY 2 |
+| i/M 进度（仅 expression card） | ffmpeg 抽多张 expression card | ✅ 1/5 → 4/5 动态 |
+
+---
+
+## 已踩过的坑（避坑参考）
+
+1. **`@remotion/cli` 必须显式 install**：Remotion 主包不含 CLI
+2. **esbuild postinstall 被 pnpm 默认忽略**：需要 `pnpm rebuild esbuild`
+3. **image API endpoint 不是 `/v1/text_to_image`**：官方文档无对应路径，正确是 `/v1/image_generation`
+4. **签名 URL 时钟漂移**：用 base64 模式，不要默认 url 模式
+5. **图片太小看不出来**：`imageOpacity × overlayOpacity × blur` 三者叠加，初始值不能小于 0.5 才看得清
+6. **视频时长 ≠ 音频时长**：先调 TTS 拿到 `audio_length` 再决定 `durationInFrames`
+7. **desc JSON 字段最小化**：用户明确说"不必要的字段可以去掉"——LLM 还没接入，scene_image.prompt 也暂未生成（需要 text_to_image API）；先聚焦纯本地流程
+8. **duration_sec 必须等音频**：先填 `-1` 占位，TTS 后再回填，不要写死 6 秒这种魔法数字
+9. **Chrome DevTools MCP 需要 Chrome 启动带调试端口**：CLAUDE.md 提供了启动命令
+10. **`<Audio>` 默认从父 frame 0 播放**：多个 Audio 同时播，必须包 `<Sequence from={...}>` 串行
+11. **卡片 outer AbsoluteFill 不能有 `background: c.bg`**：会挡死全局 bg 图
+12. **横版图 + `width: 'auto'` 会溢出**：1280×720 按 height=760 缩放后 width=1351px，超出 1080 画布。改用精确 `width` + 自适应 `height`（或反之）
+13. **`resolve()` 的基准是当前 cwd**：跨目录 CLI 的相对路径要显式 `resolve(PROJECT_ROOT, input)`，否则会因 cwd 不同解析错乱
+14. **PROJECT_ROOT 容易算错**：要搞清楚是几层 `..`，测试时直接打印 `path.resolve(ROOT, '../..')` 确认
+15. **render.ts 用 `spawnSync` 调用已有脚本**：如果直接 `import` 主函数，会重复执行一遍；如果只想"调用 + 传参"，`spawnSync` 更省事 |

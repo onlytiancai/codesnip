@@ -22,6 +22,8 @@ type Props = {
     tts_segments: TtsSegment[];
   };
   theme: Theme;
+  /** 当前 expression card 在所有 expression cards 中的进度（1-based），如 { current: 2, total: 5 } */
+  progress?: { current: number; total: number };
 };
 
 /**
@@ -30,7 +32,7 @@ type Props = {
  * 动效：badge/zh/note 前段淡入；en/phonetic 在 zh 段播完后淡入
  * 音频：2 段（先 zh 后 en）
  */
-export const ExpressionCard: React.FC<Props> = ({ card, theme }) => {
+export const ExpressionCard: React.FC<Props> = ({ card, theme, progress }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
   const c = THEME_COLORS[theme];
@@ -85,6 +87,32 @@ export const ExpressionCard: React.FC<Props> = ({ card, theme }) => {
           transform: `translateY(${entranceY}px)`,
         }}
       >
+        {/* 0) 进度标签 i/M（右上角），仅当 progress 存在时显示 */}
+        {progress && (
+          <div
+            style={{
+              position: 'absolute',
+              top: LAYOUT.paddingY,
+              right: LAYOUT.paddingX,
+              display: 'inline-flex',
+              alignItems: 'baseline',
+              padding: '10px 22px',
+              borderRadius: 100,
+              background: c.accent,
+              color: '#FFFFFF',
+              fontSize: 30,
+              fontWeight: 700,
+              letterSpacing: '1px',
+              boxShadow: `0 4px 14px ${c.accent}44`,
+              opacity: fadeIn(0),
+            }}
+          >
+            <span style={{ fontSize: 38 }}>{progress.current}</span>
+            <span style={{ opacity: 0.6, margin: '0 4px' }}>/</span>
+            <span style={{ opacity: 0.85 }}>{progress.total}</span>
+          </div>
+        )}
+
         {/* 1) Style 徽章 */}
         <div
           style={{
