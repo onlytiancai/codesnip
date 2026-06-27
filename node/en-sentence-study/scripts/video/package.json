@@ -1,0 +1,28 @@
+{
+  "name": "en-sentence-video",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.26.0",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "assets": "tsx scripts/generate-assets.ts",
+    "render": "remotion render src/index.ts HelloWorld out/hello.mp4",
+    "build": "pnpm assets && pnpm render",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.270",
+    "@remotion/renderer": "^4.0.270",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "^4.0.270"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tsx": "^4.22.4",
+    "typescript": "^5.7.2"
+  }
+}
