@@ -1,35 +1,96 @@
-# Transformer 注意力机制（图文 + 公式 + 代码版）
+# Transformer 注意力机制
 
-## 1. 前置数学（可跳过的进阶阅读）
+> 注意力机制是 Transformer 的核心创新。在它出现之前，RNN 处理长序列时几乎无力应对"远距离依赖"问题——比如句子开头的词和结尾的词往往有语义关联，但 RNN 很难记住那么久之前的信息。注意力机制用一种"查询匹配"的思路，让任意两个位置之间可以直接建立联系，不受距离限制。本文用图文、公式和代码，带你从零理解它。
 
-如果你已经熟悉向量、矩阵、点积、softmax，可以直接跳到 §2。下面给"想补数学的人"用。
+---
 
-### 1.1 标量与向量
+## 1. 从一个问题开始：代词指代
 
-**标量**（scalar）就是一个数。**向量**（vector）是有顺序的多个数排成一列。n 维向量是 $\mathbb{R}^n$ 里的一个元素：
+看这个句子：
+
+> The animal didn't cross the street because **it** was tired.
+
+当模型读到 `it` 这个词时，它需要知道 `it` 指的是谁。这是个看似简单、实则微妙的问题——`it` 既可以指 `animal`，也可以指 `street`，但只有 `animal` 符合"能感到疲劳"这个语义。
+
+这就是典型的**远距离依赖**：关键信息（`animal`）和当前词（`it`）之间隔了 6 个词。传统 RNN 必须靠"记性"熬过这 6 步才能建立联系，而注意力机制换了一种思路——
+
+> **直接问："it 指的是谁？"然后去所有词里找答案。**
+
+---
+
+## 2. QKV 的诞生：把"问"和"答"拆成三个角色
+
+注意力机制的核心是把每次"查询"拆成三个角色：
+
+- **Query（查询）**：我当前需要什么信息？比如 `it` 在问"代词指的是谁"
+- **Key（键）**：我提供什么特征供别人匹配？比如 `animal` 说"我有生命、我能疲劳"
+- **Value（值）**：如果匹配成功，我真正传递什么内容？比如 `animal` 的语义信息
+
+继续用代词的例子，Query 是 `it` 发出的请求，Key 是候选词提供的特征描述，Value 是实际要被 `it` 吸收的信息。
+
+### 2.1 用向量来表示 Query、Key、Value
+
+每个词的 Query、Key、Value 都不是凭空产生的——它们都来自同一个词的"向量表示"（embedding），经过不同的投影矩阵得到：
+
+$$
+\mathbf{q}_i = W_Q \mathbf{x}_i, \quad \mathbf{k}_i = W_K \mathbf{x}_i, \quad \mathbf{v}_i = W_V \mathbf{x}_i
+$$
+
+这三个矩阵分别问不同的问题：
+
+| 矩阵 | 在问什么 |
+|---|---|
+| $W_Q$ | 我**想找什么**特征 |
+| $W_K$ | 我**能提供**什么特征供别人匹配 |
+| $W_V$ | 我**能贡献**什么内容 |
+
+![embedding 经过 W_Q / W_K / W_V 投影得到 QKV](images/002/09_qkv_pipeline.png)
+
+---
+
+## 3. 引入数学：向量和矩阵乘法
+
+在继续之前，我们需要一点点数学工具。
+
+### 3.1 向量与 embedding
+
+**向量**是有顺序的多个数排成一列。n 维向量是 $\mathbb{R}^n$ 里的一个元素：
 
 $$
 \mathbf{x} = \begin{bmatrix} x_1 \\ x_2 \\ \vdots \\ x_n \end{bmatrix} \in \mathbb{R}^n
 $$
 
-**几何解释**：2D 向量可以画成从原点出发的有向箭头，箭头长度 = 向量模长 $|\mathbf{x}| = \sqrt{x_1^2 + x_2^2}$，箭头方向 = 各个分量的比例关系。
+Transformer 里，每个 token 先被转换成一个向量（**embedding**）。我们用一个简化的 4 维 0/1 向量做教学演示：
 
-![向量作为 2D 平面上的箭头](images/002/01_vector_geometry.png)
+| dim | 语义含义 | animal | street | it |
+|---|---|:-:|:-:|:-:|
+| 0 | 是不是名词 | 1 | 1 | 0 |
+| 1 | 有没有生命 | 1 | 0 | 0 |
+| 2 | 能不能感到疲劳 | 1 | 0 | 0 |
+| 3 | 是不是代词 | 0 | 0 | 1 |
 
-> n 维向量没法画（n>3 就画不出来了），但**代数规则完全相同**——所以「embedding 是 4 维向量」和「平面上的 2D 箭头」本质上是同一回事，只是维度不同。
+> 真实模型的 embedding 是 768、1024、4096 维的浮点数，**每一维没有具体语义**——它们是"训练"出来的"潜在特征"。我们这里用 4 维 0/1 向量只是为了能"手算"和"画图"，机制完全等价。
 
-### 1.2 矩阵 × 向量：行作为"询问器"
+![7 token × 4 维 embedding 热图](images/002/05_embedding_heatmap.png)
 
-给定 $m \times n$ 矩阵 $W$ 和 $n$ 维向量 $\mathbf{x}$，乘积 $W\mathbf{x}$ 是一个 $m$ 维向量，**第 i 维 = 矩阵第 i 行 · 向量**：
+---
+
+### 3.2 矩阵 × 向量：行作为"语义探针"
+
+**点积**（dot product）是两个向量对应分量相乘后求和：
+
+$$
+\mathbf{a} \cdot \mathbf{b} = \sum_i a_i b_i
+$$
+
+例如 $[1, 2, 3] \cdot [4, 5, 6] = 1\times4 + 2\times5 + 3\times6 = 32$。
+
+---
+
+给定 $m \times n$ 矩阵 $W$ 和 $n$ 维向量 $\mathbf{x}$，乘积 $W\mathbf{x}$ 是一个 $m$ 维向量，**第 i 维 = 矩阵第 i 行与 $\mathbf{x}$ 的点积**：
 
 $$
 W\mathbf{x} = \begin{bmatrix}
-\rule[0.5ex]{1em}{0.4pt}\;\mathbf{w}_1\;\rule[0.5ex]{1em}{0.4pt} \\
-\rule[0.5ex]{1em}{0.4pt}\;\mathbf{w}_2\;\rule[0.5ex]{1em}{0.4pt} \\
-\vdots \\
-\rule[0.5ex]{1em}{0.4pt}\;\mathbf{w}_m\;\rule[0.5ex]{1em}{0.4pt}
-\end{bmatrix}
-\mathbf{x} = \begin{bmatrix}
 \mathbf{w}_1 \cdot \mathbf{x} \\
 \mathbf{w}_2 \cdot \mathbf{x} \\
 \vdots \\
@@ -37,33 +98,131 @@ W\mathbf{x} = \begin{bmatrix}
 \end{bmatrix}
 $$
 
-**直觉**：把矩阵的每一行想象成一个"询问器"——它只关心向量里它"想问"的那几个维度。比如我们想让第 2 行去问"这个 token 有没有生命"，就把第 2 行设成 `[0, 1, 0, 0]`，于是 $\mathbf{w}_2 \cdot \mathbf{x} = x_2$（embedding 的"有生命"维度）。
+**直觉**：把矩阵的每一行想象成一个"语义探针"——它只关心向量里它"想问"的那几个维度。
 
-![矩阵乘向量：行作为"询问器"](images/002/02_matvec.png)
+$W_K$ 的每一行也是一个"语义探针"。以图中的 $W_K$ 为例：
 
-在注意力机制里，$W_Q$、$W_K$、$W_V$ 就是三个这样的"询问器矩阵"——它们从同一个 embedding 出发，各自问不同的问题。
+- 第 1 行 `[1,0,0,0]` 只问 dim0（名词性）
+- 第 2 行 `[0,1,0,0]` 只问 dim1（有生命）
+- 第 3 行 `[0,0,1,0]` 只问 dim2（能感觉累）
 
-### 1.3 点积 = $|\mathbf{a}||\mathbf{b}|\cos\theta$，几何意义
-
-两个向量的点积：
+$W_K$ 与 $\text{embedding}(\text{animal}) = [1,1,1,0]$ 相乘后，得到 $K(\text{animal})$：
 
 $$
-\mathbf{a} \cdot \mathbf{b} = \sum_i a_i b_i = |\mathbf{a}|\,|\mathbf{b}|\cos\theta
+K(\text{animal}) = \begin{bmatrix}
+\mathbf{w}_1 \cdot \text{embedding} \\
+\mathbf{w}_2 \cdot \text{embedding} \\
+\mathbf{w}_3 \cdot \text{embedding}
+\end{bmatrix}
+= \begin{bmatrix}
+1 \\ 1 \\ 1
+\end{bmatrix}
 $$
 
-其中 $\theta$ 是 $\mathbf{a}$、$\mathbf{b}$ 的夹角。**点积越大 = 两向量方向越一致 = 越"像"**。
+$W_K$ 与 $\text{embedding}(\text{street}) = [1,0,0,0]$ 相乘后，得到 $K(\text{street})$：
+
+$$
+K(\text{street}) = \begin{bmatrix}
+1 \\ 0 \\ 0
+\end{bmatrix}
+$$
+
+**$K$ 的每个维度就是 $W_K$ 对应行"问"出的那个语义特征的强度**——$K(\text{animal})$ dim1=1 说明 animal 的"有生命"特征很强，$K(\text{street})$ dim2=0 说明 street 的"能感觉累"特征很弱。
+
+![矩阵乘向量：行作为"语义探针"](images/002/02_matvec.png)
+
+---
+
+### 3.3 点积的几何含义：方向越一致，值越大
+
+点积有一个漂亮的几何解释：
+
+$$
+\mathbf{a} \cdot \mathbf{b} = |\mathbf{a}|\,|\mathbf{b}|\cos\theta
+$$
+
+其中 $\theta$ 是 $\mathbf{a}$、$\mathbf{b}$ 的夹角。**点积越大 = 两向量方向越一致 = 越"像"**：
 
 - $\theta = 0°$（同向）→ $\cos\theta = 1$ → 点积最大
 - $\theta = 90°$（垂直）→ $\cos\theta = 0$ → 点积为 0
-- $\theta = 180°$（反向）→ $\cos\theta = -1$ → 点积最小（负数）
+- $\theta = 180°$（反向）→ $\cos\theta = -1$ → 点积最小
+
+在注意力机制里，我们用 Q·K 衡量"Q 想要的特征"和"K 提供的特征"有多一致。完全一致 = 完全匹配，垂直 = 毫不相关。
 
 ![点积 = |a||b|cosθ + Q·K(animal) vs Q·K(street) 对比](images/002/03_dot_product_angle.png)
 
-> 在注意力机制里，我们用 Q·K 衡量"Q 想要的特征"和"K 提供的特征"有多一致。完全一致 = 完全匹配，垂直 = 毫不相关。
+---
 
-### 1.4 softmax：从实数到概率分布
+## 4. 匹配过程：Query 找 Key
 
-softmax 把 K 个实数（logits）变成 K 个加起来等于 1 的非负数：
+回到代词指代的例子。`it` 需要找到它的先行词（Query），而 `animal` 和 `street` 各自提供自己的特征（Key）。
+
+### 4.1 设计 W_Q 和 W_K
+
+我们给 demo 设计三个投影矩阵：
+
+```python
+W_Q = [
+    [0, 0, 0, 0],   # Q dim0 = 0
+    [0, 0, 0, 1],   # Q dim1 ← 代词 dim3=1 ⇒ 1×1=1
+    [0, 0, 0, 0],   # Q dim2 = 0
+    [0, 0, 0, 0],
+]
+W_K = [
+    [1, 0, 0, 0],   # K dim0 ← embedding dim0（名词）
+    [0, 1, 0, 0],   # K dim1 ← embedding dim1（有生命）
+    [0, 0, 1, 0],   # K dim2 ← embedding dim2（能累）
+    [0, 0, 0, 0],
+]
+```
+
+**W_Q 的设计意图**：`Q(it)` 只看 `it` 的 dim3（代词），然后"翻译"成 dim1（有生命）——意思就是"代词在找有生命的东西"。
+
+**W_K 的设计意图**：保留 embedding 的前 3 维，让"名词"、"有生命"、"能累"三个特征都能在 K 里被检索到。
+
+投影结果：
+
+| token | Q = W_Q·x | K = W_K·x |
+|---|---|---|
+| animal | [0, 0, 0, 0] | [1, 1, 1, 0] |
+| street | [0, 0, 0, 0] | [1, 0, 0, 0] |
+| it | [0, 1, 0, 0] | [0, 0, 0, 0] |
+
+注意 $Q(it) = [0, 1, 0, 0]$——它"想要"对方的 dim1（"有生命"）特征；$K(animal) = [1, 1, 1, 0]$ 在 dim1 上是 1，匹配；$K(street) = [1, 0, 0, 0]$ 在 dim1 上是 0，不匹配。
+
+---
+
+### 4.2 Q·K 分数：匹配度量化
+
+现在让 `it` 的 Query 和所有词的 Key 做点积——这就是**匹配度打分**：
+
+$$
+s_{ij} = \mathbf{q}_i \cdot \mathbf{k}_j
+$$
+
+对 `it`（位置 6）和所有 7 个 token 算分：
+
+| token | $Q(it)·K(t)$ | 解读 |
+|---|:-:|---|
+| The | 0.00 | |
+| **animal** | **1.00** | **匹配！** Q(it) 想要"有生命"，animal 在 dim1 上是 1 |
+| didn't | 0.00 | |
+| cross | 0.00 | |
+| the | 0.00 | |
+| street | 0.00 | street 在 dim1 上是 0，不匹配 |
+| it | 0.00 | 它自己也不在 dim1 上响应 |
+
+![Q(it)·K(t) 的 7 个分数条形图](images/002/06_qk_scores.png)
+
+---
+
+## 5. 从分数到权重：softmax
+
+光有分数不够——我们需要一个"概率分布"，把所有分数转成"权重"，表示每个词被注意的程度。
+
+### 5.1 softmax 函数
+
+**softmax** 把 K 个实数（logits）变成 K 个加起来等于 1 的非负数：
 
 $$
 \text{softmax}(x_i) = \frac{e^{x_i}}{\sum_{j=1}^{K} e^{x_j}}
@@ -76,7 +235,7 @@ $$
 
 ![softmax 曲线 + 7 token logits→权重](images/002/04_softmax.png)
 
-**代入 demo 的 7 个 Q·K 分数**：
+### 5.2 代入 demo 数据
 
 $$
 \text{scores} = [0, 1, 0, 0, 0, 0, 0] \quad\Rightarrow\quad
@@ -88,58 +247,34 @@ $$
 - $0.3118 = 2.718 / 8.718$ ← animal
 - $0.1147 = 1 / 8.718$ ← 其余 6 个
 
----
+**attention 权重**：
 
-## 2. Embedding：从 token 到 4 维向量
+| token | $\alpha$ (softmax) |
+|---|:-:|
+| The | 0.1147 |
+| **animal** | **0.3118** ← 高度集中 |
+| didn't | 0.1147 |
+| cross | 0.1147 |
+| the | 0.1147 |
+| street | 0.1147 |
+| it | 0.1147 |
+| **合计** | **1.0000** |
 
-Transformer 的输入是 token 序列（"The animal didn't cross the street because **it** was tired." → 7 个 token）。**每个 token 要先变成一个向量**才能进入注意力层。
-
-我们用教学版的 4 维 0/1 向量作 embedding（真实模型是几百维的浮点数）：
-
-| dim | 含义 | 备注 |
-|---|---|---|
-| 0 | 是不是名词 | 名词=1，动词/虚词=0 |
-| 1 | 有没有生命 | 活物=1，无生命=0 |
-| 2 | 能不能感到疲劳 | 能累=1，不能累=0 |
-| 3 | 是不是代词 | 代词=1，其他=0 |
-
-![7 token × 4 维 embedding 热图](images/002/05_embedding_heatmap.png)
-
-> 真实模型的 embedding 是 768、1024、4096 维的浮点数，**每一维没有具体语义**——它们是"训练"出来的"潜在特征"。我们这里用 4 维 0/1 向量只是为了能"手算"和"画图"，机制完全等价。
+![softmax 后 7 个权重](images/002/07_attn_weights.png)
 
 ---
 
-## 3. QKV 三个投影：W_Q / W_K / W_V
+## 6. 提取 Value：加权求和得到输出
 
-Q/K/V 不是凭空冒出来的——它们都是**同一个 embedding 向量经过不同的"翻译"得到**的：
+权重算出来了，现在用权重对所有 Value 做**加权求和**——这就是最终输出：
 
 $$
-\mathbf{q}_i = W_Q \mathbf{x}_i, \quad \mathbf{k}_i = W_K \mathbf{x}_i, \quad \mathbf{v}_i = W_V \mathbf{x}_i
+\mathbf{o}_i = \sum_{j=1}^{n} \alpha_{ij} \mathbf{v}_j
 $$
 
-三个矩阵各自问不同的问题：
-
-| 矩阵 | 在问什么 | 输出维度（demo） |
-|---|---|---|
-| $W_Q$ | 我**想找什么**特征 | 4 维 |
-| $W_K$ | 我**能提供**什么特征供别人匹配 | 4 维 |
-| $W_V$ | 我**能贡献**什么内容 | 4 维 |
-
-### 3.1 demo 里的 W 设计
+### 6.1 Value 的设计
 
 ```python
-W_Q = [
-    [0, 0, 0, 0],   # Q dim0 = 0
-    [0, 0, 0, 1],   # Q dim1 ← 代词 dim3=1 ⇒ 1×1=1
-    [0, 0, 0, 0],   # Q dim2 = 0  ← 不取"能累"
-    [0, 0, 0, 0],
-]
-W_K = [
-    [1, 0, 0, 0],   # K dim0 ← embedding dim0（名词）
-    [0, 1, 0, 0],   # K dim1 ← embedding dim1（有生命）
-    [0, 0, 1, 0],   # K dim2 ← embedding dim2（能累）
-    [0, 0, 0, 0],
-]
 W_V = [
     [1, 0, 0, 0],   # V dim0 ← embedding dim0（名词）
     [0, 0, 0, 0],
@@ -148,132 +283,33 @@ W_V = [
 ]
 ```
 
-**W_Q 的设计意图**：`Q(it)` 只看 `it` 的 dim3（代词），然后"翻译"成 dim1（有生命）——意思就是"代词在找有生命的东西"。
+**W_V 的设计意图**：只保留 dim0（名词身份）——意思就是"我只能告诉别人：我是名词"。
 
-**W_K 的设计意图**：保留 embedding 的前 3 维，让"名词"、"有生命"、"能累"三个特征都能在 K 里被检索到。
+投影结果：
 
-**W_V 的设计意图**：**只保留 dim0（名词身份）**——意思就是"我只能告诉别人：我是名词"。
+| token | V = W_V·x |
+|---|---|
+| animal | [1, 0, 0, 0] |
+| street | [1, 0, 0, 0] |
+| it | [0, 0, 0, 0] |
+| 其它 | [0, 0, 0, 0] |
 
-### 3.2 为什么 W_V 要砍到只剩 dim0？
+### 6.2 为什么 W_V 要砍到只剩 dim0？
 
-这是 001 文档里**最精彩的设计哲学讨论**之一。W_V 只贡献"是不是名词"这一维，目的是让 `output(it)` 不会"覆盖" `it` 自己的"我是代词"这个身份：
+这是注意力机制里**最精彩的设计哲学**之一。W_V 只贡献"是不是名词"这一维，目的是让 `output(it)` 不会"覆盖" `it` 自己的"我是代词"这个身份：
 
 - 如果 W_V = 单位阵（保留所有 dim），那 `output(it)` 会几乎等于 `V(animal)`——`it` 和 `animal` 变得不可区分，**代词这个语法角色就丢了**。
 - 如果 W_V 只贡献"代词"那一维，那 `output(it)[3] = α_total × 0 < 1`——**反而稀释**了原始 embedding 里"我是代词"的信号。
 
-让 V 只携带"外部信息"（来自其他 token 的），原始 embedding 才能保留"我是谁"——这两股信息在下一层**拼起来**才有意义。详见 §6。
+让 V 只携带"外部信息"（来自其他 token 的），原始 embedding 才能保留"我是谁"——这两股信息在下一层**拼起来**才有意义。
 
----
-
-## 4. Self-Attention 完整流程
-
-把前三节串起来，Self-Attention 实际上只做三件事：
-
-### 4.1 步骤 1：算所有 Q·K 分数
-
-对查询位置 $i$ 和所有键位置 $j$ 算点积：
+### 6.3 实际计算
 
 $$
-s_{ij} = \mathbf{q}_i \cdot \mathbf{k}_j
+\mathbf{o}_{it} = \sum_{j} \alpha_j \mathbf{v}_j
 $$
 
-在 demo 里查询位置固定为 `it`（位置 6），得到 7 个分数：
-
-![Q(it)·K(t) 的 7 个分数条形图](images/002/06_qk_scores.png)
-
-```
-The       0.00
-animal    1.00   ← Q(it) 想要"有生命"，animal 在 dim1 上是 1
-didn't    0.00
-cross     0.00
-the       0.00
-street    0.00   ← street 在 dim1 上是 0，不匹配
-it        0.00
-```
-
-### 4.2 步骤 2：softmax 得到权重
-
-对每个查询位置 i，把所有分数过 softmax：
-
-$$
-\alpha_{ij} = \frac{e^{s_{ij}}}{\sum_{j'} e^{s_{ij'}}}
-$$
-
-> 真实实现里通常还会**除以 $\sqrt{d_k}$**（$d_k$ = K 的维度），见 §7.1。demo 里没做这一步，因为 $d_k=4$、$\sqrt{4}=2$，效果只是"把分数整体除以 2"，softmax 后权重分布形状不变。
-
-![softmax 后 7 个权重](images/002/07_attn_weights.png)
-
-```
-The       0.1147
-animal    0.3118   ← 高度集中
-didn't    0.1147
-cross     0.1147
-the       0.1147
-street    0.1147
-it        0.1147
-```
-
-### 4.3 步骤 3：α·V 加权求和
-
-每个输出位置 i 用权重对所有 Value 加权求和：
-
-$$
-\mathbf{o}_i = \sum_{j=1}^{n} \alpha_{ij} \mathbf{v}_j
-$$
-
-在 demo 里，$\mathbf{o}_{it} = \sum_{j} \alpha_j \mathbf{v}_j = [0.43, 0, 0, 0]$，具体分解见 §5 / §6。
-
-### 4.4 整体管道
-
-![Self-Attention 完整流程](images/002/09_qkv_pipeline.png)
-
----
-
-## 5. 完整 demo 复现
-
-直接跑 [`code/attention_demo.py`](code/attention_demo.py) 会得到以下完整数据流。本节所有数字都和代码输出一一对应。
-
-### 5.1 7 个 token 的 embedding
-
-| token | dim0 (名词) | dim1 (有生命) | dim2 (能累) | dim3 (代词) |
-|---|:-:|:-:|:-:|:-:|
-| The | 0 | 0 | 0 | 0 |
-| animal | **1** | **1** | **1** | 0 |
-| didn't | 0 | 0 | 0 | 0 |
-| cross | 0 | 0 | 0 | 0 |
-| the | 0 | 0 | 0 | 0 |
-| street | **1** | 0 | 0 | 0 |
-| it | 0 | 0 | 0 | **1** |
-
-### 5.2 Q / K / V 投影
-
-经过 $W_Q$、$W_K$、$W_V$ 投影后（仅列出有意义的 token）：
-
-| token | Q = W_Q·x | K = W_K·x | V = W_V·x |
-|---|---|---|---|
-| animal | [0, 0, 0, 0] | [1, 1, 1, 0] | [1, 0, 0, 0] |
-| street | [0, 0, 0, 0] | [1, 0, 0, 0] | [1, 0, 0, 0] |
-| it | [0, 1, 0, 0] | [0, 0, 0, 0] | [0, 0, 0, 0] |
-| 其它 4 个 | [0, 0, 0, 0] | [0, 0, 0, 0] | [0, 0, 0, 0] |
-
-注意 $Q(it) = [0, 1, 0, 0]$——它"想要"对方的 dim1（"有生命"）特征；$K(animal) = [1, 1, 1, 0]$ 在 dim1 上是 1，匹配；$K(street) = [1, 0, 0, 0]$ 在 dim1 上是 0，不匹配。
-
-### 5.3 Q·K 分数与 softmax 权重
-
-| token | $Q(it)·K(t)$ | $\alpha$ (softmax) | 解读 |
-|---|:-:|:-:|---|
-| The | 0.00 | 0.1147 | 基线 |
-| **animal** | **1.00** | **0.3118** | **匹配上 dim1** |
-| didn't | 0.00 | 0.1147 | 基线 |
-| cross | 0.00 | 0.1147 | 基线 |
-| the | 0.00 | 0.1147 | 基线 |
-| street | 0.00 | 0.1147 | 名词但无生命 |
-| it | 0.00 | 0.1147 | 它自己也不在 dim1 上响应 |
-| **合计** | — | **1.0000** | softmax 必为概率分布 |
-
-**验算**：$\alpha(animal) = e^1 / (e^1 + 6e^0) = 2.718 / 8.718 = 0.3118$；其它 6 个各 $1/8.718 = 0.1147$。
-
-### 5.4 output(it) 怎么算出来的
+展开：
 
 ```
 output(it) = Σ α·V
@@ -297,7 +333,7 @@ output(it) = [0.43, 0, 0, 0]
 
 ---
 
-## 6. output 解读：为什么是 0.43
+## 7. output 解读：0.43 是什么意思
 
 `output(it) = [0.43, 0, 0, 0]` 这个 4 维向量**每一维代表什么**？
 
@@ -324,13 +360,56 @@ output(it) = [0.43, 0, 0, 0]
 
 **每一层只解决一小步**——**第 1 层不能抢第 2 层的活**。如果第 1 层就把"是 animal"写进 output，第 2 层就不知道有 2 个候选、不知道存在歧义、也不知道该保留什么原始信息。
 
-> 引用 001 的金句：**output 应该回答"我注意到了什么"，而不是"我注意到了谁"**。让 output 直接表达"it = animal"在技术上可行，但破坏了 Transformer 的分层抽象。
+---
+
+## 8. 完整流程回顾
+
+把前三节串起来，Self-Attention 实际上只做三件事：
+
+1. **算 Q·K 分数**：对查询位置 $i$ 和所有键位置 $j$ 算点积 $s_{ij} = \mathbf{q}_i \cdot \mathbf{k}_j$
+2. **softmax 得到权重**：对每个查询位置 i，把所有分数过 softmax $\alpha_{ij} = \frac{e^{s_{ij}}}{\sum_{j'} e^{s_{ij'}}}$
+3. **加权求和**：每个输出位置 i 用权重对所有 Value 加权求和 $\mathbf{o}_i = \sum_{j=1}^{n} \alpha_{ij} \mathbf{v}_j$
+
+完整公式：
+
+$$
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right) V
+$$
+
+> 真实实现里通常还会**除以 $\sqrt{d_k}$**（$d_k$ = K 的维度），这是下一节的内容。
+
+直接跑 [`code/attention_demo.py`](code/attention_demo.py) 会得到以下完整数据流。本节所有数字都和代码输出一一对应。
+
+### 8.1 7 个 token 的 embedding
+
+| token | dim0 (名词) | dim1 (有生命) | dim2 (能累) | dim3 (代词) |
+|---|:-:|:-:|:-:|:-:|
+| The | 0 | 0 | 0 | 0 |
+| animal | **1** | **1** | **1** | 0 |
+| didn't | 0 | 0 | 0 | 0 |
+| cross | 0 | 0 | 0 | 0 |
+| the | 0 | 0 | 0 | 0 |
+| street | **1** | 0 | 0 | 0 |
+| it | 0 | 0 | 0 | **1** |
+
+### 8.2 Q·K 分数与 softmax 权重
+
+| token | $Q(it)·K(t)$ | $\alpha$ (softmax) | 解读 |
+|---|:-:|:-:|---|
+| The | 0.00 | 0.1147 | 基线 |
+| **animal** | **1.00** | **0.3118** | **匹配上 dim1** |
+| didn't | 0.00 | 0.1147 | 基线 |
+| cross | 0.00 | 0.1147 | 基线 |
+| the | 0.00 | 0.1147 | 基线 |
+| street | 0.00 | 0.1147 | 名词但无生命 |
+| it | 0.00 | 0.1147 | 它自己也不在 dim1 上响应 |
+| **合计** | — | **1.0000** | softmax 必为概率分布 |
 
 ---
 
-## 7. 进阶：让 attention 真正可用
+## 9. 进阶内容
 
-### 7.1 Scaled Dot-Product：为什么除以 $\sqrt{d_k}$
+### 9.1 Scaled Dot-Product：为什么除以 $\sqrt{d_k}$
 
 原论文公式是：
 
@@ -344,7 +423,7 @@ $$
 
 > Demo 里 $d_k = 4$、$\sqrt{d_k} = 2$，除以 2 只是把分数整体缩小，softmax 后权重分布形状不变。所以教学 demo 可以省略这一步。
 
-### 7.2 Masking：把"未来 token"屏蔽掉
+### 9.2 Masking：把"未来 token"屏蔽掉
 
 Decoder 用的是 **Causal Self-Attention**——生成第 i 个 token 时**不能看到第 i+1, i+2, ... 个 token**（否则就是作弊）。
 
@@ -359,7 +438,7 @@ $$
 
 $e^{-\infty} = 0$，所以这些位置的权重自动为 0。
 
-### 7.3 Multi-Head：8 个 head 并行关注不同子空间
+### 9.3 Multi-Head：8 个 head 并行关注不同子空间
 
 单个 attention 头只能学一种"找法"。**Multi-Head** 把 $d$ 维切分成 h 份（比如 768 维切 12 个 64 维 head），每个 head **独立**做一次 attention，最后拼回来：
 
@@ -375,9 +454,7 @@ $$
 
 ![Multi-Head Attention 简化示意](images/002/10_multihead.png)
 
-### 7.4 PyTorch 等价实现
-
-下面是上面 demo 思路的 PyTorch 等价版（与 [`transformer.md:25`](transformer.md#L25) 风格一致，可对照阅读）：
+### 9.4 PyTorch 等价实现
 
 ```python
 import torch
@@ -410,35 +487,10 @@ def self_attention(X, W_Q, W_K, W_V):
 
 ---
 
-## 8. 小结
+## 10. 小结
 
 **三句话回顾**：
 
 1. **Self-Attention = 软数据库查询**：用 Q 匹配所有 K 得到权重，再用权重从 V 那里"取回"信息——可以理解为"可微分的模糊查表"。
 2. **Q/K/V 是同源的三个翻译**：都是 embedding 经过不同 $W$ 投影的结果，分别回答"找什么"、"提供什么"、"贡献什么"。
 3. **output 是"我注意到的"，不是"我注意到的谁"**：单层 attention 只收集证据，最终判断要交给多层堆叠。
-
-**下一步学习路径**：
-
-- 看 [`transformer.md`](transformer.md) — 完整 Self-Attention 类 + Multi-Head 实现
-- 读原论文 *Attention Is All You Need* ([arxiv.org/abs/1706.03762](https://arxiv.org/abs/1706.03762))
-- 自己改 [`code/attention_demo.py`](code/attention_demo.py) 里的 $W$ 矩阵、换句子、换维度，观察 attention 权重怎么变
-
----
-
-## 附录 A：图清单
-
-| 图 | 章节 | 文件 |
-|---|---|---|
-| 1 | §1.1 标量与向量 | [01_vector_geometry.png](images/002/01_vector_geometry.png) |
-| 2 | §1.2 矩阵乘向量 | [02_matvec.png](images/002/02_matvec.png) |
-| 3 | §1.3 点积几何 | [03_dot_product_angle.png](images/002/03_dot_product_angle.png) |
-| 4 | §1.4 softmax | [04_softmax.png](images/002/04_softmax.png) |
-| 5 | §2 Embedding | [05_embedding_heatmap.png](images/002/05_embedding_heatmap.png) |
-| 6 | §4.1 Q·K 分数 | [06_qk_scores.png](images/002/06_qk_scores.png) |
-| 7 | §4.2 softmax 权重 | [07_attn_weights.png](images/002/07_attn_weights.png) |
-| 8 | §5 / §6 output 分解 | [08_output_decomposition.png](images/002/08_output_decomposition.png) |
-| 9 | §4.4 整体流程 | [09_qkv_pipeline.png](images/002/09_qkv_pipeline.png) |
-| 10 | §7.3 Multi-Head | [10_multihead.png](images/002/10_multihead.png) |
-
-**重生成**：`cd scripts/002 && python gen_all.py`（详见 [scripts/002/README.md](scripts/002/README.md)）。

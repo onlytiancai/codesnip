@@ -17,10 +17,10 @@ def main():
     W_K = [
         [1, 0, 0, 0],   # dim0: 名词
         [0, 1, 0, 0],   # dim1: 有生命
-        [0, 0, 1, 0],   # dim2: 能累
-        [0, 0, 0, 0],   # dim3
+        [0, 0, 1, 0],   # dim2: 能感觉累
+        [0, 0, 0, 0],   # dim3  是代词
     ]
-    row_labels = ["dim0=名词", "dim1=有生命", "dim2=能累", "dim3=占位"]
+    row_labels = ["dim0=名词", "dim1=有生命", "dim2=能感觉累", "dim3=是代词"]
 
     # 左：W_K 矩阵
     ax.text(0.5, 5.5, r"$W_K$ (4$\times$4 矩阵)", fontsize=13, fontweight="bold")
@@ -40,7 +40,7 @@ def main():
                 row_labels[r], ha="right", va="center", fontsize=10, color="#444")
 
     # 中：embedding("animal") = [1,1,1,0]
-    ax.text(4.8, 5.5, r"$\text{embedding}(animal)$", fontsize=13, fontweight="bold")
+    ax.text(4, 5.5, r"$\text{embedding}(animal)$", fontsize=13, fontweight="bold")
     emb = [1, 1, 1, 0]
     for i, v in enumerate(emb):
         y = 4.0 - i * cell_h
@@ -74,7 +74,7 @@ def main():
         xytext=(1 + 1 * cell_w + cell_w / 2, 4.0 - 1 * cell_h + cell_h / 2),
         arrowprops=dict(arrowstyle="->", color=COLOR_HIGHLIGHT, lw=2.2, alpha=0.8),
     )
-    ax.text(3.0, 3.1, r"第 2 行 $\cdot$ 第 1 个数 = $1 \times 1 = 1$",
+    ax.text(3.0, 2.1, r"第 2 行 $\cdot$ embedding = $0\!\times\!1+1\!\times\!1+0\!\times\!1+0\!\times\!0 = 1$",
             ha="center", fontsize=10, color=COLOR_HIGHLIGHT, fontweight="bold")
 
     # 底部说明
