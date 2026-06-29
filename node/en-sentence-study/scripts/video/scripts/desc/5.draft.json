@@ -1,0 +1,170 @@
+{
+  "id": "5",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/5.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Work",
+    "scene_zh": "工作",
+    "task_en": "Networking",
+    "task_zh": "社交",
+    "context": "你参加一个行业交流会，会场上人很多。你注意到旁边站着一位看起来也是业内人士的陌生人，主动上前打招呼并介绍自己。你想通过简短的自我介绍来开启对话，了解对方的职业背景。",
+    "sentence_zh": "你好，很高兴认识你。我是做产品设计的，你呢？",
+    "explanation": "这是职场networking中最常用的开场白之一。在自我介绍时，先表达礼貌和热情，然后简要说明自己的职业领域，最后主动询问对方的背景。关键点：1) 表达见到对方的愉快心情；2) 用简洁的语言介绍自己的职业；3) 用开放性问题引导对话。需要注意的是，在初次见面时不要问太多私人问题，保持对话轻松自然。另外，在行业活动中，提及自己的专业领域可以帮助快速找到共同话题或潜在合作机会。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 20,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "工作：社交。你参加一个行业交流会，会场上人很多。你注意到旁边站着一位看起来也是业内人士的陌生人，主动上前打招呼并介绍自己。你想通过简短的自我介绍来开启对话，了解对方的职业背景。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/5/0-0-zh.mp3",
+          "duration_ms": 18036
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 10,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "很荣幸见到你。我在产品设计领域。你呢？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/5/1-0-zh.mp3",
+          "duration_ms": 4067
+        },
+        {
+          "lang": "en",
+          "text": "It's a pleasure to meet you. I'm in product design. And you?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/5/1-1-en.mp3",
+          "duration_ms": 3888
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "It's a pleasure to meet you. I'm in product design. And you?",
+      "phonetic": "ɪts ə ˈpleʒər tuː miːt juː. aɪm ɪn ˈprɒdʌkt dɪˈzaɪn. ænd juː?",
+      "literal_translation": "很荣幸见到你。我在产品设计领域。你呢？",
+      "note": "适合正式场合初次见面，友好且有礼貌"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 12,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "嗨，很高兴认识你。我在产品设计行业工作。你做什么工作？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/5/2-0-zh.mp3",
+          "duration_ms": 5508
+        },
+        {
+          "lang": "en",
+          "text": "Hi, nice to meet you. I work in product design. What do you do?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/5/2-1-en.mp3",
+          "duration_ms": 4680
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "Hi, nice to meet you. I work in product design. What do you do?",
+      "phonetic": "haɪ, naɪs tuː miːt juː. aɪ wɜːrk ɪn ˈprɒdʌkt dɪˈzaɪn. wɒt duː juː?",
+      "literal_translation": "嗨，很高兴认识你。我在产品设计行业工作。你做什么工作？",
+      "note": "标准商务社交开场白，适用范围广"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 10,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "嘿，很高兴认识你！我在产品设计行业。你呢？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/5/3-0-zh.mp3",
+          "duration_ms": 3996
+        },
+        {
+          "lang": "en",
+          "text": "Hey, good to meet you! I'm in product design. What about you?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/5/3-1-en.mp3",
+          "duration_ms": 3852
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "Hey, good to meet you! I'm in product design. What about you?",
+      "phonetic": "heɪ, gʊd tuː miːt juː! aɪm ɪn ˈprɒdʌkt dɪˈzaɪn. wɒt əˈbaʊt juː?",
+      "literal_translation": "嘿，很高兴认识你！我在产品设计行业。你呢？",
+      "note": "轻松友好的语气，适合轻松的社交场合"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 12,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "很高兴见到你！我是一名产品设计师。你从事什么行业？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/5/4-0-zh.mp3",
+          "duration_ms": 4680
+        },
+        {
+          "lang": "en",
+          "text": "Great to meet you! I'm a product designer. What line of work are you in?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/5/4-1-en.mp3",
+          "duration_ms": 5400
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "Great to meet you! I'm a product designer. What line of work are you in?",
+      "phonetic": "greɪt tuː miːt juː! aɪm ə ˈprɒdʌkt dɪˈzaɪnər. wɒt laɪn əv wɜːrk ɑːr juː ɪn?",
+      "literal_translation": "很高兴见到你！我是一名产品设计师。你从事什么行业？",
+      "note": "使用具体职位名称，询问对方职业的正式表达"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 13,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "嘿！认识你很高兴。我在产品设计行业。那你是做什么工作的？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/5/5-0-zh.mp3",
+          "duration_ms": 5472
+        },
+        {
+          "lang": "en",
+          "text": "Hey! Nice meeting you. I'm in product design. So what do you do for a living?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/5/5-1-en.mp3",
+          "duration_ms": 4860
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "Hey! Nice meeting you. I'm in product design. So what do you do for a living?",
+      "phonetic": "heɪ! naɪs ˈmiːtɪŋ juː. aɪm ɪn ˈprɒdʌkt dɪˈzaɪn. soʊ wɒt duː juː dʊ fɔːr ə ˈlɪvɪŋ?",
+      "literal_translation": "嘿！认识你很高兴。我在产品设计行业。那你是做什么工作的？",
+      "note": "非常口语化，轻松随意，略带好奇"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 36,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "这是职场networking中最常用的开场白之一。在自我介绍时，先表达礼貌和热情，然后简要说明自己的职业领域，最后主动询问对方的背景。关键点：1) 表达见到对方的愉快心情；2) 用简洁的语言介绍自己的职业；3) 用开放性问题引导对话。需要注意的是，在初次见面时不要问太多私人问题，保持对话轻松自然。另外，在行业活动中，提及自己的专业领域可以帮助快速找到共同话题或潜在合作机会。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/5/6-0-zh.mp3",
+          "duration_ms": 34560
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Work scene, Networking task. Scene situation: 你参加一个行业交流会. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/5.jpg"
+  },
+  "duration_sec": 113,
+  "duration_frames": 3390
+}
