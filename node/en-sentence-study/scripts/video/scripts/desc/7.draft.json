@@ -1,0 +1,170 @@
+{
+  "id": "7",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/7.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Fitness",
+    "scene_zh": "健身运动",
+    "task_en": "Buying a Membership",
+    "task_zh": "购买课程",
+    "context": "小李路过一家新开的健身房，看到门口有优惠活动海报，于是走进去咨询。他来到前台，对接待人员说想了解一下会员办理的相关信息。",
+    "sentence_zh": "我想了解一下你们的会员套餐和价格。",
+    "explanation": "这个句子是健身房购卡场景中最实用的开场白。英文表达可根据场景选择：想显得专业正式时用'inquire about'；想友好随意时用'tell me about'或直接问'how much'。注意询问价格时，'pricing'和'packages'更正式，'how much'更口语化。如果已经下定决心，直接说'interested in signing up'会让接待人员更积极地为你介绍。询问时可以顺便提到你是通过什么渠道知道这家健身房的，表现出诚意，有助于获得更好的优惠。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 15,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "健身运动：购买课程。小李路过一家新开的健身房，看到门口有优惠活动海报，于是走进去咨询。他来到前台，对接待人员说想了解一下会员办理的相关信息。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/7/0-0-zh.mp3",
+          "duration_ms": 13068
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 9,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我想要询问关于你们的会员选项和价格",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/7/1-0-zh.mp3",
+          "duration_ms": 3204
+        },
+        {
+          "lang": "en",
+          "text": "I'd like to inquire about your membership options and pricing.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/7/1-1-en.mp3",
+          "duration_ms": 3204
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "I'd like to inquire about your membership options and pricing.",
+      "phonetic": "aɪd laɪk tʊ ɪnˈkwaɪə əˈbaʊt jɔː ˈmembəʃɪp ˈɒpʃənz ænd ˈpraɪsɪŋ",
+      "literal_translation": "我想要询问关于你们的会员选项和价格",
+      "note": "正式询问，表现出认真考虑的意愿，适合对服务质量有较高要求的场合"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "你能告诉我关于你们的会员计划吗",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/7/2-0-zh.mp3",
+          "duration_ms": 2664
+        },
+        {
+          "lang": "en",
+          "text": "Can you tell me about your membership plans?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/7/2-1-en.mp3",
+          "duration_ms": 2412
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "Can you tell me about your membership plans?",
+      "phonetic": "kæn juː tel miː əˈbaʊt jɔː ˈmembəʃɪp plænz",
+      "literal_translation": "你能告诉我关于你们的会员计划吗",
+      "note": "中性表达，友好直接，是最常用的询问方式，适用大多数场景"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 6,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "你们提供什么会员套餐",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/7/3-0-zh.mp3",
+          "duration_ms": 1728
+        },
+        {
+          "lang": "en",
+          "text": "What membership packages do you offer?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/7/3-1-en.mp3",
+          "duration_ms": 2160
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "What membership packages do you offer?",
+      "phonetic": "wɒt ˈmembəʃɪp ˈpækɪdʒɪz duː juː ˈɒfə",
+      "literal_translation": "你们提供什么会员套餐",
+      "note": "侧重套餐选择，适合想比较不同方案的顾客"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 5,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "这里会员多少钱",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/7/4-0-zh.mp3",
+          "duration_ms": 1548
+        },
+        {
+          "lang": "en",
+          "text": "How much is membership here?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/7/4-1-en.mp3",
+          "duration_ms": 1548
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "How much is membership here?",
+      "phonetic": "haʊ mʌtʃ ɪz ˈmembəʃɪp hɪə",
+      "literal_translation": "这里会员多少钱",
+      "note": "口语化表达，直接询问价格，适合轻松的对话氛围"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 9,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我有兴趣报名，有什么选项",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/7/5-0-zh.mp3",
+          "duration_ms": 2880
+        },
+        {
+          "lang": "en",
+          "text": "I'm interested in signing up. What are my options?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/7/5-1-en.mp3",
+          "duration_ms": 3456
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "I'm interested in signing up. What are my options?",
+      "phonetic": "aɪm ˈɪntrəstɪd ɪn ˈsaɪnɪŋ ʌp. wɒt ɑː maɪ ˈɒpʃənz",
+      "literal_translation": "我有兴趣报名，有什么选项",
+      "note": "表达明确意向，语气友好自然，适合已经决定要办的顾客"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 37,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "这个句子是健身房购卡场景中最实用的开场白。英文表达可根据场景选择：想显得专业正式时用'inquire about'；想友好随意时用'tell me about'或直接问'how much'。注意询问价格时，'pricing'和'packages'更正式，'how much'更口语化。如果已经下定决心，直接说'interested in signing up'会让接待人员更积极地为你介绍。询问时可以顺便提到你是通过什么渠道知道这家健身房的，表现出诚意，有助于获得更好的优惠。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/7/6-0-zh.mp3",
+          "duration_ms": 35208
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Fitness scene, Buying a Membership task. Scene situation: 小李路过一家新开的健身房. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/7.jpg"
+  },
+  "duration_sec": 88,
+  "duration_frames": 2640
+}

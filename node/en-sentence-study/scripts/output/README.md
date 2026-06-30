@@ -24,23 +24,27 @@
 | `style` | string | ✓ | 风格：`polite` / `neutral` / `casual` |
 | `note` | string | ✓ | 简短说明 |
 | `literal_translation` | string | ✓ | 中文直译 |
-| `phonetic` | string | ✓ | 标准 IPA 音标（美式发音） |
+| `phonetic` | string | ✓ | 标准 IPA 音标（英式发音） |
 
 ## 音标规范（重点）
 
-使用**标准 IPA（国际音标）**，美式发音，重音符号用 `ˈ`。
+使用**标准 IPA（国际音标）**，英式发音（RP），重音符号用 `ˈ`，次重音用 `ˌ`。
+音标两侧不需要斜杠。
+句中如有明显停顿，可用 `.` 标记。
 
 ### 正确示例
 ```json
 "phonetic": "naɪs tuː miːt juː"
-"phonetic": "ɪts ə ˈpleʒər tuː miːt juː"
-"phonetic": "haʊ wɜːr jʊ dʊɪŋ"
+"phonetic": "ɪts ə ˈpleʒə tuː miːt juː"
+"phonetic": "haʊ wɜː ju dʊɪŋ"
 ```
 
 ### 常见错误
 - ❌ 使用非标准符号：`oo` `sh` `ch` `ng`
-- ❌ 使用连字符分隔：`wʌt·ɑːr·jɔːr`
+- ❌ 使用连字符或空格分隔音节：`wʌt-ɑː-juː`
 - ❌ 元音缺少长音标记：`tu` 而非 `tuː`
+- ❌ 使用美式发音：`wʌt` 而非英式 `wɒt`
+- ❌ 忘记 r 化音：英式句末 r 通常不发音，写 `hɪə` 而非 `hɪr`
 
 ### IPA 音标对照（常见）
 
@@ -57,11 +61,16 @@
 | the | ðə |
 | and | ænd |
 | what | wɒt |
-| are | ɑːr |
-| for | fɔːr |
+| are | ɑː |
+| for | fɔː |
 | of | əv |
 | it | ɪt |
 | in | ɪn |
+| please | pliːz |
+| pleasure | ˈpleʒə |
+| doing | ˈduːɪŋ |
+| here | hɪə |
+| there | ðeə |
 
 ## 风格分布
 每条中文句子对应 3-5 条英文翻译，应包含：
@@ -85,7 +94,7 @@
       "style": "polite",
       "note": "适合正式场合初次见面，友好且有礼貌",
       "literal_translation": "很荣幸见到你。我在产品设计领域。你呢？",
-      "phonetic": "ɪts ə ˈpleʒər tuː miːt juː. aɪm ɪn ˈprɒdʌkt dɪˈzaɪn. ænd juː?"
+      "phonetic": "ɪts ə ˈpleʒə tuː miːt juː. aɪm ɪn ˈprɒdʌkt dɪˈzaɪn. ænd juː"
     }
   ],
   "explanation": "职场networking常用开场白。先表达礼貌热情，再简述职业，最后询问对方。"
