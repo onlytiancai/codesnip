@@ -263,8 +263,13 @@ async function phaseAudio(descPath: string, force: boolean): Promise<void> {
     console.log(`      → duration_sec = ${durationSec}`);
   }
 
-  desc.duration_sec = desc.cards.reduce((s: number, c: any) => s + c.duration_sec, 0);
-  desc.duration_frames = desc.duration_sec * desc.fps;
+  // 用 cards 累加反推顶层 duration，避免 round() 引入的 sub-frame 误差
+  // （Sequence 内部用 round(card.duration_sec * fps) 累加，必须保持一致）
+  desc.duration_frames = desc.cards.reduce(
+    (s: number, c: any) => s + Math.round(c.duration_sec * desc.fps),
+    0,
+  );
+  desc.duration_sec = desc.duration_frames / desc.fps;
   console.log(`\n   📐 总时长：${desc.duration_sec}s · ${desc.duration_frames} 帧 @ ${desc.fps}fps`);
   writeFileSync(descPath, JSON.stringify(desc, null, 2) + '\n');
 }
