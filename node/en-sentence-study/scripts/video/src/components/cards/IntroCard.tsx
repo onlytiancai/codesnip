@@ -19,12 +19,12 @@ type Props = {
 
 /**
  * 场景引入卡（card 0）— 作为视频封面
- * 布局：上半 = 16:9 横版主题图（顶部 banner 圆角面板），下半 = Day N 徽章 + SCENE/TASK/sentence 文案
+ * 布局：图片 + 文案整体在画布垂直居中。上方 = 16:9 横版主题图（圆角 banner），下方 = Day N 徽章 + SCENE/TASK/sentence 文案
  * 动效：无入场（视频第 0 帧直接是图片作为封面）；保留淡出用于平滑过渡
  */
 export const IntroCard: React.FC<Props> = ({ meta, tts_segments, theme, dayNumber, scene_image }) => {
   const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
+  const { durationInFrames, height: canvasHeight } = useVideoConfig();
   const c = THEME_COLORS[theme];
 
   // 仅保留淡出（最后 18 帧），不做入场
@@ -41,8 +41,14 @@ export const IntroCard: React.FC<Props> = ({ meta, tts_segments, theme, dayNumbe
   const imageWidth = 1080 * 0.9; // 972px
   const imageLeft = (1080 - imageWidth) / 2; // 54px 居中
   const imageHeight = imageWidth / (16 / 9); // 547px
-  const imageTop = LAYOUT.headerHeight + 40;
-  const textTop = imageTop + imageHeight + 40;
+  // DAY 徽章与图片底部的间距
+  const GAP_BELOW_IMAGE = 32;
+  // 文字块预估高度（DAY 徽章 + SCENE + h1 + 分隔线 + TASK + h2 + sentence + 各自 margin）
+  // 约 600px，用来跟图片一起做画布垂直居中
+  const TEXT_BLOCK_ESTIMATED_HEIGHT = 600;
+  // 让 (图片 + 文字) 整体在画布垂直居中
+  const imageTop = (canvasHeight - imageHeight - GAP_BELOW_IMAGE - TEXT_BLOCK_ESTIMATED_HEIGHT) / 2;
+  const textTop = imageTop + imageHeight + GAP_BELOW_IMAGE;
 
   return (
     <AbsoluteFill style={{ fontFamily: FONT_FAMILY, opacity: exit }}>
@@ -72,7 +78,7 @@ export const IntroCard: React.FC<Props> = ({ meta, tts_segments, theme, dayNumbe
           right: LAYOUT.paddingX,
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
+          justifyContent: 'flex-start',
           alignItems: 'flex-start',
         }}
       >
@@ -87,7 +93,7 @@ export const IntroCard: React.FC<Props> = ({ meta, tts_segments, theme, dayNumbe
             fontSize: 32,
             fontWeight: 700,
             letterSpacing: '2px',
-            marginBottom: 28,
+            marginBottom: 8,
             boxShadow: `0 6px 20px ${c.accent}55`,
           }}
         >

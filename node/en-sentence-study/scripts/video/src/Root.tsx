@@ -8,12 +8,14 @@ import descData from '../scripts/desc/1.draft.json';
 
 const defaultDesc = descData as unknown as DescJson;
 
-// 根据 inputProps.desc 动态算 durationInFrames/fps，让 CLI 喂不同 desc 时不卡死
+// 根据 inputProps 动态算 durationInFrames/fps，让 CLI 喂不同 desc 时不卡死
+// --props 传入的是整个 JSON 对象（无 desc 包装），因此用 props.duration_frames
 const calculateMetadata: CalculateMetadataFunction<{ desc: DescJson }> = async ({
   props,
 }) => ({
-  durationInFrames: props.desc.duration_frames,
-  fps: props.desc.fps,
+  // 兼容 --props 直接传 JSON 和 defaultProps 的包装格式
+  durationInFrames: (props as any).duration_frames ?? (props as any).desc?.duration_frames,
+  fps: (props as any).fps ?? (props as any).desc?.fps,
   width: 1080,
   height: 1920,
 });

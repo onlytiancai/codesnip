@@ -108,6 +108,23 @@ pnpm exec tsx scripts/render.ts scripts/output/1.json -o out/custom.mp4
 
 参数全览：`pnpm exec tsx scripts/render.ts --help`
 
+### 预览（Remotion Studio）
+
+```bash
+cd scripts/video
+
+# 预览默认 desc（1.draft.json）
+pnpm studio
+
+# 预览指定 desc 文件
+pnpm studio --props scripts/desc/6.draft.json
+
+# 预览指定 id 的 desc
+pnpm studio --props scripts/desc/$(ls scripts/desc/ | fzf).draft.json
+```
+
+Remotion Studio 会启动浏览器预览，可实时看到视频效果。传入 `--props` 时会使用对应的 desc JSON 数据（场景、任务、英语表达等）。
+
 ### 独立脚本（保留兼容）
 
 | 命令 | 作用 |

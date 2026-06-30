@@ -1,0 +1,170 @@
+{
+  "id": "6",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/6.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Fitness",
+    "scene_zh": "健身运动",
+    "task_en": "Booking a Personal Trainer",
+    "task_zh": "预约私教",
+    "context": "小李刚办了一张健身房会员卡，今天第一次去健身房。他想预约一节私教课，让专业的教练帮他评估身体状况并制定训练计划。他走到前台，询问如何预约私教。",
+    "sentence_zh": "我想预约一节私教课，请问怎么预约？",
+    "explanation": "预约私教是健身房场景中的常见需求。句子的核心是表达预约意愿并询问具体方式。正式场合（如第一次电话咨询或面对前台工作人员）建议使用polite版本，表达尊重且信息完整；与教练或健身房员工熟悉后，casual版本更自然。PT (Personal Trainer) 是健身房内的常用缩写，老会员经常使用。需要注意的是，询问预约时最好一并了解价格、时长、可选时间等信息，这样可以提高沟通效率。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 18,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "健身运动：预约私教。小李刚办了一张健身房会员卡，今天第一次去健身房。他想预约一节私教课，让专业的教练帮他评估身体状况并制定训练计划。他走到前台，询问如何预约私教。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/6/0-0-zh.mp3",
+          "duration_ms": 16846
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 10,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我想要预订一节私教训练课。我怎样才能安排一节？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/6/1-0-zh.mp3",
+          "duration_ms": 4180
+        },
+        {
+          "lang": "en",
+          "text": "I'd like to book a personal training session. How can I schedule one?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/6/1-1-en.mp3",
+          "duration_ms": 4052
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "I'd like to book a personal training session. How can I schedule one?",
+      "phonetic": "aɪd laɪk tuː bʊk ə ˈpɜːrsənl ˈtreɪnɪŋ ˈseʃən haʊ kæn aɪ ˈskedʒuːl wʌn",
+      "literal_translation": "我想要预订一节私教训练课。我怎样才能安排一节？",
+      "note": "正式礼貌的表达，适合初次询问或面对陌生人时使用"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 9,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我想报名参加一节私教课。流程是什么？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/6/2-0-zh.mp3",
+          "duration_ms": 3367
+        },
+        {
+          "lang": "en",
+          "text": "I want to sign up for a personal training session. What's the process?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/6/2-1-en.mp3",
+          "duration_ms": 3413
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "I want to sign up for a personal training session. What's the process?",
+      "phonetic": "aɪ wɒnt tuː saɪn ʌp fɔːr ə ˈpɜːrsənl ˈtreɪnɪŋ ˈseʃən wɒts ðə ˈprəʊses",
+      "literal_translation": "我想报名参加一节私教课。流程是什么？",
+      "note": "中性表达，询问流程和步骤，自然且得体"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 8,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我能预约一节私教课吗？怎么操作的？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/6/3-0-zh.mp3",
+          "duration_ms": 3112
+        },
+        {
+          "lang": "en",
+          "text": "Can I book a PT session? How does it work?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/6/3-1-en.mp3",
+          "duration_ms": 2728
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "Can I book a PT session? How does it work?",
+      "phonetic": "kæn aɪ bʊk ə piː tiː ˈseʃən haʊ dʌz ɪt wɜːrk",
+      "literal_translation": "我能预约一节私教课吗？怎么操作的？",
+      "note": "口语化简略表达，PT是personal trainer的常见缩写，轻松随意"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 11,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我想安排一节和教练一对一训练。我应该怎么做？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/6/4-0-zh.mp3",
+          "duration_ms": 4133
+        },
+        {
+          "lang": "en",
+          "text": "I'd like to arrange a one-on-one session with a trainer. How should I go about it?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/6/4-1-en.mp3",
+          "duration_ms": 4818
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "I'd like to arrange a one-on-one session with a trainer. How should I go about it?",
+      "phonetic": "aɪd laɪk tuː əˈreɪndʒ ə wʌn ɒn wʌn ˈseʃən wɪð ə ˈtreɪnər haʊ ʃʊd aɪ gəʊ əˈbaʊt ɪt",
+      "literal_translation": "我想安排一节和教练一对一训练。我应该怎么做？",
+      "note": "强调一对一课程，表达想要专业指导的意愿"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 9,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "有没有办法安排一节和私人教练的训练课？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/6/5-0-zh.mp3",
+          "duration_ms": 3413
+        },
+        {
+          "lang": "en",
+          "text": "Is there a way to set up a training session with a private coach?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/6/5-1-en.mp3",
+          "duration_ms": 3274
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "Is there a way to set up a training session with a private coach?",
+      "phonetic": "ɪz ðeər ə weɪ tuː set ʌp ə ˈtreɪnɪŋ ˈseʃən wɪð ə ˈpraɪvɪt kəʊtʃ",
+      "literal_translation": "有没有办法安排一节和私人教练的训练课？",
+      "note": "用private coach替代personal trainer，换种说法，询问是否有渠道预约"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 36,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "预约私教是健身房场景中的常见需求。句子的核心是表达预约意愿并询问具体方式。正式场合（如第一次电话咨询或面对前台工作人员）建议使用polite版本，表达尊重且信息完整；与教练或健身房员工熟悉后，casual版本更自然。PT (Personal Trainer) 是健身房内的常用缩写，老会员经常使用。需要注意的是，询问预约时最好一并了解价格、时长、可选时间等信息，这样可以提高沟通效率。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/6/6-0-zh.mp3",
+          "duration_ms": 34164
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Fitness scene, Booking a Personal Trainer task. Scene situation: 小李刚办了一张健身房会员卡. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/6.jpg"
+  },
+  "duration_sec": 101,
+  "duration_frames": 3030
+}

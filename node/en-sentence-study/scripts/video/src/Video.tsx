@@ -55,13 +55,25 @@ export type VideoProps = {
   footerText?: string;
 };
 
+// 兼容两种 props 格式：直接传 JSON 对象 或 包装在 { desc } 中
+function resolveDesc(props: VideoProps): DescJson {
+  // 已经是完整的 DescJson（直接传 JSON 对象时）
+  if ('cards' in props && 'meta' in props) {
+    return props as unknown as DescJson;
+  }
+  // 包装在 desc 属性中
+  return (props as { desc: DescJson }).desc;
+}
+
 /**
  * 端到端视频主组合：
  *   - 底色（薄荷/暖橙）
  *   - 每张 card 用 <Sequence> 拼接到正确时间区间
  *   - 场景插画放进 IntroCard 内部作为主题图（不再做全局背景）
  */
-export const Video: React.FC<VideoProps> = ({ desc, headerText, footerText }) => {
+export const Video: React.FC<VideoProps> = (props) => {
+  const desc = resolveDesc(props);
+  const { headerText, footerText } = props;
   // 从 desc.id 提取序号作为 Day N（id 可能是 "1" / "2" / "draft-1" 等，取最后一段数字）
   const dayNumber = parseInt(desc.id.match(/(\d+)$/)?.[1] ?? '0', 10) || 1;
 
