@@ -9,41 +9,26 @@ import descData from '../scripts/desc/1.draft.json';
 const defaultDesc = descData as unknown as DescJson;
 
 // 根据 inputProps 动态算 durationInFrames/fps，让 CLI 喂不同 desc 时不卡死
-// --props 传入的是整个 JSON 对象（无 desc 包装），因此用 props.duration_frames
-// 根据 inputProps 动态算 durationInFrames/fps，让 CLI 喂不同 desc 时不卡死
-// 兼容多种 props 来源：
-//   1. `pnpm exec remotion render --props X.json`（X = { desc: {...} } 或裸 DescJson）
-//   2. `pnpm studio --props X.json`（X = 裸 DescJson，Studio 注入到 window.remotion_inputProps）
-//   3. 没传 --props：fallback 到 Composition defaultProps
+// props 约定（与 Video.tsx 的 resolveDesc / render.ts 的 propsJson 保持一致）：
+//   - `pnpm exec remotion render --props X.json`   X = `{ desc: {...} }`
+//   - `pnpm studio --props X.json`                 X = `{ desc: {...} }`（与 render 一致，
+//                                                    避免走 window.remotion_inputProps 黑魔法）
+//   - 不传 --props：fallback 到 Composition defaultProps
 const calculateMetadata: CalculateMetadataFunction<{ desc: DescJson }> = async ({
   props,
   defaultProps,
 }) => {
-  // Studio 模式下 --props 注入到 window.remotion_inputProps，
-  // calculateMetadata 的 props 参数在 Studio 里可能拿不到，先补一次
-  const studioInputProps =
-    typeof window !== 'undefined'
-      ? (window as any).remotion_inputProps
-      : undefined;
-  const p: any = props ?? studioInputProps ?? {};
+  const p: any = props ?? {};
   const dp: any = defaultProps ?? {};
-  // 尝试从顶层读 → 从 desc 读 → 从 defaultProps 顶层读 → 从 defaultProps.desc 读
-  const fps: number =
-    p.fps ?? p.desc?.fps ?? dp.fps ?? dp.desc?.fps ?? 30;
-  // 1) 顶层有 duration_frames（裸 desc JSON） → 直接用
-  // 2) desc.duration_frames（包装格式） → 直接用
-  // 3) 顶层有 cards → 从 cards 重算
-  // 4) defaultProps.desc.cards → 从 cards 重算
-  let durationInFrames: number | undefined =
-    p.duration_frames ?? p.desc?.duration_frames;
-  if (durationInFrames == null) {
-    const cards = p.cards ?? p.desc?.cards ?? dp.desc?.cards;
-    if (Array.isArray(cards)) {
-      durationInFrames = cards.reduce(
-        (s: number, c: any) => s + Math.round(c.duration_sec * fps),
-        0
-      );
-    }
+  // 只从 desc 包装里取；不要从 props 顶层 / window / Studio 黑魔法拿
+  const descNode = p.desc ?? dp.desc;
+  const fps: number = descNode?.fps ?? 30;
+  let durationInFrames: number | undefined = descNode?.duration_frames;
+  if (durationInFrames == null && Array.isArray(descNode?.cards)) {
+    durationInFrames = descNode.cards.reduce(
+      (s: number, c: any) => s + Math.round(c.duration_sec * fps),
+      0
+    );
   }
   return {
     durationInFrames: durationInFrames ?? 1,
@@ -74,8 +59,7 @@ export const RemotionRoot: React.FC = () => {
         height={1920}
       />
       {/* Step 9/10：端到端视频组合（feed 整份 desc JSON，duration 动态） */}
-      {/* durationInFrames/fps 用占位值，最终由 calculateMetadata 从 props 算出 */}
-      {/* (Studio 模式 calculateMetadata 可能从 defaultProps 读 fallback) */}
+      {/* durationInFrames/fps 用占位值，最终由 calculateMetadata 从 props.desc 算出 */}
       <Composition
         id="EnSentenceVideo"
         component={Video}
