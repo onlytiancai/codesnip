@@ -3,8 +3,8 @@ import { HelloWorld } from './HelloWorld';
 import { Card1Test } from './Card1Test';
 import { Video, type DescJson } from './Video';
 
-// 默认绑定 desc 1.draft.json；用 CLI --props=<json> 可覆盖任意 desc
-import descData from '../scripts/desc/1.draft.json';
+// 默认绑定 desc 8.draft.json；用 CLI --props=<json> 可覆盖任意 desc
+import descData from '../scripts/desc/8.draft.json';
 
 const defaultDesc = descData as unknown as DescJson;
 
@@ -43,7 +43,7 @@ export const RemotionRoot: React.FC = () => {
         width={1080}
         height={1920}
       />
-      {/* Step 8 回归测试：把 desc 1.draft.json 的 card 1 渲染成 6s 视频 */}
+      {/* Step 8 回归测试：把 desc 8.draft.json 的 card 1 渲染成 6s 视频 */}
       <Composition
         id="Card1Test"
         component={Card1Test}
