@@ -13,4 +13,12 @@
     pnpm exec tsx scripts/render.ts scripts/output/7.json --phase desc      # 只生成 desc JSON
     pnpm exec tsx scripts/render.ts scripts/output/7.json --phase assets    # 只生成场景插图
     pnpm exec tsx scripts/render.ts scripts/output/7.json --phase audio     # 只生成所有卡片音频
-    pnpm studio --props scripts/desc/7.draft.json
+
+    sed -i '' 's/[0-9]*\.draft\.json/8.draft.json/' src/Root.tsx
+    pnpm studio
+
+测试
+
+    pnpm exec remotion studio --props "$(jq -c '{desc: .}' scripts/desc/8.draft.json)"
+
+    pnpm exec remotion render src/index.ts EnSentenceVideo out/test.mp4 --props "$(jq -c '{desc: .}' scripts/desc/8.draft.json)"
