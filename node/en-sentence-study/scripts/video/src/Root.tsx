@@ -8,12 +8,6 @@ import descData from '../scripts/desc/1.draft.json';
 
 const defaultDesc = descData as unknown as DescJson;
 
-// 根据 inputProps 动态算 durationInFrames/fps，让 CLI 喂不同 desc 时不卡死
-// props 约定（与 Video.tsx 的 resolveDesc / render.ts 的 propsJson 保持一致）：
-//   - `pnpm exec remotion render --props X.json`   X = `{ desc: {...} }`
-//   - `pnpm studio --props X.json`                 X = `{ desc: {...} }`（与 render 一致，
-//                                                    避免走 window.remotion_inputProps 黑魔法）
-//   - 不传 --props：fallback 到 Composition defaultProps
 const calculateMetadata: CalculateMetadataFunction<{ desc: DescJson }> = async ({
   props,
   defaultProps,

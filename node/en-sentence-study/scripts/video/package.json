@@ -6,6 +6,7 @@
   "packageManager": "pnpm@10.26.0",
   "scripts": {
     "studio": "remotion studio src/index.ts",
+    "studio:desc": "tsx scripts/studio.ts",
     "assets": "tsx scripts/generate-assets.ts",
     "render": "remotion render src/index.ts HelloWorld out/hello.mp4",
     "build": "pnpm assets && pnpm render",
