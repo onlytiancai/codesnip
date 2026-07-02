@@ -54,6 +54,14 @@ h1 {
   font-weight: 600;
   text-align: center;
   margin-bottom: 8px;
+  min-height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.graph-panel .function-label .katex {
+  font-size: 1.1em;
 }
 
 .graph-panel .inner-label {
@@ -102,6 +110,55 @@ canvas {
   background: linear-gradient(90deg, #3b82f6, #8b5cf6, #10b981);
   border-radius: 2px;
   align-self: center;
+}
+
+.derivative-container {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.derivative-panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  flex: 1 1 280px;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.derivative-label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-align: center;
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.derivative-label.dudx-label { color: #3b82f6; }
+.derivative-label.dydu-label { color: #10b981; }
+.derivative-label.dydx-label { color: #ef4444; }
+
+.derivative-label .katex {
+  font-size: 1.05em;
+}
+
+.derivative-value {
+  margin-top: 6px;
+  font-size: 13px;
+  font-family: 'Times New Roman', serif;
+  color: #1f2937;
+  min-height: 18px;
 }
 
 .control-panel {

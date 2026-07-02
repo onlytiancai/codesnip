@@ -6,25 +6,29 @@ const innerFunctions = {
     fn: x => x * x,
     derivative: x => 2 * x,
     xRange: [-2, 2],
-    label: 'u = x²'
+    label: 'u = x²',
+    latex: 'u = x^{2}'
   },
   'sin(x)': {
     fn: x => Math.sin(x),
     derivative: x => Math.cos(x),
     xRange: [-2 * Math.PI, 2 * Math.PI],
-    label: 'u = sin(x)'
+    label: 'u = sin(x)',
+    latex: 'u = \\sin x'
   },
   'eˣ': {
     fn: x => Math.exp(x),
     derivative: x => Math.exp(x),
     xRange: [-2, 2],
-    label: 'u = eˣ'
+    label: 'u = eˣ',
+    latex: 'u = e^{x}'
   },
   'x³': {
     fn: x => x * x * x,
     derivative: x => 3 * x * x,
     xRange: [-1.5, 1.5],
-    label: 'u = x³'
+    label: 'u = x³',
+    latex: 'u = x^{3}'
   }
 };
 
@@ -34,31 +38,36 @@ const outerFunctions = {
     fn: u => u * u,
     derivative: u => 2 * u,
     validate: () => true,
-    label: 'y = u²'
+    label: 'y = u²',
+    latex: 'y = u^{2}'
   },
   'sin(u)': {
     fn: u => Math.sin(u),
     derivative: u => Math.cos(u),
     validate: () => true,
-    label: 'y = sin(u)'
+    label: 'y = sin(u)',
+    latex: 'y = \\sin u'
   },
   'eᵘ': {
     fn: u => Math.exp(u),
     derivative: u => Math.exp(u),
     validate: () => true,
-    label: 'y = eᵘ'
+    label: 'y = eᵘ',
+    latex: 'y = e^{u}'
   },
   'ln(u)': {
     fn: u => Math.log(u),
     derivative: u => 1 / u,
     validate: (u) => u > 0,
-    label: 'y = ln(u)'
+    label: 'y = ln(u)',
+    latex: 'y = \\ln u'
   },
   '|u|': {
     fn: u => Math.abs(u),
     derivative: u => u === 0 ? NaN : (u > 0 ? 1 : -1),
     validate: () => true,
-    label: 'y = |u|'
+    label: 'y = |u|',
+    latex: 'y = |u|'
   }
 };
 
@@ -69,6 +78,9 @@ let currentX = 1;
 let animation = null;
 let innerGraph = null;
 let outerGraph = null;
+let dudxGraph = null;
+let dyduGraph = null;
+let dydxGraph = null;
 
 // DOM 元素
 const innerSelect = document.getElementById('innerFunction');
@@ -87,6 +99,17 @@ function init() {
   // 渲染标题 LaTeX
   const titleEl = document.getElementById('pageTitle');
   titleEl.innerHTML = '链式法则可视化 ' + katex.renderToString('\\frac{dy}{dx} = \\frac{dy}{du} \\times \\frac{du}{dx}', { throwOnError: false });
+
+  // 渲染三幅导数图标题 LaTeX
+  const renderDerivativeLabel = (id, frac) => {
+    document.getElementById(id).innerHTML = katex.renderToString(
+      `${frac} \\text{ 随 } x \\text{ 变化}`,
+      { throwOnError: false }
+    );
+  };
+  renderDerivativeLabel('labelDudxGraph', '\\frac{du}{dx}');
+  renderDerivativeLabel('labelDyduGraph', '\\frac{dy}{du}');
+  renderDerivativeLabel('labelDydxGraph', '\\frac{dy}{dx}');
 
   // 事件绑定
   innerSelect.addEventListener('change', onInnerFunctionChange);
@@ -262,6 +285,80 @@ function update() {
 
   // 更新数值显示
   updateValueDisplay(values);
+
+  // 更新导数随 x 变化曲线
+  updateDerivativeGraphs(values);
+}
+
+// 计算某个导数函数在 xRange 上的 y 范围（含 10% 边距）
+function computeDerivativeRange(fn, xRange) {
+  let yMin = Infinity, yMax = -Infinity;
+  const step = (xRange[1] - xRange[0]) / 200;
+  for (let i = 0; i <= 200; i++) {
+    const x = xRange[0] + i * step;
+    const y = fn(x);
+    if (isFinite(y)) {
+      yMin = Math.min(yMin, y);
+      yMax = Math.max(yMax, y);
+    }
+  }
+  if (!isFinite(yMin)) { yMin = -1; yMax = 1; }
+  if (yMin === yMax) { yMin -= 1; yMax += 1; }
+  const margin = (yMax - yMin) * 0.15 || 1;
+  return [yMin - margin, yMax + margin];
+}
+
+// 更新三个导数曲线图
+function updateDerivativeGraphs(values) {
+  const inner = innerFunctions[currentInnerKey];
+  const outer = outerFunctions[currentOuterKey];
+  const xRange = inner.xRange;
+
+  const dudxFn = x => inner.derivative(x);
+  const dyduFn = x => outer.derivative(inner.fn(x));
+  const dydxFn = x => inner.derivative(x) * outer.derivative(inner.fn(x));
+
+  const dudxRange = computeDerivativeRange(dudxFn, xRange);
+  const dyduRange = computeDerivativeRange(dyduFn, xRange);
+  const dydxRange = computeDerivativeRange(dydxFn, xRange);
+
+  // 重新创建画布以应用新的 scaleX/scaleY
+  dudxGraph = createDerivativeGraph('dudxCanvas', xRange, dudxRange, 320, 180);
+  dyduGraph = createDerivativeGraph('dyduCanvas', xRange, dyduRange, 320, 180);
+  dydxGraph = createDerivativeGraph('dydxCanvas', xRange, dydxRange, 320, 180);
+
+  // du/dx 图
+  clearGraph(dudxGraph);
+  drawDerivativeAxes(dudxGraph, xRange, dudxRange);
+  drawDerivativeCurve(dudxGraph, dudxFn, xRange, dudxRange, '#3b82f6');
+  const dudxVal = dudxFn(currentX);
+  if (isFinite(dudxVal) && dudxVal >= dudxRange[0] && dudxVal <= dudxRange[1]) {
+    drawPoint(dudxGraph, currentX, dudxVal);
+  }
+  document.getElementById('valDudxGraph').innerHTML =
+    katex.renderToString(`\\frac{du}{dx} = ${dudxVal.toFixed(4)}`, { throwOnError: false, displayMode: false, output: 'html' });
+
+  // dy/du 图
+  clearGraph(dyduGraph);
+  drawDerivativeAxes(dyduGraph, xRange, dyduRange);
+  drawDerivativeCurve(dyduGraph, dyduFn, xRange, dyduRange, '#10b981');
+  const dyduVal = dyduFn(currentX);
+  if (isFinite(dyduVal) && dyduVal >= dyduRange[0] && dyduVal <= dyduRange[1]) {
+    drawPoint(dyduGraph, currentX, dyduVal);
+  }
+  document.getElementById('valDyduGraph').innerHTML =
+    katex.renderToString(`\\frac{dy}{du} = ${dyduVal.toFixed(4)}`, { throwOnError: false, displayMode: false, output: 'html' });
+
+  // dy/dx 图
+  clearGraph(dydxGraph);
+  drawDerivativeAxes(dydxGraph, xRange, dydxRange);
+  drawDerivativeCurve(dydxGraph, dydxFn, xRange, dydxRange, '#ef4444');
+  const dydxVal = dydxFn(currentX);
+  if (isFinite(dydxVal) && dydxVal >= dydxRange[0] && dydxVal <= dydxRange[1]) {
+    drawPoint(dydxGraph, currentX, dydxVal);
+  }
+  document.getElementById('valDydxGraph').innerHTML =
+    katex.renderToString(`\\frac{dy}{dx} = ${dydxVal.toFixed(4)}`, { throwOnError: false, displayMode: false, output: 'html' });
 }
 
 // 更新公式板
@@ -283,8 +380,8 @@ function updateFormulaBoard(values) {
     { throwOnError: false }
   );
 
-  document.getElementById('innerLabel').textContent = inner.label;
-  document.getElementById('outerLabel').textContent = outer.label;
+  document.getElementById('innerLabel').innerHTML = katex.renderToString(inner.latex, { throwOnError: false });
+  document.getElementById('outerLabel').innerHTML = katex.renderToString(outer.latex, { throwOnError: false });
 }
 
 // 更新数值显示

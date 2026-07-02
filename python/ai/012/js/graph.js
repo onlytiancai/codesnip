@@ -118,6 +118,117 @@ function toScreen(graph, x, y) {
   };
 }
 
+// 自适应范围画布：xRange/yRange 自动决定缩放和原点位置
+function createDerivativeGraph(canvasId, xRange, yRange, width, height) {
+  const canvas = document.getElementById(canvasId);
+  canvas.width = width;
+  canvas.height = height;
+  const xSpan = xRange[1] - xRange[0];
+  const ySpan = yRange[1] - yRange[0];
+  return {
+    canvas,
+    ctx: canvas.getContext('2d'),
+    width,
+    height,
+    xRange,
+    yRange,
+    // centerX/centerY 是数学原点 (x=0) 在屏幕上的位置
+    centerX: (-xRange[0] / xSpan) * width,
+    centerY: (yRange[1] / ySpan) * height,
+    scaleX: width / xSpan,
+    scaleY: height / ySpan
+  };
+}
+
+// 计算"漂亮"的刻度间隔（1, 2, 5 × 10^n 序列）
+function niceTickInterval(span) {
+  if (span <= 0 || !isFinite(span)) return 1;
+  const target = span / 5;
+  const mag = Math.pow(10, Math.floor(Math.log10(target)));
+  const norm = target / mag;
+  if (norm < 1.5) return mag;
+  if (norm < 3) return 2 * mag;
+  if (norm < 7) return 5 * mag;
+  return 10 * mag;
+}
+
+function formatTick(v) {
+  const abs = Math.abs(v);
+  if (abs >= 100) return v.toFixed(0);
+  if (abs >= 10) return v.toFixed(1);
+  if (abs >= 1) return v.toFixed(2);
+  if (abs >= 0.1) return v.toFixed(3);
+  return v.toFixed(4);
+}
+
+// 在自适应范围画布上画坐标轴 + 网格 + 刻度
+function drawDerivativeAxes(graph, xRange, yRange) {
+  const ctx = graph.ctx;
+
+  // 背景网格
+  const xTick = niceTickInterval(xRange[1] - xRange[0]);
+  const yTick = niceTickInterval(yRange[1] - yRange[0]);
+
+  ctx.strokeStyle = COLORS.grid;
+  ctx.lineWidth = 1;
+  for (let x = Math.ceil(xRange[0] / xTick) * xTick; x <= xRange[1]; x += xTick) {
+    if (Math.abs(x) < xTick * 0.001) continue;
+    const screenX = graph.centerX + x * graph.scaleX;
+    ctx.beginPath();
+    ctx.moveTo(screenX, 0);
+    ctx.lineTo(screenX, graph.height);
+    ctx.stroke();
+  }
+  for (let y = Math.ceil(yRange[0] / yTick) * yTick; y <= yRange[1]; y += yTick) {
+    if (Math.abs(y) < yTick * 0.001) continue;
+    const screenY = graph.centerY - y * graph.scaleY;
+    ctx.beginPath();
+    ctx.moveTo(0, screenY);
+    ctx.lineTo(graph.width, screenY);
+    ctx.stroke();
+  }
+
+  // 坐标轴（仅当原点落在画布内时画）
+  ctx.strokeStyle = COLORS.axis;
+  ctx.lineWidth = 1.5;
+  if (yRange[0] <= 0 && yRange[1] >= 0) {
+    const y0 = graph.centerY;
+    ctx.beginPath();
+    ctx.moveTo(0, y0);
+    ctx.lineTo(graph.width, y0);
+    ctx.stroke();
+  }
+  if (xRange[0] <= 0 && xRange[1] >= 0) {
+    const x0 = graph.centerX;
+    ctx.beginPath();
+    ctx.moveTo(x0, 0);
+    ctx.lineTo(x0, graph.height);
+    ctx.stroke();
+  }
+
+  // X 轴刻度标签
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '11px PingFang SC';
+  ctx.textAlign = 'center';
+  for (let x = Math.ceil(xRange[0] / xTick) * xTick; x <= xRange[1]; x += xTick) {
+    if (Math.abs(x) < xTick * 0.001) continue;
+    const screenX = graph.centerX + x * graph.scaleX;
+    ctx.fillText(formatTick(x), screenX, graph.height - 4);
+  }
+
+  // Y 轴刻度标签
+  ctx.textAlign = 'right';
+  for (let y = Math.ceil(yRange[0] / yTick) * yTick; y <= yRange[1]; y += yTick) {
+    if (Math.abs(y) < yTick * 0.001) continue;
+    const screenY = graph.centerY - y * graph.scaleY;
+    ctx.fillText(formatTick(y), graph.width - 4, screenY + 4);
+  }
+
+  // 原点标签
+  ctx.textAlign = 'right';
+  ctx.fillText('0', graph.centerX - 4, graph.height - 4);
+}
+
 function drawCurve(graph, fn, xRange, yRange, color, lineWidth = 2) {
   const ctx = graph.ctx;
   ctx.strokeStyle = color;
@@ -142,6 +253,46 @@ function drawCurve(graph, fn, xRange, yRange, color, lineWidth = 2) {
     } else {
       started = false;
     }
+  }
+
+  ctx.stroke();
+}
+
+// 绘制导数曲线：自动识别纵向跳跃并断开（适用于 |u| 等间断点）
+function drawDerivativeCurve(graph, fn, xRange, yRange, color, lineWidth = 2) {
+  const ctx = graph.ctx;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.beginPath();
+
+  const step = (xRange[1] - xRange[0]) / SAMPLE_POINTS;
+  const ySpan = yRange[1] - yRange[0];
+  const jumpThreshold = ySpan * 0.5;
+  let started = false;
+  let prevY = null;
+
+  for (let i = 0; i <= SAMPLE_POINTS; i++) {
+    const x = xRange[0] + i * step;
+    const y = fn(x);
+
+    if (!isFinite(y) || y < yRange[0] - 1 || y > yRange[1] + 1) {
+      started = false;
+      prevY = null;
+      continue;
+    }
+
+    if (prevY !== null && Math.abs(y - prevY) > jumpThreshold) {
+      started = false;
+    }
+
+    const screen = toScreen(graph, x, y);
+    if (!started) {
+      ctx.moveTo(screen.x, screen.y);
+      started = true;
+    } else {
+      ctx.lineTo(screen.x, screen.y);
+    }
+    prevY = y;
   }
 
   ctx.stroke();
