@@ -1,0 +1,46 @@
+{
+  "scene_en": "Fitness",
+  "scene_zh": "健身运动",
+  "task_en": "Buying a Membership",
+  "task_zh": "购买课程",
+  "context": "小李去健身房咨询课程，刚进门看到各种器械和操课安排。他想先体验一下课程再做决定，于是询问前台工作人员是否可以先试课。",
+  "sentence_zh": "可以先体验一下课程吗？",
+  "translations": [
+    {
+      "sentence": "Can I try a class first?",
+      "style": "casual",
+      "note": "最简单直接的说法，适合日常口语",
+      "literal_translation": "我能先试一节课吗？",
+      "phonetic": "kæn aɪ traɪ ə klæs fɜːrst"
+    },
+    {
+      "sentence": "Is there a trial session available?",
+      "style": "neutral",
+      "note": "正式询问是否有体验课程可参加",
+      "literal_translation": "有体验课程可用的吗？",
+      "phonetic": "ɪz ðeər ə ˈtraɪəl ˈseʃən əˈveɪləbəl"
+    },
+    {
+      "sentence": "Do you offer a free trial for new members?",
+      "style": "polite",
+      "note": "礼貌地询问新会员是否有免费试用",
+      "literal_translation": "你们为新会员提供免费试用吗？",
+      "phonetic": "duː juː ˈɒfər ə friː ˈtraɪəl fɔː njuː ˈmembəz"
+    },
+    {
+      "sentence": "I'd like to experience a class before I sign up.",
+      "style": "polite",
+      "note": "正式表达想在报名前先体验课程",
+      "literal_translation": "我想在报名前先体验一节课。",
+      "phonetic": "aɪd laɪk tuː ɪkˈspɪəriəns ə klæs bɪˈfɔːr aɪ saɪn ʌp"
+    },
+    {
+      "sentence": "Can I get a complimentary trial class?",
+      "style": "neutral",
+      "note": "使用正式词汇complimentary表示赠送的体验",
+      "literal_translation": "我能获得一节赠送的体验课吗？",
+      "phonetic": "kæn aɪ get ə ˌkɒmplɪˈmentəri ˈtraɪəl klæs"
+    }
+  ],
+  "explanation": "这个句子是健身场景中非常实用的表达，访客在决定购买课程前想先体验是常见的需求。在英文表达上，从casual到polite有多种选择：'Can I try a class first?'最口语化，适合朋友间的随意询问；'Is there a trial session available?'是标准的询问方式；'Do you offer a free trial for new members?'则更正式，适合对服务员使用。注意trial在这里是'试用'的意思，session或class都可以表示'课程'。"
+}

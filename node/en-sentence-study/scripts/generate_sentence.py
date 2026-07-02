@@ -40,14 +40,23 @@ SYSTEM_PROMPT = """你是一位专业的英语口语教练。用户会给你一�
    - style: 风格标签（polite 正式、neutral 中性、casual 口语化）
    - note: 简短说明
    - literal_translation: 中文直译，将英文逐词翻译成中文
-   - phonetic: 音标，只标注元音和重音位置，简明易懂，便于用户朗读
+   - phonetic: 音标，使用标准 IPA（国际音标），英式发音（DJ 英式音标），重音符号用 ˈ
+
+英式 vs 美式音标对照（务必使用英式！）：
+- 字母 R：英式不卷舌 /ɑː/，美式 /ɑːr/
+- 单词 not：英式 /nɒt/，美式 /nɑːt/
+- 单词 pass：英式 /pɑːs/，美式 /pæs/
+- 单词 book：英式 /bʊk/，美式 /bʊk/（相同）
+- 单词 water：英式 /ˈwɔːtə/，美式 /ˈwɔːt̬ɚ/
+- 单词 better：英式 /ˈbetə/，美式 /ˈbeɾɚ/
+- 示例 "Nice to meet you"：英式音标 /naɪs tə miːt juː/（不是 /naɪs tu miːt juː/，/t/ 而非 /ɾ/）
 
 请以 JSON 格式返回：
 {
     "context": "上下文背景描述（中文）",
     "sentence_zh": "中文句子",
     "translations": [
-        {"sentence": "英文句子", "style": "polite/neutral/casual", "note": "简短说明", "literal_translation": "中文直译", "phonetic": "音标"},
+        {"sentence": "Nice to meet you.", "style": "polite", "note": "简短说明", "literal_translation": "很高兴认识你", "phonetic": "naɪs tuː miːt juː"},
         ...
     ],
     "explanation": "整体讲解，说明这个句子适用的场景和注意事项"

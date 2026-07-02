@@ -1,0 +1,170 @@
+{
+  "id": "4",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/4.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Pets",
+    "scene_zh": "宠物",
+    "task_en": "Pet Boarding",
+    "task_zh": "宠物寄养",
+    "context": "一位宠物主人打电话给宠物寄养中心，询问寄养服务的收费情况和具体安排。",
+    "sentence_zh": "请问你们这里宠物寄养是怎么收费的？",
+    "explanation": "这句话是在宠物寄养场景中最常用的开场白之一。需要注意的是，在实际对话中，如果你已经确定了宠物的种类（比如猫、狗），最好在句子里具体说明，比如'What are your boarding rates for dogs?'，这样可以让对方更准确地回答你的问题。另外，询问时除了价格，还应该了解是否包含餐食、是否有额外费用（如遛狗、药物管理等）等问题。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 10,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "宠物：宠物寄养。一位宠物主人打电话给宠物寄养中心，询问寄养服务的收费情况和具体安排。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/4/0-0-zh.mp3",
+          "duration_ms": 8784
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "你们对宠物寄养收多少费用？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/4/1-0-zh.mp3",
+          "duration_ms": 2484
+        },
+        {
+          "lang": "en",
+          "text": "How much do you charge for pet boarding?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/4/1-1-en.mp3",
+          "duration_ms": 2232
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "How much do you charge for pet boarding?",
+      "phonetic": "how much·doo·yoo·chɑːrjdʒ·fɔːr·pet ˈbɔːrdɪŋ",
+      "literal_translation": "你们对宠物寄养收多少费用？",
+      "note": "直接询问价格的常用表达，适合大多数场景"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 5,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "你们的寄养费率是多少？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/4/2-0-zh.mp3",
+          "duration_ms": 1872
+        },
+        {
+          "lang": "en",
+          "text": "What are your boarding rates?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/4/2-1-en.mp3",
+          "duration_ms": 1404
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "What are your boarding rates?",
+      "phonetic": "wʌt·ɑːr·jɔːr ˈbɔːrdɪŋ·reɪts",
+      "literal_translation": "你们的寄养费率是多少？",
+      "note": "更正式的说法，'rates'显得专业"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 6,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "寄养的每日费率是多少？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/4/3-0-zh.mp3",
+          "duration_ms": 2160
+        },
+        {
+          "lang": "en",
+          "text": "What's the daily rate for boarding?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/4/3-1-en.mp3",
+          "duration_ms": 1836
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "What's the daily rate for boarding?",
+      "phonetic": "wʌts·ðə ˈdeɪli·reɪt·fɔːr ˈbɔːrdɪŋ",
+      "literal_translation": "寄养的每日费率是多少？",
+      "note": "强调按天计费，适合询问具体费用结构"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "你们按天收费还是按周收费？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/4/4-0-zh.mp3",
+          "duration_ms": 2664
+        },
+        {
+          "lang": "en",
+          "text": "Do you charge by the day or by the week?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/4/4-1-en.mp3",
+          "duration_ms": 2484
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "Do you charge by the day or by the week?",
+      "phonetic": "doo·yoo·tʃɑːrjdʒ·baɪ·ðə·deɪ·ɔːr·baɪ·ðə·wiːk",
+      "literal_translation": "你们按天收费还是按周收费？",
+      "note": "口语化表达，询问收费方式"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 8,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我想了解一下你们的寄养费用。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/4/5-0-zh.mp3",
+          "duration_ms": 2412
+        },
+        {
+          "lang": "en",
+          "text": "I'd like to know about your boarding fees.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/4/5-1-en.mp3",
+          "duration_ms": 3276
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "I'd like to know about your boarding fees.",
+      "phonetic": "aɪd·laɪk·tə·noʊ·əˈbaʊt·jɔːr ˈbɔːrdɪŋ·fiːz",
+      "literal_translation": "我想了解一下你们的寄养费用。",
+      "note": "委婉表达，适合开场询问"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 29,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "这句话是在宠物寄养场景中最常用的开场白之一。需要注意的是，在实际对话中，如果你已经确定了宠物的种类（比如猫、狗），最好在句子里具体说明，比如'What are your boarding rates for dogs?'，这样可以让对方更准确地回答你的问题。另外，询问时除了价格，还应该了解是否包含餐食、是否有额外费用（如遛狗、药物管理等）等问题。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/4/6-0-zh.mp3",
+          "duration_ms": 27720
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Pets scene, Pet Boarding task. Scene situation: 一位宠物主人打电话给宠物寄养中心. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/4.jpg"
+  },
+  "duration_sec": 72,
+  "duration_frames": 2160
+}

@@ -1,0 +1,146 @@
+{
+  "id": "3",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/3.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Weather",
+    "scene_zh": "天气聊天",
+    "task_en": "Weather Forecast",
+    "task_zh": "天气预报",
+    "context": "早上出门前，小李看了看手机上的天气APP，转头跟室友小王说今天可能会下雨。",
+    "sentence_zh": "天气预报说今天会下雨，记得带伞。",
+    "explanation": "这个场景在日常生活中非常常见。注意：正式场合可以用according to the forecast或it's expected to...，日常对话用forecast says或weather app says更自然。提醒别人带东西时，可以用so remember...或don't forget...结构。口语中常用grab表示随手拿起某物，比bring更轻松。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 10,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "天气聊天：天气预报。早上出门前，小李看了看手机上的天气APP，转头跟室友小王说今天可能会下雨。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/3/0-0-zh.mp3",
+          "duration_ms": 8892
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 10,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "天气预报说今天会下雨，所以记得带伞。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/3/1-0-zh.mp3",
+          "duration_ms": 3420
+        },
+        {
+          "lang": "en",
+          "text": "The forecast says it's going to rain today, so remember to bring an umbrella.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/3/1-1-en.mp3",
+          "duration_ms": 3996
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "The forecast says it's going to rain today, so remember to bring an umbrella.",
+      "phonetic": "ðə ˈfɔːrkɑːst sɛz ɪts ˈɡoʊɪŋ tuː reɪn təˈdeɪ, soʊ rɪˈmɛmbər tuː brɪŋ ən ˈʌmbərəl",
+      "literal_translation": "天气预报说今天会下雨，所以记得带伞。",
+      "note": "最常用、最自然的表达方式"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 9,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "根据天气预报，预计稍后会下雨。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/3/2-0-zh.mp3",
+          "duration_ms": 2736
+        },
+        {
+          "lang": "en",
+          "text": "According to the weather forecast, it's supposed to rain later.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/3/2-1-en.mp3",
+          "duration_ms": 3600
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "According to the weather forecast, it's supposed to rain later.",
+      "phonetic": "əˈkɔːrdɪŋ tuː ðə ˈwɛðər ˈfɔːrkɑːst, ɪts səˈpoʊzd tuː reɪn ˈleɪtər",
+      "literal_translation": "根据天气预报，预计稍后会下雨。",
+      "note": "更加正式，用according to强调信息来源"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 9,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "天气APP说雨要来了，拿把伞！",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/3/3-0-zh.mp3",
+          "duration_ms": 3420
+        },
+        {
+          "lang": "en",
+          "text": "The weather app says rain is coming, grab an umbrella!",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/3/3-1-en.mp3",
+          "duration_ms": 3024
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "The weather app says rain is coming, grab an umbrella!",
+      "phonetic": "ðə ˈwɛðər æp sɛz reɪn ɪz ˈkʌmɪŋ, ɡræb ən ˈʌmbərəl",
+      "literal_translation": "天气APP说雨要来了，拿把伞！",
+      "note": "口语化，grab表示随手拿起，感叹号体现轻松语气"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 8,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "今天有下雨的可能性，别忘了你的伞。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/3/4-0-zh.mp3",
+          "duration_ms": 2988
+        },
+        {
+          "lang": "en",
+          "text": "There's a chance of rain today, don't forget your umbrella.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/3/4-1-en.mp3",
+          "duration_ms": 3240
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "There's a chance of rain today, don't forget your umbrella.",
+      "phonetic": "ðɛrz ə tʃæns əv reɪn təˈdeɪ, doʊnt fərˈɡɛt jʊər ˈʌmbərəl",
+      "literal_translation": "今天有下雨的可能性，别忘了你的伞。",
+      "note": "用there's a chance表达可能性，语气较温和"
+    },
+    {
+      "index": 5,
+      "type": "summary",
+      "duration_sec": 25,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "这个场景在日常生活中非常常见。注意：正式场合可以用according to the forecast或it's expected to...，日常对话用forecast says或weather app says更自然。提醒别人带东西时，可以用so remember...或don't forget...结构。口语中常用grab表示随手拿起某物，比bring更轻松。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/3/5-0-zh.mp3",
+          "duration_ms": 23004
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Weather scene, Weather Forecast task. Scene situation: 早上出门前. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/3.jpg"
+  },
+  "duration_sec": 71,
+  "duration_frames": 2130
+}

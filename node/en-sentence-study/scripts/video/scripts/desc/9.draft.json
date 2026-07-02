@@ -1,0 +1,170 @@
+{
+  "id": "9",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/9.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Bank",
+    "scene_zh": "银行",
+    "task_en": "Credit Card Application",
+    "task_zh": "信用卡申请",
+    "context": "李明来到银行网点，想要申请一张信用卡。他走到柜台前，对银行工作人员说。他不确定申请信用卡需要准备什么材料，所以想先询问清楚流程和所需文件。",
+    "sentence_zh": "请问申请信用卡需要准备哪些材料？",
+    "explanation": "在银行申请信用卡时，询问所需材料是非常常见且必要的开场白。建议先表明自己的意图（apply for a credit card），再用礼貌的方式询问所需准备的文件。polite风格使用Could you...开头，适合正式场合；neutral风格直接询问文件类型；casual风格则更随意自然。在实际银行场景中，建议使用polite或neutral风格以显得专业礼貌。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 17,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "银行：信用卡申请。李明来到银行网点，想要申请一张信用卡。他走到柜台前，对银行工作人员说。他不确定申请信用卡需要准备什么材料，所以想先询问清楚流程和所需文件。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/9/0-0-zh.mp3",
+          "duration_ms": 15314
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 10,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "您能告诉我需要准备哪些文件来申请信用卡吗？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/9/1-0-zh.mp3",
+          "duration_ms": 4087
+        },
+        {
+          "lang": "en",
+          "text": "Could you tell me what documents I need to prepare for applying for a credit card?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/9/1-1-en.mp3",
+          "duration_ms": 3925
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "Could you tell me what documents I need to prepare for applying for a credit card?",
+      "phonetic": "kuːdʒiː tel miː wɒt ˈdɒkjʊmənts aɪ niːd tuː priːˈpeə fɔːr əˈplaɪɪŋ fɔːr ə ˈkrɛdɪt kɑːd",
+      "literal_translation": "您能告诉我需要准备哪些文件来申请信用卡吗？",
+      "note": "正式礼貌的询问方式，适用于正式场合"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 8,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我应该准备哪些文件来申请信用卡？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/9/2-0-zh.mp3",
+          "duration_ms": 2984
+        },
+        {
+          "lang": "en",
+          "text": "What documents should I prepare for a credit card application?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/9/2-1-en.mp3",
+          "duration_ms": 3274
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "What documents should I prepare for a credit card application?",
+      "phonetic": "wɒt ˈdɒkjʊmənts ʃʊd aɪ priːˈpeə fɔːr ə ˈkrɛdɪt kɑːd ˌæplɪˈkeɪʃən",
+      "literal_translation": "我应该准备哪些文件来申请信用卡？",
+      "note": "中性询问，直接询问所需材料"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我需要带什么来申请信用卡？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/9/3-0-zh.mp3",
+          "duration_ms": 2345
+        },
+        {
+          "lang": "en",
+          "text": "What do I need to bring to apply for a credit card?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/9/3-1-en.mp3",
+          "duration_ms": 2635
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "What do I need to bring to apply for a credit card?",
+      "phonetic": "wɒt duː aɪ niːd tuː brɪŋ tuː əˈplaɪ fɔːr ə ˈkrɛdɪt kɑːd",
+      "literal_translation": "我需要带什么来申请信用卡？",
+      "note": "简单直接的问法，询问需要携带什么"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 9,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我想申请信用卡。我需要什么？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/9/4-0-zh.mp3",
+          "duration_ms": 2635
+        },
+        {
+          "lang": "en",
+          "text": "I'd like to apply for a credit card. What do I need?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/9/4-1-en.mp3",
+          "duration_ms": 3669
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "I'd like to apply for a credit card. What do I need?",
+      "phonetic": "aɪd laɪk tuː əˈplaɪ fɔːr ə ˈkrɛdɪt kɑːd wɒt duː aɪ niːd",
+      "literal_translation": "我想申请信用卡。我需要什么？",
+      "note": "先表明意图，再询问需求，自然口语化"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 9,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "嘿，申请信用卡我应该带什么材料？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/9/5-0-zh.mp3",
+          "duration_ms": 3274
+        },
+        {
+          "lang": "en",
+          "text": "Hey, what stuff should I bring for a credit card?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/9/5-1-en.mp3",
+          "duration_ms": 3193
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "Hey, what stuff should I bring for a credit card?",
+      "phonetic": "heɪ wɒt stʌf ʃʊd aɪ brɪŋ fɔːr ə ˈkrɛdɪt kɑːd",
+      "literal_translation": "嘿，申请信用卡我应该带什么材料？",
+      "note": "非常口语化的表达，适用于轻松的非正式场合"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 29,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "在银行申请信用卡时，询问所需材料是非常常见且必要的开场白。建议先表明自己的意图（apply for a credit card），再用礼貌的方式询问所需准备的文件。polite风格使用Could you...开头，适合正式场合；neutral风格直接询问文件类型；casual风格则更随意自然。在实际银行场景中，建议使用polite或neutral风格以显得专业礼貌。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/9/6-0-zh.mp3",
+          "duration_ms": 27360
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Bank scene, Credit Card Application task. Scene situation: 李明来到银行网点. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/9.jpg"
+  },
+  "duration_frames": 2670,
+  "duration_sec": 89
+}
