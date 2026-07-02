@@ -1,0 +1,250 @@
+{
+  "id": "xor-bp",
+  "fps": 30,
+  "width": 1920,
+  "height": 1080,
+  "theme": "paper",
+  "meta": {
+    "title": "XOR 反向传播:为什么 ∂L/∂z = ŷ − y",
+    "subtitle": "从 sigmoid+交叉熵到一行代码"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 12,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "今天我们只盯一个公式:dL 除以 dz 等于 ŷ 减 y。整个反传的魔法,就藏在这一行里。任何数学符号你都可以暂停。",
+          "audio_path": "audio/xor-bp-0-0-zh.mp3",
+          "duration_ms": 10321
+        }
+      ],
+      "payload": {
+        "headline": "XOR 反向传播",
+        "body": "为什么 ∂L/∂z = ŷ − y?\n\n今天我们只盯这一个公式。\n整个反向传播最神奇的一步,\n就藏在这一行简洁的等式里。\n\n任何数学符号你都可以暂停。\n跟着节奏,我们走完一遍。",
+        "caption": "今天只盯一个公式"
+      }
+    },
+    {
+      "index": 1,
+      "type": "diagram",
+      "duration_sec": 20,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "先看网络结构。两层神经网络,X 是输入,形状 2 维;隐藏层有 4 个神经元,用 sigmoid;输出层 1 个神经元,得到 ŷ,真值是 y。W1 b1 是第一层参数,W2 b2 是第二层。",
+          "audio_path": "audio/xor-bp-1-0-zh.mp3",
+          "duration_ms": 18095
+        }
+      ],
+      "payload": {
+        "headline": "网络结构:2 → 4 → 1",
+        "image": "assets/diagrams/01-network.png",
+        "caption": "输入 2 维,隐藏 4 维,输出 1 维"
+      }
+    },
+    {
+      "index": 2,
+      "type": "plot",
+      "duration_sec": 15,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "看 sigmoid 函数。公式 σ(z) 等于 1 除以 1 加 e 的负 z 次方。它的图形是 S 形,z 大就趋近 1,z 小就趋近 0,把任何实数压到 0 和 1 之间。",
+          "audio_path": "audio/xor-bp-2-0-zh.mp3",
+          "duration_ms": 13606
+        }
+      ],
+      "payload": {
+        "headline": "sigmoid 函数",
+        "image": "assets/plots/02-sigmoid.png",
+        "caption": "σ(z) 把实数压到 (0,1)"
+      }
+    },
+    {
+      "index": 3,
+      "type": "plot",
+      "duration_sec": 14,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "再看损失函数。分类任务常用交叉熵:L 等于负的 y log ŷ 加 (1 减 y) log (1 减 ŷ)。猜得越离谱,惩罚越重。这就是我们要优化的目标。",
+          "audio_path": "audio/xor-bp-3-0-zh.mp3",
+          "duration_ms": 12620
+        }
+      ],
+      "payload": {
+        "headline": "交叉熵损失",
+        "image": "assets/plots/03-crossentropy.png",
+        "caption": "猜错越离谱,惩罚越重"
+      }
+    },
+    {
+      "index": 4,
+      "type": "formula",
+      "duration_sec": 14,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "进入正题。我们要算 dL 除以 dz,即损失对输出层加权输入的导数。链式法则把它拆成两项:dL 除以 dŷ,乘上 dŷ 除以 dz。",
+          "audio_path": "audio/xor-bp-4-0-zh.mp3",
+          "duration_ms": 12620
+        }
+      ],
+      "payload": {
+        "headline": "链式法则:拆成两步",
+        "image": "assets/formulas/04-chain.png",
+        "caption": "∂L/∂z = (∂L/∂ŷ) · (∂ŷ/∂z)"
+      }
+    },
+    {
+      "index": 5,
+      "type": "formula",
+      "duration_sec": 15,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "第一步:算 dL 除以 dŷ。把 L 关于 ŷ 求导,对数项直接得负 y 除以 ŷ。常数项 (1 减 y) 提出后,得 (1 减 y) 除以 (1 减 ŷ) 前面再加个负号。",
+          "audio_path": "audio/xor-bp-5-0-zh.mp3",
+          "duration_ms": 13653
+        }
+      ],
+      "payload": {
+        "headline": "第一步:dL/dŷ",
+        "image": "assets/formulas/05-dldyhat.png",
+        "caption": "-y/ŷ + (1-y)/(1-ŷ)"
+      }
+    },
+    {
+      "index": 6,
+      "type": "formula",
+      "duration_sec": 18,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "通分化简。y 除以 ŷ 和 (1 减 y) 除以 (1 减 ŷ) 通分后,分子变成 y(1 减 ŷ) 减 (1 减 y)ŷ,化简得 ŷ 减 y;分母是 ŷ(1 减 ŷ)。",
+          "audio_path": "audio/xor-bp-6-0-zh.mp3",
+          "duration_ms": 16207
+        }
+      ],
+      "payload": {
+        "headline": "化简 dL/dŷ",
+        "image": "assets/formulas/06-simplify.png",
+        "caption": "分子(ŷ − y) / 分母 ŷ(1−ŷ)"
+      }
+    },
+    {
+      "index": 7,
+      "type": "plot",
+      "duration_sec": 19,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "第二步:算 dŷ 除以 dz。ŷ 等于 σ(z),求导得 σ(z) 乘 1 减 σ(z),即 ŷ 乘 1 减 ŷ。S 形曲线在每个点处的切线斜率,就是这个值乘上 z 的缩放。",
+          "audio_path": "audio/xor-bp-7-0-zh.mp3",
+          "duration_ms": 17584
+        }
+      ],
+      "payload": {
+        "headline": "sigmoid 导数",
+        "image": "assets/plots/07-sigmoid-deriv.png",
+        "caption": "∂ŷ/∂z = ŷ(1 − ŷ)"
+      }
+    },
+    {
+      "index": 8,
+      "type": "math_anim",
+      "duration_sec": 16,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "把两步乘起来:dL 除以 dz 等于 (ŷ 减 y) 除以 [ŷ(1 减 ŷ)] 乘上 ŷ(1 减 ŷ)。分母 y(1 减 ŷ) 和分子 ŷ(1 减 ŷ) 项,完美抵消。结果就是 ŷ 减 y。",
+          "audio_path": "audio/xor-bp-8-0-zh.mp3",
+          "duration_ms": 14675
+        }
+      ],
+      "payload": {
+        "headline": "高潮:两式相乘",
+        "latex_steps": [
+          {
+            "start_frame": 0,
+            "end_frame": 110,
+            "latex": "\\dfrac{\\partial L}{\\partial z} = \\colorbox{#FFE7CC}{$\\dfrac{\\partial L}{\\partial \\hat y}$} \\cdot \\colorbox{#FFE7CC}{$\\dfrac{\\partial \\hat y}{\\partial z}$} \\;\\;\\colorbox{#CFE9DC}{\\scriptsize\\text{①}}\\;\\;\\colorbox{#CFE4F5}{\\scriptsize\\text{②}}",
+            "caption": "链式法则代入 — 拆成两项"
+          },
+          {
+            "start_frame": 110,
+            "end_frame": 220,
+            "latex": "\\dfrac{\\partial L}{\\partial z} = \\colorbox{#FFE7CC}{$\\dfrac{\\hat y - y}{\\hat y\\,(1-\\hat y)}$} \\cdot \\colorbox{#FFE7CC}{$\\hat y\\,(1 - \\hat y)$} \\;\\;\\colorbox{#CFE9DC}{\\scriptsize\\text{(1)}}\\;\\;\\colorbox{#CFE4F5}{\\scriptsize\\text{(2)}}",
+            "caption": "把 ① ② 两项具体写出来"
+          },
+          {
+            "start_frame": 220,
+            "end_frame": 340,
+            "latex": "\\dfrac{\\partial L}{\\partial z} = \\dfrac{\\colorbox{#FFE7CC}{$(\\hat y - y)\\,\\hat y\\,(1-\\hat y)$}}{\\colorbox{#FFE7CC}{$\\hat y\\,(1-\\hat y)$}}",
+            "caption": "分子分母堆到一起 — 准备抵消"
+          },
+          {
+            "start_frame": 340,
+            "end_frame": 460,
+            "latex": "\\dfrac{\\partial L}{\\partial z} = (\\hat y - y) \\cdot \\dfrac{\\colorbox{#CFE4F5}{$\\cancel{\\hat y\\,(1-\\hat y)}$}}{\\colorbox{#CFE4F5}{$\\cancel{\\hat y\\,(1-\\hat y)}$}}",
+            "caption": "分子分母的 ŷ(1−ŷ) 抵消掉"
+          },
+          {
+            "start_frame": 460,
+            "end_frame": 600,
+            "latex": "\\boxed{\\dfrac{\\partial L}{\\partial z} = \\hat y - y}",
+            "caption": "✨ 结论 — 整段反传就这一行"
+          }
+        ],
+        "caption": "(ŷ−y)/[ŷ(1−ŷ)] · ŷ(1−ŷ) = ŷ − y"
+      }
+    },
+    {
+      "index": 9,
+      "type": "code",
+      "duration_sec": 15,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "落地到代码。这一推论,在 NumPy 里就是一行:dz2 等于 y_pred 减 y.reshape 负 1,1。形状 4 减 形状 4,对应 m 个样本逐个相减。",
+          "audio_path": "audio/xor-bp-9-0-zh.mp3",
+          "duration_ms": 13653
+        }
+      ],
+      "payload": {
+        "headline": "映射到 NumPy",
+        "code_text": "def backward(X, y, cache, params):\n    m = X.shape[1]\n    A2 = cache['A2']\n    W2 = params['W2']\n\n    # 输出层\n    dz2 = A2 - y                              # (4,1) - (4,1)\n    dW2 = (1 / m) * dz2 @ cache['A1'].T\n    db2 = (1 / m) * np.sum(dz2, axis=1, keepdims=True)\n\n    # 隐藏层\n    da1 = W2.T @ dz2\n    dz1 = da1 * cache['A1'] * (1 - cache['A1'])\n    dW1 = (1 / m) * dz1 @ X.T\n    db1 = (1 / m) * np.sum(dz1, axis=1, keepdims=True)\n\n    return grads",
+        "code_highlight_lines": [
+          7
+        ],
+        "caption": "一行 dZ2 = ŷ − y 完成反传"
+      }
+    },
+    {
+      "index": 10,
+      "type": "code",
+      "duration_sec": 15,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "彩蛋。整段反向传播,核心就是这三行:dz2、dz1、加上 dW 和 db。Sigmoid 加交叉熵的设计,正是为了这个简洁的 dz2。",
+          "audio_path": "audio/xor-bp-10-0-zh.mp3",
+          "duration_ms": 13560
+        }
+      ],
+      "payload": {
+        "headline": "彩蛋:3 行反传",
+        "code_text": "dz2 = A2 - y                  # (4,1)\ndW2 = (1 / m) * dz2 @ A1.T     # (1,4)\ndb2 = (1 / m) * np.sum(dz2, axis=1, keepdims=True)\n\nda1 = W2.T @ dz2\ndz1 = da1 * A1 * (1 - A1)       # sigmoid 导\ndW1 = (1 / m) * dz1 @ X.T\ndb1 = (1 / m) * np.sum(dz1, axis=1, keepdims=True)",
+        "code_highlight_lines": [
+          0
+        ],
+        "caption": "Sigmoid+交叉熵 → dZ2 = ŷ − y"
+      }
+    }
+  ],
+  "duration_sec": 173.0,
+  "duration_frames": 5190
+}
