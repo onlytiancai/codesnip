@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>链式法则导数可视化</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1 id="pageTitle">链式法则可视化</h1>
+
+    <div class="graph-container">
+      <div class="graph-panel">
+        <div class="function-label inner-label" id="innerLabel">u = x²</div>
+        <h3>内层函数 u = g(x)</h3>
+        <canvas id="innerCanvas"></canvas>
+      </div>
+
+      <div class="formula-board">
+        <div class="formula" id="formulaMain"></div>
+        <div class="formula" style="margin-top: 8px;">
+          <span id="formulaResult" class="highlight"></span>
+        </div>
+      </div>
+
+      <div class="graph-panel">
+        <div class="function-label outer-label" id="outerLabel">y = u²</div>
+        <h3>外层函数 y = f(u)</h3>
+        <canvas id="outerCanvas"></canvas>
+      </div>
+    </div>
+
+    <div class="control-panel">
+      <div class="control-row">
+        <div class="control-group">
+          <label>内层函数 g(x):</label>
+          <select id="innerFunction">
+            <option value="x²" selected>x²</option>
+            <option value="sin(x)">sin(x)</option>
+            <option value="eˣ">eˣ</option>
+            <option value="x³">x³</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label>外层函数 f(u):</label>
+          <select id="outerFunction">
+            <option value="u²" selected>u²</option>
+            <option value="sin(u)">sin(u)</option>
+            <option value="eᵘ">eᵘ</option>
+            <option value="ln(u)">ln(u)</option>
+            <option value="|u|">|u|</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="control-row">
+        <div class="slider-group">
+          <label>x = <span id="xValue">1.00</span></label>
+          <input type="range" id="xSlider" min="-2" max="2" step="0.01" value="1">
+        </div>
+
+        <button id="playBtn" class="btn btn-primary">▶ 播放</button>
+
+        <div class="control-group">
+          <label>速度:</label>
+          <select id="speed" class="speed-select">
+            <option value="0.5x">0.5x</option>
+            <option value="1x" selected>1x</option>
+            <option value="2x">2x</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="value-display">
+      <div class="row">
+        <div class="item" id="valX"></div>
+        <div class="item" id="valU"></div>
+        <div class="item" id="valDudx"></div>
+        <div class="item" id="valDydu"></div>
+        <div class="item" id="valDydx"></div>
+      </div>
+    </div>
+  </div>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script src="js/graph.js"></script>
+  <script src="js/animation.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
