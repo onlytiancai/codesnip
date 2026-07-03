@@ -7,7 +7,8 @@
     "export": "slidev export",
     "tts": "tsx scripts/tts.ts",
     "tts:slides": "tsx scripts/tts-slides.ts",
-    "image": "tsx scripts/image.ts"
+    "image": "tsx scripts/image.ts",
+    "record": "tsx scripts/record-video.ts"
   },
   "dependencies": {
     "@slidev/cli": "^52.16.0"
@@ -15,6 +16,7 @@
   "devDependencies": {
     "@slidev/parser": "52.16.0",
     "@slidev/theme-default": "^0.25.0",
+    "playwright": "^1.61.1",
     "tsx": "^4.19.0"
   }
 }
