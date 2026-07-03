@@ -1,5 +1,6 @@
 import { AbsoluteFill, interpolate, useCurrentFrame } from 'remotion';
 import { FONT_FAMILY, THEME_COLORS, Theme } from '../theme';
+import { RichText } from './RichText';
 
 export type HeaderProps = {
   text: string;
@@ -50,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({ text, theme }) => {
           }}
         />
         <span style={{ fontSize: 32, color: c.text, fontWeight: 700, letterSpacing: '2px' }}>
-          {text}
+          <RichText input={text} fontSize={32} color={c.text} inlineScale={0.7} style={{ fontWeight: 700, letterSpacing: '2px' }} />
         </span>
       </div>
     </AbsoluteFill>

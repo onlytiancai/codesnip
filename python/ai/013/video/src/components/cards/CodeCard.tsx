@@ -9,6 +9,7 @@ import {
   TtsSegment,
 } from '../../theme';
 import { useFadeIn, useFadeOut } from '../../hooks/useFadeIn';
+import { RichText } from '../RichText';
 
 type Props = {
   payload: CardPayload;
@@ -58,7 +59,15 @@ export const CodeCard: React.FC<Props> = ({ payload, tts_segments, theme }) => {
               letterSpacing: '2px',
             }}
           >
-            {payload.headline}
+            <RichText
+              input={payload.headline ?? ''}
+              fontSize={56}
+              color={c.accent}
+              inlineScale={0.7}
+              fontWeight={700}
+              lineHeight={1.1}
+              style={{ letterSpacing: '2px' }}
+            />
           </div>
         )}
 
@@ -121,7 +130,15 @@ export const CodeCard: React.FC<Props> = ({ payload, tts_segments, theme }) => {
               letterSpacing: '1px',
             }}
           >
-            » {payload.caption}
+            » <RichText
+              input={payload.caption ?? ''}
+              fontSize={32}
+              color={c.accent}
+              inlineScale={0.7}
+              fontWeight={600}
+              lineHeight={1.3}
+              style={{ letterSpacing: '1px' }}
+            />
           </div>
         )}
       </div>

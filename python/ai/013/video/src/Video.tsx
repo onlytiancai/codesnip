@@ -6,6 +6,8 @@ import { FormulaCard } from './components/cards/FormulaCard';
 import { CodeCard } from './components/cards/CodeCard';
 import { DescJson, THEME_COLORS } from './theme';
 
+export type { DescJson };
+
 export type VideoProps = {
   desc: DescJson;
   headerText?: string;

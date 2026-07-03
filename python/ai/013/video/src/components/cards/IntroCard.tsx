@@ -9,6 +9,7 @@ import {
   TtsSegment,
 } from '../../theme';
 import { useFadeIn, useFadeOut } from '../../hooks/useFadeIn';
+import { RichText } from '../RichText';
 
 type Props = {
   payload: CardPayload;        // headline + body
@@ -63,7 +64,14 @@ export const IntroCard: React.FC<Props> = ({ payload, tts_segments, theme }) => 
             marginBottom: 48,
           }}
         >
-          {payload.headline}
+          <RichText
+            input={payload.headline ?? ''}
+            fontSize={96}
+            color={c.text}
+            inlineScale={0.62}
+            lineHeight={1.1}
+            fontWeight={800}
+          />
         </div>
 
         {/* 水平 accent bar */}
@@ -90,7 +98,14 @@ export const IntroCard: React.FC<Props> = ({ payload, tts_segments, theme }) => 
                 fontWeight: i === 0 ? 600 : 400,
               }}
             >
-              {line}
+              <RichText
+                input={line}
+                fontSize={i === 0 ? 38 : 36}
+                color={i === 0 ? c.text : c.subtext}
+                inlineScale={0.65}
+                fontWeight={i === 0 ? 600 : 400}
+                lineHeight={1.45}
+              />
             </div>
           ))}
         </div>
@@ -111,7 +126,14 @@ export const IntroCard: React.FC<Props> = ({ payload, tts_segments, theme }) => 
               letterSpacing: '1px',
             }}
           >
-            » {payload.caption}
+            » <RichText
+              input={payload.caption ?? ''}
+              fontSize={36}
+              color={c.accent}
+              inlineScale={0.7}
+              fontWeight={600}
+              style={{ letterSpacing: '1px' }}
+            />
           </div>
         )}
       </div>

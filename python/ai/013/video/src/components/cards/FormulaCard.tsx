@@ -12,6 +12,7 @@ import {
 } from '../../theme';
 import { useFadeIn, useFadeOut } from '../../hooks/useFadeIn';
 import { MathLatex } from '../MathLatex';
+import { RichText } from '../RichText';
 
 type Props = {
   payload: CardPayload;
@@ -66,7 +67,15 @@ export const FormulaCard: React.FC<Props> = ({ payload, tts_segments, theme }) =
               letterSpacing: '2px',
             }}
           >
-            {payload.headline}
+            <RichText
+              input={payload.headline ?? ''}
+              fontSize={56}
+              color={c.accent}
+              inlineScale={0.7}
+              fontWeight={700}
+              lineHeight={1.1}
+              style={{ letterSpacing: '2px' }}
+            />
           </div>
         )}
 
@@ -114,16 +123,29 @@ export const FormulaCard: React.FC<Props> = ({ payload, tts_segments, theme }) =
               textAlign: 'center',
             }}
           >
-            » {payload.caption}
+            » <RichText
+              input={payload.caption ?? ''}
+              fontSize={32}
+              color={c.accent}
+              inlineScale={0.7}
+              fontWeight={600}
+              lineHeight={1.3}
+              style={{ letterSpacing: '1px' }}
+            />
           </div>
         )}
       </div>
-
       {/* 音频 */}
       {tts_segments.map((seg, i) => {
         const dur = Math.max(1, Math.round((seg.duration_ms / 1000) * fps));
         return (
-          <Sequence key={i} from={0} durationInFrames={dur}>
+          <Sequence
+            key={i}
+            from={0}
+            durationInFrames={dur}
+            style={{
+              translate: "-138.1px 1.2px"
+            }}>
             <Audio src={staticFile(seg.audio_path)} />
           </Sequence>
         );

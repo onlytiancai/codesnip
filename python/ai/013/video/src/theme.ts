@@ -93,6 +93,12 @@ export type DescJson = {
   duration_frames: number;
 };
 
+// ── RichText 行内数学字符串占位符 `[[latex:..]]` 解析的 segment —— 给 RichText 组件用
+export type RichTextSegment =
+  | { kind: 'text'; value: string }
+  | { kind: 'inline_math'; value: string };
+export type RichTextInput = string | RichTextSegment[];
+
 // ── 字体(PingFang SC 优先,Web 端 pingfang 不存在时回退系统字体) ──
 export const FONT_FAMILY =
   '"PingFang SC", "Helvetica Neue", "Microsoft YaHei", system-ui, -apple-system, sans-serif';

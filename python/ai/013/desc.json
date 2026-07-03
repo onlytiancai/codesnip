@@ -5,7 +5,7 @@
   "height": 1080,
   "theme": "paper",
   "meta": {
-    "title": "XOR 反向传播:为什么 ∂L/∂z = ŷ − y",
+    "title": "XOR 反向传播:为什么 [[latex:\\dfrac{\\partial L}{\\partial z} = \\hat y - y]]",
     "subtitle": "从 sigmoid+交叉熵到一行代码"
   },
   "cards": [
@@ -23,7 +23,7 @@
       ],
       "payload": {
         "headline": "XOR 反向传播",
-        "body": "为什么 ∂L/∂z = ŷ − y?\n\n今天我们只盯这一个公式。\n整个反向传播最神奇的一步,\n就藏在这一行简洁的等式里。\n\n任何数学符号你都可以暂停。\n跟着节奏,我们走完一遍。",
+        "body": "为什么 [[latex:\\dfrac{\\partial L}{\\partial z} = \\hat y - y]]?\n\n今天我们只盯这一个公式。\n整个反向传播最神奇的一步,\n就藏在这一行简洁的等式里。\n\n任何数学符号你都可以暂停。\n跟着节奏,我们走完一遍。",
         "caption": "今天只盯一个公式"
       }
     },
@@ -60,7 +60,7 @@
       "payload": {
         "headline": "sigmoid 函数",
         "image": "assets/plots/02-sigmoid.png",
-        "caption": "σ(z) 把实数压到 (0,1)"
+        "caption": "[[latex:\\sigma(z) = \\dfrac{1}{1+e^{-z}}]] —— 把实数压到 (0,1)"
       }
     },
     {
@@ -78,7 +78,7 @@
       "payload": {
         "headline": "交叉熵损失",
         "image": "assets/plots/03-crossentropy.png",
-        "caption": "猜错越离谱,惩罚越重"
+        "caption": "[[latex:L = -\\big[y\\log\\hat y + (1-y)\\log(1-\\hat y)\\big]]]"
       }
     },
     {
@@ -95,8 +95,15 @@
       ],
       "payload": {
         "headline": "链式法则:拆成两步",
-        "image": "assets/formulas/04-chain.png",
-        "caption": "∂L/∂z = (∂L/∂ŷ) · (∂ŷ/∂z)"
+        "latex_steps": [
+          {
+            "start_frame": 0,
+            "end_frame": 420,
+            "latex": "\\dfrac{\\partial L}{\\partial z} = \\dfrac{\\partial L}{\\partial \\hat y} \\cdot \\dfrac{\\partial \\hat y}{\\partial z}",
+            "caption": "链式法则代入 — 拆成两项"
+          }
+        ],
+        "caption": "把 [[latex:\\dfrac{\\partial L}{\\partial z}]] 拆成两步"
       }
     },
     {
@@ -113,8 +120,15 @@
       ],
       "payload": {
         "headline": "第一步:dL/dŷ",
-        "image": "assets/formulas/05-dldyhat.png",
-        "caption": "-y/ŷ + (1-y)/(1-ŷ)"
+        "latex_steps": [
+          {
+            "start_frame": 0,
+            "end_frame": 450,
+            "latex": "\\dfrac{\\partial L}{\\partial \\hat y} = -\\dfrac{y}{\\hat y} + \\dfrac{1-y}{1-\\hat y}",
+            "caption": "对数项求导后的形态"
+          }
+        ],
+        "caption": "[[latex:-\\dfrac{y}{\\hat y} + \\dfrac{1-y}{1-\\hat y}]]"
       }
     },
     {
@@ -131,8 +145,15 @@
       ],
       "payload": {
         "headline": "化简 dL/dŷ",
-        "image": "assets/formulas/06-simplify.png",
-        "caption": "分子(ŷ − y) / 分母 ŷ(1−ŷ)"
+        "latex_steps": [
+          {
+            "start_frame": 0,
+            "end_frame": 540,
+            "latex": "\\dfrac{\\partial L}{\\partial \\hat y} = \\dfrac{\\hat y - y}{\\hat y\\,(1-\\hat y)}",
+            "caption": "通分化简 → 一条紧凑分数"
+          }
+        ],
+        "caption": "[[latex:\\dfrac{\\hat y - y}{\\hat y\\,(1-\\hat y)}]]"
       }
     },
     {
@@ -150,7 +171,7 @@
       "payload": {
         "headline": "sigmoid 导数",
         "image": "assets/plots/07-sigmoid-deriv.png",
-        "caption": "∂ŷ/∂z = ŷ(1 − ŷ)"
+        "caption": "[[latex:\\dfrac{\\partial \\hat y}{\\partial z} = \\hat y\\,(1-\\hat y)]]"
       }
     },
     {
@@ -220,7 +241,7 @@
         "code_highlight_lines": [
           7
         ],
-        "caption": "一行 dZ2 = ŷ − y 完成反传"
+        "caption": "一行 [[latex:dZ_2 = \\hat y - y]] 完成反传"
       }
     },
     {
@@ -241,7 +262,7 @@
         "code_highlight_lines": [
           0
         ],
-        "caption": "Sigmoid+交叉熵 → dZ2 = ŷ − y"
+        "caption": "sigmoid+交叉熵 → [[latex:dZ_2 = \\hat y - y]]"
       }
     }
   ],
