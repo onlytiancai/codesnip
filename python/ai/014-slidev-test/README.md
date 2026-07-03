@@ -96,3 +96,43 @@ HTTPS_PROXY=http://127.0.0.1:10808 pnpm tts:slides
 2. `pnpm tts:slides -- --dry` 确认抽取文本正确
 3. `pnpm tts:slides` 生成新 mp3
 4. 手动同步 `global-bottom.vue` 里的 `items` 映射表
+
+## 录制成视频（mp4）
+
+`pnpm record` 启动 Playwright（headed Chromium）自动驱动 v-click，等每段旁白音频播完再点下一次，录完用 ffmpeg 合成 1920×1080 / 30fps / h264+aac 的 mp4。**不写死 v-click 数量**，脚本通过「`__playCount` 是否变化 + 当前 slide URL 是否变化」动态判断翻页和结束。
+
+### 用法
+
+```bash
+pnpm record                              # → output/slide-1.mp4
+pnpm record --out my-video.mp4           # 指定输出
+pnpm record --keep-server                # 录完保留 dev server，方便调试
+pnpm record --no-clean                   # 复用 build/ 里的中间产物
+HEADLESS=1 pnpm record                   # 无 GUI 环境用 headless（音频会空）
+```
+
+### 中间产物（在 `build/` 下）
+
+| 文件 | 来源 |
+|---|---|
+| `raw.webm` | Playwright 录的 webm 视频（vp8/vp9，无音轨） |
+| `narration.webm` | 页面内 MediaRecorder 抓的 webm 音频（opus） |
+| `narration-padded.m4a` | 在音频前垫静音对齐视频开头 + 转 aac m4a |
+| `output/<name>.mp4` | 最终合成产物 |
+
+### 工作流程
+
+1. `pnpm dev --port 3030` 起 dev server（轮询 `localhost` → `127.0.0.1` → `[::1]` 命中即可，绕过 macOS 上 IPv6/IPv4 解析顺序导致的 fetch 失败）。
+2. `chromium.launch({ headless: false })` 开真窗口 + `addInitScript` 注入一段脚本：patch `window.Audio`，把每个 `<audio>` 节点同时连到扬声器和 `MediaStreamAudioDestinationNode`，由 `MediaRecorder` 录成音频块。
+3. 主循环：按 `Space` → 250ms 后 `evaluate` 读 `__playCount`；有变化就 `waitForFunction(() => __lastAudio.ended === true)` 等播完（timeout 60s），没变化说明当前 slide 的 v-click 已点完，按 `ArrowRight` 切页，URL 不再变就结束。
+4. 收尾：浏览器侧停 MediaRecorder → 回传字节数组到 Node 写 `narration.webm`；关 page 拿 `raw.webm`；用 `ffmpeg` 给音频前垫 `__firstPlayTimeMs` 时长静音（首次 `audio.play` 距 MediaRecorder 启动的偏移），再 mux 成 mp4。
+5. 验证：ffprobe 检查 h264 1920×1080 + aac 双轨、时长对齐。
+
+### 关键坑
+
+- **必须 headed**：macOS / Linux 上 headless Chromium 经常录不到音频；脚本默认 `headless: false`，会弹一个真浏览器窗口（首次按 `Space` 顺便当 user gesture 放行 autoplay）。`HEADLESS=1` 兜底无 GUI 环境，但此时 mp4 会无声。
+- **macOS 上 `127.0.0.1` 可能 fetch 失败**：`pnpm dev` 默认绑 `localhost`，脚本优先用 `localhost`，不命中再退到 `127.0.0.1` 和 `[::1]`。不要给 dev 加 `--host 127.0.0.1`（Slidev 52.x 不支持该 flag）。
+- **音视频同步靠性能时间戳**：MediaRecorder 在首次 `audio.play()` 时才有数据，视频从 context 创建就开始录。脚本用 `performance.now()` 算偏移再垫静音，不靠 `Date.now()`（避免多 tab / 挂起漂移）。
+- **合成前音频要转 aac m4a**：webm 容器不支持 aac 编码，ffmpeg 会在 mux 阶段报 "Only VP8/VP9/AV1 video and Vorbis/Opus audio and WebVTT subtitles are supported for WebM"；`padAudio` 已统一输出 `.m4a`。
+- **每次入口默认清空 `build/`**：避免 `raw.webm` 累积导致 ffmpeg 多输入冲突；想调试时加 `--no-clean`。
+- **录制时不要编辑 `slides.md` / `components/`**：dev server 的 HMR 会触发 reload，中断录音。

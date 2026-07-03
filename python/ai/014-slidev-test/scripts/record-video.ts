@@ -3,8 +3,12 @@
 // 在浏览器内自然播完（hook `Audio.ended`）再点下一次，最后用 ffmpeg
 // 把 Playwright 录的 webm 视频和 MediaRecorder 录的 webm 音频合成为 mp4。
 //
+// 默认会裁掉视频/音频开头的白屏（从首个 Space 按下之前的帧）；用 --no-trim-start
+// 可以回到原始行为（视频保留白屏、音频前垫静音对齐 MediaRecorder 起点）。
+//
 // 用法：
-//   pnpm record                       # 录到 output/slide-1.mp4
+//   pnpm record                       # 录到 output/slide-1.mp4（默认裁开头白屏）
+//   pnpm record --no-trim-start       # 不裁开头白屏，用旧行为
 //   pnpm record --out my-video.mp4
 //   pnpm record --keep-server         # 录完保留 dev server 方便调试
 //   pnpm record --no-clean            # 复用 build/ 里的中间产物
@@ -107,6 +111,7 @@ interface Args {
   noClean: boolean
   out: string
   headless: boolean
+  trimStart: boolean
 }
 
 function parseArgs(argv: string[]): Args {
@@ -115,11 +120,13 @@ function parseArgs(argv: string[]): Args {
     noClean: false,
     out: path.join(OUTPUT_DIR, 'slide-1.mp4'),
     headless: process.env.HEADLESS === '1',
+    trimStart: true,
   }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
     if (a === '--keep-server') args.keepServer = true
     else if (a === '--no-clean') args.noClean = true
+    else if (a === '--no-trim-start') args.trimStart = false
     else if (a === '--out') args.out = argv[++i]
     else if (a === '--debug') { /* consumed via DEBUG env / dbg() */ }
   }
@@ -175,42 +182,59 @@ async function runFfmpeg(args: string[]): Promise<void> {
   if (stderr) process.stderr.write(`[ffmpeg-err] ${stderr}`)
 }
 
-async function padAudio(inFile: string, outFile: string, padMs: number): Promise<void> {
-  const padSec = Math.max(0, padMs / 1000)
-  if (padSec < 0.2) {
-    // 不需要垫静音 → 把 opus 重新封装成 aac m4a（最终 mux 用）
+async function trimAudioStart(inFile: string, outFile: string, trimMs: number): Promise<void> {
+  const trimSec = Math.max(0, trimMs / 1000)
+  if (trimSec < 0.2) {
+    // 偏移太小，不裁 → 把 opus 重新封装成 aac m4a（最终 mux 用）
     await runFfmpeg(['-y', '-i', inFile, '-c:a', 'aac', '-b:a', '192k', outFile])
     return
   }
-  // 静音 + 原音 concat，统一转成 aac m4a
+  // 用 input seeking 把开头的静音段切掉（与视频开头的白屏一起丢），再转成 aac m4a
   await runFfmpeg([
     '-y',
-    '-f', 'lavfi', '-t', padSec.toFixed(3),
-    '-i', 'anullsrc=channel_layout=stereo:sample_rate=48000',
+    '-ss', trimSec.toFixed(3),
     '-i', inFile,
-    '-filter_complex',
-    '[0:a]aresample=48000,aformat=sample_fmts=s16:channel_layouts=stereo[s];' +
-    '[1:a]aresample=48000,aformat=sample_fmts=s16:channel_layouts=stereo[n];' +
-    '[s][n]concat=n=2:v=0:a=1[a]',
-    '-map', '[a]',
     '-c:a', 'aac', '-b:a', '192k',
     outFile,
   ])
 }
 
-async function muxMp4(videoIn: string, audioIn: string, mp4Out: string): Promise<void> {
-  await runFfmpeg([
-    '-y',
-    '-i', videoIn,
-    '-i', audioIn,
-    '-map', '0:v:0', '-map', '1:a:0',
-    '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '23', '-preset', 'medium',
-    '-r', String(FPS),
-    '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
-    '-movflags', '+faststart',
-    '-shortest',
-    mp4Out,
-  ])
+async function muxMp4(
+  videoIn: string,
+  audioIn: string,
+  mp4Out: string,
+  videoOffsetMs = 0,
+): Promise<void> {
+  const offsetSec = Math.max(0, videoOffsetMs / 1000)
+  // 用 input seeking 在 mux 阶段就把视频开头白屏裁掉。libx264 会重新解码，所以 seek 是精确的
+  // （不像 `-c copy` 在 VP8 webm 上会落到上一个 keyframe，导致裁剪位置偏 1-2 秒）。
+  const args = offsetSec > 0.05
+    ? [
+        '-y',
+        '-ss', offsetSec.toFixed(3),
+        '-i', videoIn,
+        '-i', audioIn,
+        '-map', '0:v:0', '-map', '1:a:0',
+        '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '23', '-preset', 'medium',
+        '-r', String(FPS),
+        '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
+        '-movflags', '+faststart',
+        '-shortest',
+        mp4Out,
+      ]
+    : [
+        '-y',
+        '-i', videoIn,
+        '-i', audioIn,
+        '-map', '0:v:0', '-map', '1:a:0',
+        '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '23', '-preset', 'medium',
+        '-r', String(FPS),
+        '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
+        '-movflags', '+faststart',
+        '-shortest',
+        mp4Out,
+      ]
+  await runFfmpeg(args)
 }
 
 async function probe(file: string): Promise<string> {
@@ -231,9 +255,10 @@ async function verify(mp4Path: string, audioPath: string): Promise<void> {
   console.log(await probe(audioPath))
 }
 
-async function runClickLoop(page: Page): Promise<{ totalClicks: number }> {
+async function runClickLoop(page: Page): Promise<{ totalClicks: number; firstSpaceTimeMs: number }> {
   let prevPlayCount = 0
   let totalClicks = 0
+  let firstSpaceTimeMs = -1
   const tLoopStart = Date.now()
 
   console.log('[loop] start')
@@ -251,6 +276,9 @@ async function runClickLoop(page: Page): Promise<{ totalClicks: number }> {
     }
 
     dbg(`[loop] press Space (clicks=${totalClicks}, prevPlayCount=${prevPlayCount})`)
+    // 抓「按 Space 之前」的 performance.now()，作为首次 Space 的录制起点。
+    // 这个时间在导航之后才计（performance.now 重置于 navigation start），与视频录制起点一致。
+    const tBeforeSpace = await page.evaluate(() => performance.now())
     await page.keyboard.press('Space')
     await page.waitForTimeout(250)
 
@@ -265,6 +293,11 @@ async function runClickLoop(page: Page): Promise<{ totalClicks: number }> {
       // 本次按键触发了新音频 → 等它播完
       prevPlayCount = state.playCount
       totalClicks++
+      // 第一次真正"播放"的 Space 时刻记下来，后面裁视频/音频开头要用
+      if (firstSpaceTimeMs < 0) {
+        firstSpaceTimeMs = tBeforeSpace
+        console.log(`[loop] 首次 Space 时刻: firstSpaceTimeMs=${firstSpaceTimeMs.toFixed(1)}`)
+      }
       console.log(`[loop] click #${totalClicks} 触发音频 (src=${state.lastAudioSrc}), 等待播放完成...`)
 
       try {
@@ -299,8 +332,8 @@ async function runClickLoop(page: Page): Promise<{ totalClicks: number }> {
     }
   }
 
-  console.log(`[loop] done, totalClicks=${totalClicks}`)
-  return { totalClicks }
+  console.log(`[loop] done, totalClicks=${totalClicks}, firstSpaceTimeMs=${firstSpaceTimeMs.toFixed(1)}`)
+  return { totalClicks, firstSpaceTimeMs }
 }
 
 async function main() {
@@ -342,7 +375,16 @@ async function main() {
     console.log('[main] navigating to', targetUrl)
     await page.goto(targetUrl, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('.slidev-page', { timeout: 30_000 })
-    await page.waitForTimeout(1000) // 等 Slidev 完成初始化（v-click 注册、useNav 生效）
+    // 等到「第一页标题真的有文本」再进入 click loop，避免在白屏阶段就把 Space 当作 firstSpaceTimeMs 捕获
+    await page.waitForFunction(
+      () => {
+        const h1 = document.querySelector('.slidev-page h1')
+        return !!h1 && (h1.textContent || '').trim().length > 0
+      },
+      null,
+      { timeout: 30_000 },
+    )
+    console.log('[main] 第一页标题已渲染')
 
     const initState = await page.evaluate(() => ({
       hasCtx: !!window.__audioCtx,
@@ -353,8 +395,8 @@ async function main() {
     }))
     console.log('[main] init state:', JSON.stringify(initState))
 
-    const { totalClicks } = await runClickLoop(page)
-    console.log(`[main] 录制结束，totalClicks=${totalClicks}`)
+    const { totalClicks, firstSpaceTimeMs } = await runClickLoop(page)
+    console.log(`[main] 录制结束，totalClicks=${totalClicks}, firstSpaceTimeMs=${firstSpaceTimeMs.toFixed(1)}`)
 
     // 给最后一帧动画留点时间
     await page.waitForTimeout(500)
@@ -402,13 +444,58 @@ async function main() {
     await rename(videoTmp, videoPath)
     console.log(`[main] 视频写入 ${videoPath}`)
 
-    // 视频前垫静音对齐 firstPlayTimeMs（MediaRecorder 启动 → 第一次 play）
-    // padded 走 AAC m4a，最终 mux 喂给 mp4
-    const paddedPath = path.join(BUILD_DIR, 'narration-padded.m4a')
-    await padAudio(audioPath, paddedPath, firstPlayTimeMs)
+    // 决定裁剪偏移：
+    //   --trim-start（默认）：视频用 firstSpaceTimeMs + 动画 buffer 裁，音频用 firstPlayTimeMs 裁（保音频）
+    //   --no-trim-start     ：用旧行为（音频前垫静音对齐 firstPlayTimeMs，视频不裁）
+    let videoForMux = videoPath
+    let audioForMux = audioPath
+    let videoOffsetMs = 0
+    if (args.trimStart) {
+      if (firstSpaceTimeMs < 0) {
+        throw new Error('没捕获到 firstSpaceTimeMs（整个 click loop 都没触发音频？）')
+      }
+      // v-click 动画大概 200-300ms 才会让 v-click 1 的内容完全显形。
+      // 视频 trim 多加一个 buffer 才能确保输出开头不是「动画过程中」的过渡帧。
+      const VIDEO_ANIM_BUFFER_MS = 250
+      videoOffsetMs = firstSpaceTimeMs + VIDEO_ANIM_BUFFER_MS
+      console.log(`[main] 视频 trim 偏移=${videoOffsetMs.toFixed(1)}ms (click + ${VIDEO_ANIM_BUFFER_MS}ms 动画 buffer)`)
+      console.log(`[main] 音频 trim 偏移=${firstPlayTimeMs.toFixed(1)}ms (保第一句语音)`)
 
-    // 合成 mp4
-    await muxMp4(videoPath, paddedPath, args.out)
+      // 音频单独裁剪并转成 aac m4a——用 firstPlayTimeMs 而不是 firstSpaceTimeMs，
+      // 否则会把 firstSpaceTimeMs - firstPlayTimeMs 这段真实音频内容切掉
+      // （__firstPlayTime 在 ClickAudio 的 new Audio() 里赋值，几乎同时立刻 el.play()，是音频真正起点）
+      const trimmedAudioPath = path.join(BUILD_DIR, 'narration-trimmed.m4a')
+      await trimAudioStart(audioPath, trimmedAudioPath, firstPlayTimeMs)
+      console.log(`[main] 音频裁剪完成: ${trimmedAudioPath}`)
+      audioForMux = trimmedAudioPath
+    } else {
+      console.log('[main] --no-trim-start：使用旧行为，给音频前垫静音')
+      // 旧 padAudio 的语义：在音频前垫 firstPlayTimeMs 的静音，让 audio 时间轴对齐 MediaRecorder 启动点
+      const padSec = Math.max(0, firstPlayTimeMs / 1000)
+      const paddedPath = path.join(BUILD_DIR, 'narration-padded.m4a')
+      if (padSec < 0.2) {
+        // 偏移太小，直接转封装
+        await runFfmpeg(['-y', '-i', audioPath, '-c:a', 'aac', '-b:a', '192k', paddedPath])
+      } else {
+        await runFfmpeg([
+          '-y',
+          '-f', 'lavfi', '-t', padSec.toFixed(3),
+          '-i', 'anullsrc=channel_layout=stereo:sample_rate=48000',
+          '-i', audioPath,
+          '-filter_complex',
+          '[0:a]aresample=48000,aformat=sample_fmts=s16:channel_layouts=stereo[s];' +
+            '[1:a]aresample=48000,aformat=sample_fmts=s16:channel_layouts=stereo[n];' +
+            '[s][n]concat=n=2:v=0:a=1[a]',
+          '-map', '[a]',
+          '-c:a', 'aac', '-b:a', '192k',
+          paddedPath,
+        ])
+      }
+      audioForMux = paddedPath
+    }
+
+    // 合成 mp4（视频的 trim 在这里通过 input seeking + libx264 重编码完成）
+    await muxMp4(videoForMux, audioForMux, args.out, videoOffsetMs)
     console.log(`[main] mp4 写入 ${args.out}`)
 
     await verify(args.out, audioPath)
