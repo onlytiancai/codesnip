@@ -12,6 +12,9 @@
 const items = [
   { slide: 1, click: 1, audio: '/audio/slide-1-click-1.mp3' },
   { slide: 1, click: 2, audio: '/audio/slide-1-click-2.mp3' },
+  { slide: 1, click: 3, audio: '/audio/slide-1-click-3.mp3' },
+  { slide: 1, click: 4, audio: '/audio/slide-1-click-4.mp3' },
+  { slide: 1, click: 5, audio: '/audio/slide-1-click-5.mp3' },
 ]
 </script>
 

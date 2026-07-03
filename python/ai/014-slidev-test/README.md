@@ -17,12 +17,36 @@ pnpm install
 
 # 生成语音（需要 MINIMAX_API_KEY）
 export MINIMAX_API_KEY=xxxx
-pnpm tts:slides -- --dry   # 先干跑，确认抽取的旁白文本无代码残留
+pnpm tts:slides -- --dry   # 先干跑，确认抽取到的旁白文本正确
 pnpm tts:slides            # 真正合成，写入 public/audio/
 
 # 启动
 pnpm dev                   # http://localhost:3030
 ```
+
+## 旁白语法
+
+旁白文本在 `slides.md` 里**显式定义**（不再从 v-click 内容里猜），
+在每个 `<div v-click>` 块内写一行 HTML 注释指令：
+
+```html
+<div v-click>
+
+## 什么是泛型？
+
+泛型允许你创建**参数化类型**……
+
+<!-- narrate: 什么是泛型？泛型允许你创建参数化类型，在定义函数、接口、类时不指定具体类型，而在使用时再确定 -->
+
+</div>
+```
+
+规则：
+
+- 每个顶层 `<div v-click>` 记为一个 click，序号从 1 起（与 Slidev 实际 click index 对齐）
+- 块内的 `<!-- narrate: ... -->` 即该 click 的旁白；**没有则该 click 无音频**
+- 注释不渲染、不污染演讲者备注（后面还有 `</div>`，不是 slide 尾部注释）
+- 代码围栏（``` / ~~~）内整段忽略，示例代码里的注释不会被误当旁白
 
 ## 架构
 
@@ -35,13 +59,13 @@ slides.md ──(离线抽取)──► scripts/extract-clicks.ts ──► scri
 
 | 文件 | 作用 |
 |---|---|
-| `scripts/extract-clicks.ts` | 栈式 fence 状态机解析 `slides.md`，抽出每个 `<div v-click>` 段的旁白文本，丢弃代码块，剥掉 markdown 噪音 |
+| `scripts/extract-clicks.ts` | 栈式 fence/div 状态机解析 `slides.md`，读出每个 `<div v-click>` 块内的 `<!-- narrate: ... -->` 指令作为旁白，丢弃代码块 |
 | `scripts/tts-slides.ts` | CLI：调 `extract-clicks` + `synthesize()`，把 mp3 写到 `public/audio/slide-N-click-M.mp3` |
 | `scripts/minimax-tts.ts` | MiniMax TTS API 封装（`synthesize()`） |
 | `components/ClickAudio.vue` | 播放组件，watch 导航状态，命中映射就播，切走/无匹配则停 |
 | `global-bottom.vue` | Slidev 全局层，硬编码 v-click → 音频映射，挂载 `ClickAudio` |
 
-`slides.md` **保持原样**，音频能力完全通过全局层挂载，不侵入内容。
+`slides.md` 的内容不受影响：旁白写在 HTML 注释里，不渲染、不侵入视觉；音频能力通过全局层挂载。
 
 ## 生成脚本用法
 
@@ -63,12 +87,12 @@ HTTPS_PROXY=http://127.0.0.1:10808 pnpm tts:slides
 - **全局层里 `useSlideContext()` 的 `$clicks` 是死的**：在 `global-bottom.vue` / `ClickAudio.vue` 这类全局层组件里，`useSlideContext()` 返回的 `$clicks` 只有挂载时的初值、不随按键更新。必须改用 `useNav()` 的 `currentPage` / `clicks`，它们才是随导航实时更新的全局响应式值。
 - **用 `onSlideLeave` 而非 `onUnmounted` 清理**：Slidev 组件实例常驻，`onUnmounted` 不会在切 slide 时触发。此外 `ClickAudio` 里 `playFor` 遇到「无匹配」也会 `stop()`，作为切走停止的兜底。
 - **浏览器 autoplay 拦截**：首次 `→` 即用户手势，之后放行；被拦截时组件会 `console.warn` 而非报错。
-- **v-click 文本抽取用栈式配平**：不能复用渲染端正则，fence 围栏内代码整段丢弃，避免把 `function identity<T>` 之类的代码读进语音。
+- **旁白抽取用栈式 fence/div 配平**：不能复用渲染端正则，fence 围栏内代码整段丢弃；旁白只认块内的 `<!-- narrate: ... -->` 指令，不再从内容里猜文本。
 - **`@slidev/parser` 只在 Node 侧可用**：其 `parseSync` 依赖 fs，浏览器里跑不了，所以 `global-bottom.vue` 的映射表选择硬编码。
 
 ## 增改 v-click 后的同步步骤
 
-1. 编辑 `slides.md`
+1. 编辑 `slides.md`，给新的 `<div v-click>` 块加 `<!-- narrate: ... -->` 旁白
 2. `pnpm tts:slides -- --dry` 确认抽取文本正确
 3. `pnpm tts:slides` 生成新 mp3
 4. 手动同步 `global-bottom.vue` 里的 `items` 映射表
