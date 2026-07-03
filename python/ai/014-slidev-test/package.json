@@ -1,0 +1,20 @@
+{
+  "name": "slidev-app",
+  "type": "module",
+  "scripts": {
+    "dev": "slidev",
+    "build": "slidev build",
+    "export": "slidev export",
+    "tts": "tsx scripts/tts.ts",
+    "tts:slides": "tsx scripts/tts-slides.ts",
+    "image": "tsx scripts/image.ts"
+  },
+  "dependencies": {
+    "@slidev/cli": "^52.16.0"
+  },
+  "devDependencies": {
+    "@slidev/parser": "52.16.0",
+    "@slidev/theme-default": "^0.25.0",
+    "tsx": "^4.19.0"
+  }
+}
