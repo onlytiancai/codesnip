@@ -336,6 +336,11 @@ async function main() {
     )
     console.log('[main] 第一页标题已渲染')
 
+    // 主标题出来后再停 1 秒，让画面在点击前稳一会儿；之后才按 Space 触发第一个
+    // v-click（出副标题）和第一句旁白。
+    console.log('[main] 停顿 1s，等主标题稳住...')
+    await page.waitForTimeout(1000)
+
     const initState = await page.evaluate(() => ({
       hasCtx: !!window.__audioCtx,
       hasRecorder: !!window.__audioRecorder,
