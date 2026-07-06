@@ -6,8 +6,9 @@
 // 视频保留开头白屏，音频前垫 firstPlayTimeMs 时长静音对齐 MediaRecorder 起点。
 //
 // 用法：
-//   pnpm record                       # 录到 output/slide-1.mp4
+//   pnpm record                       # 录到 output/slide-1.mp4（默认 720p）
 //   pnpm record --out my-video.mp4
+//   pnpm record --width 1920 --height 1080   # 临时切回 1080p
 //   pnpm record --keep-server         # 录完保留 dev server 方便调试
 //   pnpm record --no-clean            # 复用 build/ 里的中间产物
 //   HEADLESS=1 pnpm record            # 用 headless 模式（CI/无 GUI 时，音频可能为空）
@@ -21,8 +22,8 @@ import { chromium, type Browser, type Page } from 'playwright'
 
 const exec = promisify(execFile)
 
-const W = 1920
-const H = 1080
+const W = 1280
+const H = 720
 const FPS = 30
 const DEV_PORT = 3030
 // Slidev 默认绑 localhost；用 localhost 而不是 127.0.0.1 避免 macOS 上
@@ -109,6 +110,8 @@ interface Args {
   noClean: boolean
   out: string
   headless: boolean
+  width: number
+  height: number
 }
 
 function parseArgs(argv: string[]): Args {
@@ -117,13 +120,23 @@ function parseArgs(argv: string[]): Args {
     noClean: false,
     out: path.join(OUTPUT_DIR, 'slide-1.mp4'),
     headless: process.env.HEADLESS === '1',
+    width: W,
+    height: H,
   }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
     if (a === '--keep-server') args.keepServer = true
     else if (a === '--no-clean') args.noClean = true
     else if (a === '--out') args.out = argv[++i]
-    else if (a === '--debug') { /* consumed via DEBUG env / dbg() */ }
+    else if (a === '--width') {
+      const v = Number(argv[++i])
+      if (!Number.isFinite(v) || v <= 0) throw new Error(`--width 需要正整数，收到 ${argv[i]}`)
+      args.width = Math.round(v)
+    } else if (a === '--height') {
+      const v = Number(argv[++i])
+      if (!Number.isFinite(v) || v <= 0) throw new Error(`--height 需要正整数，收到 ${argv[i]}`)
+      args.height = Math.round(v)
+    } else if (a === '--debug') { /* consumed via DEBUG env / dbg() */ }
   }
   return args
 }
@@ -312,9 +325,10 @@ async function main() {
     })
 
     const ctx = await browser.newContext({
-      viewport: { width: W, height: H },
-      recordVideo: { dir: BUILD_DIR, size: { width: W, height: H } },
+      viewport: { width: args.width, height: args.height },
+      recordVideo: { dir: BUILD_DIR, size: { width: args.width, height: args.height } },
     })
+    console.log(`[main] 分辨率 ${args.width}x${args.height} @ ${FPS}fps`)
     await ctx.addInitScript({ content: INIT_SCRIPT })
     const page = await ctx.newPage()
     page.on('console', (m) => console.log(`[page] ${m.type()}: ${m.text()}`))
