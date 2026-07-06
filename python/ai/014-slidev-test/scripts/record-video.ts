@@ -3,10 +3,7 @@
 // 在浏览器内自然播完（hook `Audio.ended`）再点下一次，最后用 ffmpeg
 // 把 Playwright 录的 webm 视频和 MediaRecorder 录的 webm 音频合成为 mp4。
 //
-// 视频和音频都从 MediaRecorder 启动开始录制，先 mux 出一个 intermediate.mp4
-// （保持原始时间轴：音频在文件里什么时候响就什么时候响），再对 mp4 整体
-// 裁掉 MediaRecorder 启动到主标题渲染之间的白屏（用 performance.now 抓
-// videoOffsetMs）。这样不用关心 audio.webm 内部时间基准是 0 还是 firstPlayTimeMs。
+// 视频保留开头白屏，音频前垫 firstPlayTimeMs 时长静音对齐 MediaRecorder 起点。
 //
 // 用法：
 //   pnpm record                       # 录到 output/slide-1.mp4
@@ -339,11 +336,6 @@ async function main() {
     )
     console.log('[main] 第一页标题已渲染')
 
-    // 抓主标题渲染完成的时刻，作为视频 trim 起点（用 performance.now，
-    // 跟 MediaRecorder 的 __recorderStart 是同一条时间线）
-    const videoOffsetMs = await page.evaluate(() => performance.now())
-    console.log(`[main] 视频 trim 偏移=${videoOffsetMs.toFixed(1)}ms`)
-
     // 主标题出来后再停 1 秒，让画面在点击前稳一会儿；之后才按 Space 触发第一个
     // v-click（出副标题）和第一句旁白。
     console.log('[main] 停顿 1s，等主标题稳住...')
@@ -407,30 +399,30 @@ async function main() {
     await rename(videoTmp, videoPath)
     console.log(`[main] 视频写入 ${videoPath}`)
 
-    // 1) 先把音频和视频合到一个中间 mp4（不裁剪，保持原始 MediaRecorder 时间轴，
-    //    音频在文件里什么时候响就什么时候响）。
-    const intermediatePath = path.join(BUILD_DIR, 'intermediate.mp4')
-    await muxMp4(videoPath, audioPath, intermediatePath)
-    console.log(`[main] 中间 mp4 写入 ${intermediatePath}`)
-
-    // 2) 再对中间 mp4 整体裁掉开头的白屏（视频和音频同时裁 videoOffsetMs，
-    //    用 -ss input seek + libx264 重编码做帧精确裁剪）。
-    const offsetSec = Math.max(0, videoOffsetMs / 1000)
-    if (offsetSec > 0.05) {
+    // 给音频前垫 firstPlayTimeMs 的静音，让 audio 时间轴对齐 MediaRecorder 启动点
+    const padSec = Math.max(0, firstPlayTimeMs / 1000)
+    const paddedPath = path.join(BUILD_DIR, 'narration-padded.m4a')
+    if (padSec < 0.2) {
+      // 偏移太小，直接转封装
+      await runFfmpeg(['-y', '-i', audioPath, '-c:a', 'aac', '-b:a', '192k', paddedPath])
+    } else {
       await runFfmpeg([
         '-y',
-        '-ss', offsetSec.toFixed(3),
-        '-i', intermediatePath,
-        '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '23', '-preset', 'medium',
-        '-r', String(FPS),
-        '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
-        '-movflags', '+faststart',
-        args.out,
+        '-f', 'lavfi', '-t', padSec.toFixed(3),
+        '-i', 'anullsrc=channel_layout=stereo:sample_rate=48000',
+        '-i', audioPath,
+        '-filter_complex',
+        '[0:a]aresample=48000,aformat=sample_fmts=s16:channel_layouts=stereo[s];' +
+          '[1:a]aresample=48000,aformat=sample_fmts=s16:channel_layouts=stereo[n];' +
+          '[s][n]concat=n=2:v=0:a=1[a]',
+        '-map', '[a]',
+        '-c:a', 'aac', '-b:a', '192k',
+        paddedPath,
       ])
-    } else {
-      // trim 太小，直接复用中间 mp4
-      await rename(intermediatePath, args.out)
     }
+
+    // 合成 mp4
+    await muxMp4(videoPath, paddedPath, args.out)
     console.log(`[main] mp4 写入 ${args.out}`)
 
     await verify(args.out, audioPath)
