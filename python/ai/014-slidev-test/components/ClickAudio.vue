@@ -61,6 +61,35 @@ watch(
   { immediate: true },
 )
 
+// 兜底：global-bottom.vue 是异步 fetch manifest.json 后才把 items 传过来。
+// 当 items 从 [] 变成有内容时，items 不会触发 [page, clicks] watch，
+// 需要显式按当前 (page, click) 重判一次，让加载完成前已点出的 click 也能补播。
+watch(
+  () => props.items,
+  () => playFor(currentPage.value as number, clicks.value as number),
+  { deep: true },
+)
+
+// 独立 watch：把当前 click 序号和「当前页所有 [data-anim-ms] 的最大值」
+// 暴露到 window，供 record-video.ts 读取以决定点下一次前的等待时长。
+// 不耦合到 playFor（有些 v-click 无音频也得写 __lastClickAnimMs）。
+watch(
+  [currentPage, clicks],
+  ([page, click]) => {
+    if (typeof window === 'undefined') return
+    ;(window as any).__clicks = click
+    ;(window as any).__page = page
+
+    let maxMs = 0
+    document.querySelectorAll('[data-anim-ms]').forEach((el) => {
+      const n = Number(el.getAttribute('data-anim-ms') || '0')
+      if (Number.isFinite(n) && n > maxMs) maxMs = n
+    })
+    ;(window as any).__lastClickAnimMs = maxMs
+  },
+  { immediate: true },
+)
+
 onSlideLeave(() => stop())
 onBeforeUnmount(() => stop())
 </script>

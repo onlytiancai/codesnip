@@ -1,0 +1,148 @@
+{
+  "items": [
+    {
+      "slide": 1,
+      "click": 1,
+      "audio": "/audio/slide-1-click-1.mp3",
+      "text": "大家好，今天我们一起学习 TypeScript 泛型入门。"
+    },
+    {
+      "slide": 1,
+      "click": 2,
+      "audio": "/audio/slide-1-click-2.mp3",
+      "text": "通过本次分享，你会掌握泛型的核心概念和常见用法。"
+    },
+    {
+      "slide": 1,
+      "click": 3,
+      "audio": "/audio/slide-1-click-3.mp3",
+      "text": "主要内容包括泛型函数、接口、类、类型约束以及多个类型参数。"
+    },
+    {
+      "slide": 2,
+      "click": 1,
+      "audio": "/audio/slide-2-click-1.mp3",
+      "text": "欢迎来到 TypeScript 泛型入门。我们先从最核心的问题开始：什么是泛型？泛型允许你创建参数化类型，在定义函数、接口、类时不指定具体类型，而在使用时再确定。"
+    },
+    {
+      "slide": 3,
+      "click": 1,
+      "audio": "/audio/slide-3-click-1.mp3",
+      "text": "下面用一个最基础的泛型函数 identity 来理解它。别急，我们把这行函数签名拆成三部分，一步一步看。"
+    },
+    {
+      "slide": 3,
+      "click": 2,
+      "audio": "/audio/slide-3-click-2.mp3",
+      "text": "先看尖括号里的大写 T。它是类型参数，相当于一个类型占位符。这里并不指定具体类型，而是等到调用函数时再决定 T 到底是什么。"
+    },
+    {
+      "slide": 3,
+      "click": 3,
+      "audio": "/audio/slide-3-click-3.mp3",
+      "text": "再看参数 value 后面的冒号 T。它声明了参数的类型就是刚才的 T。也就是说，你传入什么类型的值，T 就被推断成什么类型。"
+    },
+    {
+      "slide": 3,
+      "click": 4,
+      "audio": "/audio/slide-3-click-4.mp3",
+      "text": "最后看括号后面的冒号 T，这是返回值类型，同样是那个 T。所以这个函数会原样返回你传入的值，输入和输出的类型始终保持一致。"
+    },
+    {
+      "slide": 3,
+      "click": 5,
+      "audio": "/audio/slide-3-click-5.mp3",
+      "text": "调用时你可以显式指定 T 为 string，也可以让 TypeScript 自动推断。这就是泛型最常见的使用方式。"
+    },
+    {
+      "slide": 4,
+      "click": 1,
+      "audio": "/audio/slide-4-click-1.mp3",
+      "text": "接口也可以参数化。下面看一个最简单的 Box 泛型接口。"
+    },
+    {
+      "slide": 4,
+      "click": 2,
+      "audio": "/audio/slide-4-click-2.mp3",
+      "text": "尖括号里的 T 还是类型参数。注意 value 属性的类型是 T，getValue 的返回值也是 T。"
+    },
+    {
+      "slide": 4,
+      "click": 3,
+      "audio": "/audio/slide-4-click-3.mp3",
+      "text": "右侧是用法。声明 Box 等于 string，传入和返回都是 string 类型，类型完全一致。"
+    },
+    {
+      "slide": 5,
+      "click": 1,
+      "audio": "/audio/slide-5-click-1.mp3",
+      "text": "类同样支持泛型。下面定义一个 Container 类，持有一个 T 类型的 item，并提供 getItem 方法返回它。"
+    },
+    {
+      "slide": 5,
+      "click": 2,
+      "audio": "/audio/slide-5-click-2.mp3",
+      "text": "实例化时指定 T 等于 number，container 只能装数字。TypeScript 会自动检查所有赋值。"
+    },
+    {
+      "slide": 5,
+      "click": 3,
+      "audio": "/audio/slide-5-click-3.mp3",
+      "text": "getItem 的返回类型自动推导为 number，调用方拿到的也是 number，完全类型安全。"
+    },
+    {
+      "slide": 6,
+      "click": 1,
+      "audio": "/audio/slide-6-click-1.mp3",
+      "text": "默认情况下，T 可以是任何类型。但有时我们希望限制 T 必须具有某些能力，这时用 extends 关键字。"
+    },
+    {
+      "slide": 6,
+      "click": 2,
+      "audio": "/audio/slide-6-click-2.mp3",
+      "text": "下面的例子要求 T 必须有 length 属性。比如 string、array 都有 length，可以传入。"
+    },
+    {
+      "slide": 6,
+      "click": 3,
+      "audio": "/audio/slide-6-click-3.mp3",
+      "text": "但如果你传入 number，就没有 length 属性，TypeScript 会直接报错，编译不通过。"
+    },
+    {
+      "slide": 6,
+      "click": 4,
+      "audio": "/audio/slide-6-click-4.mp3",
+      "text": "这种约束让我们在函数体内放心地访问 T.length 等属性，类型系统保证不会出错。"
+    },
+    {
+      "slide": 7,
+      "click": 1,
+      "audio": "/audio/slide-7-click-1.mp3",
+      "text": "泛型不限于一个类型参数。pair 函数接收 K 类型的 key 和 V 类型的 value，返回一个元组。"
+    },
+    {
+      "slide": 7,
+      "click": 2,
+      "audio": "/audio/slide-7-click-2.mp3",
+      "text": "调用时可以分别为 K 和 V 传入不同类型，比如 string 和 number，组合出键值对。"
+    },
+    {
+      "slide": 8,
+      "click": 1,
+      "audio": "/audio/slide-8-click-1.mp3",
+      "text": "最后做个总结。泛型的本质是参数化类型，让函数、接口、类在定义时不绑定具体类型，使用时再指定。常用语法包括函数泛型 T、interface T、class T，以及 extends 约束和多个类型参数 K V。"
+    },
+    {
+      "slide": 9,
+      "click": 1,
+      "audio": "/audio/slide-9-click-1.mp3",
+      "text": "感谢大家观看本次分享，希望对你理解 TypeScript 泛型有所帮助。"
+    },
+    {
+      "slide": 9,
+      "click": 2,
+      "audio": "/audio/slide-9-click-2.mp3",
+      "text": "接下来是问答环节，欢迎大家提出问题。"
+    }
+  ]
+}

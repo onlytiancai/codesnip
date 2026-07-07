@@ -43,6 +43,28 @@ function audioName(seg: ClickSegment): string {
   return `slide-${seg.slide}-click-${seg.click}.mp3`;
 }
 
+/**
+ * 写 `public/audio/manifest.json`：浏览器里的 global-bottom.vue 读这个文件
+ * 拿到 (slide, click) → audio 映射，不再硬编码在 Vue 组件里。
+ *
+ * 字段约定：
+ *   - slide / click：与 slides.md 中的 narrate N 对齐
+ *   - audio：浏览器可访问的 URL 路径（以 / 开头，public/ 下文件原样发布到站点根）
+ *   - text：原文（仅供调试，浏览器不读）
+ */
+function writeManifest(segments: ClickSegment[]): void {
+  const items = segments.map((seg) => ({
+    slide: seg.slide,
+    click: seg.click,
+    audio: `/audio/${audioName(seg)}`,
+    text: seg.text,
+  }));
+  const manifestPath = resolve(AUDIO_DIR, 'manifest.json');
+  mkdirSync(AUDIO_DIR, { recursive: true });
+  writeFileSync(manifestPath, JSON.stringify({ items }, null, 2) + '\n');
+  console.log(`清单已写入 ${manifestPath}（${items.length} 条）`);
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
 
@@ -67,6 +89,8 @@ async function main() {
 
   if (args.dry) {
     console.log('--dry：仅打印计划，不调用 API。');
+    // 即使 dry 也写一份 manifest，方便 dev 时预览旁白清单
+    writeManifest(segments);
     return;
   }
 
@@ -102,6 +126,9 @@ async function main() {
       process.exitCode = 1;
     }
   }
+
+  // 始终重写 manifest：保证和 slides.md 当前抽取结果一致（含被跳过的旧 mp3）
+  writeManifest(segments);
 
   console.log(`\n完成。输出目录：${AUDIO_DIR}`);
 }

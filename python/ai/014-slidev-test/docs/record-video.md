@@ -76,36 +76,45 @@ new MediaRecorder(dest.stream, { mimeType: 'audio/webm;codecs=opus' }).start(250
 
 ---
 
-## 3. 翻页与结束判定：两个状态机
+## 3. 翻页与结束判定：状态机
 
-脚本不写死 v-click 数量，靠两个观察量动态判断：
+脚本不写死 v-click 数量，靠两个观察量动态判断（`__playCount` + `__lastClickAnimMs`）：
 
 ```
                     ┌─────────────────────────────┐
                     │  while (true)               │
                     │    按 Space                 │
-                    │    250ms 后读 __playCount   │
+                    │    250ms 后读 __playCount、 │
+                    │    __lastClickAnimMs        │
                     └──────────────┬──────────────┘
                                    │
-                ┌──────────────────┴──────────────────┐
-                │                                     │
-       playCount 增加                          playCount 没变
-                │                                     │
-                ▼                                     ▼
-   本次按键触发了新音频                    当前 slide 的 v-click 已点完
-                │                                     │
-                ▼                                     ▼
-   waitForFunction(                       按 ArrowRight
-     __lastAudio.ended === true                 │
-   )   (timeout 60s)                    ┌───────┴────────┐
-                │                       │                │
-                ▼                  URL 变了          URL 没变
-          播完，继续按 Space          │                │
-                                       ▼                ▼
-                                   新一页，循环       末页，结束
+                ┌──────────────────┼─────────────────────────┐
+                │                  │                         │
+       playCount 增加     playCount 没变但        playCount 没变且
+                │         __lastClickAnimMs > 0      animMs == 0
+                ▼                  │                         │
+   本次按键触发了新音频            │                         │
+                │                  ▼                         ▼
+                │         v-click 有动效无音频     当前 slide 的 v-click 已点完
+                │                  │                         │
+                ▼                  ▼                         ▼
+   waitForFunction(         等 animMs 时长，         按 ArrowRight
+     __lastAudio.ended === true    继续按 Space              │
+   )   (timeout 60s)             （无音频的纯动画）   ┌───────┴────────┐
+                │                                       │                │
+                ▼                                  URL 变了          URL 没变
+   等 animMs 与 150ms                              │                │
+   的较大者，继续按 Space                          ▼                ▼
+                                            新一页，循环       末页，结束
 ```
 
 `__playCount` 是脚本自己在 `PatchedAudio` 构造时 `+1` 的全局计数器，相当于"创建了多少次 audio 元素"。从外部可以无侵入地观察到"是否真的有新 audio 被创建"。
+
+`__lastClickAnimMs` 由 `ClickAudio.vue` 的 watch 写入，遍历当前页所有 `[data-anim-ms]` 元素取最大值。这覆盖了三种 click：
+
+1. **有音频 + 有动效** → 等音频结束 + 等 `max(animMs, 150)ms` 给动画落定
+2. **无音频 + 有动效**（纯动画 click） → 等 `animMs` 直接进下次点击
+3. **无音频 + 无动效** → 当前 slide 点完，按 ArrowRight 翻页
 
 安全阀：
 - 单次音频等待 60s 超时 → 继续（防个别 click 死循环）
@@ -202,6 +211,7 @@ ffmpeg \
 | v-click 数量 | 动态探测（`__playCount` 增量 + URL 变化） | 不写死数量，slides.md 改了不用改脚本 |
 | 翻页键 | Space 触发 v-click，ArrowRight 切页 | 与 Slidev 内置快捷键一致 |
 | 音频等待 | `__lastAudio.ended === true` | 比 `setTimeout` 按预估时长等更准，旁白可长可短 |
+| v-click 动效时长 | 读 `[data-anim-ms]` 最大值 | 避免用 `setTimeout` 估时长；元素自报家门最可靠 |
 | 同步基准 | `performance.now()` | 单调时钟，不受系统时间调整 / 挂起影响 |
 | dev server 探测 | `localhost` → `127.0.0.1` → `[::1]` 轮询 | 绕开 macOS IPv6/IPv4 解析顺序导致 fetch 失败 |
 

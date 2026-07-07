@@ -245,6 +245,7 @@ async function verify(mp4Path: string, audioPath: string): Promise<void> {
 
 async function runClickLoop(page: Page): Promise<{ totalClicks: number }> {
   let prevPlayCount = 0
+  let prevClicks = 0
   let totalClicks = 0
   const tLoopStart = Date.now()
 
@@ -262,22 +263,30 @@ async function runClickLoop(page: Page): Promise<{ totalClicks: number }> {
       break
     }
 
-    dbg(`[loop] press Space (clicks=${totalClicks}, prevPlayCount=${prevPlayCount})`)
+    dbg(`[loop] press Space (clicks=${totalClicks}, prevPlayCount=${prevPlayCount}, prevClicks=${prevClicks})`)
     await page.keyboard.press('Space')
     await page.waitForTimeout(250)
 
     const state = await page.evaluate(() => ({
       playCount: (window).__playCount || 0,
       url: location.href,
-      lastAudioEnded: !!(window).__lastAudio?.ended,
       lastAudioSrc: (window).__lastAudio?.currentSrc || null,
+      page: (window).__page || 0,
+      clicks: (window).__clicks || 0,
+      animMs: (window).__lastClickAnimMs || 0,
     }))
+
+    // 关键判断：clicks 是否真的推进了。Slidev 在 click 已达 max 时按 Space
+    // 不会增加 clicks，但当前页 [data-anim-ms] 仍然非零 → 不能据此走「等动效」分支。
+    // 翻页后 clicks 会重置为 0，所以只看 clicks 增量即可识别「新 click」。
+    const clickAdvanced = state.clicks > prevClicks
 
     if (state.playCount > prevPlayCount) {
       // 本次按键触发了新音频 → 等它播完
       prevPlayCount = state.playCount
+      prevClicks = state.clicks
       totalClicks++
-      console.log(`[loop] click #${totalClicks} 触发音频 (src=${state.lastAudioSrc}), 等待播放完成...`)
+      console.log(`[loop] click #${totalClicks} (page=${state.page}, clicks=${state.clicks}, animMs=${state.animMs}ms) 触发音频 (src=${state.lastAudioSrc}), 等待播放完成...`)
 
       try {
         await page.waitForFunction(
@@ -292,10 +301,23 @@ async function runClickLoop(page: Page): Promise<{ totalClicks: number }> {
       } catch (e) {
         console.warn(`[loop] click #${totalClicks} 音频未在 60s 内播完，继续`)
       }
-      await page.waitForTimeout(150) // 让 v-click 动画落定
+      // 等 v-click 动画落定（取 animMs 与默认 150ms 的较大者）
+      const settleMs = Math.max(state.animMs, 150)
+      await page.waitForTimeout(settleMs)
+    } else if (clickAdvanced && state.animMs > 0) {
+      // 无音频但有点击（带 data-anim-ms 的 v-click）→ 等动效落定再点下一次
+      prevClicks = state.clicks
+      totalClicks++
+      console.log(`[loop] click #${totalClicks} (page=${state.page}, clicks=${state.clicks}) 无音频但有动效 ${state.animMs}ms，等动效...`)
+      await page.waitForTimeout(state.animMs)
+    } else if (clickAdvanced) {
+      // 新 click 触发但既无音频也无动效 → 立即推进
+      prevClicks = state.clicks
+      totalClicks++
+      console.log(`[loop] click #${totalClicks} (page=${state.page}, clicks=${state.clicks}) 无音频无动效`)
     } else {
-      console.log(`[loop] press Space 未触发新音频 (playCount=${state.playCount})，按 ArrowRight`)
-      // 本次按键没触发音频 → 当前 slide 的 v-click 已点完（或这一 click 本来就没音频）
+      console.log(`[loop] press Space 未触发新 click (clicks=${state.clicks}, animMs=${state.animMs}ms)，按 ArrowRight`)
+      // 本次按键没推进 click → 当前 slide 的 v-click 已点完（或点不动）
       // 按 ArrowRight 切到下一页
       const before = page.url()
       await page.keyboard.press('ArrowRight')
@@ -306,7 +328,7 @@ async function runClickLoop(page: Page): Promise<{ totalClicks: number }> {
         break
       }
       console.log(`[loop] 切到下一页: ${after}`)
-      // 切页时 ClickAudio 会 reset，__playCount 不变
+      // 切页后 Slidev 把 clicks 重置为 0；不更新 prevClicks → 下次新 click 1 仍 > 0
       await page.waitForTimeout(300)
     }
   }

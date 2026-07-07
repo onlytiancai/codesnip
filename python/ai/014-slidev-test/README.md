@@ -48,6 +48,21 @@ pnpm dev                   # http://localhost:3030
 - 注释不渲染、不污染演讲者备注（后面还有 `</div>`，不是 slide 尾部注释）
 - 代码围栏（``` / ~~~）内整段忽略，示例代码里的注释不会被误当旁白
 
+## v-click 动效时长
+
+录制脚本默认每个 click 后只等 150ms 给动画落定。如果某个 v-click 自带较慢的过渡
+（如高亮 / 缩放 / 滑入），需要在元素上加 `:data-anim-ms`：
+
+```html
+<div v-click="2" :data-anim-ms="800">
+  <!-- 该 v-click 动画时长 800ms -->
+</div>
+```
+
+录制时（`pnpm record`）会读取当前页所有 `[data-anim-ms]` 元素的最大值作为该次
+click 的等待时长，确保动画结束再点下一次。**只对「动效时长 > 150ms」的 click
+需要标注**，否则默认即可。
+
 ## 架构
 
 ```
@@ -60,10 +75,10 @@ slides.md ──(离线抽取)──► scripts/extract-clicks.ts ──► scri
 | 文件 | 作用 |
 |---|---|
 | `scripts/extract-clicks.ts` | 栈式 fence/div 状态机解析 `slides.md`，读出每个 `<div v-click>` 块内的 `<!-- narrate: ... -->` 指令作为旁白，丢弃代码块 |
-| `scripts/tts-slides.ts` | CLI：调 `extract-clicks` + `synthesize()`，把 mp3 写到 `public/audio/slide-N-click-M.mp3` |
+| `scripts/tts-slides.ts` | CLI：调 `extract-clicks` + `synthesize()`，把 mp3 写到 `public/audio/slide-N-click-M.mp3`，并写 `public/audio/manifest.json` |
 | `scripts/minimax-tts.ts` | MiniMax TTS API 封装（`synthesize()`） |
-| `components/ClickAudio.vue` | 播放组件，watch 导航状态，命中映射就播，切走/无匹配则停 |
-| `global-bottom.vue` | Slidev 全局层，硬编码 v-click → 音频映射，挂载 `ClickAudio` |
+| `components/ClickAudio.vue` | 播放组件，watch 导航状态，命中映射就播，切走/无匹配则停；watch items 变化以便 manifest 异步加载后补播 |
+| `global-bottom.vue` | Slidev 全局层，启动时 fetch `/audio/manifest.json` 得到 v-click → 音频映射，挂载 `ClickAudio` |
 
 `slides.md` 的内容不受影响：旁白写在 HTML 注释里，不渲染、不侵入视觉；音频能力通过全局层挂载。
 
@@ -93,9 +108,10 @@ HTTPS_PROXY=http://127.0.0.1:10808 pnpm tts:slides
 ## 增改 v-click 后的同步步骤
 
 1. 编辑 `slides.md`，给新的 `<div v-click>` 块加 `<!-- narrate: ... -->` 旁白
-2. `pnpm tts:slides -- --dry` 确认抽取文本正确
-3. `pnpm tts:slides` 生成新 mp3
-4. 手动同步 `global-bottom.vue` 里的 `items` 映射表
+2. 如果新加的 v-click 有较慢动效（> 150ms），记得加 `:data-anim-ms="N"`
+3. `pnpm tts:slides -- --dry` 确认抽取文本正确
+4. `pnpm tts:slides` 生成新 mp3 + 写新 manifest.json
+5. dev 浏览器 hard reload（manifest 用 `no-cache` 但内存仍可能保留旧 items）
 
 ## 录制成视频（mp4）
 
