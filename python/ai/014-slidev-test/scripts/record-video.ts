@@ -4,6 +4,7 @@
 // 把 Playwright 录的 webm 视频和 MediaRecorder 录的 webm 音频合成为 mp4。
 //
 // 视频保留开头白屏，音频前垫 firstPlayTimeMs 时长静音对齐 MediaRecorder 起点。
+// 附带打一条 h1+fonts.ready 的时间戳日志，方便后续手动 ffmpeg 裁剪。
 //
 // 用法：
 //   pnpm record                       # 录到 output/slide-1.mp4（默认 720p）
@@ -102,6 +103,21 @@ const INIT_SCRIPT = `
     console.warn('Init script failed:', e);
     window.__audioCtxUnavailable = true;
   }
+  // 观察「h1 文本 + document.fonts.ready」同时成立的时刻（ms，从 __recorderStart 算起）。
+  // 这里放在 INIT_SCRIPT 里作为字符串原样注入页面，避免 tsx/esbuild 注入
+  // __name helper 导致 page.evaluate 报 "ReferenceError: __name is not defined"。
+  window.__observeSlideReady = () => new Promise((resolve) => {
+    const check = () => {
+      const h1 = document.querySelector('.slidev-page h1');
+      const fontsOk = typeof document.fonts === 'undefined' || document.fonts.status === 'loaded';
+      if (h1 && (h1.textContent || '').trim() && fontsOk) {
+        resolve(performance.now() - window.__recorderStart);
+      } else {
+        requestAnimationFrame(check);
+      }
+    }
+    check();
+  });
 })();
 `.trim()
 
@@ -338,6 +354,7 @@ async function main() {
     const targetUrl = `${workingUrl.replace(/\/$/, '')}/#/1`
     console.log('[main] navigating to', targetUrl)
     await page.goto(targetUrl, { waitUntil: 'domcontentloaded' })
+
     await page.waitForSelector('.slidev-page', { timeout: 30_000 })
     // 等到「第一页标题真的有文本」再进入 click loop，避免在白屏阶段就开始点击
     await page.waitForFunction(
@@ -349,6 +366,13 @@ async function main() {
       { timeout: 30_000 },
     )
     console.log('[main] 第一页标题已渲染')
+
+    // 附带（非阻塞）：观察"h1 文本 + document.fonts.ready"同时成立的时刻，
+    // 打一条日志方便后续手动 ffmpeg 裁剪视频。函数定义放在 INIT_SCRIPT 里
+    // 避免 tsx/esbuild 注入 __name helper。
+    void page.evaluate(() => (window as any).__observeSlideReady()).then((t: number) => {
+      console.log(`[main] [参考] h1+fonts.ready 时刻 = ${t.toFixed(0)}ms（从 __recorderStart 算起，可用于 ffmpeg -ss 手动裁剪）`)
+    })
 
     // 主标题出来后再停 1 秒，让画面在点击前稳一会儿；之后才按 Space 触发第一个
     // v-click（出副标题）和第一句旁白。
@@ -403,7 +427,7 @@ async function main() {
     }
     const audioPath = path.join(BUILD_DIR, 'narration.webm')
     await writeFile(audioPath, Buffer.from(audioBytes))
-    console.log(`[main] 音频写入 ${audioPath} (${audioBytes.length} bytes, firstPlayTimeMs=${firstPlayTimeMs})`)
+    console.log(`[main] 音频写入 ${audioPath} (${audioBytes.length} bytes, firstPlayTimeMs=${firstPlayTimeMs}ms)`)
 
     // 关 page / ctx，拿到 webm 视频路径
     const videoTmp = await page.video()?.path()
