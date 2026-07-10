@@ -8,19 +8,15 @@ lineNumbers: false
 <!-- narrate 2: 通过本次分享，你会掌握泛型的核心概念和常见用法。 -->
 <!-- narrate 3: 主要内容包括泛型函数、接口、类、类型约束以及多个类型参数。 -->
 
-<div v-click="1" :data-anim-ms="600">
-
 # TypeScript 泛型入门
 
-</div>
-
-<div v-click="2" :data-anim-ms="500">
+<div v-click="1" class="rise" :data-anim-ms="500">
 
 ## 参数化类型，让代码更灵活
 
 </div>
 
-<div v-click="3" :data-anim-ms="400">
+<div v-click="2" class="rise" :data-anim-ms="400">
 
 `#泛型`  `#TypeScript`  `#前端`
 
@@ -30,12 +26,25 @@ lineNumbers: false
 .slidev-layout {
   text-align: center;
 }
+@keyframes titleEnter {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.94);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
 .slidev-layout h1 {
   font-size: 3.5rem;
   background: linear-gradient(135deg, #2563eb 0%, #d946ef 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  animation: titleEnter 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .slidev-layout h2 {
   font-size: 1.6rem;
@@ -47,6 +56,15 @@ lineNumbers: false
   font-size: 1.1rem;
   color: #9333ea;
   letter-spacing: 0.15em;
+}
+.rise.slidev-vclick-target {
+  transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.rise.slidev-vclick-hidden {
+  opacity: 0;
+  transform: translateY(24px);
+  pointer-events: none;
 }
 </style>
 
