@@ -74,9 +74,7 @@ lineNumbers: false
 
 <!-- narrate 1: 我们先从最核心的问题开始：什么是泛型？泛型允许你创建参数化类型，在定义函数、接口、类时不指定具体类型，而在使用时再确定。 -->
 
-<div v-click="1">
-
-## 什么是泛型？
+<div class="hl-text" :class="{ running: $clicks >= 1 }" v-click="1">
 
 泛型允许你创建**参数化类型**，在定义函数、接口、类时不指定具体类型，而在使用时再确定
 
@@ -126,6 +124,30 @@ lineNumbers: false
   padding: 1px 6px;
   border-radius: 4px;
 }
+/* 荧光笔高亮：默认可见，点击后从左至右涂色 */
+.slidev-layout .hl-text.slidev-vclick-hidden {
+  opacity: 1;
+  pointer-events: auto;
+}
+.hl-text {
+  display: inline-block;
+  padding: 0 6px;
+  background-image: linear-gradient(
+    transparent 55%,
+    rgba(253, 224, 71, 0.55) 55%,
+    rgba(253, 224, 71, 0.55) 92%,
+    transparent 92%
+  );
+  background-size: 0% 100%;
+  background-repeat: no-repeat;
+}
+.hl-text.running {
+  animation: drawHighlight 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes drawHighlight {
+  from { background-size: 0% 100%; }
+  to   { background-size: 100% 100%; }
+}
 </style>
 
 ---
@@ -139,8 +161,6 @@ lineNumbers: false
 <!-- narrate 5: 调用时你可以显式指定 T 为 string，也可以让 TypeScript 自动推断。这就是泛型最常见的使用方式。 -->
 
 <div v-click="1">
-
-### 基础泛型函数
 
 <pre class="sig"><code><span class="kw">function</span> <span class="fn">identity</span><span class="tok" :class="{ hot: $clicks === 2, warm: $clicks > 2 }">&lt;T&gt;</span>(<span class="var">value</span><span class="tok" :class="{ hot: $clicks === 3, warm: $clicks > 3 }">: T</span>)<span class="tok" :class="{ hot: $clicks === 4, warm: $clicks > 4 }">: T</span> {
   <span class="kw">return</span> <span class="var">value</span>;
