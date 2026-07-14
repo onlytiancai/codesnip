@@ -1,0 +1,170 @@
+{
+  "id": "14",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/14.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Travel",
+    "scene_zh": "旅行",
+    "task_en": "Packing Luggage",
+    "task_zh": "行李打包",
+    "context": "你和朋友在机场值机柜台前排队，准备办理行李托运。你把行李箱放上电子秤，心里有些忐忑，担心超重被罚款，于是问朋友帮忙看看。",
+    "sentence_zh": "我的行李超重了吗？",
+    "explanation": "这句话是旅行中在机场办理登机手续时最常用的句子之一。需要注意不同场合选择不同表达：值机柜台用 'overweight' 最直接；和朋友讨论时可以用 'good on weight' 等口语化表达；如果担心被罚款想提前确认，可以用 'weight limit' 或 'weight allowance' 这样的正式词汇。行李超重一般会有额外费用，所以询问时语气可以根据情况调整。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 16,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "旅行：行李打包。你和朋友在机场值机柜台前排队，准备办理行李托运。你把行李箱放上电子秤，心里有些忐忑，担心超重被罚款，于是问朋友帮忙看看。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/14/0-0-zh.mp3",
+          "duration_ms": 14071
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 5,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我的行李超重了吗？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/14/1-0-zh.mp3",
+          "duration_ms": 1486
+        },
+        {
+          "lang": "en",
+          "text": "Is my luggage overweight?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/14/1-1-en.mp3",
+          "duration_ms": 1614
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "Is my luggage overweight?",
+      "phonetic": "ɪz maɪ ˈluːɡɪdʒ ˈoʊvərˌweɪt",
+      "literal_translation": "我的行李超重了吗？",
+      "note": "最直接、标准的问题，适用于机场值机柜台"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "你觉得我的包超过重量限制了吗？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/14/2-0-zh.mp3",
+          "duration_ms": 2473
+        },
+        {
+          "lang": "en",
+          "text": "Do you think my bag is over the weight limit?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/14/2-1-en.mp3",
+          "duration_ms": 2125
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "Do you think my bag is over the weight limit?",
+      "phonetic": "duː jə wɪŋk maɪ bæɡ ɪz ˈoʊvər ðə weɪt ˈlɪmɪt",
+      "literal_translation": "你觉得我的包超过重量限制了吗？",
+      "note": "更委婉客气，用'think'显得更考虑对方感受"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 6,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我的行李箱有多重？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/14/3-0-zh.mp3",
+          "duration_ms": 1660
+        },
+        {
+          "lang": "en",
+          "text": "How much does my suitcase weigh?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/14/3-1-en.mp3",
+          "duration_ms": 1788
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "How much does my suitcase weigh?",
+      "phonetic": "haʊ mʌtʃ dʌz maɪ ˈsuːtkeɪs weɪ",
+      "literal_translation": "我的行李箱有多重？",
+      "note": "先询问具体重量，开放式问题"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 5,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我的重量没问题吧？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/14/4-0-zh.mp3",
+          "duration_ms": 1405
+        },
+        {
+          "lang": "en",
+          "text": "Am I good on weight?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/14/4-1-en.mp3",
+          "duration_ms": 1231
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "Am I good on weight?",
+      "phonetic": "æm aɪ ɡʊd ɑːn weɪt",
+      "literal_translation": "我的重量没问题吧？",
+      "note": "非常口语化的表达，轻松随意，适合朋友之间"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 8,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "让我检查一下我是否在重量允许范围内。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/14/5-0-zh.mp3",
+          "duration_ms": 3320
+        },
+        {
+          "lang": "en",
+          "text": "Let me check if I'm within the weight allowance.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/14/5-1-en.mp3",
+          "duration_ms": 2299
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "Let me check if I'm within the weight allowance.",
+      "phonetic": "lɛt mi tʃɛk ɪf aɪm wɪˈðɪn ðə weɪt əˈlaʊəns",
+      "literal_translation": "让我检查一下我是否在重量允许范围内。",
+      "note": "用'within allowance'显得更正式，提前确认"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 29,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "这句话是旅行中在机场办理登机手续时最常用的句子之一。需要注意不同场合选择不同表达：值机柜台用 'overweight' 最直接；和朋友讨论时可以用 'good on weight' 等口语化表达；如果担心被罚款想提前确认，可以用 'weight limit' 或 'weight allowance' 这样的正式词汇。行李超重一般会有额外费用，所以询问时语气可以根据情况调整。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/14/6-0-zh.mp3",
+          "duration_ms": 27108
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Travel scene, Packing Luggage task. Scene situation: 你和朋友在机场值机柜台前排队. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/14.jpg"
+  },
+  "duration_frames": 2280,
+  "duration_sec": 76
+}
