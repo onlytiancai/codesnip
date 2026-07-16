@@ -246,7 +246,7 @@ print(body["choices"][0]["message"]["content"])
 ```python
 import json, os, urllib.request
 
-url = "https://api.MiniMax.com/v1/t2a_v2"
+url = "https://api.minimaxi.com/v1/t2a_v2"
 payload = {
     "model": "speech-02-hd",
     "text": "你好，世界。<#0.8#>这是一段测试。",
