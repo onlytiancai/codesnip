@@ -35,13 +35,13 @@
           "lang": "zh",
           "text": "如果有任何问题，请尽管问，不要犹豫",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/1-0-zh.mp3",
-          "duration_ms": 3312
+          "duration_ms": 3274
         },
         {
           "lang": "en",
           "text": "Please don't hesitate to ask if you have any questions.",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/1-1-en.mp3",
-          "duration_ms": 2736
+          "duration_ms": 2682
         }
       ],
       "style": "polite",
@@ -59,13 +59,13 @@
           "lang": "zh",
           "text": "有什么问题尽管问",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/2-0-zh.mp3",
-          "duration_ms": 1656
+          "duration_ms": 1614
         },
         {
           "lang": "en",
           "text": "Feel free to ask if you have any questions.",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/2-1-en.mp3",
-          "duration_ms": 2484
+          "duration_ms": 2427
         }
       ],
       "style": "neutral",
@@ -77,19 +77,19 @@
     {
       "index": 3,
       "type": "expression",
-      "duration_sec": 7,
+      "duration_sec": 6,
       "tts_segments": [
         {
           "lang": "zh",
           "text": "有什么问题随时告诉我",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/3-0-zh.mp3",
-          "duration_ms": 2196
+          "duration_ms": 2125
         },
         {
           "lang": "en",
           "text": "Just let me know if you have any questions.",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/3-1-en.mp3",
-          "duration_ms": 2160
+          "duration_ms": 2090
         }
       ],
       "style": "neutral",
@@ -107,13 +107,13 @@
           "lang": "zh",
           "text": "别害羞，尽管问我任何事",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/4-0-zh.mp3",
-          "duration_ms": 2520
+          "duration_ms": 2473
         },
         {
           "lang": "en",
           "text": "Don't be shy, ask me anything!",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/4-1-en.mp3",
-          "duration_ms": 2520
+          "duration_ms": 2473
         }
       ],
       "style": "casual",
@@ -125,19 +125,19 @@
     {
       "index": 5,
       "type": "expression",
-      "duration_sec": 7,
+      "duration_sec": 6,
       "tts_segments": [
         {
           "lang": "zh",
           "text": "有什么需要尽管喊我一声",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/5-0-zh.mp3",
-          "duration_ms": 2052
+          "duration_ms": 1997
         },
         {
           "lang": "en",
           "text": "If you need anything, just holler.",
           "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/5-1-en.mp3",
-          "duration_ms": 2304
+          "duration_ms": 2252
         }
       ],
       "style": "casual",
@@ -165,6 +165,6 @@
     "url": null,
     "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/17.jpg"
   },
-  "duration_frames": 2580,
-  "duration_sec": 86
+  "duration_frames": 2520,
+  "duration_sec": 84
 }
