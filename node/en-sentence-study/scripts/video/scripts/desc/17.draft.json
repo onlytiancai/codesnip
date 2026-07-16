@@ -1,0 +1,170 @@
+{
+  "id": "17",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/17.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Travel",
+    "scene_zh": "旅行",
+    "task_en": "Guide Services",
+    "task_zh": "导游服务",
+    "context": "你是一名导游，正在带领一个国外游客团队参观景点。在做完基本介绍后，你希望游客知道如果有问题可以随时向你咨询。你面带微笑，用友善的语气说完开场白后，准备开始带领大家参观。",
+    "sentence_zh": "有什么问题可以随时问我。",
+    "explanation": "这句话是导游服务中最常用的开场白之一，表示导游愿意随时解答游客的问题。选择不同风格的表达时，正式场合（如商务旅行团或高端旅游）建议使用polite版本；一般旅行团用neutral版本即可；如果是年轻游客或轻松的氛围，可以使用casual版本。注意在说完这句话后，给游客一个友好的微笑，让对方感受到你的热情和耐心。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 20,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "旅行：导游服务。你是一名导游，正在带领一个国外游客团队参观景点。在做完基本介绍后，你希望游客知道如果有问题可以随时向你咨询。你面带微笑，用友善的语气说完开场白后，准备开始带领大家参观。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/0-0-zh.mp3",
+          "duration_ms": 18252
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 8,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "如果有任何问题，请尽管问，不要犹豫",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/1-0-zh.mp3",
+          "duration_ms": 3312
+        },
+        {
+          "lang": "en",
+          "text": "Please don't hesitate to ask if you have any questions.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/1-1-en.mp3",
+          "duration_ms": 2736
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "Please don't hesitate to ask if you have any questions.",
+      "phonetic": "pliːz dənt ˈhezɪteɪt tuː ɑːsk ɪf juː hæv ˈeni ˈkwestʃənz",
+      "literal_translation": "如果有任何问题，请尽管问，不要犹豫",
+      "note": "非常礼貌客气的表达，用双重否定结构显得更委婉"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 6,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "有什么问题尽管问",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/2-0-zh.mp3",
+          "duration_ms": 1656
+        },
+        {
+          "lang": "en",
+          "text": "Feel free to ask if you have any questions.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/2-1-en.mp3",
+          "duration_ms": 2484
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "Feel free to ask if you have any questions.",
+      "phonetic": "fiːl friː tuː ɑːsk ɪf juː hæv ˈeni ˈkwestʃənz",
+      "literal_translation": "有什么问题尽管问",
+      "note": "自然得体的中性表达，适用于导游与游客的一般交流"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "有什么问题随时告诉我",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/3-0-zh.mp3",
+          "duration_ms": 2196
+        },
+        {
+          "lang": "en",
+          "text": "Just let me know if you have any questions.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/3-1-en.mp3",
+          "duration_ms": 2160
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "Just let me know if you have any questions.",
+      "phonetic": "dʒʌst let miː nəʊ ɪf juː hæv ˈeni ˈkwestʃənz",
+      "literal_translation": "有什么问题随时告诉我",
+      "note": "随和友好的中性表达，强调导游乐于帮助的态度"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "别害羞，尽管问我任何事",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/4-0-zh.mp3",
+          "duration_ms": 2520
+        },
+        {
+          "lang": "en",
+          "text": "Don't be shy, ask me anything!",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/4-1-en.mp3",
+          "duration_ms": 2520
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "Don't be shy, ask me anything!",
+      "phonetic": "dəʊnt biː ʃaɪ, ɑːsk miː ˈeniθɪŋ",
+      "literal_translation": "别害羞，尽管问我任何事",
+      "note": "轻松活泼的口语表达，适合年轻导游或轻松的旅行团"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "有什么需要尽管喊我一声",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/5-0-zh.mp3",
+          "duration_ms": 2052
+        },
+        {
+          "lang": "en",
+          "text": "If you need anything, just holler.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/5-1-en.mp3",
+          "duration_ms": 2304
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "If you need anything, just holler.",
+      "phonetic": "ɪf juː niːd ˈeniθɪŋ, dʒʌst ˈhɒlər",
+      "literal_translation": "有什么需要尽管喊我一声",
+      "note": "非常口语化的表达，有点像美国俚语，友好且随意"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 31,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "这句话是导游服务中最常用的开场白之一，表示导游愿意随时解答游客的问题。选择不同风格的表达时，正式场合（如商务旅行团或高端旅游）建议使用polite版本；一般旅行团用neutral版本即可；如果是年轻游客或轻松的氛围，可以使用casual版本。注意在说完这句话后，给游客一个友好的微笑，让对方感受到你的热情和耐心。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/17/6-0-zh.mp3",
+          "duration_ms": 29808
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Travel scene, Guide Services task. Scene situation: 你是一名导游. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/17.jpg"
+  },
+  "duration_frames": 2580,
+  "duration_sec": 86
+}
