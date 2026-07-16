@@ -3,7 +3,7 @@ import anthropic
 client = anthropic.Anthropic()
 
 message = client.messages.create(
-    model="MiniMax-M2.7",
+    model="MiniMax-M3",
     max_tokens=1000,
     system="You are a helpful assistant.",
     messages=[

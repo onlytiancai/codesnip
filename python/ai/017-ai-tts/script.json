@@ -1,0 +1,276 @@
+{
+  "title": "五霸岗外酒肆相逢",
+  "tts_model": "speech-02-hd",
+  "language_boost": "Chinese",
+  "roles": {
+    "旁白": {
+      "voice_id": "audiobook_female_1",
+      "speed": 1.0,
+      "vol": 1.0,
+      "pitch": 0,
+      "desc": "沉稳叙述，娓娓道来"
+    },
+    "林平之": {
+      "voice_id": "male-qn-yangguang",
+      "speed": 1.05,
+      "vol": 1.0,
+      "pitch": 1,
+      "desc": "少年公子，俊朗明朗略带傲气"
+    },
+    "郑镖头": {
+      "voice_id": "male-qn-chengshu",
+      "speed": 1.0,
+      "vol": 1.0,
+      "pitch": -1,
+      "desc": "老成镖师，豪爽粗犷"
+    },
+    "白二": {
+      "voice_id": "male-qn-jingying",
+      "speed": 1.0,
+      "vol": 1.0,
+      "pitch": 0,
+      "desc": "趟子手，利落干练"
+    },
+    "陈七": {
+      "voice_id": "male-qn-jingying",
+      "speed": 1.0,
+      "vol": 1.0,
+      "pitch": 0,
+      "desc": "趟子手，利落干练"
+    },
+    "史镖头": {
+      "voice_id": "male-qn-chengshu",
+      "speed": 1.0,
+      "vol": 1.0,
+      "pitch": -1,
+      "desc": "稳重镖师，沉稳寡言"
+    },
+    "萨老头": {
+      "voice_id": "audiobook_male_1",
+      "speed": 0.9,
+      "vol": 1.0,
+      "pitch": -3,
+      "desc": "白发老人，乡音未改，絮叨感慨"
+    },
+    "青衣少女": {
+      "voice_id": "female-shaonv",
+      "speed": 0.95,
+      "vol": 1.0,
+      "pitch": 3,
+      "desc": "青衣少女，低头怯生，不发一言"
+    }
+  },
+  "lines": [
+    {
+      "idx": 0,
+      "role": "旁白",
+      "text": "五人大笑声中，兜转马头。林平之纵马疾驰，却不沿原路回去，转而向北，疾驰一阵，这才尽兴，勒马缓缓而行。",
+      "emotion": "happy",
+      "vol": 1.0,
+      "speed": 1.05,
+      "pitch": 0,
+      "pause_after_ms": 400,
+      "pronunciation": []
+    },
+    {
+      "idx": 1,
+      "role": "旁白",
+      "text": "只见前面路旁挑出一个酒招子。",
+      "emotion": "calm",
+      "vol": 1.0,
+      "speed": 1.0,
+      "pitch": 0,
+      "pause_after_ms": 300,
+      "pronunciation": []
+    },
+    {
+      "idx": 2,
+      "role": "郑镖头",
+      "text": "少镖头，咱们去喝一杯怎么样？新鲜兔肉、野鸡肉，正好炒了下酒。",
+      "emotion": "happy",
+      "vol": 1.0,
+      "speed": 1.05,
+      "pitch": -1,
+      "pause_after_ms": 350,
+      "pronunciation": []
+    },
+    {
+      "idx": 3,
+      "role": "林平之",
+      "text": "你跟我出来打猎是假，喝酒才是正经事。若不请你喝上个够，明儿便懒洋洋的不肯跟我出来了。",
+      "emotion": "happy",
+      "vol": 1.0,
+      "speed": 1.05,
+      "pitch": 1,
+      "pause_after_ms": 400,
+      "pronunciation": []
+    },
+    {
+      "idx": 4,
+      "role": "旁白",
+      "text": "一勒马，飘身跃下马背，缓步走向酒肆。",
+      "emotion": "calm",
+      "vol": 1.0,
+      "speed": 1.0,
+      "pitch": 0,
+      "pause_after_ms": 500,
+      "pronunciation": []
+    },
+    {
+      "idx": 5,
+      "role": "旁白",
+      "text": "若在往日，店主人老蔡早已抢出来接他手中马缰：",
+      "emotion": "calm",
+      "vol": 1.0,
+      "speed": 1.0,
+      "pitch": 0,
+      "pause_after_ms": 300,
+      "pronunciation": []
+    },
+    {
+      "idx": 6,
+      "role": "旁白",
+      "text": "少镖头今儿打了这么多野味啊，当真箭法如神，当世少有！这么奉承一番。",
+      "emotion": "happy",
+      "vol": 1.0,
+      "speed": 1.0,
+      "pitch": 0,
+      "pause_after_ms": 400,
+      "pronunciation": []
+    },
+    {
+      "idx": 7,
+      "role": "旁白",
+      "text": "但此刻来到店前，酒店中却静悄悄地，只见酒炉旁有个青衣少女，头束双鬟，插着两支荆钗，正在料理酒水，脸儿向里，也不转过身来。",
+      "emotion": "calm",
+      "vol": 1.0,
+      "speed": 1.0,
+      "pitch": 0,
+      "pause_after_ms": 500,
+      "pronunciation": [
+        "鬟/(huan2)"
+      ]
+    },
+    {
+      "idx": 8,
+      "role": "郑镖头",
+      "text": "老蔡呢，怎么不出来牵马？",
+      "emotion": "surprised",
+      "vol": 1.1,
+      "speed": 1.05,
+      "pitch": -1,
+      "pause_after_ms": 300,
+      "pronunciation": []
+    },
+    {
+      "idx": 9,
+      "role": "旁白",
+      "text": "白二、陈七拉开长凳，用衣袖拂去灰尘，请林平之坐了。",
+      "emotion": "calm",
+      "vol": 1.0,
+      "speed": 1.0,
+      "pitch": 0,
+      "pause_after_ms": 300,
+      "pronunciation": []
+    },
+    {
+      "idx": 10,
+      "role": "旁白",
+      "text": "史郑二位镖头在下首相陪，两个趟子手另坐一席。",
+      "emotion": "calm",
+      "vol": 1.0,
+      "speed": 1.0,
+      "pitch": 0,
+      "pause_after_ms": 500,
+      "pronunciation": []
+    },
+    {
+      "idx": 11,
+      "role": "旁白",
+      "text": "内堂里咳嗽声响，走出一个白发老人来，说道：",
+      "emotion": "calm",
+      "vol": 1.0,
+      "speed": 1.0,
+      "pitch": 0,
+      "pause_after_ms": 300,
+      "pronunciation": []
+    },
+    {
+      "idx": 12,
+      "role": "萨老头",
+      "text": "客官请坐，喝酒么？说的是北方口音。",
+      "emotion": "calm",
+      "vol": 1.0,
+      "speed": 0.9,
+      "pitch": -3,
+      "pause_after_ms": 300,
+      "pronunciation": []
+    },
+    {
+      "idx": 13,
+      "role": "郑镖头",
+      "text": "不喝酒，难道还喝茶？先打三斤竹叶青上来。老蔡哪里去啦？怎么？这酒店换了老板么？",
+      "emotion": "surprised",
+      "vol": 1.1,
+      "speed": 1.05,
+      "pitch": -1,
+      "pause_after_ms": 400,
+      "pronunciation": []
+    },
+    {
+      "idx": 14,
+      "role": "萨老头",
+      "text": "是，是，宛儿，打三斤竹叶青。",
+      "emotion": "calm",
+      "vol": 1.0,
+      "speed": 0.9,
+      "pitch": -3,
+      "pause_after_ms": 300,
+      "pronunciation": []
+    },
+    {
+      "idx": 15,
+      "role": "萨老头",
+      "text": "不瞒众位客官说，小老儿姓萨，原是本地人氏，自幼在外做生意，儿子媳妇都死了，心想树高千丈，叶落归根，这才带了这孙女儿回故乡来。",
+      "emotion": "sad",
+      "vol": 1.0,
+      "speed": 0.9,
+      "pitch": -3,
+      "pause_after_ms": 400,
+      "pronunciation": []
+    },
+    {
+      "idx": 16,
+      "role": "萨老头",
+      "text": "哪知道离家四十多年，家乡的亲戚朋友一个都不在了。刚好这家酒店的老蔡不想干了，三十两银子卖了给小老儿。",
+      "emotion": "sad",
+      "vol": 1.0,
+      "speed": 0.9,
+      "pitch": -3,
+      "pause_after_ms": 400,
+      "pronunciation": []
+    },
+    {
+      "idx": 17,
+      "role": "萨老头",
+      "text": "唉，总算回到故乡啦，听着人人说这家乡话，心里就说不出的受用，惭愧得紧，小老儿自己可都不会说啦。",
+      "emotion": "sad",
+      "vol": 1.0,
+      "speed": 0.85,
+      "pitch": -3,
+      "pause_after_ms": 600,
+      "pronunciation": []
+    },
+    {
+      "idx": 18,
+      "role": "旁白",
+      "text": "那青衣少女低头托着一只木盘，在林平之等人面前放了杯筷，将三壶酒放在桌上，又低着头走了开去，始终不敢向客人瞧上一眼。",
+      "emotion": "calm",
+      "vol": 1.0,
+      "speed": 0.95,
+      "pitch": 0,
+      "pause_after_ms": 600,
+      "pronunciation": []
+    }
+  ]
+}
