@@ -3,7 +3,7 @@ import { HelloWorld } from './HelloWorld';
 import { Card1Test } from './Card1Test';
 import { Video, type DescJson } from './Video';
 
-import descData from '../scripts/desc/15.draft.json';
+import descData from '../scripts/desc/16.draft.json';
 
 const defaultDesc = descData as unknown as DescJson;
 

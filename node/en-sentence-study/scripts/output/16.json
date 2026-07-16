@@ -10,36 +10,36 @@
       "sentence": "How much is the fare?",
       "style": "neutral",
       "note": "标准通用的询问方式",
-      "literal_translation": "多少 是 费用？",
-      "phonetic": "/haʊ mʌtʃ ɪz ðə feər/"
+      "literal_translation": "费用是多少？",
+      "phonetic": "haʊ mʌtʃ ɪz ðə feə"
     },
     {
       "sentence": "How much do I owe you?",
       "style": "casual",
       "note": "口语化表达，'owe'表示欠多少钱",
-      "literal_translation": "多少 我 欠 你？",
-      "phonetic": "/haʊ mʌtʃ du aɪ oʊ ju/"
+      "literal_translation": "我应该给你多少钱？",
+      "phonetic": "haʊ mʌtʃ duː aɪ ˈəʊ juː"
     },
     {
       "sentence": "What's the total?",
       "style": "neutral",
       "note": "询问总价，适用于网约车平台",
-      "literal_translation": "什么是 总数？",
-      "phonetic": "/wɒts ðə ˈtoʊtəl/"
+      "literal_translation": "总数是多少？",
+      "phonetic": "wɒts ðə ˈtəʊtəl"
     },
     {
       "sentence": "How much should I pay?",
       "style": "polite",
       "note": "客气询问，语气友好",
-      "literal_translation": "多少 应该 我 付？",
-      "phonetic": "/haʊ mʌtʃ ʃʊd aɪ peɪ/"
+      "literal_translation": "我应该付多少钱？",
+      "phonetic": "haʊ mʌtʃ ʃʊd aɪ peɪ"
     },
     {
       "sentence": "How much is it?",
       "style": "casual",
       "note": "最简单的口语表达，'it'指代车费",
-      "literal_translation": "多少 是 它？",
-      "phonetic": "/haʊ mʌtʃ ɪz ɪt/"
+      "literal_translation": "它多少钱？",
+      "phonetic": "haʊ mʌtʃ ɪz ɪt"
     }
   ],
   "explanation": "在打车场景中，最简单的问价方式就是'How much'开头。如果用出租车，可以问'How much is the fare?'；如果用网约车，可以问'What's the total?'。口语中'How much do I owe you?'也很常见，表示询问欠多少钱。在美国打车，通常会直接看计价器，或者司机告诉你金额。有些司机也会主动说'That's X dollars'。注意在美国给小费是常见的文化，通常会给15-20%的车费作为小费。"
