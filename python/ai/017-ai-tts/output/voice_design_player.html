@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>音色设计 · 试听 / 朗读</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(135deg, #fef6ff 0%, #e3f2fd 100%);
+      min-height: 100vh; margin: 0; padding: 32px 16px; color: #222;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; }
+    h1   { margin: 0 0 4px; font-size: 26px; }
+    .sub { color: #6b6b7a; margin: 0 0 28px; font-size: 14px; }
+    .card {
+      background: #fff; border-radius: 16px; padding: 22px 24px;
+      box-shadow: 0 8px 28px rgba(80, 80, 130, 0.08);
+      margin-bottom: 18px;
+    }
+    .label  { font-weight: 600; color: #5a4a8a; margin-bottom: 8px; }
+    .text   { color: #444; line-height: 1.7; font-size: 15px; margin-bottom: 12px; }
+    .meta   { font-size: 12px; color: #888; margin-top: 8px; word-break: break-all; }
+    audio  { width: 100%; outline: none; }
+    .vid   { font-family: ui-monospace, Menlo, monospace; font-size: 12px;
+             color: #7a4aaf; background: #f3eaff; padding: 2px 8px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>音色设计 · 试听 / 朗读</h1>
+    <p class="sub">voice_id：<span class="vid" id="vid">…</span></p>
+
+    <div class="card">
+      <div class="label">① 试听音频（preview_text）</div>
+      <div class="text" id="preview-text">…</div>
+      <audio controls src="voice_design_preview.mp3"></audio>
+      <div class="meta" id="preview-meta"></div>
+    </div>
+
+    <div class="card">
+      <div class="label">② 朗读音频（设计音色 → 朗读文本）</div>
+      <div class="text" id="target-text">…</div>
+      <audio controls src="voice_design_reading.mp3"></audio>
+      <div class="meta" id="target-meta"></div>
+    </div>
+  </div>
+  <script>
+    // 元数据由 voice_design_demo.py 写好后手动粘到这里（或从 meta.json 同步）
+    const META = {
+      voice_id: "ttv-voice-2026071616583226-fyC3LpJa",
+      prompt: "一位中年男性的恐怖故事讲述者，声音低沉浑厚略带沙哑，语速缓慢阴森，咬字清晰，善用停顿营造诡异悬疑的气氛，仿佛在深夜的篝火旁对听众娓娓道来，带有压迫感和神秘感。",
+      preview_text: "那是民国年间一个深秋的夜晚，村里接连死了三头牛，脖子上的伤口整整齐齐，却找不到半点血迹。我爹说，那东西，又回来了。",
+      target_text: "你们别笑，那事儿真真切切发生在我太爷爷身上。那年腊月二十九，他一个人走夜路经过乱葬岗，忽然听见背后有人叫他名字，回头一看，月亮底下空空荡荡，连个鬼影子都没有。可那声音清清楚楚，分明就是他死去三年的娘。",
+      preview_size_bytes: 213252,
+      target_size_bytes: 498804,
+      target_audio_length_ms: 31068,
+      usage_characters: 190
+    };
+    document.getElementById('vid').textContent           = META.voice_id;
+    document.getElementById('preview-text').textContent = META.preview_text;
+    document.getElementById('target-text').textContent  = META.target_text;
+    document.getElementById('preview-meta').textContent =
+      '音色 prompt：' + META.prompt + '　·　试听文件 ' + META.preview_size_bytes + ' bytes';
+    document.getElementById('target-meta').textContent =
+      '朗读时长 ' + (META.target_audio_length_ms / 1000).toFixed(2) + ' s　·　'
+      + '计费字符 ' + META.usage_characters + '　·　文件 ' + META.target_size_bytes + ' bytes';
+  </script>
+</body>
+</html>
