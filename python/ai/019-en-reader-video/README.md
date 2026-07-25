@@ -26,6 +26,8 @@ pnpm start             # 4. 浏览器打开 http://localhost:3000
 
 每句完成后立即落盘,中断可继续。
 
+任意命令后可加 `--debug`,每次 LLM 请求/响应会追加到 `data/generate-debug-<project>.log`。
+
 ## 目录
 
 ```

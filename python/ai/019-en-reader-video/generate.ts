@@ -15,14 +15,19 @@
 
 import 'dotenv/config'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
+import { existsSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // ===== CLI =====
-const [, , CMD, PROJECT, TARGET] = process.argv
+const __argv = process.argv.slice(2)
+const DEBUG = __argv.includes('--debug')
+const _argv = __argv.filter((a) => a !== '--debug')
+const CMD = _argv[0]
+const PROJECT = _argv[1]
+const TARGET = _argv[2]
 
 if (!CMD || !PROJECT) {
   printUsage()
@@ -31,6 +36,7 @@ if (!CMD || !PROJECT) {
 
 const INPUT_MD = path.join(__dirname, 'projects', PROJECT, 'index.md')
 const OUTPUT_JSON = path.join(__dirname, 'projects', PROJECT, 'explanations.json')
+const LOG_FILE = path.join(__dirname, 'data', `generate-debug-${PROJECT}.log`)
 
 function printUsage() {
   console.log(`用法:
@@ -39,8 +45,14 @@ function printUsage() {
   pnpm gen intro 001               # Step 2: 生成 intro + outro (LLM)
   pnpm gen sentences 001           # Step 3: 处理全部段落
   pnpm gen sentence 001 p9         # Step 3: 处理单段 (paragraph id, 例 p9)
+
+ 任意命令后可加 --debug,会把 LLM 请求/响应写到:
+   data/generate-debug-<project>.log
 `)
 }
+
+// debug 日志的总开关:在 import 时确定,后续任何地方都能用
+;(globalThis as any).__GEN_DEBUG__ = DEBUG
 
 // ===== JSON IO =====
 
@@ -313,11 +325,57 @@ const LLM_ENDPOINT =
   process.env.MINIMAX_LLM_ENDPOINT || 'https://api.minimaxi.com/v1/chat/completions'
 const LLM_MODEL = process.env.MINIMAX_LLM_MODEL || 'MiniMax-M3'
 
-async function callLLM(prompt: string): Promise<string> {
+/**
+ * --debug 时,把每次 LLM 调用的请求/响应追加到 LOG_FILE。
+ * 任何写入失败都不会影响主流程。
+ */
+function logLLMCall(entry: {
+  caller: string
+  prompt: string
+  rawBody: string
+  extracted: string
+  status: number | null
+  durationMs: number
+  error?: string
+}): void {
+  if (!(globalThis as any).__GEN_DEBUG__) return
+  try {
+    const sep = '='.repeat(80)
+    const ts = new Date().toISOString()
+    const parts = [
+      sep,
+      `[${ts}] ${entry.caller}`,
+      `  endpoint: ${LLM_ENDPOINT}`,
+      `  model:    ${LLM_MODEL}`,
+      `  duration: ${entry.durationMs}ms`,
+      `  status:   ${entry.status ?? '-'}`,
+      entry.error ? `  ERROR:    ${entry.error}` : '',
+      `  --- request ---`,
+      entry.prompt,
+      `  --- response (raw) ---`,
+      entry.rawBody,
+      `  --- response (extracted) ---`,
+      entry.extracted,
+      sep,
+      '',
+    ].filter((x) => x !== '')
+    writeFileSync(LOG_FILE, parts.join('\n') + '\n', { flag: 'a' })
+  } catch {
+    // 写日志失败不影响主流程
+  }
+}
+
+async function callLLM(prompt: string, caller = 'callLLM'): Promise<string> {
   const key = process.env.MINIMAX_API_KEY
   if (!key) throw new Error('MINIMAX_API_KEY 未设置,请检查 .env')
 
-  const res = await fetch(LLM_ENDPOINT, {
+  const t0 = Date.now()
+  let status: number | null = null
+  let rawBody = ''
+  let savedExtracted = ''
+
+  try {
+    const res = await fetch(LLM_ENDPOINT, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${key}`,
@@ -330,17 +388,43 @@ async function callLLM(prompt: string): Promise<string> {
       temperature: 0.7,
     }),
   })
+  status = res.status
   if (!res.ok) {
-    const t = await res.text().catch(() => '')
-    throw new Error(`LLM ${res.status} ${res.statusText} · ${t.slice(0, 300)}`)
+    rawBody = await res.text().catch(() => '')
+    throw new Error(`LLM ${res.status} ${res.statusText} · ${rawBody.slice(0, 300)}`)
   }
   const body = await res.json()
+  rawBody = JSON.stringify(body)
   let content: string = body?.choices?.[0]?.message?.content ?? ''
   // 去 思考链 (MiniMax-M3 等模型会有)
   content = content.replace(/<think>[\s\S]*?<\/think>/g, '').trim()
   // 去 ```json 等代码块包装
   content = content.replace(/^```(?:json)?\s*\n/i, '').replace(/\n```\s*$/, '').trim()
+  savedExtracted = content
   return content
+  } catch (e: any) {
+    logLLMCall({
+      caller,
+      prompt,
+      rawBody,
+      extracted: '',
+      status,
+      durationMs: Date.now() - t0,
+      error: e?.message ?? String(e),
+    })
+    throw e
+  } finally {
+    if (savedExtracted) {
+      logLLMCall({
+        caller,
+        prompt,
+        rawBody,
+        extracted: savedExtracted,
+        status,
+        durationMs: Date.now() - t0,
+      })
+    }
+  }
 }
 
 /** 容错抽取 JSON:在 LLM 自由文本里找到第一个 { 起、最后一个 } 止 */
@@ -349,10 +433,26 @@ function extractJSON(s: string): any {
   const last = s.lastIndexOf('}')
   if (first < 0 || last < 0) {
     throw new Error(
-      `LLM 回复里找不到 JSON 对象: ${s.slice(0, 200)}`,
+      `LLM 回复里找不到 JSON 对象: ${JSON.stringify(s.slice(0, 200))}`,
     )
   }
-  return JSON.parse(s.slice(first, last + 1))
+  const candidate = s.slice(first, last + 1)
+  try {
+    return JSON.parse(candidate)
+  } catch (e: any) {
+    // 把出错位置往前 60 字 / 往后 60 字打出来,方便定位
+    const m = e.message?.match(/position (\d+)/i)
+    const pos = m ? Number(m[1]) : -1
+    const lo = Math.max(0, pos - 60)
+    const hi = Math.min(candidate.length, pos + 60)
+    const snippet =
+      pos >= 0
+        ? `${candidate.slice(0, lo)}⛔${candidate.slice(lo, hi)}⛔${candidate.slice(hi)}`
+        : candidate.slice(0, 200)
+    throw new Error(
+      `JSON.parse 失败: ${e.message}\n出错片段: ${snippet}\n原始回复(前 600 字): ${JSON.stringify(s.slice(0, 600))}`,
+    )
+  }
 }
 
 // ===== Step 2: intro / outro =====
@@ -371,7 +471,12 @@ async function cmdIntro(): Promise<void> {
 ${fullText.slice(0, 8000)}
 </article>
 
-请严格输出 JSON,不要 \`\`\`json 代码块包装,不要任何解释性文字,只输出 JSON 本身:
+请严格输出 JSON,不要 \`\`\`json 代码块包装,不要任何解释性文字,只输出 JSON 本身。
+
+硬性规则:
+1. 字符串里**禁止出现未转义的英文双引号 "**;如需在中文里引用词句,统一用中文「」或反引号 \`code\` 替代
+2. 字符串里如果真的需要英文双引号,必须写成 \\\"
+3. 字符串内部允许普通换行 (\\n)
 
 {
   "intro": "<中文 3-5 段:文章主题、作者背景、写作动机、读者将学到什么、有钩子有趣味>",
