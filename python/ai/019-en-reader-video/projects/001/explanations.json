@@ -1,0 +1,877 @@
+{
+  "metadata": {
+    "title": "",
+    "title_zh": "",
+    "author": "",
+    "author_zh": "",
+    "date": "",
+    "source": "",
+    "author_bio": "",
+    "preprocessing_notes": [
+      "由 generate.ts split 步骤生成",
+      "已去除 markdown 语法、保留文本"
+    ]
+  },
+  "intro": null,
+  "paragraphs": [
+    {
+      "id": "p1",
+      "sentences": [
+        {
+          "id": "p1-s1",
+          "en": "How to Earn a Billion Dollars June 2026"
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p2",
+      "sentences": [
+        {
+          "id": "p2-s1",
+          "en": "(This is based on a talk I gave at the Oxford Union.)"
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p3",
+      "sentences": [
+        {
+          "id": "p3-s1",
+          "en": "Since this is apparently the future prime ministers' club, I'm going to tell you about something it would be good if more politicians understood: I'm going to tell you how people become billionaires."
+        },
+        {
+          "id": "p3-s2",
+          "en": "I hope this will be useful to you even if you don't plan to go into politics."
+        },
+        {
+          "id": "p3-s3",
+          "en": "Those of you who don't become prime minister can become billionaires instead."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p4",
+      "sentences": [
+        {
+          "id": "p4-s1",
+          "en": "The reason I know about this topic is that 21 years ago Jessica and I started something called Y Combinator."
+        },
+        {
+          "id": "p4-s2",
+          "en": "If you haven't heard of Y Combinator, it's a cross between an investment firm and a school for startup founders."
+        },
+        {
+          "id": "p4-s3",
+          "en": "Since we started it in 2005 we've funded about 6500 companies."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p5",
+      "sentences": [
+        {
+          "id": "p5-s1",
+          "en": "Starting a successful startup is the most common way to become a billionaire, so in effect I've spent the last 21 years training people to become billionaires."
+        },
+        {
+          "id": "p5-s2",
+          "en": "So far about 30 of them have, but there are many more in the pipeline."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p6",
+      "sentences": [
+        {
+          "id": "p6-s1",
+          "en": "So you can imagine how astonished I was last month when an American politician said that it was impossible to earn a billion dollars."
+        },
+        {
+          "id": "p6-s2",
+          "en": "I felt like a skating coach hearing someone say that it's impossible to do a triple axel."
+        },
+        {
+          "id": "p6-s3",
+          "en": "Of course it's possible."
+        },
+        {
+          "id": "p6-s4",
+          "en": "It's hard, but it's possible."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p7",
+      "sentences": [
+        {
+          "id": "p7-s1",
+          "en": "She wasn't saying, of course, that it's impossible to become a billionaire."
+        },
+        {
+          "id": "p7-s2",
+          "en": "Obviously that's possible."
+        },
+        {
+          "id": "p7-s3",
+          "en": "Nor was she talking about the distinction between income and capital gains."
+        },
+        {
+          "id": "p7-s4",
+          "en": "She wasn't making a point about accounting."
+        },
+        {
+          "id": "p7-s5",
+          "en": "What she meant was that it's impossible to get that rich without doing something bad — without cheating in some way."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p8",
+      "sentences": [
+        {
+          "id": "p8-s1",
+          "en": "A couple days later I was talking to the founder of a startup I'd funded."
+        },
+        {
+          "id": "p8-s2",
+          "en": "I began by asking, as I usually do when I meet a founder, what her growth rate was. 93% last month, she said."
+        },
+        {
+          "id": "p8-s3",
+          "en": "I pointed out that this meant her net worth was also growing at 93% a month."
+        },
+        {
+          "id": "p8-s4",
+          "en": "She was getting richer at a stupendously rapid rate."
+        },
+        {
+          "id": "p8-s5",
+          "en": "And yet she hadn't been doing anything bad."
+        },
+        {
+          "id": "p8-s6",
+          "en": "The reason her startup was growing so fast was simply that users loved what she'd built."
+        },
+        {
+          "id": "p8-s7",
+          "en": "So she could feel from her own experience how wrong that politician was."
+        },
+        {
+          "id": "p8-s8",
+          "en": "She wasn't exploiting anyone."
+        },
+        {
+          "id": "p8-s9",
+          "en": "Exactly the opposite in fact."
+        },
+        {
+          "id": "p8-s10",
+          "en": "The reason her startup was growing so fast was that she and her cofounder had been working their asses off to make their users happy, and as a result the users had been telling their friends."
+        },
+        {
+          "id": "p8-s11",
+          "en": "And that gets you exponential growth."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p9",
+      "sentences": [
+        {
+          "id": "p9-s1",
+          "en": "Later that day I was talking about her case online, and someone replied that having a few million and growing at 93% a month was radically different from being a billionaire."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p10",
+      "sentences": [
+        {
+          "id": "p10-s1",
+          "en": "I suspect many people would agree with this statement."
+        },
+        {
+          "id": "p10-s2",
+          "en": "But it turns out not merely to be false, but false in a very illuminating way."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p11",
+      "sentences": [
+        {
+          "id": "p11-s1",
+          "en": "So I would like you all to do me a favor please."
+        },
+        {
+          "id": "p11-s2",
+          "en": "I would like you to take out your phones and calculate a number."
+        },
+        {
+          "id": "p11-s3",
+          "en": "I know this may seem contrived, but I promise it will be useful for you."
+        },
+        {
+          "id": "p11-s4",
+          "en": "I'm going to have you do the most common kind of calculation I do as an investor, and the experience will bring home to you what startups are all about."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p12",
+      "sentences": [
+        {
+          "id": "p12-s1",
+          "en": "If we interpret his statement in the most conservative way and assume that a few means 2, her company has to grow 500x for her to become a billionaire."
+        },
+        {
+          "id": "p12-s2",
+          "en": "So we are going to calculate how many months of 93% growth it takes for something to grow 500x."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p13",
+      "sentences": [
+        {
+          "id": "p13-s1",
+          "en": "To do this we want to calculate the log base 1.93 of 500."
+        },
+        {
+          "id": "p13-s2",
+          "en": "The easiest way to do that is to go to Google search, which lets you do calculations right in the search box."
+        },
+        {
+          "id": "p13-s3",
+          "en": "So go to Google search and type log(500, 1.93)."
+        },
+        {
+          "id": "p13-s4",
+          "en": "If you typed that right, the answer you get is about 9.45."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p14",
+      "sentences": [
+        {
+          "id": "p14-s1",
+          "en": "That is how many months of 93% growth it takes to become a billionaire, starting from 2 million."
+        },
+        {
+          "id": "p14-s2",
+          "en": "A couple million and 93% growth are not, in fact, radically different from a billion."
+        },
+        {
+          "id": "p14-s3",
+          "en": "They're nine and a half months apart."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p15",
+      "sentences": [
+        {
+          "id": "p15-s1",
+          "en": "Now you see why, when I meet a founder, the first thing I ask about is their growth rate."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p16",
+      "sentences": [
+        {
+          "id": "p16-s1",
+          "en": "But I don't want anyone to accuse me of using unrealistic numbers, so let's take a more conservative growth rate."
+        },
+        {
+          "id": "p16-s2",
+          "en": "Let's see what happens at 15% a month."
+        },
+        {
+          "id": "p16-s3",
+          "en": "That's not rare at all."
+        },
+        {
+          "id": "p16-s4",
+          "en": "I constantly encounter startups growing at 15% a month."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p17",
+      "sentences": [
+        {
+          "id": "p17-s1",
+          "en": "If your revenues grow at 15% a month, how much more will you be making 5 years from now?"
+        },
+        {
+          "id": "p17-s2",
+          "en": "To calculate that, we need to find 1.15 to the 60th power (since 5 years is 60 months)."
+        },
+        {
+          "id": "p17-s3",
+          "en": "So go to Google again and this time type 1.15^60."
+        },
+        {
+          "id": "p17-s4",
+          "en": "The answer should be about 4384."
+        },
+        {
+          "id": "p17-s5",
+          "en": "Meaning in 5 years your startup will be making 4384 times as much."
+        },
+        {
+          "id": "p17-s6",
+          "en": "If you're currently making ten thousand a month, in five years you'll be making about 44 million a month, or 526 million a year."
+        },
+        {
+          "id": "p17-s7",
+          "en": "And at that point, if you own as much of the company as founders typically do, you will be a billionaire."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p18",
+      "sentences": [
+        {
+          "id": "p18-s1",
+          "en": "In the real world, growth rates tend to slow down a bit."
+        },
+        {
+          "id": "p18-s2",
+          "en": "A very successful startup will probably be growing faster than 15% a month in year 1 and slower than 15% a month in year 5."
+        },
+        {
+          "id": "p18-s3",
+          "en": "But you end up in about the same place."
+        },
+        {
+          "id": "p18-s4",
+          "en": "If you start a startup in your early twenties, it's definitely possible to be a billionaire by the time you're thirty."
+        },
+        {
+          "id": "p18-s5",
+          "en": "Hard, but possible."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p19",
+      "sentences": [
+        {
+          "id": "p19-s1",
+          "en": "I wanted you to feel this by doing the calculation yourselves, because now you understand one of the reasons people start startups."
+        },
+        {
+          "id": "p19-s2",
+          "en": "Exponential growth is like magic."
+        },
+        {
+          "id": "p19-s3",
+          "en": "It generates outcomes that seem impossible."
+        },
+        {
+          "id": "p19-s4",
+          "en": "And that's why some politicians distrust it."
+        },
+        {
+          "id": "p19-s5",
+          "en": "They don't understand the math of exponential growth, so when they see people becoming what seems to them impossibly rich, they assume they must have cheated."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p20",
+      "sentences": [
+        {
+          "id": "p20-s1",
+          "en": "But now you at least understand, from having done the math yourselves, that you don't have to cheat to become a billionaire."
+        },
+        {
+          "id": "p20-s2",
+          "en": "You've seen for yourselves that there are only two numbers in the calculation, the growth rate and how long it continues."
+        },
+        {
+          "id": "p20-s3",
+          "en": "If it's impossible to make a billion dollars without cheating, which of those two numbers is impossible?"
+        },
+        {
+          "id": "p20-s4",
+          "en": "It's certainly not impossible to grow at 15% a month without cheating."
+        },
+        {
+          "id": "p20-s5",
+          "en": "Startups do that all the time."
+        },
+        {
+          "id": "p20-s6",
+          "en": "And how long you can continue to grow at that rate depends on the size of the market."
+        },
+        {
+          "id": "p20-s7",
+          "en": "Obviously for you to grow 4000x, there has to be at least 4000x more demand."
+        },
+        {
+          "id": "p20-s8",
+          "en": "But that's all you need."
+        },
+        {
+          "id": "p20-s9",
+          "en": "And how could you possibly cheat to increase the market size?"
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p21",
+      "sentences": [
+        {
+          "id": "p21-s1",
+          "en": "If you're only planning to become prime minister, you can stop paying attention now."
+        },
+        {
+          "id": "p21-s2",
+          "en": "We've proved that it is in fact possible to earn a billion dollars, because it only depends on two numbers, one of which startups routinely hit without cheating, and another that cheating couldn't possibly affect."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p22",
+      "sentences": [
+        {
+          "id": "p22-s1",
+          "en": "But if you actually want to become a billionaire, we should go into more detail."
+        },
+        {
+          "id": "p22-s2",
+          "en": "Especially about that first number, the growth rate."
+        },
+        {
+          "id": "p22-s3",
+          "en": "To grow at a consistent rate every month, you have to make something so good that people tell their friends about it."
+        },
+        {
+          "id": "p22-s4",
+          "en": "And in fact that's the other reason I always begin by asking founders their growth rate."
+        },
+        {
+          "id": "p22-s5",
+          "en": "It shows whether they've built the right thing."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p23",
+      "sentences": [
+        {
+          "id": "p23-s1",
+          "en": "So how, exactly, do you make something people like so much that they tell their friends about it?"
+        },
+        {
+          "id": "p23-s2",
+          "en": "The problem with market economies, and also the great thing about market economies, is that it's hard to make something customers want that they don't already have."
+        },
+        {
+          "id": "p23-s3",
+          "en": "As soon as a new, satisfiable need is discovered, people rush to satisfy it."
+        },
+        {
+          "id": "p23-s4",
+          "en": "So you're going to have to discover a need that no one else knows about yet."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p24",
+      "sentences": [
+        {
+          "id": "p24-s1",
+          "en": "How do you do that?"
+        },
+        {
+          "id": "p24-s2",
+          "en": "By feeling the need yourself."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p25",
+      "sentences": [
+        {
+          "id": "p25-s1",
+          "en": "You're young, and usually young founders should make something that they themselves want."
+        },
+        {
+          "id": "p25-s2",
+          "en": "You don't have enough experience yet to know what other people need."
+        },
+        {
+          "id": "p25-s3",
+          "en": "But at the same time your own needs are uniquely valuable, because your needs predict future demand."
+        },
+        {
+          "id": "p25-s4",
+          "en": "You're the age when people start using new things."
+        },
+        {
+          "id": "p25-s5",
+          "en": "Whatever you and your friends start using now, everyone is going to be using in ten years."
+        },
+        {
+          "id": "p25-s6",
+          "en": "Since your intuitions about other people's needs are usually a crap signal, and your own needs are an especially valuable one, you should usually listen to the second signal; you should make something you and your friends want."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p26",
+      "sentences": [
+        {
+          "id": "p26-s1",
+          "en": "Making something you and your friends want doesn't mean you have to build a consumer product."
+        },
+        {
+          "id": "p26-s2",
+          "en": "Maybe you and your friends are molecular biologists, and there's something cool that could be done now to DNA that everyone else has overlooked."
+        },
+        {
+          "id": "p26-s3",
+          "en": "Maybe you and your friends are into drones."
+        },
+        {
+          "id": "p26-s4",
+          "en": "The idea doesn't have to have a wide appeal."
+        },
+        {
+          "id": "p26-s5",
+          "en": "It literally just has to appeal to you and your friends."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p27",
+      "sentences": [
+        {
+          "id": "p27-s1",
+          "en": "Don't worry about the second number, the market size."
+        },
+        {
+          "id": "p27-s2",
+          "en": "Since you predict future demand, the market will grow."
+        },
+        {
+          "id": "p27-s3",
+          "en": "And it's always possible to expand into adjacent markets."
+        },
+        {
+          "id": "p27-s4",
+          "en": "All you need is a beachhead in the territory of unsatisfied need that you can expand from."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p28",
+      "sentences": [
+        {
+          "id": "p28-s1",
+          "en": "How do you get an idea like that?"
+        },
+        {
+          "id": "p28-s2",
+          "en": "The answer is one of the most counterintuitive things about startups — which is saying something, because there are a lot of counterintuitive things about startups."
+        },
+        {
+          "id": "p28-s3",
+          "en": "But the way to get the very best startup ideas is not to look for startup ideas."
+        },
+        {
+          "id": "p28-s4",
+          "en": "If you're consciously looking for startup ideas, it will make you too conservative."
+        },
+        {
+          "id": "p28-s5",
+          "en": "You'll lop off the outliers."
+        },
+        {
+          "id": "p28-s6",
+          "en": "Because the very best startup ideas tend to sound so lame, at first, that you'd reject them if you were consciously looking for startup ideas."
+        },
+        {
+          "id": "p28-s7",
+          "en": "That's what has prevented them from being discovered."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p29",
+      "sentences": [
+        {
+          "id": "p29-s1",
+          "en": "Imagine what a bad idea Apple or Facebook or Airbnb seemed at first."
+        },
+        {
+          "id": "p29-s2",
+          "en": "How many people are going to want their own computers?"
+        },
+        {
+          "id": "p29-s3",
+          "en": "How is a company going to make money from undergrads stalking one another online?"
+        },
+        {
+          "id": "p29-s4",
+          "en": "Who's going to pay to sleep on an airbed on someone's floor?"
+        },
+        {
+          "id": "p29-s5",
+          "en": "We know how these ideas turned out, so it's easy to rewrite history, but I remember very well how bad Facebook and Airbnb sounded at first."
+        },
+        {
+          "id": "p29-s6",
+          "en": "We funded Airbnb, and we thought the idea was bad."
+        },
+        {
+          "id": "p29-s7",
+          "en": "The reason we funded them was just that we liked the founders."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p30",
+      "sentences": [
+        {
+          "id": "p30-s1",
+          "en": "So how do you find startup ideas without looking for them?"
+        },
+        {
+          "id": "p30-s2",
+          "en": "By working on projects with your friends."
+        },
+        {
+          "id": "p30-s3",
+          "en": "That's where the very best startups come from."
+        },
+        {
+          "id": "p30-s4",
+          "en": "Initially they're not even meant to be companies."
+        },
+        {
+          "id": "p30-s5",
+          "en": "They're just something people built because they thought it would be cool."
+        },
+        {
+          "id": "p30-s6",
+          "en": "That's how Apple and Google and Facebook all started."
+        },
+        {
+          "id": "p30-s7",
+          "en": "None of them were meant to be companies at first."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p31",
+      "sentences": [
+        {
+          "id": "p31-s1",
+          "en": "The reason this works is what I told you earlier: you predict future demand."
+        },
+        {
+          "id": "p31-s2",
+          "en": "So if you just build random stuff you think would be cool, the things you build will actually be far from random."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p32",
+      "sentences": [
+        {
+          "id": "p32-s1",
+          "en": "This is one of those cases where your unconscious mind knows more than your conscious mind does."
+        },
+        {
+          "id": "p32-s2",
+          "en": "Anything that genuinely seems to you like it would be a cool thing to build has a high probability of leading to a good startup idea, no matter how preposterous it sounds."
+        },
+        {
+          "id": "p32-s3",
+          "en": "Whatever you build couldn't possibly sound more preposterous than a startup we funded in 2006 called Justin.TV."
+        },
+        {
+          "id": "p32-s4",
+          "en": "It consisted of one guy, Justin Kan, walking around with a camera on the side of his head, live streaming everything that happened to him."
+        },
+        {
+          "id": "p32-s5",
+          "en": "But this company ended up doing quite well."
+        },
+        {
+          "id": "p32-s6",
+          "en": "In fact you've probably heard of it, but under its new name, Twitch."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p33",
+      "sentences": [
+        {
+          "id": "p33-s1",
+          "en": "The key to starting a successful startup is to understand some group of users so well that you can make exactly what they want."
+        },
+        {
+          "id": "p33-s2",
+          "en": "If you're young you can, and should, use the hack of making something for yourself."
+        },
+        {
+          "id": "p33-s3",
+          "en": "You understand yourself."
+        },
+        {
+          "id": "p33-s4",
+          "en": "But this is just an instance of the more general rule."
+        },
+        {
+          "id": "p33-s5",
+          "en": "Only by understanding users very deeply can you make something they love so much that they tell their friends about it, and only that can get you the exponential growth you need to make a startup really successful."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p34",
+      "sentences": [
+        {
+          "id": "p34-s1",
+          "en": "There are other ways to get rich than by starting startups."
+        },
+        {
+          "id": "p34-s2",
+          "en": "Some of those do require you to exploit people."
+        },
+        {
+          "id": "p34-s3",
+          "en": "But startups are the most common way to become really rich, and if you want to start a successful startup, the key is not exploitation but empathy."
+        },
+        {
+          "id": "p34-s4",
+          "en": "What do users really want?"
+        },
+        {
+          "id": "p34-s5",
+          "en": "What could you do for them that would make their lives dramatically better?"
+        },
+        {
+          "id": "p34-s6",
+          "en": "That kind of empathy is what we look for in founders, and what we cultivate in the ones we accept."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p35",
+      "sentences": [
+        {
+          "id": "p35-s1",
+          "en": "How people become rich in your society is one of the most important things to understand about it."
+        },
+        {
+          "id": "p35-s2",
+          "en": "You can't let your beliefs about this be determined by ideology, or movies, or historical examples that are centuries old."
+        },
+        {
+          "id": "p35-s3",
+          "en": "You must look at the world around you and see how it's actually done."
+        },
+        {
+          "id": "p35-s4",
+          "en": "If you want to do it yourself, obviously you'll be forced to understand how it's done."
+        },
+        {
+          "id": "p35-s5",
+          "en": "So I don't worry too much about you."
+        },
+        {
+          "id": "p35-s6",
+          "en": "The ones I worry about are the future prime ministers."
+        },
+        {
+          "id": "p35-s7",
+          "en": "You need to remember this talk."
+        },
+        {
+          "id": "p35-s8",
+          "en": "So for you I'm going to summarize the key ideas."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p36",
+      "sentences": [
+        {
+          "id": "p36-s1",
+          "en": "There are two numbers that determine how big a startup gets, and thus how rich its founders become: the growth rate and how long it continues."
+        },
+        {
+          "id": "p36-s2",
+          "en": "You get the first by making something users like so much they tell their friends."
+        },
+        {
+          "id": "p36-s3",
+          "en": "You get the second by being in a big market."
+        },
+        {
+          "id": "p36-s4",
+          "en": "If you grow exponentially into a big market, your startup will become valuable, and you, as a shareholder, will become rich."
+        },
+        {
+          "id": "p36-s5",
+          "en": "You not only don't have to cheat to make this happen, it will happen automatically if you just keep making customers happy."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p37",
+      "sentences": [
+        {
+          "id": "p37-s1",
+          "en": "Thanks to Trevor Blackwell, Jared Friedman, Jessica Livingston, and Garry Tan for reading drafts of this, and to Arwa Elrayess and the Oxford Union for hosting me."
+        }
+      ],
+      "summary": ""
+    }
+  ],
+  "outro": null
+}

@@ -1,12 +1,13 @@
 // 019-en-reader-video / 极简 Express + Vue 3 应用入口
 // 负责:静态托管 + 暴露 JSON + 代理 MiniMax TTS 并做磁盘缓存
+//
 // 用法:
-//   1) 在 .env 里填 MINIMAX_API_KEY=xxx    (从 https://platform.MiniMax.io/user-center/basic-information/interface-key 取)
-//   2) [可选] 在 .env 里改 ZH_VOICE_ID / EN_VOICE_ID 覆盖默认音色
-//   3) [可选] 在 .env 里改 PORT=3000 (默认 3000)
-//   4) pnpm install / npm install
-//   5) node server.js
-//   6) 浏览器打开 http://localhost:3000
+//   pnpm install
+//   pnpm gen split 001 && pnpm gen intro 001 && pnpm gen sentences 001
+//   pnpm start                         # 默认服务项目 001
+//   pnpm start --project=002            # 服务项目 002
+//   PROJECT=002 node server.js          # 同上,环境变量版
+//   PORT=8080 pnpm start                # 改端口
 
 import 'dotenv/config'
 import express from 'express'
@@ -19,6 +20,25 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = Number(process.env.PORT || 3000)
 const CACHE_DIR = path.join(__dirname, 'data', 'tts-cache')
 fs.mkdirSync(CACHE_DIR, { recursive: true })
+
+// --- 项目识别 (CLI > 环境变量 > 默认 001) ---
+function detectProject() {
+  // --project=XXX 长选项
+  const longArg = process.argv.find((a) => a.startsWith('--project='))
+  if (longArg) return longArg.split('=')[1]
+  // --project XXX 双段长选项
+  const longIdx = process.argv.indexOf('--project')
+  if (longIdx > -1 && process.argv[longIdx + 1]) return process.argv[longIdx + 1]
+  // 位置参数: node server.js 002
+  const positional = process.argv[2]
+  if (positional && !positional.startsWith('--')) return positional
+  // 环境变量
+  if (process.env.PROJECT) return process.env.PROJECT
+  // 默认
+  return '001'
+}
+const PROJECT = detectProject()
+const DATA_PATH = path.join(__dirname, 'projects', PROJECT, 'explanations.json')
 
 const app = express()
 app.use(express.json({ limit: '1mb' }))
@@ -44,17 +64,27 @@ const DEFAULT_EMOTION = {
   explain: process.env.EXPLAIN_TTS_EMOTION || 'calm',
 }
 
-// --- 路由 1:返回 explanations.json ---
+// --- 路由 1:返回 explanations.json (项目级路径) ---
 app.get('/api/explanations', (_req, res) => {
-  const jsonPath = path.join(__dirname, 'explanations.json')
-  try {
-    const text = fs.readFileSync(jsonPath, 'utf-8')
-    res.set('Content-Type', 'application/json; charset=utf-8')
-    res.set('Cache-Control', 'no-store')
-    res.send(text)
-  } catch (e) {
-    res.status(500).json({ error: `failed to read explanations.json: ${e.message}` })
+  if (!fs.existsSync(DATA_PATH)) {
+    return res.status(404).json({
+      error: `项目 ${PROJECT} 的 explanations.json 还没生成`,
+      expected: path.relative(__dirname, DATA_PATH),
+      hint: `pnpm gen split ${PROJECT} && pnpm gen intro ${PROJECT} && pnpm gen sentences ${PROJECT}`,
+    })
   }
+  res.set('Content-Type', 'application/json; charset=utf-8')
+  res.set('Cache-Control', 'no-store')
+  res.sendFile(DATA_PATH)
+})
+
+// --- 路由:返回当前项目名 ---
+app.get('/api/project', (_req, res) => {
+  res.json({
+    project: PROJECT,
+    dataPath: path.relative(__dirname, DATA_PATH),
+    exists: fs.existsSync(DATA_PATH),
+  })
 })
 
 // --- 工具:clamp + make cache key ---
@@ -174,6 +204,7 @@ app.get('*', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.h
 app.listen(PORT, () => {
   console.log(`\n🟢 019-en-reader-video web 已启动`)
   console.log(`   → http://localhost:${PORT}`)
+  console.log(`   → 当前项目: ${PROJECT}  ${fs.existsSync(DATA_PATH) ? '✅' : '⚠️  explanations.json 不存在'}`)
   console.log(`   → TTS endpoint: ${TTS_ENDPOINT}  (model: ${TTS_MODEL})`)
   console.log(`   → ${process.env.MINIMAX_API_KEY ? '✅' : '⚠️ '} MINIMAX_API_KEY ${process.env.MINIMAX_API_KEY ? '已设置' : '未设置 (TTS 请求会失败)'}`)
   console.log('')

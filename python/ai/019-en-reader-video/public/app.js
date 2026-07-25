@@ -8,11 +8,12 @@ createApp({
     return {
       data: null,
       loadError: null,
+      projectName: '',       // ← 来自 /api/project
       currentParagraphIdx: 0,
       currentSentenceIdx: 0,
       playingId: null,
       audio: null,
-      apiHealth: null, // null | 'ok' | 'fail'
+      apiHealth: null,       // null | 'ok' | 'fail'
     };
   },
 
@@ -182,6 +183,16 @@ createApp({
     } catch (e) {
       this.loadError = e.message || String(e);
     }
+
+    // 检测当前项目名
+    try {
+      const p = await fetch('/api/project');
+      if (p.ok) {
+        const info = await p.json();
+        this.projectName = info.project || '';
+        document.title = `📖 ${info.project} · ${this.data?.metadata?.title_zh || 'en-reader'}`;
+      }
+    } catch {}
 
     try {
       const h = await fetch('/api/health');

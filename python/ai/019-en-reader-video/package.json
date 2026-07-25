@@ -3,14 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Web viewer for English reader video project (MiniMax TTS, Vue 3, Tailwind 4)",
+  "description": "Web viewer + generator for English reader video project (MiniMax TTS/LLM, Vue 3, Tailwind 4, tsx)",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "gen": "tsx generate.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
     "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0"
   },
   "engines": {
     "node": ">=18"
