@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>英文阅读视频 · How to Become a Billionaire</title>
+
+  <!-- Vue 3 (staticfile 优先, 失败可换 jsdelivr) -->
+  <script src="https://cdn.staticfile.org/vue/3.4.21/vue.global.prod.js"></script>
+
+  <!-- Tailwind 4 browser CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <style>
+    /* Tailwind 4 接管样式之前的兜底字体 */
+    html, body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    /* 让滚动定位避开顶部固定 nav */
+    .anchor-offset { scroll-margin-top: 130px; }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-slate-50 via-white to-blue-50 min-h-screen text-slate-800">
+
+  <div id="app">
+
+    <!-- 加载中 -->
+    <div v-if="!data && !loadError" class="flex items-center justify-center min-h-screen">
+      <div class="text-slate-500 text-lg">📖 加载 explanations.json ...</div>
+    </div>
+
+    <!-- 加载失败 -->
+    <div v-else-if="loadError" class="max-w-2xl mx-auto p-8 mt-12 bg-rose-50 border border-rose-200 rounded-lg text-rose-700">
+      <div class="font-semibold mb-2">❌ 加载失败</div>
+      <div class="text-sm">{{ loadError }}</div>
+      <div class="text-xs text-rose-500 mt-3">请确认 <code class="bg-rose-100 px-1 rounded">node server.js</code> 已运行,且 <code class="bg-rose-100 px-1 rounded">explanations.json</code> 存在。</div>
+    </div>
+
+    <!-- 主界面 -->
+    <div v-else>
+
+      <!-- Header -->
+      <header class="bg-white/80 backdrop-blur border-b border-slate-200 sticky top-0 z-30">
+        <div class="max-w-4xl mx-auto px-4 py-3">
+          <h1 class="text-lg sm:text-xl font-bold text-slate-900">
+            📖 {{ data.metadata.title_zh }}
+          </h1>
+          <p class="text-xs text-slate-500 mt-0.5">
+            {{ data.metadata.author_zh }} · {{ data.metadata.date }}
+            <span v-if="data.metadata.source" class="ml-2 text-slate-400">· {{ data.metadata.source }}</span>
+          </p>
+        </div>
+      </header>
+
+      <!-- Nav -->
+      <nav class="bg-white/95 backdrop-blur border-b border-slate-200 sticky top-[72px] sm:top-[68px] z-20">
+        <div class="max-w-4xl mx-auto px-4 py-2 flex flex-wrap items-center gap-2">
+          <button @click="navigateParagraph(-1)" :disabled="currentParagraphIdx <= 0"
+                  class="px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 active:bg-slate-300 disabled:opacity-40 text-sm transition-colors">
+            ⬅ 上一段
+          </button>
+          <button @click="navigateParagraph(1)" :disabled="currentParagraphIdx >= items.length - 1"
+                  class="px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 active:bg-slate-300 disabled:opacity-40 text-sm transition-colors">
+            下一段 ➡
+          </button>
+          <span class="text-slate-300 select-none">|</span>
+          <button @click="navigateSentence(-1)" :disabled="!canNavigatePrevSentence"
+                  class="px-3 py-1.5 rounded-md bg-blue-50 hover:bg-blue-100 active:bg-blue-200 disabled:opacity-40 text-sm text-blue-700 transition-colors">
+            ⬅ 上一句
+          </button>
+          <button @click="navigateSentence(1)" :disabled="!canNavigateNextSentence"
+                  class="px-3 py-1.5 rounded-md bg-blue-50 hover:bg-blue-100 active:bg-blue-200 disabled:opacity-40 text-sm text-blue-700 transition-colors">
+            下一句 ➡
+          </button>
+          <span class="ml-auto text-xs text-slate-500 font-mono whitespace-nowrap">
+            {{ positionText }}
+          </span>
+        </div>
+      </nav>
+
+      <!-- Intro -->
+      <section v-if="data.intro" class="max-w-4xl mx-auto px-4 pt-6">
+        <div class="bg-amber-50 rounded-xl shadow-sm p-5 border border-amber-200">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded font-semibold tracking-wide">前言 · INTRO</span>
+          </div>
+          <p class="text-sm leading-relaxed text-slate-700 whitespace-pre-line">{{ data.intro }}</p>
+        </div>
+      </section>
+
+      <!-- Cards (paragraphs) -->
+      <main class="max-w-4xl mx-auto px-4 pt-4 pb-12 space-y-4">
+        <article v-for="(item, idx) in items"
+                 :key="item.id"
+                 :data-card-idx="idx"
+                 :class="['anchor-offset bg-white rounded-xl shadow-md p-5 border-2 transition-all',
+                          idx === currentParagraphIdx
+                            ? 'border-blue-400 shadow-lg ring-1 ring-blue-100'
+                            : 'border-slate-100']">
+          <header class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-xs font-mono text-slate-400">{{ item.id }}</span>
+              <span v-if="item.label" class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-semibold">{{ item.label }}</span>
+              <span v-if="idx === currentParagraphIdx" class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-semibold">当前段</span>
+            </div>
+            <span class="text-xs text-slate-400 font-mono">{{ idx + 1 }} / {{ items.length }}</span>
+          </header>
+
+          <!-- Sentences -->
+          <div class="space-y-2.5">
+            <div v-for="(s, si) in item.sentences"
+                 :key="s.id"
+                 :data-sent-idx="`${idx}-${si}`"
+                 :class="['rounded-lg border-l-4 pl-3 pr-2 py-2 transition-colors cursor-pointer',
+                          idx === currentParagraphIdx && si === currentSentenceIdx
+                            ? 'border-blue-500 bg-blue-50/70 ring-1 ring-blue-200'
+                            : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50']"
+                 @click="jumpToSentence(idx, si)">
+              <div class="flex items-start justify-between gap-2">
+                <span class="text-[10px] font-mono text-slate-400 mt-1 flex-shrink-0 w-7">S{{ si + 1 }}</span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm text-slate-700 leading-relaxed">{{ s.en }}</p>
+                  <div v-if="s.highlights && s.highlights.length" class="mt-1.5 flex flex-wrap">
+                    <span v-for="(h, hi) in s.highlights" :key="hi"
+                          class="inline-block bg-yellow-100 text-yellow-900 px-1.5 py-0.5 rounded text-[11px] font-medium mr-1 mb-1">
+                      {{ h }}
+                    </span>
+                  </div>
+                </div>
+                <!-- 总是显示的 EN TTS 按钮 -->
+                <button @click.stop="playTTS(s.en, 'en', sentKey(idx, si, 'en'))"
+                        :disabled="playingId === sentKey(idx, si, 'en')"
+                        :class="['flex-shrink-0 px-2 py-1 rounded text-xs transition-colors',
+                                 playingId === sentKey(idx, si, 'en')
+                                   ? 'bg-slate-900 text-white animate-pulse'
+                                   : 'bg-slate-700 hover:bg-slate-800 text-white disabled:opacity-60']">
+                  {{ playingId === sentKey(idx, si, 'en') ? '▶' : '🔊 EN' }}
+                </button>
+              </div>
+
+              <!-- Details: active sentence only -->
+              <div v-if="idx === currentParagraphIdx && si === currentSentenceIdx"
+                   class="mt-3 ml-7 space-y-2 text-sm">
+                <div class="bg-emerald-50 rounded-md p-3 border border-emerald-200">
+                  <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-xs font-semibold text-emerald-700">📗 中文翻译</span>
+                    <button @click="playTTS(s.translation, 'zh', sentKey(idx, si, 'zh'))"
+                            :disabled="playingId === sentKey(idx, si, 'zh')"
+                            :class="['text-xs px-2 py-1 rounded transition-colors',
+                                     playingId === sentKey(idx, si, 'zh')
+                                       ? 'bg-emerald-800 text-white animate-pulse'
+                                       : 'bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60']">
+                      {{ playingId === sentKey(idx, si, 'zh') ? '▶ 播放中' : '🔊 朗读' }}
+                    </button>
+                  </div>
+                  <p class="text-slate-700 leading-relaxed">{{ s.translation }}</p>
+                </div>
+
+                <div class="bg-indigo-50 rounded-md p-3 border border-indigo-200">
+                  <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-xs font-semibold text-indigo-700">📘 讲解</span>
+                    <button @click="playTTS(s.explanation, 'explain', sentKey(idx, si, 'explain'))"
+                            :disabled="playingId === sentKey(idx, si, 'explain')"
+                            :class="['text-xs px-2 py-1 rounded transition-colors',
+                                     playingId === sentKey(idx, si, 'explain')
+                                       ? 'bg-indigo-800 text-white animate-pulse'
+                                       : 'bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-60']">
+                      {{ playingId === sentKey(idx, si, 'explain') ? '▶ 播放中' : '🔊 朗读' }}
+                    </button>
+                  </div>
+                  <p class="text-slate-700 leading-relaxed whitespace-pre-line">{{ s.explanation }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paragraph summary -->
+          <div v-if="item.summary"
+               class="mt-4 p-3 bg-gradient-to-r from-slate-100 to-blue-50 rounded-md text-slate-700 text-sm border-l-4 border-slate-300">
+            <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">段尾总结 · </span>
+            <span class="leading-relaxed">{{ item.summary }}</span>
+          </div>
+        </article>
+      </main>
+
+      <!-- Footer -->
+      <footer class="max-w-4xl mx-auto px-4 py-6 text-center text-xs text-slate-400">
+        <div>共 {{ items.length }} 张卡片 · {{ totalSentences }} 句讲解已加载</div>
+        <div class="mt-1">
+          TTS 后端状态:
+          <span :class="apiHealth === 'ok' ? 'text-emerald-600' : apiHealth === 'fail' ? 'text-rose-600' : 'text-slate-400'">
+            {{ apiHealth === 'ok' ? '🟢 就绪 (MINIMAX_API_KEY 已配置)' : apiHealth === 'fail' ? '🔴 后端不可达' : '⏳ 检测中' }}
+          </span>
+        </div>
+        <div class="mt-2 text-slate-300">点击任意句可设为当前句 · 当前句才显示翻译+讲解 · 顶部按钮导航</div>
+      </footer>
+    </div>
+  </div>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

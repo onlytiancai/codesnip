@@ -1,0 +1,443 @@
+{
+  "metadata": {
+    "title": "How to Become a Billionaire",
+    "title_zh": "如何成为亿万富翁",
+    "author": "Paul Graham",
+    "author_zh": "保罗·格雷厄姆",
+    "date": "June 2026",
+    "source": "Oxford Union 演讲（已整理为随笔）",
+    "author_bio": "保罗·格雷厄姆（Paul Graham），硅谷著名创业孵化器 Y Combinator 的创始人之一，知名程序员、创业导师和 essayist。文风以简练、冷峻、擅用反直觉比喻著称。",
+    "preprocessing_notes": [
+      "去掉独立成行的日期 'June 2026'（已记入 metadata.date）",
+      "将斜体包裹的题注 '*(This is based on a talk I gave at the Oxford Union.)*' 提为单独 preamble 项",
+      "去掉所有外链 URL，保留可见文字（如原文 'impossible' 处链接到一个推文，已并入讲解）",
+      "去掉强调符号（斜体 *...*、粗体 **...**），还原纯文本",
+      "正文按原 markdown 段落顺序保留分段"
+    ]
+  },
+  "intro": "欢迎来到保罗·格雷厄姆（Paul Graham）2026 年 6 月在牛津联盟的演讲文章《How to Become a Billionaire》。\n\n如果你以为亿万富翁遥不可及、一定靠走灰色地带才能诞生——这篇文章就是为纠正这种观念而生的。保罗做了一件少见的事：他让听众掏出手机算数学。\n\n读完你会看到三件事：\n\n1. 一个惊人的算式——从 200 万到 10 亿，只需 93% 月增长 9 个半月；月增 15% 坚持 5 年，营收翻 4384 倍。这都是初创公司稀松平常的数字。\n2. 一种创业的真功夫——怎么找到'用户愿主动告诉朋友'的产品，以及为什么创始人要从自己的真实痛点出发找点子。\n3. 一份给未来首相的清单——理解现代财富是怎么产生的，不被'亿万富翁必定有罪'的本能反应误导。\n\n本文按句讲解：每句都有'译文 + 重点短语 + 讲解'，每段结束有一句段尾总结。读时建议先看英文原文，听一段讲解，再回头看一遍——这样印象会牢很多。📖",
+  "preamble": [
+    {
+      "id": "preamble-byline",
+      "label": "题注 / Byline",
+      "sentences": [
+        {
+          "id": "pre-1",
+          "en": "This is based on a talk I gave at the Oxford Union.",
+          "translation": "本文基于我在牛津联盟（Oxford Union）做的一次演讲。",
+          "explanation": "1) 'be based on...' 意思是'以...为基础'，常见用法还有 a movie based on a novel（改编自小说的电影）。2) 'Oxford Union'（牛津联盟）是牛津大学的辩论社团，成立 200 多年，是世界顶级的演讲场所之一——许多国家政要、诺贝尔奖得主、商界领袖都在此登台。能在此演讲本身就是一种'通过认证'的邀请，所以作者特地挑明。3) 题注点出口语来源，所以下文你会看到大量像 'I'm going to tell you'、'I hope this will be useful' 这种口头话。",
+          "highlights": ["be based on", "Oxford Union"]
+        }
+      ],
+      "summary": "一段题注：告诉你本文是从现场演讲整理过来的，所以保留了演讲时自然的口吻。"
+    }
+  ],
+  "paragraphs": [
+    {
+      "id": "p1",
+      "sentences": [
+        {
+          "id": "p1-s1",
+          "en": "Since this is apparently the future prime ministers' club, I'm going to tell you about something it would be good if more politicians understood:",
+          "translation": "既然这儿看上去就是'未来首相俱乐部'，那我就要讲一件事——要是能有更多政客明白它就好了：",
+          "explanation": "1) 'apparently' 显然，看上去。带点玩笑的口吻，等于'大家说你们中间将来要出首相，那我姑且就这么叫一声'。2) 'prime ministers' club' 首相俱乐部——复数所有格（'）= 'of the prime ministers'（首相们的），形容听众。3) 'Since...'（既然...）表让步/理由。4) 'I'm going to tell you about something it would be good if more politicians understood'——注意从句里 'understood' 是过去式虚拟语气，相当于 'if more politicians could understand'。5) 冒号（:）预告真正要说的事，下一句接着揭晓。这种'先逗一逗，再揭晓'的结构是经典演讲钩子。",
+          "highlights": ["apparently", "prime ministers' club", "it would be good if... understood"]
+        },
+        {
+          "id": "p1-s2",
+          "en": "I'm going to tell you how people become billionaires.",
+          "translation": "我要告诉你：人是怎样成为亿万富翁的。",
+          "explanation": "1) 简单直白的'宣告句'，但因为主题（亿万富翁）是当代敏感词，一下就把注意力钉住了。2) 'billionaires' 严格指'净资产十亿美元以上的人'，不是年收入十亿——这点作者后文会明确区分。3) 主语用复数 'people' 暗示'这是一套可学习的路径'，而不是'少数天才的偶发事件'。",
+          "highlights": ["billionaires"]
+        },
+        {
+          "id": "p1-s3",
+          "en": "I hope this will be useful to you even if you don't plan to go into politics.",
+          "translation": "即使你不打算从政，我也希望这番话对你有用。",
+          "explanation": "1) 'I hope + will' 表示对'未来状态'的希望（区别于 'I hope + 过去式'，那是已经发生的事）。2) 'even if...' 即使，表让步。3) 'go into politics' 从事政治——固定搭配，不能说 'go to politics'。4) 'useful to you' 比 'useful for you' 更口语、更地道。",
+          "highlights": ["even if", "go into politics", "useful to"]
+        },
+        {
+          "id": "p1-s4",
+          "en": "Those of you who don't become prime minister can become billionaires instead.",
+          "translation": "你们当中没当成首相的那些，反过来可以成为亿万富翁。",
+          "explanation": "1) 'those of you who...' 你们当中...的那些人——极常见的口语结构，比 'the ones of you who...' 地道得多。2) 'instead' 反而、替代。它隐含前提：'走从政这条路'和'走创业这条路'通常不能兼得，所以选了别的路就叫 'instead'。3) 整场演讲最幽默的一击——把'国家最高权力'和'个人最高财富'并列对比，立刻制造讨论张力。",
+          "highlights": ["those of", "instead"]
+        }
+      ],
+      "summary": "开场钩子。保罗用 '未来首相俱乐部' 既调侃又恭维听众，抛出核心悬念（亿万富翁如何诞生），并以'不当首相就当富翁'的妙语对比为下面的数学论证埋下伏笔。"
+    },
+    {
+      "id": "p2",
+      "sentences": [
+        {
+          "id": "p2-s1",
+          "en": "The reason I know about this topic is that 21 years ago Jessica and I started something called Y Combinator.",
+          "translation": "我对这个话题有发言权，是因为 21 年前我和 Jessica 一起创办了一个叫 Y Combinator 的东西。",
+          "explanation": "1) 'The reason... is that...' 之所以...是因为...。比直接用 'Because...' 更书面、更正式。2) '21 years ago' 21 年前（2026 - 21 = 2005）。3) 'Jessica' 指 Jessica Livingston——保罗的夫人，YC 的共同创始人。常见误解：以为 'YC 是保罗一个人的'，其实他们是夫妻档。4) 'something called X' 一个叫做 X 的东西——轻描淡写式谦虚（understatement），亿万富翁刻意轻描淡写自家公司很有戏剧效果。5) 'Y Combinator' 这个名字来自计算机科学概念——Y 组合子是函数式编程里的高阶函数；保罗做过 Lisp 程序员，这名字是他给老本行的致敬。",
+          "highlights": ["The reason... is that", "21 years ago", "something called", "Y Combinator"]
+        }
+      ],
+      "summary": "亮资历：保罗夫妇 2005 年一起创办 Y Combinator——所以由他讲'亿万富翁如何诞生'，自带权威光环。"
+    },
+    {
+      "id": "p3",
+      "sentences": [
+        {
+          "id": "p3-s1",
+          "en": "If you haven't heard of Y Combinator, it's a cross between an investment firm and a school for startup founders.",
+          "translation": "如果你还没听过 Y Combinator——它介于投资公司和'创业创始人学校'之间。",
+          "explanation": "1) 'If you haven't heard of X...' 礼貌性铺垫，预设有听众可能不熟悉 X。2) 'a cross between A and B' 介于 A 和 B 之间的混合体——口语化又精准的比喻，比 'a combination of' 更形象。3) 'investment firm' 投资公司。4) 'startup founders' 创业公司创始人（'startup' 作形容词修饰 'founders'）。5) 修辞亮点：用'介于...和...之间'给一个陌生机构一个直觉上的位置——读者立刻'哦，原来不是纯风投'。",
+          "highlights": ["If you haven't heard of", "a cross between", "investment firm", "startup founders"]
+        },
+        {
+          "id": "p3-s2",
+          "en": "Since we started it in 2005 we've funded about 6500 companies.",
+          "translation": "自 2005 年成立以来，我们已经资助了约 6500 家公司。",
+          "explanation": "1) 'Since + 时间点'（自从...以来）+ 'we've funded'（现在完成时）——经典的'从过去到现在的累计'结构。2) '6500 companies' 这个数字本身很有分量：21 年 6500 家，平均每年约 310 家。3) 数字很快为下文的'30 位亿万富翁'建立统计基础——读者会开始算平均值，'哦，平均每 200 多家出 1 个富翁'，但要知道这是非线性分布。",
+          "highlights": ["Since", "we've funded", "6500 companies"]
+        }
+      ],
+      "summary": "补背景：YC 不是普通风投，是'投资 + 创始人学校'的混合体，21 年资助 6500 家创业公司——这给了保罗谈这个话题的实证基底。"
+    },
+    {
+      "id": "p4",
+      "sentences": [
+        {
+          "id": "p4-s1",
+          "en": "Starting a successful startup is the most common way to become a billionaire, so in effect I've spent the last 21 years training people to become billionaires.",
+          "translation": "创办一家成功的创业公司，是成为亿万富翁最常见的路子——所以过去 21 年，我实际上一直在'训练人成为亿万富翁'。",
+          "explanation": "1) 'the most common way to...' 最常见的...方式。2) 'in effect' 实际上、说到底——修饰整句话。承认'训练亿万富翁'表面夸张，但'效果'上就是这么回事。3) 'the last 21 years' 过去 21 年。注意 'last' 在这里 = 'past'，修饰一段时间而不是先后顺序。4) 'training people to become X' 训练人们成为 X。5) 修辞亮点：自嘲式冷幽默——把'创业孵化'重新定义为'亿万富翁训练营'，瞬间把抽象话题落到具体的'我做的工作'上。",
+          "highlights": ["the most common way to", "in effect", "the last", "training people to become"]
+        }
+      ],
+      "summary": "抛出核心论点：开公司是亿万富翁最常见的诞生方式，所以保罗过去 21 年实际上是在批量'训练亿万富翁'——这一句用自嘲口气巧妙把听众注意拉回到'创业'这条主线上。"
+    },
+    {
+      "id": "p5",
+      "sentences": [
+        {
+          "id": "p5-s1",
+          "en": "So far about 30 of them have, but there are many more in the pipeline.",
+          "translation": "迄今出来的有大约 30 位，但还有一大堆正在'管线里'。",
+          "explanation": "1) 'So far' 迄今为止。2) 'about 30 of them have'——省略句，承前省略了 'become billionaires'。口语中很常见，避繁就简。3) 'in the pipeline' 字面'在管线/管道里'，是商业俚语，意思是'正在处理中，即将面世'。原意来自工厂或软件工程，指尚未交付的批次；用于商业场景多指'还在孵化、还在优化、很快见结果'。4) YC 这类公司内部专门有一个 pipeline dashboard 来追踪被投项目状态——所以这个词在保罗嘴里是真正的业务行话。",
+          "highlights": ["So far", "in the pipeline"]
+        }
+      ],
+      "summary": "用数据印证——YC 至今已出 30 位亿万富翁，更多在路上。这是给文章开篇的资历兜底的一笔。"
+    },
+    {
+      "id": "p6",
+      "sentences": [
+        {
+          "id": "p6-s1",
+          "en": "So you can imagine how astonished I was last month when an American politician said that it was impossible to earn a billion dollars.",
+          "translation": "所以你能想象，上个月当一位美国政客说出'不可能靠正常手段赚到 10 亿美元'时，我有多震惊。",
+          "explanation": "1) 'So you can imagine...' 所以你能想象——修辞性套话，引导读者去'感受'即将描述的事。2) 'how astonished I was' 我有多震惊。'how + 形容词 + 主语 + be' 表程度。3) 'last month' 上个月（即 2026 年 5 月）。4) 'an American politician'——保罗不点名，仅作为'言论代表'而非'指控具体人'，避免节外生枝。5) 'impossible to earn a billion dollars'——'earn' 在此的隐含意思是'积累 10 亿净资产'，不是'一年赚 10 亿收入'。这是后文要细究的关键区分。6) 原文此处链接到一个推文账号（点名某政客），保罗隐去以保留论述的普遍性。",
+          "highlights": ["So you can imagine", "how astonished I was", "last month", "impossible to earn a billion dollars"]
+        }
+      ],
+      "summary": "触发演讲的导火索：一位美国政客断言'不可能靠正经手段赚到十亿'——保罗被激怒了，演讲就是从这里展开的。"
+    },
+    {
+      "id": "p7",
+      "sentences": [
+        {
+          "id": "p7-s1",
+          "en": "I felt like a skating coach hearing someone say that it's impossible to do a triple axel.",
+          "translation": "我感觉自己就像一个滑冰教练，听到有人说'三周半跳不可能做到'。",
+          "explanation": "1) 'I felt like...' 我感觉像...。这是常用的'感觉像'比喻结构。2) 'skating coach' 滑冰教练。3) 'triple axel' 三周半跳（花样滑冰最难跳跃之一）。技术细节：起跳后空中转体三圈半再落冰；男选手单人完成已是世界级难度。4) 这个比喻的妙处：内行人都知道'难但可做'，只有外行才信'不可能'——所以保罗的言外之意是'那位政客就是那位外行'。5) 'hearing someone say' 现在分词短语作伴随状语，描述说话时正在发生的事。",
+          "highlights": ["I felt like", "hearing someone say", "triple axel"]
+        },
+        {
+          "id": "p7-s2",
+          "en": "Of course it's possible.",
+          "translation": "当然这是能做的。",
+          "explanation": "'Of course...' 当然——用来重置常识。短促有力，呼应教练的权威口吻。",
+          "highlights": ["Of course"]
+        },
+        {
+          "id": "p7-s3",
+          "en": "It's *hard*, but it's possible.",
+          "translation": "难是难，但做得到。",
+          "explanation": "1) 简短对比，形成节奏感。2) 口语标志：'X, but Y' 是英语里最常见的'承认难度 + 给希望'结构。3) 强调 'hard'，呼应教练知道它的分量，但同时拒绝把它贴上'不可能'的标签。",
+          "highlights": ["hard", "possible"]
+        }
+      ],
+      "summary": "用滑冰教练的比喻奠定基调——三周半跳难，但不是说不可能。同理：亿万富翁是难，但不等于'做不到'。这一比喻把整篇的修辞底色从'政治辩论'拉回到'专业行话'。"
+    },
+    {
+      "id": "p8",
+      "sentences": [
+        {
+          "id": "p8-s1",
+          "en": "She wasn't saying, of course, that it's impossible to become a billionaire.",
+          "translation": "她当然不是说'成为亿万富翁这件事是不可能的'。",
+          "explanation": "1) 否定转移（not transfer）：主句否定 'wasn't saying'，从句用陈述语序 'that it's impossible...'。2) 这是一种'排除误会'的修辞——先排除最浅的解读，才能进入深层。",
+          "highlights": ["wasn't saying...that"]
+        },
+        {
+          "id": "p8-s2",
+          "en": "Obviously that's possible.",
+          "translation": "明摆着那是可能的。",
+          "explanation": "'Obviously...' 显然——含'强调常识'意味。略去主语（I）以显得'不容置疑'。",
+          "highlights": ["Obviously"]
+        },
+        {
+          "id": "p8-s3",
+          "en": "Nor was she talking about the distinction between income and capital gains.",
+          "translation": "她也没有在讲'劳动收入 vs 资本利得'的区别。",
+          "explanation": "1) 'Nor' 也不，用于否定句后并列否定。2) 当 'Nor' 提前时，主语和助动词倒装（Nor was she），这是英语里地道的并列否定句式（与 Neither 提前一样倒装）。3) 'income and capital gains' 收入（工薪、经营所得）和资本利得（股票、资产增值）；这是美国税法里两个核心范畴，常被政客用来比较'公平性'。4) 保罗排除这个：是更普遍的政治议题，不是她在讲的点。",
+          "highlights": ["Nor was", "income and capital gains"]
+        },
+        {
+          "id": "p8-s4",
+          "en": "She wasn't making a point about accounting.",
+          "translation": "她也没有在讲会计学。",
+          "explanation": "'make a point about...' 提出关于...的论点；常用于 'make a point about X' = 'argue something about X'。这里是排除法的又一层：不是会计问题。",
+          "highlights": ["make a point about"]
+        },
+        {
+          "id": "p8-s5",
+          "en": "What she meant was that it's impossible to get that rich without doing something bad — without cheating in some way.",
+          "translation": "她真正的意思是：不靠做坏事——不靠某种作弊——就不可能富到那个程度。",
+          "explanation": "1) 'What she meant was...' 她真正的意思是...。强调句式，先用 'what' 从句提出原话，再用 'was' 重新组织。2) 'that rich' 那么富——'that' 作副词表示程度，等于 'to that extent'。3) 'without doing something bad — without cheating in some way'：两个否定短语用破折号并列，等于同义反复，但强化'必须是作弊'的暗示。4) 隐含情绪：'impossible to get that rich' 这个短语很激烈——一边把'富裕'和'坏'绑定，一边隐含'亿万富翁 = 坏人'的道德判断。5) 这是本演讲的'靶子论点'，保罗下面要拆的就是这一句。",
+          "highlights": ["What she meant was", "that rich", "cheating in some way"]
+        }
+      ],
+      "summary": "层层排除法厘清那位政客真正的论点——不是'亿万富翁不可能存在'，而是'不靠作弊不可能富到那种程度'。保罗接下来要拆的就是这句；同时这句也点出了本文的核心政治道德色彩。"
+    },
+    {
+      "id": "p9",
+      "sentences": [
+        {
+          "id": "p9-s1",
+          "en": "A couple days later I was talking to the founder of a startup I'd funded.",
+          "translation": "几天后，我在和一位我投资过的创业公司创始人聊天。",
+          "explanation": "1) 'A couple days later' 等于 'a few days later' 几天后。2) 'the founder of a startup I'd funded' 我投资过的一家创业公司的创始人；'I'd funded' = 'I had funded'，过去完成时——表示发生在'几天后聊天'之前更早的事，是英语时态'过去中的过去'的经典用法。",
+          "highlights": ["A couple days later", "I'd funded"]
+        },
+        {
+          "id": "p9-s2",
+          "en": "I began by asking, as I usually do when I meet a founder, what her growth rate was.",
+          "translation": "我开口就问她增长率是多少——这和我每回见一位创始人时一样。",
+          "explanation": "1) 'I began by + -ing' 我一上来先做某事，强调'第一动作'。2) 'as I usually do' 正如我通常做的——插入语描述习惯。3) 'what her growth rate was' 名词性从句作宾语，整体'问她增长率是多少'。",
+          "highlights": ["I began by", "as I usually do", "growth rate"]
+        },
+        {
+          "id": "p9-s3",
+          "en": "93% last month, she said.",
+          "translation": "她回答：'上个月 93%。'",
+          "explanation": "电报式对白。口语中常省略 'My growth rate was' 这种主谓，直接给'关键数据 + 时间'。这种'裸数据'回答在投资人对话里很常见——他们想听的就是数字。",
+          "highlights": ["93% last month"]
+        },
+        {
+          "id": "p9-s4",
+          "en": "I pointed out that this meant her net worth was also growing at 93% a month.",
+          "translation": "我指出，这意味着她的净资产也在以每月 93% 的速度增长。",
+          "explanation": "1) 'point out that...' 指出...。2) 'net worth' 净资产（总资产 - 负债），严格区别于'收入 income'。3) 'be growing at X a month' 以每月 X 的速度增长。4) 注意简化：把公司价值 ≈ 创始人净资产。实际有稀释/期权/估值波动——保罗为简化论证，把它们当作同一回事。",
+          "highlights": ["point out that", "net worth", "be growing at"]
+        },
+        {
+          "id": "p9-s5",
+          "en": "She was getting richer at a stupendously rapid rate.",
+          "translation": "她正以惊人地快的速度变富。",
+          "explanation": "1) 'stupendously' 惊人地——比 very 更重的程度副词；'stupendous' 形容'令人目瞪口呆的程度'。2) 'get richer' 变得越来越富（get + 形容词比较级），描绘变化过程。",
+          "highlights": ["stupendously", "get richer"]
+        },
+        {
+          "id": "p9-s6",
+          "en": "And yet she hadn't been doing anything bad.",
+          "translation": "然而她并没有做任何坏事。",
+          "explanation": "1) 'And yet' 然而（表让步转折）。2) 'hadn't been doing' 过去完成进行时 + 否定——强调从过去某点一直持续到'现在说话时'仍未做坏事。关键时刻已经登场。",
+          "highlights": ["And yet", "hadn't been doing"]
+        },
+        {
+          "id": "p9-s7",
+          "en": "The reason her startup was growing so fast was simply that users loved what she'd built.",
+          "translation": "她的公司增长这么快，原因简单说就是——用户喜爱她做出来的东西。",
+          "explanation": "1) 'The reason... is simply that...' ...的原因简单就是...。simply 强调'没什么玄机'。2) 'what she'd built' 名词性从句作 'loved' 宾语。3) 这是全文论点第一块基石：增长来自产品本身被用户喜爱。",
+          "highlights": ["The reason... is simply that", "what she'd built"]
+        },
+        {
+          "id": "p9-s8",
+          "en": "So she could feel from her own experience how wrong that politician was.",
+          "translation": "所以她能从自己的亲身经历感受到——那位政客错得有多离谱。",
+          "explanation": "1) 'from one's own experience' 从亲身经验。2) 'how wrong that politician was' 错得有多离谱——'how + 形容词'引导宾语从句，表程度。3) 'feel...' 感受到——把抽象辩论落到具体体感上。",
+          "highlights": ["from one's own experience", "how wrong"]
+        },
+        {
+          "id": "p9-s9",
+          "en": "She wasn't exploiting anyone.",
+          "translation": "她没有在剥削任何人。",
+          "explanation": "'exploit' 剥削、利用（经济和道德双重含义）。这一句是核心反驳——'亿万富翁 = 剥削者'的常见叙事，在这位创始人身上完全不成立。",
+          "highlights": ["exploit"]
+        },
+        {
+          "id": "p9-s10",
+          "en": "Exactly the opposite in fact.",
+          "translation": "事实上正好相反。",
+          "explanation": "'exactly the opposite' 正好相反；'in fact' 事实上——表确认/补充语气。两词短语配 in fact 是口语里很常见的'反转强调'。",
+          "highlights": ["Exactly the opposite", "in fact"]
+        },
+        {
+          "id": "p9-s11",
+          "en": "The reason her startup was growing so fast was that she and her cofounder had been working their asses off to make their users happy, and as a result the users had been telling their friends.",
+          "translation": "她的公司增长这么快，原因就是：她和她的联创一直在拼命工作让用户满意——结果是用户主动把产品介绍给朋友。",
+          "explanation": "1) 'work one's ass off' 拼命工作——粗口，但语义精准；ass 在这里是较文雅用法（ass = donkey）。2) 'make their users happy' 让用户满意——创业第一性原理之一。3) 'as a result' 结果是——连接因果。4) 'had been telling their friends' 主动告诉朋友，时态持续——口碑关键。这句是全文核心因果闭环：照顾好用户 → 用户帮你传播 → 增长。",
+          "highlights": ["work one's ass off", "make users happy", "as a result", "telling their friends"]
+        },
+        {
+          "id": "p9-s12",
+          "en": "And that gets you exponential growth.",
+          "translation": "而这就是指数增长。",
+          "explanation": "1) 'And that' 指上文所有原因——'再接下来就是这件事'。2) 'gets you X' 让你得到 X——口语因果表达，比 'leads to' / 'results in' 更轻巧。3) 'exponential growth' 指数增长——区别于 'linear growth' 线性增长。短促收束是演讲常用收拍节。",
+          "highlights": ["And that", "gets you", "exponential growth"]
+        }
+      ],
+      "summary": "演讲核心故事——93% 月增长的那位创始人案例，亲自印证：致富靠的不是作弊，而是把用户照顾好；用户满意了主动去告诉朋友，于是指数增长就来了。这是全文最有力的论据。"
+    },
+    {
+      "id": "p10",
+      "sentences": [
+        {
+          "id": "p10-s1",
+          "en": "Later that day I was talking about her case online, and someone replied that having a few million and growing at 93% a month was radically different from being a billionaire.",
+          "translation": "那天晚些时候我在网上聊起她的案例，一位网友回复：'几百万、月增 93%'和'成为亿万富翁'之间是质的不同。",
+          "explanation": "1) 'Later that day' 同一天晚些时候（区别于 'the next day' 第二天）。2) 'talk about X online' 在网上讨论 X。3) 'reply that...' 回复说...——后接完整的宾语从句。4) 'having a few million and growing at 93% a month' 动名词短语作主语。5) 'be radically different from...' 与...截然不同——radically = 根本上。6) 这就是保罗要正面掰扯的反对声：起点规模小 ≠ 永远小。",
+          "highlights": ["Later that day", "radically different from"]
+        }
+      ],
+      "summary": "网络上立刻有人反对——'几百万 + 月增 93%'和'成为十亿富翁'是完全不同的两件事。这是直觉派的核心反论调，保罗接下来要拆的就是它。"
+    },
+    {
+      "id": "p11",
+      "sentences": [
+        {
+          "id": "p11-s1",
+          "en": "I suspect many people would agree with this statement.",
+          "translation": "我猜很多人会同意这种说法。",
+          "explanation": "1) 'I suspect...' 我推测 / 我怀疑——比 'I think' 更书面、更留余地的措辞（hedge）。2) 注意没有 that 从句，直接接陈述。3) 保罗不正面否认，先承认大众直觉——为下面的'但是'做缓冲。",
+          "highlights": ["I suspect", "would agree"]
+        },
+        {
+          "id": "p11-s2",
+          "en": "But it turns out not merely to be false, but false in a very illuminating way.",
+          "translation": "但事实上它不仅错误——而且错得非常发人深省。",
+          "explanation": "1) 'it turns out (that)...' 原来 / 事实证明——经典'事后揭晓'句式。2) 'not merely... but...' 不仅...而且...。3) 'illuminating' 富有启发性的——本义是'照亮'，意思是'这种错能让人看清一些本来看不见的东西'。4) 这是一个漂亮的伏笔——暗示'错'本身具有教育意义。",
+          "highlights": ["it turns out", "not merely... but", "illuminating"]
+        }
+      ],
+      "summary": "大多数人会认同那位网友的反论——但保罗即将证明它是错的，而且是那种让人'啊原来如此'的错。承前启后，节奏满分。"
+    },
+    {
+      "id": "p12",
+      "sentences": [
+        {
+          "id": "p12-s1",
+          "en": "So I would like you all to do me a favor please.",
+          "translation": "那我想请大家帮我个忙。",
+          "explanation": "1) 'would like...' 想——比 'want' 客气得多。2) 'do me a favor' 帮我个忙——固定搭子。3) 这里保罗用'帮个忙'框架，把接下来的强行互动软化为朋友间的请求。",
+          "highlights": ["would like", "do me a favor"]
+        },
+        {
+          "id": "p12-s2",
+          "en": "I would like you to take out your phones and calculate a number.",
+          "translation": "我想请各位掏出手机算一个数。",
+          "explanation": "1) 'take out X' 拿出...。2) 'calculate a number' 算一个数。3) 这一动作是演讲从'论辩'转入'动手'的拐点——听众从被动旁听变成参与者。",
+          "highlights": ["take out your phones", "calculate a number"]
+        },
+        {
+          "id": "p12-s3",
+          "en": "I know this may seem contrived, but I promise it will be useful for you.",
+          "translation": "我知道这看起来有点刻意，但我保证对你会有用。",
+          "explanation": "1) 'contrived' 刻意安排过的、做作的——含轻微负面，意思是'我承认这有点人工痕迹'。2) 'I promise' 我保证——用承诺反衬'确实值得'。3) 这是一种'先承认尴尬，再给承诺'的坦诚修辞，让听众愿意配合。",
+          "highlights": ["contrived", "I promise"]
+        },
+        {
+          "id": "p12-s4",
+          "en": "I'm going to have you do the most common kind of calculation I do as an investor, and the experience will bring home to you what startups are all about.",
+          "translation": "我要让你做一个投资人最常做的计算，亲身体验会让你真切感受到创业是怎么回事。",
+          "explanation": "1) 'I'm going to have you do X' 我会让你做 X（have sb do sth 使某人做某事）。2) 'the most common kind of calculation I do as an investor' 嵌套定语从句：我作为投资人最常做的那类计算。3) 'bring home to you' 让你切身体会——'bring home' 字面是'带回家'，喻指'让人彻底明白'。4) 'what startups are all about' 创业到底是什么——about 后接 wh- 从句。",
+          "highlights": ["bring home", "what... is all about"]
+        }
+      ],
+      "summary": "演讲节奏的转折——保罗把听众从纯旁听者变成参与者。请大家掏出手机算个数，亲身体验指数增长的力量。这一段是演讲设计的关键钩子。"
+    },
+    {
+      "id": "p13",
+      "sentences": [
+        {
+          "id": "p13-s1",
+          "en": "If we interpret his statement in the most conservative way and assume that a few means 2, her company has to grow 500x for her to become a billionaire.",
+          "translation": "我们把那句'几百万'按最保守方式解读——就当'几'等于 2——那么她要成为亿万富翁，公司得涨 500 倍。",
+          "explanation": "1) 'interpret... in the most conservative way' 用最保守的方式解读。2) 'assume that...means 2' 假设'几' = 2。3) 'her company has to grow 500x' 公司得涨 500 倍——口语 '500x' = '500 times'。4) 'for her to become a billionaire' 为了让她成为亿万富翁——目的状语。5) 这是把模糊争论'具体化'的修辞：先让步定义极端情形，再推导。",
+          "highlights": ["interpret in the most conservative way", "assume that", "500x"]
+        },
+        {
+          "id": "p13-s2",
+          "en": "So we are going to calculate how many months of 93% growth it takes for something to grow 500x.",
+          "translation": "所以我们要算：每月增长 93%，多少个月能让一个东西涨 500 倍。",
+          "explanation": "1) 'how many months... it takes for X to Y' 用 it takes 句型。'it' 是形式主语，真正主语是 'how many months of 93% growth'（一个名词短语）。2) 这里保罗为听众多做一件事——把'她'换成'something'，让算式更通用（任何起点 1，最终到 500）。",
+          "highlights": ["how many months... it takes for"]
+        }
+      ],
+      "summary": "把模糊陈述数字化——'几百万' = 2 百万，'亿万富翁' = 涨 500 倍，于是问题简化为'多少个 93% 月增长 = 500 倍'。"
+    },
+    {
+      "id": "p14",
+      "sentences": [
+        {
+          "id": "p14-s1",
+          "en": "To do this we want to calculate the log base 1.93 of 500.",
+          "translation": "为此我们要求的是：以 1.93 为底的 500 的对数。",
+          "explanation": "1) 'log base X of Y' 以 X 为底的 Y 的对数。2) 数学上的'指数题'反过来解：每月乘 1.93，连续 n 个月 = 1.93ⁿ，要它等于 500，求 n，就是 n = log_{1.93}(500)。3) 注意 1.93 = 1 + 0.93，即每月增长 93%（在原基础上翻 1.93 倍）。",
+          "highlights": ["log base... of"]
+        },
+        {
+          "id": "p14-s2",
+          "en": "The easiest way to do that is to go to Google search, which lets you do calculations right in the search box.",
+          "translation": "最简单的办法就是上 Google 搜索——它支持在搜索框里直接做计算。",
+          "explanation": "1) 'The easiest way to do that is to...' 最简单的办法是...。2) 'which lets you do X' 非限制性定语从句（which 指代 Google search）。3) 'right in the search box' 就直接在搜索框里——'right' = directly，加强语气。4) Google 这个'搜索框内计算'的功能 2010 年前后出现，是保罗这一代人最熟悉的'随手算数学'工具。",
+          "highlights": ["The easiest way to", "right in the search box"]
+        },
+        {
+          "id": "p14-s3",
+          "en": "So go to Google search and type log(500, 1.93).",
+          "translation": "所以打开 Google 搜索，输入 log(500, 1.93)。",
+          "explanation": "1) 祈使句 go + and + 动词。2) Google 搜索框接受的语法：log(底数, 真数)。3) 这种'我告诉你打开哪个 APP 在哪个框里输哪串字符'的指导非常实用主义——典型的工程师式演讲风格。",
+          "highlights": ["type log(500, 1.93)"]
+        },
+        {
+          "id": "p14-s4",
+          "en": "If you typed that right, the answer you get is about 9.45.",
+          "translation": "如果你输对了，得到的答案大约是 9.45。",
+          "explanation": "1) 'If you typed that right' 如果你输对了——假设条件。2) 'the answer you get' 你得到的答案——省略 that 的定语从句。3) '9.45' 这个数字（个位数）就是为什么接下来说'9 个半月就够'那么炸——量级不在你的直觉射程内。",
+          "highlights": ["If you typed that right", "the answer you get"]
+        }
+      ],
+      "summary": "把对数变成'打开 Google → 输入 → 出结果'这么简单——保罗的目标是让听众亲自动手，用体验代替说教。这一段也透出他的工程师底色：能上工具就别空讲。"
+    },
+    {
+      "id": "p15",
+      "sentences": [
+        {
+          "id": "p15-s1",
+          "en": "That is how many months of 93% growth it takes to become a billionaire, starting from 2 million.",
+          "translation": "这就是答案——从 200 万起步、每月 93% 增长，到亿万富翁所需多少个月。",
+          "explanation": "1) 'That is...' 把前一句的 '9.45' 套回上下文，省数字本身让上下文自己补完。2) 'starting from' 从...起步——方式状语（或伴随状语）。",
+          "highlights": ["That is how many months... it takes", "starting from"]
+        },
+        {
+          "id": "p15-s2",
+          "en": "A couple million and 93% growth are not, in fact, radically different from a billion. They're nine and a half months apart.",
+          "translation": "事实上，几百万 + 月增 93% 和十亿之间，并不是'截然不同'——它们相隔九个半月。",
+          "explanation": "1) 注意 'are not... in fact' 被 'in fact' 插入打断了正常语序，正常是 'are not, in fact, radically different'。2) 'radically different from' 与...根本不同——呼应前面那位网友的措辞，形成精妙回环。3) 'nine and a half months apart' 相隔九个半月——'apart' 表'相隔'。4) 整段数学论证的 punchline——直觉量级和真实量级相差一个 0。",
+          "highlights": ["radically different from", "months apart"]
+        }
+      ],
+      "summary": "段尾点题——几百万、月增 93% 和十亿之间的差距，不是'质的不同'，而是九个半月。直觉被破解，下一节用更保守的 15% 月增再做一次印证。"
+    }
+  ],
+  "outro": null
+}
