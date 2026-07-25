@@ -1,0 +1,170 @@
+{
+  "id": "18",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/18.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Pets",
+    "scene_zh": "宠物",
+    "task_en": "Pet Store",
+    "task_zh": "宠物店",
+    "context": "小李走进一家宠物店，看到一个玻璃柜里的小仓鼠很可爱，想询问价格。店员走过来准备提供服务。",
+    "sentence_zh": "这只仓鼠多少钱？",
+    "explanation": "在宠物店询问价格是最常见的场景之一。这句话用了仓鼠作为例子，你也可以替换成其他宠物（如小狗、小猫、小鸟等）或宠物用品（如笼子、食物、玩具等）。Polite风格适合正式场合或有礼貌的顾客；casual风格适合朋友间的轻松交流或年轻顾客。购买宠物前，除了价格，还可以询问宠物的年龄、品种、饲养注意事项等。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 12,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "宠物：宠物店。小李走进一家宠物店，看到一个玻璃柜里的小仓鼠很可爱，想询问价格。店员走过来准备提供服务。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/18/0-0-zh.mp3",
+          "duration_ms": 10577
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "这只仓鼠多少钱，请问？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/18/1-0-zh.mp3",
+          "duration_ms": 2345
+        },
+        {
+          "lang": "en",
+          "text": "How much is this hamster, please?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/18/1-1-en.mp3",
+          "duration_ms": 1997
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "How much is this hamster, please?",
+      "phonetic": "haʊ mʌtʃ ɪz ðɪs ˈhæmstər pliːz",
+      "literal_translation": "这只仓鼠多少钱，请问？",
+      "note": "有礼貌地向店员询问，语气友好客气"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 6,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "这只仓鼠的价格是多少？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/18/2-0-zh.mp3",
+          "duration_ms": 1916
+        },
+        {
+          "lang": "en",
+          "text": "What's the price on this hamster?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/18/2-1-en.mp3",
+          "duration_ms": 1788
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "What's the price on this hamster?",
+      "phonetic": "wɒts ðə praɪs ɒn ðɪs ˈhæmstər",
+      "literal_translation": "这只仓鼠的价格是多少？",
+      "note": "日常通用的询问方式，正式但不疏远"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 5,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "这个小家伙多少钱？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/18/3-0-zh.mp3",
+          "duration_ms": 1788
+        },
+        {
+          "lang": "en",
+          "text": "How much for this little guy?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/18/3-1-en.mp3",
+          "duration_ms": 1440
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "How much for this little guy?",
+      "phonetic": "hau mʌtʃ fɔːr ðɪs ˈlɪtl gaɪ",
+      "literal_translation": "这个小家伙多少钱？",
+      "note": "轻松随意的口语表达，带有喜爱的语气"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 6,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "这只仓鼠需要多少钱？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/18/4-0-zh.mp3",
+          "duration_ms": 2125
+        },
+        {
+          "lang": "en",
+          "text": "How much would this hamster cost?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/18/4-1-en.mp3",
+          "duration_ms": 1788
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "How much would this hamster cost?",
+      "phonetic": "hau mʌtʃ wʊd ðɪs ˈhæmstər kɒst",
+      "literal_translation": "这只仓鼠需要多少钱？",
+      "note": "用would和cost更正式一些，显得更认真"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我能问一下这只仓鼠的价格吗？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/18/5-0-zh.mp3",
+          "duration_ms": 2763
+        },
+        {
+          "lang": "en",
+          "text": "Can I get a price on this hamster?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/18/5-1-en.mp3",
+          "duration_ms": 1869
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "Can I get a price on this hamster?",
+      "phonetic": "kæn aɪ get ə praɪs ɒn ðɪs ˈhæmstər",
+      "literal_translation": "我能问一下这只仓鼠的价格吗？",
+      "note": "美式口语表达，询问能否得知价格"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 30,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "在宠物店询问价格是最常见的场景之一。这句话用了仓鼠作为例子，你也可以替换成其他宠物（如小狗、小猫、小鸟等）或宠物用品（如笼子、食物、玩具等）。Polite风格适合正式场合或有礼貌的顾客；casual风格适合朋友间的轻松交流或年轻顾客。购买宠物前，除了价格，还可以询问宠物的年龄、品种、饲养注意事项等。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/18/6-0-zh.mp3",
+          "duration_ms": 28152
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Pets scene, Pet Store task. Scene situation: 小李走进一家宠物店. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/18.jpg"
+  },
+  "duration_frames": 2190,
+  "duration_sec": 73
+}
