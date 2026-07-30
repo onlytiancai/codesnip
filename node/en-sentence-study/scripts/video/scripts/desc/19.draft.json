@@ -1,0 +1,170 @@
+{
+  "id": "19",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/19.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Home Life",
+    "scene_zh": "家居生活",
+    "task_en": "Utilities",
+    "task_zh": "水电费",
+    "context": "月底收到水电费账单，你看了一眼数字，惊讶地发现比上个月贵了不少，于是对室友感叹这个月水电费怎么这么贵。",
+    "sentence_zh": "这个月水电费怎么这么贵啊？",
+    "explanation": "这个场景是家庭生活中非常常见的——月底结算水电费时发现费用超出预期。英文中 'utility' 是水电气的总称，'electricity bill' 专门指电费，'water bill' 指水费。如果是抱怨感叹，可用 'insane'、'crazy' 等口语化词汇；如果是正式反映情况，建议用 'unusually high' 这样的客观描述。注意区分不同语境选择合适的表达方式。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 14,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "家居生活：水电费。月底收到水电费账单，你看了一眼数字，惊讶地发现比上个月贵了不少，于是对室友感叹这个月水电费怎么这么贵。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/19/0-0-zh.mp3",
+          "duration_ms": 12585
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 8,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "为什么水电费账单这么高这个月？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/19/1-0-zh.mp3",
+          "duration_ms": 3239
+        },
+        {
+          "lang": "en",
+          "text": "Why is the utility bill so high this month?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/19/1-1-en.mp3",
+          "duration_ms": 2508
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "Why is the utility bill so high this month?",
+      "phonetic": "waɪ ɪz ðə ˈjuːtɪlɪti bɪl soʊ haɪ ðɪs mʌnθ",
+      "literal_translation": "为什么水电费账单这么高这个月？",
+      "note": "最常用的疑问表达，询问费用高的原因"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "电费账单这个月太疯狂了！",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/19/2-0-zh.mp3",
+          "duration_ms": 2427
+        },
+        {
+          "lang": "en",
+          "text": "The electricity bill is insane this month!",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/19/2-1-en.mp3",
+          "duration_ms": 2601
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "The electricity bill is insane this month!",
+      "phonetic": "ðə ɪˈlɛktrɪsɪti bɪl ɪz ɪnˈseɪn ðɪs mʌnθ",
+      "literal_translation": "电费账单这个月太疯狂了！",
+      "note": "口语化表达，带有抱怨语气"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 8,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我简直不敢相信水电费这个月花了多少。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/19/3-0-zh.mp3",
+          "duration_ms": 3320
+        },
+        {
+          "lang": "en",
+          "text": "I can't believe how much the utilities cost this month.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/19/3-1-en.mp3",
+          "duration_ms": 2891
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "I can't believe how much the utilities cost this month.",
+      "phonetic": "aɪ kænt bɪˈliːv haʊ mʌtʃ ðə ˈjuːtɪlɪtiz kɔst ðɪs mʌnθ",
+      "literal_translation": "我简直不敢相信水电费这个月花了多少。",
+      "note": "表达难以置信的语气"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "你看到水电费账单有多少了吗？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/19/4-0-zh.mp3",
+          "duration_ms": 2380
+        },
+        {
+          "lang": "en",
+          "text": "Did you see how much the water and electricity bill is?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/19/4-1-en.mp3",
+          "duration_ms": 2635
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "Did you see how much the water and electricity bill is?",
+      "phonetic": "dɪd juː siː haʊ mʌtʃ ðə ˈwɔtər ænd ɪˈlɛktrɪsɪti bɪl ɪz",
+      "literal_translation": "你看到水电费账单有多少了吗？",
+      "note": "口语询问，邀请对方一起看账单"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "这个月的水电费账单异常地高。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/19/5-0-zh.mp3",
+          "duration_ms": 2473
+        },
+        {
+          "lang": "en",
+          "text": "The utility bill this month is unusually high.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/19/5-1-en.mp3",
+          "duration_ms": 2810
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "The utility bill this month is unusually high.",
+      "phonetic": "ðə ˈjuːtɪlɪti bɪl ðɪs mʌnθ ɪz ʌnˈjuːʒuəli haɪ",
+      "literal_translation": "这个月的水电费账单异常地高。",
+      "note": "正式客观的陈述，适宜向房东或物业反映"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 31,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "这个场景是家庭生活中非常常见的——月底结算水电费时发现费用超出预期。英文中 'utility' 是水电气的总称，'electricity bill' 专门指电费，'water bill' 指水费。如果是抱怨感叹，可用 'insane'、'crazy' 等口语化词汇；如果是正式反映情况，建议用 'unusually high' 这样的客观描述。注意区分不同语境选择合适的表达方式。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/19/6-0-zh.mp3",
+          "duration_ms": 29304
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Home Life scene, Utilities task. Scene situation: 月底收到水电费账单. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/19.jpg"
+  },
+  "duration_frames": 2460,
+  "duration_sec": 82
+}
