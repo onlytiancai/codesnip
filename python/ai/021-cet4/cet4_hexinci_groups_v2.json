@@ -1,11 +1,11 @@
 {
   "schema_version": "2.0",
   "created_at": "2026-08-04T12:00:23",
-  "updated_at": "2026-08-04T12:08:24",
-  "total_groups": 3,
-  "total_words_grouped": 13,
+  "updated_at": "2026-08-04T12:10:04",
+  "total_groups": 4,
+  "total_words_grouped": 18,
   "vocab_size": 1162,
-  "remaining": 1149,
+  "remaining": 1144,
   "groups": [
     {
       "group_id": 1,
@@ -43,6 +43,19 @@
         "evidence"
       ],
       "explanation_zh": "这一组围绕「诚实、真实、事实」展开。「honesty」是名词，强调品德的诚实正直，常见搭配有 honesty is the best policy、in all honesty；「genuine」是形容词，指真实的、真正的、非伪造的，可以形容情感（genuine concern）、产品（genuine leather）或人（a genuine person）；「evidence」是名词，指证据、迹象，既可用于法律场合（circumstantial evidence），也可用于日常表达（there is no evidence that…），对应动词是动词列表里的「evident」派生出来的形容词。三者关系密切：要证明某事为「genuine」往往需要「evidence」，而提供「evidence」时也要求研究者和当事人保持「honesty」。在写作中，可以用「genuine」修饰情感或物品，用「evidence」支撑论点，用「honesty」描述人物品格或学术态度（如 academic honesty 学术诚信）。"
+    },
+    {
+      "group_id": 4,
+      "title_zh": "挑战与克服类动词",
+      "title_en": "Challenges & Overcoming",
+      "words": [
+        "challenge",
+        "struggle",
+        "overcome",
+        "endure",
+        "persistence"
+      ],
+      "explanation_zh": "本组词汇围绕面对困难、迎接挑战以及坚持不懈这一核心语义场展开，彼此搭配频繁且语义互补。challenge 作名词表示挑战，作动词意为对某人发起挑战或质疑，例如 challenge the authority（质疑权威）。struggle 作动词强调在困境中奋力抗争，如 struggle with poverty（与贫困搏斗），也作名词表示斗争或挣扎。overcome 侧重最终克服、战胜困难，常见搭配 overcome obstacles / difficulties，强调胜利的结果，如 He overcame many hardships to succeed。endure 则突出长时间忍受痛苦或艰难而不屈服，语义更偏重耐受力，例如 endure pain / hardship，可与 perseverance 互换使用。persistence 为名词，强调坚持不懈的品质，与形容词 persistent 互为词形对应，常见搭配 persistence pays off（坚持终有回报）。这组词在学习与考试话题中非常实用：写作中可说 Facing numerous challenges, she struggled but endured with great persistence and eventually overcame them all. 口语中也能灵活组合，例如 It's a real challenge, but I will endure and keep struggling. 掌握这一组词的关键在于区分动作（challenge / struggle / overcome / endure）与品质名词（persistence），并注意它们与 difficulty、hardship、obstacle 等高频词的自然搭配。"
     }
   ]
 }
