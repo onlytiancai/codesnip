@@ -1,11 +1,11 @@
 {
   "schema_version": "2.0",
   "created_at": "2026-08-04T12:00:23",
-  "updated_at": "2026-08-04T12:10:04",
-  "total_groups": 4,
-  "total_words_grouped": 18,
+  "updated_at": "2026-08-04T14:55:37",
+  "total_groups": 7,
+  "total_words_grouped": 33,
   "vocab_size": 1162,
-  "remaining": 1144,
+  "remaining": 1129,
   "groups": [
     {
       "group_id": 1,
@@ -56,6 +56,45 @@
         "persistence"
       ],
       "explanation_zh": "本组词汇围绕面对困难、迎接挑战以及坚持不懈这一核心语义场展开，彼此搭配频繁且语义互补。challenge 作名词表示挑战，作动词意为对某人发起挑战或质疑，例如 challenge the authority（质疑权威）。struggle 作动词强调在困境中奋力抗争，如 struggle with poverty（与贫困搏斗），也作名词表示斗争或挣扎。overcome 侧重最终克服、战胜困难，常见搭配 overcome obstacles / difficulties，强调胜利的结果，如 He overcame many hardships to succeed。endure 则突出长时间忍受痛苦或艰难而不屈服，语义更偏重耐受力，例如 endure pain / hardship，可与 perseverance 互换使用。persistence 为名词，强调坚持不懈的品质，与形容词 persistent 互为词形对应，常见搭配 persistence pays off（坚持终有回报）。这组词在学习与考试话题中非常实用：写作中可说 Facing numerous challenges, she struggled but endured with great persistence and eventually overcame them all. 口语中也能灵活组合，例如 It's a real challenge, but I will endure and keep struggling. 掌握这一组词的关键在于区分动作（challenge / struggle / overcome / endure）与品质名词（persistence），并注意它们与 difficulty、hardship、obstacle 等高频词的自然搭配。"
+    },
+    {
+      "group_id": 5,
+      "title_zh": "情感情绪类",
+      "title_en": "Emotions & Feelings",
+      "words": [
+        "astonish",
+        "amaze",
+        "delight",
+        "annoy",
+        "startle"
+      ],
+      "explanation_zh": "本组词汇都与强烈情绪反应有关，描述某种外力突然作用于人而引发的一时感受。astonish 强调震惊与难以置信，常搭配 at 短语，如 be astonished at the news；amaze 侧重惊讶中带有敬佩之意，常用于正面语境，例如 be amazed at one's ability。delight 是欣喜、愉快的情绪，比 pleased 更强烈，可作动词或名词，搭配 to one's delight 表示令某人高兴的是。annoy 则带有烦躁、被惹恼的意味，多用于反复打扰带来的不快，如 be annoyed by the noise。startle 突出惊恐式的猛然一惊，常因意外声响或动作触发，如 be startled by a sudden knock。共同点是这五个词都常以人作主语，搭配 at、by 介词短语，且常以过去分词形式作表语。区别在于正负情绪色彩：astonish、amaze、delight 多表达正面或中性惊叹；annoy 是负面烦扰；startle 是中性偏负面的受惊。写作中可分别用于描述不同事件带给人的即时心理反应，例如听到好消息用 delight，遇到意外用 astonish，被打扰用 annoyed，受到惊吓用 startled。"
+    },
+    {
+      "group_id": 6,
+      "title_zh": "「求证/调查/发掘」类动词组",
+      "title_en": "Investigate / Explore / Detect",
+      "words": [
+        "investigate",
+        "explore",
+        "detect",
+        "survey",
+        "reveal"
+      ],
+      "explanation_zh": "本组五个词都围绕「寻找真相、弄清事实」这一核心语义场，适合在阅读理解、新闻报道与学术写作中高频出现。\n\ninvestigate 偏正式，强调系统、深入地调查，通常用于警方、媒体或官方机构对某事件进行正式侦查，如 investigate a case；explore 语义最广，既可指地理上的探险（explore the jungle），也可比喻对未知领域的探索（explore new ideas），语气比 investigate 轻松，更强调开拓性。\n\ndetect 侧重「察觉、发现隐蔽之物」，常与细微线索搭配，如 detect a lie / detect a signal，搭配 detector（探测器）使用非常自然。survey 本义是「俯瞰、审视」，引申为全面调查或民意调查（carry out a survey），强调覆盖面广、样本完整，与 investigate 的纵深挖掘形成对比。\n\nreveal 则属于结果动词，意为「揭示、暴露真相」，通常出现在调查或探索之后，如 The investigation revealed the truth。\n\n学习时建议搭配记忆：investigate + into / survey + on / detect + 名词 / explore + 领域 / reveal + that 从句。在 CET-4 阅读中，这组词常出现于科普类与新闻调查类文章，掌握它们的细微差别能帮助快速判断作者态度与信息流向。"
+    },
+    {
+      "group_id": 7,
+      "title_zh": "观察与表达情感的动词",
+      "title_en": "Feelings and Reactions",
+      "words": [
+        "acknowledge",
+        "affirm",
+        "appeal",
+        "approval",
+        "approve"
+      ],
+      "explanation_zh": "这一组词都和「认可、表达赞同或回应」相关，常出现在需要表达情感态度或人际回应的语境中。acknowledge 表示公开承认或对某事表达关注，比如 acknowledge one's mistake（承认错误）或 acknowledge the audience（向观众致意）；affirm 语气更强，强调郑重肯定或确认，如 affirm one's commitment（坚定承诺）。approval 与 approve 是一对名词与动词的关系，前者指「批准、赞成」，后者指「同意、认可」，常见搭配 win approval 获得认可、approve of the plan 同意这项计划。appeal 在情感类语境中常指「打动、引起兴趣」，例如 The idea appeals to me 这个想法对我很有吸引力。这五个词都含有「正面回应、肯定」的意味，但侧重点不同：acknowledge 重在承认事实，affirm 重在坚定表态，approve 是做出同意的决定，approval 是其名词形式，appeal 则更侧重引发情感共鸣。掌握它们有助于在写作和口语中更精准地表达态度与反应。"
     }
   ]
 }
