@@ -1,100 +1,75 @@
 {
-  "schema_version": "2.0",
-  "created_at": "2026-08-04T12:00:23",
-  "updated_at": "2026-08-04T14:55:37",
-  "total_groups": 7,
-  "total_words_grouped": 33,
+  "created_at": "2026-08-04T15:48:58",
+  "updated_at": "2026-08-04T15:56:32",
+  "total_groups": 5,
+  "total_words_grouped": 24,
   "vocab_size": 1162,
-  "remaining": 1129,
+  "remaining": 1138,
   "groups": [
     {
       "group_id": 1,
-      "title_zh": "情感与态度类词汇",
-      "title_en": "Emotions and Attitudes",
+      "title_zh": "情感与心理状态类",
+      "title_en": "Emotions and Psychological States",
       "words": [
-        "admire",
-        "admiration",
-        "affectionate",
-        "appreciate",
-        "fascinate"
+        "delight",
+        "amaze",
+        "astonish",
+        "frighten",
+        "grief"
       ],
-      "explanation_zh": "这一组词都与人的情感、态度以及对事物的感受有关。admire 表示钦佩、仰慕，强调对他人优秀品质或成就的由衷赞美，如 I admire her courage（我钦佩她的勇气）。由它派生的名词 admiration 则指这种钦佩的情感本身，常见搭配为 have a deep admiration for。appreciate 意为欣赏、感激、重视，既可表示对艺术品、风景的鉴赏（appreciate classical music），也可表示对他人的付出心存感激（appreciate your help），比 thank 更正式、更深刻。affectionate 形容人充满深情、温柔体贴，常用来描写对家人、爱人的态度，如 an affectionate letter（情意绵绵的信）。fascinate 意为使着迷、使神魂颠倒，侧重一种强烈而持久的吸引力，如 The magic tricks fascinated the children（那些魔术让孩子们着了迷）。这组词在写作中常用来表达正向情感：描写人物性格时可写 affectionate and admirable；表达对他人的感受时可用 admire、appreciate；表达被某事吸引可用 fascinate。注意 appreciate 后接名词或动名词（appreciate doing），不可接不定式；admire 后通常接人或人的品质，较少接物。掌握它们能帮助你在 CET-4 阅读和写作中更精准地传达情感态度。"
+      "explanation_zh": "本组词都与强烈情感或心理反应有关，涵盖喜悦、惊讶、恐惧与悲伤四类基本情绪体验。它们在 CET-4 阅读和写作中常出现于描述人物反应、心理活动的语境，是英语情感表达的核心词汇。\n\n【delight】释义：使高兴、喜悦。例句：The performance delighted the audience greatly.（那场演出让观众大为欣喜。）\n【amaze】释义：使大为惊奇、惊叹。例句：The view from the mountain top amazed all the hikers.（山顶的景色让所有徒步者惊叹不已。）\n【astonish】释义：使惊讶、震惊。例句：The sudden progress of technology never fails to astonish us.（科技的飞速进步总让我们感到震惊。）\n【frighten】释义：使害怕、惊恐。例句：The loud thunder frightened the little child badly.（响亮的雷声把小孩吓坏了。）\n【grief】释义：悲伤、悲痛。例句：She was filled with grief after losing her beloved pet.（失去心爱的宠物后她满怀悲伤。）\n\n【辨析与搭配】delight 强调由衷的喜悦，常用于令人愉悦的事物带来的满足感，搭配 be delighted at/by/to do；amaze 与 astonish 都表示惊讶，amaze 偏重惊喜赞叹，astonish 程度更强，常带有出乎意料之意，二者常以 be amazed/astonished at 搭配；frighten 表达恐惧，与 scared 同义但更强调动作，搭配 be frightened of；grief 是名词形式，指深沉的悲伤，多用于丧失亲人或重大损失的场景，搭配 in deep grief。整体来看，前三词是动词（造成某种情感），grief 是名词（情感本身），在写作中可灵活搭配使用以丰富情感表达。"
     },
     {
       "group_id": 2,
-      "title_zh": "促进/提升类动词",
-      "title_en": "Verbs of Promotion & Enhancement",
+      "title_zh": "情感/情绪表达类（积极正面情感）",
+      "title_en": "Positive Emotions",
       "words": [
-        "boost",
-        "promote",
-        "enhance",
-        "advance",
-        "accelerate"
+        "amusing",
+        "delightful",
+        "fascination",
+        "passionate",
+        "praise"
       ],
-      "explanation_zh": "这组词都表示「促进、推进、使更好更快」的意思，在 CET-4 阅读和写作中频繁出现。boost 强调「大幅提升、增加」，常用于 boost economy、boost confidence 等搭配，语气比较口语化且力度强。promote 侧重「推动、推广、晋升」，既可以指 promote growth（促进增长），也可以指 promote a product（推广产品）或 promote someone（晋升某人），是考试最高频的词之一。enhance 偏「提高质量、增强效果」，常搭配 enhance ability、enhance awareness，属于较正式的书面用词。advance 表示「向前推进、进步」，既可作动词也可作名词，常用于 advance technology、in advance（提前）等结构。accelerate 特指「加快速度、加速」，与前四个词相比语义最具体，常用于 accelerate the process。这五个词的区别在于：promote 最通用，enhance 偏质量提升，boost 偏数量或程度的跃升，advance 偏向前发展，accelerate 则专指速度加快。写作时如果要描述经济增长，建议用 boost 或 promote；描述能力或形象提升，用 enhance；描述科技进步，用 advance；描述流程加快，用 accelerate。掌握这些细微差别，能让你的作文用词更精准多变。"
+      "explanation_zh": "本组聚焦「正面情感与赞美」相关词汇，涵盖愉快的感受、迷人的吸引力、热烈的情绪以及对他人的称赞，常出现在描述美好体验、艺术作品或个人态度的语境中。\n\namusement 指「有趣的；引人发笑的」，强调轻松愉快的娱乐感。例句：The comedian gave an amusing performance at the party.\n\ndelightful 意为「令人愉快的；讨人喜欢的」，形容事物带来高度的满足和欣喜。例句：We had a delightful evening walking by the lake.\n\nfascination 表示「入迷；强烈吸引」，常用于描述被某事物深深吸引的状态。例句：She stared at the stars with pure fascination.\n\npassionate 指「充满热情的」，多用于形容对某事抱有强烈情感或信念。例句：He is passionate about environmental protection.\n\npraise 是动词兼名词，意为「赞扬；表扬」，表示对他人行为或成就的肯定。例句：The teacher praised the students for their creativity.\n\n辨析：amusing 与 delightful 都修饰让人愉悦的事物，但 amusing 偏向幽默搞笑，delightful 偏向温馨美好；fascination 强调吸引力之深，passionate 强调情感之烈；praise 则是外显的赞美行为，常与动词搭配如 deserve praise（值得表扬）或 highly praise（高度赞扬）。在实际写作中，可以用 amusing 形容节目，用 delightful 形容体验，用 fascination 描述对某事的着迷，用 passionate 表达态度，再用 praise 收束对他人的认可，形成完整的情感表达链条。"
     },
     {
       "group_id": 3,
-      "title_zh": "诚实/真相/事实相关",
-      "title_en": "Honesty, Truth and Evidence",
+      "title_zh": "惊讶与情感冲击类",
+      "title_en": "Astonishment and Emotional Impact",
       "words": [
-        "honesty",
-        "genuine",
-        "evidence"
+        "shock",
+        "startle",
+        "stir",
+        "overwhelm",
+        "amusing"
       ],
-      "explanation_zh": "这一组围绕「诚实、真实、事实」展开。「honesty」是名词，强调品德的诚实正直，常见搭配有 honesty is the best policy、in all honesty；「genuine」是形容词，指真实的、真正的、非伪造的，可以形容情感（genuine concern）、产品（genuine leather）或人（a genuine person）；「evidence」是名词，指证据、迹象，既可用于法律场合（circumstantial evidence），也可用于日常表达（there is no evidence that…），对应动词是动词列表里的「evident」派生出来的形容词。三者关系密切：要证明某事为「genuine」往往需要「evidence」，而提供「evidence」时也要求研究者和当事人保持「honesty」。在写作中，可以用「genuine」修饰情感或物品，用「evidence」支撑论点，用「honesty」描述人物品格或学术态度（如 academic honesty 学术诚信）。"
+      "explanation_zh": "本组聚焦于「使人产生强烈情感反应或心理冲击」的一类动词。这些词都描述了某种外部刺激作用于人内心时引发的情感波澜，无论积极或消极，都属于情感类高频词，在 CET-4 阅读与写作中均很常见。\n\n**shock**【震惊；使震惊】Shock 既可作动词也可作名词，常指因意外或负面消息而产生的强烈震惊。例句：The news of the accident shocked the whole family.\n\n**startle**【使惊吓；使吃惊】startle 强调「瞬间的惊吓感」，常指被突然的声音或动作吓一跳。例句：The loud noise startled the sleeping baby.\n\n**stir**【激起；搅动】stir 在情感语境中表示「激发、唤起」，如 stir emotions 或 stir up controversy。例句：The speaker's words stirred deep emotions in the audience.\n\n**overwhelm**【压倒；使难以承受】overwhelm 既可表示正面情感上的「深深打动」，也可表示负面意义的「压垮」。例句：She was overwhelmed by the warm welcome from her classmates.\n\n**amusing**【有趣的；逗人笑的】amusing 是形容词，描述事物或言行能引人发笑、消遣时光，与 amusing 相关的动词是 amuse。例句：The clown's performance was highly amusing to the children.\n\n**辨析与搭配**：shock 与 startle 都涉及「惊」，但 shock 更偏向情感层面的深度震动，多用于坏消息或令人震惊的事件，如 shocked at the news；startle 则侧重短暂、本能的惊跳反应，多用于物理性的突然刺激。stir 是「激发情感」的通用动词，搭配介词 up（如 stir up），既可激发正面情感也可引发争议。overwhelm 强调「情感强度大到难以承受或难以招架」，常与 with 搭配，如 overwhelmed with grief / joy / gratitude。amusing 则是这一组中唯一的形容词，常用搭配：highly amusing / amusing story / find sth amusing。学习时建议关注 shock 与 startle 在「情感冲击」的「深度」与「瞬时性」上的差异，并注意 overwhelm 既褒亦贬的双向用法。"
     },
     {
       "group_id": 4,
-      "title_zh": "挑战与克服类动词",
-      "title_en": "Challenges & Overcoming",
+      "title_zh": "情感/情绪类（负面与压抑感受）",
+      "title_en": "Negative Emotional States",
       "words": [
-        "challenge",
-        "struggle",
-        "overcome",
-        "endure",
-        "persistence"
+        "depressed",
+        "depressing",
+        "distress",
+        "miserable",
+        "panic"
       ],
-      "explanation_zh": "本组词汇围绕面对困难、迎接挑战以及坚持不懈这一核心语义场展开，彼此搭配频繁且语义互补。challenge 作名词表示挑战，作动词意为对某人发起挑战或质疑，例如 challenge the authority（质疑权威）。struggle 作动词强调在困境中奋力抗争，如 struggle with poverty（与贫困搏斗），也作名词表示斗争或挣扎。overcome 侧重最终克服、战胜困难，常见搭配 overcome obstacles / difficulties，强调胜利的结果，如 He overcame many hardships to succeed。endure 则突出长时间忍受痛苦或艰难而不屈服，语义更偏重耐受力，例如 endure pain / hardship，可与 perseverance 互换使用。persistence 为名词，强调坚持不懈的品质，与形容词 persistent 互为词形对应，常见搭配 persistence pays off（坚持终有回报）。这组词在学习与考试话题中非常实用：写作中可说 Facing numerous challenges, she struggled but endured with great persistence and eventually overcame them all. 口语中也能灵活组合，例如 It's a real challenge, but I will endure and keep struggling. 掌握这一组词的关键在于区分动作（challenge / struggle / overcome / endure）与品质名词（persistence），并注意它们与 difficulty、hardship、obstacle 等高频词的自然搭配。"
+      "explanation_zh": "这一组词都和「负面情绪、心理压抑或强烈的不安感」有关，描述人在不同情境下所经历的糟糕感受。depressed 强调长期处于低落、忧郁的状态，常形容人；depressing 则形容事物或环境令人沮丧；distress 指痛苦、危难或悲伤带来的强烈不安；miserable 描述极度难受、痛苦的处境；panic 则是突如其来的恐慌、惊慌失措。\n\n逐词释义与例句：\n1. depressed：感到抑郁的，情绪低落的。例：She felt depressed after failing the exam.（她考试失利后感到十分沮丧。）\n2. depressing：令人沮丧的，使人消沉的。例：The rainy weather is really depressing.（这阴雨天实在让人提不起劲。）\n3. distress：痛苦，悲伤，危难。例：The patient was in great distress after the accident.（事故后那名病人极为痛苦。）\n4. miserable：痛苦的，难受的，可怜的。例：He led a miserable life during the war.（他在战时过着凄惨的生活。）\n5. panic：恐慌，惊慌。例：Don't panic; we still have time to escape.（别慌，我们还有时间逃生。）\n\n辨析与搭配建议：depressed 偏向「持续的心理低落」，常与 feel 连用，主语为人；depressing 是形容词-ing 形式，用于修饰事物，表「令人压抑」的主观感受，如 depressing news / depressing atmosphere；distress 多用于正式语境，搭配 in distress（处于困境中）或 cause distress to sb；miserable 程度较强，强调身体或精神上的痛苦，可搭配 miserable life / feel miserable；panic 既可作名词也可作动词，常见搭配 panic attack（恐慌发作）或 in panic（惊慌地）。写作中若想表达复合情绪，可用 depressed and miserable 层层递进，用 in distress 衔接事件，panicky 形容词则可由 panic 派生但表意稍弱。注意 depressed 多指「情绪」，而 depressing 用于「外因」，这是 CET-4 阅读中经常考察的辨析点。"
     },
     {
       "group_id": 5,
-      "title_zh": "情感情绪类",
-      "title_en": "Emotions & Feelings",
+      "title_zh": "负面情绪与痛苦类",
+      "title_en": "Negative Emotions & Suffering",
       "words": [
-        "astonish",
-        "amaze",
-        "delight",
-        "annoy",
-        "startle"
+        "cruelty",
+        "suffer",
+        "tension",
+        "threaten",
+        "terribly"
       ],
-      "explanation_zh": "本组词汇都与强烈情绪反应有关，描述某种外力突然作用于人而引发的一时感受。astonish 强调震惊与难以置信，常搭配 at 短语，如 be astonished at the news；amaze 侧重惊讶中带有敬佩之意，常用于正面语境，例如 be amazed at one's ability。delight 是欣喜、愉快的情绪，比 pleased 更强烈，可作动词或名词，搭配 to one's delight 表示令某人高兴的是。annoy 则带有烦躁、被惹恼的意味，多用于反复打扰带来的不快，如 be annoyed by the noise。startle 突出惊恐式的猛然一惊，常因意外声响或动作触发，如 be startled by a sudden knock。共同点是这五个词都常以人作主语，搭配 at、by 介词短语，且常以过去分词形式作表语。区别在于正负情绪色彩：astonish、amaze、delight 多表达正面或中性惊叹；annoy 是负面烦扰；startle 是中性偏负面的受惊。写作中可分别用于描述不同事件带给人的即时心理反应，例如听到好消息用 delight，遇到意外用 astonish，被打扰用 annoyed，受到惊吓用 startled。"
-    },
-    {
-      "group_id": 6,
-      "title_zh": "「求证/调查/发掘」类动词组",
-      "title_en": "Investigate / Explore / Detect",
-      "words": [
-        "investigate",
-        "explore",
-        "detect",
-        "survey",
-        "reveal"
-      ],
-      "explanation_zh": "本组五个词都围绕「寻找真相、弄清事实」这一核心语义场，适合在阅读理解、新闻报道与学术写作中高频出现。\n\ninvestigate 偏正式，强调系统、深入地调查，通常用于警方、媒体或官方机构对某事件进行正式侦查，如 investigate a case；explore 语义最广，既可指地理上的探险（explore the jungle），也可比喻对未知领域的探索（explore new ideas），语气比 investigate 轻松，更强调开拓性。\n\ndetect 侧重「察觉、发现隐蔽之物」，常与细微线索搭配，如 detect a lie / detect a signal，搭配 detector（探测器）使用非常自然。survey 本义是「俯瞰、审视」，引申为全面调查或民意调查（carry out a survey），强调覆盖面广、样本完整，与 investigate 的纵深挖掘形成对比。\n\nreveal 则属于结果动词，意为「揭示、暴露真相」，通常出现在调查或探索之后，如 The investigation revealed the truth。\n\n学习时建议搭配记忆：investigate + into / survey + on / detect + 名词 / explore + 领域 / reveal + that 从句。在 CET-4 阅读中，这组词常出现于科普类与新闻调查类文章，掌握它们的细微差别能帮助快速判断作者态度与信息流向。"
-    },
-    {
-      "group_id": 7,
-      "title_zh": "观察与表达情感的动词",
-      "title_en": "Feelings and Reactions",
-      "words": [
-        "acknowledge",
-        "affirm",
-        "appeal",
-        "approval",
-        "approve"
-      ],
-      "explanation_zh": "这一组词都和「认可、表达赞同或回应」相关，常出现在需要表达情感态度或人际回应的语境中。acknowledge 表示公开承认或对某事表达关注，比如 acknowledge one's mistake（承认错误）或 acknowledge the audience（向观众致意）；affirm 语气更强，强调郑重肯定或确认，如 affirm one's commitment（坚定承诺）。approval 与 approve 是一对名词与动词的关系，前者指「批准、赞成」，后者指「同意、认可」，常见搭配 win approval 获得认可、approve of the plan 同意这项计划。appeal 在情感类语境中常指「打动、引起兴趣」，例如 The idea appeals to me 这个想法对我很有吸引力。这五个词都含有「正面回应、肯定」的意味，但侧重点不同：acknowledge 重在承认事实，affirm 重在坚定表态，approve 是做出同意的决定，approval 是其名词形式，appeal 则更侧重引发情感共鸣。掌握它们有助于在写作和口语中更精准地表达态度与反应。"
+      "explanation_zh": "本组围绕「负面情绪与痛苦感受」展开，这些词都常出现在描述压力、威胁、苦难等消极情境的语境中，与已分组的 depressed、miserable、distress 等情绪词形成互补。\n\n【cruelty】名词，指残忍、残酷。例句：The cruelty of war left deep scars on survivors.\n【suffer】动词，指遭受、忍受痛苦。例句：Many families suffer from economic hardship during the recession.\n【tension】名词，指紧张、紧张状态。例句：There is growing tension between the two countries over the border dispute.\n【threaten】动词，指威胁、恐吓。例句：Pollution threatens the survival of many endangered species.\n【terribly】副词，指非常、极度（用于加强负面语气）。例句：She felt terribly lonely after moving to the new city.\n\n辨析与搭配：cruelty 强调行为或制度层面的残忍（如 cruelty to animals），侧重客观描述；suffer 强调主观承受痛苦的过程，常与 from 搭配（suffer from illness）；tension 既可指人际关系紧张（political tension），也可指身体或心理上的紧绷（nervous tension），属于较常用的 CET-4 高频词；threaten 强调潜在的危害，可作及物动词（threaten sb. with sth.）或不及物动词（threaten to do），在议论文中常用来讨论社会问题；terribly 则是一个程度副词，在口语和书面语中都极为常见，用于强化负面形容词或动词（terribly sorry、terribly worried）。建议学习时把这组词与已学的情绪词搭配记忆，例如 tension 可与 distress、threaten 可与 panic 形成语义链，帮助在阅读理解中快速识别作者的态度倾向。"
     }
   ]
 }
