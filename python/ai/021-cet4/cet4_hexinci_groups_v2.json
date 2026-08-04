@@ -1,0 +1,48 @@
+{
+  "schema_version": "2.0",
+  "created_at": "2026-08-04T12:00:23",
+  "updated_at": "2026-08-04T12:08:24",
+  "total_groups": 3,
+  "total_words_grouped": 13,
+  "vocab_size": 1162,
+  "remaining": 1149,
+  "groups": [
+    {
+      "group_id": 1,
+      "title_zh": "情感与态度类词汇",
+      "title_en": "Emotions and Attitudes",
+      "words": [
+        "admire",
+        "admiration",
+        "affectionate",
+        "appreciate",
+        "fascinate"
+      ],
+      "explanation_zh": "这一组词都与人的情感、态度以及对事物的感受有关。admire 表示钦佩、仰慕，强调对他人优秀品质或成就的由衷赞美，如 I admire her courage（我钦佩她的勇气）。由它派生的名词 admiration 则指这种钦佩的情感本身，常见搭配为 have a deep admiration for。appreciate 意为欣赏、感激、重视，既可表示对艺术品、风景的鉴赏（appreciate classical music），也可表示对他人的付出心存感激（appreciate your help），比 thank 更正式、更深刻。affectionate 形容人充满深情、温柔体贴，常用来描写对家人、爱人的态度，如 an affectionate letter（情意绵绵的信）。fascinate 意为使着迷、使神魂颠倒，侧重一种强烈而持久的吸引力，如 The magic tricks fascinated the children（那些魔术让孩子们着了迷）。这组词在写作中常用来表达正向情感：描写人物性格时可写 affectionate and admirable；表达对他人的感受时可用 admire、appreciate；表达被某事吸引可用 fascinate。注意 appreciate 后接名词或动名词（appreciate doing），不可接不定式；admire 后通常接人或人的品质，较少接物。掌握它们能帮助你在 CET-4 阅读和写作中更精准地传达情感态度。"
+    },
+    {
+      "group_id": 2,
+      "title_zh": "促进/提升类动词",
+      "title_en": "Verbs of Promotion & Enhancement",
+      "words": [
+        "boost",
+        "promote",
+        "enhance",
+        "advance",
+        "accelerate"
+      ],
+      "explanation_zh": "这组词都表示「促进、推进、使更好更快」的意思，在 CET-4 阅读和写作中频繁出现。boost 强调「大幅提升、增加」，常用于 boost economy、boost confidence 等搭配，语气比较口语化且力度强。promote 侧重「推动、推广、晋升」，既可以指 promote growth（促进增长），也可以指 promote a product（推广产品）或 promote someone（晋升某人），是考试最高频的词之一。enhance 偏「提高质量、增强效果」，常搭配 enhance ability、enhance awareness，属于较正式的书面用词。advance 表示「向前推进、进步」，既可作动词也可作名词，常用于 advance technology、in advance（提前）等结构。accelerate 特指「加快速度、加速」，与前四个词相比语义最具体，常用于 accelerate the process。这五个词的区别在于：promote 最通用，enhance 偏质量提升，boost 偏数量或程度的跃升，advance 偏向前发展，accelerate 则专指速度加快。写作时如果要描述经济增长，建议用 boost 或 promote；描述能力或形象提升，用 enhance；描述科技进步，用 advance；描述流程加快，用 accelerate。掌握这些细微差别，能让你的作文用词更精准多变。"
+    },
+    {
+      "group_id": 3,
+      "title_zh": "诚实/真相/事实相关",
+      "title_en": "Honesty, Truth and Evidence",
+      "words": [
+        "honesty",
+        "genuine",
+        "evidence"
+      ],
+      "explanation_zh": "这一组围绕「诚实、真实、事实」展开。「honesty」是名词，强调品德的诚实正直，常见搭配有 honesty is the best policy、in all honesty；「genuine」是形容词，指真实的、真正的、非伪造的，可以形容情感（genuine concern）、产品（genuine leather）或人（a genuine person）；「evidence」是名词，指证据、迹象，既可用于法律场合（circumstantial evidence），也可用于日常表达（there is no evidence that…），对应动词是动词列表里的「evident」派生出来的形容词。三者关系密切：要证明某事为「genuine」往往需要「evidence」，而提供「evidence」时也要求研究者和当事人保持「honesty」。在写作中，可以用「genuine」修饰情感或物品，用「evidence」支撑论点，用「honesty」描述人物品格或学术态度（如 academic honesty 学术诚信）。"
+    }
+  ]
+}
