@@ -72,6 +72,38 @@ pub fn filter_branchless(input: &[f64], threshold: f64) -> Vec<f64> {
     out
 }
 
+/// Branchless + skip the zero-fill on the output buffer.
+///
+/// `vec![0.0; N]` memsets 8 MB to zero before we ever use it. The branchless
+/// loop *always* writes `out[n] = x` for every input element, so by the time
+/// we call `truncate(n_final)` every slot in `[0, n_final)` holds a real kept
+/// value. The slots in `(n_final, N)` were never read — we can hand them to
+/// the allocator as "initialized" via `set_len` and let `truncate` quietly
+/// abandon them when we shrink. For `f64` (no `Drop`) this is sound.
+///
+/// Expected savings: the cost of zeroing 8 MB, ~0.05 ms on M4 — about 15-20%
+/// of the current `filter_branchless` runtime.
+pub fn filter_branchless_nozero(input: &[f64], threshold: f64) -> Vec<f64> {
+    let mut out: Vec<f64> = Vec::with_capacity(input.len());
+    // SAFETY: every slot in `[0, n_final)` will be written by the loop below
+    // before we `truncate` to `n_final`. The remaining slots are abandoned
+    // by `truncate` without ever being read; `f64` has no `Drop` impl, so
+    // the allocator will reclaim the buffer unchanged.
+    unsafe { out.set_len(input.len()) };
+
+    let mut n = 0usize;
+    for &x in input {
+        // `n` is bounded by the number of elements processed so far, which
+        // is always ≤ `input.len()`, so the index is in range.
+        unsafe {
+            *out.as_mut_ptr().add(n) = x;
+        }
+        n += (x > threshold) as usize;
+    }
+    out.truncate(n);
+    out
+}
+
 // -----------------------------------------------------------------------------
 // NEON port of the branchless filter.
 //
@@ -187,6 +219,53 @@ mod neon {
         }
 
         // Tail (0 or 1 element since N is even).
+        for j in (chunks * 2)..input.len() {
+            let x = *in_ptr.add(j);
+            *out_ptr.add(n) = x;
+            n += (x > threshold) as usize;
+        }
+
+        out.truncate(n);
+        out
+    }
+
+    // -------------------------------------------------------------------------
+    // V2-nozero: V2 but skip the `vec![0.0; N]` zero-fill. Saves ~0.05 ms
+    // of memset on M4 for 8 MB output.
+    // -------------------------------------------------------------------------
+    #[target_feature(enable = "neon")]
+    #[allow(unsafe_op_in_unsafe_fn)]
+    pub unsafe fn filter_simd_neon_v2_nozero(input: &[f64], threshold: f64) -> Vec<f64> {
+        let mut out: Vec<f64> = Vec::with_capacity(input.len());
+        // SAFETY: see `filter_branchless_nozero` — every slot in `[0, n)`
+        // gets written by the loop; `truncate(n)` discards the rest without
+        // reading, and `f64` has no `Drop`.
+        unsafe { out.set_len(input.len()) };
+
+        let mut n = 0usize;
+        let vth = vdupq_n_f64(threshold);
+        let chunks = input.len() / 2;
+
+        let in_ptr = input.as_ptr();
+        let out_ptr = out.as_mut_ptr();
+
+        for i in 0..chunks {
+            unsafe {
+                let lo = vld1q_f64(in_ptr.add(2 * i));
+                let keep_mask = vcgtq_f64(lo, vth);
+                let one_bits = vshrq_n_u64(keep_mask, 63);
+
+                let swapped = vextq_f64(lo, lo, 1);
+                let compact = vbslq_f64(keep_mask, lo, swapped);
+
+                vst1q_f64(out_ptr.add(n), compact);
+
+                let pc = vaddvq_u64(one_bits) as usize;
+                n += pc;
+            }
+        }
+
+        // Tail.
         for j in (chunks * 2)..input.len() {
             let x = *in_ptr.add(j);
             *out_ptr.add(n) = x;
@@ -344,6 +423,17 @@ pub fn filter_simd_neon_v2(input: &[f64], threshold: f64) -> Vec<f64> {
     }
 }
 
+pub fn filter_simd_neon_v2_nozero(input: &[f64], threshold: f64) -> Vec<f64> {
+    #[cfg(target_arch = "aarch64")]
+    {
+        unsafe { neon::filter_simd_neon_v2_nozero(input, threshold) }
+    }
+    #[cfg(not(target_arch = "aarch64"))]
+    {
+        filter_branchless_nozero(input, threshold)
+    }
+}
+
 pub fn filter_simd_neon_stnp(input: &[f64], threshold: f64) -> Vec<f64> {
     #[cfg(target_arch = "aarch64")]
     {
@@ -435,14 +525,16 @@ fn print_table_row(
     iter_ms: f64,
     prealloc_ms: f64,
     branchless_ms: f64,
+    bl_nozero_ms: f64,
     simd_ms: f64,
     simd_v2_ms: f64,
+    simd_v2_nozero_ms: f64,
     simd_4lane_ms: f64,
     stnp_ms: f64,
 ) {
     println!(
-        "  {:>3}%   {:>6}  {:>6.2}   {:>6.2}   {:>6.2}   {:>6.2}   {:>6.2}   {:>6.2}   {:>6.2}",
-        kept_pct, out_size, iter_ms, prealloc_ms, branchless_ms, simd_ms, simd_v2_ms, simd_4lane_ms, stnp_ms
+        "  {:>3}%   {:>6}  {:>6.2}   {:>6.2}   {:>6.2}   {:>6.2}   {:>6.2}   {:>6.2}   {:>6.2}   {:>6.2}   {:>6.2}",
+        kept_pct, out_size, iter_ms, prealloc_ms, branchless_ms, bl_nozero_ms, simd_ms, simd_v2_ms, simd_v2_nozero_ms, simd_4lane_ms, stnp_ms
     );
 }
 
@@ -472,13 +564,17 @@ fn main() {
     ];
     for &(_, label, threshold) in cases {
         let ref_out = filter_branchless(&input, threshold);
+        let bl_nozero_out = filter_branchless_nozero(&input, threshold);
         let simd_out = filter_simd_neon(&input, threshold);
         let simd_v2_out = filter_simd_neon_v2(&input, threshold);
+        let simd_v2_nozero_out = filter_simd_neon_v2_nozero(&input, threshold);
         let simd_4l_out = filter_simd_neon_4lane(&input, threshold);
         let stnp_out = filter_simd_neon_stnp(&input, threshold);
         for (variant, out) in [
+            ("bl_nozero", &bl_nozero_out),
             ("neon", &simd_out),
             ("neon_v2", &simd_v2_out),
+            ("neon_v2_nozero", &simd_v2_nozero_out),
             ("neon_4lane", &simd_4l_out),
             ("stnp", &stnp_out),
         ] {
@@ -513,13 +609,25 @@ fn main() {
 
     // ---- Table 1: selectivity sweep, shuffled data ----
     println!("Table 1 \u{2014} selectivity sweep on shuffled random data");
-    println!("  kept   out sz   iter    prealloc  branchless  neon    neon_v2  neon_4l  stnp");
-    println!("  -----  -------  ------  --------  ---------  ------  -------  -------  ------");
+    println!("  kept   out sz   iter    prealloc  branchless  bl_nozero  neon   v2    v2_nozero  4lane  stnp");
+    println!("  -----  -------  ------  --------  ---------  ---------  ------  ----  ---------  ------  ----");
 
     let warmup = 3;
     let iters = 30;
 
-    let mut results: Vec<(u32, usize, f64, f64, f64, f64, f64, f64, f64)> = Vec::new();
+    let mut results: Vec<(
+        u32,
+        usize,
+        f64,
+        f64,
+        f64,
+        f64,
+        f64,
+        f64,
+        f64,
+        f64,
+        f64,
+    )> = Vec::new();
 
     for &(kept_pct, _label, threshold) in cases {
         let out = filter_branchless(&input, threshold);
@@ -528,8 +636,11 @@ fn main() {
         let t_iter = bench_min(filter_iter, &input, threshold, warmup, iters);
         let t_pre = bench_min(filter_prealloc, &input, threshold, warmup, iters);
         let t_bl = bench_min(filter_branchless, &input, threshold, warmup, iters);
+        let t_bl_nozero = bench_min(filter_branchless_nozero, &input, threshold, warmup, iters);
         let t_simd = bench_min(filter_simd_neon, &input, threshold, warmup, iters);
         let t_simd_v2 = bench_min(filter_simd_neon_v2, &input, threshold, warmup, iters);
+        let t_simd_v2_nozero =
+            bench_min(filter_simd_neon_v2_nozero, &input, threshold, warmup, iters);
         let t_simd_4l = bench_min(filter_simd_neon_4lane, &input, threshold, warmup, iters);
         let t_stnp = bench_min(filter_simd_neon_stnp, &input, threshold, warmup, iters);
 
@@ -539,8 +650,10 @@ fn main() {
             t_iter,
             t_pre,
             t_bl,
+            t_bl_nozero,
             t_simd,
             t_simd_v2,
+            t_simd_v2_nozero,
             t_simd_4l,
             t_stnp,
         );
@@ -550,8 +663,10 @@ fn main() {
             t_iter,
             t_pre,
             t_bl,
+            t_bl_nozero,
             t_simd,
             t_simd_v2,
+            t_simd_v2_nozero,
             t_simd_4l,
             t_stnp,
         ));
@@ -578,46 +693,62 @@ fn main() {
 
     // ---- Summary ----
     println!("Summary (speedup vs `filter_iter` at 50% kept)");
-    let fifty = results.iter().find(|(k, _, _, _, _, _, _, _, _)| *k == 50).unwrap();
-    let (kept, _, t_iter, t_pre, t_bl, t_simd, t_v2, t_4l, t_stnp) = fifty;
-    println!("  variant       time      vs iter   vs copy_ceil");
+    let fifty = results
+        .iter()
+        .find(|(k, _, _, _, _, _, _, _, _, _, _)| *k == 50)
+        .unwrap();
+    let (kept, _, t_iter, t_pre, t_bl, t_bl_nozero, t_simd, t_v2, t_v2_nozero, t_4l, t_stnp) =
+        fifty;
+    println!("  variant          time      vs iter   vs copy_ceil");
     println!(
-        "  filter_iter     {:>7.2} ms   1.00x     {:.2}x",
+        "  filter_iter        {:>7.2} ms   1.00x     {:.2}x",
         t_iter,
         t_iter / t_copy
     );
     println!(
-        "  prealloc        {:>7.2} ms   {:.2}x     {:.2}x",
+        "  prealloc           {:>7.2} ms   {:.2}x     {:.2}x",
         t_pre,
         t_iter / t_pre,
         t_pre / t_copy
     );
     println!(
-        "  branchless      {:>7.2} ms   {:.2}x     {:.2}x",
+        "  branchless         {:>7.2} ms   {:.2}x     {:.2}x",
         t_bl,
         t_iter / t_bl,
         t_bl / t_copy
     );
     println!(
-        "  neon            {:>7.2} ms   {:.2}x     {:.2}x",
+        "  branchless_nozero  {:>7.2} ms   {:.2}x     {:.2}x",
+        t_bl_nozero,
+        t_iter / t_bl_nozero,
+        t_bl_nozero / t_copy
+    );
+    println!(
+        "  neon               {:>7.2} ms   {:.2}x     {:.2}x",
         t_simd,
         t_iter / t_simd,
         t_simd / t_copy
     );
     println!(
-        "  neon_v2         {:>7.2} ms   {:.2}x     {:.2}x",
+        "  neon_v2            {:>7.2} ms   {:.2}x     {:.2}x",
         t_v2,
         t_iter / t_v2,
         t_v2 / t_copy
     );
     println!(
-        "  neon_4lane      {:>7.2} ms   {:.2}x     {:.2}x",
+        "  neon_v2_nozero     {:>7.2} ms   {:.2}x     {:.2}x",
+        t_v2_nozero,
+        t_iter / t_v2_nozero,
+        t_v2_nozero / t_copy
+    );
+    println!(
+        "  neon_4lane         {:>7.2} ms   {:.2}x     {:.2}x",
         t_4l,
         t_iter / t_4l,
         t_4l / t_copy
     );
     println!(
-        "  stnp (NT pair)  {:>7.2} ms   {:.2}x     {:.2}x",
+        "  stnp (NT pair)     {:>7.2} ms   {:.2}x     {:.2}x",
         t_stnp,
         t_iter / t_stnp,
         t_stnp / t_copy
