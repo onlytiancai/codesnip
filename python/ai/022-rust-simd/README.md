@@ -10,8 +10,12 @@
 022-rust-simd/
 ├── Cargo.toml
 ├── README.md
-└── src/
-    └── main.rs          # 全部代码 ~440 行
+├── src/
+│   └── main.rs          # 全部代码 ~440 行
+└── c/                   # C 移植版，同样 9 个实现（见 c/README.md）
+    ├── branchless_filter.c
+    ├── Makefile
+    └── README.md
 ```
 
 ## 怎么跑
@@ -236,3 +240,13 @@ stnp  x16, x15, [x14]          ← the stnp itself
 - `bench_min` 跑 30 次取 min，丢弃前 3 次 warmup。
 - 没有绑核 / `taskset` / 关 turbo 等控制；想更精确可加 `nice -n -20` + `sudo pmset -a disablesleep 1`。
 - 第一次跑和后续跑有时差 ~2x（冷缓存 / OS 抖动）。建议至少跑 3 次取后两次的稳定值。
+
+## C 版本
+
+`c/` 下是同一套 benchmark 的 C 移植（`make run`），9 个实现一一对应。所有结论都复现了：
+branchless ~11x、nozero 再省 ~20%、手工 SIMD 无显著优势、`stnp` 依然负优化。C 和 Rust
+的数字落在同一区间（两边都是 LLVM 后端），说明这些结论是**微架构层面的**，与语言无关。
+
+移植时踩的两个坑记在 `c/README.md` 里，都会悄悄给出好看但错误的数字：**dead store
+elimination 把没人读的写循环整个删掉**（要用 `black_box` 挡住），以及**收缩 `realloc`
+不等于 `Vec::truncate`**（前者在 macOS 上会 memcpy 搬走保留前缀，把省下的 memset 吃回去）。
