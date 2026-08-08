@@ -1,15 +1,17 @@
 # cache_codes.py 使用文档
 
-eltdx 全市场代码表(`SecurityCode`)的本地缓存与查询脚本。
+eltdx 全市场代码表(`SecurityCode`)的本地缓存与查询脚本,附带按题材板块筛选的能力。
 
 ## 一、用途
 
-eltdx 协议 `0x044d` 在主站维护了一份覆盖沪深北三个市场的完整代码表,每个代码包含交易所、市场编号、名称、价格换算倍数、昨收、品种分类、所属板块等 14 个字段。`cache_codes.py` 把这份代码表**全量拉到本地**,再以 JSON 持久化,提供 4 类操作:
+eltdx 协议 `0x044d` 在主站维护了一份覆盖沪深北三个市场的完整代码表,每个代码包含交易所、市场编号、名称、价格换算倍数、昨收、品种分类、所属板块等 14 个字段。`cache_codes.py` 把这份代码表**全量拉到本地**,再以 JSON 持久化,提供 6 类操作:
 
 - `refresh` — 强制从远端拉取并落盘
 - `list` — 按板块/品种/市场/名称筛选打印
 - `lookup` — 按代码精确查询
 - `stats` — 缓存统计与分组计数
+- `topics` — 列出某 seed 股票可访问的全部题材
+- `by-topic` — 按题材名称或 ID 筛选代码,join 后输出行情摘要
 
 ## 二、安装与依赖
 
@@ -25,17 +27,20 @@ eltdx 协议 `0x044d` 在主站维护了一份覆盖沪深北三个市场的完�
 
 | 配置 | 默认值 | 修改位置 |
 |---|---|---|
-| 缓存路径 | `<项目根>/.cache/eltdx_codes.json` | `CACHE_PATH` |
-| TTL | 24 小时 (86400 秒) | `TTL_SECONDS` |
+| 代码表缓存路径 | `<项目根>/.cache/eltdx_codes.json` | `CACHE_PATH` |
+| 代码表 TTL | 24 小时 (86400 秒) | `TTL_SECONDS` |
+| 题材目录缓存路径 | `<项目根>/.cache/topics_seed.json` | `TOPICS_SEED_CACHE` |
+| 题材成分股缓存目录 | `<项目根>/.cache/topics/` | `TOPIC_CACHE_DIR` |
+| 题材缓存 TTL | 6 小时 (21600 秒) | `TOPIC_TTL_SECONDS` |
+| 默认 seed 股票 | `sz000001` 平安银行 | `DEFAULT_SEED_CODE` |
 | 远端超时 | 5 秒/请求 | `TdxClient(timeout=5)` |
 | 拉取市场 | sh / sz / bj 三市场全量 | `fetch_remote()` 内的 `for market in (...)` |
 
 **触发刷新的时机**:
-- 缓存文件不存在
-- 缓存文件 mtime 距今 > TTL
-- 显式调用 `refresh` 子命令或传 `--force`
+- 代码表:缓存文件不存在 / mtime 超过 24h / `refresh` 子命令 / `--force`
+- 题材:`by-topic` / `topics` 子命令首次拉取,或 6h TTL 到期,或 `--force`
 
-其余所有读取都走本地 JSON,**不再产生网络请求**。实测二次查询耗时约 0.2 秒,首次拉取约 3 秒。
+题材 TTL 比代码表短,因为题材成分股**变动频繁**(新股纳入、老股退出、临时热点加入)。
 
 ## 四、CLI 用法
 
@@ -161,6 +166,99 @@ total_codes : 51959
   bond            21
 ```
 
+### 4.6 topics — 列出 seed 股票可访问的题材目录
+
+```
+python cache_codes.py topics [选项]
+```
+
+题材(概念板块)在 eltdx 中以 `seed_code + topic_id` 索引:每个题材都属于某些"种子"股票,其它股票通过 `topic_compare(seed_code, topic_id)` 反查。默认 seed 是 `sz000001` 平安银行,但**不同 seed 看到的题材集合不同**,深度个股(题材丰富)的 seed 更全面。
+
+| 选项 | 取值示例 | 说明 |
+|---|---|---|
+| `--seed` | `sh688825` (默认 `sz000001`) | 种子股票 |
+| `--force` | flag | 强制重新拉取 seed 目录 |
+
+**示例**
+
+```
+# 默认 seed,题材少但权威
+python cache_codes.py topics
+
+# 用长鑫科技做 seed,题材丰富(16 个)
+python cache_codes.py topics --seed sh688825
+```
+
+输出格式:
+
+```
+# seed=sh688825, total=16
+id       关联度    名称             入选日期         最近原因
+626      5      次新股            20260727     公司于2026-07-27在上交所科创板上市
+31       5      芯片             20260727     公司已成长为中国第一、全球第四的DRAM厂商...
+2945     3      存储芯片           20260727     公司的主营业务为DRAM产品的研发、设计、生产及销售...
+...
+```
+
+### 4.7 by-topic — 按题材筛选代码
+
+```
+python cache_codes.py by-topic <题材名称或 ID> [选项]
+```
+
+从 seed 股票的题材目录里**模糊匹配**名称(或精确匹配 ID),拿到 `topic_id` 后调用 `topic_compare` 拉取成分股,再与 codes cache 做 join,输出 8 列行情摘要。
+
+| 选项 | 取值示例 | 说明 |
+|---|---|---|
+| `topic` (位置参数) | `存储芯片` / `芯片` / `31` / `1087` | 题材名(模糊匹配)或 ID |
+| `--seed` | `sh688825` (默认 `sz000001`) | 种子股票 |
+| `--limit` | 整数,默认 50 | 最多打印多少条 |
+| `--force` | flag | 强制重拉题材快照 |
+
+**匹配优先级**:
+1. 按 `id` 精确匹配(整数或字符串)
+2. 按 `ztmc` 名称精确匹配
+3. 按 `ztmc` 名称包含匹配,**若多个结果则列出候选并退出**(避免歧义)
+4. 无匹配 → 报错退出
+
+**示例**
+
+```
+# 按名称精确匹配
+python cache_codes.py by-topic 存储芯片 --seed sh688825
+
+# 按 ID
+python cache_codes.py by-topic 31 --seed sh688825
+
+# 按名称模糊匹配(唯一命中)
+python cache_codes.py by-topic 芯片 --seed sh688825
+
+# 模糊匹配多个,会列出候选:
+python cache_codes.py by-topic 概念 --seed sh688825
+[topics] ambiguous match for '概念', candidates:
+  - id=2554   name=消费电子概念
+  - id=2317   name=抖音概念
+  ...
+```
+
+输出格式:
+
+```
+# topic='存储芯片' (id=2945), seed=sh688825, matched=20 / topic_size=20
+rank  full_code    name           board                    today%      5d%     20d%
+1     sh688419     耐科装备           sse_star_market          20.00   46.95  -27.36
+2     sh688519     南亚新材           sse_star_market          16.53   38.78   -8.87
+3     sz301511     德福科技           szse_chinext             16.21   37.10  -21.99
+...
+```
+
+**字段说明**:
+- `rank` — 题材内排名(pm,按涨跌幅排序)
+- `full_code` — 完整代码,从 codes cache join 出来
+- `name` — 优先取 F10 简称,缺失时退到 codes cache
+- `board` — 板块(从 codes cache),用于筛选"同题材 + 同板块"等组合
+- `today%` / `5d%` / `20d%` — F10 给的当日 / 5 日 / 20 日涨跌幅
+
 ## 五、作为库引用
 
 `cache_codes.py` 顶层暴露的 `CodesCache` 类可直接被其它脚本 import:
@@ -257,7 +355,42 @@ expensive = [c for c in data["codes"] if c["previous_close_price"] >= 100]
 
 | 需求 | 思路 |
 |---|---|
-| 按概念板块过滤 | 改用 `hot_topics` / `topic_stocks` helper,再做交集 |
+| 全市场题材筛选 | 当前 `by-topic` 只看一个 seed 能访问到的题材;遍历多 seed 才能凑齐全集 |
 | SQLite 后端 | 替换 `CodesCache` 持久化层为 `sqlite3`,支持 SQL |
 | 增量刷新 | 对比 `fetched_at` 与上次 `count`,只拉新增/退市 |
 | watch 模式 | `while True` 定时 refresh,差异行推到 stdout |
+| 与短线指标 join | 在 `by-topic` 输出基础上追加 `eltdx_shortline_indicators` 的字段 |
+
+## 十、题材缓存结构
+
+`.cache/topics_seed.json`(单文件):
+
+```json
+{
+  "seed_code": "sh688825",
+  "fetched_at": 1754628332.12,
+  "fetched_at_iso": "2026-08-08 11:25:32",
+  "topics": [
+    {"id": 626, "ztmc": "次新股", "gld": 5, "rxsj": 20260727, "ztnr": "...", ...},
+    ...
+  ]
+}
+```
+
+`.cache/topics/<seed>__<topic_id>.json`(每个题材一份):
+
+```json
+{
+  "seed_code": "sh688825",
+  "topic_id": "2945",
+  "fetched_at": 1754628400.34,
+  "fetched_at_iso": "2026-08-08 11:26:40",
+  "count": 20,
+  "stocks": [
+    {"pm": 1, "zqdm": "688419", "zqjc": "耐科装备", "zdf": 20.0, "zdf_5d": 46.95, "zdf_20d": -27.36, ...},
+    ...
+  ]
+}
+```
+
+**注意**:`zqdm` 是 6 位裸代码(无市场前缀),与 codes cache 中的 `code` 字段同义;join 时用 `code == zqdm` 而不是 `full_code == zqdm`。
