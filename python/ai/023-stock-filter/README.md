@@ -1,3 +1,4 @@
+通达信 API 获取数据
 
 https://github.com/electkismet/eltdx
 
@@ -6,3 +7,19 @@ https://github.com/electkismet/eltdx
 安装
 
     pip install "eltdx[mcp]"
+
+因子看板
+
+https://www.joinquant.com/view/factorlib/list
+
+实战筛选一个因子的"三步法"
+
+1. 先看 IC 和 IR —— 至少 IR > 0.3 才考虑
+2. 再看最大分位收益 —— 至少要正，最好 > 5%/年
+3. 最后看换手 —— 双边 < 50% 一年最好，超过 100% 要谨慎
+
+数据处理为什么重要？回测做了三层处理，这很关键：
+
+1. 中位数去极值 —— 避免个别营收暴增/暴降的妖股带偏
+2. 行业市值对数中性化 —— 🔑 消除了"小盘股+特定行业"的双重污染，让 SGI 反映的是纯粹的营收增长，而不是"买小盘股"或"押某个行业"
+3. zscore 标准化 —— 让不同截面期可以比较
