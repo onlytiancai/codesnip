@@ -259,6 +259,51 @@ rank  full_code    name           board                    today%      5d%     2
 - `board` — 板块(从 codes cache),用于筛选"同题材 + 同板块"等组合
 - `today%` / `5d%` / `20d%` — F10 给的当日 / 5 日 / 20 日涨跌幅
 
+### 4.8 理解 Seed(题材查询的入口)
+
+题材(`topic`)在 eltdx 中**没有公开的全量目录 API**,查询方式是"以股票为锚点反查":
+
+```
+题材 = (seed_code, topic_id, ...)
+       ↑         ↑
+    哪只股票    这只股关联的某个题材
+```
+
+也就是说,**先选一只股票作为"种子",再问"它关联了哪些题材"**。换一只 seed,看到的题材集合就不同。这是 eltdx 协议本身的设计,不是脚本的限制。
+
+**常用 seed 推荐**
+
+| 场景 | 推荐 seed | 题材数量 | 典型题材 |
+|---|---|---|---|
+| 金融/银行 | `sz000001` 平安银行 | ~10 | 大盘股、高股息、保险重仓、低市净率 |
+| 半导体/存储/芯片 | `sh688825` 长鑫科技 | ~16 | 存储芯片、芯片、大基金持股、次新股 |
+| 消费/白酒 | `sh600519` 贵州茅台 | ~12 | 茅台概念、消费、大盘股 |
+| 题材广度 | 任选行业龙头,多个 seed 互补 | 各异 | — |
+| 查具体题材 | **必须是该题材内的股票** | — | 否则 `topic_compare` 返回空 |
+
+**发现合适 seed 的 3 种方法**
+
+1. **已知题材名**:先挑一只该题材内的知名股做 seed,跑 `topics --seed` 看它有哪些题材
+2. **一次性拿全题材 ID**:用 `client.f10.topic_ids(code)` 在 Python 里直接拿
+3. **题材 ID 是稳定主键**:同一个题材(例如"存储芯片" id=2945),不管用哪只关联股票做 seed,`topic_compare` 返回的成分股一致
+
+**当前脚本的默认行为**
+
+```python
+DEFAULT_SEED_CODE = "sz000001"  # 平安银行
+```
+
+平安银行题材少但**权威**,适合基础演示。**做题材筛选务必显式指定题材丰富的 seed**:
+
+```bash
+python cache_codes.py topics --seed sh688825
+python cache_codes.py by-topic 存储芯片 --seed sh688825
+```
+
+**已知限制**
+
+`by-topic` 当前**只从一个 seed 看题材**,看不到该 seed 没关联的题材。要凑齐全集,需要遍历 3-5 个题材互不重叠的 seed(银行 / 科技 / 消费 / 医药 / 周期)并 union 它们各自的题材目录 — 这是协议层限制,扩展方向见 [九、扩展方向](#九扩展方向)。
+
 ## 五、作为库引用
 
 `cache_codes.py` 顶层暴露的 `CodesCache` 类可直接被其它脚本 import:
@@ -355,7 +400,7 @@ expensive = [c for c in data["codes"] if c["previous_close_price"] >= 100]
 
 | 需求 | 思路 |
 |---|---|
-| 全市场题材筛选 | 当前 `by-topic` 只看一个 seed 能访问到的题材;遍历多 seed 才能凑齐全集 |
+| 全市场题材筛选 | 多 seed union:遍历 3-5 个题材互补的 seed(银行/科技/消费/医药/周期),合并题材目录,再去重成分股 |
 | SQLite 后端 | 替换 `CodesCache` 持久化层为 `sqlite3`,支持 SQL |
 | 增量刷新 | 对比 `fetched_at` 与上次 `count`,只拉新增/退市 |
 | watch 模式 | `while True` 定时 refresh,差异行推到 stdout |

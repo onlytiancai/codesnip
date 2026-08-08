@@ -5,6 +5,7 @@
 - 以 JSON 持久化(eltdx 的 SecurityCode 自带 to_jsonable)
 - 默认 TTL = 24h;超过则下次调用时强制刷新
 - 提供按板块/品种筛选的派生视图
+- 附带按题材板块筛选(by-topic),seed 概念见 docs/cache_codes.md §4.8
 
 用法:
     ~/.pyenv/versions/qlib/bin/python test-scripts/cache_codes.py refresh
@@ -12,6 +13,8 @@
     ~/.pyenv/versions/qlib/bin/python test-scripts/cache_codes.py list --category a_share
     ~/.pyenv/versions/qlib/bin/python test-scripts/cache_codes.py lookup sh688825
     ~/.pyenv/versions/qlib/bin/python test-scripts/cache_codes.py stats
+    ~/.pyenv/versions/qlib/bin/python test-scripts/cache_codes.py topics --seed sh688825
+    ~/.pyenv/versions/qlib/bin/python test-scripts/cache_codes.py by-topic 存储芯片 --seed sh688825
 """
 
 from __future__ import annotations
