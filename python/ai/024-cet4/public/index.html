@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hello World</title>
+  <script src="https://cdn.staticfile.net/tailwindcss-browser/4.1.13/index.global.js"></script>
+  <script src="https://cdn.staticfile.net/vue/3.5.22/vue.global.prod.min.js"></script>
+</head>
+<body class="bg-sky-50">
+  <div id="app" class="min-h-screen flex items-center justify-center p-6">
+    <div class="bg-white rounded-2xl shadow-lg shadow-sky-200/50 p-10 text-center max-w-md w-full">
+      <h1 class="text-4xl font-bold text-sky-600">{{ message }}</h1>
+      <p class="mt-3 text-slate-500">Express + Vue 3 + Tailwind CSS 4</p>
+
+      <button
+        class="mt-8 px-6 py-2.5 rounded-full bg-sky-500 text-white font-medium hover:bg-sky-600 active:scale-95 transition"
+        @click="count++">
+        点击了 {{ count }} 次
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const { createApp, ref } = Vue
+
+    createApp({
+      setup() {
+        return {
+          message: ref('Hello World'),
+          count: ref(0),
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>
