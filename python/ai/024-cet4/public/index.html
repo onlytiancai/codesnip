@@ -175,21 +175,26 @@
           loading.value = false
         })
 
-        const displayList = computed(() => {
-          const q = search.value.trim().toLowerCase()
-          let arr = words.value.filter(w =>
-            view.value === 'done' ? done.value.has(w.word) : !done.value.has(w.word))
-          if (q) arr = arr.filter(w =>
-            w.word.toLowerCase().includes(q) ||
-            w.trans.some(t => (t.cn || '').toLowerCase().includes(q))
-          )
+        // 洗牌只依赖 words 和 shuffleSeed，避免 done / 搜索变化时重新打乱顺序
+        const ordered = computed(() => {
+          const arr = words.value.slice()
           if (shuffleSeed.value) {
-            arr = arr.slice()
             for (let i = arr.length - 1; i > 0; i--) {
               const j = Math.floor(Math.random() * (i + 1))
               ;[arr[i], arr[j]] = [arr[j], arr[i]]
             }
           }
+          return arr
+        })
+
+        const displayList = computed(() => {
+          const q = search.value.trim().toLowerCase()
+          let arr = ordered.value.filter(w =>
+            view.value === 'done' ? done.value.has(w.word) : !done.value.has(w.word))
+          if (q) arr = arr.filter(w =>
+            w.word.toLowerCase().includes(q) ||
+            w.trans.some(t => (t.cn || '').toLowerCase().includes(q))
+          )
           return arr
         })
 
