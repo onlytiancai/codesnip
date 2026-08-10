@@ -41,21 +41,29 @@
     <main class="max-w-5xl mx-auto px-4 py-6">
       <div v-if="loading" class="text-center py-16 text-slate-400">加载中…</div>
       <div v-else-if="!displayList.length" class="text-center py-16 text-slate-400">无匹配单词</div>
-      <table v-else class="w-full bg-white rounded-2xl shadow-sm overflow-hidden">
+      <table v-else class="w-full table-fixed bg-white rounded-2xl shadow-sm overflow-hidden">
         <thead class="bg-sky-50 text-sky-700 text-sm">
           <tr>
-            <th class="px-4 py-3 text-left">单词</th>
-            <th class="px-4 py-3 text-left">音标</th>
+            <th class="px-4 py-3 text-left w-40">单词</th>
+            <th class="px-4 py-3 text-left w-72">音标</th>
             <th class="px-4 py-3 text-left">释义</th>
-            <th class="px-4 py-3 text-right">操作</th>
+            <th class="px-4 py-3 text-right w-28">操作</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="w in displayList" :key="w.word" class="border-t border-sky-50 hover:bg-sky-50/50 align-top">
-            <td class="px-4 py-3 font-semibold text-sky-700">{{ w.word }}</td>
-            <td class="px-4 py-3 text-slate-500 text-sm whitespace-nowrap">
-              <div v-if="w.ukphone">英 /{{ w.ukphone }}/</div>
-              <div v-if="w.usphone">美 /{{ w.usphone }}/</div>
+            <td class="px-4 py-3">
+              <button class="font-semibold text-sky-700 hover:underline break-all text-left" @click="openDetail(w.word)">{{ w.word }}</button>
+            </td>
+            <td class="px-4 py-3 text-slate-500 text-sm">
+              <span v-if="w.ukphone" class="mr-3 inline-block">
+                UK /{{ w.ukphone }}/
+                <button class="px-1 rounded hover:bg-sky-100" title="英音" @click="play(w.word, 1)">🔊</button>
+              </span>
+              <span v-if="w.usphone" class="inline-block">
+                US /{{ w.usphone }}/
+                <button class="px-1 rounded hover:bg-sky-100" title="美音" @click="play(w.word, 2)">🔊</button>
+              </span>
             </td>
             <td class="px-4 py-3">
               <template v-if="mode === 'full' || expanded.has(w.word)">
@@ -64,17 +72,14 @@
                 </div>
               </template>
               <button v-else class="text-xs text-sky-500 hover:underline" @click="expand(w.word)">显示释义</button>
+              <button v-if="mode === 'compact' && expanded.has(w.word)"
+                class="mt-1 block text-xs text-slate-400 hover:underline" @click="collapse(w.word)">隐藏</button>
             </td>
             <td class="px-4 py-3 text-right whitespace-nowrap text-xs space-x-1">
-              <button class="px-2 py-1 rounded hover:bg-sky-100" title="英音" @click="play(w.word, 1)">🔊英</button>
-              <button class="px-2 py-1 rounded hover:bg-sky-100" title="美音" @click="play(w.word, 2)">🔊美</button>
-              <button class="px-2 py-1 rounded text-sky-600 hover:bg-sky-100" @click="openDetail(w.word)">详情</button>
               <button v-if="view === 'default'" class="px-2 py-1 rounded text-emerald-600 hover:bg-emerald-50"
                 @click="markDone(w.word)">✓ Done</button>
               <button v-else class="px-2 py-1 rounded text-amber-600 hover:bg-amber-50"
                 @click="markUndone(w.word)">↺ 还原</button>
-              <button v-if="mode === 'compact' && expanded.has(w.word)"
-                class="px-2 py-1 rounded text-slate-400 hover:bg-slate-100" @click="collapse(w.word)">隐藏</button>
             </td>
           </tr>
         </tbody>
@@ -88,12 +93,14 @@
           <div>
             <h2 class="text-2xl font-bold text-sky-700">{{ detail.word }}</h2>
             <div class="text-sm text-slate-500 mt-1">
-              <span v-if="detail.ukphone">英 /{{ detail.ukphone }}/</span>
-              <span v-if="detail.usphone" class="ml-3">美 /{{ detail.usphone }}/</span>
-            </div>
-            <div class="mt-2 space-x-2 text-sm">
-              <button class="px-2 py-1 rounded hover:bg-sky-100" @click="play(detail.word, 1)">🔊 英音</button>
-              <button class="px-2 py-1 rounded hover:bg-sky-100" @click="play(detail.word, 2)">🔊 美音</button>
+              <span v-if="detail.ukphone">
+                UK /{{ detail.ukphone }}/
+                <button class="px-1 rounded hover:bg-sky-100" title="英音" @click="play(detail.word, 1)">🔊</button>
+              </span>
+              <span v-if="detail.usphone" class="ml-3">
+                US /{{ detail.usphone }}/
+                <button class="px-1 rounded hover:bg-sky-100" title="美音" @click="play(detail.word, 2)">🔊</button>
+              </span>
             </div>
           </div>
           <button class="text-slate-400 hover:text-slate-600 text-xl leading-none" @click="detail = null">✕</button>
@@ -154,7 +161,7 @@
         const search = ref('')
         const expanded = ref(new Set())
         const done = ref(loadDone())
-        const shuffleSeed = ref(0)
+        const shuffleSeed = ref(1)
         const detail = ref(null)
 
         function saveDone() {
