@@ -3,32 +3,213 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hello World</title>
+  <title>CET4 单词学习</title>
   <script src="https://cdn.staticfile.net/tailwindcss-browser/4.1.13/index.global.js"></script>
   <script src="https://cdn.staticfile.net/vue/3.5.22/vue.global.prod.min.js"></script>
+  <style>[v-cloak] { display: none }</style>
 </head>
-<body class="bg-sky-50">
-  <div id="app" class="min-h-screen flex items-center justify-center p-6">
-    <div class="bg-white rounded-2xl shadow-lg shadow-sky-200/50 p-10 text-center max-w-md w-full">
-      <h1 class="text-4xl font-bold text-sky-600">{{ message }}</h1>
-      <p class="mt-3 text-slate-500">Express + Vue 3 + Tailwind CSS 4</p>
+<body class="bg-sky-50 min-h-screen text-slate-700">
+  <div id="app" v-cloak>
+    <header class="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-sky-100">
+      <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
+        <div class="flex rounded-full bg-sky-100 p-1 text-sm">
+          <button
+            class="px-4 py-1.5 rounded-full transition"
+            :class="view === 'default' ? 'bg-white text-sky-700 shadow-sm font-medium' : 'text-sky-600'"
+            @click="view = 'default'">学习中 {{ words.length - done.size }}</button>
+          <button
+            class="px-4 py-1.5 rounded-full transition"
+            :class="view === 'done' ? 'bg-white text-sky-700 shadow-sm font-medium' : 'text-sky-600'"
+            @click="view = 'done'">已学会 {{ done.size }}</button>
+        </div>
 
-      <button
-        class="mt-8 px-6 py-2.5 rounded-full bg-sky-500 text-white font-medium hover:bg-sky-600 active:scale-95 transition"
-        @click="count++">
-        点击了 {{ count }} 次
-      </button>
+        <input v-model="search" placeholder="搜索单词或中文…"
+          class="flex-1 min-w-[12rem] px-4 py-1.5 rounded-full border border-sky-200 bg-white text-sm outline-none focus:border-sky-400">
+
+        <button @click="toggleMode"
+          class="px-4 py-1.5 rounded-full bg-white border border-sky-200 text-sm text-sky-700 hover:bg-sky-50">
+          {{ mode === 'compact' ? '紧凑' : '完整' }}
+        </button>
+
+        <button @click="reshuffle"
+          class="px-4 py-1.5 rounded-full bg-white border border-sky-200 text-sm text-sky-700 hover:bg-sky-50">
+          🔀 乱序
+        </button>
+      </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 py-6">
+      <div v-if="loading" class="text-center py-16 text-slate-400">加载中…</div>
+      <div v-else-if="!displayList.length" class="text-center py-16 text-slate-400">无匹配单词</div>
+      <table v-else class="w-full bg-white rounded-2xl shadow-sm overflow-hidden">
+        <thead class="bg-sky-50 text-sky-700 text-sm">
+          <tr>
+            <th class="px-4 py-3 text-left">单词</th>
+            <th class="px-4 py-3 text-left">音标</th>
+            <th class="px-4 py-3 text-left">释义</th>
+            <th class="px-4 py-3 text-right">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="w in displayList" :key="w.word" class="border-t border-sky-50 hover:bg-sky-50/50 align-top">
+            <td class="px-4 py-3 font-semibold text-sky-700">{{ w.word }}</td>
+            <td class="px-4 py-3 text-slate-500 text-sm whitespace-nowrap">
+              <div v-if="w.ukphone">英 /{{ w.ukphone }}/</div>
+              <div v-if="w.usphone">美 /{{ w.usphone }}/</div>
+            </td>
+            <td class="px-4 py-3">
+              <template v-if="mode === 'full' || expanded.has(w.word)">
+                <div v-for="(t, i) in w.trans" :key="i" class="text-sm">
+                  <span class="text-sky-600 font-medium mr-1">{{ t.pos }}.</span>{{ t.cn }}
+                </div>
+              </template>
+              <button v-else class="text-xs text-sky-500 hover:underline" @click="expand(w.word)">显示释义</button>
+            </td>
+            <td class="px-4 py-3 text-right whitespace-nowrap text-xs space-x-1">
+              <button class="px-2 py-1 rounded hover:bg-sky-100" title="英音" @click="play(w.word, 1)">🔊英</button>
+              <button class="px-2 py-1 rounded hover:bg-sky-100" title="美音" @click="play(w.word, 2)">🔊美</button>
+              <button class="px-2 py-1 rounded text-sky-600 hover:bg-sky-100" @click="openDetail(w.word)">详情</button>
+              <button v-if="view === 'default'" class="px-2 py-1 rounded text-emerald-600 hover:bg-emerald-50"
+                @click="markDone(w.word)">✓ Done</button>
+              <button v-else class="px-2 py-1 rounded text-amber-600 hover:bg-amber-50"
+                @click="markUndone(w.word)">↺ 还原</button>
+              <button v-if="mode === 'compact' && expanded.has(w.word)"
+                class="px-2 py-1 rounded text-slate-400 hover:bg-slate-100" @click="collapse(w.word)">隐藏</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </main>
+
+    <div v-if="detail" class="fixed inset-0 z-20 bg-slate-900/40 flex items-center justify-center p-4"
+      @click.self="detail = null">
+      <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6">
+        <div class="flex items-start justify-between">
+          <div>
+            <h2 class="text-2xl font-bold text-sky-700">{{ detail.word }}</h2>
+            <div class="text-sm text-slate-500 mt-1">
+              <span v-if="detail.ukphone">英 /{{ detail.ukphone }}/</span>
+              <span v-if="detail.usphone" class="ml-3">美 /{{ detail.usphone }}/</span>
+            </div>
+            <div class="mt-2 space-x-2 text-sm">
+              <button class="px-2 py-1 rounded hover:bg-sky-100" @click="play(detail.word, 1)">🔊 英音</button>
+              <button class="px-2 py-1 rounded hover:bg-sky-100" @click="play(detail.word, 2)">🔊 美音</button>
+            </div>
+          </div>
+          <button class="text-slate-400 hover:text-slate-600 text-xl leading-none" @click="detail = null">✕</button>
+        </div>
+
+        <section class="mt-5">
+          <h3 class="font-semibold text-sky-600">释义</h3>
+          <div v-for="(t, i) in detail.trans" :key="i" class="mt-2">
+            <span class="text-sky-600 font-medium">{{ t.pos }}.</span> {{ t.cn }}
+            <div v-if="t.other" class="text-sm text-slate-500 ml-4">{{ t.other }}</div>
+          </div>
+        </section>
+
+        <section v-if="detail.sentence.length" class="mt-5">
+          <h3 class="font-semibold text-sky-600">例句</h3>
+          <div v-for="(s, i) in detail.sentence" :key="i" class="mt-2">
+            <div>{{ s.en }}</div>
+            <div class="text-sm text-slate-500">{{ s.cn }}</div>
+          </div>
+        </section>
+
+        <section v-if="detail.phrase.length" class="mt-5">
+          <h3 class="font-semibold text-sky-600">短语</h3>
+          <div v-for="(p, i) in detail.phrase" :key="i" class="mt-2">
+            <span class="font-medium">{{ p.en }}</span> — {{ p.cn }}
+          </div>
+        </section>
+
+        <section v-if="detail.syno.length" class="mt-5">
+          <h3 class="font-semibold text-sky-600">同近义词</h3>
+          <div v-for="(s, i) in detail.syno" :key="i" class="mt-1 text-sm">
+            <span class="text-sky-600">{{ s.pos }}.</span> {{ s.tran }} — {{ s.hwds.join(', ') }}
+          </div>
+        </section>
+
+        <section v-if="detail.remMethod" class="mt-5">
+          <h3 class="font-semibold text-sky-600">记忆方法</h3>
+          <p class="text-sm text-slate-600 mt-1">{{ detail.remMethod }}</p>
+        </section>
+      </div>
     </div>
   </div>
 
   <script>
-    const { createApp, ref } = Vue
+    const { createApp, ref, computed, onMounted, triggerRef } = Vue
+
+    function loadDone() {
+      try { return new Set(JSON.parse(localStorage.getItem('cet4-done') || '[]')) }
+      catch { return new Set() }
+    }
 
     createApp({
       setup() {
+        const words = ref([])
+        const loading = ref(true)
+        const view = ref('default')
+        const mode = ref('compact')
+        const search = ref('')
+        const expanded = ref(new Set())
+        const done = ref(loadDone())
+        const shuffleSeed = ref(0)
+        const detail = ref(null)
+
+        function saveDone() {
+          done.value = new Set(done.value)
+          localStorage.setItem('cet4-done', JSON.stringify([...done.value]))
+        }
+
+        onMounted(async () => {
+          const r = await fetch('/api/words')
+          words.value = await r.json()
+          loading.value = false
+        })
+
+        const displayList = computed(() => {
+          const q = search.value.trim().toLowerCase()
+          let arr = words.value.filter(w =>
+            view.value === 'done' ? done.value.has(w.word) : !done.value.has(w.word))
+          if (q) arr = arr.filter(w =>
+            w.word.toLowerCase().includes(q) ||
+            w.trans.some(t => (t.cn || '').toLowerCase().includes(q))
+          )
+          if (shuffleSeed.value) {
+            arr = arr.slice()
+            for (let i = arr.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1))
+              ;[arr[i], arr[j]] = [arr[j], arr[i]]
+            }
+          }
+          return arr
+        })
+
+        function play(word, type) {
+          new Audio(`https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(word)}&type=${type}`).play()
+        }
+
+        async function openDetail(word) {
+          detail.value = null
+          const r = await fetch(`/api/words/${encodeURIComponent(word)}`)
+          if (!r.ok) return
+          detail.value = await r.json()
+        }
+
+        const expand = w => { expanded.value.add(w); triggerRef(expanded) }
+        const collapse = w => { expanded.value.delete(w); triggerRef(expanded) }
+        const markDone = w => { done.value.add(w); saveDone() }
+        const markUndone = w => { done.value.delete(w); saveDone() }
+        const reshuffle = () => shuffleSeed.value++
+        const toggleMode = () => { mode.value = mode.value === 'compact' ? 'full' : 'compact' }
+
         return {
-          message: ref('Hello World'),
-          count: ref(0),
+          words, loading, view, mode, search, detail,
+          expanded: computed(() => expanded.value),
+          done: computed(() => done.value),
+          displayList, play, openDetail, expand, collapse,
+          markDone, markUndone, reshuffle, toggleMode,
         }
       }
     }).mount('#app')
