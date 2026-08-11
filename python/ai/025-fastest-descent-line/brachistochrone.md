@@ -250,7 +250,7 @@ $$0 - \frac{d}{dx}(2y') = 0 \;\Longleftrightarrow\; \frac{d}{dx}(2y') = 0 \;\Lon
 
 整条链其实就是两个动作：**移负号**把 $0$ 移到右边，**认出 $y''$** 把 $\dfrac{dy'}{dx}$ 替换成 $y''$。常数 2 直接约掉。
 
-**积分求解**：$y'' = 0$ 是二阶 ODE，几何含义是"斜率不变"——所以曲线一定是直线。积分两次：
+**积分求解**：$y'' = 0$ 是一个**二阶 ODE**（Ordinary Differential Equation，常微分方程——只含对单一自变量 $x$ 的导数；阶数 = 最高导数的阶数）。它的几何含义是"斜率不变"——所以曲线一定是直线。积分两次：
 
 $$y''(x) = 0 \;\xrightarrow{\int dx}\; y'(x) = C_1 \;\xrightarrow{\int dx}\; y(x) = C_1 x + C_2$$
 
@@ -569,4 +569,61 @@ python figures.py N        # 只生成第 N 张（N=1~6）
 ```
 
 生成的图片会保存到当前目录，文件名 `figure1.png` 到 `figure6.png`，直接被上面的 Markdown 引用。
+
+---
+
+## 附录：常用术语速查
+
+### ODE（Ordinary Differential Equation，常微分方程）
+
+含对**单一自变量**的导数的方程。"常"对应 *ordinary*，对应普通导数符号 $d/dx$。
+
+**判断特征**：
+- 只出现全导数符号 $d/dx$、$d^2/dx^2$
+- 未知函数只依赖一个自变量（如 $y(x)$）
+
+**阶数** = 最高阶导数的阶数。
+
+**例子**：
+- $y' + 2y = 0$：一阶
+- $y'' = 0$：二阶
+- $y^{(4)} + y = x$：四阶
+
+**标准解法**：积分 $n$ 次（$n$ = 阶数）得 $n$ 个积分常数，再用 $n$ 个条件（初始 / 边界）定常数。
+
+### PDE（Partial Differential Equation，偏微分方程）
+
+含对**多个自变量**的偏导数的方程。"偏"对应 *partial*，对应偏导符号 $\partial$。
+
+**判断特征**：
+- 出现偏导符号 $\partial$
+- 未知函数依赖多个自变量（如 $u(t,x)$）
+
+**例子**：
+- $\dfrac{\partial u}{\partial t} = \dfrac{\partial^2 u}{\partial x^2}$：热传导方程
+- $\dfrac{\partial^2 u}{\partial t^2} = c^2 \dfrac{\partial^2 u}{\partial x^2}$：波动方程
+- $\nabla^2 u = 0$：拉普拉斯方程（$\nabla^2 = \partial^2/\partial x^2 + \partial^2/\partial y^2 + \partial^2/\partial z^2$）
+
+### 速查对照表
+
+| | ODE | PDE |
+|---|---|---|
+| 中文 | 常微分方程 | 偏微分方程 |
+| 自变量数 | 1 个 | ≥ 2 个 |
+| 导数符号 | $d/dx$（全导数） | $\partial/\partial x$（偏导） |
+| 典型学科 | 经典力学、电路 | 流体力学、量子力学、电磁学 |
+| 通用解法 | 积分 | 分离变量、特征线、有限元… |
+
+### 为什么最速降线是 ODE 不是 PDE
+
+最速降线的 E-L 方程是：
+
+$$\frac{\partial L}{\partial y} - \frac{d}{dx}\frac{\partial L}{\partial y'} = 0$$
+
+这里**两种符号**混在一起：
+
+- $\partial L / \partial y$：偏导——但被偏的是 $L(x,y,y')$ 这个把 $(x,y,y')$ 当独立量的辅助函数，不是 $y(x)$ 本身
+- $\dfrac{d}{dx}\dfrac{\partial L}{\partial y'}$：全导数——这才是真正的 ODE 特征
+
+整个方程只有一个真正的自变量 $x$，所以归类为 ODE，不是 PDE。
 
