@@ -240,7 +240,15 @@ $$\boxed{\frac{\partial L}{\partial y} - \frac{d}{dx} \frac{\partial L}{\partial
 - $\partial L / \partial y$：把 $x$ 和 $y'$ 冻住，只对 $y$ 求偏导。因为 $L$ 里压根没有 $y$，所以 $\partial L/\partial y = 0$。
 - $\partial L / \partial y'$：把 $x$ 和 $y$ 冻住，只对 $y'$ 求偏导。这就是普通的幂函数求导：$(y')^2 \to 2y'$。
 
-E-L 方程：$\;0 - \dfrac{d}{dx}(2y') = 0\;$，即 $y'' = 0$。
+E-L 方程：$\;0 - \dfrac{d}{dx}(2y') = 0\;$。
+
+把它展开来看——一共四步等价变形：
+
+$$0 - \frac{d}{dx}(2y') = 0 \;\Longleftrightarrow\; \frac{d}{dx}(2y') = 0 \;\Longleftrightarrow\; 2\,\frac{dy'}{dx} = 0 \;\Longleftrightarrow\; 2y'' = 0 \;\Longleftrightarrow\; y'' = 0$$
+
+> 关键符号：**$\dfrac{dy'}{dx} = y''$**。$y'$ 本身是 $x$ 的函数，对它再求一次关于 $x$ 的导数，就是 $y$ 的二阶导数 $y'' = \dfrac{d^2 y}{dx^2}$。
+
+整条链其实就是两个动作：**移负号**把 $0$ 移到右边，**认出 $y''$** 把 $\dfrac{dy'}{dx}$ 替换成 $y''$。常数 2 直接约掉。
 
 解得 $y(x) = x$（直线）。验证：从 $(0,0)$ 到 $(1,1)$ 的最短路径就是直线——和我们"两点之间线段最短"的直觉一致。
 
