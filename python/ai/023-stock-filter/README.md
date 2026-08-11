@@ -23,3 +23,9 @@ https://www.joinquant.com/view/factorlib/list
 1. 中位数去极值 —— 避免个别营收暴增/暴降的妖股带偏
 2. 行业市值对数中性化 —— 🔑 消除了"小盘股+特定行业"的双重污染，让 SGI 反映的是纯粹的营收增长，而不是"买小盘股"或"押某个行业"
 3. zscore 标准化 —— 让不同截面期可以比较
+
+
+多因子基础及流程学习
+https://www.joinquant.com/view/community/detail/ae7a9d66145d20732146caef58e4fc95?type=1
+【有用功】从单因子到策略
+https://www.joinquant.com/view/community/detail/bcde6092a40c993ba697c70d5477cb89
