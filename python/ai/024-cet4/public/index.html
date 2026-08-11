@@ -54,14 +54,15 @@
           <tr v-for="w in displayList" :key="w.word" class="border-t border-sky-50 hover:bg-sky-50/50 align-top">
             <td class="px-4 py-3">
               <button class="font-semibold text-sky-700 hover:underline break-all text-left" @click="openDetail(w.word)">{{ w.word }}</button>
+              <div v-if="view === 'done'" class="text-xs text-slate-400 mt-0.5">{{ doneTime(w.word) }}</div>
             </td>
             <td class="px-4 py-3 text-slate-500 text-sm">
-              <span v-if="w.ukphone" class="mr-3 inline-block">
-                UK /{{ w.ukphone }}/
+              <span class="mr-3 inline-block">
+                UK <template v-if="w.ukphone || w.phone">/{{ w.ukphone || w.phone }}/</template>
                 <button class="px-1 rounded hover:bg-sky-100" title="英音" @click="play(w.word, 1)">🔊</button>
               </span>
-              <span v-if="w.usphone" class="inline-block">
-                US /{{ w.usphone }}/
+              <span class="inline-block">
+                US <template v-if="w.usphone || w.phone">/{{ w.usphone || w.phone }}/</template>
                 <button class="px-1 rounded hover:bg-sky-100" title="美音" @click="play(w.word, 2)">🔊</button>
               </span>
             </td>
@@ -93,12 +94,12 @@
           <div>
             <h2 class="text-2xl font-bold text-sky-700">{{ detail.word }}</h2>
             <div class="text-sm text-slate-500 mt-1">
-              <span v-if="detail.ukphone">
-                UK /{{ detail.ukphone }}/
+              <span>
+                UK <template v-if="detail.ukphone || detail.phone">/{{ detail.ukphone || detail.phone }}/</template>
                 <button class="px-1 rounded hover:bg-sky-100" title="英音" @click="play(detail.word, 1)">🔊</button>
               </span>
-              <span v-if="detail.usphone" class="ml-3">
-                US /{{ detail.usphone }}/
+              <span class="ml-3">
+                US <template v-if="detail.usphone || detail.phone">/{{ detail.usphone || detail.phone }}/</template>
                 <button class="px-1 rounded hover:bg-sky-100" title="美音" @click="play(detail.word, 2)">🔊</button>
               </span>
             </div>
@@ -147,9 +148,15 @@
   <script>
     const { createApp, ref, computed, onMounted, triggerRef } = Vue
 
+    const LEGACY_TIME = Date.parse('2000-01-01T00:00:00')
+
+    // 存储格式：{ word: 学会时间(ms) }；兼容旧的字符串数组（按 2000-01-01 计）
     function loadDone() {
-      try { return new Set(JSON.parse(localStorage.getItem('cet4-done') || '[]')) }
-      catch { return new Set() }
+      try {
+        const raw = JSON.parse(localStorage.getItem('cet4-done') || '{}')
+        if (Array.isArray(raw)) return new Map(raw.map(w => [w, LEGACY_TIME]))
+        return new Map(Object.entries(raw).map(([w, t]) => [w, Number(t) || LEGACY_TIME]))
+      } catch { return new Map() }
     }
 
     createApp({
@@ -165,12 +172,12 @@
         const detail = ref(null)
 
         function saveDone() {
-          done.value = new Set(done.value)
-          localStorage.setItem('cet4-done', JSON.stringify([...done.value]))
+          done.value = new Map(done.value)
+          localStorage.setItem('cet4-done', JSON.stringify(Object.fromEntries(done.value)))
         }
 
         onMounted(async () => {
-          const r = await fetch('/api/words')
+          const r = await fetch('/words.json')
           words.value = await r.json()
           loading.value = false
         })
@@ -195,8 +202,20 @@
             w.word.toLowerCase().includes(q) ||
             w.trans.some(t => (t.cn || '').toLowerCase().includes(q))
           )
+          // 已学会：按学会时间倒序
+          if (view.value === 'done') {
+            arr = arr.slice().sort((a, b) => done.value.get(b.word) - done.value.get(a.word))
+          }
           return arr
         })
+
+        function doneTime(word) {
+          const t = done.value.get(word)
+          if (!t) return ''
+          const d = new Date(t)
+          const p = n => String(n).padStart(2, '0')
+          return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
+        }
 
         function play(word, type) {
           new Audio(`https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(word)}&type=${type}`).play()
@@ -211,7 +230,7 @@
 
         const expand = w => { expanded.value.add(w); triggerRef(expanded) }
         const collapse = w => { expanded.value.delete(w); triggerRef(expanded) }
-        const markDone = w => { done.value.add(w); saveDone() }
+        const markDone = w => { done.value.set(w, Date.now()); saveDone() }
         const markUndone = w => { done.value.delete(w); saveDone() }
         const reshuffle = () => shuffleSeed.value++
         const toggleMode = () => { mode.value = mode.value === 'compact' ? 'full' : 'compact' }
@@ -220,7 +239,7 @@
           words, loading, view, mode, search, detail,
           expanded: computed(() => expanded.value),
           done: computed(() => done.value),
-          displayList, play, openDetail, expand, collapse,
+          displayList, play, openDetail, expand, collapse, doneTime,
           markDone, markUndone, reshuffle, toggleMode,
         }
       }

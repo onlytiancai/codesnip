@@ -27,7 +27,11 @@ function listWords() {
     word: c.wordHead,
     usphone: c.content?.usphone || '',
     ukphone: c.content?.ukphone || '',
-    trans: mapTrans(c.content?.trans),
+    phone: c.content?.phone || '',
+    trans: (c.content?.trans || []).map(t => ({
+      pos: t.pos || '',
+      cn: t.tranCn || '',
+    })),
   }))
 }
 
@@ -39,6 +43,7 @@ function detailOf(head) {
     word: c.wordHead,
     usphone: x.usphone || '',
     ukphone: x.ukphone || '',
+    phone: x.phone || '',
     trans: mapTrans(x.trans),
     sentence: (x.sentence?.sentences || []).map(s => ({
       en: s.sContent || '',

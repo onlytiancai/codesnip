@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:words": "node scripts/build-words.js",
     "start": "node server.js"
   },
   "dependencies": {
