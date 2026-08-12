@@ -279,7 +279,19 @@ $$y''(x) = 0 \;\xrightarrow{\int dx}\; y'(x) = C_1 \;\xrightarrow{\int dx}\; y(x
 >
 > 同样是"两点之间"找最优，对**不同的泛函**结果可能完全不同。最速降线用的是最下面那条**时间泛函**，它的被积函数里多了一个 $\sqrt{2gy}$——意味着**斜率**和**位置 $y$ 本身**对时间的贡献不对称。直线在这条泛函下只是"折中"，而摆线更懂得"先用陡坡换速度、再用平坡拉远横向距离"，所以才最快。
 >
-> 另外，"假装 $y$ 和 $y'$ 独立"只是计算技巧；最终得到的 $y''=0$ 是一个**常微分方程**，它的解会自动满足 $y' = dy/dx$ 这个关系——也就是说，"偏导为零"和"承认依赖"在 E-L 这套理论里是等价的。
+> 另外，关于"假装 $y$ 和 $y'$ 独立"——其实**不是 trick，是形式偏导的本来意义**。
+>
+> 当写 $L = L(x, y, y')$ 时，$L$ 在形式上是**三个符号** $(x, y, y')$ 的函数。$\partial L/\partial y$ 的定义就是"**固定另外两个符号，只对 $y$ 求导**"——这是一个纯代数操作，跟 $y$ 和 $y'$ 在实际意义上是不是独立无关。
+>
+> 把这些形式偏导代入 E-L 方程，得到的是一个**关于 $y(x)$ 的 ODE**（这里是 $y''=0$）。ODE 的解 $y(x)$ 自然满足 $y' = dy/dx$——这是 ODE 求解的天然属性，不是额外约束。
+>
+> **关键桥接是扰动 $y_\varepsilon = y + \varepsilon\eta$**：当 $\varepsilon$ 变化时，扰动量 $\varepsilon\eta$ 和它的导数 $\varepsilon\eta'$ 在函数空间里是两个独立的方向（一个动函数值，一个动斜率）。所以形式上把 $y$ 和 $y'$ 当独立量算偏导，等价于在**扰动空间**里沿独立方向求导——这才是 E-L 算法正确的真正原因。
+>
+> 总结一下三个层面：
+>
+> - **代数层面**：$\partial L/\partial y$ 是形式偏导（按定义算）
+> - **ODE 层面**：解出来的 $y(x)$ 自动有 $y' = dy/dx$
+> - **变分层面**：扰动 $\eta$ 和 $\eta'$ 在函数空间里独立，所以形式偏导法等价于真实约束法
 
 ### 3.5 先看个数值证据
 
@@ -437,11 +449,41 @@ $$\boxed{\begin{cases} x(\theta) = a(\theta - \sin \theta) \\ y(\theta) = a(1 - 
 
 $$s = \int_\alpha^\beta \sqrt{\left(\frac{dx}{d\theta}\right)^2 + \left(\frac{dy}{d\theta}\right)^2} \, d\theta$$
 
-### 6.2 代入
+### 6.2 求导代入
 
-对摆线：
+从 [4.5 节](025-fastest-descent-line/brachistochrone.md#L395) 的摆线参数方程出发：
 
-$$\frac{dx}{d\theta} = a(1 - \cos\theta), \quad \frac{dy}{d\theta} = a \sin\theta$$
+$$x(\theta) = a(\theta - \sin\theta), \quad y(\theta) = a(1 - \cos\theta)$$
+
+**对 $x(\theta)$ 求导**：常数 $a$ 提到外面，对括号里逐项微分：
+
+$$\frac{dx}{d\theta} = a \cdot \frac{d}{d\theta}(\theta - \sin\theta) = a(1 - \cos\theta)$$
+
+其中：
+- $\dfrac{d}{d\theta}(\theta) = 1$
+- $\dfrac{d}{d\theta}(\sin\theta) = \cos\theta$
+
+**对 $y(\theta)$ 求导**：同样逐项微分：
+
+$$\frac{dy}{d\theta} = a \cdot \frac{d}{d\theta}(1 - \cos\theta) = a\sin\theta$$
+
+其中：
+- $\dfrac{d}{d\theta}(1) = 0$（常数项消失）
+- $\dfrac{d}{d\theta}(-\cos\theta) = -(-\sin\theta) = \sin\theta$
+
+合起来：
+
+$$\boxed{\frac{dx}{d\theta} = a(1 - \cos\theta), \quad \frac{dy}{d\theta} = a \sin\theta}$$
+
+> **直觉核对**：
+>
+> | $\theta$ | 物理含义 | $dx/d\theta$ | $dy/d\theta$ | 说明 |
+> |---|---|---|---|---|
+> | $0$ | 起点（底部） | $0$ | $0$ | 水平和垂直速度都为零——正要启动 |
+> | $\pi$ | 拱顶（最高点） | $2a$ | $0$ | 水平速度最大，垂直速度归零 |
+> | $2\pi$ | 终点（底部） | $0$ | $0$ | 又一个"暂停"瞬间 |
+>
+> 注意 $\theta=0$ 处 $dx/d\theta=0$——分母为零意味着斜率 $dy/dx \to \infty$，对应 1.2 节说的"起点切线垂直"；$\theta=\pi$ 处 $dy/d\theta=0$——分子为零意味着斜率 $dy/dx = 0$，对应"终点切线水平"。求导结果和前面的几何直觉是自洽的。
 
 $$\left(\frac{dx}{d\theta}\right)^2 + \left(\frac{dy}{d\theta}\right)^2 = a^2(1 - \cos\theta)^2 + a^2 \sin^2\theta$$
 
