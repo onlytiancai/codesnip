@@ -362,27 +362,27 @@ $$dy = a \sin \theta \, d\theta$$
 
 $$1 + (y')^2 = \frac{2a}{y} = \frac{2a}{a(1-\cos\theta)} = \frac{2}{1 - \cos\theta}$$
 
-利用 $1 - \cos\theta = 2\sin^2(\theta/2)$，所以：
+利用 $1 - \cos\theta = 2\sin^2\left(\dfrac{\theta}{2}\right)$，所以：
 
-$$1 + (y')^2 = \frac{1}{\sin^2(\theta/2)}$$
+$$1 + (y')^2 = \frac{1}{\sin^2\left(\dfrac{\theta}{2}\right)}$$
 
 即：
 
-$$(y')^2 = \frac{1}{\sin^2(\theta/2)} - 1 = \frac{1 - \sin^2(\theta/2)}{\sin^2(\theta/2)} = \frac{\cos^2(\theta/2)}{\sin^2(\theta/2)}$$
+$$(y')^2 = \frac{1}{\sin^2\left(\dfrac{\theta}{2}\right)} - 1 = \frac{1 - \sin^2\left(\dfrac{\theta}{2}\right)}{\sin^2\left(\dfrac{\theta}{2}\right)} = \frac{\cos^2\left(\dfrac{\theta}{2}\right)}{\sin^2\left(\dfrac{\theta}{2}\right)}$$
 
-$$y' = \pm \frac{\cos(\theta/2)}{\sin(\theta/2)} = \pm \cot(\theta/2)$$
+$$y' = \pm \frac{\cos\left(\dfrac{\theta}{2}\right)}{\sin\left(\dfrac{\theta}{2}\right)} = \pm \cot\left(\dfrac{\theta}{2}\right)$$
 
 取正号（质点在 $\theta$ 增加时下落，$y$ 增加，$x$ 也增加）：
 
-$$y' = \cot(\theta/2)$$
+$$y' = \cot\left(\dfrac{\theta}{2}\right)$$
 
 又 $y' = \dfrac{dy/d\theta}{dx/d\theta}$，所以：
 
-$$\frac{dx}{d\theta} = \frac{dy/d\theta}{y'} = \frac{a \sin\theta}{\cot(\theta/2)} = a \sin\theta \cdot \tan(\theta/2)$$
+$$\frac{dx}{d\theta} = \frac{dy/d\theta}{y'} = \frac{a \sin\theta}{\cot\left(\dfrac{\theta}{2}\right)} = a \sin\theta \cdot \tan\left(\dfrac{\theta}{2}\right)$$
 
-用倍角公式 $\sin\theta = 2 \sin(\theta/2)\cos(\theta/2)$：
+用倍角公式 $\sin\theta = 2 \sin\left(\dfrac{\theta}{2}\right)\cos\left(\dfrac{\theta}{2}\right)$：
 
-$$\frac{dx}{d\theta} = a \cdot 2\sin(\theta/2)\cos(\theta/2) \cdot \frac{\sin(\theta/2)}{\cos(\theta/2)} = 2a \sin^2(\theta/2) = a(1 - \cos\theta)$$
+$$\frac{dx}{d\theta} = a \cdot 2\sin\left(\dfrac{\theta}{2}\right)\cos\left(\dfrac{\theta}{2}\right) \cdot \frac{\sin\left(\dfrac{\theta}{2}\right)}{\cos\left(\dfrac{\theta}{2}\right)} = 2a \sin^2\left(\dfrac{\theta}{2}\right) = a(1 - \cos\theta)$$
 
 > 注意：$dx/d\theta$ 恰好等于 $dy/d\theta$ 在 $x$ 上的对应物——这给出一个非常对称的结果。
 
@@ -421,7 +421,7 @@ $$\boxed{\begin{cases} x(\theta) = a(\theta - \sin \theta) \\ y(\theta) = a(1 - 
 
 参数 $\theta$ 从 0 到 $2\pi$，对应轮子刚好转一圈，轨迹是一个**摆线拱（cycloid arch）**，长 $2\pi a$，最高 $2a$。
 
-- 起拱点：$(0, 0)$，切线垂直（$dy/dx = \cot(\theta/2)$ 在 $\theta\to 0$ 时趋于 $\infty$）。
+- 起拱点：$(0, 0)$，切线垂直（$dy/dx = \cot\left(\dfrac{\theta}{2}\right)$ 在 $\theta\to 0$ 时趋于 $\infty$）。
 - 拱顶：$(\pi a, 2a)$，切线水平。
 - 落拱点：$(2\pi a, 0)$，切线又垂直。
 
@@ -487,29 +487,66 @@ $$\boxed{\frac{dx}{d\theta} = a(1 - \cos\theta), \quad \frac{dy}{d\theta} = a \s
 
 $$\left(\frac{dx}{d\theta}\right)^2 + \left(\frac{dy}{d\theta}\right)^2 = a^2(1 - \cos\theta)^2 + a^2 \sin^2\theta$$
 
-展开 $(1 - \cos\theta)^2 = 1 - 2\cos\theta + \cos^2\theta$，与 $\sin^2\theta$ 相加：
+> **这两项从哪里来**：不是凭空凑的——是直接把 $(dx/d\theta)^2$ 和 $(dy/d\theta)^2$ 分别代入 [6.2 节](025-fastest-descent-line/brachistochrone.md#L452) 算出的结果。第一项来自 $dx/d\theta = a(1-\cos\theta)$ 平方，第二项来自 $dy/d\theta = a\sin\theta$ 平方。"加 $\sin^2\theta$" 其实是说"把 $(dy/d\theta)^2$ 这一项也写出来"。
 
-$$1 - 2\cos\theta + \cos^2\theta + \sin^2\theta = 1 - 2\cos\theta + 1 = 2(1 - \cos\theta)$$
+**第一步：把 $a^2$ 提到外面**
 
-所以：
+两项都含 $a^2$，提出来：
 
-$$\sqrt{\left(\frac{dx}{d\theta}\right)^2 + \left(\frac{dy}{d\theta}\right)^2} = a\sqrt{2(1-\cos\theta)}$$
+$$a^2\big[(1 - \cos\theta)^2 + \sin^2\theta\big]$$
+
+> 提了 $a^2$ 之后，第二项就只剩 $\sin^2\theta$ 自己了——这也是为什么下面展开式中没有 $a^2$。
+
+**第二步：展开 $(1 - \cos\theta)^2$，与 $\sin^2\theta$ 相加**
+
+$$a^2\big[\underbrace{1 - 2\cos\theta + \cos^2\theta}_{(1-\cos\theta)^2 \text{展开}} + \sin^2\theta\big]$$
+
+**第三步：用 $\cos^2\theta + \sin^2\theta = 1$ 消项**
+
+$$a^2\big[1 - 2\cos\theta + \underbrace{\cos^2\theta + \sin^2\theta}_{=1}\big] = a^2(1 - 2\cos\theta + 1) = 2a^2(1 - \cos\theta)$$
+
+> **关键恒等式**：$\cos^2\theta + \sin^2\theta = 1$（来自单位圆定义）。没有它，多出来的两项消不掉，整个化简就进行不下去。这一步是整个弧长公式能化到 $\sqrt{1-\cos\theta}$ 形式的"魔法"。
+
+**第四步：开方**
+
+$$\sqrt{\left(\frac{dx}{d\theta}\right)^2 + \left(\frac{dy}{d\theta}\right)^2} = \sqrt{2a^2(1 - \cos\theta)} = a\sqrt{2(1 - \cos\theta)}$$
+
+> 这里又有一个隐含动作：$\sqrt{a^2} = a$（因为 $a > 0$）——所以开方后 $a$ 留在外面、$a^2$ 变成 $a$。整个化简有两条"提取"：**进积分前提 $a^2$**、**出积分后提 $a$**。
+
+所以最终：
+
+$$\boxed{\sqrt{\left(\frac{dx}{d\theta}\right)^2 + \left(\frac{dy}{d\theta}\right)^2} = a\sqrt{2(1-\cos\theta)}}$$
 
 ### 6.3 半角公式
 
-$$1 - \cos\theta = 2\sin^2(\theta/2)$$
+$$1 - \cos\theta = 2\sin^2\left(\dfrac{\theta}{2}\right)$$
 
-$$\sqrt{2(1-\cos\theta)} = \sqrt{4\sin^2(\theta/2)} = 2|\sin(\theta/2)|$$
+$$\sqrt{2(1-\cos\theta)} = \sqrt{4\sin^2\left(\dfrac{\theta}{2}\right)} = 2\left|\sin\left(\dfrac{\theta}{2}\right)\right|$$
 
-在 $[0, 2\pi]$ 上，$\sin(\theta/2) \geq 0$，所以绝对值可以去掉：
+在 $[0, 2\pi]$ 上，$\sin\left(\dfrac{\theta}{2}\right) \geq 0$，所以绝对值可以去掉：
 
-$$\sqrt{\left(\frac{dx}{d\theta}\right)^2 + \left(\frac{dy}{d\theta}\right)^2} = 2a \sin(\theta/2)$$
+$$\sqrt{\left(\frac{dx}{d\theta}\right)^2 + \left(\frac{dy}{d\theta}\right)^2} = 2a \sin\left(\dfrac{\theta}{2}\right)$$
 
 ### 6.4 积分
 
-$$s = \int_0^{2\pi} 2a \sin(\theta/2) \, d\theta$$
+$$s = \int_0^{2\pi} 2a \sin\left(\dfrac{\theta}{2}\right) \, d\theta$$
 
-$$= 2a \left[ -2\cos(\theta/2) \right]_0^{2\pi}$$
+**先算不定积分 $\int \sin(\theta/2)\,d\theta$**：用换元 $u = \theta/2$，则 $du = \dfrac{1}{2}d\theta$，即 $d\theta = 2\,du$：
+
+$$\int \sin\left(\dfrac{\theta}{2}\right) d\theta = \int \sin(u) \cdot 2 \, du = 2\int \sin(u) \, du = 2\big(-\cos u + C\big) = -2\cos u + C = -2\cos\left(\dfrac{\theta}{2}\right) + C$$
+
+> **拆开看每一步**：
+>
+> 1. **常数可提出**：$\int 2\sin(u)\,du = 2\int \sin(u)\,du$——常数 $2$ 不参与积分运算，提到外面。
+> 2. **标准积分公式**：$\int \sin u \, du = -\cos u + C$（基本积分表里的）。
+> 3. **乘回去**：$2 \cdot (-\cos u + C) = -2\cos u + 2C$。
+> 4. **重新命名常数**：$2C$ 仍是任意常数（任意常数的任意倍仍是任意常数），记作 $C'$ 也行，但为统一写法就直接写成 $C$——这是个标准约定，不是逻辑漏洞。
+
+> **括号里的 $-2$ 从哪里来**：从换元那一步的 $d\theta = 2\,du$——把 $d\theta$ 换成 $du$ 时多出来的系数。等价地理解：$\dfrac{d}{d\theta}(\theta/2) = 1/2$，链式法则反过来要除以 $1/2$（即乘 $2$）来补偿——补偿因子 = $\dfrac{1}{\text{内层导数}}$。
+
+代回原式（$2a$ 是常数提到外面）：
+
+$$= 2a \left[ -2\cos\left(\dfrac{\theta}{2}\right) \right]_0^{2\pi}$$
 
 $$= 2a \left[ -2\cos(\pi) - (-2\cos 0) \right]$$
 
@@ -682,4 +719,48 @@ $$\frac{\partial L}{\partial y} - \frac{d}{dx}\frac{\partial L}{\partial y'} = 0
 - $\dfrac{d}{dx}\dfrac{\partial L}{\partial y'}$：全导数——这才是真正的 ODE 特征
 
 整个方程只有一个真正的自变量 $x$，所以归类为 ODE，不是 PDE。
+
+---
+
+## 附录：常用积分速查
+
+### 核心直觉：积分是求导的逆运算
+
+$\displaystyle\int f(u)\,du$ 的意思是：找一个函数 $F(u)$，让 $F'(u) = f(u)$。$F$ 叫 $f$ 的**原函数**或**反导数**。
+
+知道这个后，$\int \sin u \, du = -\cos u + C$ 就非常自然：
+
+1. 先看 $\dfrac{d}{du}(\cos u)$：由链式法则，$\dfrac{d}{du}(\cos u) = -\sin u$
+2. 两边同时取负号：$\dfrac{d}{du}(-\cos u) = -(-\sin u) = \sin u$
+3. 所以 $-\cos u$ 就是 $\sin u$ 的原函数
+4. 加 $C$：任何常数 $C$ 求导都是 $0$，所以 $-\cos u + C$ 也都是原函数（这就是"一族"原函数的来源）
+
+把上面四步倒过来念，就是 $\int \sin u \, du = -\cos u + C$ 的由来——不是凭空记忆，而是"想一个求导能得到 $\sin u$ 的函数"。
+
+### 速查表
+
+下面这些公式都按"求导能还原"来验证，可以放心使用：
+
+| 积分 | 原函数 | 验证：原函数对 $u$ 求导 |
+|---|---|---|
+| $\displaystyle\int \sin u \, du$ | $-\cos u + C$ | $\dfrac{d}{du}(-\cos u) = -(-\sin u) = \sin u$ ✓ |
+| $\displaystyle\int \cos u \, du$ | $\sin u + C$ | $\dfrac{d}{du}(\sin u) = \cos u$ ✓ |
+| $\displaystyle\int u^n \, du$ （$n \ne -1$） | $\dfrac{u^{n+1}}{n+1} + C$ | $\dfrac{d}{du}\!\left(\dfrac{u^{n+1}}{n+1}\right) = \dfrac{(n+1)u^n}{n+1} = u^n$ ✓ |
+| $\displaystyle\int \dfrac{1}{u}\,du$ | $\ln\lvert u\rvert + C$ | $\dfrac{d}{du}\ln\lvert u\rvert = \dfrac{1}{u}$ ✓ |
+| $\displaystyle\int e^u \, du$ | $e^u + C$ | $\dfrac{d}{du}e^u = e^u$ ✓ |
+| $\displaystyle\int \sec^2 u \, du$ | $\tan u + C$ | $\dfrac{d}{du}\tan u = \sec^2 u$ ✓ |
+| $\displaystyle\int \dfrac{1}{\sqrt{1-u^2}}\,du$ | $\arcsin u + C$ | $\dfrac{d}{du}\arcsin u = \dfrac{1}{\sqrt{1-u^2}}$ ✓ |
+| $\displaystyle\int \dfrac{1}{1+u^2}\,du$ | $\arctan u + C$ | $\dfrac{d}{du}\arctan u = \dfrac{1}{1+u^2}$ ✓ |
+
+### 链式法则版的推广
+
+当被积函数里 $u$ 变成某个函数 $g(x)$（如 $\sin(3x)$ 而不是 $\sin u$），要补一个 $g'(x)$，这就是 6.4 节那个 $-2$ 的来源：
+
+$$\int f(g(x)) \cdot g'(x)\,dx = F(g(x)) + C$$
+
+比如 $\int \sin(\theta/2) \cdot \frac{1}{2}\,d\theta = -\cos(\theta/2) + C$——里面的 $\frac{1}{2}$ 就是 $g'(\theta)$，必须和外面的 $\sin(g(\theta))$ 配对才能直接套公式。
+
+### 为什么都有 $+C$
+
+任何常数 $C$ 求导都是 $0$，所以 $F(u)$ 和 $F(u)+C$ 都是同一 $f(u)$ 的原函数。积分给出的是一族曲线，不是唯一一条；这就是不定积分里"不定"的含义。
 
