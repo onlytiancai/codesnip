@@ -382,6 +382,16 @@ def plot_sensitivity(rows: list[dict], default_n: int, outpath: Path) -> None:
     fig.savefig(outpath, bbox_inches="tight")
     plt.close(fig)
 
+def monthly_returns(rets: dict[str, pd.Series]) -> dict[str, pd.DataFrame]:
+    """日收益 → {名称: 年份×月份 月度复利收益矩阵}（热力图与 CSV 共用）。"""
+    out = {}
+    for name, s in rets.items():
+        m = (1.0 + s.fillna(0.0)).resample("ME").prod() - 1.0   # 月内复利
+        df = pd.DataFrame({"year": m.index.year, "month": m.index.month, "ret": m.to_numpy()})
+        out[name] = df.pivot(index="year", columns="month", values="ret")
+    return out
+
+
 def plot_monthly_heatmap(rets: dict[str, pd.Series], outpath: Path) -> None:
     """月度收益热力图：年份 × 月份。
 
@@ -389,13 +399,8 @@ def plot_monthly_heatmap(rets: dict[str, pd.Series], outpath: Path) -> None:
     颜色深浅 = 收益幅度，零点为中性浅灰（diverging 双色 + 中性中点）。
     首末月（2016-08、2026-08）不完整，标题注明。
     """
-    def monthly(s: pd.Series) -> pd.DataFrame:
-        m = (1.0 + s.fillna(0.0)).resample("ME").prod() - 1.0   # 月内复利
-        df = pd.DataFrame({"year": m.index.year, "month": m.index.month, "ret": m.to_numpy()})
-        return df.pivot(index="year", columns="month", values="ret")
-
     names = list(rets.keys())
-    mats = [monthly(rets[n]) for n in names]
+    mats = [monthly_returns(rets)[n] for n in names]
     vmax = max(np.nanmax(np.abs(m.to_numpy())) for m in mats)
     vmax = max(vmax, 0.005)
     cmap = LinearSegmentedColormap.from_list(
@@ -541,16 +546,24 @@ def main() -> None:
     sc = breadth_scale(closes) if use_scale else None
     plot_main(closes, nav, port, bench, args.window, p1, scale=sc)
     plot_sensitivity(scan, args.window, p2)
-    plot_monthly_heatmap({"轮动策略": nav.pct_change(fill_method=None).fillna(0.0),
-                          "等权持有": bench["等权持有"].pct_change(fill_method=None).fillna(0.0)},
-                         p3)
+    ret_dict = {"轮动策略": nav.pct_change(fill_method=None).fillna(0.0),
+                "等权持有": bench["等权持有"].pct_change(fill_method=None).fillna(0.0)}
+    plot_monthly_heatmap(ret_dict, p3)
     print(f"\n图表已保存：{p1}  {p2}  {p3}")
 
     if args.save_csv:
         out = pd.DataFrame({"轮动策略": nav, **{n: s for n, s in bench.items()}})
         pcsv = args.outdir / f"nav_N{args.window}.csv"
         out.to_csv(pcsv, index_label="date")
-        print(f"净值已保存：{pcsv}")
+        # 月度收益长表：year, month, 轮动策略, 等权持有（与热力图同源）
+        mr = monthly_returns(ret_dict)
+        mlong = pd.concat([mr["轮动策略"].stack().rename("轮动策略"),
+                           mr["等权持有"].stack().rename("等权持有")], axis=1)
+        mlong = mlong.dropna(how="all")   # 去掉无数据的月份（首末不完整月之外的空白）
+        mlong.index.names = ["year", "month"]
+        pcsv_m = args.outdir / "monthly_returns.csv"
+        mlong.to_csv(pcsv_m)
+        print(f"净值已保存：{pcsv}  {pcsv_m}")
 
 if __name__ == "__main__":
     main()

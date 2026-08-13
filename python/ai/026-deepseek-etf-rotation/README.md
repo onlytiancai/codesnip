@@ -15,6 +15,7 @@
 │   └── 511010.SH.csv          国债ETF    2016-08-15 起（仅避险池，不参与轮动）
 ├── etf_momentum_rotation.py   # v1 动量轮动（当前主策略）
 ├── etf_rotation_v2.py         # v2 多因子轮动（豆包文档借鉴 + 批判性验证）
+├── docs/strategy-evaluation.md # 策略综合评价（可行性、优劣势、改进方向）
 └── output/                    # 图表与净值 CSV（运行生成，已 gitignore）
 ```
 
