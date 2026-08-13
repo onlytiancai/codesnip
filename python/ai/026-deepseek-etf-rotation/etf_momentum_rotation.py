@@ -417,13 +417,14 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="ETF 动量轮动回测")
     ap.add_argument("--window", type=int, default=WINDOW, help="动量窗口（交易日），默认 10")
     ap.add_argument("--no-scale", action="store_true", help="关闭广度择时 scale")
-    ap.add_argument("--no-blend", action="store_true", help="关闭多窗口动量混合")
+    ap.add_argument("--blend", action="store_true",
+                    help="启用多窗口动量混合 20/60（消融显示为负优化，默认关闭）")
     ap.add_argument("--save-csv", action="store_true", help="保存净值 CSV 到 output/")
     ap.add_argument("--outdir", type=Path, default=OUTPUT_DIR, help="输出目录")
     args = ap.parse_args()
 
     use_scale = USE_SCALE and not args.no_scale
-    mom_blend = None if args.no_blend else MOM_BLEND
+    mom_blend = (20, 60) if args.blend else MOM_BLEND   # MOM_BLEND 默认 None（消融证伪混合）
 
     closes = load_closes(KLINES_DIR)
     print(f"数据：7 只 ETF，{len(closes)} 个交易日（{closes.index[0]:%Y-%m-%d} ~ "
