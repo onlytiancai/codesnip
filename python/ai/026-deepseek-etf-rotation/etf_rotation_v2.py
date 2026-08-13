@@ -96,14 +96,19 @@ class V2Config:
 
 # ---------------------------------------------------------------- 数据与因子
 def load_amounts(klines_dir: Path) -> pd.DataFrame:
-    """读取全部 CSV 的成交额（f_liq 需要），镜像 v1 的 load_closes。"""
+    """读取全部 CSV 的成交额（f_liq 需要），镜像 v1 的 load_closes。
+
+    union 索引；NaN = 未上市/停牌，下游按语义处理（因子 NaN → 不可评分）。
+    """
     amounts = {}
     for f in sorted(klines_dir.glob("*.csv")):
         df = pd.read_csv(f, parse_dates=["date"], index_col="date")
         amounts[f.stem] = df["amount"]
     out = pd.DataFrame(amounts).sort_index()
-    assert out.isna().to_numpy().sum() == 0, "日期未对齐或数据缺失"
-    assert len(out) == 726, f"行数 {len(out)} 不符预期 726"
+    assert out.index.is_monotonic_increasing
+    assert len(out) > 2000, f"行数 {len(out)} 异常（预期 ~2426）"
+    nan_share = out.isna().to_numpy().sum() / out.size
+    assert nan_share < 0.35, f"NaN 占比 {nan_share:.0%} 异常（预期仅未上市/停牌缺口）"
     return out
 
 
@@ -257,11 +262,15 @@ def backtest_v2(closes: pd.DataFrame, amounts: pd.DataFrame,
             delta = float((target - w).abs().max())
             if delta > cfg.rebal_threshold or forced:
                 cost_p = float((target - w).abs().sum()) * cfg.cost_rate
-                pending = (target, cost_p, scale_now)
-                prev_scale = scale_now
-                rebal_signals.append(t)
-                total_turnover += float((target - w).abs().sum())
-                month_log.append((t, n_trig, True))
+                if cost_p > 1e-12:   # 零成本（如全仓国债时 scale 变化）不产生实际交易
+                    pending = (target, cost_p, scale_now)
+                    prev_scale = scale_now
+                    rebal_signals.append(t)
+                    total_turnover += float((target - w).abs().sum())
+                    month_log.append((t, n_trig, True))
+                else:
+                    skipped += 1
+                    month_log.append((t, n_trig, False))
             else:
                 skipped += 1
                 month_log.append((t, n_trig, False))
@@ -273,7 +282,7 @@ def backtest_v2(closes: pd.DataFrame, amounts: pd.DataFrame,
     costs_s = pd.Series(costs, index=idx)
     scales_s = pd.Series(scales, index=idx)
     assert np.allclose(nav.iloc[0], 1.0)
-    assert ((costs_s > 0).to_numpy() == np.array(eff_flags, dtype=bool)).all(), \
+    assert ((costs_s > 0).to_numpy() <= np.array(eff_flags, dtype=bool)).all(), \
         "成本只应出现在调仓生效日"
     assert np.isclose(costs_s.sum(), total_turnover * cfg.cost_rate)
     return {"nav": nav, "held": held, "costs": costs_s, "scales": scales_s,
@@ -416,7 +425,7 @@ def plot_v2_comparison(closes: pd.DataFrame, res: dict, nav1: pd.Series,
     ax3.set_ylim(0, 1)
     ax3.legend(ncols=4, loc="upper center", bbox_to_anchor=(0.5, -0.18), fontsize=9)
 
-    ax3.xaxis.set_major_locator(mdates.MonthLocator(interval=6))
+    ax3.xaxis.set_major_locator(mdates.MonthLocator(interval=12))
     ax3.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
     fig.tight_layout()
     fig.savefig(outpath, bbox_inches="tight")

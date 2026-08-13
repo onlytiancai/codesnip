@@ -9,7 +9,7 @@
 5. 信号在 T 日收盘后计算，仓位自 T+1 日起生效（无未来函数）。
 
 运行：
-    /Users/huhao/.pyenv/versions/3.11.9/bin/python3.11 etf_momentum_rotation.py [--window 20] [--save-csv]
+    /Users/huhao/.pyenv/versions/3.11.9/bin/python3.11 etf_momentum_rotation.py [--window 10] [--save-csv]
 """
 
 from __future__ import annotations
@@ -68,7 +68,9 @@ ETF_NAMES = {
     "511010.SH": "国债",
 }
 
-WINDOW = 20                    # 动量窗口（交易日）
+# 动量窗口：10。N 的选择对样本敏感（3 年样本最优 20、10 年样本最优 10），
+# N=10 在两个样本均排前二（3年 13.94% / 10年 9.09%），取更稳健的短窗口。
+WINDOW = 10                    # 动量窗口（交易日）
 TOP_N = 2                      # 持有动量前 2 名
 SLOT_WEIGHT = 0.5              # 每只 50% 仓位
 REBALANCE_DAYS = 21            # 月度调仓（交易日计数）
@@ -97,14 +99,21 @@ SCAN_WINDOWS = [5, 10, 20, 30, 60]
 
 # ---------------------------------------------------------------- 3. 数据加载
 def load_closes(klines_dir: Path) -> pd.DataFrame:
-    """读取全部 CSV 的收盘价，按日期对齐成一张表（columns = ETF 代码）。"""
+    """读取全部 CSV 的收盘价，union 索引对齐成一张表（columns = ETF 代码）。
+
+    NaN 语义 = 未上市或停牌日（159845 上市 2021-03、588000 上市 2020-11、
+    159915 停牌 2021-02-08）。下游按此语义处理：动量 NaN → 自动排除出轮动池；
+    日收益 fillna(0)（未上市/停牌无收益）；广度统计不计未上市 ETF。
+    """
     closes = {}
     for f in sorted(klines_dir.glob("*.csv")):
         df = pd.read_csv(f, parse_dates=["date"], index_col="date")
         closes[f.stem] = df["close"]
-    out = pd.DataFrame(closes).sort_index()   # 按索引自动对齐（inner join 语义）
-    assert out.isna().to_numpy().sum() == 0, "日期未对齐或数据缺失"
-    assert len(out) == 726, f"行数 {len(out)} 不符预期 726"
+    out = pd.DataFrame(closes).sort_index()   # union 索引，缺日 NaN
+    assert out.index.is_monotonic_increasing
+    assert len(out) > 2000, f"行数 {len(out)} 异常（预期 ~2426）"
+    nan_share = out.isna().to_numpy().sum() / out.size
+    assert nan_share < 0.35, f"NaN 占比 {nan_share:.0%} 异常（预期仅未上市/停牌缺口）"
     return out
 
 # ---------------------------------------------------------------- 4. 信号
@@ -132,16 +141,25 @@ def rebalance_weights(target: pd.DataFrame, all_dates: pd.DatetimeIndex,
 
 def breadth_scale(closes: pd.DataFrame, *, breadth_days: int = BREADTH_DAYS,
                   breadth_trigger: int = BREADTH_TRIGGER,
-                  scale_defensive: float = SCALE_DEFENSIVE) -> pd.Series:
+                  scale_defensive: float = SCALE_DEFENSIVE,
+                  normalize: bool = True) -> pd.Series:
     """广度择时 scale：站上 MA 的宽基数量 ≤ 阈值时收缩权益仓位。
 
-    T 日收盘可算 → shift(1) 从 T+1 起生效（无未来函数）。热身期 MA 为 NaN，
-    比较得 False → scale 1.0，无害（此时本就全仓国债）。
+    - T 日收盘可算 → shift(1) 从 T+1 起生效（无未来函数）。
+    - 未上市 ETF 的 close/MA 为 NaN，比较得 False → 既不算"站上"，也不计入分母。
+    - normalize=True（默认）：阈值随已上市数量归一为"站上数量 ≤ 一半"
+      （全池 6 只时 = 3，与调参值一致；早期 4~5 只时 = 2），
+      上市满 MA 窗口前的新 ETF 不计入。
     """
     ma = closes[STOCK_ETFS].rolling(breadth_days).mean()
-    breadth = (closes[STOCK_ETFS] > ma).sum(axis=1)
-    sc = pd.Series(np.where(breadth <= breadth_trigger, scale_defensive, 1.0),
-                   index=closes.index)
+    breadth = (closes[STOCK_ETFS] > ma).sum(axis=1)   # NaN → False，未上市不计
+    if normalize:
+        n_valid = ma.notna().sum(axis=1)              # 上市且满窗口的 ETF 数
+        trigger = (n_valid // 2).clip(lower=2, upper=breadth_trigger)
+        hit = breadth <= trigger
+    else:
+        hit = breadth <= breadth_trigger
+    sc = pd.Series(np.where(hit, scale_defensive, 1.0), index=closes.index)
     return sc.shift(1).fillna(1.0)
 
 # ---------------------------------------------------------------- 5. 回测引擎
@@ -154,11 +172,13 @@ def backtest(closes: pd.DataFrame, window: int, *,
              mom_blend: tuple[int, ...] | None = None,
              breadth_days: int = BREADTH_DAYS,
              breadth_trigger: int = BREADTH_TRIGGER,
-             scale_defensive: float = SCALE_DEFENSIVE) -> tuple[pd.Series, pd.DataFrame, pd.Series]:
+             scale_defensive: float = SCALE_DEFENSIVE,
+             normalize_trigger: bool = True) -> tuple[pd.Series, pd.DataFrame, pd.Series]:
     """回测主流程，返回 (净值, 每日持仓权重, 每日换手 Σ|Δw|)。
 
     引擎参数默认 = 原版行为（use_scale=False, mom_blend=None）；
     优化开关由调用方（main 的消融结果）决定，保证 v2 等 import 方不受影响。
+    未上市 ETF（NaN）自动排除出轮动池（动量 NaN → 权重 0），停牌日收益按 0 计。
     """
     if mom_blend:   # 多窗口动量混合：缺失窗口按 0 贡献（不改变符号，只轻度压低幅度）
         mom = None
@@ -173,11 +193,14 @@ def backtest(closes: pd.DataFrame, window: int, *,
     port[TRESURY] = 1.0 - port[STOCK_ETFS].sum(axis=1)   # 国债补足，整列赋值 CoW 安全
     if use_scale:   # 广度择时：权益仓位 × scale，国债补足
         sc = breadth_scale(closes, breadth_days=breadth_days,
-                           breadth_trigger=breadth_trigger, scale_defensive=scale_defensive)
+                           breadth_trigger=breadth_trigger,
+                           scale_defensive=scale_defensive,
+                           normalize=normalize_trigger)
         port[STOCK_ETFS] = port[STOCK_ETFS].mul(sc, axis=0)
         port[TRESURY] = 1.0 - port[STOCK_ETFS].sum(axis=1)
 
-    daily_ret = closes.pct_change(fill_method=None)
+    # 未上市/停牌日收益按 0 计（停牌无收益；未上市 ETF 权重为 0，不参与组合）
+    daily_ret = closes.pct_change(fill_method=None).fillna(0.0)
     gross_ret = (port * daily_ret).sum(axis=1)
     turnover = port.diff().abs().sum(axis=1).fillna(0.0)
     # 成本 = Σ|Δw| × 单边佣金率。Σ|Δw| 已含买卖两腿（卖 0.5 + 买 0.5 = 1.0），
@@ -214,10 +237,12 @@ def compute_metrics(nav: pd.Series, rf_annual: float) -> dict:
 def benchmark_navs(closes: pd.DataFrame) -> dict[str, pd.Series]:
     """对比基准（均不计成本，策略已扣费，对比偏保守）。
 
-    等权买入持有用 (close/close0).mean(axis=1) —— 权重随涨跌漂移，不每日再平衡。
+    等权买入持有用 (close/首个有效收盘价).mean(axis=1) —— 权重随涨跌漂移，
+    不每日再平衡；未上市 ETF 为 NaN 自动跳过，即"已上市 ETF 动态等权"。
     """
     stocks = closes[STOCK_ETFS]
-    eq = (stocks / stocks.iloc[0]).mean(axis=1)
+    base = stocks.apply(lambda s: s.dropna().iloc[0])   # 首个有效收盘价（勿用 iloc[0]，可能为 NaN）
+    eq = (stocks / base).mean(axis=1)
     hs300 = closes["510300.SH"] / closes["510300.SH"].iloc[0]
     bond = closes[TRESURY] / closes[TRESURY].iloc[0]
     return {"等权持有": eq, "沪深300": hs300, "国债ETF": bond}
@@ -313,7 +338,7 @@ def plot_main(closes: pd.DataFrame, nav: pd.Series, port: pd.DataFrame,
     ax3.axhline(0.5, color=GRIDLINE, ls="--", lw=0.8)
     ax3.legend(ncols=4, loc="upper center", bbox_to_anchor=(0.5, -0.18), fontsize=9)
 
-    ax3.xaxis.set_major_locator(mdates.MonthLocator(interval=6))
+    ax3.xaxis.set_major_locator(mdates.MonthLocator(interval=12))
     ax3.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
     fig.tight_layout()
     fig.savefig(outpath, bbox_inches="tight")
@@ -362,11 +387,12 @@ def _pad_cjk(s: str, width: int) -> str:
     disp = sum(2 if ord(ch) > 0x2E7F else 1 for ch in s)
     return s + " " * max(0, width - disp)
 
-def print_comparison(strat: dict, extra: dict, bench_m: dict[str, dict]) -> None:
+def print_comparison(strat: dict, extra: dict, bench_m: dict[str, dict],
+                     date_range: str) -> None:
     rows = [("总收益", "总收益"), ("年化收益", "年化收益"), ("年化波动", "年化波动"),
             ("最大回撤", "最大回撤"), ("夏普", "夏普"), ("卡玛", "卡玛")]
     names = ["轮动策略", "等权持有", "沪深300", "国债ETF"]
-    print(f"\n===== 绩效对比（2023-08-14 ~ 2026-08-12，策略已扣佣金万1，基准不计成本）=====")
+    print(f"\n===== 绩效对比（{date_range}，策略已扣佣金万1，基准不计成本）=====")
     print(_pad_cjk("指标", 8) + "  " + "  ".join(_pad_cjk(h, 8) for h in names))
     for label, key in rows:
         vals = [strat[key]] + [bench_m[n][key] for n in names[1:]]
@@ -389,7 +415,7 @@ def print_sensitivity(rows: list[dict], default_n: int) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="ETF 动量轮动回测")
-    ap.add_argument("--window", type=int, default=WINDOW, help="动量窗口（交易日），默认 20")
+    ap.add_argument("--window", type=int, default=WINDOW, help="动量窗口（交易日），默认 10")
     ap.add_argument("--no-scale", action="store_true", help="关闭广度择时 scale")
     ap.add_argument("--no-blend", action="store_true", help="关闭多窗口动量混合")
     ap.add_argument("--save-csv", action="store_true", help="保存净值 CSV 到 output/")
@@ -401,10 +427,12 @@ def main() -> None:
 
     closes = load_closes(KLINES_DIR)
     print(f"数据：7 只 ETF，{len(closes)} 个交易日（{closes.index[0]:%Y-%m-%d} ~ "
-          f"{closes.index[-1]:%Y-%m-%d}）")
+          f"{closes.index[-1]:%Y-%m-%d}）；起始时间不对齐（159845 上市 2021-03、"
+          f"588000 上市 2020-11），未上市期计 NaN：动态股票池自动排除、"
+          f"广度触发按已上市数量归一（≤一半）")
     print(f"策略：动量窗口 N={args.window}"
           + (f" 混合{mom_blend}" if mom_blend else "")
-          + (f" ｜ 广度择时（≤{BREADTH_TRIGGER}只站上MA{BREADTH_DAYS}→权益{SCALE_DEFENSIVE:.0%}）"
+          + (f" ｜ 广度择时（站上MA{BREADTH_DAYS}数量≤一半→权益{SCALE_DEFENSIVE:.0%}）"
              if use_scale else "")
           + f" ｜ 每 {REBALANCE_DAYS} 个交易日调仓 ｜ 动量>0 入选前 {TOP_N} 各 50%"
           + f" ｜ 国债补足避险 ｜ 佣金单边万1")
@@ -412,11 +440,12 @@ def main() -> None:
     # 消融 A/B：引擎参数对比（同成本口径）
     print(f"\n===== v1 优化消融（引擎参数对比，同成本万1）=====")
     combos = [
-        ("原版 N=20", dict(window=20)),
-        ("文档值≤2@0.4", dict(window=20, use_scale=True, breadth_trigger=2, scale_defensive=0.4)),
-        ("+混合动量20/60", dict(window=20, mom_blend=(20, 60))),
-        ("默认≤3@0.4", dict(window=20, use_scale=True, breadth_trigger=3, scale_defensive=0.4)),
-        ("更激进≤4@0.4", dict(window=20, use_scale=True, breadth_trigger=4, scale_defensive=0.4)),
+        (f"原版 N={args.window}", dict(window=args.window)),
+        ("文档值≤2@0.4原始", dict(window=args.window, use_scale=True, breadth_trigger=2,
+                                scale_defensive=0.4, normalize_trigger=False)),
+        ("默认≤3@0.4归一", dict(window=args.window, use_scale=True)),
+        ("+混合动量20/60", dict(window=args.window, mom_blend=(20, 60))),
+        ("+scale+混合", dict(window=args.window, use_scale=True, mom_blend=(20, 60))),
     ]
     print(_pad_cjk("变体", 16) + _pad_cjk("年化收益", 9) + _pad_cjk("最大回撤", 9)
           + _pad_cjk("夏普", 7) + _pad_cjk("卡玛", 8) + _pad_cjk("换手/年", 9)
@@ -439,10 +468,12 @@ def main() -> None:
              "国债占比": float((port[TRESURY] > 0.99).mean())}
     bench = benchmark_navs(closes)
     bench_m = {name: compute_metrics(s, RISK_FREE_ANNUAL) for name, s in bench.items()}
-    print_comparison(strat, extra, bench_m)
+    print_comparison(strat, extra, bench_m,
+                     f"{closes.index[0]:%Y-%m-%d} ~ {closes.index[-1]:%Y-%m-%d}")
 
-    print(f"\n===== 调仓记录（生效日）=====")
-    for d, held in trade_log(port, REBALANCE_DAYS):
+    trades = trade_log(port, REBALANCE_DAYS)
+    print(f"\n===== 调仓记录（生效日，共 {len(trades)} 次，显示最近 60 次）=====")
+    for d, held in trades[-60:]:
         parts = [f"{ETF_NAMES[c]} {w:.0%}" for c, w in held]
         print(f"{d:%Y-%m-%d}  {' + '.join(parts)}")
 
