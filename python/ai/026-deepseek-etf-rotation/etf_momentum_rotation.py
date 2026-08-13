@@ -87,6 +87,9 @@ USE_SCALE = True               # 广度择时 scale 叠加
 BREADTH_DAYS = 60              # 广度 = 站上 N 日均线的宽基数量
 BREADTH_TRIGGER = 3            # 广度 ≤ 3（即 3+ 只跌破 MA60）触发防御
 SCALE_DEFENSIVE = 0.4          # 防御时权益仓位比例
+# 滞回带宽 2：10 年网格显示 h=2 换手从 2156% 降到 799%（141 次调仓）且收益
+# 微升、夏普最优（≤3@0.4 h=2：9.49% / -23.09% / 0.48），防阈值附近反复横跳。
+BREADTH_HYST = 2               # 广度滞回带宽（≤trigger−h 入防御、≥trigger+h 恢复）
 
 # ETF 固定色（dataviz 校验通过的 categorical 色板，跨图一致——颜色跟实体走）
 ETF_COLORS = {
@@ -143,25 +146,39 @@ def rebalance_weights(target: pd.DataFrame, all_dates: pd.DatetimeIndex,
 def breadth_scale(closes: pd.DataFrame, *, breadth_days: int = BREADTH_DAYS,
                   breadth_trigger: int = BREADTH_TRIGGER,
                   scale_defensive: float = SCALE_DEFENSIVE,
-                  normalize: bool = True) -> pd.Series:
+                  normalize: bool = True,
+                  hyst: int = 0) -> pd.Series:
     """广度择时 scale：站上 MA 的宽基数量 ≤ 阈值时收缩权益仓位。
 
     - T 日收盘可算 → shift(1) 从 T+1 起生效（无未来函数）。
     - 未上市 ETF 的 close/MA 为 NaN，比较得 False → 既不算"站上"，也不计入分母。
     - normalize=True（默认）：阈值随已上市数量归一为"站上数量 ≤ 一半"
-      （全池 6 只时 = 3，与调参值一致；早期 4~5 只时 = 2），
-      上市满 MA 窗口前的新 ETF 不计入。
+      （全池 6 只时 = 3，与调参值一致；早期 4~5 只时 = 2）。
+    - hyst：滞回带宽。广度 ≤ trigger−hyst 进入防御、≥ trigger+hyst 恢复满仓，
+      之间保持原状态（防阈值附近反复横跳）；hyst=0 即原行为。
+      状态机按日循环（状态依赖历史，无法纯向量化；2426 行无性能问题）。
     """
     ma = closes[STOCK_ETFS].rolling(breadth_days).mean()
     breadth = (closes[STOCK_ETFS] > ma).sum(axis=1)   # NaN → False，未上市不计
     if normalize:
         n_valid = ma.notna().sum(axis=1)              # 上市且满窗口的 ETF 数
         trigger = (n_valid // 2).clip(lower=2, upper=breadth_trigger)
-        hit = breadth <= trigger
     else:
-        hit = breadth <= breadth_trigger
-    sc = pd.Series(np.where(hit, scale_defensive, 1.0), index=closes.index)
-    return sc.shift(1).fillna(1.0)
+        trigger = pd.Series(breadth_trigger, index=closes.index)
+    low = trigger - hyst
+    high = trigger + hyst
+    states = np.empty(len(breadth), dtype=bool)
+    defensive = False
+    for i, b in enumerate(breadth.to_numpy()):
+        if not np.isnan(b):
+            if defensive:
+                if b >= high.iloc[i]:
+                    defensive = False
+            elif b <= low.iloc[i]:
+                defensive = True
+        states[i] = defensive
+    sc = np.where(states, scale_defensive, 1.0)
+    return pd.Series(sc, index=closes.index).shift(1).fillna(1.0)
 
 # ---------------------------------------------------------------- 5. 回测引擎
 def backtest(closes: pd.DataFrame, window: int, *,
@@ -174,7 +191,8 @@ def backtest(closes: pd.DataFrame, window: int, *,
              breadth_days: int = BREADTH_DAYS,
              breadth_trigger: int = BREADTH_TRIGGER,
              scale_defensive: float = SCALE_DEFENSIVE,
-             normalize_trigger: bool = True) -> tuple[pd.Series, pd.DataFrame, pd.Series]:
+             normalize_trigger: bool = True,
+             breadth_hyst: int = BREADTH_HYST) -> tuple[pd.Series, pd.DataFrame, pd.Series]:
     """回测主流程，返回 (净值, 每日持仓权重, 每日换手 Σ|Δw|)。
 
     引擎参数默认 = 原版行为（use_scale=False, mom_blend=None）；
@@ -196,7 +214,8 @@ def backtest(closes: pd.DataFrame, window: int, *,
         sc = breadth_scale(closes, breadth_days=breadth_days,
                            breadth_trigger=breadth_trigger,
                            scale_defensive=scale_defensive,
-                           normalize=normalize_trigger)
+                           normalize=normalize_trigger,
+                           hyst=breadth_hyst)
         port[STOCK_ETFS] = port[STOCK_ETFS].mul(sc, axis=0)
         port[TRESURY] = 1.0 - port[STOCK_ETFS].sum(axis=1)
 
@@ -242,7 +261,8 @@ def benchmark_navs(closes: pd.DataFrame) -> dict[str, pd.Series]:
     不每日再平衡；未上市 ETF 为 NaN 自动跳过，即"已上市 ETF 动态等权"。
     """
     stocks = closes[STOCK_ETFS]
-    base = stocks.apply(lambda s: s.dropna().iloc[0])   # 首个有效收盘价（勿用 iloc[0]，可能为 NaN）
+    # 首个有效收盘价（勿用 iloc[0]，可能为 NaN）；整列全 NaN（切片期未上市）→ 基价 NaN，均值时跳过
+    base = stocks.apply(lambda s: s.dropna().iloc[0] if s.notna().any() else np.nan)
     eq = (stocks / base).mean(axis=1)
     hs300 = closes["510300.SH"] / closes["510300.SH"].iloc[0]
     bond = closes[TRESURY] / closes[TRESURY].iloc[0]
@@ -274,6 +294,85 @@ def sensitivity_scan(closes: pd.DataFrame, **engine_kw) -> list[dict]:
         m["调仓次数"] = int((turnover > 1e-12).sum())
         rows.append(m)
     return rows
+
+def walk_forward(closes: pd.DataFrame, *, min_train: int = 504, step: int = 504,
+                 metric: str = "夏普",
+                 grid_n: tuple = (5, 10, 20, 30),
+                 grid_trig: tuple = (2, 3, 4),
+                 grid_sd: tuple = (0.4, 0.6),
+                 grid_hyst: tuple = (0, 1, 2)) -> tuple[pd.DataFrame, list]:
+    """滚出验证：每 step 个交易日，仅用此前数据网格选参（按 train 段夏普），
+    在前瞻窗口上评估；同时评估固定默认参数作对照。
+
+    关键点：测试段回测在 data[:test_end] 上跑再切片（保留 2016 起的完整热身），
+    不用截断数据重跑。末窗口可能不完整。
+    """
+    rows = []
+    picks = []
+    test_starts = list(range(min_train, len(closes), step))
+    for t0 in test_starts:
+        test_end = min(t0 + step, len(closes))
+        train = closes.iloc[:t0]
+        full = closes.iloc[:test_end]
+        best = None
+        for n in grid_n:
+            for trig in grid_trig:
+                for sd in grid_sd:
+                    for hyst in grid_hyst:
+                        nav, _, _ = backtest(train, n, use_scale=True,
+                                             breadth_trigger=trig,
+                                             scale_defensive=sd,
+                                             breadth_hyst=hyst)
+                        score = compute_metrics(nav, RISK_FREE_ANNUAL)[metric]
+                        if best is None or score > best[0]:
+                            best = (score, n, trig, sd, hyst)
+        _, n, trig, sd, hyst = best
+        picks.append((n, trig, sd, hyst))
+        # 选定参数在 full 上回测（含完整热身），切片测试段；默认参数同法对照
+        nav_wf, _, _ = backtest(full, n, use_scale=True, breadth_trigger=trig,
+                                scale_defensive=sd, breadth_hyst=hyst)
+        nav_def, _, _ = backtest(full, WINDOW, use_scale=True,
+                                 breadth_trigger=BREADTH_TRIGGER,
+                                 scale_defensive=SCALE_DEFENSIVE,
+                                 breadth_hyst=BREADTH_HYST)
+        bench = benchmark_navs(closes.iloc[:test_end])
+        m_wf = compute_metrics(nav_wf.iloc[t0:test_end], RISK_FREE_ANNUAL)
+        m_def = compute_metrics(nav_def.iloc[t0:test_end], RISK_FREE_ANNUAL)
+        m_eq = compute_metrics(bench["等权持有"].iloc[t0:test_end], RISK_FREE_ANNUAL)
+        m_hs = compute_metrics(bench["沪深300"].iloc[t0:test_end], RISK_FREE_ANNUAL)
+        rows.append({
+            "起点": closes.index[t0], "结束": closes.index[test_end - 1],
+            "N": n, "触发": trig, "仓位": sd, "滞回": hyst,
+            "wf年化": m_wf["年化收益"], "wf回撤": m_wf["最大回撤"],
+            "默认年化": m_def["年化收益"], "默认回撤": m_def["最大回撤"],
+            "等权年化": m_eq["年化收益"], "300年化": m_hs["年化收益"],
+        })
+    return pd.DataFrame(rows), picks
+
+
+def print_walk_forward(wf: pd.DataFrame, picks: list) -> None:
+    from collections import Counter
+    print(f"\n===== 滚出验证（每 2 年用此前数据按夏普网格选参，前瞻评估；"
+          f"网格 N∈{{5,10,20,30}} × 触发∈{{2,3,4}} × 仓位∈{{0.4,0.6}} × 滞回∈{{0,1,2}}）=====")
+    print(_pad_cjk("测试区间", 22) + _pad_cjk("选中参数", 14) + _pad_cjk("wf年化", 8)
+          + _pad_cjk("wf回撤", 8) + _pad_cjk("默认年化", 9) + _pad_cjk("默认回撤", 9)
+          + _pad_cjk("等权年化", 9) + _pad_cjk("300年化", 8))
+    for _, r in wf.iterrows():
+        params = f"N={r['N']}≤{r['触发']}@{r['仓位']:.1f}h{r['滞回']}"
+        print(f"{r['起点']:%Y-%m}~{r['结束']:%Y-%m}   {_pad_cjk(params, 14)}"
+              f"{r['wf年化']:>8.2%}  {r['wf回撤']:>8.2%}  {r['默认年化']:>9.2%}"
+              f"  {r['默认回撤']:>9.2%}  {r['等权年化']:>9.2%}  {r['300年化']:>8.2%}")
+    wf_ex = (wf["wf年化"] - wf["等权年化"]).to_numpy()
+    def_ex = (wf["默认年化"] - wf["等权年化"]).to_numpy()
+    print(f"\n滚出选参：超额 vs 等权 均值 {wf_ex.mean():+.2%} ｜ 胜率 {(wf_ex > 0).mean():.0%}"
+          f"（{int((wf_ex > 0).sum())}/{len(wf_ex)} 窗）")
+    print(f"固定默认：超额 vs 等权 均值 {def_ex.mean():+.2%} ｜ 胜率 {(def_ex > 0).mean():.0%}"
+          f"（{int((def_ex > 0).sum())}/{len(def_ex)} 窗）")
+    for label, idx in (("N", 0), ("触发", 1), ("仓位", 2), ("滞回", 3)):
+        c = Counter(p[idx] for p in picks)
+        dist = "  ".join(f"{k}:{v}" for k, v in sorted(c.items()))
+        print(f"选中参数分布 {label} = {dist}")
+
 
 # ---------------------------------------------------------------- 8. 绘图
 def plot_main(closes: pd.DataFrame, nav: pd.Series, port: pd.DataFrame,
@@ -477,6 +576,8 @@ def main() -> None:
     ap.add_argument("--no-scale", action="store_true", help="关闭广度择时 scale")
     ap.add_argument("--blend", action="store_true",
                     help="启用多窗口动量混合 20/60（消融显示为负优化，默认关闭）")
+    ap.add_argument("--walk-forward", action="store_true",
+                    help="运行滚出验证（每 2 年网格选参+前瞻评估，约 1 分钟）")
     ap.add_argument("--save-csv", action="store_true", help="保存净值 CSV 到 output/")
     ap.add_argument("--outdir", type=Path, default=OUTPUT_DIR, help="输出目录")
     args = ap.parse_args()
@@ -491,8 +592,8 @@ def main() -> None:
           f"广度触发按已上市数量归一（≤一半）")
     print(f"策略：动量窗口 N={args.window}"
           + (f" 混合{mom_blend}" if mom_blend else "")
-          + (f" ｜ 广度择时（站上MA{BREADTH_DAYS}数量≤一半→权益{SCALE_DEFENSIVE:.0%}）"
-             if use_scale else "")
+          + (f" ｜ 广度择时（站上MA{BREADTH_DAYS}数量≤一半→权益{SCALE_DEFENSIVE:.0%}，"
+             f"滞回±{BREADTH_HYST}）" if use_scale else "")
           + f" ｜ 每 {REBALANCE_DAYS} 个交易日调仓 ｜ 动量>0 入选前 {TOP_N} 各 50%"
           + f" ｜ 国债补足避险 ｜ 佣金单边万1")
 
@@ -501,8 +602,9 @@ def main() -> None:
     combos = [
         (f"原版 N={args.window}", dict(window=args.window)),
         ("文档值≤2@0.4原始", dict(window=args.window, use_scale=True, breadth_trigger=2,
-                                scale_defensive=0.4, normalize_trigger=False)),
-        ("默认≤3@0.4归一", dict(window=args.window, use_scale=True)),
+                                scale_defensive=0.4, normalize_trigger=False,
+                                breadth_hyst=0)),
+        ("默认≤3@0.4归一h2", dict(window=args.window, use_scale=True)),
         ("+混合动量20/60", dict(window=args.window, mom_blend=(20, 60))),
         ("+scale+混合", dict(window=args.window, use_scale=True, mom_blend=(20, 60))),
     ]
@@ -538,6 +640,10 @@ def main() -> None:
 
     scan = sensitivity_scan(closes, use_scale=use_scale)
     print_sensitivity(scan, args.window)
+
+    if args.walk_forward:
+        wf_df, picks = walk_forward(closes)
+        print_walk_forward(wf_df, picks)
 
     args.outdir.mkdir(exist_ok=True)
     p1 = args.outdir / f"backtest_nav_N{args.window}.png"
