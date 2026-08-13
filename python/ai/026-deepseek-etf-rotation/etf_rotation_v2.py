@@ -408,7 +408,8 @@ def plot_v2_comparison(closes: pd.DataFrame, res: dict, nav1: pd.Series,
     x = mdates.date2num(dates.to_pydatetime())
     ax3.stackplot(x, res["held"][cols].to_numpy().T, colors=[ETF_COLORS[c] for c in cols],
                   linewidth=0.5, edgecolor=SURFACE, labels=[ETF_NAMES[c] for c in cols])
-    ax3.plot(x, res["scales"].to_numpy(), color=PRIMARY_INK, ls="--", lw=1.6, zorder=3,
+    ax3.plot(x, res["scales"].to_numpy(), color=SURFACE, lw=3.4, zorder=3)
+    ax3.plot(x, res["scales"].to_numpy(), color=PRIMARY_INK, ls="--", lw=1.6, zorder=4,
              label="scale（权益仓位）")
     ax3.set_ylabel("持仓权重")
     ax3.set_yticks([0, 0.5, 1.0])

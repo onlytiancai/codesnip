@@ -76,6 +76,15 @@ COMMISSION_PER_SIDE = 1e-4     # 佣金单边万1（ETF 无印花税）
 RISK_FREE_ANNUAL = 0.02        # 无风险利率，默认年化 2%
 TRADING_DAYS = 252             # 年化用 252 个交易日（行业惯例，非本数据实际 242）
 
+# —— v1 优化参数（引擎默认关 = 原版行为；main 默认按消融+网格择优）
+# 消融结论：广度择时显著改善收益与回撤（网格单调：≤3@0.4 → 年化 15.82%/回撤
+# -19.14%/夏普 0.66）；混合动量 20/60 为负优化（年化 7.64%），默认弃用。
+MOM_BLEND = None               # 多窗口动量混合（None = 单窗口）
+USE_SCALE = True               # 广度择时 scale 叠加
+BREADTH_DAYS = 60              # 广度 = 站上 N 日均线的宽基数量
+BREADTH_TRIGGER = 3            # 广度 ≤ 3（即 3+ 只跌破 MA60）触发防御
+SCALE_DEFENSIVE = 0.4          # 防御时权益仓位比例
+
 # ETF 固定色（dataviz 校验通过的 categorical 色板，跨图一致——颜色跟实体走）
 ETF_COLORS = {
     "510050.SH": "#2a78d6", "510300.SH": "#eb6834", "510500.SH": "#1baf7a",
@@ -121,17 +130,52 @@ def rebalance_weights(target: pd.DataFrame, all_dates: pd.DatetimeIndex,
     held = target.loc[signal_dates]
     return held.reindex(all_dates).ffill().shift(1).fillna(0.0)
 
+def breadth_scale(closes: pd.DataFrame, *, breadth_days: int = BREADTH_DAYS,
+                  breadth_trigger: int = BREADTH_TRIGGER,
+                  scale_defensive: float = SCALE_DEFENSIVE) -> pd.Series:
+    """广度择时 scale：站上 MA 的宽基数量 ≤ 阈值时收缩权益仓位。
+
+    T 日收盘可算 → shift(1) 从 T+1 起生效（无未来函数）。热身期 MA 为 NaN，
+    比较得 False → scale 1.0，无害（此时本就全仓国债）。
+    """
+    ma = closes[STOCK_ETFS].rolling(breadth_days).mean()
+    breadth = (closes[STOCK_ETFS] > ma).sum(axis=1)
+    sc = pd.Series(np.where(breadth <= breadth_trigger, scale_defensive, 1.0),
+                   index=closes.index)
+    return sc.shift(1).fillna(1.0)
+
 # ---------------------------------------------------------------- 5. 回测引擎
 def backtest(closes: pd.DataFrame, window: int, *,
              rebalance_days: int = REBALANCE_DAYS,
              top_n: int = TOP_N,
              slot_weight: float = SLOT_WEIGHT,
-             commission: float = COMMISSION_PER_SIDE) -> tuple[pd.Series, pd.DataFrame, pd.Series]:
-    """回测主流程，返回 (净值, 每日持仓权重, 每日换手 Σ|Δw|)。"""
-    mom = closes[STOCK_ETFS].pct_change(window, fill_method=None)   # 显式 fill_method=None，pandas 3.0 兼容
+             commission: float = COMMISSION_PER_SIDE,
+             use_scale: bool = False,
+             mom_blend: tuple[int, ...] | None = None,
+             breadth_days: int = BREADTH_DAYS,
+             breadth_trigger: int = BREADTH_TRIGGER,
+             scale_defensive: float = SCALE_DEFENSIVE) -> tuple[pd.Series, pd.DataFrame, pd.Series]:
+    """回测主流程，返回 (净值, 每日持仓权重, 每日换手 Σ|Δw|)。
+
+    引擎参数默认 = 原版行为（use_scale=False, mom_blend=None）；
+    优化开关由调用方（main 的消融结果）决定，保证 v2 等 import 方不受影响。
+    """
+    if mom_blend:   # 多窗口动量混合：缺失窗口按 0 贡献（不改变符号，只轻度压低幅度）
+        mom = None
+        for nb in mom_blend:
+            pc = closes[STOCK_ETFS].pct_change(nb, fill_method=None)  # 显式 fill_method=None，pandas 3.0 兼容
+            mom = pc if mom is None else mom.add(pc, fill_value=0.0)
+        mom = mom / len(mom_blend)
+    else:
+        mom = closes[STOCK_ETFS].pct_change(window, fill_method=None)
     target = compute_target_weights(mom, top_n, slot_weight)
     port = rebalance_weights(target, closes.index, rebalance_days)
     port[TRESURY] = 1.0 - port[STOCK_ETFS].sum(axis=1)   # 国债补足，整列赋值 CoW 安全
+    if use_scale:   # 广度择时：权益仓位 × scale，国债补足
+        sc = breadth_scale(closes, breadth_days=breadth_days,
+                           breadth_trigger=breadth_trigger, scale_defensive=scale_defensive)
+        port[STOCK_ETFS] = port[STOCK_ETFS].mul(sc, axis=0)
+        port[TRESURY] = 1.0 - port[STOCK_ETFS].sum(axis=1)
 
     daily_ret = closes.pct_change(fill_method=None)
     gross_ret = (port * daily_ret).sum(axis=1)
@@ -192,11 +236,11 @@ def trade_log(port: pd.DataFrame, rebalance_days: int) -> list[tuple[pd.Timestam
     return logs
 
 # ---------------------------------------------------------------- 7. 敏感性
-def sensitivity_scan(closes: pd.DataFrame) -> list[dict]:
-    """扫动量窗口 N ∈ {5,10,20,30,60}，返回每组的指标。"""
+def sensitivity_scan(closes: pd.DataFrame, **engine_kw) -> list[dict]:
+    """扫动量窗口 N ∈ {5,10,20,30,60}（单窗口，可叠加 scale 等引擎参数），返回每组的指标。"""
     rows = []
     for n in SCAN_WINDOWS:
-        nav, port, turnover = backtest(closes, n)
+        nav, port, turnover = backtest(closes, n, **engine_kw)
         m = compute_metrics(nav, RISK_FREE_ANNUAL)
         years = (len(nav) - 1) / TRADING_DAYS
         m["N"] = n
@@ -207,7 +251,8 @@ def sensitivity_scan(closes: pd.DataFrame) -> list[dict]:
 
 # ---------------------------------------------------------------- 8. 绘图
 def plot_main(closes: pd.DataFrame, nav: pd.Series, port: pd.DataFrame,
-              bench: dict[str, pd.Series], window: int, outpath: Path) -> None:
+              bench: dict[str, pd.Series], window: int, outpath: Path,
+              scale: pd.Series | None = None) -> None:
     dates = closes.index
     fig, axes = plt.subplots(
         3, 1, figsize=(12, 10), sharex=True,
@@ -222,9 +267,9 @@ def plot_main(closes: pd.DataFrame, nav: pd.Series, port: pd.DataFrame,
     ax1.set_yscale("log")
     ax1.set_title(f"ETF 动量轮动 vs 基准（动量窗口 N={window}，月度调仓，持有前 2）")
     ax1.set_ylabel("净值（对数刻度）")
-    # 4 条线：图例 + 末端直接标注（颜色不单独承载身份）
-    ax1.legend(loc="upper left", fontsize=9)
-    right_pad = dates[-1] + pd.Timedelta(days=int((dates[-1] - dates[0]).days * 0.24))
+    # 4 条线：图例 + 末端直接标注（颜色不单独承载身份）；图例横排置于面板上方，不遮数据
+    ax1.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncols=4, fontsize=9)
+    right_pad = dates[-1] + pd.Timedelta(days=int((dates[-1] - dates[0]).days * 0.20))
     ax1.set_xlim(dates[0], right_pad)
     ax1.margins(y=0.08)
     series = [(nav, "轮动策略"), (bench["等权持有"], "等权持有"),
@@ -237,7 +282,7 @@ def plot_main(closes: pd.DataFrame, nav: pd.Series, port: pd.DataFrame,
         if logv[hi] - logv[lo] < 0.07:
             logv[hi] = logv[lo] + 0.07
     for (s, name), y in zip(series, np.exp(logv)):
-        ax1.text(1.01, y, f"{name}  {s.iloc[-1]:.2f}",
+        ax1.text(1.02, y, f"{name}  {s.iloc[-1]:.2f}",
                  transform=ax1.get_yaxis_transform(), ha="left", va="center",
                  fontsize=9, color=SECONDARY_INK)
 
@@ -246,7 +291,7 @@ def plot_main(closes: pd.DataFrame, nav: pd.Series, port: pd.DataFrame,
     dd_hs = bench["沪深300"] / bench["沪深300"].cummax() - 1
     ax2.fill_between(dates, 0, dd_strat, color="#2a78d6", alpha=0.30, lw=0)
     ax2.plot(dates, dd_strat, color="#2a78d6", lw=1.5, label="轮动策略")
-    ax2.plot(dates, dd_hs, color=MUTED, lw=1.2, ls="--", label="沪深300")
+    ax2.plot(dates, dd_hs, color="#1baf7a", lw=1.2, ls="--", label="沪深300")
     ax2.set_ylabel("回撤")
     ax2.yaxis.set_major_formatter(PercentFormatter(1.0, decimals=0))
     ax2.legend(loc="lower right", fontsize=9)
@@ -257,6 +302,11 @@ def plot_main(closes: pd.DataFrame, nav: pd.Series, port: pd.DataFrame,
     x = mdates.date2num(dates.to_pydatetime())
     ax3.stackplot(x, port[cols].to_numpy().T, colors=[ETF_COLORS[c] for c in cols],
                   linewidth=0.5, edgecolor=SURFACE, labels=[ETF_NAMES[c] for c in cols])
+    if scale is not None:
+        # 白色衬底线 + 深色虚线：保证在任何色块上都清晰可辨
+        ax3.plot(x, scale.to_numpy(), color=SURFACE, lw=3.4, zorder=3)
+        ax3.plot(x, scale.to_numpy(), color=PRIMARY_INK, ls="--", lw=1.6, zorder=4,
+                 label="scale（权益仓位）")
     ax3.set_ylabel("持仓权重")
     ax3.set_yticks([0, 0.5, 1.0])
     ax3.set_ylim(0, 1)
@@ -340,17 +390,48 @@ def print_sensitivity(rows: list[dict], default_n: int) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description="ETF 动量轮动回测")
     ap.add_argument("--window", type=int, default=WINDOW, help="动量窗口（交易日），默认 20")
+    ap.add_argument("--no-scale", action="store_true", help="关闭广度择时 scale")
+    ap.add_argument("--no-blend", action="store_true", help="关闭多窗口动量混合")
     ap.add_argument("--save-csv", action="store_true", help="保存净值 CSV 到 output/")
     ap.add_argument("--outdir", type=Path, default=OUTPUT_DIR, help="输出目录")
     args = ap.parse_args()
 
+    use_scale = USE_SCALE and not args.no_scale
+    mom_blend = None if args.no_blend else MOM_BLEND
+
     closes = load_closes(KLINES_DIR)
     print(f"数据：7 只 ETF，{len(closes)} 个交易日（{closes.index[0]:%Y-%m-%d} ~ "
           f"{closes.index[-1]:%Y-%m-%d}）")
-    print(f"策略：动量窗口 N={args.window} ｜ 每 {REBALANCE_DAYS} 个交易日调仓 ｜ "
-          f"动量>0 入选前 {TOP_N} 各 50% ｜ 国债补足避险 ｜ 佣金单边万1")
+    print(f"策略：动量窗口 N={args.window}"
+          + (f" 混合{mom_blend}" if mom_blend else "")
+          + (f" ｜ 广度择时（≤{BREADTH_TRIGGER}只站上MA{BREADTH_DAYS}→权益{SCALE_DEFENSIVE:.0%}）"
+             if use_scale else "")
+          + f" ｜ 每 {REBALANCE_DAYS} 个交易日调仓 ｜ 动量>0 入选前 {TOP_N} 各 50%"
+          + f" ｜ 国债补足避险 ｜ 佣金单边万1")
 
-    nav, port, turnover = backtest(closes, args.window)
+    # 消融 A/B：引擎参数对比（同成本口径）
+    print(f"\n===== v1 优化消融（引擎参数对比，同成本万1）=====")
+    combos = [
+        ("原版 N=20", dict(window=20)),
+        ("文档值≤2@0.4", dict(window=20, use_scale=True, breadth_trigger=2, scale_defensive=0.4)),
+        ("+混合动量20/60", dict(window=20, mom_blend=(20, 60))),
+        ("默认≤3@0.4", dict(window=20, use_scale=True, breadth_trigger=3, scale_defensive=0.4)),
+        ("更激进≤4@0.4", dict(window=20, use_scale=True, breadth_trigger=4, scale_defensive=0.4)),
+    ]
+    print(_pad_cjk("变体", 16) + _pad_cjk("年化收益", 9) + _pad_cjk("最大回撤", 9)
+          + _pad_cjk("夏普", 7) + _pad_cjk("卡玛", 8) + _pad_cjk("换手/年", 9)
+          + _pad_cjk("调仓", 5))
+    for name, kw in combos:
+        nav_a, _, to_a = backtest(closes, **kw)
+        m_a = compute_metrics(nav_a, RISK_FREE_ANNUAL)
+        years_a = (len(nav_a) - 1) / TRADING_DAYS
+        to_rate = to_a.sum() / 2 / years_a
+        print(f"{_pad_cjk(name, 16)}{m_a['年化收益']:>9.2%}  {m_a['最大回撤']:>9.2%}"
+              f"  {m_a['夏普']:>7.2f}  {m_a['卡玛']:>8.2%}  {to_rate:>9.0%}"
+              f"  {int((to_a > 1e-12).sum()):>5d}")
+
+    nav, port, turnover = backtest(closes, args.window,
+                                   use_scale=use_scale, mom_blend=mom_blend)
     strat = compute_metrics(nav, RISK_FREE_ANNUAL)
     years = (len(nav) - 1) / TRADING_DAYS
     extra = {"年换手率": turnover.sum() / 2 / years,
@@ -365,13 +446,14 @@ def main() -> None:
         parts = [f"{ETF_NAMES[c]} {w:.0%}" for c, w in held]
         print(f"{d:%Y-%m-%d}  {' + '.join(parts)}")
 
-    scan = sensitivity_scan(closes)
+    scan = sensitivity_scan(closes, use_scale=use_scale)
     print_sensitivity(scan, args.window)
 
     args.outdir.mkdir(exist_ok=True)
     p1 = args.outdir / f"backtest_nav_N{args.window}.png"
     p2 = args.outdir / "sensitivity.png"
-    plot_main(closes, nav, port, bench, args.window, p1)
+    sc = breadth_scale(closes) if use_scale else None
+    plot_main(closes, nav, port, bench, args.window, p1, scale=sc)
     plot_sensitivity(scan, args.window, p2)
     print(f"\n图表已保存：{p1}  {p2}")
 
