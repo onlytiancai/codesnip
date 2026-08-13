@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib import font_manager
+from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 from matplotlib.ticker import PercentFormatter
 
 # ---------------------------------------------------------------- 1. rcParams
@@ -381,6 +382,58 @@ def plot_sensitivity(rows: list[dict], default_n: int, outpath: Path) -> None:
     fig.savefig(outpath, bbox_inches="tight")
     plt.close(fig)
 
+def plot_monthly_heatmap(rets: dict[str, pd.Series], outpath: Path) -> None:
+    """月度收益热力图：年份 × 月份。
+
+    红涨绿跌（中国金融惯例）；每格标注数值作次级编码（色盲读者靠正负号读数）。
+    颜色深浅 = 收益幅度，零点为中性浅灰（diverging 双色 + 中性中点）。
+    首末月（2016-08、2026-08）不完整，标题注明。
+    """
+    def monthly(s: pd.Series) -> pd.DataFrame:
+        m = (1.0 + s.fillna(0.0)).resample("ME").prod() - 1.0   # 月内复利
+        df = pd.DataFrame({"year": m.index.year, "month": m.index.month, "ret": m.to_numpy()})
+        return df.pivot(index="year", columns="month", values="ret")
+
+    names = list(rets.keys())
+    mats = [monthly(rets[n]) for n in names]
+    vmax = max(np.nanmax(np.abs(m.to_numpy())) for m in mats)
+    vmax = max(vmax, 0.005)
+    cmap = LinearSegmentedColormap.from_list(
+        "cn_ret", ["#0d7a0d", "#a8d4a8", "#f4f3f0", "#f0bcbc", "#c62828"])
+    norm = TwoSlopeNorm(vmin=-vmax, vcenter=0.0, vmax=vmax)
+    cmap.set_bad("#ffffff")
+
+    fig, axes = plt.subplots(1, len(mats), figsize=(6.4 * len(mats), 4.8), sharey=True)
+    if len(mats) == 1:
+        axes = [axes]
+    for ax, mat, name in zip(axes, mats, names):
+        im = ax.imshow(mat.to_numpy(), cmap=cmap, norm=norm, aspect="auto")
+        ax.set_title(f"{name} 月度收益", fontsize=11)
+        ax.set_xticks(range(12))
+        ax.set_xticklabels([f"{i}月" for i in range(1, 13)], fontsize=8)
+        ax.set_yticks(range(len(mat.index)))
+        ax.set_yticklabels([str(y) for y in mat.index], fontsize=8)
+        ax.set_xticks(np.arange(-0.5, 12, 1), minor=True)
+        ax.set_yticks(np.arange(-0.5, len(mat.index), 1), minor=True)
+        ax.grid(which="minor", color="#ffffff", linewidth=0.8)
+        ax.tick_params(which="minor", length=0)
+        for iy, yi in enumerate(mat.index):
+            for ix in range(12):
+                xj = ix + 1
+                v = mat.loc[yi, xj] if xj in mat.columns else np.nan
+                if pd.isna(v):
+                    continue
+                txt_col = "#ffffff" if abs(v) > 0.55 * vmax else "#33322f"
+                ax.text(ix, iy, f"{v * 100:+.1f}", ha="center", va="center",
+                        fontsize=7.5, color=txt_col)
+    fig.colorbar(im, ax=axes, fraction=0.03, pad=0.02,
+                 format=PercentFormatter(1.0, decimals=0), label="月度收益")
+    fig.suptitle("月度收益热力图（红涨绿跌；首末月不完整）", fontsize=12, y=1.0)
+    fig.tight_layout()
+    fig.savefig(outpath, bbox_inches="tight")
+    plt.close(fig)
+
+
 # ---------------------------------------------------------------- 9. main
 def _pad_cjk(s: str, width: int) -> str:
     """按显示宽度右对齐：CJK 字符按 2 列计。"""
@@ -484,10 +537,14 @@ def main() -> None:
     args.outdir.mkdir(exist_ok=True)
     p1 = args.outdir / f"backtest_nav_N{args.window}.png"
     p2 = args.outdir / "sensitivity.png"
+    p3 = args.outdir / "monthly_heatmap.png"
     sc = breadth_scale(closes) if use_scale else None
     plot_main(closes, nav, port, bench, args.window, p1, scale=sc)
     plot_sensitivity(scan, args.window, p2)
-    print(f"\n图表已保存：{p1}  {p2}")
+    plot_monthly_heatmap({"轮动策略": nav.pct_change(fill_method=None).fillna(0.0),
+                          "等权持有": bench["等权持有"].pct_change(fill_method=None).fillna(0.0)},
+                         p3)
+    print(f"\n图表已保存：{p1}  {p2}  {p3}")
 
     if args.save_csv:
         out = pd.DataFrame({"轮动策略": nav, **{n: s for n, s in bench.items()}})
