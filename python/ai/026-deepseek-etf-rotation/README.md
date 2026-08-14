@@ -20,6 +20,7 @@
 ├── docs/ablation-interpretation.md # 消融实验逐行解读（默认配置的证据链）
 ├── docs/tiered-defense-test.md  # 防御分档实验记录（测试与不采用判定）
 ├── docs/defense-pool-test.md    # 避险池扩容实验记录（含一日未来函数事故）
+├── docs/macro-data-assessment.md # 宏观数据可行性评估（频率/滞后/统计力分析）
 └── output/                    # 图表与净值 CSV（运行生成，已 gitignore）
 ```
 
