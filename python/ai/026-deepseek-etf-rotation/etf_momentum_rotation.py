@@ -66,7 +66,8 @@ TRESURY = "511010.SH"          # 国债 ETF：只做避险补位，不参与动�
 ETF_NAMES = {
     "510050.SH": "上证50", "510300.SH": "沪深300", "510500.SH": "中证500",
     "159845.SZ": "中证1000", "159915.SZ": "创业板", "588000.SH": "科创50",
-    "511010.SH": "国债",
+    "511010.SH": "国债", "510880.SH": "红利", "518880.SH": "黄金",
+    "510170.SH": "商品", "cash": "现金",
 }
 
 # 动量窗口：10。N 的选择对样本敏感（3 年样本最优 20、10 年样本最优 10），
@@ -220,7 +221,9 @@ def backtest(closes: pd.DataFrame, window: int, *,
              breadth_hyst: int = BREADTH_HYST,
              limit_guard: bool = False,
              use_index_triggers: bool = False,
-             tier_levels: tuple | None = None) -> tuple[pd.Series, pd.DataFrame, pd.Series]:
+             tier_levels: tuple | None = None,
+             defense_pool: tuple | None = None,
+             defense_mode: str = "equal") -> tuple[pd.Series, pd.DataFrame, pd.Series]:
     """回测主流程，返回 (净值, 每日持仓权重, 每日换手 Σ|Δw|)。
 
     引擎参数默认 = 原版行为（use_scale=False, mom_blend=None）；
@@ -248,6 +251,12 @@ def backtest(closes: pd.DataFrame, window: int, *,
                            tier_levels=tier_levels)
         port[STOCK_ETFS] = port[STOCK_ETFS].mul(sc, axis=0)
         port[TRESURY] = 1.0 - port[STOCK_ETFS].sum(axis=1)
+        if defense_pool:   # 避险池扩容：从国债残差腿中切出黄金/红利份额
+            pw = defense_pool_allocation(closes, port[TRESURY], defense_pool,
+                                         defense_mode)
+            for c in defense_pool:
+                port[c] = pw[c]
+            port[TRESURY] = port[TRESURY] - pw.sum(axis=1)
 
     if limit_guard:   # 跌停卖不出/涨停买不进 → 换仓顺延（2015 式流动性危机的保守模拟）
         port = limit_guard_patch(port, closes)
@@ -269,6 +278,41 @@ def backtest(closes: pd.DataFrame, window: int, *,
     assert port[STOCK_ETFS].iloc[:rebalance_days + 1].to_numpy().sum() == 0.0, \
         "热身期（首个信号生效前）应全仓国债"
     return nav, port, turnover
+
+DEFENSE_DIVIDEND_START = "2016-01-01"   # 避险池中 510880 的干净起点（数据审计）
+
+def defense_pool_allocation(closes: pd.DataFrame, rem: pd.Series,
+                            pool: tuple, mode: str) -> pd.DataFrame:
+    """防御期非权益资金在避险池资产间的分配（权重 DataFrame，行和 = rem）。
+
+    池资产可用性：收盘价有效（510880 按干净起点截断，防前复权污染）。
+    - equal：可用池资产间等分；全不可用 → 全 NaN（由国债残差腿接管）
+    - trend_equal：站上自身 MA60 的池资产间等分；无 → 全 NaN
+    - momentum：63 日动量最强的可用池资产独得全部；无 → 全 NaN
+    国债 511010 恒为残差腿（不在池内），其 2013-03 前收益为 0（现金语义）。
+    """
+    pool_closes = closes[list(pool)].copy()
+    if "510880.SH" in pool_closes.columns:
+        pool_closes.loc[pool_closes.index < DEFENSE_DIVIDEND_START, "510880.SH"] = np.nan
+    avail = pool_closes.notna()
+    if mode == "equal":
+        # 逐行除法必须 .div(series, axis=0)：Series 索引是日期，与列（资产码）不重叠
+        w = avail.div(avail.sum(axis=1).replace(0.0, np.nan), axis=0)
+    elif mode == "trend_equal":
+        above = (pool_closes > pool_closes.rolling(60).mean()) & avail
+        w = above.div(above.sum(axis=1).replace(0.0, np.nan), axis=0)
+    elif mode == "momentum":
+        mom = pool_closes.pct_change(63, fill_method=None)
+        best = mom.where(avail, -np.inf).idxmax(axis=1)       # 全 NaN 行也不会抛错
+        w = pd.DataFrame(np.nan, index=closes.index, columns=pool)
+        for c in pool:
+            w[c] = (best == c).astype(float)
+        w = w.where(avail)                                    # 全不可用 → 全 NaN
+    else:
+        raise ValueError(f"未知避险池模式 {mode}")
+    # 关键：池信号 T-1 日收盘定、T 日生效（与引擎其他信号同语义，防未来函数）
+    w = w.shift(1).fillna(0.0)
+    return w.mul(rem, axis=0)
 
 def limit_guard_patch(port: pd.DataFrame, closes: pd.DataFrame) -> pd.DataFrame:
     """跌停/涨停不可成交约束：换仓日若卖出方一字跌停（或买入方涨停），
@@ -730,6 +774,8 @@ def main() -> None:
                              tier_levels=(1.0, 0.5, 0.25))),
         ("默认+跌停约束", dict(window=args.window, use_scale=True, use_index_triggers=True,
                              limit_guard=True)),
+        ("避险池等权(金/红)", dict(window=args.window, use_scale=True, use_index_triggers=True,
+                                defense_pool=("518880.SH", "510880.SH"), defense_mode="equal")),
     ]
     print(_pad_cjk("变体", 16) + _pad_cjk("年化收益", 9) + _pad_cjk("最大回撤", 9)
           + _pad_cjk("夏普", 7) + _pad_cjk("卡玛", 8) + _pad_cjk("换手/年", 9)
