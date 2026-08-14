@@ -158,7 +158,8 @@ def breadth_scale(closes: pd.DataFrame, *, breadth_days: int = BREADTH_DAYS,
                   use_index_triggers: bool = False,
                   index_vol_ann: float = 0.25,
                   index_ma_days: int = 120,
-                  index_col: str = "000300.SH") -> pd.Series:
+                  index_col: str = "000300.SH",
+                  tier_levels: tuple | None = None) -> pd.Series:
     """广度择时 scale：站上 MA 的宽基数量 ≤ 阈值时收缩权益仓位。
 
     - T 日收盘可算 → shift(1) 从 T+1 起生效（无未来函数）。
@@ -178,16 +179,17 @@ def breadth_scale(closes: pd.DataFrame, *, breadth_days: int = BREADTH_DAYS,
         trigger = pd.Series(breadth_trigger, index=closes.index)
     low = trigger - hyst
     high = trigger + hyst
-    # 指数触发（可选，用真指数）：60 日年化波动 > 阈值 或 收盘 < MA_N → 防御。
-    # 快信号（波动率）弥补广度对急跌反应慢的短板（2015 股灾的教训），无滞回。
+    # 指数触发（可选，用真指数）：波动率快信号 + 均线慢信号分别计点。
     if use_index_triggers and index_col in closes.columns:
         idx_ret = closes[index_col].pct_change(fill_method=None)
         vol_ann = idx_ret.rolling(60).std() * np.sqrt(TRADING_DAYS)
         ma_idx = closes[index_col].rolling(index_ma_days).mean()
-        idx_def = ((vol_ann > index_vol_ann) | (closes[index_col] < ma_idx)).to_numpy()
+        idx_vol = (vol_ann > index_vol_ann).to_numpy()          # 快信号
+        idx_ma = (closes[index_col] < ma_idx).to_numpy()        # 慢信号
     else:
-        idx_def = np.zeros(len(breadth), dtype=bool)
-    states = np.empty(len(breadth), dtype=bool)
+        idx_vol = idx_ma = np.zeros(len(breadth), dtype=bool)
+    # 信号点数：广度状态 + 波动触发 + 均线触发 ∈ {0,1,2,3}
+    pts = np.empty(len(breadth), dtype=np.int8)
     defensive = False
     for i, b in enumerate(breadth.to_numpy()):
         if not np.isnan(b):
@@ -196,8 +198,11 @@ def breadth_scale(closes: pd.DataFrame, *, breadth_days: int = BREADTH_DAYS,
                     defensive = False
             elif b <= low.iloc[i]:
                 defensive = True
-        states[i] = defensive or idx_def[i]
-    sc = np.where(states, scale_defensive, 1.0)
+        pts[i] = int(defensive) + int(idx_vol[i]) + int(idx_ma[i])
+    if tier_levels is None:   # 二档：任一信号 → 防御仓位
+        sc = np.where(pts > 0, scale_defensive, 1.0)
+    else:                     # 分档：0/1/2+ 点各一档（如 (1.0, 0.6, 0.3)）
+        sc = np.array([tier_levels[min(p, len(tier_levels) - 1)] for p in pts])
     return pd.Series(sc, index=closes.index).shift(1).fillna(1.0)
 
 # ---------------------------------------------------------------- 5. 回测引擎
@@ -214,7 +219,8 @@ def backtest(closes: pd.DataFrame, window: int, *,
              normalize_trigger: bool = True,
              breadth_hyst: int = BREADTH_HYST,
              limit_guard: bool = False,
-             use_index_triggers: bool = False) -> tuple[pd.Series, pd.DataFrame, pd.Series]:
+             use_index_triggers: bool = False,
+             tier_levels: tuple | None = None) -> tuple[pd.Series, pd.DataFrame, pd.Series]:
     """回测主流程，返回 (净值, 每日持仓权重, 每日换手 Σ|Δw|)。
 
     引擎参数默认 = 原版行为（use_scale=False, mom_blend=None）；
@@ -238,7 +244,8 @@ def backtest(closes: pd.DataFrame, window: int, *,
                            scale_defensive=scale_defensive,
                            normalize=normalize_trigger,
                            hyst=breadth_hyst,
-                           use_index_triggers=use_index_triggers)
+                           use_index_triggers=use_index_triggers,
+                           tier_levels=tier_levels)
         port[STOCK_ETFS] = port[STOCK_ETFS].mul(sc, axis=0)
         port[TRESURY] = 1.0 - port[STOCK_ETFS].sum(axis=1)
 
@@ -719,6 +726,8 @@ def main() -> None:
         ("+混合动量20/60", dict(window=args.window, mom_blend=(20, 60))),
         ("+scale+混合", dict(window=args.window, use_scale=True, mom_blend=(20, 60))),
         ("默认(广度+指数)", dict(window=args.window, use_scale=True, use_index_triggers=True)),
+        ("+三档0.5/0.25", dict(window=args.window, use_scale=True, use_index_triggers=True,
+                             tier_levels=(1.0, 0.5, 0.25))),
         ("默认+跌停约束", dict(window=args.window, use_scale=True, use_index_triggers=True,
                              limit_guard=True)),
     ]
