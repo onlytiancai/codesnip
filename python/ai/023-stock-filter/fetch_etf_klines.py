@@ -416,10 +416,12 @@ def _descriptive_stats(df: pd.DataFrame) -> DescriptiveStats:
             cum_log = float(np.log(close.iloc[-1] / close.iloc[0]))
             s.annual_ret = float(np.exp(cum_log * (252 / n_days)) - 1)
 
-        # 最大回撤：在累计对数收益曲线上找峰到谷
-        cum_log_series = log_ret.cumsum()
-        running_peak = cum_log_series.cummax()
-        drawdown = cum_log_series - running_peak
+        # 最大回撤：直接在 close 上算（(close - peak) / peak），单位是百分比，
+        # 下界 -100%（资产归零）。不要在 cum_log 上算，因为 cum_log 的起点 0
+        # 对应的是被前复权压扁的首日价，qfq 多年的分红回填会让 cum_log 出现
+        # 远超真实回撤的"虚高峰"，导致回撤被算成 -200%、-300% 这种不存在的值。
+        running_peak = close.cummax()
+        drawdown = (close - running_peak) / running_peak
         dd_min = float(drawdown.min())
         s.max_drawdown = dd_min
 
