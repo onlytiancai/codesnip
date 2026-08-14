@@ -47,7 +47,20 @@ DEFAULT_ETFS: list[str] = [
     "159915.SZ",   # 易方达创业板ETF      创业板指
     "588000.SH",   # 华夏科创50ETF        科创50
     "511010.SH",   # 国债ETF              避险资产（熊市替代空仓）
+    "000300.SH",   # 沪深300指数          对照基准（指数本身）
 ]
+
+# 指数代码前缀（CSI / 深证综指）：eltdx 解析必须 kind="index"，否则
+# 解码层会因 record 格式不同抛 `invalid kline date`。
+# 000xxx.SH = 上证综指/中证/上证风格指数；399xxx.SZ = 深证综指/创业板等。
+_INDEX_PREFIXES: tuple[str, ...] = ("000", "399")
+
+
+def _kind_for(combined: str) -> str:
+    """`000300.SH` -> `index`，其余 -> `stock`。"""
+    code = combined.split(".", 1)[0]
+    return "index" if code.startswith(_INDEX_PREFIXES) else "stock"
+
 
 # 每次拉一页最多 800 根 K 线，eltdx 的硬上限
 PAGE_SIZE = 800
@@ -176,6 +189,9 @@ def fetch_one(
     占位（OHLC=前收, vol=0, amt=0）；本函数在 finalize 之前会把它剔掉。
     """
     eltdx_code = to_eltdx_code(combined)
+    kind = _kind_for(combined)
+    # 指数没有分红/拆分，前复权无意义；eltdx 对 kind="index" 用 `none` 也不会出错。
+    adjust = "qfq" if kind == "stock" else "none"
     rows: list[dict] = []
 
     start = 0
@@ -185,7 +201,8 @@ def fetch_one(
             eltdx_code,
             start=start,
             count=PAGE_SIZE,
-            adjust="qfq",
+            adjust=adjust,
+            kind=kind,
         )
         bars = series.bars
         if not bars:
@@ -212,7 +229,8 @@ def fetch_one(
         start += len(bars)
         if len(bars) < PAGE_SIZE:
             break
-        if start > 5000:
+        # 20 年 ≈ 5040 bar；用 8000 上限兜底极端长历史（指数回溯到 2005）。
+        if start > 8000:
             break
 
     rows = _strip_trailing_placeholders(rows)
@@ -1065,6 +1083,11 @@ def _run_lookback(
 
         if existing_first and existing_first <= target_first:
             print(f"[skip]   {_label(combined)} 已覆盖到 {existing_first}，无需扩展")
+            continue
+        if existing_first and existing_first > target_first:
+            # 上市日已经晚于目标起点：现有数据就是该 ETF 能拿到的最早，
+            # 再往前 eltdx 也没有 bar；不必再尝试 fetch。
+            print(f"[skip]   {_label(combined)} 上市于 {existing_first}，已是最早，无需扩展")
             continue
 
         fetch_s = target_first

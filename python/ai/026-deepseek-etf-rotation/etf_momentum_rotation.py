@@ -90,6 +90,12 @@ SCALE_DEFENSIVE = 0.4          # 防御时权益仓位比例
 # 滞回带宽 2：10 年网格显示 h=2 换手从 2156% 降到 799%（141 次调仓）且收益
 # 微升、夏普最优（≤3@0.4 h=2：9.49% / -23.09% / 0.48），防阈值附近反复横跳。
 BREADTH_HYST = 2               # 广度滞回带宽（≤trigger−h 入防御、≥trigger+h 恢复）
+# 指数触发（真指数 000300.SH）：60 日年化波动>25% 或收盘<MA120 → 防御。
+# 20 年回测：回撤 -41.3%→-26.5%（2015 股灾的快信号短板），收益不变，夏普
+# 0.50→0.58；9 窗滚出对照 4 胜 3 负 2 平、超额总和打平 → 纯风险端改善。
+USE_INDEX_TRIGGERS = True      # 指数快/慢触发叠加广度择时
+INDEX_VOL_TRIGGER = 0.25       # 60 日年化波动触发线
+INDEX_MA_DAYS = 120            # 指数收盘跌破该日均线 → 防御
 
 # ETF 固定色（dataviz 校验通过的 categorical 色板，跨图一致——颜色跟实体走）
 ETF_COLORS = {
@@ -115,9 +121,10 @@ def load_closes(klines_dir: Path) -> pd.DataFrame:
         closes[f.stem] = df["close"]
     out = pd.DataFrame(closes).sort_index()   # union 索引，缺日 NaN
     assert out.index.is_monotonic_increasing
-    assert len(out) > 2000, f"行数 {len(out)} 异常（预期 ~2426）"
+    assert len(out) > 2000, f"行数 {len(out)} 异常（预期 ≥2426）"
     nan_share = out.isna().to_numpy().sum() / out.size
-    assert nan_share < 0.35, f"NaN 占比 {nan_share:.0%} 异常（预期仅未上市/停牌缺口）"
+    # 20 年数据（2006 起）中 588000/159845 等上市晚，NaN 占比 ~33%；留余量放宽到 42%
+    assert nan_share < 0.42, f"NaN 占比 {nan_share:.0%} 异常（预期仅未上市/停牌缺口）"
     return out
 
 # ---------------------------------------------------------------- 4. 信号
@@ -147,7 +154,11 @@ def breadth_scale(closes: pd.DataFrame, *, breadth_days: int = BREADTH_DAYS,
                   breadth_trigger: int = BREADTH_TRIGGER,
                   scale_defensive: float = SCALE_DEFENSIVE,
                   normalize: bool = True,
-                  hyst: int = 0) -> pd.Series:
+                  hyst: int = 0,
+                  use_index_triggers: bool = False,
+                  index_vol_ann: float = 0.25,
+                  index_ma_days: int = 120,
+                  index_col: str = "000300.SH") -> pd.Series:
     """广度择时 scale：站上 MA 的宽基数量 ≤ 阈值时收缩权益仓位。
 
     - T 日收盘可算 → shift(1) 从 T+1 起生效（无未来函数）。
@@ -167,6 +178,15 @@ def breadth_scale(closes: pd.DataFrame, *, breadth_days: int = BREADTH_DAYS,
         trigger = pd.Series(breadth_trigger, index=closes.index)
     low = trigger - hyst
     high = trigger + hyst
+    # 指数触发（可选，用真指数）：60 日年化波动 > 阈值 或 收盘 < MA_N → 防御。
+    # 快信号（波动率）弥补广度对急跌反应慢的短板（2015 股灾的教训），无滞回。
+    if use_index_triggers and index_col in closes.columns:
+        idx_ret = closes[index_col].pct_change(fill_method=None)
+        vol_ann = idx_ret.rolling(60).std() * np.sqrt(TRADING_DAYS)
+        ma_idx = closes[index_col].rolling(index_ma_days).mean()
+        idx_def = ((vol_ann > index_vol_ann) | (closes[index_col] < ma_idx)).to_numpy()
+    else:
+        idx_def = np.zeros(len(breadth), dtype=bool)
     states = np.empty(len(breadth), dtype=bool)
     defensive = False
     for i, b in enumerate(breadth.to_numpy()):
@@ -176,7 +196,7 @@ def breadth_scale(closes: pd.DataFrame, *, breadth_days: int = BREADTH_DAYS,
                     defensive = False
             elif b <= low.iloc[i]:
                 defensive = True
-        states[i] = defensive
+        states[i] = defensive or idx_def[i]
     sc = np.where(states, scale_defensive, 1.0)
     return pd.Series(sc, index=closes.index).shift(1).fillna(1.0)
 
@@ -192,7 +212,9 @@ def backtest(closes: pd.DataFrame, window: int, *,
              breadth_trigger: int = BREADTH_TRIGGER,
              scale_defensive: float = SCALE_DEFENSIVE,
              normalize_trigger: bool = True,
-             breadth_hyst: int = BREADTH_HYST) -> tuple[pd.Series, pd.DataFrame, pd.Series]:
+             breadth_hyst: int = BREADTH_HYST,
+             limit_guard: bool = False,
+             use_index_triggers: bool = False) -> tuple[pd.Series, pd.DataFrame, pd.Series]:
     """回测主流程，返回 (净值, 每日持仓权重, 每日换手 Σ|Δw|)。
 
     引擎参数默认 = 原版行为（use_scale=False, mom_blend=None）；
@@ -215,9 +237,13 @@ def backtest(closes: pd.DataFrame, window: int, *,
                            breadth_trigger=breadth_trigger,
                            scale_defensive=scale_defensive,
                            normalize=normalize_trigger,
-                           hyst=breadth_hyst)
+                           hyst=breadth_hyst,
+                           use_index_triggers=use_index_triggers)
         port[STOCK_ETFS] = port[STOCK_ETFS].mul(sc, axis=0)
         port[TRESURY] = 1.0 - port[STOCK_ETFS].sum(axis=1)
+
+    if limit_guard:   # 跌停卖不出/涨停买不进 → 换仓顺延（2015 式流动性危机的保守模拟）
+        port = limit_guard_patch(port, closes)
 
     # 未上市/停牌日收益按 0 计（停牌无收益；未上市 ETF 权重为 0，不参与组合）
     daily_ret = closes.pct_change(fill_method=None).fillna(0.0)
@@ -237,13 +263,81 @@ def backtest(closes: pd.DataFrame, window: int, *,
         "热身期（首个信号生效前）应全仓国债"
     return nav, port, turnover
 
+def limit_guard_patch(port: pd.DataFrame, closes: pd.DataFrame) -> pd.DataFrame:
+    """跌停/涨停不可成交约束：换仓日若卖出方一字跌停（或买入方涨停），
+    当日成交不了 → 换仓顺延（前向迭代级联，连续封板自动继续推迟）。
+
+    阈值：主板 10%；创业板 159915 自 2020-08-24 起 20%；科创50 上市即 20%。
+    近似：收盘触及涨跌停（留 0.5% 容差）视为当日无法成交。
+    """
+    ret = closes[STOCK_ETFS].pct_change(fill_method=None)
+    limit = pd.DataFrame(0.10, index=closes.index, columns=STOCK_ETFS)
+    limit.loc[closes.index >= "2020-08-24", "159915.SZ"] = 0.20
+    limit["588000.SH"] = 0.20
+    blocked_sell = ret <= -(limit - 0.005)   # 跌停 → 卖不出
+    blocked_buy = ret >= +(limit - 0.005)    # 涨停 → 买不进
+    port = port.copy()
+    for i in range(1, len(port)):
+        dw = port.iloc[i] - port.iloc[i - 1]
+        if (dw.abs() < 1e-9).all():
+            continue
+        t = port.index[i]
+        # 涨跌停约束只作用于股票 ETF 腿（国债腿不受限）
+        sell_mask = (dw < -1e-9) & dw.index.isin(STOCK_ETFS)
+        buy_mask = (dw > 1e-9) & dw.index.isin(STOCK_ETFS)
+        sell_blocked = bool(blocked_sell.loc[t, dw.index[sell_mask]].any()) if sell_mask.any() else False
+        buy_blocked = bool(blocked_buy.loc[t, dw.index[buy_mask]].any()) if buy_mask.any() else False
+        if sell_blocked or buy_blocked:
+            port.iloc[i] = port.iloc[i - 1]   # 顺延：当日保持旧仓位
+    return port
+
+EPISODES = [          # 极端行情复盘区间（A 股主要危机）
+    ("2008 大熊市", "2007-10-16", "2008-11-04"),
+    ("2015 股灾", "2015-06-12", "2016-01-28"),
+    ("2016 熔断", "2016-01-04", "2016-01-28"),
+    ("2018 熊市", "2018-01-24", "2019-01-03"),
+    ("2021-24 熊市", "2021-02-18", "2024-02-05"),
+]
+
+def print_episodes(closes: pd.DataFrame, nav: pd.Series, port: pd.DataFrame,
+                   bench: dict[str, pd.Series]) -> None:
+    """极端行情复盘：各段策略 vs 基准段内累计收益 + 防御状态统计。
+    沪深300 基准用 000300 指数（2006 年即有，ETF 2012 年才上市）。"""
+    idx300 = closes["000300.SH"]
+    nav300 = idx300 / idx300.dropna().iloc[0]
+    print(f"\n===== 极端行情复盘（段内累计收益；300 基准 = 000300 指数）=====")
+    print(_pad_cjk("区间", 14) + _pad_cjk("轮动策略", 10) + _pad_cjk("等权持有", 10)
+          + _pad_cjk("000300", 10) + _pad_cjk("平均权益仓", 10) + _pad_cjk("最低权益仓", 10))
+    for name, a, b in EPISODES:
+        mask = (closes.index >= a) & (closes.index <= b)
+        idx = closes.index[mask]
+        if len(idx) == 0:
+            continue
+        def seg_ret(s: pd.Series) -> float:
+            seg = s.loc[idx].dropna()
+            return float(seg.iloc[-1] / seg.iloc[0] - 1) if len(seg) else np.nan
+        def cell(v: float) -> str:
+            return "—".rjust(10) if pd.isna(v) else f"{v:>10.2%}"
+        equity = 1.0 - port[TRESURY].loc[idx]
+        print(f"{_pad_cjk(f'{name}', 14)}{cell(seg_ret(nav))}{cell(seg_ret(bench['等权持有']))}"
+              f"{cell(seg_ret(nav300))}{equity.mean():>10.0%}{equity.min():>10.0%}")
+    print("（注：2008 段等权实际仅上证50一只；2015 段含千股跌停流动性危机）")
+
 # ---------------------------------------------------------------- 6. 指标与基准
 def compute_metrics(nav: pd.Series, rf_annual: float) -> dict:
-    """从净值序列计算绩效指标。年化按 252 个交易日。"""
-    n = len(nav)
-    total = nav.iloc[-1] / nav.iloc[0] - 1
+    """从净值序列计算绩效指标。年化按 252 个交易日。
+
+    首尾可能为 NaN（基准在 union 索引上的未上市期）→ 按有效区间计算；
+    年化年限取有效区间的长度（策略无 NaN，与全区间等价）。
+    """
+    v = nav.dropna()
+    if len(v) == 0:   # 全 NaN（如切片期内该标的未上市）→ 指标记 NaN
+        return {"总收益": np.nan, "年化收益": np.nan, "年化波动": np.nan,
+                "最大回撤": np.nan, "夏普": np.nan, "卡玛": np.nan}
+    n = len(v)
+    total = v.iloc[-1] / v.iloc[0] - 1
     years = (n - 1) / TRADING_DAYS
-    ann_ret = (nav.iloc[-1] / nav.iloc[0]) ** (1 / years) - 1
+    ann_ret = (v.iloc[-1] / v.iloc[0]) ** (1 / years) - 1
     r = nav.pct_change(fill_method=None).dropna()
     ann_vol = r.std() * np.sqrt(TRADING_DAYS)
     rf_daily = (1 + rf_annual) ** (1 / TRADING_DAYS) - 1   # 复利折算，不用 rf/252
@@ -262,11 +356,18 @@ def benchmark_navs(closes: pd.DataFrame) -> dict[str, pd.Series]:
     """
     stocks = closes[STOCK_ETFS]
     # 首个有效收盘价（勿用 iloc[0]，可能为 NaN）；整列全 NaN（切片期未上市）→ 基价 NaN，均值时跳过
-    base = stocks.apply(lambda s: s.dropna().iloc[0] if s.notna().any() else np.nan)
+    def _first_valid(s: pd.Series) -> float:
+        return float(s.dropna().iloc[0]) if s.notna().any() else np.nan
+
+    base = stocks.apply(_first_valid)
     eq = (stocks / base).mean(axis=1)
-    hs300 = closes["510300.SH"] / closes["510300.SH"].iloc[0]
-    bond = closes[TRESURY] / closes[TRESURY].iloc[0]
-    return {"等权持有": eq, "沪深300": hs300, "国债ETF": bond}
+    hs300 = closes["510300.SH"] / _first_valid(closes["510300.SH"])
+    bench = {"等权持有": eq, "沪深300": hs300}
+    if "000300.SH" in closes.columns:   # 真指数（2006 年起，比 ETF 长 6 年）
+        bench["000300指数"] = closes["000300.SH"] / _first_valid(closes["000300.SH"])
+    bond = closes[TRESURY] / _first_valid(closes[TRESURY])
+    bench["国债ETF"] = bond
+    return bench
 
 def trade_log(port: pd.DataFrame, rebalance_days: int) -> list[tuple[pd.Timestamp, list[tuple[str, float]]]]:
     """调仓记录：每次生效权重与上一期不同则记一条（生效日 = 信号日次日）。"""
@@ -334,7 +435,8 @@ def walk_forward(closes: pd.DataFrame, *, min_train: int = 504, step: int = 504,
         nav_def, _, _ = backtest(full, WINDOW, use_scale=True,
                                  breadth_trigger=BREADTH_TRIGGER,
                                  scale_defensive=SCALE_DEFENSIVE,
-                                 breadth_hyst=BREADTH_HYST)
+                                 breadth_hyst=BREADTH_HYST,
+                                 use_index_triggers=True)
         bench = benchmark_navs(closes.iloc[:test_end])
         m_wf = compute_metrics(nav_wf.iloc[t0:test_end], RISK_FREE_ANNUAL)
         m_def = compute_metrics(nav_def.iloc[t0:test_end], RISK_FREE_ANNUAL)
@@ -357,13 +459,16 @@ def print_walk_forward(wf: pd.DataFrame, picks: list) -> None:
     print(_pad_cjk("测试区间", 22) + _pad_cjk("选中参数", 14) + _pad_cjk("wf年化", 8)
           + _pad_cjk("wf回撤", 8) + _pad_cjk("默认年化", 9) + _pad_cjk("默认回撤", 9)
           + _pad_cjk("等权年化", 9) + _pad_cjk("300年化", 8))
+    def cell(v: float, w: int = 8) -> str:
+        return "—".rjust(w) if pd.isna(v) else f"{v:>{w}.2%}"
+
     for _, r in wf.iterrows():
         params = f"N={r['N']}≤{r['触发']}@{r['仓位']:.1f}h{r['滞回']}"
         print(f"{r['起点']:%Y-%m}~{r['结束']:%Y-%m}   {_pad_cjk(params, 14)}"
-              f"{r['wf年化']:>8.2%}  {r['wf回撤']:>8.2%}  {r['默认年化']:>9.2%}"
-              f"  {r['默认回撤']:>9.2%}  {r['等权年化']:>9.2%}  {r['300年化']:>8.2%}")
-    wf_ex = (wf["wf年化"] - wf["等权年化"]).to_numpy()
-    def_ex = (wf["默认年化"] - wf["等权年化"]).to_numpy()
+              f"{cell(r['wf年化'])}  {cell(r['wf回撤'])}  {cell(r['默认年化'], 9)}"
+              f"  {cell(r['默认回撤'], 9)}  {cell(r['等权年化'], 9)}  {cell(r['300年化'])}")
+    wf_ex = (wf["wf年化"] - wf["等权年化"]).dropna()   # 早期窗口基准未上市 → 剔除
+    def_ex = (wf["默认年化"] - wf["等权年化"]).dropna()
     print(f"\n滚出选参：超额 vs 等权 均值 {wf_ex.mean():+.2%} ｜ 胜率 {(wf_ex > 0).mean():.0%}"
           f"（{int((wf_ex > 0).sum())}/{len(wf_ex)} 窗）")
     print(f"固定默认：超额 vs 等权 均值 {def_ex.mean():+.2%} ｜ 胜率 {(def_ex > 0).mean():.0%}"
@@ -533,7 +638,7 @@ def plot_monthly_heatmap(rets: dict[str, pd.Series], outpath: Path) -> None:
     fig.colorbar(im, ax=axes, fraction=0.03, pad=0.02,
                  format=PercentFormatter(1.0, decimals=0), label="月度收益")
     fig.suptitle("月度收益热力图（红涨绿跌；首末月不完整）", fontsize=12, y=1.0)
-    fig.tight_layout()
+    # 不用 tight_layout（与 colorbar/suptitle 不兼容告警）；bbox_inches="tight" 已足够
     fig.savefig(outpath, bbox_inches="tight")
     plt.close(fig)
 
@@ -548,13 +653,13 @@ def print_comparison(strat: dict, extra: dict, bench_m: dict[str, dict],
                      date_range: str) -> None:
     rows = [("总收益", "总收益"), ("年化收益", "年化收益"), ("年化波动", "年化波动"),
             ("最大回撤", "最大回撤"), ("夏普", "夏普"), ("卡玛", "卡玛")]
-    names = ["轮动策略", "等权持有", "沪深300", "国债ETF"]
+    names = ["轮动策略"] + list(bench_m.keys())
     print(f"\n===== 绩效对比（{date_range}，策略已扣佣金万1，基准不计成本）=====")
-    print(_pad_cjk("指标", 8) + "  " + "  ".join(_pad_cjk(h, 8) for h in names))
+    print(_pad_cjk("指标", 10) + "  " + "  ".join(_pad_cjk(h, 10) for h in names))
     for label, key in rows:
         vals = [strat[key]] + [bench_m[n][key] for n in names[1:]]
-        cells = [f"{v:>8.2%}" if key != "夏普" else f"{v:>8.2f}" for v in vals]
-        print(_pad_cjk(label, 8) + "  " + "  ".join(cells))
+        cells = [f"{v:>10.2%}" if key != "夏普" else f"{v:>10.2f}" for v in vals]
+        print(_pad_cjk(label, 10) + "  " + "  ".join(cells))
     print(f"\n策略附加：年度单边换手率 {extra['年换手率']:.0%} ｜ 调仓次数 {extra['调仓次数']} 次"
           f" ｜ 国债避险天数占比 {extra['国债占比']:.0%}")
 
@@ -574,15 +679,19 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="ETF 动量轮动回测")
     ap.add_argument("--window", type=int, default=WINDOW, help="动量窗口（交易日），默认 10")
     ap.add_argument("--no-scale", action="store_true", help="关闭广度择时 scale")
+    ap.add_argument("--no-index-triggers", action="store_true", help="关闭指数触发（波动/均线）")
     ap.add_argument("--blend", action="store_true",
                     help="启用多窗口动量混合 20/60（消融显示为负优化，默认关闭）")
     ap.add_argument("--walk-forward", action="store_true",
                     help="运行滚出验证（每 2 年网格选参+前瞻评估，约 1 分钟）")
+    ap.add_argument("--limit-guard", action="store_true",
+                    help="启用跌停/涨停不可成交约束（换仓顺延）")
     ap.add_argument("--save-csv", action="store_true", help="保存净值 CSV 到 output/")
     ap.add_argument("--outdir", type=Path, default=OUTPUT_DIR, help="输出目录")
     args = ap.parse_args()
 
     use_scale = USE_SCALE and not args.no_scale
+    use_idx = USE_INDEX_TRIGGERS and not args.no_index_triggers
     mom_blend = (20, 60) if args.blend else MOM_BLEND   # MOM_BLEND 默认 None（消融证伪混合）
 
     closes = load_closes(KLINES_DIR)
@@ -594,6 +703,8 @@ def main() -> None:
           + (f" 混合{mom_blend}" if mom_blend else "")
           + (f" ｜ 广度择时（站上MA{BREADTH_DAYS}数量≤一半→权益{SCALE_DEFENSIVE:.0%}，"
              f"滞回±{BREADTH_HYST}）" if use_scale else "")
+          + (f" ｜ 指数触发（60日波动>{INDEX_VOL_TRIGGER:.0%}或破MA{INDEX_MA_DAYS}）"
+             if use_idx else "")
           + f" ｜ 每 {REBALANCE_DAYS} 个交易日调仓 ｜ 动量>0 入选前 {TOP_N} 各 50%"
           + f" ｜ 国债补足避险 ｜ 佣金单边万1")
 
@@ -604,9 +715,12 @@ def main() -> None:
         ("文档值≤2@0.4原始", dict(window=args.window, use_scale=True, breadth_trigger=2,
                                 scale_defensive=0.4, normalize_trigger=False,
                                 breadth_hyst=0)),
-        ("默认≤3@0.4归一h2", dict(window=args.window, use_scale=True)),
+        ("广度默认(无指数)", dict(window=args.window, use_scale=True)),
         ("+混合动量20/60", dict(window=args.window, mom_blend=(20, 60))),
         ("+scale+混合", dict(window=args.window, use_scale=True, mom_blend=(20, 60))),
+        ("默认(广度+指数)", dict(window=args.window, use_scale=True, use_index_triggers=True)),
+        ("默认+跌停约束", dict(window=args.window, use_scale=True, use_index_triggers=True,
+                             limit_guard=True)),
     ]
     print(_pad_cjk("变体", 16) + _pad_cjk("年化收益", 9) + _pad_cjk("最大回撤", 9)
           + _pad_cjk("夏普", 7) + _pad_cjk("卡玛", 8) + _pad_cjk("换手/年", 9)
@@ -621,7 +735,9 @@ def main() -> None:
               f"  {int((to_a > 1e-12).sum()):>5d}")
 
     nav, port, turnover = backtest(closes, args.window,
-                                   use_scale=use_scale, mom_blend=mom_blend)
+                                   use_scale=use_scale, mom_blend=mom_blend,
+                                   limit_guard=args.limit_guard,
+                                   use_index_triggers=use_idx)
     strat = compute_metrics(nav, RISK_FREE_ANNUAL)
     years = (len(nav) - 1) / TRADING_DAYS
     extra = {"年换手率": turnover.sum() / 2 / years,
@@ -631,12 +747,19 @@ def main() -> None:
     bench_m = {name: compute_metrics(s, RISK_FREE_ANNUAL) for name, s in bench.items()}
     print_comparison(strat, extra, bench_m,
                      f"{closes.index[0]:%Y-%m-%d} ~ {closes.index[-1]:%Y-%m-%d}")
+    spans = {n: (s.dropna().index[0], s.dropna().index[-1]) for n, s in bench.items()}
+    print("基准有效区间：" + " ｜ ".join(
+        f"{n} {a:%Y-%m-%d}~{b:%Y-%m-%d}" for n, (a, b) in spans.items()))
+    print("（注：各基准按自身有效区间年化；等权 2006-2011 年实际仅上证50一只，"
+          "沪深300/国债ETF 上市较晚）")
 
     trades = trade_log(port, REBALANCE_DAYS)
     print(f"\n===== 调仓记录（生效日，共 {len(trades)} 次，显示最近 60 次）=====")
     for d, held in trades[-60:]:
         parts = [f"{ETF_NAMES[c]} {w:.0%}" for c, w in held]
         print(f"{d:%Y-%m-%d}  {' + '.join(parts)}")
+
+    print_episodes(closes, nav, port, bench)
 
     scan = sensitivity_scan(closes, use_scale=use_scale)
     print_sensitivity(scan, args.window)

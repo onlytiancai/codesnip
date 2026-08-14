@@ -69,7 +69,7 @@ FWD_DAYS = 21
 IC_MIN_PAIRS = 3
 ROLL_WIN, ROLL_STEP = 252, 21
 
-HS300_PROXY = "510300.SH"        # 沪深300 ETF 代理 000300 指数
+HS300_PROXY = "000300.SH"        # 沪深300 真指数（2006 年起；数据已含该文件）
 
 V2_PURPLE = "#4a3aa7"            # v2 策略线色（dataviz slot 7，与 v1 蓝线同图已过校验）
 
@@ -106,9 +106,9 @@ def load_amounts(klines_dir: Path) -> pd.DataFrame:
         amounts[f.stem] = df["amount"]
     out = pd.DataFrame(amounts).sort_index()
     assert out.index.is_monotonic_increasing
-    assert len(out) > 2000, f"行数 {len(out)} 异常（预期 ~2426）"
+    assert len(out) > 2000, f"行数 {len(out)} 异常（预期 ≥2426）"
     nan_share = out.isna().to_numpy().sum() / out.size
-    assert nan_share < 0.35, f"NaN 占比 {nan_share:.0%} 异常（预期仅未上市/停牌缺口）"
+    assert nan_share < 0.42, f"NaN 占比 {nan_share:.0%} 异常（预期仅未上市/停牌缺口）"
     return out
 
 
