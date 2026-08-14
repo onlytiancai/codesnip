@@ -341,6 +341,8 @@ class DescriptiveStats:
     close_std: float = 0.0
     close_min: float = 0.0
     close_max: float = 0.0
+    n_invalid_close: int = 0      # close <= 0 的行数（前复权异常，510880 等高分红 ETF）
+    n_extreme_jump: int = 0       # |log_ret| > 1.0 的复权跳变行数
 
     # 日对数收益描述
     ret_mean: float = 0.0        # 日对数收益均值
@@ -396,13 +398,35 @@ def _descriptive_stats(df: pd.DataFrame) -> DescriptiveStats:
         return s
 
     close = df["close"]
-    s.close_mean = float(close.mean())
-    s.close_std = float(close.std())
-    s.close_min = float(close.min())
-    s.close_max = float(close.max())
 
-    # 日对数收益（学术标准）
-    log_ret = np.log(close / close.shift(1)).dropna()
+    # 过滤掉 close <= 0 的异常行（510880 等高分红 ETF 在 eltdx qfq 下
+    # 早期 close 会被扣成负数）。这些行不能参与 log / 回撤 / 波动率计算，
+    # 否则结果会爆掉（std=200%，回撤=-1000%）。
+    valid_mask = close > 0
+    s.n_invalid_close = int((~valid_mask).sum())
+    # reset_index(drop=True)：boolean indexing 会保留原 index（跳号），
+    # 后面 drawdown.idxmin()/iloc[:N+1] 的位置-标签逻辑会错位。
+    close_clean = close[valid_mask].reset_index(drop=True)
+    date_clean = df["date"][valid_mask].reset_index(drop=True)
+
+    if close_clean.empty:
+        return s
+
+    s.close_mean = float(close_clean.mean())
+    s.close_std = float(close_clean.std())
+    s.close_min = float(close_clean.min())
+    s.close_max = float(close_clean.max())
+
+    # 日对数收益（学术标准）。再加一道过滤：剔除 |log_ret| > 0.5（即涨跌
+    # 超 ±65%）的复权跳变——qfq 在高分红 ETF（如 510880）上会让某段 close
+    # 在 ±0.001 级别徘徊，前后两天的"涨跌"看似 log=±2+，其实是一次大比例
+    # 配股/折算被分散到多天的人为跳变；保留它们会把 std 顶到 150%+。
+    # 阈值 0.5 安全：A 股 ETF 真实涨跌停 ±10%，0.5 阈值只伤复权跳变，
+    # 不会误伤 2015 股灾、2020 新冠那种 ±15% 的极端行情。
+    log_ret_raw = np.log(close_clean / close_clean.shift(1))
+    extreme_jump = log_ret_raw.abs() > 0.5
+    s.n_extreme_jump = int(extreme_jump.sum())
+    log_ret = log_ret_raw[~extreme_jump].dropna()
     if not log_ret.empty:
         s.ret_mean = float(log_ret.mean())
         s.ret_std = float(log_ret.std())
@@ -415,24 +439,25 @@ def _descriptive_stats(df: pd.DataFrame) -> DescriptiveStats:
         # 在收益大时（>30%）会显著低估（科创50 翻倍会被报成 +83%）。
         # 这里改回标准几何年化：先 cum_log 再 exp 回来 - 1。
         n_days = len(log_ret)
-        if n_days > 0 and close.iloc[0] > 0:
-            cum_log = float(np.log(close.iloc[-1] / close.iloc[0]))
+        if n_days > 0 and close_clean.iloc[0] > 0:
+            cum_log = float(np.log(close_clean.iloc[-1] / close_clean.iloc[0]))
             s.annual_ret = float(np.exp(cum_log * (252 / n_days)) - 1)
 
         # 最大回撤：直接在 close 上算（(close - peak) / peak），单位是百分比，
         # 下界 -100%（资产归零）。不要在 cum_log 上算，因为 cum_log 的起点 0
         # 对应的是被前复权压扁的首日价，qfq 多年的分红回填会让 cum_log 出现
         # 远超真实回撤的"虚高峰"，导致回撤被算成 -200%、-300% 这种不存在的值。
-        running_peak = close.cummax()
-        drawdown = (close - running_peak) / running_peak
+        # 用 close_clean（已过滤负值）算，避免 qfq 异常行把回撤顶到 -1000%。
+        running_peak = close_clean.cummax()
+        drawdown = (close_clean - running_peak) / running_peak
         dd_min = float(drawdown.min())
         s.max_drawdown = dd_min
 
         dd_end_pos = int(drawdown.idxmin())
         if dd_end_pos > 0:
             peak_pos = int(running_peak.iloc[: dd_end_pos + 1].idxmax())
-            s.max_dd_start = str(df["date"].iloc[peak_pos])
-            s.max_dd_end = str(df["date"].iloc[dd_end_pos])
+            s.max_dd_start = str(date_clean.iloc[peak_pos])
+            s.max_dd_end = str(date_clean.iloc[dd_end_pos])
 
     # 成交量
     if "volume" in df.columns:
@@ -491,6 +516,15 @@ def quality_check(
     if null_cols:
         issues.append(f"含 NaN 列: {null_cols}")
 
+    # 2.5 复权异常：close <= 0 的行（高分红 ETF 在 eltdx qfq 下早期 close
+    #      会被累计分红扣成负数；这些行已从描述统计中过滤）。
+    if "close" in df.columns:
+        n_neg = int((df["close"] <= 0).sum())
+        if n_neg > 0:
+            issues.append(
+                f"close<=0 共 {n_neg} 行（前复权异常，描述统计已过滤）"
+            )
+
     # 3. OHLC 关系
     if not df.empty and {"open", "high", "low", "close"}.issubset(df.columns):
         bad_hi = df[df["high"] < df[["open", "close"]].max(axis=1)]
@@ -536,6 +570,27 @@ def quality_check(
             )
 
     stats = _descriptive_stats(df)
+
+    # 8. 描述统计异常：qfq 复权污染的特征（即使已过滤 close<=0 和 |log_ret|>0.5，
+    #    高分红 ETF 的"持续小值"段仍可能让回撤/波动率偏离正常范围）。
+    # 8.1 最大回撤接近 -100%（真实 ETF 极端回撤约 -85%，-95% 以下几乎一定是
+    #      close 被人为压扁到接近 0 造成的）
+    if stats.has_data and stats.max_drawdown < -0.95:
+        issues.append(
+            f"最大回撤 {stats.max_drawdown*100:.2f}% 接近 -100%，疑似 qfq 复权异常"
+        )
+    # 8.2 年化波动率过高（正常宽基 ETF 25-40%，>50% 几乎一定是污染未清洗）
+    if stats.has_data and stats.annual_vol > 0.50:
+        issues.append(
+            f"年化波动率 {stats.annual_vol*100:.2f}% 偏高（>50%），疑似 qfq 复权异常未完全清洗"
+        )
+    # 8.3 描述统计中过滤了大量复权跳变（污染程度指标）
+    if stats.n_extreme_jump > 10:
+        issues.append(
+            f"描述统计过滤掉 {stats.n_extreme_jump} 行 |log_ret|>0.5 复权跳变，"
+            "原数据污染严重"
+        )
+
     return QCRow(code=code, rows=n, first=first, last=last, issues=issues, stats=stats)
 
 
