@@ -1,5 +1,12 @@
 {
+	"type": "module",
+	"scripts": {
+		"bench": "node --expose-gc --allow-natives-syntax bench.ts"
+	},
 	"dependencies": {
 		"zod": "^4.5.4"
+	},
+	"devDependencies": {
+		"mitata": "^1.0.34"
 	}
 }
