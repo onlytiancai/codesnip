@@ -572,14 +572,14 @@ def print_walk_forward(wf: pd.DataFrame, picks: list) -> None:
 
 
 # ---------------------------------------------------------------- 8. 绘图
-def plot_main(closes: pd.DataFrame, nav: pd.Series, port: pd.DataFrame,
-              bench: dict[str, pd.Series], window: int, outpath: Path,
-              scale: pd.Series | None = None) -> None:
+def plot_nav(closes: pd.DataFrame, nav: pd.Series, bench: dict[str, pd.Series],
+             window: int, outpath: Path) -> None:
+    """净值对比 + 回撤（2 面板）。"""
     dates = closes.index
     fig, axes = plt.subplots(
-        3, 1, figsize=(12, 10), sharex=True,
-        gridspec_kw={"height_ratios": [3, 2, 2.5]})
-    ax1, ax2, ax3 = axes
+        2, 1, figsize=(12, 8), sharex=True,
+        gridspec_kw={"height_ratios": [3, 2]})
+    ax1, ax2 = axes
 
     # ---- 面板 1：净值对比（对数刻度）
     ax1.plot(dates, nav, color="#2a78d6", lw=2.5, label="轮动策略")
@@ -587,16 +587,16 @@ def plot_main(closes: pd.DataFrame, nav: pd.Series, port: pd.DataFrame,
     ax1.plot(dates, bench["国债ETF"], color="#008300", lw=1.5, label="国债ETF")
     ax1.plot(dates, bench["沪深300"], color="#1baf7a", lw=1.5, label="沪深300")
     ax1.set_yscale("log")
-    ax1.set_title(f"ETF 动量轮动 vs 基准（动量窗口 N={window}，月度调仓，持有前 2）")
+    ax1.set_title(f"ETF 动量轮动 vs 基准（动量窗口 N={window}，月度调仓，持有前 2）",
+                  pad=28)
     ax1.set_ylabel("净值（对数刻度）")
-    # 4 条线：图例 + 末端直接标注（颜色不单独承载身份）；图例横排置于面板上方，不遮数据
-    ax1.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncols=4, fontsize=9)
+    ax1.legend(loc="upper left", bbox_to_anchor=(0.0, 1.08), ncols=4, fontsize=9,
+               frameon=False)
     right_pad = dates[-1] + pd.Timedelta(days=int((dates[-1] - dates[0]).days * 0.20))
     ax1.set_xlim(dates[0], right_pad)
     ax1.margins(y=0.08)
     series = [(nav, "轮动策略"), (bench["等权持有"], "等权持有"),
               (bench["沪深300"], "沪深300"), (bench["国债ETF"], "国债ETF")]
-    # 在 log 空间贪心推开标签，保证相邻标注间距 ≥ min_gap（对数单位）
     logv = np.log([s.iloc[-1] for s, _ in series])
     order = np.argsort(logv)
     for idx in range(1, len(order)):
@@ -619,11 +619,23 @@ def plot_main(closes: pd.DataFrame, nav: pd.Series, port: pd.DataFrame,
     ax2.legend(loc="lower right", fontsize=9)
     ax2.set_ylim(top=0.0)
 
-    # ---- 面板 3：持仓历史（堆叠面积）
+    ax2.xaxis.set_major_locator(mdates.YearLocator(base=2))
+    ax2.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+    fig.subplots_adjust(bottom=0.08, hspace=0.20)
+    fig.savefig(outpath, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_holdings(closes: pd.DataFrame, port: pd.DataFrame, outpath: Path,
+                  scale: pd.Series | None = None) -> None:
+    """持仓权重堆叠（1 面板）。"""
+    dates = closes.index
+    fig, ax3 = plt.subplots(figsize=(12, 4.5))
     cols = STOCK_ETFS + [TRESURY]
     x = mdates.date2num(dates.to_pydatetime())
     ax3.stackplot(x, port[cols].to_numpy().T, colors=[ETF_COLORS[c] for c in cols],
-                  linewidth=0.5, edgecolor=SURFACE, labels=[ETF_NAMES[c] for c in cols])
+                  linewidth=0.5, edgecolor=SURFACE,
+                  labels=[ETF_NAMES[c] for c in cols])
     if scale is not None:
         # 白色衬底线 + 深色虚线：保证在任何色块上都清晰可辨
         ax3.plot(x, scale.to_numpy(), color=SURFACE, lw=3.4, zorder=3)
@@ -634,12 +646,24 @@ def plot_main(closes: pd.DataFrame, nav: pd.Series, port: pd.DataFrame,
     ax3.set_ylim(0, 1)
     ax3.axhline(0.5, color=GRIDLINE, ls="--", lw=0.8)
     ax3.legend(ncols=4, loc="upper center", bbox_to_anchor=(0.5, -0.18), fontsize=9)
-
-    ax3.xaxis.set_major_locator(mdates.MonthLocator(interval=12))
-    ax3.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
-    fig.tight_layout()
+    ax3.xaxis.set_major_locator(mdates.YearLocator(base=2))
+    ax3.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+    plt.setp(ax3.get_xticklabels(), rotation=0, ha="center")
+    fig.subplots_adjust(bottom=0.18)
     fig.savefig(outpath, bbox_inches="tight")
     plt.close(fig)
+
+
+def plot_main(closes: pd.DataFrame, nav: pd.Series, port: pd.DataFrame,
+              bench: dict[str, pd.Series], window: int, outpath: Path,
+              scale: pd.Series | None = None) -> None:
+    """向后兼容旧签名：同时输出出净值图与持仓图两份。"""
+    outpath = Path(outpath)
+    stem = outpath.stem
+    plot_nav(closes, nav, bench, window, outpath.with_name(f"{stem}_nav.png"))
+    plot_holdings(closes, port, outpath.with_name(f"{stem}_holdings.png"),
+                  scale=scale)
+
 
 def plot_sensitivity(rows: list[dict], default_n: int, outpath: Path) -> None:
     """动量窗口敏感性：年化收益与夏普双柱状图，序数蓝梯度 + 默认值标注。"""
@@ -865,16 +889,19 @@ def main() -> None:
         print_walk_forward(wf_df, picks)
 
     args.outdir.mkdir(exist_ok=True)
-    p1 = args.outdir / f"backtest_nav_N{args.window}.png"
+    base = args.outdir / f"backtest_nav_N{args.window}"
+    p_nav = base.with_name(f"{base.stem}_nav.png")
+    p_holdings = base.with_name(f"{base.stem}_holdings.png")
     p2 = args.outdir / "sensitivity.png"
     p3 = args.outdir / "monthly_heatmap.png"
     sc = breadth_scale(closes) if use_scale else None
-    plot_main(closes, nav, port, bench, args.window, p1, scale=sc)
+    plot_nav(closes, nav, bench, args.window, p_nav)
+    plot_holdings(closes, port, p_holdings, scale=sc)
     plot_sensitivity(scan, args.window, p2)
     ret_dict = {"轮动策略": nav.pct_change(fill_method=None).fillna(0.0),
                 "等权持有": bench["等权持有"].pct_change(fill_method=None).fillna(0.0)}
     plot_monthly_heatmap(ret_dict, p3)
-    print(f"\n图表已保存：{p1}  {p2}  {p3}")
+    print(f"\n图表已保存：{p_nav}  {p_holdings}  {p2}  {p3}")
 
     if args.save_csv:
         out = pd.DataFrame({"轮动策略": nav, **{n: s for n, s in bench.items()}})
