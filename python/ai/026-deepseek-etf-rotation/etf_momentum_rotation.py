@@ -59,6 +59,7 @@ plt.rcParams.update({
 HERE = Path(__file__).resolve().parent
 KLINES_DIR = HERE / "klines"
 OUTPUT_DIR = HERE / "output"
+BREADTH_FILE = HERE / "breadth.csv"   # 中证全指 000985 每日涨/跌/平家数
 
 STOCK_ETFS = ["510050.SH", "510300.SH", "510500.SH", "159845.SZ", "159915.SZ", "588000.SH"]
 TRESURY = "511010.SH"          # 国债 ETF：只做避险补位，不参与动量排名
@@ -109,6 +110,21 @@ RAMP_ORDINAL = ["#86b6ef", "#6da7ec", "#3987e5", "#256abf", "#184f95"]
 SCAN_WINDOWS = [5, 10, 20, 30, 60]
 
 # ---------------------------------------------------------------- 3. 数据加载
+def load_breadth(path: Path = BREADTH_FILE) -> pd.Series:
+    """读取中证全指每日涨/跌/平家数（CSV: date,up,down,flat,total）。
+
+    返回 Series = 上涨家数占比 = up/total；日频、2011-08 起、4881 只样本。
+    v3 之前的评估：这是已验证广度信号的精细版（日频、无发布滞后、4881 vs 6 只
+    截面厚度大幅提升）。
+    """
+    df = pd.read_csv(path, parse_dates=["date"], index_col="date")
+    assert df.isna().to_numpy().sum() == 0, "广度数据出现 NaN（脏数据？）"
+    assert len(df) > 3000, f"行数 {len(df)} 异常（预期 ~3667）"
+    ratio = df["up"] / df["total"]
+    ratio.name = "up_ratio"
+    return ratio
+
+
 def load_closes(klines_dir: Path) -> pd.DataFrame:
     """读取全部 CSV 的收盘价，union 索引对齐成一张表（columns = ETF 代码）。
 
@@ -160,7 +176,10 @@ def breadth_scale(closes: pd.DataFrame, *, breadth_days: int = BREADTH_DAYS,
                   index_vol_ann: float = 0.25,
                   index_ma_days: int = 120,
                   index_col: str = "000300.SH",
-                  tier_levels: tuple | None = None) -> pd.Series:
+                  tier_levels: tuple | None = None,
+                  market_breadth: pd.Series | None = None,
+                  market_threshold: float = 0.30,
+                  market_hyst: int = 0) -> pd.Series:
     """广度择时 scale：站上 MA 的宽基数量 ≤ 阈值时收缩权益仓位。
 
     - T 日收盘可算 → shift(1) 从 T+1 起生效（无未来函数）。
@@ -170,6 +189,8 @@ def breadth_scale(closes: pd.DataFrame, *, breadth_days: int = BREADTH_DAYS,
     - hyst：滞回带宽。广度 ≤ trigger−hyst 进入防御、≥ trigger+hyst 恢复满仓，
       之间保持原状态（防阈值附近反复横跳）；hyst=0 即原行为。
       状态机按日循环（状态依赖历史，无法纯向量化；2426 行无性能问题）。
+    - market_breadth：可选的"全市场上涨家数占比"叠加信号。日频、收盘即有、
+      无未来函数；与 ETF 数量广度独立，按 market_hyst 走自己的滞回带（每档 2pp）。
     """
     ma = closes[STOCK_ETFS].rolling(breadth_days).mean()
     breadth = (closes[STOCK_ETFS] > ma).sum(axis=1)   # NaN → False，未上市不计
@@ -200,6 +221,20 @@ def breadth_scale(closes: pd.DataFrame, *, breadth_days: int = BREADTH_DAYS,
             elif b <= low.iloc[i]:
                 defensive = True
         pts[i] = int(defensive) + int(idx_vol[i]) + int(idx_ma[i])
+    # 全市场上涨家数占比叠加（独立滞回，每档 2pp；点数制下作为额外 1 点）
+    if market_breadth is not None:
+        mb = market_breadth.reindex(closes.index)
+        mb_pts = np.zeros(len(breadth), dtype=np.int8)
+        mb_def = False
+        for i, v in enumerate(mb.to_numpy()):
+            if not np.isnan(v):
+                if mb_def:
+                    if v >= market_threshold + market_hyst * 0.02:
+                        mb_def = False
+                elif v <= market_threshold - market_hyst * 0.02:
+                    mb_def = True
+            mb_pts[i] = int(mb_def)
+        pts = pts + mb_pts
     if tier_levels is None:   # 二档：任一信号 → 防御仓位
         sc = np.where(pts > 0, scale_defensive, 1.0)
     else:                     # 分档：0/1/2+ 点各一档（如 (1.0, 0.6, 0.3)）
@@ -223,7 +258,10 @@ def backtest(closes: pd.DataFrame, window: int, *,
              use_index_triggers: bool = False,
              tier_levels: tuple | None = None,
              defense_pool: tuple | None = None,
-             defense_mode: str = "equal") -> tuple[pd.Series, pd.DataFrame, pd.Series]:
+             defense_mode: str = "equal",
+             market_breadth: pd.Series | None = None,
+             market_threshold: float = 0.30,
+             market_hyst: int = 0) -> tuple[pd.Series, pd.DataFrame, pd.Series]:
     """回测主流程，返回 (净值, 每日持仓权重, 每日换手 Σ|Δw|)。
 
     引擎参数默认 = 原版行为（use_scale=False, mom_blend=None）；
@@ -248,7 +286,10 @@ def backtest(closes: pd.DataFrame, window: int, *,
                            normalize=normalize_trigger,
                            hyst=breadth_hyst,
                            use_index_triggers=use_index_triggers,
-                           tier_levels=tier_levels)
+                           tier_levels=tier_levels,
+                           market_breadth=market_breadth,
+                           market_threshold=market_threshold,
+                           market_hyst=market_hyst)
         port[STOCK_ETFS] = port[STOCK_ETFS].mul(sc, axis=0)
         port[TRESURY] = 1.0 - port[STOCK_ETFS].sum(axis=1)
         if defense_pool:   # 避险池扩容：从国债残差腿中切出黄金/红利份额
