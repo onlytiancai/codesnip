@@ -22,8 +22,18 @@
 ├── docs/defense-pool-test.md    # 避险池扩容实验记录（含一日未来函数事故）
 ├── docs/macro-data-assessment.md # 宏观数据可行性评估（频率/滞后/统计力分析）
 ├── docs/market-breadth-test.md  # 全市场上涨家数广度信号测试（中证全指 000985）
+├── breadth.csv                # 中证全指 000985 每日涨/跌/平家数（不入库，gitignore）
 └── output/                    # 图表与净值 CSV（运行生成，已 gitignore）
 ```
+
+## breadth.csv（中证全指每日家数）
+
+`date, up, down, flat, total` 四列——中证全指每日上涨、下跌、不涨不跌的家数与总数。
+
+- **起点**：2011-08-02（3667 天，0 NaN）
+- **样本空间**：~4881 只，覆盖 2013 钱荒、2015 股灾、2016 熔断、2018 熊市、2020 疫情、2021-24 熊市六段关键样本
+- **用途**：v1 通过 `market_breadth / market_threshold / market_hyst` 参数接入，作为已验证 ETF 数量广度信号的精细版（已 gitignore，仓库克隆后需自取）
+- **测试结论**：20 年全样本测试显示与 ETF 数量广度同源（都不引入新信息），不默认启用——详见 `docs/market-breadth-test.md`
 
 ## 环境与运行
 
