@@ -10,7 +10,6 @@
 """
 
 import json
-from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple, Union
@@ -22,8 +21,7 @@ import pandas as pd
 # 数据类
 # ---------------------------------------------------------------------------
 
-@dataclass
-class CandidateETFs:
+class CandidateETFs(object):
     """预过滤结果。
 
     Attributes:
@@ -32,9 +30,11 @@ class CandidateETFs:
         corr_matrix: 相关矩阵（仅含 kept），None 表示未做相关去重。
     """
 
-    kept: List[str]
-    dropped: Dict[str, str]
-    corr_matrix: Optional[pd.DataFrame] = None
+    def __init__(self, kept, dropped, corr_matrix=None):
+        # type: (List[str], Dict[str, str], Optional[pd.DataFrame]) -> None
+        self.kept = kept
+        self.dropped = dropped
+        self.corr_matrix = corr_matrix
 
 
 # ---------------------------------------------------------------------------

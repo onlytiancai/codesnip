@@ -13,7 +13,6 @@
     objectives:   目标列表（默认三个全跑）
 """
 
-from dataclasses import dataclass
 from typing import Iterable
 
 import numpy as np
@@ -29,13 +28,14 @@ from .metrics import full_metrics, decay_rate
 # 数据类
 # ---------------------------------------------------------------------------
 
-@dataclass
-class WFAOutput:
+class WFAOutput(object):
     """WFA 运行结果。"""
 
-    metrics: pd.DataFrame            # 每个 (date, objective) 一行：IS/OOS 指标 + 衰减率
-    weights: pd.DataFrame            # 每个 (date, objective) 一行：每只 ETF 的权重
-    oos_returns: pd.DataFrame        # 每个 (date, objective) 一列：OOS 期间组合日收益
+    def __init__(self, metrics, weights, oos_returns):
+        # type: (pd.DataFrame, pd.DataFrame, pd.DataFrame) -> None
+        self.metrics = metrics        # 每个 (date, objective) 一行：IS/OOS 指标 + 衰减率
+        self.weights = weights        # 每个 (date, objective) 一行：每只 ETF 的权重
+        self.oos_returns = oos_returns  # 每个 (date, objective) 一列：OOS 期间组合日收益
 
 
 # ---------------------------------------------------------------------------
