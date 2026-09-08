@@ -804,6 +804,10 @@ def main() -> None:
                     help="启用跌停/涨停不可成交约束（换仓顺延）")
     ap.add_argument("--save-csv", action="store_true", help="保存净值 CSV 到 output/")
     ap.add_argument("--outdir", type=Path, default=OUTPUT_DIR, help="输出目录")
+    ap.add_argument("--start", type=str, default=None,
+                    help="回测起始日（YYYY-MM-DD，含）；None = 数据起点")
+    ap.add_argument("--end", type=str, default=None,
+                    help="回测结束日（YYYY-MM-DD，含）；None = 数据终点")
     args = ap.parse_args()
 
     use_scale = USE_SCALE and not args.no_scale
@@ -811,6 +815,18 @@ def main() -> None:
     mom_blend = (20, 60) if args.blend else MOM_BLEND   # MOM_BLEND 默认 None（消融证伪混合）
 
     closes = load_closes(KLINES_DIR)
+    # 按 --start/--end 切片：传了任一参数即只测该区间；其余下游（消融/滚出/
+    # 敏感性/极端行情/绘图）全部基于切片后的数据运行。注意：滚动指标（动量、
+    # MA60/MA120）在短区间上可能不足，回测仍能跑但结果会偏冷启动噪声。
+    if args.start or args.end:
+        slice_start = pd.Timestamp(args.start) if args.start else closes.index[0]
+        slice_end = pd.Timestamp(args.end) if args.end else closes.index[-1]
+        closes = closes.loc[slice_start:slice_end]
+        if len(closes) == 0:
+            raise SystemExit(f"--start/--end 切片后无数据（{slice_start:%Y-%m-%d} ~ "
+                             f"{slice_end:%Y-%m-%d}）")
+        print(f"已按 --start/--end 切片：{slice_start:%Y-%m-%d} ~ {slice_end:%Y-%m-%d}，"
+              f"剩 {len(closes)} 个交易日")
     print(f"数据：7 只 ETF，{len(closes)} 个交易日（{closes.index[0]:%Y-%m-%d} ~ "
           f"{closes.index[-1]:%Y-%m-%d}）；起始时间不对齐（159845 上市 2021-03、"
           f"588000 上市 2020-11），未上市期计 NaN：动态股票池自动排除、"
@@ -889,11 +905,16 @@ def main() -> None:
         print_walk_forward(wf_df, picks)
 
     args.outdir.mkdir(exist_ok=True)
-    base = args.outdir / f"backtest_nav_N{args.window}"
+    # 切片模式下文件名带区间，避免与全量回测互相覆盖；未切片则维持旧名
+    if args.start or args.end:
+        span_tag = f"_{closes.index[0]:%Y%m%d}_{closes.index[-1]:%Y%m%d}"
+    else:
+        span_tag = ""
+    base = args.outdir / f"backtest_nav_N{args.window}{span_tag}"
     p_nav = base.with_name(f"{base.stem}_nav.png")
     p_holdings = base.with_name(f"{base.stem}_holdings.png")
-    p2 = args.outdir / "sensitivity.png"
-    p3 = args.outdir / "monthly_heatmap.png"
+    p2 = args.outdir / f"sensitivity{span_tag}.png"
+    p3 = args.outdir / f"monthly_heatmap{span_tag}.png"
     sc = breadth_scale(closes) if use_scale else None
     plot_nav(closes, nav, bench, args.window, p_nav)
     plot_holdings(closes, port, p_holdings, scale=sc)
@@ -905,7 +926,7 @@ def main() -> None:
 
     if args.save_csv:
         out = pd.DataFrame({"轮动策略": nav, **{n: s for n, s in bench.items()}})
-        pcsv = args.outdir / f"nav_N{args.window}.csv"
+        pcsv = args.outdir / f"nav_N{args.window}{span_tag}.csv"
         out.to_csv(pcsv, index_label="date")
         # 月度收益长表：year, month, 轮动策略, 等权持有（与热力图同源）
         mr = monthly_returns(ret_dict)
@@ -913,7 +934,7 @@ def main() -> None:
                            mr["等权持有"].stack().rename("等权持有")], axis=1)
         mlong = mlong.dropna(how="all")   # 去掉无数据的月份（首末不完整月之外的空白）
         mlong.index.names = ["year", "month"]
-        pcsv_m = args.outdir / "monthly_returns.csv"
+        pcsv_m = args.outdir / f"monthly_returns{span_tag}.csv"
         mlong.to_csv(pcsv_m)
         print(f"净值已保存：{pcsv}  {pcsv_m}")
 
