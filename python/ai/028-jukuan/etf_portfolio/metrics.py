@@ -35,19 +35,23 @@ def full_metrics(returns, rf=0.025):
 
     Args:
         returns: 日收益 Series。
-        rf: 无风险利率（年化）。
+        rf: 无风险利率（年化，默认 2.5%）。
 
     Returns:
         dict with keys: annual_return, annual_vol, sharpe, sortino, calmar,
         max_drawdown, stability.
+
+    注意：老版 empyrical（< 0.5.x）的 sharpe_ratio / sortino_ratio
+    接收的 risk_free 是**日频**利率而非年化。这里自动换算成 daily_rf。
     """
     if returns is None or len(returns) == 0:
         return {}
+    daily_rf = rf / 252.0  # 年化转日频
     return {
         "annual_return": float(ep.annual_return(returns)),
         "annual_vol":    float(ep.annual_volatility(returns)),
-        "sharpe":        float(_call_with_optional_kw(ep.sharpe_ratio, returns, rf, "risk_free")),
-        "sortino":       float(_call_with_optional_kw(ep.sortino_ratio, returns, rf, "risk_free")),
+        "sharpe":        float(_call_with_optional_kw(ep.sharpe_ratio, returns, daily_rf, "risk_free")),
+        "sortino":       float(_call_with_optional_kw(ep.sortino_ratio, returns, daily_rf, "risk_free")),
         "calmar":        float(ep.calmar_ratio(returns)),
         "max_drawdown":  float(ep.max_drawdown(returns)),
         "stability":     float(ep.stability_of_timeseries(returns)),
