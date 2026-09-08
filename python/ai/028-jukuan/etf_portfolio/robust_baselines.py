@@ -6,23 +6,33 @@
     - "经典60_40"：股票 + 债券，最朴素的资产配置范式
     - "全天候简化"：桥水全天候的中国简化版，股 + 债 + 海外 + 黄金 + 商品
     - "红利+海外+黄金"：A 股红利 + 海外股票 + 黄金 + 少量债券，进攻型稳健组合
+
+兼容聚宽 Python 3.6：没有 TypedDict（3.8+），改用普通 class 作为 schema 提示。
 """
 
-from typing import Dict, List, TypedDict
+from typing import Any, Dict, List
 
 
-class BaselineHolding(TypedDict):
-    code: str
-    name: str
-    weight: float
+class BaselineHolding(object):
+    """基线单只持仓（schema 提示，仅作文档用）。"""
+
+    def __init__(self, code, name, weight):
+        # type: (str, str, float) -> None
+        self.code = code
+        self.name = name
+        self.weight = weight
 
 
-class Baseline(TypedDict):
-    description: str
-    holdings: List[BaselineHolding]
+class Baseline(object):
+    """基线组合（schema 提示，仅作文档用）。"""
+
+    def __init__(self, description, holdings):
+        # type: (str, List[Dict[str, Any]]) -> None
+        self.description = description
+        self.holdings = holdings
 
 
-BASELINES: Dict[str, Baseline] = {
+BASELINES = {  # type: Dict[str, Baseline]
     "经典60_40": {
         "description": "60% 沪深300 + 40% 上证5年国债，朴素资产配置范式",
         "holdings": [
@@ -55,12 +65,14 @@ BASELINES: Dict[str, Baseline] = {
 }
 
 
-def get_baseline_weights(baseline_name: str) -> Dict[str, float]:
+def get_baseline_weights(baseline_name):
+    # type: (str) -> Dict[str, float]
     """获取某基线的 {code: weight} 字典。"""
     bl = BASELINES[baseline_name]
     return {h["code"]: h["weight"] for h in bl["holdings"]}
 
 
-def list_baselines() -> List[str]:
+def list_baselines():
+    # type: () -> List[str]
     """列出所有基线名。"""
     return list(BASELINES.keys())
