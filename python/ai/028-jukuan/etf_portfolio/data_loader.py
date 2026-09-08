@@ -5,12 +5,10 @@
     2. 拉取结果落盘到 parquet（key=起始日_截止日_代码列表hash），后续阶段直接读盘，避免重复拉数据。
     3. 收益转换：`pct_change` / `np.log` / 月末重采样，统一用日频。
 """
-from __future__ import annotations
-
 import hashlib
 from datetime import date, datetime
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -22,10 +20,10 @@ import pandas as pd
 
 def fetch_prices(
     codes: Iterable[str],
-    end_date: date | str,
+    end_date: Union[date, str],
     lookback_days: int = 3 * 365,
-    start_date: date | str | None = None,
-    fields: list[str] | None = None,
+    start_date: Union[date, Optional[str]] = None,
+    fields: Optional[List[str]] = None,
 ) -> pd.DataFrame:
     """批量拉 ETF 日收盘价（DataFrame: index=日期, columns=代码）。
 
@@ -110,17 +108,17 @@ def _hash_codes(codes: Iterable[str]) -> str:
     return hashlib.md5(joined.encode("utf-8")).hexdigest()[:8]
 
 
-def save_parquet(df: pd.DataFrame, path: Path | str) -> None:
+def save_parquet(df: pd.DataFrame, path: Union[Path, str]) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(path)
 
 
-def load_parquet(path: Path | str) -> pd.DataFrame:
+def load_parquet(path: Union[Path, str]) -> pd.DataFrame:
     return pd.read_parquet(path)
 
 
-def cache_key(codes: Iterable[str], end_date: date | str) -> str:
+def cache_key(codes: Iterable[str], end_date: Union[date, str]) -> str:
     if isinstance(end_date, date):
         end_date = end_date.isoformat()
     return _hash_codes(codes) + "_" + end_date

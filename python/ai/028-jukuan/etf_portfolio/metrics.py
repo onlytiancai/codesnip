@@ -2,7 +2,6 @@
 
 封装 empyrical 的常用指标；提供衰减率（样本内 vs 样本外夏普）。
 """
-from __future__ import annotations
 
 import numpy as np
 import pandas as pd

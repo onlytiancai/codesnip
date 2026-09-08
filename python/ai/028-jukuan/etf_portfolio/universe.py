@@ -8,13 +8,12 @@
 
 数据源：聚宽研究环境 `get_security_info` / `get_price`，须在 notebook 内调用。
 """
-from __future__ import annotations
 
 import json
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
-from typing import Iterable
+from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 import pandas as pd
 
@@ -33,16 +32,16 @@ class CandidateETFs:
         corr_matrix: 相关矩阵（仅含 kept），None 表示未做相关去重。
     """
 
-    kept: list[str]
-    dropped: dict[str, str]
-    corr_matrix: pd.DataFrame | None = None
+    kept: List[str]
+    dropped: Dict[str, str]
+    corr_matrix: Optional[pd.DataFrame] = None
 
 
 # ---------------------------------------------------------------------------
 # 加载初筛清单
 # ---------------------------------------------------------------------------
 
-def load_initial_universe(json_path: str | Path) -> list[dict]:
+def load_initial_universe(json_path: Union[str, Path]) -> List[Dict]:
     """从 `etf_universe.json` 加载手工整理的初筛池。
 
     返回元素格式：{'code': str, 'name': str, 'category': str, 'list_date': str}。
@@ -58,9 +57,9 @@ def load_initial_universe(json_path: str | Path) -> list[dict]:
 
 def filter_by_listing(
     codes: Iterable[str],
-    as_of: date | str,
+    as_of: Union[date, str],
     min_years: float = 5.0,
-) -> tuple[list[str], dict[str, str]]:
+) -> Tuple[List[str], Dict[str, str]]:
     """按上市年限 + 仍在市过滤。
 
     Args:
@@ -97,10 +96,10 @@ def filter_by_listing(
 
 def filter_by_turnover(
     codes: Iterable[str],
-    as_of: date | str,
+    as_of: Union[date, str],
     min_avg_money: float = 5.0e7,
     lookback_days: int = 250,
-) -> tuple[list[str], dict[str, str], dict[str, float]]:
+) -> Tuple[List[str], Dict[str, str], Dict[str, float]]:
     """按近一年日均成交额过滤。
 
     Args:
@@ -115,7 +114,7 @@ def filter_by_turnover(
     if isinstance(as_of, str):
         as_of = datetime.strptime(as_of, "%Y-%m-%d").date()
     kept, dropped = [], {}
-    adv_map: dict[str, float] = {}
+    adv_map = {}  # type: Dict[str, float]
     for code in codes:
         try:
             px = get_price(  # noqa: F821 (聚宽 magic)
@@ -148,7 +147,7 @@ def filter_by_turnover(
 
 def fetch_returns_for_codes(
     codes: Iterable[str],
-    as_of: date | str,
+    as_of: Union[date, str],
     lookback_days: int = 750,
 ) -> pd.DataFrame:
     """拉一批 ETF 的日收益矩阵（按 inner join 对齐共同日期）。
@@ -184,9 +183,9 @@ def fetch_returns_for_codes(
 def drop_high_corr(
     codes: Iterable[str],
     returns: pd.DataFrame,
-    adv_map: dict[str, float],
+    adv_map: Dict[str, float],
     corr_thresh: float = 0.92,
-) -> tuple[list[str], pd.DataFrame]:
+) -> Tuple[List[str], pd.DataFrame]:
     """两两相关系数 > 阈值时，保留日均成交更高者。
 
     返回 (final_codes, corr_matrix)。
@@ -215,8 +214,8 @@ def drop_high_corr(
 # ---------------------------------------------------------------------------
 
 def filter_candidates(
-    initial_universe: list[dict],
-    as_of: date | str,
+    initial_universe: List[Dict],
+    as_of: Union[date, str],
     min_years: float = 5.0,
     min_avg_money: float = 5.0e7,
     corr_thresh: float = 0.92,
@@ -241,24 +240,24 @@ def filter_candidates(
     """
     codes = [x["code"] for x in initial_universe]
     if verbose:
-        print(f"[universe] 候选池 {len(codes)} 只，基准日 {as_of}")
+        print("[universe] 候选池 {} 只，基准日 {}".format(len(codes), as_of))
 
     # 1+2. 上市 + 在市
     kept, dropped = filter_by_listing(codes, as_of, min_years)
     if verbose:
-        print(f"[universe] 上市 + 在市过滤后剩 {len(kept)} 只（剔除 {len(dropped)}）")
+        print("[universe] 上市 + 在市过滤后剩 {} 只（剔除 {}）".format(len(kept), len(dropped)))
 
     # 3. 成交额
     kept2, dropped2, adv_map = filter_by_turnover(kept, as_of, min_avg_money, lookback_days)
     dropped.update(dropped2)
     if verbose:
-        print(f"[universe] 成交额过滤后剩 {len(kept2)} 只（剔除 {len(dropped2)}）")
+        print("[universe] 成交额过滤后剩 {} 只（剔除 {}）".format(len(kept2), len(dropped2)))
 
     # 4. 相关去重
     returns = fetch_returns_for_codes(kept2, as_of, corr_lookback_days)
     final, corr = drop_high_corr(kept2, returns, adv_map, corr_thresh)
     if verbose:
-        print(f"[universe] 相关去重后剩 {len(final)} 只")
+        print("[universe] 相关去重后剩 {} 只".format(len(final)))
 
     # 记录相关去重的剔除
     if not returns.empty:
@@ -267,7 +266,7 @@ def filter_candidates(
                 # 找出和谁相关
                 rho_max = corr[c].drop(c).max() if c in corr.columns else 0.0
                 peer = corr[c].drop(c).idxmax() if c in corr.columns else "?"
-                dropped[c] = f"与 {peer} 相关 {rho_max:.3f} > {corr_thresh}"
+                dropped[c] = "与 {} 相关 {:.3f} > {}".format(peer, rho_max, corr_thresh)
                 if peer in dropped and "相关" in dropped[peer]:
                     dropped.pop(peer, None)
     return CandidateETFs(kept=final, dropped=dropped, corr_matrix=corr)

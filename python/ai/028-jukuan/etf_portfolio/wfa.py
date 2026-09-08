@@ -12,7 +12,6 @@
     w_max:        单只权重上限（默认 0.30）
     objectives:   目标列表（默认三个全跑）
 """
-from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Iterable
@@ -69,7 +68,7 @@ def walk_forward(
         WFAOutput。
     """
     daily_ret = prices.pct_change().dropna()
-    monthly_close = prices.resample("ME").last().dropna(how="all")
+    monthly_close = prices.resample("M").last().dropna(how="all")
     # 月末调仓日：每月最后一个交易日
     rebalance_dates = monthly_close.index.tolist()
     # 起点：第一个 rebalance 必须保证之前有 train_months 月数据

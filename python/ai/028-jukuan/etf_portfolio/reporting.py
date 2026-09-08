@@ -7,9 +7,9 @@
     - plot_robustness_heatmap: 稳健度热图
     - write_report_html: 一键输出 HTML 报告（可选）
 """
-from __future__ import annotations
 
 from pathlib import Path
+from typing import Dict, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -22,10 +22,10 @@ def nav_curve(returns: pd.Series, start: float = 1.0) -> pd.Series:
 
 
 def plot_nav_compare(
-    port_returns: dict[str, pd.Series],
+    port_returns: Dict[str, pd.Series],
     title: str = "组合净值曲线对比",
-    save_path: Path | str | None = None,
-    figsize: tuple[int, int] = (12, 6),
+    save_path: Optional[Union[Path, str]] = None,
+    figsize: Tuple[int, int] = (12, 6),
     log_scale: bool = False,
 ) -> None:
     """多条组合净值曲线对比图。
@@ -56,7 +56,7 @@ def plot_nav_compare(
 
 def plot_decay_distribution(
     wfa_metrics: pd.DataFrame,
-    save_path: Path | str | None = None,
+    save_path: Optional[Union[Path, str]] = None,
 ) -> None:
     """衰减率分布直方图（按目标分组）。"""
     if "objective" not in wfa_metrics.columns:
@@ -88,7 +88,7 @@ def plot_decay_distribution(
 def plot_robustness_heatmap(
     score_df: pd.DataFrame,
     top_n: int = 15,
-    save_path: Path | str | None = None,
+    save_path: Optional[Union[Path, str]] = None,
 ) -> None:
     """稳健度评分热图（Top N ETF × 指标）。"""
     sub = score_df.head(top_n)[["freq", "avg_weight", "stability", "n_obj"]]
@@ -105,7 +105,7 @@ def plot_robustness_heatmap(
         for j in range(len(sub.columns)):
             ax.text(j, i, f"{sub.iloc[i, j]:.2f}", ha="center", va="center", fontsize=8, color="black")
     plt.colorbar(im, ax=ax, label="归一化值")
-    ax.set_title(f"ETF 稳健度评分 Top {top_n}")
+    ax.set_title("ETF 稳健度评分 Top {}".format(top_n))
     plt.tight_layout()
     if save_path:
         plt.savefig(save_path, dpi=120, bbox_inches="tight")
@@ -113,7 +113,7 @@ def plot_robustness_heatmap(
 
 
 def summarize_baselines(
-    port_returns: dict[str, pd.Series],
+    port_returns: Dict[str, pd.Series],
     rf: float = 0.025,
 ) -> pd.DataFrame:
     """对组合字典统一算指标。"""

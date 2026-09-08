@@ -7,9 +7,8 @@
     - "全天候简化"：桥水全天候的中国简化版，股 + 债 + 海外 + 黄金 + 商品
     - "红利+海外+黄金"：A 股红利 + 海外股票 + 黄金 + 少量债券，进攻型稳健组合
 """
-from __future__ import annotations
 
-from typing import TypedDict
+from typing import Dict, List, TypedDict
 
 
 class BaselineHolding(TypedDict):
@@ -20,10 +19,10 @@ class BaselineHolding(TypedDict):
 
 class Baseline(TypedDict):
     description: str
-    holdings: list[BaselineHolding]
+    holdings: List[BaselineHolding]
 
 
-BASELINES: dict[str, Baseline] = {
+BASELINES: Dict[str, Baseline] = {
     "经典60_40": {
         "description": "60% 沪深300 + 40% 上证5年国债，朴素资产配置范式",
         "holdings": [
@@ -56,12 +55,12 @@ BASELINES: dict[str, Baseline] = {
 }
 
 
-def get_baseline_weights(baseline_name: str) -> dict[str, float]:
+def get_baseline_weights(baseline_name: str) -> Dict[str, float]:
     """获取某基线的 {code: weight} 字典。"""
     bl = BASELINES[baseline_name]
     return {h["code"]: h["weight"] for h in bl["holdings"]}
 
 
-def list_baselines() -> list[str]:
+def list_baselines() -> List[str]:
     """列出所有基线名。"""
     return list(BASELINES.keys())

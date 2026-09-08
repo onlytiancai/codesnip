@@ -6,7 +6,6 @@
 
 实现：Spinu (2013) 提出的迭代算法，或 Newton 求解。
 """
-from __future__ import annotations
 
 import numpy as np
 import pandas as pd

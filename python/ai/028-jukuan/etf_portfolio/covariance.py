@@ -5,8 +5,6 @@
     2. manual_ledoit_wolf - 手写 Ledoit-Wolf 单因子收缩（备选）
     3. estimate_mu - 指数加权均值（EWM），缓解历史均值噪声
 """
-from __future__ import annotations
-
 import numpy as np
 import pandas as pd
 

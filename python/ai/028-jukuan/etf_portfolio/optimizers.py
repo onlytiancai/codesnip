@@ -8,11 +8,11 @@
 约束：单只 w ∈ [w_min, w_max]，Σ w = 1。
 求解器：scipy.optimize.minimize + SLSQP。
 """
-from __future__ import annotations
 
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
+from typing import Optional
 
 
 # ---------------------------------------------------------------------------
@@ -54,7 +54,7 @@ def portfolio_variance(w: np.ndarray, cov: np.ndarray) -> float:
 def optimize_portfolio(
     mu: np.ndarray,
     cov: np.ndarray,
-    returns_for_calmar: pd.DataFrame | None = None,
+    returns_for_calmar: Optional[pd.DataFrame] = None,
     objective: str = "sharpe",
     w_max: float = 0.30,
     w_min: float = 0.0,
