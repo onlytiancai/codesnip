@@ -1,7 +1,12 @@
 """指标与衰减率计算。
 
 封装 empyrical 的常用指标；提供衰减率（样本内 vs 样本外夏普）。
+
+兼容老版 empyrical（聚宽环境的 < 0.5.x）：
+    老版 sortino_ratio / sharpe_ratio 不接受 risk_free 关键字参数，
+    需要通过 inspect 检查签名后动态调用。
 """
+import inspect
 
 import numpy as np
 import pandas as pd
@@ -9,7 +14,23 @@ import pandas as pd
 import empyrical as ep
 
 
-def full_metrics(returns: pd.Series, rf: float = 0.025) -> dict:
+def _accepts_kw(func, kw_name):
+    """检查函数是否接受某关键字参数。"""
+    try:
+        sig = inspect.signature(func)
+    except (TypeError, ValueError):
+        return False
+    return kw_name in sig.parameters
+
+
+def _call_with_optional_kw(func, returns, risk_free, kw_name):
+    """如果函数接受 risk_free 则传入，否则忽略。"""
+    if _accepts_kw(func, kw_name):
+        return func(returns, **{kw_name: risk_free})
+    return func(returns)
+
+
+def full_metrics(returns, rf=0.025):
     """对组合日收益 Series 计算一组常用指标。
 
     Args:
@@ -25,8 +46,8 @@ def full_metrics(returns: pd.Series, rf: float = 0.025) -> dict:
     return {
         "annual_return": float(ep.annual_return(returns)),
         "annual_vol":    float(ep.annual_volatility(returns)),
-        "sharpe":        float(ep.sharpe_ratio(returns, risk_free=rf)),
-        "sortino":       float(ep.sortino_ratio(returns, risk_free=rf)),
+        "sharpe":        float(_call_with_optional_kw(ep.sharpe_ratio, returns, rf, "risk_free")),
+        "sortino":       float(_call_with_optional_kw(ep.sortino_ratio, returns, rf, "risk_free")),
         "calmar":        float(ep.calmar_ratio(returns)),
         "max_drawdown":  float(ep.max_drawdown(returns)),
         "stability":     float(ep.stability_of_timeseries(returns)),
