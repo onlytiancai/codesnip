@@ -57,8 +57,17 @@ def plot_nav_compare(
 def plot_decay_distribution(
     wfa_metrics: pd.DataFrame,
     save_path: Optional[Union[Path, str]] = None,
+    use_symlog: bool = True,
+    clip_quantiles: tuple = (0.01, 0.99),
 ) -> None:
-    """衰减率分布直方图（按目标分组）。"""
+    """衰减率分布直方图（按目标分组）。
+
+    Args:
+        wfa_metrics: WFA 输出的 metrics DataFrame（含 objective / decay 列）。
+        save_path: 如指定则保存为 PNG。
+        use_symlog: 是否对横轴用 symlog（自动适配范围跨度 > 100 的 calmar 子图）。
+        clip_quantiles: 截尾分位数 (q_low, q_high)，clip 离群值后画图。
+    """
     if "objective" not in wfa_metrics.columns:
         wfa_metrics = wfa_metrics.copy()
         wfa_metrics["objective"] = "default"
@@ -66,19 +75,30 @@ def plot_decay_distribution(
     fig, axes = plt.subplots(1, len(objectives), figsize=(5 * len(objectives), 4), sharey=True)
     if len(objectives) == 1:
         axes = [axes]
+
     for ax, obj in zip(axes, objectives):
         sub = wfa_metrics[wfa_metrics["objective"] == obj]["decay"].dropna()
         if sub.empty:
-            ax.set_title(f"{obj} (无数据)")
+            ax.set_title("{} (无数据)".format(obj))
             continue
-        ax.hist(sub, bins=20, color="steelblue", alpha=0.7, edgecolor="black")
-        for x, color, label in [(0.30, "green", "优秀 0.30"), (0.60, "orange", "尚可 0.60"), (0.70, "red", "过拟合 0.70")]:
+        # 截尾：剔除 p1 / p99 之外的离群值后再画
+        q_low, q_high = sub.quantile(clip_quantiles[0]), sub.quantile(clip_quantiles[1])
+        sub_clipped = sub[(sub >= q_low) & (sub <= q_high)]
+        ax.hist(sub_clipped, bins=20, color="steelblue", alpha=0.7, edgecolor="black")
+        # 参考线放在 0.30 / 0.60 / 0.70（仅对 sharpe/minvar 有意义，calmar 单位不同）
+        for x, color, label in [(0.30, "green", "参考 0.30"), (0.60, "orange", "参考 0.60"), (0.70, "red", "参考 0.70")]:
             ax.axvline(x, color=color, linestyle="--", linewidth=1, label=label)
-        ax.set_title(obj)
-        ax.set_xlabel("衰减率")
+        # 自动决定横轴尺度：跨度 > 100 用 symlog
+        x_range = float(sub_clipped.max() - sub_clipped.min())
+        if use_symlog and x_range > 100:
+            ax.set_xscale("symlog", linthresh=1.0)
+        ax.set_title("{} (n={}, 范围 [{:.2f}, {:.2f}])".format(
+            obj, len(sub), float(sub.min()), float(sub.max())
+        ))
+        ax.set_xlabel("衰减率{}".format(" (symlog)" if use_symlog and x_range > 100 else ""))
         ax.set_ylabel("频次")
         ax.legend(fontsize=8)
-    fig.suptitle("WFA 衰减率分布", fontsize=14)
+    fig.suptitle("WFA 衰减率分布（p1/p99 截尾）", fontsize=14)
     plt.tight_layout()
     if save_path:
         plt.savefig(save_path, dpi=120, bbox_inches="tight")
