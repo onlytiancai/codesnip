@@ -7,6 +7,9 @@ import react from '@vitejs/plugin-react'
 // 保证 bundle 里只有一份 three 核心（否则类身份错乱、体积翻倍）。
 export default defineConfig({
   plugins: [react()],
+  // 用相对路径 (./assets/...) 让 build 产物可以直接 file:// 双击打开，
+  // 不依赖 HTTP 服务器。dev server 不受影响。
+  base: './',
   resolve: {
     alias: [{ find: /^three$/, replacement: 'three/webgpu' }],
   },

@@ -1,10 +1,14 @@
 /**
  * 全局应用状态（自由飞行版）。
+ *
+ * escapeState：
+ *   'playing' — pointer locked，飞行中
+ *   'paused'  — Esc 后第一次：显示「序列化星空」提示框 + pointer unlocked
+ *   'menu'    — Esc 后第二次：关闭提示框，pointer 仍未 lock
  */
 
 import {
   createContext,
-  useCallback,
   useContext,
   useMemo,
   useRef,
@@ -14,6 +18,7 @@ import {
 
 export type Backend = 'webgpu' | 'webgl2' | null
 export type SpeedMode = 'normal' | 'boost'
+export type EscapeState = 'playing' | 'paused' | 'menu'
 
 export interface Vec3Like {
   x: number
@@ -29,12 +34,21 @@ export interface AppState {
   position: Vec3Like
   speedMode: SpeedMode
   chunkCount: number
-  pointerLocked: boolean
+  escapeState: EscapeState
+}
+
+export interface SystemLabel {
+  id: number
+  distance: number
+  screenX: number
+  screenY: number
+  inFront: boolean
 }
 
 export interface SceneApi {
   teleport(x: number, y: number, z: number): void
   requestPointerLock(): void
+  getNearbyLabels(maxRadius: number): SystemLabel[]
 }
 
 interface AppContextValue {
@@ -53,7 +67,7 @@ const INITIAL_STATE: AppState = {
   position: { x: 0, y: 0, z: 0 },
   speedMode: 'normal',
   chunkCount: 0,
-  pointerLocked: false,
+  escapeState: 'menu',
 }
 
 export function AppStateProvider({ children }: { children: ReactNode }) {

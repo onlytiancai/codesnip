@@ -1,9 +1,9 @@
 /**
- * 从 ChunkData 构建 Three.js Mesh 树（恒星 + 行星 + 小行星带 + 彗星 + 轨道线）。
+ * 从 ChunkData 构建 Three.js Mesh 树（恒星 + 行星 + 彗星 + 轨道线）。
  *
  * 返回 ChunkHandle：group（相对 chunk 锚点）+ 每帧 update + dispose。
  *
- * 性能：所有材质共享（无 GLSL 重编译）；InstancedMesh 单 draw call；geometry 复用。
+ * 性能：所有材质共享（无 GLSL 重编译）；geometry 复用。
  */
 
 import * as THREE from 'three/webgpu'
@@ -19,11 +19,10 @@ import {
   venusTexture,
 } from './ProceduralTextures'
 import { solveKepler } from '../universe/generateChunk'
-import { PLANET_TEXTURE, type PlanetType } from '../universe/starClasses'
+import { type PlanetType } from '../universe/starClasses'
 import type { ChunkData } from '../universe/generateChunk'
 
 const SPHERE_GEO = new THREE.SphereGeometry(1, 32, 24)
-const BELT_GRAIN_GEO = new THREE.SphereGeometry(1, 6, 4)
 const COMET_NUCLEUS_GEO = new THREE.SphereGeometry(1, 12, 8)
 
 function textureFor(type: PlanetType): THREE.CanvasTexture {
@@ -61,6 +60,8 @@ function buildOrbitLine(radius: number, color = 0x3a4a78): THREE.Line {
 
 export interface ChunkHandle {
   group: THREE.Group
+  /** 每个恒星相对 chunk 锚点的局部坐标（[x, y, z] tuple），用于标签投影 */
+  starsLocal: Array<[number, number, number]>
   update(dt: number, time: number): void
   dispose(): void
 }
@@ -117,12 +118,6 @@ function planetMaterial(type: PlanetType): THREE.MeshStandardMaterial {
   return mat
 }
 
-const BELT_MAT = new THREE.MeshStandardMaterial({
-  color: 0xa09790,
-  roughness: 0.95,
-  metalness: 0.05,
-})
-
 const COMET_TAIL_MAT = new THREE.LineBasicMaterial({
   color: 0xb5d6ff,
   transparent: true,
@@ -134,6 +129,8 @@ const COMET_TAIL_MAT = new THREE.LineBasicMaterial({
 export function buildChunk(data: ChunkData): ChunkHandle {
   const group = new THREE.Group()
   group.name = `chunk-${data.cx}-${data.cy}-${data.cz}`
+
+  const starsLocal: Array<[number, number, number]> = data.stars.map((s) => [s.position[0], s.position[1], s.position[2]])
 
   // ---------- 恒星 ----------
   const starGroups: THREE.Group[] = []
@@ -152,14 +149,13 @@ export function buildChunk(data: ChunkData): ChunkHandle {
     starGroups.push(g)
   }
 
-  // ---------- 行星 / 轨道线 / 小行星带 / 彗星（每个恒星一子树） ----------
+  // ---------- 行星 / 轨道线 / 彗星（每个恒星一子树） ----------
   const planetEntries: {
     orbitGroup: THREE.Group
     mesh: THREE.Mesh
     orbitPeriod: number
     spinPeriod: number
   }[] = []
-  const beltEntries: { mesh: THREE.InstancedMesh; center: THREE.Vector3; starPos: THREE.Vector3 }[] = []
   const cometEntries: {
     comet: ChunkData['comets'][0]
     node: THREE.Group
@@ -205,32 +201,6 @@ export function buildChunk(data: ChunkData): ChunkHandle {
       })
     }
 
-    // 该恒星的小行星带
-    const hostBelts = data.belts.filter((b) => b.hostStarIndex === si)
-    for (const belt of hostBelts) {
-      const beltGroup = new THREE.Group()
-      const mid = (belt.innerDist + belt.outerDist) / 2
-      const span = (belt.outerDist - belt.innerDist) / 2
-      const im = new THREE.InstancedMesh(BELT_GRAIN_GEO, BELT_MAT, belt.count)
-      const m = new THREE.Matrix4()
-      const pos = new THREE.Vector3()
-      const quat = new THREE.Quaternion()
-      const scl = new THREE.Vector3()
-      for (let i = 0; i < belt.count; i++) {
-        const a = Math.random() * Math.PI * 2
-        const r = mid + (Math.random() * 2 - 1) * span
-        pos.set(Math.cos(a) * r, (Math.random() * 2 - 1) * span * 0.18, Math.sin(a) * r)
-        scl.setScalar(0.4 + Math.random() * 0.6)
-        quat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2)
-        m.compose(pos, quat, scl)
-        im.setMatrixAt(i, m)
-      }
-      im.instanceMatrix.needsUpdate = true
-      beltGroup.add(im)
-      starGroup.add(beltGroup)
-      beltEntries.push({ mesh: im, center: new THREE.Vector3(), starPos })
-    }
-
     // 该恒星的彗星
     const hostComets = data.comets.filter((c) => c.hostStarIndex === si)
     for (const comet of hostComets) {
@@ -259,6 +229,7 @@ export function buildChunk(data: ChunkData): ChunkHandle {
 
   return {
     group,
+    starsLocal,
     update(_dt: number, time: number) {
       // 行星公转 + 自转
       for (const p of planetEntries) {

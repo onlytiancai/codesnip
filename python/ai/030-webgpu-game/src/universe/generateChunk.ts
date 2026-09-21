@@ -20,6 +20,8 @@ export interface StarData {
   position: [number, number, number]
   class: StarClassInfo
   radius: number
+  /** 唯一编号（确定性：同一 chunk 同一恒星永远同一 id） */
+  id: number
 }
 
 export interface PlanetData {
@@ -32,15 +34,6 @@ export interface PlanetData {
   orbitPeriod: number
   orbitPhase: number
   spinPeriod: number
-}
-
-export interface BeltData {
-  hostStarIndex: number
-  /** 内径 / 外径（相对主星距离） */
-  innerDist: number
-  outerDist: number
-  count: number
-  maxGrainRadius: number
 }
 
 export interface CometData {
@@ -61,7 +54,6 @@ export interface ChunkData {
   cz: number
   stars: StarData[]
   planets: PlanetData[]
-  belts: BeltData[]
   comets: CometData[]
 }
 
@@ -96,7 +88,7 @@ export function solveKepler(M: number, e: number): number {
 }
 
 /** 把恒星合理分类（距离恒星的"半径倍数"决定行星类型） */
-function classifyPlanetByDistance(distMul: number, starCls: string, rng: () => number): PlanetType {
+function classifyPlanetByDistance(distMul: number, rng: () => number): PlanetType {
   // distMul = distance / starRadius
   if (distMul < 5) return rng() < 0.5 ? 'lava' : 'rocky'
   if (distMul < 15) {
@@ -139,19 +131,19 @@ export function generateChunk(cx: number, cy: number, cz: number): ChunkData {
       if (ok) break
       attempts++
     }
-    stars.push({ position: pos, class: cls, radius: cls.radius })
+    // 唯一编号：u16（0~65535），种子化所以同坐标同恒星永远同一 id
+    const id = Math.floor(starTypeRng() * 0x10000) >>> 0
+    stars.push({ position: pos, class: cls, radius: cls.radius, id })
   }
 
-  // ---------- 每颗恒星的行星 + 小行星带 + 彗星 ----------
+  // ---------- 每颗恒星的行星 + 彗星 ----------
   const planets: PlanetData[] = []
-  const belts: BeltData[] = []
   const comets: CometData[] = []
 
   for (let si = 0; si < stars.length; si++) {
     const star = stars[si]
     const orbitRng = forkRng(rootRng)
     const planetRng = forkRng(rootRng)
-    const beltRng = forkRng(rootRng)
     const cometRng = forkRng(rootRng)
 
     // 行星：3~8 颗
@@ -163,7 +155,7 @@ export function generateChunk(cx: number, cy: number, cz: number): ChunkData {
       const ideal = Math.exp(baseLog + step * (i + 0.5))
       const jitter = 1 + (planetRng() - 0.5) * 0.3
       const distance = ideal * jitter
-      const type = classifyPlanetByDistance(distance / star.radius, star.class.cls, planetRng)
+      const type = classifyPlanetByDistance(distance / star.radius, planetRng)
       const baseRadius =
         type === 'gasGiant' ? 1.6 : type === 'iceGiant' ? 1.3 : type === 'dwarf' ? 0.25 : type === 'lava' ? 0.35 : 0.55
       const radius = baseRadius * (0.7 + planetRng() * 0.6)
@@ -175,19 +167,6 @@ export function generateChunk(cx: number, cy: number, cz: number): ChunkData {
         orbitPeriod: Math.max(4, Math.pow(distance / star.radius, 1.5) * 2),
         orbitPhase: planetRng(),
         spinPeriod: 4 + planetRng() * 8,
-      })
-    }
-
-    // 小行星带（50% 概率）
-    if (beltRng() < 0.5) {
-      const innerDist = star.radius * (8 + beltRng() * 6)
-      const outerDist = innerDist + star.radius * (1.5 + beltRng() * 4)
-      belts.push({
-        hostStarIndex: si,
-        innerDist,
-        outerDist,
-        count: 80 + Math.floor(beltRng() * 120),
-        maxGrainRadius: 0.04 + beltRng() * 0.06,
       })
     }
 
@@ -211,5 +190,5 @@ export function generateChunk(cx: number, cy: number, cz: number): ChunkData {
     }
   }
 
-  return { cx, cy, cz, stars, planets, belts, comets }
+  return { cx, cy, cz, stars, planets, comets }
 }

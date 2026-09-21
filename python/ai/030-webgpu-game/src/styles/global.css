@@ -1571,7 +1571,7 @@ input:checked + .switch::after {
 
 /* ---------- 启动 overlay ---------- */
 
-.start-overlay {
+.pause-overlay {
   position: absolute;
   inset: 0;
   z-index: 40;
@@ -1583,12 +1583,12 @@ input:checked + .switch::after {
   transition: opacity 0.25s;
 }
 
-.start-overlay.hidden {
+.pause-overlay.hidden {
   opacity: 0;
   pointer-events: none;
 }
 
-.start-card {
+.pause-card {
   padding: 24px 32px;
   text-align: center;
   display: flex;
@@ -1598,18 +1598,18 @@ input:checked + .switch::after {
   max-width: 480px;
 }
 
-.start-title {
+.pause-title {
   font-size: 32px;
   font-weight: 900;
   letter-spacing: 2px;
 }
 
-.start-subtitle {
+.pause-subtitle {
   font-size: 15px;
   color: var(--text-dim);
 }
 
-.start-hints {
+.pause-hints {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1617,7 +1617,7 @@ input:checked + .switch::after {
   color: var(--text-dim);
 }
 
-.start-hints kbd {
+.pause-hints kbd {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
@@ -1627,7 +1627,7 @@ input:checked + .switch::after {
   color: var(--text);
 }
 
-.start-badge {
+.pause-badge {
   font-size: 12px;
   padding: 3px 12px;
   border-radius: 999px;
@@ -1665,11 +1665,65 @@ input:checked + .switch::after {
     display: none;
   }
 
-  .start-card {
+  .pause-card {
     padding: 18px 22px;
   }
 
-  .start-title {
+  .pause-title {
     font-size: 24px;
   }
+}
+
+/* ---------- 星系编号标签 ---------- */
+
+.system-labels {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.system-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(8, 12, 30, 0.7);
+  border: 1px solid rgba(140, 175, 255, 0.35);
+  white-space: nowrap;
+  transform-origin: 0 0;
+  will-change: transform, opacity;
+  /* translate 由 inline style 设置；这里只补充 translate(-50%, -100%) 让标签在恒星上方居中 */
+  margin-top: -40px;
+}
+
+.system-label::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  width: 1px;
+  height: 10px;
+  background: linear-gradient(to bottom, rgba(140, 175, 255, 0.6), rgba(140, 175, 255, 0));
+}
+
+.system-label-id {
+  font-family: 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.system-label-dist {
+  font-size: 10px;
+  color: rgba(180, 210, 255, 0.85);
+  font-weight: 500;
 }

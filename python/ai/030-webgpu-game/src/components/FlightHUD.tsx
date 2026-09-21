@@ -71,7 +71,7 @@ export function FlightHUD() {
         </div>
         <div className="help-row">
           <kbd>Esc</kbd>
-          <span className="help-text">释放鼠标</span>
+          <span className="help-text">暂停 / 主菜单</span>
         </div>
       </div>
     </>

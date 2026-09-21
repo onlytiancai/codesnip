@@ -7,6 +7,7 @@ import { FlightHUD } from './components/FlightHUD'
 import { StartOverlay } from './components/StartOverlay'
 import { TeleportDialog } from './components/TeleportDialog'
 import { HistoryPanel } from './components/HistoryPanel'
+import { SystemLabels } from './components/SystemLabels'
 import { UniverseCanvas } from './components/UniverseCanvas'
 import { useApp } from './state/AppState'
 
@@ -30,6 +31,7 @@ export default function App() {
       ) : (
         <>
           <UniverseCanvas />
+          <SystemLabels />
           <FlightHUD />
           <HistoryPanel />
           <TeleportDialog />

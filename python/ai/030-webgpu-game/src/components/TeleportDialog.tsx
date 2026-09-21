@@ -13,7 +13,7 @@ export function TeleportDialog() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.code === 'KeyT' && state.pointerLocked) {
+      if (e.code === 'KeyT' && state.escapeState === 'playing') {
         e.preventDefault()
         setOpen((v) => !v)
       } else if (e.code === 'Escape' && open) {
@@ -22,7 +22,7 @@ export function TeleportDialog() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [state.pointerLocked, open])
+  }, [state.escapeState, open])
 
   const submit = () => {
     const m = text.trim().match(/^(-?\d+(\.\d+)?)[\s,]+(-?\d+(\.\d+)?)[\s,]+(-?\d+(\.\d+)?)$/)

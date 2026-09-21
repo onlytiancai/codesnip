@@ -22,13 +22,16 @@ import { createStarField, type StarFieldHandle } from './StarField'
 import { FlightController, type SpeedMode } from './FlightController'
 import { ChunkManager } from './ChunkManager'
 import { detectInitialQuality, qualityProfile, type QualityProfile as QualityProfileType } from '../utils/performance'
-import { loadPlayerState, type PlayerState } from '../storage/playerState'
+import { loadPlayerState } from '../storage/playerState'
+
+export type EscapeState = 'playing' | 'paused' | 'menu'
 
 export interface SceneCallbacks {
   onReady(backend: Backend, degraded: boolean): void
   onFatal(message: string): void
   onPlayerState(state: { position: THREE.Vector3; speedMode: SpeedMode }): void
   onChunkCount(count: number): void
+  onEscapeState(state: EscapeState): void
 }
 
 export class SceneManager {
@@ -45,7 +48,8 @@ export class SceneManager {
 
   private playerGroup!: THREE.Group
   private starfield!: StarFieldHandle
-  private flight!: FlightController
+  /** 公开以便 UniverseCanvas 调用 setPosition / getQuaternion / requestLock */
+  flight!: FlightController
   private chunkMgr!: ChunkManager
 
   private rafId: number | null = null
@@ -53,6 +57,8 @@ export class SceneManager {
   private disposed = false
   private initialized = false
   private resizeObserver: ResizeObserver | null = null
+
+  private escapeState: EscapeState = 'menu'
 
   /** 持久化 player state 的定时器 */
   private lastPlayerSave = 0
@@ -99,13 +105,20 @@ export class SceneManager {
     this.starfield = createStarField(this.profile)
     this.scene.add(this.starfield.group)
 
+    // Esc 状态机 + pointerlockchange 监听
+    window.addEventListener('keydown', this.onKeyDown)
+    document.addEventListener('pointerlockchange', this.onPointerLockChange)
+
     // Chunk 管理
     this.chunkMgr = new ChunkManager(this.playerGroup)
 
     // 飞行控制
     this.flight = new FlightController(this.camera, this.playerGroup, this.canvas, {
-      onLock: () => {},
-      onUnlock: () => {},
+      onLock: () => this.setEscapeState('playing'),
+      onUnlock: () => {
+        // 如果用户主动 Esc（已经是 paused），保持 paused；否则进入 menu
+        if (this.escapeState === 'playing') this.setEscapeState('menu')
+      },
       onSpeedChange: () => {},
     })
 
@@ -135,12 +148,17 @@ export class SceneManager {
     }
 
     // 触发 ChunkManager 立刻加载飞船周围 chunk
-    this.chunkMgr.resync()
+    try {
+      this.chunkMgr.resync()
+    } catch (e) {
+      console.error('[SceneManager] initial chunk resync failed:', e)
+    }
 
     this.initialized = true
     this.callbacks.onReady(this.backend, this.degraded)
     this.lastFrame = performance.now()
     this.lastPlayerSave = performance.now()
+    this.callbacks.onEscapeState(this.escapeState)
     this.callbacks.onPlayerState({
       position: this.playerGroup.position.clone(),
       speedMode: this.flight.getSpeedMode(),
@@ -156,6 +174,54 @@ export class SceneManager {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.profile.dprCap))
     this.camera.aspect = w / h
     this.camera.updateProjectionMatrix()
+  }
+
+  private setEscapeState(s: EscapeState): void {
+    this.escapeState = s
+    this.callbacks.onEscapeState(s)
+  }
+
+  /** Esc 状态机：
+   *  playing → 按 Esc → setEscapeState('paused') + exitPointerLock()
+   *  paused  → 按 Esc → setEscapeState('menu')
+   *  menu    → 不响应 Esc（用户需点击 canvas 重新 lock）
+   */
+  private onKeyDown = (e: KeyboardEvent): void => {
+    if (e.code !== 'Escape') return
+    if (this.disposed) return
+    if (this.escapeState === 'playing') {
+      this.setEscapeState('paused')
+      document.exitPointerLock()
+    } else if (this.escapeState === 'paused') {
+      this.setEscapeState('menu')
+    }
+  }
+
+  /** pointerlockchange：unlock 不直接切 state，由 onKeyDown 控制 paused → menu。
+   *  只有真正从 menu/paused 回到 playing（点击 canvas）才在这里切。
+   */
+  private onPointerLockChange = (): void => {
+    const locked = document.pointerLockElement === this.canvas
+    if (locked) {
+      this.setEscapeState('playing')
+    }
+    // unlock 不处理：onKeyDown 已经处理 paused/menu 切换；
+    // 异常 unlock（如浏览器焦点丢失）会等到 onKeyDown 之后再决定。
+    // 如果 state 还是 'playing' 且 unlocked（罕见：onKeyDown 没收到），
+    // 下一个 RAF 自动修复为 'menu'（避免卡在 playing 但无 lock）
+    if (!locked && this.escapeState === 'playing') {
+      // 用 setTimeout 推迟到下一个 macrotask，等可能的 keydown handler 先执行
+      setTimeout(() => {
+        if (this.escapeState === 'playing') this.setEscapeState('menu')
+      }, 0)
+    }
+  }
+
+  /** 给 React 端调：从 menu 状态请求 lock */
+  requestPointerLock(): void {
+    if (this.escapeState === 'menu' || this.escapeState === 'paused') {
+      void this.canvas.requestPointerLock()
+    }
   }
 
   private loop = (): void => {
@@ -195,10 +261,45 @@ export class SceneManager {
     this.chunkMgr.resync()
   }
 
+  /** 取附近星系（距离 + 世界坐标 + id），按距离升序 */
+  getNearbySystems(maxRadius: number): Array<{ id: number; worldPos: THREE.Vector3; distance: number }> {
+    if (!this.initialized) return []
+    const out: Array<{ id: number; worldPos: THREE.Vector3; distance: number }> = []
+    const px = this.playerGroup.position.x
+    const py = this.playerGroup.position.y
+    const pz = this.playerGroup.position.z
+    const stars = this.chunkMgr.getAllStars()
+    for (const s of stars) {
+      const dx = s.worldPos.x - px
+      const dy = s.worldPos.y - py
+      const dz = s.worldPos.z - pz
+      const dist = Math.hypot(dx, dy, dz)
+      if (dist <= maxRadius) {
+        out.push({ id: s.id, worldPos: s.worldPos, distance: dist })
+      }
+    }
+    out.sort((a, b) => a.distance - b.distance)
+    return out
+  }
+
+  /** 投影 worldPos 到屏幕坐标（返回 NDC 与 canvas-px） */
+  projectToScreen(worldPos: THREE.Vector3): { x: number; y: number; inFront: boolean } {
+    const v = worldPos.clone().project(this.camera)
+    const w = this.canvas.clientWidth
+    const h = this.canvas.clientHeight
+    return {
+      x: (v.x * 0.5 + 0.5) * w,
+      y: (-v.y * 0.5 + 0.5) * h,
+      inFront: v.z < 1,
+    }
+  }
+
   dispose(): void {
     this.disposed = true
     if (this.rafId) cancelAnimationFrame(this.rafId)
     this.resizeObserver?.disconnect()
+    window.removeEventListener('keydown', this.onKeyDown)
+    document.removeEventListener('pointerlockchange', this.onPointerLockChange)
     this.chunkMgr?.dispose()
     this.flight?.dispose()
     if (this.starfield) this.scene.remove(this.starfield.group)

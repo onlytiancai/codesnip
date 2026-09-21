@@ -1,6 +1,9 @@
 /**
- * 启动 overlay：未进入 pointer lock 时显示「点击进入飞行」提示。
- * 同时是品牌 / WebGPU 徽章 / 设置按钮的容器。
+ * PauseOverlay：Esc 暂停时显示「序列化星空」+「按 Esc 关闭 / 点击继续飞行」。
+ *
+ * - escapeState='paused'  → 显示
+ * - escapeState='menu'    → 隐藏（显示主体内容，鼠标未锁）
+ * - escapeState='playing' → 隐藏
  */
 
 import { useApp } from '../state/AppState'
@@ -8,36 +11,31 @@ import { useApp } from '../state/AppState'
 export function StartOverlay() {
   const { state, sceneApiRef } = useApp()
   if (!state.ready) return null
+  if (state.escapeState !== 'paused') return null
 
-  const onStart = () => {
+  const onResume = () => {
     sceneApiRef.current?.requestPointerLock()
   }
 
   return (
     <div
-      className={`start-overlay ${state.pointerLocked ? 'hidden' : ''}`}
-      onClick={onStart}
+      className="pause-overlay"
+      onClick={onResume}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') onStart()
+        if (e.key === 'Enter' || e.key === ' ') onResume()
       }}
     >
-      <div className="start-card panel">
-        <div className="start-title">🌌 序列化星空</div>
-        <div className="start-subtitle">点击进入超空间飞行</div>
-        <div className="start-hints">
+      <div className="pause-card panel">
+        <div className="pause-title">🌌 序列化星空</div>
+        <div className="pause-subtitle">飞行已暂停</div>
+        <div className="pause-hints">
           <div>
-            <kbd>WASD</kbd> 平移 · <kbd>Space</kbd> / <kbd>Ctrl</kbd> 上升下降
-          </div>
-          <div>
-            <kbd>Shift</kbd> 加速 · <kbd>Mouse</kbd> 视角 · <kbd>T</kbd> 传送
-          </div>
-          <div>
-            <kbd>Esc</kbd> 释放鼠标
+            <kbd>Esc</kbd> 关闭提示框 · <kbd>Click</kbd> 继续飞行
           </div>
         </div>
-        <div className="start-badge">
+        <div className="pause-badge">
           {state.backend === 'webgpu' ? '⚡ WebGPU' : state.backend === 'webgl2' ? '🔄 WebGL 兼容' : '…'}
         </div>
       </div>
