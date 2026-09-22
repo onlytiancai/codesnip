@@ -12,6 +12,7 @@ GUI 能弹窗 ⇒ CLT（含 macOS SDK + AppKit 框架）可用 ⇒ 检测脚本�
 | `HelloWorld.swift` | Swift + AppKit GUI 源 |
 | `build.sh` | 检测 + 编译 + 启动 GUI 一键脚本 |
 | `docs/macos-app-bundle.md` | `.app` bundle vs 单文件二进制的区别说明 |
+| `docs/macos-sdk-capabilities.md` | macOS SDK 能力速览（按"做什么"分块） |
 
 ## 用法
 
