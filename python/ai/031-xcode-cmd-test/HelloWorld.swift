@@ -28,7 +28,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let contentRect = NSRect(x: 0, y: 0, width: 460, height: 280)
+        // Bundle 化后才有 bundle ID 和 Resources 加载能力
+        let bundleId = Bundle.main.bundleIdentifier ?? "(no bundle ID — CLI 进程)"
+        let resourcesPath = Bundle.main.resourcePath ?? "(no resourcePath)"
+
+        // 加载 Resources/AppIcon.icns 设为 Dock 图标
+        if let iconURL = Bundle.main.url(forResource: "AppIcon", withExtension: "icns"),
+           let iconImage = NSImage(contentsOf: iconURL) {
+            NSApplication.shared.applicationIconImage = iconImage
+        }
+
+        let contentRect = NSRect(x: 0, y: 0, width: 520, height: 320)
         window = NSWindow(
             contentRect: contentRect,
             styleMask: [.titled, .closable, .miniaturizable],
@@ -63,6 +73,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         pathLabel.lineBreakMode = .byTruncatingMiddle
         pathLabel.translatesAutoresizingMaskIntoConstraints = false
 
+        // Bundle 化特有的展示信息
+        let bundleLabel = NSTextField(labelWithString: "Bundle ID: \(bundleId)")
+        bundleLabel.font = NSFont.systemFont(ofSize: 11, weight: .medium)
+        bundleLabel.textColor = .systemBlue
+        bundleLabel.alignment = .center
+        bundleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let resourcesLabel = NSTextField(labelWithString: "Resources: \(resourcesPath)")
+        resourcesLabel.font = NSFont.systemFont(ofSize: 9)
+        resourcesLabel.textColor = .tertiaryLabelColor
+        resourcesLabel.alignment = .center
+        resourcesLabel.lineBreakMode = .byTruncatingMiddle
+        resourcesLabel.translatesAutoresizingMaskIntoConstraints = false
+
         let quitButton = NSButton(title: "退出", target: self, action: #selector(quitApp))
         quitButton.bezelStyle = .rounded
         quitButton.translatesAutoresizingMaskIntoConstraints = false
@@ -72,21 +96,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         view.addSubview(subtitleLabel)
         view.addSubview(sdkLabel)
         view.addSubview(pathLabel)
+        view.addSubview(bundleLabel)
+        view.addSubview(resourcesLabel)
         view.addSubview(quitButton)
 
         NSLayoutConstraint.activate([
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 60),
+            titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 50),
 
             subtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 12),
+            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
+
+            bundleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            bundleLabel.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 14),
 
             sdkLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            sdkLabel.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 16),
+            sdkLabel.topAnchor.constraint(equalTo: bundleLabel.bottomAnchor, constant: 10),
 
             pathLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             pathLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             pathLabel.topAnchor.constraint(equalTo: sdkLabel.bottomAnchor, constant: 4),
+
+            resourcesLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            resourcesLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            resourcesLabel.topAnchor.constraint(equalTo: pathLabel.bottomAnchor, constant: 2),
 
             quitButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             quitButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20),
