@@ -622,6 +622,7 @@ final class TranslationView: NSView {
     private func setStatus(_ text: String, color: NSColor) {
         statusLabel.stringValue = text
         statusLabel.textColor = color
+        LogStore.shared.append("status: \(text)", source: "Status")
     }
 
     // MARK: 日志
@@ -638,7 +639,11 @@ final class LogStore: @unchecked Sendable {
     private var lines: [String] = []
     var onChange: (() -> Void)?
 
+    /// 全局开关：关掉时 append 静默忽略，不入队也不通知 UI
+    var enabled: Bool = true
+
     func append(_ message: String, source: String = "App") {
+        guard enabled else { return }
         lock.lock()
         let ts = Self.timestamp()
         let line = "[\(ts)] [\(source)] \(message)"
@@ -780,6 +785,135 @@ final class LogView: NSView {
         }
     }
 }
+
+// MARK: - SettingsPanelController（偏好设置弹窗）
+
+final class SettingsPanelController: NSObject, NSWindowDelegate {
+    static let shared = SettingsPanelController()
+    private var panel: NSPanel?
+
+    func show(in parentWindow: NSWindow) {
+        if let existing = panel {
+            existing.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
+        let contentRect = NSRect(x: 0, y: 0, width: 360, height: 140)
+        let p = NSPanel(
+            contentRect: contentRect,
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false
+        )
+        p.title = "偏好设置"
+        p.isFloatingPanel = true
+        p.hidesOnDeactivate = false
+        p.delegate = self
+
+        let contentView = NSView(frame: contentRect)
+
+        let header = NSTextField(labelWithString: "显示选项")
+        header.font = NSFont.systemFont(ofSize: 13, weight: .semibold)
+        header.textColor = .labelColor
+        header.translatesAutoresizingMaskIntoConstraints = false
+
+        // 日志开关 checkbox
+        let logCheckbox = NSButton(checkboxWithTitle: "启用日志写入", target: self, action: #selector(toggleLogWrite(_:)))
+        logCheckbox.state = AppPreferences.enableLogWrite ? .on : .off
+        logCheckbox.font = NSFont.systemFont(ofSize: 12)
+        logCheckbox.translatesAutoresizingMaskIntoConstraints = false
+
+        let hint = NSTextField(labelWithString: "关闭后 Translation 流程不再写入日志。日志 Tab 仍可查看关闭前的历史")
+        hint.font = NSFont.systemFont(ofSize: 11)
+        hint.textColor = .secondaryLabelColor
+        hint.lineBreakMode = .byWordWrapping
+        hint.maximumNumberOfLines = 2
+        hint.translatesAutoresizingMaskIntoConstraints = false
+
+        let closeButton = NSButton(title: "关闭", target: self, action: #selector(closeClicked))
+        closeButton.bezelStyle = .rounded
+        closeButton.keyEquivalent = "\u{1b}"  // Esc
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+
+        contentView.addSubview(header)
+        contentView.addSubview(logCheckbox)
+        contentView.addSubview(hint)
+        contentView.addSubview(closeButton)
+
+        NSLayoutConstraint.activate([
+            header.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            header.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 18),
+
+            logCheckbox.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            logCheckbox.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 12),
+
+            hint.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 36),
+            hint.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            hint.topAnchor.constraint(equalTo: logCheckbox.bottomAnchor, constant: 6),
+
+            closeButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            closeButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
+        ])
+
+        p.contentView = contentView
+
+        // 居中到父窗口
+        let parentFrame = parentWindow.frame
+        let x = parentFrame.origin.x + (parentFrame.width - contentRect.width) / 2
+        let y = parentFrame.origin.y + (parentFrame.height - contentRect.height) / 2
+        p.setFrameOrigin(NSPoint(x: x, y: y))
+
+        p.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        panel = p
+    }
+
+    @objc private func toggleLogWrite(_ sender: NSButton) {
+        AppPreferences.enableLogWrite = (sender.state == .on)
+        // 这条日志有可能因关掉开关而不会被记下 —— 这是预期行为，
+        // 但 LogView 的 refresh timer 还会继续把现有快照刷上去
+        LogStore.shared.append(
+            "设置变更：enableLogWrite = \(AppPreferences.enableLogWrite)",
+            source: "Settings"
+        )
+        NotificationCenter.default.post(name: AppPreferences.didChange, object: nil)
+    }
+
+    @objc private func closeClicked() {
+        panel?.orderOut(nil)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        panel = nil
+    }
+}
+
+// MARK: - AppPreferences（应用级偏好）
+
+enum AppPreferences {
+    private static let key = "enableLogWrite"
+
+    /// 是否往 LogStore 写日志（开关关掉时 LogStore.append 静默忽略）
+    static var enableLogWrite: Bool {
+        get {
+            if UserDefaults.standard.object(forKey: key) == nil { return true }  // 默认开
+            return UserDefaults.standard.bool(forKey: key)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: key)
+            LogStore.shared.enabled = newValue
+        }
+    }
+
+    /// 启动时让 LogStore 反映当前偏好
+    static func applyOnLaunch() {
+        LogStore.shared.enabled = enableLogWrite
+    }
+
+    static let didChange = Notification.Name("AppPreferencesDidChange")
+}
+
 // MARK: - AppDelegate
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -796,6 +930,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApplication.shared.applicationIconImage = iconImage
         }
 
+        // 让 LogStore 反映偏好（关掉开关 → 不写日志）
+        AppPreferences.applyOnLaunch()
+
         let contentRect = NSRect(x: 0, y: 0, width: 720, height: 520)
         window = NSWindow(
             contentRect: contentRect,
@@ -807,7 +944,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.minSize = NSSize(width: 640, height: 480)
         window.center()
 
-        // segmented control
+        // segmented control：固定 3 段
         segmented.selectedSegment = 0
         segmented.segmentStyle = .rounded
         segmented.translatesAutoresizingMaskIntoConstraints = false
@@ -819,7 +956,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if #available(macOS 15.0, *) {
             translationView = TranslationView(frame: .zero)
         } else {
-            // 理论上不会到这里，因为 LSMinimumSystemVersion = 15.0
             translationView = NSView()
         }
         translationView.isHidden = true
@@ -871,6 +1007,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         helloView.isHidden = (idx != 0)
         translationView.isHidden = (idx != 1)
         logView.isHidden = (idx != 2)
+    }
+
+    @objc func openSettings(_ sender: Any?) {
+        SettingsPanelController.shared.show(in: window)
     }
 
     @objc func quitApp() {
@@ -959,6 +1099,17 @@ func installMainMenu() {
     )
     editMenuItem.submenu = editMenu
     mainMenu.addItem(editMenuItem)
+
+    // 设置菜单（弹窗开关日志 Tab）
+    let settingsMenuItem = NSMenuItem()
+    let settingsMenu = NSMenu(title: "设置")
+    settingsMenu.addItem(
+        withTitle: "偏好设置…",
+        action: #selector(AppDelegate.openSettings(_:)),
+        keyEquivalent: ","
+    )
+    settingsMenuItem.submenu = settingsMenu
+    mainMenu.addItem(settingsMenuItem)
 
     // Window 菜单（让 ⌘W 关窗、⌘N/N 行为符合 macOS 习惯）
     let windowMenuItem = NSMenuItem()
