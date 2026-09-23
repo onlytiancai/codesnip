@@ -374,7 +374,31 @@ try? handler.perform([request])
 
 ### Translation
 
-OS 26+ 内置实时翻译框架。
+**macOS 26.0+ / iOS 18.0+** 内置翻译框架。**离线**本地翻译（首次下载语种包），与系统右键菜单的「翻译」共享引擎。
+
+```swift
+import Translation
+
+// 1. 检查支持
+let avail = LanguageAvailability()
+let status = await avail.status(
+    from: Locale.Language(identifier: "en"),
+    to: Locale.Language(identifier: "zh-Hans"))
+// .installed / .supported / .unsupported
+
+// 2. 翻译
+let session = TranslationSession(
+    installedSource: Locale.Language(identifier: "en"),
+    target: Locale.Language(identifier: "zh-Hans"))
+let response = try await session.translate("Hello, World!")
+print(response.targetText)
+```
+
+要点：
+- 语种包几百 MB，**不会自动下载**，需要用户去系统设置
+- AppKit 项目必须自己画 UI；SwiftUI 项目可用 `.translationPresentation(isPresented:text:)` 一行弹出
+- `TranslationError` 没有 `==`，用 `TranslationError.notInstalled ~= error` 做 pattern match
+- 详细学习笔记见 `docs/translation-framework.md`
 
 ---
 

@@ -1,6 +1,6 @@
 # 031-xcode-cmd-test
 
-检测本机是否安装了 **Xcode Command Line Tools (CLT)**，并通过 Swift + AppKit GUI Hello World 做端到端验证。**GUI 以 `.app` bundle 形式启动**，带自定义 Dock 图标、ad-hoc 代码签名和 Bundle ID。
+检测本机是否安装了 **Xcode Command Line Tools (CLT)**，并通过 Swift + AppKit GUI Hello World 做端到端验证。**GUI 以 `.app` bundle 形式启动**，带自定义 Dock 图标、ad-hoc 代码签名和 Bundle ID，还内置一个 **Translation framework 翻译 Tab**，可直接体验 macOS 26+ 的离线翻译 API。
 
 GUI 能弹窗 ⇒ CLT（含 macOS SDK + AppKit 框架）可用 ⇒ 检测脚本结论正确。
 
@@ -9,7 +9,7 @@ GUI 能弹窗 ⇒ CLT（含 macOS SDK + AppKit 框架）可用 ⇒ 检测脚本�
 | 文件 | 作用 |
 |---|---|
 | `detect.sh` | 单独运行，检测 CLT 关键组件 |
-| `HelloWorld.swift` | Swift + AppKit GUI 源 |
+| `HelloWorld.swift` | Swift + AppKit GUI 源（Hello Tab + Translation Tab） |
 | `Info.plist` | bundle 元数据（Bundle ID、最低系统版本、Dock 图标声明） |
 | `Resources/AppIcon.icns` | Dock 图标（来自系统 Finder.icns） |
 | `build.sh` | 检测 + 编译 + 打包 .app + 签名 + 启动 GUI |
@@ -17,6 +17,7 @@ GUI 能弹窗 ⇒ CLT（含 macOS SDK + AppKit 框架）可用 ⇒ 检测脚本�
 | `docs/macos-app-bundle.md` | bundle vs 单文件二进制理论 |
 | `docs/macos-sdk-capabilities.md` | macOS SDK 能力速览（按"做什么"分块） |
 | `docs/bundle-vs-single.md` | bundle 化前后的实测对比 |
+| `docs/translation-framework.md` | Translation framework 学习笔记 |
 
 ## 用法
 
@@ -28,7 +29,9 @@ chmod +x detect.sh build.sh
 启动后：
 - 终端打印 4 个阶段的进度（检测 / 编译 / 打包签名 / 启动）
 - 弹窗 + Dock 出现 Finder 图标（因为 `AppIcon.icns` 是 Finder 图标）
-- 窗口里显示 Bundle ID `com.example.HelloWorld` 和 Resources 路径
+- 窗口顶部有 segmented control 切换「Hello」/「翻译」
+- Hello Tab 显示 Bundle ID `com.example.HelloWorld` 和 Resources 路径
+- 翻译 Tab 输入文本 + 选语种 + 点「翻译」即可体验 Translation framework
 
 ### 仅检测（不编译不弹窗）
 
@@ -100,14 +103,22 @@ GUI 进程 PID: xxxxx
 
 ### GUI
 
-弹出 520×320 窗口：
+弹出 720×520 窗口，顶部 segmented control 切换两个 Tab：
+
+**Hello Tab**：原 Hello World 内容
 - **Hello, World!**（28pt 粗体）
 - Xcode CLT 检测通过 ✓（绿色）
 - **Bundle ID: com.example.HelloWorld**（蓝色，bundle 化特有）
 - macOS SDK 版本
 - CLT 路径
 - Resources 路径
-- 「退出」按钮
+
+**翻译 Tab**：Translation framework 体验
+- 源/目标语种下拉（8 个常用语种 + 「自动」）
+- 多行输入框（默认 "Hello, World!\n\nThe quick brown fox..."）
+- 「翻译」「复制结果」「清空」按钮
+- 状态行（蓝色进度 / 绿色完成 / 橙色未下载 / 红色错误）
+- 翻译结果只读框
 
 Dock 里出现 Finder 图标。
 
@@ -162,6 +173,7 @@ ls HelloWorld.app/Contents/Resources/
 - macOS 27.0
 - CLT 路径：`/Library/Developer/CommandLineTools`
 - Apple Silicon (M4)
+- 项目最低系统版本：macOS 26.0（Translation framework 要求）
 
 ## 学习要点
 
@@ -170,5 +182,7 @@ ls HelloWorld.app/Contents/Resources/
 3. **资源加载**：`Bundle.main.url(forResource:withExtension:)` 是入口
 4. **代码签名**：ad-hoc (`--sign -`) 本机够用；分发需要开发者证书 + 公证
 5. **Info.plist 字段**：CFBundle* 一族 + LSMinimumSystemVersion + NS* AppKit 专属
+6. **Translation framework**：macOS 26+ 离线本地翻译，要先下语种包
+7. **AppKit 自己画 UI**：SwiftUI 一行 `.translationPresentation` 解决的事，AppKit 要装 NSScrollView + 布局约束
 
-详见 `docs/bundle-vs-single.md` 实测对比。
+详见 `docs/bundle-vs-single.md` 和 `docs/translation-framework.md`。
