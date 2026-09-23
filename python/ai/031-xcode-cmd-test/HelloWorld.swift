@@ -162,11 +162,16 @@ final class TranslationView: NSView {
     private func buildUI() {
         // 源/目标下拉
         for choice in sourceLanguages { sourcePopup.addItem(withTitle: choice.display) }
-        sourcePopup.selectItem(at: 0)
+        // 默认源：English
+        if let idx = sourceLanguages.firstIndex(where: { $0.identifier == "en" }) {
+            sourcePopup.selectItem(at: idx)
+        } else {
+            sourcePopup.selectItem(at: 0)
+        }
         sourcePopup.translatesAutoresizingMaskIntoConstraints = false
 
         for choice in targetLanguages { targetPopup.addItem(withTitle: choice.display) }
-        // 默认选「中文 (简体)」
+        // 默认目标：中文 (简体)
         if let idx = targetLanguages.firstIndex(where: { $0.identifier == "zh-Hans" }) {
             targetPopup.selectItem(at: idx)
         }
@@ -179,6 +184,13 @@ final class TranslationView: NSView {
         let targetLabel = NSTextField(labelWithString: "目标:")
         targetLabel.font = NSFont.systemFont(ofSize: 12, weight: .medium)
         targetLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        // Swap 按钮：源/目标互换，并把当前翻译结果填入输入框（如果有）
+        let swapButton = NSButton(title: "⇄", target: self, action: #selector(swapClicked))
+        swapButton.bezelStyle = .rounded
+        swapButton.font = NSFont.systemFont(ofSize: 16, weight: .semibold)
+        swapButton.toolTip = "互换源和目标语种"
+        swapButton.translatesAutoresizingMaskIntoConstraints = false
 
         // 输入框
         configureScrollView(inputScroll, with: inputView, editable: true)
@@ -221,6 +233,7 @@ final class TranslationView: NSView {
 
         addSubview(sourceLabel)
         addSubview(sourcePopup)
+        addSubview(swapButton)
         addSubview(targetLabel)
         addSubview(targetPopup)
         addSubview(inputScroll)
@@ -237,9 +250,13 @@ final class TranslationView: NSView {
 
             sourcePopup.leadingAnchor.constraint(equalTo: sourceLabel.trailingAnchor, constant: 8),
             sourcePopup.centerYAnchor.constraint(equalTo: sourceLabel.centerYAnchor),
-            sourcePopup.widthAnchor.constraint(equalToConstant: 180),
+            sourcePopup.widthAnchor.constraint(equalToConstant: 160),
 
-            targetLabel.leadingAnchor.constraint(equalTo: sourcePopup.trailingAnchor, constant: 16),
+            swapButton.leadingAnchor.constraint(equalTo: sourcePopup.trailingAnchor, constant: 8),
+            swapButton.centerYAnchor.constraint(equalTo: sourceLabel.centerYAnchor),
+            swapButton.widthAnchor.constraint(equalToConstant: 36),
+
+            targetLabel.leadingAnchor.constraint(equalTo: swapButton.trailingAnchor, constant: 8),
             targetLabel.centerYAnchor.constraint(equalTo: sourceLabel.centerYAnchor),
 
             targetPopup.leadingAnchor.constraint(equalTo: targetLabel.trailingAnchor, constant: 8),
@@ -351,6 +368,58 @@ final class TranslationView: NSView {
         setStatus("请在系统设置 → 语言与地区 → 翻译语言 中下载所需语种包", color: .systemOrange)
     }
 
+    @objc private func swapClicked() {
+        let sourceIdx = sourcePopup.indexOfSelectedItem
+        let targetIdx = targetPopup.indexOfSelectedItem
+        guard sourceIdx >= 0, targetIdx >= 0,
+              sourceIdx < sourceLanguages.count, targetIdx < targetLanguages.count else {
+            return
+        }
+
+        let sourceChoice = sourceLanguages[sourceIdx]
+        let targetChoice = targetLanguages[targetIdx]
+
+        // 新源 = 当前目标的语种；新目标 = 当前源的语种。
+        // 「自动」只在 sourceLanguages 里，targetLanguages 里没有 ——
+        // 所以源当前若是「自动」，swap 后目标找不到「自动」就保留原目标并提示。
+        let newSourceIdentifier = targetChoice.identifier
+        let newTargetIdentifier = sourceChoice.identifier
+
+        // 1. 找新源在 sourcePopup 里的 item index
+        guard let newSourceItemIdx = (0..<sourcePopup.numberOfItems).first(where: {
+            sourcePopup.itemTitle(at: $0) == sourceLanguages.first(where: { $0.identifier == newSourceIdentifier })?.display
+        }) else {
+            // 当前源是「自动」，目标列表里的 identifier 在源列表里找不到「自动」的对应 —— 这种情况下不能换
+            if sourceChoice.identifier == "auto" {
+                setStatus("「自动」无法换到目标位置（请先选具体语种）", color: .systemOrange)
+                return
+            }
+            setStatus("无法找到目标语种的源选项", color: .systemOrange)
+            return
+        }
+
+        // 2. 找新目标在 targetPopup 里的 item index
+        guard let newTargetItemIdx = (0..<targetPopup.numberOfItems).first(where: {
+            targetPopup.itemTitle(at: $0) == targetLanguages.first(where: { $0.identifier == newTargetIdentifier })?.display
+        }) else {
+            setStatus("「\(sourceChoice.display)」无法换到目标位置", color: .systemOrange)
+            return
+        }
+
+        sourcePopup.selectItem(at: newSourceItemIdx)
+        targetPopup.selectItem(at: newTargetItemIdx)
+
+        // 同步翻译结果 → 输入框（如果有），方便用户重新翻译看到原文/译文对调
+        if !outputView.string.isEmpty && outputView.textColor != .secondaryLabelColor {
+            inputView.string = outputView.string
+            outputView.string = ""
+            outputView.textColor = .secondaryLabelColor
+            setStatus("已互换语种，译文已填入输入框，点击「翻译」再译一次", color: .systemBlue)
+        } else {
+            setStatus("已互换源和目标语种", color: .systemBlue)
+        }
+    }
+
     // MARK: 翻译主流程
 
     private func runTranslation(source: LanguageChoice, target: LanguageChoice, text: String) async {
@@ -443,11 +512,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let contentRect = NSRect(x: 0, y: 0, width: 720, height: 520)
         window = NSWindow(
             contentRect: contentRect,
-            styleMask: [.titled, .closable, .miniaturizable],
+            styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
         window.title = "Hello World + Translation"
+        window.minSize = NSSize(width: 640, height: 480)
         window.center()
 
         // segmented control
