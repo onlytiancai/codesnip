@@ -154,7 +154,6 @@ final class TranslationBridge {
     private(set) var pendingText: String = ""
 
     // SwiftUI 通过 deliverSession 把新 session 推回来；AppKit await 拿到
-    private var sessionContinuation: CheckedContinuation<TranslationSession, Error>?
     private var cachedSession: TranslationSession?
 
     // 超时秒数（在文件顶层单独声明，避免 main actor 隔离冲突）
@@ -219,39 +218,33 @@ final class TranslationBridge {
     }
 
     private func fetchSessionWithTimeout() async throws -> TranslationSession {
-        // 直接 polling cachedSession，每 50ms 检查一次
-        // 原因：waitForSession 任务调度时机不确定，deliverSession 可能
-        // 在 waitForSession 设置 sessionContinuation 之前就调用，
-        // 导致 ?.resume 拿到 nil、session 丢失。
-        // polling 直接读 cachedSession 字段（同步），不依赖 continuation 调度。
-        let startTime = Date()
-        let timeoutSeconds: TimeInterval = 30
-        while Date().timeIntervalSince(startTime) < timeoutSeconds {
-            if let s = cachedSession { return s }
-            try? await Task.sleep(nanoseconds: 50_000_000)
+        // 状态轮询（不是 continuation 模式）：
+        // 桥接语义是「等待 cachedSession 进入 ready state」，
+        // 不是「等待一次性事件」。这种语义用共享状态 + polling
+        // 比 withCheckedThrowingContinuation 更简单——避免 check-then-register race
+        // （先检查 cachedSession == nil、再注册 continuation，之间可能错过 callback）。
+        // 用 try await（不是 try?）让 Task.cancel() 立刻传上来，
+        // 用 ContinuousClock 而不是 Date()（测经过时间更准）。
+        let deadline = ContinuousClock.now + .seconds(30)
+        while ContinuousClock.now < deadline {
+            try Task.checkCancellation()
+            if let session = cachedSession { return session }
+            try await Task.sleep(for: .milliseconds(50))
         }
         LogStore.shared.append(
-            "✗ fetchSession 超时（\(Int(timeoutSeconds))s，cachedSession 始终为 nil）",
+            "✗ fetchSession 超时（30s，cachedSession 始终为 nil）",
             source: "Bridge"
         )
         throw TranslationError.internalError
     }
 
-    /// SwiftUI view 调用：把新 session 推进来 resume continuation
+    /// SwiftUI view 调用：把新 session 写入 ready state
     func deliverSession(_ session: TranslationSession) {
         LogStore.shared.append(
             "← deliverSession（generation=\(generation)，session.source=\(String(describing: session.sourceLanguage?.minimalIdentifier))）",
             source: "Bridge"
         )
         self.cachedSession = session
-        sessionContinuation?.resume(returning: session)
-        sessionContinuation = nil
-    }
-
-    /// 让 awaiter 抛错而不是永久阻塞（窗口关闭、hosting view 销毁时调用）
-    func cancelPending(error: Error) {
-        sessionContinuation?.resume(throwing: error)
-        sessionContinuation = nil
     }
 }
 
