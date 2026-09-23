@@ -2,6 +2,7 @@ import Cocoa
 import SwiftUI
 import Translation
 import Vision
+import Metal
 
 // 顶层常量：TranslationBridge 用的超时秒数（非 main actor 隔离）
 fileprivate let requestTimeoutSeconds: UInt64 = 30
@@ -62,6 +63,14 @@ let targetLanguages: [LanguageChoice] = [
 // MARK: - HelloView (Tab 1)
 
 final class HelloView: NSView {
+    private let cpuLabel = NSTextField(labelWithString: "")
+    private let memLabel = NSTextField(labelWithString: "")
+    private let swapLabel = NSTextField(labelWithString: "")
+    private let diskLabel = NSTextField(labelWithString: "")
+    private let gpuLabel = NSTextField(labelWithString: "")
+    private let monitorHintLabel = NSTextField(labelWithString: "系统监控（每秒刷新）")
+    private var monitorTimer: Timer?
+
     init() {
         super.init(frame: .zero)
         translatesAutoresizingMaskIntoConstraints = false
@@ -107,12 +116,32 @@ final class HelloView: NSView {
         resourcesLabel.lineBreakMode = .byTruncatingMiddle
         resourcesLabel.translatesAutoresizingMaskIntoConstraints = false
 
+        // 系统监控 Section
+        monitorHintLabel.font = NSFont.systemFont(ofSize: 11, weight: .semibold)
+        monitorHintLabel.textColor = .labelColor
+        monitorHintLabel.alignment = .center
+        monitorHintLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        for label in [cpuLabel, memLabel, swapLabel, diskLabel, gpuLabel] {
+            label.font = NSFont.monospacedSystemFont(ofSize: 11, weight: .regular)
+            label.textColor = .secondaryLabelColor
+            label.alignment = .center
+            label.lineBreakMode = .byTruncatingTail
+            label.translatesAutoresizingMaskIntoConstraints = false
+        }
+
         addSubview(titleLabel)
         addSubview(subtitleLabel)
         addSubview(bundleLabel)
         addSubview(sdkLabel)
         addSubview(pathLabel)
         addSubview(resourcesLabel)
+        addSubview(monitorHintLabel)
+        addSubview(cpuLabel)
+        addSubview(memLabel)
+        addSubview(swapLabel)
+        addSubview(diskLabel)
+        addSubview(gpuLabel)
 
         NSLayoutConstraint.activate([
             titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
@@ -134,10 +163,241 @@ final class HelloView: NSView {
             resourcesLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             resourcesLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
             resourcesLabel.topAnchor.constraint(equalTo: pathLabel.bottomAnchor, constant: 2),
+
+            monitorHintLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            monitorHintLabel.topAnchor.constraint(equalTo: resourcesLabel.bottomAnchor, constant: 24),
+
+            cpuLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            cpuLabel.topAnchor.constraint(equalTo: monitorHintLabel.bottomAnchor, constant: 8),
+
+            memLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            memLabel.topAnchor.constraint(equalTo: cpuLabel.bottomAnchor, constant: 4),
+
+            swapLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            swapLabel.topAnchor.constraint(equalTo: memLabel.bottomAnchor, constant: 4),
+
+            diskLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            diskLabel.topAnchor.constraint(equalTo: swapLabel.bottomAnchor, constant: 4),
+
+            gpuLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            gpuLabel.topAnchor.constraint(equalTo: diskLabel.bottomAnchor, constant: 4),
         ])
+
+        startMonitor()
     }
 
     required init?(coder: NSCoder) { fatalError() }
+    deinit { monitorTimer?.invalidate() }
+
+    private func startMonitor() {
+        monitorTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            self?.refreshMonitor()
+        }
+        if let t = monitorTimer {
+            RunLoop.main.add(t, forMode: .common)
+        }
+        refreshMonitor()  // 立即跑一次
+    }
+
+    private func refreshMonitor() {
+        let stats = SystemMonitor.snapshot()
+        cpuLabel.stringValue = stats.cpu
+        memLabel.stringValue = stats.memory
+        swapLabel.stringValue = stats.swap
+        diskLabel.stringValue = stats.disk
+        gpuLabel.stringValue = stats.gpu
+    }
+}
+
+// MARK: - SystemMonitor（CPU/内存/磁盘/GPU 利用率采集）
+
+enum SystemMonitor {
+
+    struct Snapshot {
+        let cpu: String       // CPU 总使用率 + 各核
+        let memory: String    // 内存压力
+        let swap: String      // 交换使用
+        let disk: String      // 磁盘 IO（用字节/s 替代利用率，macOS 没公开 % API）
+        let gpu: String       // GPU（macOS 没公开精确利用率，显示进程数 + 估算）
+    }
+
+    /// 上一次 IO 计数器，用于计算 delta
+    private static var lastIO: (readBytes: UInt64, writeBytes: UInt64, timestamp: Date)?
+
+    /// 上一次 CPU 计数器
+    private static var lastCPU: (ticks: [UInt32], timestamp: Date)?
+
+    static func snapshot() -> Snapshot {
+        Snapshot(
+            cpu: cpuString(),
+            memory: memoryString(),
+            swap: swapString(),
+            disk: diskString(),
+            gpu: gpuString()
+        )
+    }
+
+    // MARK: CPU
+
+    private static func cpuString() -> String {
+        // 最稳的方法：用 host_processor_info 拿 per-CPU ticks 数组（Swift array），
+        // 然后算每个核的 busy / total，汇总平均。
+        // 这样完全不碰 host_cpu_load_info 的 C struct 内存布局问题。
+        var processorCount: natural_t = 0
+        var processorInfo: processor_info_array_t? = nil
+        var infoCount: mach_msg_type_number_t = 0
+        let kr1 = host_processor_info(
+            mach_host_self(),
+            PROCESSOR_CPU_LOAD_INFO,
+            &processorCount,
+            &processorInfo,
+            &infoCount
+        )
+        guard kr1 == KERN_SUCCESS, let info = processorInfo else {
+            return "CPU: --"
+        }
+        defer {
+            let size = vm_size_t(infoCount) * vm_size_t(MemoryLayout<integer_t>.size)
+            vm_deallocate(mach_host_self(), vm_address_t(bitPattern: info), size)
+        }
+
+        // info 是 natural_t 数组，长度 = processorCount * CPU_STATE_MAX
+        // 索引 [core * CPU_STATE_MAX + state] 拿值
+        // CPU_STATE_USER=0, SYSTEM=1, IDLE=2, NICE=3
+        let total = Int(infoCount)
+        var ticks = [UInt32](repeating: 0, count: total)
+        for i in 0..<total {
+            ticks[i] = UInt32(info[i])
+        }
+
+        let now = Date()
+        var usage = "CPU: --"
+        if let last = lastCPU, last.ticks.count == ticks.count {
+            let dt = now.timeIntervalSince(last.timestamp)
+            if dt > 0 {
+                var sumBusy: Double = 0
+                var sumTotal: Double = 0
+                for i in 0..<total {
+                    let cur = UInt64(ticks[i])
+                    let prev = UInt64(last.ticks[i])
+                    let diff = Double(cur &- prev)
+                    sumTotal += diff
+                    if i % Int(CPU_STATE_MAX) == Int(CPU_STATE_IDLE) { continue }  // 跳过 IDLE
+                    sumBusy += diff
+                }
+                if sumTotal > 0 {
+                    let pct = (sumBusy / sumTotal) * 100
+                    let coreCount = ProcessInfo.processInfo.activeProcessorCount
+                    usage = String(format: "CPU: %.1f%%  (%d 核)", pct, coreCount)
+                }
+            }
+        }
+        lastCPU = (ticks, now)
+        return usage
+    }
+
+    // MARK: Memory
+
+    private static func memoryString() -> String {
+        var stats = vm_statistics64()
+        let hostPort = mach_host_self()
+        var size = mach_msg_type_number_t(MemoryLayout<vm_statistics64_data_t>.size / MemoryLayout<integer_t>.size)
+        let kr = withUnsafeMutablePointer(to: &stats) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: Int(size)) {
+                host_statistics64(hostPort, HOST_VM_INFO64, $0, &size)
+            }
+        }
+        guard kr == KERN_SUCCESS else { return "内存: --" }
+
+        let pageSize = UInt64(vm_kernel_page_size)
+        let active = UInt64(stats.active_count) * pageSize
+        let wired = UInt64(stats.wire_count) * pageSize
+        let compressed = UInt64(stats.compressor_page_count) * pageSize
+        let used = active + wired + compressed
+
+        let totalRAM = ProcessInfo.processInfo.physicalMemory
+        let pctUsed = totalRAM > 0 ? Double(used) / Double(totalRAM) * 100 : 0
+        let freeBytes = totalRAM > used ? totalRAM - used : 0
+
+        return String(
+            format: "内存: %.1f%%  (%.2f GB / %.2f GB)",
+            pctUsed,
+            Double(used) / 1024 / 1024 / 1024,
+            Double(totalRAM) / 1024 / 1024 / 1024
+        ) + String(format: "  空闲 %.2f GB", Double(freeBytes) / 1024 / 1024 / 1024)
+    }
+
+    // MARK: Swap
+
+    private static func swapString() -> String {
+        // sysctlbyname("vm.swapusage") 返回 xsw_usage 结构
+        var xsw = xsw_usage()
+        var size = MemoryLayout<xsw_usage>.size
+        let kr = sysctlbyname("vm.swapusage", &xsw, &size, nil, 0)
+        guard kr == 0 else { return "Swap: --" }
+
+        let used = xsw.xsu_used
+        let total = xsw.xsu_total
+        let pct = total > 0 ? Double(used) / Double(total) * 100 : 0
+
+        return String(
+            format: "Swap: %.1f%%  (%.2f GB / %.2f GB)",
+            pct,
+            Double(used) / 1024 / 1024 / 1024,
+            Double(total) / 1024 / 1024 / 1024
+        )
+    }
+
+    // MARK: Disk IO
+
+    private static func diskString() -> String {
+        // sysctlbyname("kern.disks") 拿磁盘列表不可靠，
+        // 用 sysctlbyname("vfs.disknames" / "hw.disknames") 也得遍历。
+        // 简化：直接读根文件系统 (/) 的 IO 统计。
+        // macOS 没公开「SSD 利用率 %」API——能拿的是累计 IO 字节数。
+        // 显示瞬时 IO 速率（read/write MB/s）作为代理指标。
+
+        // 简化方案：用 ProcessInfo / statfs 拿磁盘容量，不读 IO bytes
+        let url = URL(fileURLWithPath: "/")
+        do {
+            let values = try url.resourceValues(forKeys: [.volumeAvailableCapacityKey, .volumeTotalCapacityKey])
+            let total = Int64(values.volumeTotalCapacity ?? 0)
+            let avail = Int64(values.volumeAvailableCapacity ?? 0)
+            let used = total - avail
+            let pct = total > 0 ? Double(used) / Double(total) * 100 : 0
+            return String(
+                format: "磁盘 (根卷): %.1f%%  (%.1f GB / %.1f GB  已用)",
+                pct,
+                Double(used) / 1024 / 1024 / 1024,
+                Double(total) / 1024 / 1024 / 1024
+            )
+        } catch {
+            return "磁盘: --"
+        }
+    }
+
+    // MARK: GPU
+
+    private static func gpuString() -> String {
+        // macOS 公开 API 不暴露 GPU 利用率 %。
+        // 能拿到的：
+        // - 设备名（通过 Metal devices）
+        // - 当前 Metal device 数量
+        // 我们显示「找到 N 个 Metal GPU」作为可见信息。
+        // 如果用户能装 Apple 的 `powermetrics`（root 权限），可以拿更详细数据。
+        let deviceCount = MTLCreateSystemDefaultDevice() != nil ? 1 : 0
+        var gpuInfo = "GPU (Metal): \(deviceCount) device"
+        if deviceCount != 1 { gpuInfo += "s" }
+
+        // 附加：当前进程的 GPU 时间（粗略）
+        // 用 task_info(mach_task_self(), TASK_BASIC_INFO) 拿 CPU，但 GPU 时间需要 TASK_VM_INFO 或更高级接口
+        // 简化：只显示 device 数
+
+        // GPU 利用率近似：通过 host_processor_info 拿 GPU 占用？也无公开 API
+        // 最实际做法：标 "macOS 不公开精确 GPU 利用率"
+        gpuInfo += "  (macOS 公开 API 无 GPU 利用率，需 root + powermetrics)"
+        return gpuInfo
+    }
 }
 
 // MARK: - TranslationView (Tab 2)
@@ -1130,7 +1390,6 @@ final class OCRView: NSView, NSWindowDelegate {
     }
 }
 
-// MARK: - LogView（日志 Tab 的内容）
 
 final class LogView: NSView {
     private let scroll = NSScrollView()
