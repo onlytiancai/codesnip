@@ -2,6 +2,9 @@ import Cocoa
 import SwiftUI
 import Translation
 
+// 顶层常量：TranslationBridge 用的超时秒数（非 main actor 隔离）
+fileprivate let requestTimeoutSeconds: UInt64 = 30
+
 // 启动时读 SDK 与 CLT 路径，作为窗口副标题展示
 func shellRead(_ path: String, _ args: [String]) -> String {
     let task = Process()
@@ -138,53 +141,136 @@ final class HelloView: NSView {
 
 // MARK: - TranslationView (Tab 2)
 
-// MARK: - TranslationBridge（普通引用类型，AppKit ↔ SwiftUI 状态载体）
+// MARK: - TranslationBridge（@MainActor 单向 request/response + continuation）
 
 @available(macOS 15.0, *)
+@MainActor
 final class TranslationBridge {
-    let configuration: TranslationSession.Configuration
-    let text: String
-    let requestID: UUID  // 每次新建一个，用于强制 SwiftUI view identity 变化
-    var lastResponse: TranslationSession.Response?
-    var lastError: String?
+    // 每次翻译 +1，TranslationBridgeView 用 .id(bridge.generation) 触发 view identity 变化
+    private(set) var generation: Int = 0
 
-    init(configuration: TranslationSession.Configuration, text: String) {
-        self.configuration = configuration
-        self.text = text
-        self.requestID = UUID()
+    // 最新 pending 请求的 configuration —— SwiftUI .translationTask 读这个
+    private(set) var pendingConfiguration: TranslationSession.Configuration?
+    private(set) var pendingText: String = ""
+
+    // SwiftUI 通过 deliverSession 把新 session 推回来；AppKit await 拿到
+    private var sessionContinuation: CheckedContinuation<TranslationSession, Error>?
+    private var cachedSession: TranslationSession?
+
+    // 超时秒数（在文件顶层单独声明，避免 main actor 隔离冲突）
+
+
+    /// AppKit 调用入口。一次 async 调用拿到翻译结果。
+    func requestTranslate(text: String, configuration: TranslationSession.Configuration) async throws -> String {
+        LogStore.shared.append("→ bridge.requestTranslate(text 长度=\(text.count), gen=\(generation))", source: "Bridge")
+
+        // 1. 更新 pending 状态 + generation（让 SwiftUI view 知道要重建）
+        self.pendingText = text
+        self.pendingConfiguration = configuration
+        self.generation &+= 1
+        self.cachedSession = nil
+
+        // 2. 等待 SwiftUI 通过 translationTask 闭包把 session 推过来；带超时
+        let session = try await fetchSessionWithTimeout()
+
+        // 3. 调 session.translate，带重试
+        // 拿 session 后等 200ms（让 framework 完成内部 warmup），
+        // 然后 attempt 1/2 重试（每次失败等 1.5s 再重试，给 framework 状态恢复时间）
+        LogStore.shared.append(
+            "→ session.translate 前等 200ms（让 framework 完成 warmup）",
+            source: "Bridge"
+        )
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        var attempt = 0
+        let maxAttempts = 2
+        while true {
+            attempt += 1
+            LogStore.shared.append(
+                "→ session.translate 开始（attempt \(attempt)/\(maxAttempts)，text 长度=\(text.count)）",
+                source: "Bridge"
+            )
+            let translateStart = Date()
+            do {
+                let response = try await session.translate(text)
+                let elapsed = String(format: "%.2f", Date().timeIntervalSince(translateStart))
+                LogStore.shared.append(
+                    "← session.translate 返回（attempt \(attempt)，耗时 \(elapsed)s，target 长度=\(response.targetText.count)）",
+                    source: "Bridge"
+                )
+                return response.targetText
+            } catch {
+                let elapsed = String(format: "%.2f", Date().timeIntervalSince(translateStart))
+                LogStore.shared.append(
+                    "✗ session.translate 抛错（attempt \(attempt)，耗时 \(elapsed)s）：\(error)",
+                    source: "Bridge"
+                )
+                if attempt >= maxAttempts {
+                    throw error
+                }
+                // 重试前等 1.5s（让 Translation framework 内部状态真正恢复）
+                LogStore.shared.append(
+                    "  retry 前等 1.5s 让 framework 状态恢复",
+                    source: "Bridge"
+                )
+                try? await Task.sleep(nanoseconds: 1_500_000_000)
+            }
+        }
+    }
+
+    private func fetchSessionWithTimeout() async throws -> TranslationSession {
+        // 直接 polling cachedSession，每 50ms 检查一次
+        // 原因：waitForSession 任务调度时机不确定，deliverSession 可能
+        // 在 waitForSession 设置 sessionContinuation 之前就调用，
+        // 导致 ?.resume 拿到 nil、session 丢失。
+        // polling 直接读 cachedSession 字段（同步），不依赖 continuation 调度。
+        let startTime = Date()
+        let timeoutSeconds: TimeInterval = 30
+        while Date().timeIntervalSince(startTime) < timeoutSeconds {
+            if let s = cachedSession { return s }
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        }
+        LogStore.shared.append(
+            "✗ fetchSession 超时（\(Int(timeoutSeconds))s，cachedSession 始终为 nil）",
+            source: "Bridge"
+        )
+        throw TranslationError.internalError
+    }
+
+    /// SwiftUI view 调用：把新 session 推进来 resume continuation
+    func deliverSession(_ session: TranslationSession) {
+        LogStore.shared.append(
+            "← deliverSession（generation=\(generation)，session.source=\(String(describing: session.sourceLanguage?.minimalIdentifier))）",
+            source: "Bridge"
+        )
+        self.cachedSession = session
+        sessionContinuation?.resume(returning: session)
+        sessionContinuation = nil
+    }
+
+    /// 让 awaiter 抛错而不是永久阻塞（窗口关闭、hosting view 销毁时调用）
+    func cancelPending(error: Error) {
+        sessionContinuation?.resume(throwing: error)
+        sessionContinuation = nil
     }
 }
 
-// MARK: - TranslationBridgeView（SwiftUI 容器，仅作为 session 提供者）
+// MARK: - TranslationBridgeView（SwiftUI 容器，把 session 推回 bridge）
 
 @available(macOS 15.0, *)
 struct TranslationBridgeView: View {
     let bridge: TranslationBridge
 
     var body: some View {
-        // 关键 1：.id(bridge.requestID) 强制每次新建时 view identity 变化，
-        // 否则 SwiftUI 会复用上次的 view 实例，.translationTask 闭包不再执行
-        // （这是为什么之前长文本时 SwiftUI 闭包从来没启动过）
-        // 关键 2：.translationTask 是 SwiftUI View 的 modifier。
-        // bridge.configuration 在 init 时已 freeze 到本次请求，闭包一定能拿到
+        // generation 变化 → view identity 变化 → body 重执行 → .translationTask 闭包重启
         EmptyView()
-            .id(bridge.requestID)
-            .translationTask(bridge.configuration) { session in
+            .id(bridge.generation)
+            .translationTask(bridge.pendingConfiguration) { session in
                 LogStore.shared.append(
-                    "→ .translationTask 闭包启动（requestID=\(bridge.requestID.uuidString.prefix(8))），session.source=\(String(describing: session.sourceLanguage?.minimalIdentifier)) session.target=\(String(describing: session.targetLanguage?.minimalIdentifier))",
+                    "→ .translationTask 闭包启动（generation=\(bridge.generation)，config=\(String(describing: bridge.pendingConfiguration))）",
                     source: "SwiftUI"
                 )
-                let swiftStart = Date()
-                do {
-                    LogStore.shared.append("→ session.translate(...) 开始（text 长度=\(bridge.text.count)）", source: "SwiftUI")
-                    let response = try await session.translate(bridge.text)
-                    let swiftElapsed = String(format: "%.2f", Date().timeIntervalSince(swiftStart))
-                    LogStore.shared.append("← session.translate 返回（耗时 \(swiftElapsed)s，target 长度=\(response.targetText.count)）", source: "SwiftUI")
-                    bridge.lastResponse = response
-                } catch {
-                    LogStore.shared.append("✗ session.translate 抛错：\(error)", source: "SwiftUI")
-                    bridge.lastError = String(describing: error)
-                }
+                bridge.deliverSession(session)
             }
     }
 }
@@ -203,13 +289,15 @@ final class TranslationView: NSView {
     private let clearButton = NSButton(title: "清空", target: nil, action: nil)
     private let downloadButton = NSButton(title: "打开系统设置", target: nil, action: nil)
 
-    // bridge: 每次翻译新建一个，AppKit ↔ SwiftUI 状态载体
-    // 不能用 @Observable（需要 SwiftUI 编译器插件），改为每次重建 NSHostingView 的 rootView
+    // bridge: 长生命周期的 @MainActor actor-style 对象；每次翻译改它的 generation
+    // hosting view: 每次翻译都销毁重建（旧 removeFromSuperview + 新 addSubview），
+    //   强制 SwiftUI 重新执行 .translationTask 闭包（这是修复长文本卡死的关键）
+    //
+    // bridge: 每次翻译都**新建一个**，让旧的 TranslationBridge 实例彻底释放，
+    //   避免 Translation framework 内部因同一 session 复用产生的资源竞争
+    //   （实测发现 session 复用偶尔会导致 session.translate 卡死 30s）
     private var bridge: TranslationBridge?
     private var bridgeHostingView: NSHostingView<TranslationBridgeView>?
-
-    // 轮询 bridge 变化，把 SwiftUI 那边写入的结果拉回 AppKit UI
-    private var pollTimer: Timer?
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -373,12 +461,7 @@ final class TranslationView: NSView {
         scroll.documentView = textView
     }
 
-    private func installBridgeHostingView(with newBridge: TranslationBridge? = nil) {
-        if let bridge = newBridge {
-            self.bridge = bridge
-        }
-        guard let bridge = self.bridge else { return }
-
+    private func installBridgeHostingView() {
         // 关键：每次翻译都**销毁旧 hosting view**，重新 addSubview 一个新的。
         // NSHostingView.rootView = ... 赋值在某些情况下 SwiftUI 不会重建 view tree，
         // 导致 .translationTask 闭包不重启。销毁重建是 100% 触发的方式。
@@ -387,7 +470,11 @@ final class TranslationView: NSView {
             bridgeHostingView = nil
         }
 
-        let hosting = NSHostingView(rootView: TranslationBridgeView(bridge: bridge))
+        // 每次新建 TranslationBridge，避免 session 复用导致 framework 内部卡死
+        let newBridge = TranslationBridge()
+        self.bridge = newBridge
+
+        let hosting = NSHostingView(rootView: TranslationBridgeView(bridge: newBridge))
         hosting.frame = NSRect(x: 0, y: 0, width: 1, height: 1)
         hosting.translatesAutoresizingMaskIntoConstraints = false
         addSubview(hosting)
@@ -444,10 +531,48 @@ final class TranslationView: NSView {
                 self.setStatus("\(sourceChoice.display) → \(targetChoice.display) 语种对不支持", color: .systemRed)
                 return
             case .supported:
-                self.translateButton.isEnabled = true
-                self.setStatus("\(targetChoice.display) 语种包未下载。点击下面按钮去系统设置。", color: .systemOrange)
-                self.downloadButton.isHidden = false
-                return
+                // .supported 可能是瞬时状态：macOS 系统层可能在后台主动下载翻译语种包。
+                // 重试 5 次（每次 0.5s 间隔），给系统机会"准备就绪"。
+                self.setStatus("首次检查显示未下载，重试中...", color: .systemBlue)
+                LogStore.shared.append(
+                    ".supported 状态，启用 5 次重试（间隔 0.5s）",
+                    source: "AppKit"
+                )
+                var retryCount = 0
+                var finalStatus: LanguageAvailability.Status = .supported
+                while retryCount < 5 {
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    retryCount += 1
+                    let retryStatus = await availability.status(
+                        from: resolvedSource,
+                        to: targetChoice.language
+                    )
+                    LogStore.shared.append(
+                        "  重试 \(retryCount)/5: status=\(retryStatus)",
+                        source: "AppKit"
+                    )
+                    if retryStatus == .installed {
+                        finalStatus = .installed
+                        break
+                    }
+                    if retryStatus == .unsupported {
+                        finalStatus = .unsupported
+                        break
+                    }
+                }
+                if finalStatus != .installed {
+                    self.translateButton.isEnabled = true
+                    if finalStatus == .unsupported {
+                        self.setStatus("\(sourceChoice.display) → \(targetChoice.display) 语种对不支持", color: .systemRed)
+                    } else {
+                        self.setStatus("\(targetChoice.display) 语种包未下载。点击下面按钮去系统设置。", color: .systemOrange)
+                        self.downloadButton.isHidden = false
+                    }
+                    return
+                }
+                // 重试成功，继续走翻译流程
+                LogStore.shared.append("✓ 重试 \(retryCount) 次后状态变 installed", source: "AppKit")
+                break
             case .installed:
                 break
             @unknown default:
@@ -456,69 +581,37 @@ final class TranslationView: NSView {
                 return
             }
 
-            // 语种可用，建新 bridge + 重建 SwiftUI hosting view 触发 .translationTask
+            // 语种可用：销毁重建 hosting view（让 SwiftUI 重新执行 .translationTask 闭包），
+            // 然后 await bridge.requestTranslate 等结果。
             self.setStatus("正在翻译...", color: .systemBlue)
             LogStore.shared.append(
-                "→ installBridgeHostingView(text 长度=\(inputText.count))",
+                "→ installBridgeHostingView() 销毁重建（触发 SwiftUI .translationTask 闭包重启）",
                 source: "AppKit"
             )
-            let newBridge = TranslationBridge(
-                configuration: TranslationSession.Configuration(
+            self.installBridgeHostingView()
+
+            do {
+                let config = TranslationSession.Configuration(
                     source: resolvedSource,
                     target: targetChoice.language
-                ),
-                text: inputText
-            )
-            self.installBridgeHostingView(with: newBridge)
-            LogStore.shared.append("→ startPolling() 启动 50ms Timer", source: "AppKit")
-            self.startPolling(startTime: startTime)
-        }
-    }
-
-    // MARK: 轮询 bridge → AppKit UI
-
-    private func startPolling(startTime: Date) {
-        pollTimer?.invalidate()
-        guard let bridgeRef = self.bridge else { return }  // 捕获本次的 bridge，timer 期间不变
-        var pollCount = 0
-        pollTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            pollCount += 1
-            let elapsed = String(format: "%.2f", Date().timeIntervalSince(startTime))
-            if let response = bridgeRef.lastResponse {
-                let targetLen = response.targetText.count
-                let srcLen = response.sourceText.count
-                LogStore.shared.append(
-                    "✓ 翻译成功（耗时 \(elapsed)s，srcLen=\(srcLen) → targetLen=\(targetLen)，轮询 \(pollCount) 次）",
-                    source: "AppKit"
                 )
-                self.outputView.string = response.targetText
+                guard let bridge = self.bridge else {
+                    self.setStatus("内部错误：bridge 未创建", color: .systemRed)
+                    self.translateButton.isEnabled = true
+                    return
+                }
+                let result = try await bridge.requestTranslate(text: inputText, configuration: config)
+                let elapsed = String(format: "%.2f", Date().timeIntervalSince(startTime))
+                LogStore.shared.append("✓ 翻译成功（总耗时 \(elapsed)s，target 长度=\(result.count)）", source: "AppKit")
+                self.outputView.string = result
                 self.outputView.textColor = .labelColor
-                self.setStatus("翻译完成（\(response.sourceLanguage.maximalIdentifier) → \(response.targetLanguage.maximalIdentifier)）", color: .systemGreen)
-                bridgeRef.lastResponse = nil
-                self.pollTimer?.invalidate()
-                self.pollTimer = nil
-                self.translateButton.isEnabled = true
-            } else if let err = bridgeRef.lastError {
-                LogStore.shared.append(
-                    "✗ 翻译失败（耗时 \(elapsed)s）err=\(err)",
-                    source: "AppKit"
-                )
-                self.handleBridgeError(err)
-                bridgeRef.lastError = nil
-                self.pollTimer?.invalidate()
-                self.pollTimer = nil
-                self.translateButton.isEnabled = true
-            } else if pollCount % 20 == 0 {
-                // 每秒打一次"还在等"日志，避免长翻译时日志静止
-                LogStore.shared.append(
-                    "… 等待 SwiftUI .translationTask 返回（已等 \(elapsed)s，轮询 \(pollCount) 次）",
-                    source: "AppKit"
-                )
+                self.setStatus("翻译完成（\(sourceChoice.display) → \(targetChoice.display)）", color: .systemGreen)
+            } catch {
+                let elapsed = String(format: "%.2f", Date().timeIntervalSince(startTime))
+                LogStore.shared.append("✗ 翻译失败（耗时 \(elapsed)s）err=\(error)", source: "AppKit")
+                self.handleBridgeError(String(describing: error))
             }
-        }
-        if let t = pollTimer {
-            RunLoop.main.add(t, forMode: .common)
+            self.translateButton.isEnabled = true
         }
     }
 
@@ -625,10 +718,7 @@ final class TranslationView: NSView {
         LogStore.shared.append("status: \(text)", source: "Status")
     }
 
-    // MARK: 日志
-    private func appendLog(_ message: String) {
-        LogStore.shared.append(message, source: "Translation")
-    }
+    // MARK: 日志（直接调 LogStore.shared.append 即可，不再需要 wrap）
 }
 
 // MARK: - LogStore（跨组件共享日志）
