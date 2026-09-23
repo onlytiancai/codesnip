@@ -1,6 +1,6 @@
 # Translation framework 学习笔记
 
-> 适用：macOS 26.0+ / iOS 18.0+。本机 SDK 27.0，本项目 target 锁 26.0。
+> 适用：macOS 15.0+ / iOS 18.0+。本机 SDK 27.0，本项目 target 锁 15.0。
 
 ## 它是什么
 
@@ -15,12 +15,12 @@ Apple 在 macOS 15 / iOS 18 引入的**系统级本地化翻译 framework**。�
 - 批量翻译（async sequence）
 - 与系统右键菜单的「翻译」共享同一个翻译引擎
 
-## 核心 API
+## 核心 API（macOS 15.0+ base）
 
 ```swift
 import Translation
 
-// 1. 检查语种对支持
+// 1. 检查语种对支持（不依赖 session）
 let availability = LanguageAvailability()
 let status = await availability.status(
     from: Locale.Language(identifier: "en"),
@@ -28,18 +28,119 @@ let status = await availability.status(
 )
 // status: .installed / .supported / .unsupported
 
-// 2. 创建翻译会话（macOS 26+ convenience init，要求源语种已下载）
-let session = TranslationSession(
-    installedSource: Locale.Language(identifier: "en"),
+// 2. 构造 Configuration（macOS 15+）
+let configuration = TranslationSession.Configuration(
+    source: Locale.Language(identifier: "en"),
     target: Locale.Language(identifier: "zh-Hans")
 )
 
-// 3. 翻译
-let response = try await session.translate("Hello, World!")
-print(response.targetText)  // "你好，世界！"
-print(response.sourceLanguage)  // Locale.Language(en)
-print(response.targetLanguage)  // Locale.Language(zh-Hans)
+// 3. 拿 session——只能在 SwiftUI `.translationTask` 里
+struct MyView: View {
+    var body: some View {
+        Text("hello")
+            .translationTask(configuration) { session in
+                let response = try await session.translate("Hello, World!")
+                print(response.targetText)  // "你好，世界！"
+            }
+    }
+}
 ```
+
+### 重要：API 路径分两条
+
+| API | 所属类型 | 适用场景 | Deployment |
+|---|---|---|---|
+| `Configuration(source:target:)` | `TranslationSession.Configuration` | 任何 macOS 15+ | macOS 15.0+ |
+| `.translationTask(configuration)` | SwiftUI `View` | SwiftUI 项目 | macOS 15.0+ |
+| `TranslationSession(installedSource:target:)` | `TranslationSession` | 非 SwiftUI 直接构造 | macOS 26.0+ |
+
+**坑**：`TranslationSession.init(source:target:)` 这个 API **不存在**——`init(source:target:)` 属于 `Configuration`，不是 session 直接 init。我之前就是这么被骗的，以为可以直接 `TranslationSession(source:...)`。
+
+macOS 15.0 上**唯一**拿到 session 的方式是 `.translationTask(configuration)`，它是 SwiftUI `View` 的 modifier。
+
+## AppKit 项目怎么拿 session：NSHostingView 桥接
+
+因为 `.translationTask` 是 SwiftUI 专属，AppKit 项目必须桥接。流程：
+
+1. 写一个 SwiftUI view 用 `.translationTask(configuration)` 拿 session
+2. 用 `NSHostingView(rootView: ...)` 把这个 SwiftUI view 嵌进 AppKit 窗口
+3. 桥接对象（普通引用类型）在两边共享，AppKit 写入，SwiftUI 闭包读
+
+### 桥接代码模式
+
+```swift
+// 1. 桥接对象（普通类，不需要 @Observable）
+@available(macOS 15.0, *)
+final class TranslationBridge {
+    let configuration: TranslationSession.Configuration
+    let text: String
+    var lastResponse: TranslationSession.Response?
+    var lastError: String?
+
+    init(configuration: TranslationSession.Configuration, text: String) {
+        self.configuration = configuration
+        self.text = text
+    }
+}
+
+// 2. SwiftUI 容器（只负责拿 session，不显示）
+@available(macOS 15.0, *)
+struct TranslationBridgeView: View {
+    let bridge: TranslationBridge
+
+    var body: some View {
+        EmptyView()
+            .translationTask(bridge.configuration) { session in
+                do {
+                    let response = try await session.translate(bridge.text)
+                    bridge.lastResponse = response
+                } catch {
+                    bridge.lastError = String(describing: error)
+                }
+            }
+    }
+}
+
+// 3. AppKit 端：嵌 hosting view + 轮询结果
+@available(macOS 15.0, *)
+final class TranslationView: NSView {
+    private var bridge: TranslationBridge?
+    private var bridgeHostingView: NSHostingView<TranslationBridgeView>?
+    private var pollTimer: Timer?
+
+    func doTranslate(source: Locale.Language, target: Locale.Language, text: String) {
+        // 每次新建 bridge + 替换 hosting view 的 rootView，
+        // 让 SwiftUI 重建 view 树并重新执行 .translationTask
+        let bridge = TranslationBridge(
+            configuration: TranslationSession.Configuration(source: source, target: target),
+            text: text
+        )
+        self.bridge = bridge
+        if let hosting = bridgeHostingView {
+            hosting.rootView = TranslationBridgeView(bridge: bridge)
+        } else {
+            let hosting = NSHostingView(rootView: TranslationBridgeView(bridge: bridge))
+            hosting.frame = .zero
+            addSubview(hosting)
+            bridgeHostingView = hosting
+        }
+        startPolling()
+    }
+
+    private func startPolling() {
+        guard let bridge = self.bridge else { return }
+        pollTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
+            // 检查 bridge.lastResponse / lastError，写到 AppKit UI
+        }
+    }
+}
+```
+
+### 为什么不直接用 @Observable / @State
+
+`@Observable` / `@State` 都是 SwiftUI 编译器宏，纯 CLT（Command Line Tools）的 swiftc **不能加载** SwiftUI 的 macros plugin——必须有 Xcode。**这是本项目踩过的坑**。
+
+绕过方案：用 **替换 rootView** 代替 @State 触发 SwiftUI 重建；用**普通 class** 代替 @Observable 当桥接对象。每次新建 bridge 对象 + 设新的 `hostingView.rootView`，SwiftUI 检测到 View identity 变化就重建 view 树。
 
 ## Status 三态
 
@@ -67,7 +168,7 @@ if let url = URL(string: "x-apple.systempreferences:com.apple.preference.languag
 
 ## 错误处理
 
-`TranslationError` 几种：
+`TranslationError` 几种（macOS 15.0+ base case）：
 
 ```swift
 do {
@@ -78,19 +179,19 @@ do {
     case .unsupportedTargetLanguage: ...
     case .unableToIdentifyLanguage: ...
     case .nothingToTranslate: ...
-    case .notInstalled: ...     // macOS 26.0+
-    case .alreadyCancelled: ... // macOS 26.0+
     case .internalError: ...
-    default: ...
+    default: ...  // macOS 26+ 的 .notInstalled / .alreadyCancelled 在这里
     }
 }
 ```
 
-**坑**：`TranslationError` 没有 `==` 操作符，但有 `~=`：
+**坑 1**：`TranslationError` 没有 `==` 操作符，但有 `~=`：
 ```swift
 TranslationError.notInstalled ~= error   // pattern match 可用
 error == .notInstalled                    // 编译错
 ```
+
+**坑 2（AppKit 桥接特有）**：因为 bridge 里只能存 `String(describing: error)`，pattern matching 没法用，只能用 `errString.contains("unsupportedSourceLanguage")` 之类的关键字匹配。
 
 ## 与其它翻译方案对比
 
@@ -110,7 +211,7 @@ import SwiftUI
 struct ContentView: View {
     @State private var showTranslation = false
     @State private var text = "Hello, World!"
-    
+
     var body: some View {
         Text(text)
             .translationPresentation(isPresented: $showTranslation, text: text)
@@ -118,18 +219,20 @@ struct ContentView: View {
 }
 ```
 
-`.translationPresentation` 自动弹系统翻译面板。但 SwiftUI 项目才能用，**AppKit 项目必须自己画 UI**，这就是为什么本项目用 `NSSegmentedControl` + `NSPopUpButton` + `NSTextView` 自己组装。
+`.translationPresentation` 自动弹系统翻译面板。**SwiftUI 项目才能用**，AppKit 项目得自己桥接（见上）。
 
 ## API 限制 / 注意事项
 
 1. **macOS 15.0+ / iOS 18.0+ 才可用**——base API
-2. **`installedSource:target:` 是 macOS 26.0+ convenience init**——base `init(source:target:)` 在某些 SDK 上解析不到默认参数，需要明确写
-3. **`.notInstalled` 是 macOS 26.0+**——之前版本没有这个错误码
-4. **不能在 `Daemon` / 后台 Service 里跑**——需要用户上下文
-5. **每次翻译都创建新 session**——session 不保持状态
-6. **没有进度回调**——只有「翻译中...」→「完成」两态
-7. **AppKit 没有翻译面板 View**——必须自己组装 UI
-8. **`Locale.Language(identifier:)`** 是 Foundation 标准（不是 Translation 专属）
+2. **`TranslationSession(source:target:)` 不存在**——那个 init 在 `Configuration` 上
+3. **`TranslationSession(installedSource:target:)` 是 macOS 26.0+**——非 SwiftUI 直接构造的便捷路径
+4. **`.notInstalled` 错误码是 macOS 26.0+**——之前版本抛其他错误
+5. **不能在 `Daemon` / 后台 Service 里跑**——需要用户上下文
+6. **每次翻译都创建新 session**——session 不保持状态
+7. **没有进度回调**——只有「翻译中...」→「完成」两态
+8. **AppKit 没有翻译面板 View**——必须自己组装 UI + 用 NSHostingView 桥接
+9. **`Locale.Language(identifier:)`** 是 Foundation 标准（不是 Translation 专属）
+10. **纯 CLT 的 swiftc 不能用 SwiftUI 编译器宏**（`@State` / `@Observable`）——必须 Xcode，或者绕过
 
 ## 实战建议
 
@@ -138,16 +241,21 @@ struct ContentView: View {
 3. **首次未下载时给清晰引导**——给按钮跳系统设置
 4. **批量翻译用 `translate(batch:)` 返回 `BatchResponse`（AsyncSequence）**——单条用 `translate(_:)`
 5. **`AttributedString` 版本需要 macOS 26.4+**——保留原文样式的翻译，富文本场景才需要
+6. **AppKit + Translation 用 NSHostingView 桥接**——macOS 15.0 唯一路径
+7. **不要在纯 CLT 编译里用 `@State` / `@Observable`**——用重建 rootView + 普通 class 绕开
 
 ## 参考
 
 - Apple: [Translation framework docs](https://developer.apple.com/documentation/translation)
 - 本机 SDK 头文件：`/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/Translation.framework`
 - Swift 接口：`Versions/A/Modules/Translation.swiftmodule/arm64e-apple-macos.swiftinterface`
+- [Translating text within your app](https://developer.apple.com/documentation/translation/translating-text-within-your-app)
 
 ## 在本项目里的应用
 
-- `HelloWorld.swift` 的 `TranslationView` 类封装了完整流程
-- `LSMinimumSystemVersion` = 26.0（与编译 target 对齐）
-- `build.sh` 加 `-framework Translation`
-- 窗口默认 720×520，加 segmented control 切 Hello / 翻译两个 Tab
+- `HelloWorld.swift` 的 `TranslationView` 用 NSHostingView 嵌 `TranslationBridgeView`
+- `LSMinimumSystemVersion` = 15.0
+- `build.sh` 用 `-framework Cocoa -framework Translation -framework SwiftUI`
+- 桥接对象 `TranslationBridge` 是普通 class，每次翻译新建一个
+- `hostingView.rootView` 重新赋值触发 SwiftUI 重建 → `.translationTask` 重新执行
+- Timer 50ms 轮询 bridge 的 `lastResponse` / `lastError`，结果回写到 AppKit UI

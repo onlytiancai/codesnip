@@ -173,7 +173,7 @@ ls HelloWorld.app/Contents/Resources/
 - macOS 27.0
 - CLT 路径：`/Library/Developer/CommandLineTools`
 - Apple Silicon (M4)
-- 项目最低系统版本：macOS 26.0（Translation framework 要求）
+- 项目最低系统版本：macOS 15.0（Translation framework base API 要求）
 
 ## 学习要点
 
@@ -182,7 +182,8 @@ ls HelloWorld.app/Contents/Resources/
 3. **资源加载**：`Bundle.main.url(forResource:withExtension:)` 是入口
 4. **代码签名**：ad-hoc (`--sign -`) 本机够用；分发需要开发者证书 + 公证
 5. **Info.plist 字段**：CFBundle* 一族 + LSMinimumSystemVersion + NS* AppKit 专属
-6. **Translation framework**：macOS 26+ 离线本地翻译，要先下语种包
-7. **AppKit 自己画 UI**：SwiftUI 一行 `.translationPresentation` 解决的事，AppKit 要装 NSScrollView + 布局约束
+6. **Translation framework**：macOS 15+ 离线本地翻译（要 NSHostingView 桥接 SwiftUI）
+7. **AppKit ↔ SwiftUI 桥接**：用 `NSHostingView` 嵌 SwiftUI 子 view，让非 SwiftUI 项目也能用 `.translationTask`
+8. **纯 CLT 不能用 SwiftUI 编译器宏**：`@State` / `@Observable` 需要 Xcode 的 SwiftUI plugin。本项目用「重建 rootView + 普通 class」绕过
 
 详见 `docs/bundle-vs-single.md` 和 `docs/translation-framework.md`。

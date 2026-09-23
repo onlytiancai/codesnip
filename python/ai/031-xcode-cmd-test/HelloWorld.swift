@@ -1,4 +1,5 @@
 import Cocoa
+import SwiftUI
 import Translation
 
 // 启动时读 SDK 与 CLT 路径，作为窗口副标题展示
@@ -137,6 +138,57 @@ final class HelloView: NSView {
 
 // MARK: - TranslationView (Tab 2)
 
+// MARK: - TranslationBridge（普通引用类型，AppKit ↔ SwiftUI 状态载体）
+
+@available(macOS 15.0, *)
+final class TranslationBridge {
+    let configuration: TranslationSession.Configuration
+    let text: String
+    let requestID: UUID  // 每次新建一个，用于强制 SwiftUI view identity 变化
+    var lastResponse: TranslationSession.Response?
+    var lastError: String?
+
+    init(configuration: TranslationSession.Configuration, text: String) {
+        self.configuration = configuration
+        self.text = text
+        self.requestID = UUID()
+    }
+}
+
+// MARK: - TranslationBridgeView（SwiftUI 容器，仅作为 session 提供者）
+
+@available(macOS 15.0, *)
+struct TranslationBridgeView: View {
+    let bridge: TranslationBridge
+
+    var body: some View {
+        // 关键 1：.id(bridge.requestID) 强制每次新建时 view identity 变化，
+        // 否则 SwiftUI 会复用上次的 view 实例，.translationTask 闭包不再执行
+        // （这是为什么之前长文本时 SwiftUI 闭包从来没启动过）
+        // 关键 2：.translationTask 是 SwiftUI View 的 modifier。
+        // bridge.configuration 在 init 时已 freeze 到本次请求，闭包一定能拿到
+        EmptyView()
+            .id(bridge.requestID)
+            .translationTask(bridge.configuration) { session in
+                LogStore.shared.append(
+                    "→ .translationTask 闭包启动（requestID=\(bridge.requestID.uuidString.prefix(8))），session.source=\(String(describing: session.sourceLanguage?.minimalIdentifier)) session.target=\(String(describing: session.targetLanguage?.minimalIdentifier))",
+                    source: "SwiftUI"
+                )
+                let swiftStart = Date()
+                do {
+                    LogStore.shared.append("→ session.translate(...) 开始（text 长度=\(bridge.text.count)）", source: "SwiftUI")
+                    let response = try await session.translate(bridge.text)
+                    let swiftElapsed = String(format: "%.2f", Date().timeIntervalSince(swiftStart))
+                    LogStore.shared.append("← session.translate 返回（耗时 \(swiftElapsed)s，target 长度=\(response.targetText.count)）", source: "SwiftUI")
+                    bridge.lastResponse = response
+                } catch {
+                    LogStore.shared.append("✗ session.translate 抛错：\(error)", source: "SwiftUI")
+                    bridge.lastError = String(describing: error)
+                }
+            }
+    }
+}
+
 @available(macOS 15.0, *)
 final class TranslationView: NSView {
     private let sourcePopup = NSPopUpButton()
@@ -150,6 +202,14 @@ final class TranslationView: NSView {
     private let copyButton = NSButton(title: "复制结果", target: nil, action: nil)
     private let clearButton = NSButton(title: "清空", target: nil, action: nil)
     private let downloadButton = NSButton(title: "打开系统设置", target: nil, action: nil)
+
+    // bridge: 每次翻译新建一个，AppKit ↔ SwiftUI 状态载体
+    // 不能用 @Observable（需要 SwiftUI 编译器插件），改为每次重建 NSHostingView 的 rootView
+    private var bridge: TranslationBridge?
+    private var bridgeHostingView: NSHostingView<TranslationBridgeView>?
+
+    // 轮询 bridge 变化，把 SwiftUI 那边写入的结果拉回 AppKit UI
+    private var pollTimer: Timer?
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -243,6 +303,7 @@ final class TranslationView: NSView {
         addSubview(downloadButton)
         addSubview(statusLabel)
         addSubview(outputScroll)
+        installBridgeHostingView()
 
         NSLayoutConstraint.activate([
             sourceLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
@@ -312,12 +373,36 @@ final class TranslationView: NSView {
         scroll.documentView = textView
     }
 
+    private func installBridgeHostingView(with newBridge: TranslationBridge? = nil) {
+        if let bridge = newBridge {
+            self.bridge = bridge
+        }
+        guard let bridge = self.bridge else { return }
+
+        // 关键：每次翻译都**销毁旧 hosting view**，重新 addSubview 一个新的。
+        // NSHostingView.rootView = ... 赋值在某些情况下 SwiftUI 不会重建 view tree，
+        // 导致 .translationTask 闭包不重启。销毁重建是 100% 触发的方式。
+        if let old = bridgeHostingView {
+            old.removeFromSuperview()
+            bridgeHostingView = nil
+        }
+
+        let hosting = NSHostingView(rootView: TranslationBridgeView(bridge: bridge))
+        hosting.frame = NSRect(x: 0, y: 0, width: 1, height: 1)
+        hosting.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(hosting)
+        bridgeHostingView = hosting
+    }
+
     // MARK: 按钮动作
 
     @objc private func translateClicked() {
         let inputText = inputView.string
+        LogStore.shared.append("按钮点击：text 长度=\(inputText.count) 字符", source: "AppKit")
+
         guard !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             setStatus("请先输入要翻译的文本", color: .systemOrange)
+            LogStore.shared.append("拒绝：空文本", source: "AppKit")
             return
         }
 
@@ -331,17 +416,129 @@ final class TranslationView: NSView {
 
         let sourceChoice = sourceLanguages[sourceIdx]
         let targetChoice = targetLanguages[targetIdx]
+        let startTime = Date()
 
-        setStatus("正在检查语种支持...", color: .systemBlue)
+        setStatus("正在准备翻译（macOS 15+ 通过 SwiftUI .translationTask 桥接）...", color: .systemBlue)
         translateButton.isEnabled = false
         downloadButton.isHidden = true
 
+        LogStore.shared.append(
+            "语种对：\(sourceChoice.identifier) → \(targetChoice.identifier)",
+            source: "AppKit"
+        )
+
+        // 启动语种可用性预检查（在 AppKit 端做，避免无谓的 SwiftUI 触发）
         Task { @MainActor in
-            await self.runTranslation(
-                source: sourceChoice,
-                target: targetChoice,
+            let resolvedSource: Locale.Language = (sourceChoice.identifier == "auto")
+                ? Locale.current.language
+                : sourceChoice.language
+
+            LogStore.shared.append("→ LanguageAvailability.status(...) 开始", source: "AppKit")
+            let availability = LanguageAvailability()
+            let status = await availability.status(from: resolvedSource, to: targetChoice.language)
+            LogStore.shared.append("← LanguageAvailability 返回 status=\(status)", source: "AppKit")
+
+            switch status {
+            case .unsupported:
+                self.translateButton.isEnabled = true
+                self.setStatus("\(sourceChoice.display) → \(targetChoice.display) 语种对不支持", color: .systemRed)
+                return
+            case .supported:
+                self.translateButton.isEnabled = true
+                self.setStatus("\(targetChoice.display) 语种包未下载。点击下面按钮去系统设置。", color: .systemOrange)
+                self.downloadButton.isHidden = false
+                return
+            case .installed:
+                break
+            @unknown default:
+                self.translateButton.isEnabled = true
+                self.setStatus("未知的语种支持状态", color: .systemRed)
+                return
+            }
+
+            // 语种可用，建新 bridge + 重建 SwiftUI hosting view 触发 .translationTask
+            self.setStatus("正在翻译...", color: .systemBlue)
+            LogStore.shared.append(
+                "→ installBridgeHostingView(text 长度=\(inputText.count))",
+                source: "AppKit"
+            )
+            let newBridge = TranslationBridge(
+                configuration: TranslationSession.Configuration(
+                    source: resolvedSource,
+                    target: targetChoice.language
+                ),
                 text: inputText
             )
+            self.installBridgeHostingView(with: newBridge)
+            LogStore.shared.append("→ startPolling() 启动 50ms Timer", source: "AppKit")
+            self.startPolling(startTime: startTime)
+        }
+    }
+
+    // MARK: 轮询 bridge → AppKit UI
+
+    private func startPolling(startTime: Date) {
+        pollTimer?.invalidate()
+        guard let bridgeRef = self.bridge else { return }  // 捕获本次的 bridge，timer 期间不变
+        var pollCount = 0
+        pollTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            pollCount += 1
+            let elapsed = String(format: "%.2f", Date().timeIntervalSince(startTime))
+            if let response = bridgeRef.lastResponse {
+                let targetLen = response.targetText.count
+                let srcLen = response.sourceText.count
+                LogStore.shared.append(
+                    "✓ 翻译成功（耗时 \(elapsed)s，srcLen=\(srcLen) → targetLen=\(targetLen)，轮询 \(pollCount) 次）",
+                    source: "AppKit"
+                )
+                self.outputView.string = response.targetText
+                self.outputView.textColor = .labelColor
+                self.setStatus("翻译完成（\(response.sourceLanguage.maximalIdentifier) → \(response.targetLanguage.maximalIdentifier)）", color: .systemGreen)
+                bridgeRef.lastResponse = nil
+                self.pollTimer?.invalidate()
+                self.pollTimer = nil
+                self.translateButton.isEnabled = true
+            } else if let err = bridgeRef.lastError {
+                LogStore.shared.append(
+                    "✗ 翻译失败（耗时 \(elapsed)s）err=\(err)",
+                    source: "AppKit"
+                )
+                self.handleBridgeError(err)
+                bridgeRef.lastError = nil
+                self.pollTimer?.invalidate()
+                self.pollTimer = nil
+                self.translateButton.isEnabled = true
+            } else if pollCount % 20 == 0 {
+                // 每秒打一次"还在等"日志，避免长翻译时日志静止
+                LogStore.shared.append(
+                    "… 等待 SwiftUI .translationTask 返回（已等 \(elapsed)s，轮询 \(pollCount) 次）",
+                    source: "AppKit"
+                )
+            }
+        }
+        if let t = pollTimer {
+            RunLoop.main.add(t, forMode: .common)
+        }
+    }
+
+    private func handleBridgeError(_ errString: String) {
+        // errString 是 String(describing:) 输出，形如
+        // TranslationError.unsupportedSourceLanguage(reason: nil)
+        // 简单按关键字匹配做友好提示
+        if errString.contains("unsupportedSourceLanguage") {
+            setStatus("源语种不支持", color: .systemRed)
+        } else if errString.contains("unsupportedTargetLanguage") {
+            setStatus("目标语种不支持", color: .systemRed)
+        } else if errString.contains("unableToIdentifyLanguage") {
+            setStatus("无法识别输入文本的语种", color: .systemRed)
+        } else if errString.contains("nothingToTranslate") {
+            setStatus("没有要翻译的内容", color: .systemRed)
+        } else if errString.contains("notInstalled") {
+            setStatus("语种包未安装，请到系统设置下载", color: .systemRed)
+            downloadButton.isHidden = false
+        } else {
+            setStatus("翻译失败: \(errString)", color: .systemRed)
         }
     }
 
@@ -420,87 +617,177 @@ final class TranslationView: NSView {
         }
     }
 
-    // MARK: 翻译主流程
-
-    private func runTranslation(source: LanguageChoice, target: LanguageChoice, text: String) async {
-        let availability = LanguageAvailability()
-
-        // 1. 决定源语种
-        let resolvedSource: Locale.Language = (source.identifier == "auto")
-            ? Locale.current.language
-            : source.language
-
-        // 2. 检查支持
-        let status = await availability.status(from: resolvedSource, to: target.language)
-        switch status {
-        case .unsupported:
-            translateButton.isEnabled = true
-            setStatus("\(source.display) → \(target.display) 语种对不支持", color: .systemRed)
-            return
-        case .supported:
-            translateButton.isEnabled = true
-            setStatus("\(target.display) 语种包未下载。点击下面按钮去系统设置。", color: .systemOrange)
-            downloadButton.isHidden = false
-            return
-        case .installed:
-            break
-        @unknown default:
-            translateButton.isEnabled = true
-            setStatus("未知的语种支持状态", color: .systemRed)
-            return
-        }
-
-        // 3. 创建 session + 翻译
-        setStatus("正在翻译...", color: .systemBlue)
-        do {
-            let session = TranslationSession(
-                installedSource: resolvedSource,
-                target: target.language
-            )
-            let response = try await session.translate(text)
-            outputView.string = response.targetText
-            outputView.textColor = .labelColor
-            setStatus("翻译完成（\(response.sourceLanguage.maximalIdentifier) → \(response.targetLanguage.maximalIdentifier)）", color: .systemGreen)
-        } catch let error as TranslationError {
-            let msg: String
-            switch error {
-            case .unsupportedSourceLanguage:
-                msg = "源语种不支持"
-            case .unsupportedTargetLanguage:
-                msg = "目标语种不支持"
-            case .unableToIdentifyLanguage:
-                msg = "无法识别输入文本的语种"
-            case .nothingToTranslate:
-                msg = "没有要翻译的内容"
-            default:
-                // 用 ~= pattern matching 检查 .notInstalled（避免 == 编译错误）
-                if TranslationError.notInstalled ~= error {
-                    msg = "语种包未安装，请到系统设置下载"
-                    downloadButton.isHidden = false
-                } else {
-                    msg = "翻译失败: \(error.localizedDescription)"
-                }
-            }
-            setStatus(msg, color: .systemRed)
-        } catch {
-            setStatus("翻译失败: \(error.localizedDescription)", color: .systemRed)
-        }
-        translateButton.isEnabled = true
-    }
+    // MARK: 翻译主流程（bridge 取代）
 
     private func setStatus(_ text: String, color: NSColor) {
         statusLabel.stringValue = text
         statusLabel.textColor = color
     }
+
+    // MARK: 日志
+    private func appendLog(_ message: String) {
+        LogStore.shared.append(message, source: "Translation")
+    }
 }
 
+// MARK: - LogStore（跨组件共享日志）
+
+final class LogStore: @unchecked Sendable {
+    static let shared = LogStore()
+    private let lock = NSLock()
+    private var lines: [String] = []
+    var onChange: (() -> Void)?
+
+    func append(_ message: String, source: String = "App") {
+        lock.lock()
+        let ts = Self.timestamp()
+        let line = "[\(ts)] [\(source)] \(message)"
+        lines.append(line)
+        if lines.count > 500 { lines.removeFirst(lines.count - 500) }
+        lock.unlock()
+        let cb = onChange
+        DispatchQueue.main.async { cb?() }
+    }
+
+    func snapshot() -> String {
+        lock.lock()
+        defer { lock.unlock() }
+        return lines.joined(separator: "\n")
+    }
+
+    func clear() {
+        lock.lock()
+        lines.removeAll()
+        lock.unlock()
+        let cb = onChange
+        DispatchQueue.main.async { cb?() }
+    }
+
+    private static func timestamp() -> String {
+        let f = DateFormatter()
+        f.dateFormat = "HH:mm:ss.SSS"
+        return f.string(from: Date())
+    }
+}
+
+// MARK: - LogView（日志 Tab 的内容）
+
+final class LogView: NSView {
+    private let scroll = NSScrollView()
+    private let textView = NSTextView()
+    private let clearButton = NSButton(title: "清空日志", target: nil, action: nil)
+    private let copyButton = NSButton(title: "复制全部", target: nil, action: nil)
+    private var refreshTimer: Timer?
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        translatesAutoresizingMaskIntoConstraints = false
+        buildUI()
+        startRefreshing()
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    deinit { refreshTimer?.invalidate() }
+
+    private func buildUI() {
+        // 顶部说明
+        let header = NSTextField(labelWithString: "日志（Translation 流程 + AppKit 桥接节点）")
+        header.font = NSFont.systemFont(ofSize: 12, weight: .medium)
+        header.textColor = .secondaryLabelColor
+        header.translatesAutoresizingMaskIntoConstraints = false
+
+        // 按钮
+        clearButton.target = self
+        clearButton.action = #selector(clearClicked)
+        clearButton.bezelStyle = .rounded
+        clearButton.translatesAutoresizingMaskIntoConstraints = false
+
+        copyButton.target = self
+        copyButton.action = #selector(copyClicked)
+        copyButton.bezelStyle = .rounded
+        copyButton.translatesAutoresizingMaskIntoConstraints = false
+
+        // 文本框
+        scroll.hasVerticalScroller = true
+        scroll.borderType = .bezelBorder
+        scroll.translatesAutoresizingMaskIntoConstraints = false
+
+        textView.isEditable = false
+        textView.isSelectable = true
+        textView.isRichText = false
+        textView.font = NSFont.monospacedSystemFont(ofSize: 11, weight: .regular)
+        textView.textContainer?.containerSize = NSSize(width: 0, height: CGFloat.greatestFiniteMagnitude)
+        textView.textContainer?.widthTracksTextView = true
+        textView.frame = NSRect(x: 0, y: 0, width: 100, height: 100)
+        textView.minSize = NSSize(width: 0, height: 0)
+        textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+        textView.autoresizingMask = [.width]
+        textView.isVerticallyResizable = true
+        textView.isHorizontallyResizable = false
+        scroll.documentView = textView
+
+        addSubview(header)
+        addSubview(copyButton)
+        addSubview(clearButton)
+        addSubview(scroll)
+
+        NSLayoutConstraint.activate([
+            header.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            header.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+
+            copyButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            copyButton.centerYAnchor.constraint(equalTo: header.centerYAnchor),
+
+            clearButton.trailingAnchor.constraint(equalTo: copyButton.leadingAnchor, constant: -8),
+            clearButton.centerYAnchor.constraint(equalTo: header.centerYAnchor),
+
+            scroll.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            scroll.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            scroll.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 12),
+            scroll.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
+        ])
+
+        textView.string = LogStore.shared.snapshot()
+    }
+
+    @objc private func clearClicked() {
+        LogStore.shared.clear()
+        textView.string = ""
+    }
+
+    @objc private func copyClicked() {
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        pb.setString(textView.string, forType: .string)
+        LogStore.shared.append("日志已复制到剪贴板（\(textView.string.count) 字符）", source: "Log")
+    }
+
+    private func startRefreshing() {
+        // 启动时打一行
+        LogStore.shared.append("=== LogView 启动，桥接 NSHostingView ===", source: "Log")
+
+        refreshTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            let snap = LogStore.shared.snapshot()
+            if snap != self.textView.string {
+                self.textView.string = snap
+                self.textView.scrollToEndOfDocument(nil)
+            }
+        }
+        if let t = refreshTimer {
+            RunLoop.main.add(t, forMode: .common)
+        }
+    }
+}
 // MARK: - AppDelegate
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
     var helloView: NSView!
     var translationView: NSView!
-    let segmented = NSSegmentedControl(labels: ["Hello", "翻译"], trackingMode: .selectOne, target: nil, action: nil)
+    var logView: NSView!
+    let segmented = NSSegmentedControl(labels: ["Hello", "翻译", "日志"], trackingMode: .selectOne, target: nil, action: nil)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // 加载 Dock 图标
@@ -527,7 +814,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         segmented.target = self
         segmented.action = #selector(tabChanged)
 
-        // 两个子 view
+        // 三个子 view
         helloView = HelloView()
         if #available(macOS 15.0, *) {
             translationView = TranslationView(frame: .zero)
@@ -536,6 +823,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             translationView = NSView()
         }
         translationView.isHidden = true
+
+        logView = LogView(frame: .zero)
+        logView.isHidden = true
 
         let separator = NSBox()
         separator.boxType = .separator
@@ -546,6 +836,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         containerView.addSubview(separator)
         containerView.addSubview(helloView)
         containerView.addSubview(translationView)
+        containerView.addSubview(logView)
 
         NSLayoutConstraint.activate([
             segmented.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
@@ -564,6 +855,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             translationView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
             translationView.topAnchor.constraint(equalTo: separator.bottomAnchor, constant: 4),
             translationView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+
+            logView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            logView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            logView.topAnchor.constraint(equalTo: separator.bottomAnchor, constant: 4),
+            logView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
         ])
 
         window.makeKeyAndOrderFront(nil)
@@ -574,6 +870,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let idx = segmented.selectedSegment
         helloView.isHidden = (idx != 0)
         translationView.isHidden = (idx != 1)
+        logView.isHidden = (idx != 2)
     }
 
     @objc func quitApp() {

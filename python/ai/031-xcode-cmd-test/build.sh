@@ -7,7 +7,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
 ARCH=$(uname -m)
-SWIFT_TARGET="${ARCH}-apple-macosx26.0"
+SWIFT_TARGET="${ARCH}-apple-macosx15.0"
 
 echo "=== 阶段 1/4: 检测 Xcode Command Line Tools ==="
 ./detect.sh
@@ -21,6 +21,7 @@ if swiftc \
     -o build/HelloWorld \
     -framework Cocoa \
     -framework Translation \
+    -framework SwiftUI \
     HelloWorld.swift; then
     echo "✓ 编译成功: build/HelloWorld"
 else
