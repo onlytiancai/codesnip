@@ -22,6 +22,7 @@ if swiftc \
     -framework Cocoa \
     -framework Translation \
     -framework SwiftUI \
+    -framework Vision \
     HelloWorld.swift; then
     echo "✓ 编译成功: build/HelloWorld"
 else

@@ -1,6 +1,7 @@
 import Cocoa
 import SwiftUI
 import Translation
+import Vision
 
 // 顶层常量：TranslationBridge 用的超时秒数（非 main actor 隔离）
 fileprivate let requestTimeoutSeconds: UInt64 = 30
@@ -758,6 +759,377 @@ final class LogStore: @unchecked Sendable {
     }
 }
 
+// MARK: - OCRView（Vision 文字识别 Tab）
+
+final class OCRView: NSView, NSWindowDelegate {
+    private let imageScroll = NSScrollView()
+    private let imageView = NSImageView()
+    private let resultView = NSTextView()
+    private let pasteButton = NSButton(title: "从剪贴板粘贴图片", target: nil, action: nil)
+    private let recognizeButton = NSButton(title: "识别文字", target: nil, action: nil)
+    private let clearButton = NSButton(title: "清空", target: nil, action: nil)
+    private let copyButton = NSButton(title: "复制结果", target: nil, action: nil)
+    private let statusLabel = NSTextField(labelWithString: "")
+    private let imagePlaceholder = NSTextField(labelWithString: "（暂无图片，点上方「从剪贴板粘贴图片」或用 ⌘V 粘贴）")
+
+    private var currentImage: CGImage?
+
+    // 大图预览面板（点击图片时弹出）
+    private var previewWindow: NSWindow?
+    private var previewImageView: NSImageView?
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        translatesAutoresizingMaskIntoConstraints = false
+        buildUI()
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    private func buildUI() {
+        // 顶部按钮栏
+        pasteButton.target = self
+        pasteButton.action = #selector(pasteFromClipboard)
+        pasteButton.bezelStyle = .rounded
+        pasteButton.translatesAutoresizingMaskIntoConstraints = false
+
+        recognizeButton.target = self
+        recognizeButton.action = #selector(recognizeClicked)
+        recognizeButton.bezelStyle = .rounded
+        recognizeButton.translatesAutoresizingMaskIntoConstraints = false
+        recognizeButton.isEnabled = false
+
+        clearButton.target = self
+        clearButton.action = #selector(clearClicked)
+        clearButton.bezelStyle = .rounded
+        clearButton.translatesAutoresizingMaskIntoConstraints = false
+
+        copyButton.target = self
+        copyButton.action = #selector(copyClicked)
+        copyButton.bezelStyle = .rounded
+        copyButton.translatesAutoresizingMaskIntoConstraints = false
+
+        // 状态行
+        statusLabel.font = NSFont.systemFont(ofSize: 11)
+        statusLabel.textColor = .secondaryLabelColor
+        statusLabel.lineBreakMode = .byTruncatingTail
+        statusLabel.translatesAutoresizingMaskIntoConstraints = false
+        statusLabel.stringValue = "就绪。粘贴图片后点「识别文字」。"
+
+        // 图片预览：用 NSScrollView 包 imageView，大图片可滚动而非撑开容器
+        imageScroll.hasVerticalScroller = true
+        imageScroll.hasHorizontalScroller = true
+        imageScroll.autohidesScrollers = true
+        imageScroll.borderType = .bezelBorder
+        imageScroll.translatesAutoresizingMaskIntoConstraints = false
+        imageScroll.allowsMagnification = true
+        imageScroll.minMagnification = 0.1
+        imageScroll.maxMagnification = 8.0
+        imageScroll.backgroundColor = NSColor(white: 0.95, alpha: 1)
+
+        imageView.imageScaling = .scaleProportionallyUpOrDown
+        imageView.imageAlignment = .alignCenter
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.frame = NSRect(x: 0, y: 0, width: 100, height: 100)  // 占位 frame，scroll 会调整
+
+        imageScroll.documentView = imageView
+
+        // 点击图片放大：手势识别（单击）
+        let clickGesture = NSClickGestureRecognizer(target: self, action: #selector(showPreview))
+        imageScroll.addGestureRecognizer(clickGesture)
+
+        imagePlaceholder.font = NSFont.systemFont(ofSize: 12)
+        imagePlaceholder.textColor = .tertiaryLabelColor
+        imagePlaceholder.alignment = .center
+        imagePlaceholder.translatesAutoresizingMaskIntoConstraints = false
+
+        // 结果文本框
+        let resultScroll = NSScrollView()
+        resultScroll.hasVerticalScroller = true
+        resultScroll.borderType = .bezelBorder
+        resultScroll.translatesAutoresizingMaskIntoConstraints = false
+
+        resultView.isEditable = false
+        resultView.isSelectable = true
+        resultView.isRichText = false
+        resultView.font = NSFont.systemFont(ofSize: 13)
+        resultView.textColor = .labelColor
+        resultView.minSize = NSSize(width: 0, height: 0)
+        resultView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+        resultView.autoresizingMask = [.width]
+        resultView.isVerticallyResizable = true
+        resultView.isHorizontallyResizable = false
+        resultView.textContainer?.containerSize = NSSize(width: 0, height: CGFloat.greatestFiniteMagnitude)
+        resultView.textContainer?.widthTracksTextView = true
+        resultView.frame = NSRect(x: 0, y: 0, width: 100, height: 100)
+        resultScroll.documentView = resultView
+
+        // 左右分割：左图片，右结果
+        let leftPane = NSView()
+        leftPane.translatesAutoresizingMaskIntoConstraints = false
+        leftPane.addSubview(imageScroll)
+        leftPane.addSubview(imagePlaceholder)
+        imagePlaceholder.translatesAutoresizingMaskIntoConstraints = false
+
+        let leftLabel = NSTextField(labelWithString: "图片预览（点击放大）")
+        leftLabel.font = NSFont.systemFont(ofSize: 12, weight: .medium)
+        leftLabel.textColor = .secondaryLabelColor
+        leftLabel.translatesAutoresizingMaskIntoConstraints = false
+        leftPane.addSubview(leftLabel)
+
+        NSLayoutConstraint.activate([
+            leftLabel.leadingAnchor.constraint(equalTo: leftPane.leadingAnchor),
+            leftLabel.topAnchor.constraint(equalTo: leftPane.topAnchor),
+
+            imageScroll.leadingAnchor.constraint(equalTo: leftPane.leadingAnchor),
+            imageScroll.trailingAnchor.constraint(equalTo: leftPane.trailingAnchor),
+            imageScroll.topAnchor.constraint(equalTo: leftLabel.bottomAnchor, constant: 8),
+            imageScroll.bottomAnchor.constraint(equalTo: leftPane.bottomAnchor),
+
+            imagePlaceholder.centerXAnchor.constraint(equalTo: imageScroll.centerXAnchor),
+            imagePlaceholder.centerYAnchor.constraint(equalTo: imageScroll.centerYAnchor),
+        ])
+
+        let rightPane = NSView()
+        rightPane.translatesAutoresizingMaskIntoConstraints = false
+        rightPane.addSubview(resultScroll)
+
+        let rightLabel = NSTextField(labelWithString: "识别结果")
+        rightLabel.font = NSFont.systemFont(ofSize: 12, weight: .medium)
+        rightLabel.textColor = .secondaryLabelColor
+        rightLabel.translatesAutoresizingMaskIntoConstraints = false
+        rightPane.addSubview(rightLabel)
+
+        NSLayoutConstraint.activate([
+            rightLabel.leadingAnchor.constraint(equalTo: rightPane.leadingAnchor),
+            rightLabel.topAnchor.constraint(equalTo: rightPane.topAnchor),
+
+            resultScroll.leadingAnchor.constraint(equalTo: rightPane.leadingAnchor),
+            resultScroll.trailingAnchor.constraint(equalTo: rightPane.trailingAnchor),
+            resultScroll.topAnchor.constraint(equalTo: rightLabel.bottomAnchor, constant: 8),
+            resultScroll.bottomAnchor.constraint(equalTo: rightPane.bottomAnchor),
+        ])
+
+        // 顶层布局
+        addSubview(pasteButton)
+        addSubview(recognizeButton)
+        addSubview(clearButton)
+        addSubview(copyButton)
+        addSubview(statusLabel)
+        addSubview(leftPane)
+        addSubview(rightPane)
+
+        NSLayoutConstraint.activate([
+            pasteButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            pasteButton.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+
+            recognizeButton.leadingAnchor.constraint(equalTo: pasteButton.trailingAnchor, constant: 8),
+            recognizeButton.centerYAnchor.constraint(equalTo: pasteButton.centerYAnchor),
+
+            clearButton.leadingAnchor.constraint(equalTo: recognizeButton.trailingAnchor, constant: 8),
+            clearButton.centerYAnchor.constraint(equalTo: pasteButton.centerYAnchor),
+
+            copyButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            copyButton.centerYAnchor.constraint(equalTo: pasteButton.centerYAnchor),
+
+            statusLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            statusLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            statusLabel.topAnchor.constraint(equalTo: pasteButton.bottomAnchor, constant: 12),
+
+            // 左右各占一半
+            leftPane.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            leftPane.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 12),
+            leftPane.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
+            leftPane.trailingAnchor.constraint(equalTo: centerXAnchor, constant: -4),
+            leftPane.widthAnchor.constraint(equalTo: rightPane.widthAnchor),
+
+            rightPane.leadingAnchor.constraint(equalTo: centerXAnchor, constant: 4),
+            rightPane.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            rightPane.topAnchor.constraint(equalTo: leftPane.topAnchor),
+            rightPane.bottomAnchor.constraint(equalTo: leftPane.bottomAnchor),
+        ])
+    }
+
+    // MARK: 按钮动作
+
+    @objc private func pasteFromClipboard() {
+        let pb = NSPasteboard.general
+        guard let types = pb.types, types.contains(.png) || types.contains(.tiff) else {
+            setStatus("剪贴板里没有图片（需要 PNG 或 TIFF 格式）。先在「预览」或其他 App 里复制一张图片。", color: .systemOrange)
+            return
+        }
+        guard let image = NSImage(pasteboard: pb),
+              let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            setStatus("剪贴板图片无法读取", color: .systemRed)
+            return
+        }
+        loadImage(cgImage)
+    }
+
+    @objc private func recognizeClicked() {
+        guard let image = currentImage else {
+            setStatus("请先粘贴图片", color: .systemOrange)
+            return
+        }
+        setStatus("正在识别...", color: .systemBlue)
+        recognizeButton.isEnabled = false
+
+        Task { @MainActor in
+            do {
+                let text = try await performOCR(on: image)
+                resultView.string = text
+                let charCount = text.count
+                setStatus("✓ 识别完成（\(charCount) 字符）", color: .systemGreen)
+            } catch {
+                setStatus("✗ 识别失败: \(error.localizedDescription)", color: .systemRed)
+            }
+            recognizeButton.isEnabled = (currentImage != nil)
+        }
+    }
+
+    @objc private func clearClicked() {
+        imageView.image = nil
+        resultView.string = ""
+        currentImage = nil
+        recognizeButton.isEnabled = false
+        imagePlaceholder.isHidden = false
+        setStatus("已清空", color: .secondaryLabelColor)
+    }
+
+    @objc private func copyClicked() {
+        let text = resultView.string
+        guard !text.isEmpty else {
+            setStatus("结果为空，无可复制", color: .systemOrange)
+            return
+        }
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        pb.setString(text, forType: .string)
+        setStatus("已复制到剪贴板", color: .systemGreen)
+    }
+
+    private func loadImage(_ cgImage: CGImage) {
+        currentImage = cgImage
+        let nsImage = NSImage(cgImage: cgImage, size: NSSize(width: cgImage.width, height: cgImage.height))
+        imageView.image = nsImage
+        // imageView 用图片原始尺寸，scroll view 通过 magnification 缩放显示
+        imageView.frame = NSRect(x: 0, y: 0, width: cgImage.width, height: cgImage.height)
+        imageView.setFrameSize(NSSize(width: cgImage.width, height: cgImage.height))
+        // 让 scroll view 内的初始缩放比例适配窗口宽度（不超过 1.0）
+        let fitScale = min(1.0, imageScroll.bounds.width > 0 ? imageScroll.bounds.width / CGFloat(cgImage.width) : 1.0)
+        imageScroll.magnification = max(imageScroll.minMagnification, fitScale)
+        imageScroll.layoutSubtreeIfNeeded()
+
+        imagePlaceholder.isHidden = true
+        recognizeButton.isEnabled = true
+        resultView.string = ""
+        setStatus("图片已加载（\(cgImage.width) × \(cgImage.height)），点「识别文字」。", color: .systemBlue)
+    }
+
+    // MARK: 大图预览
+
+    @objc private func showPreview(_ recognizer: NSClickGestureRecognizer) {
+        guard currentImage != nil else { return }
+        if let existing = previewWindow {
+            existing.makeKeyAndOrderFront(nil)
+            return
+        }
+        guard let parent = window else { return }
+
+        let preview = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 720, height: 540),
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        preview.title = "图片预览"
+        preview.isReleasedWhenClosed = false  // 防止 window 释放后 controller 失效
+
+        let previewScroll = NSScrollView()
+        previewScroll.hasVerticalScroller = true
+        previewScroll.hasHorizontalScroller = true
+        previewScroll.autohidesScrollers = true
+        previewScroll.allowsMagnification = true
+        previewScroll.minMagnification = 0.1
+        previewScroll.maxMagnification = 16.0
+        previewScroll.translatesAutoresizingMaskIntoConstraints = false
+
+        let iv = NSImageView()
+        if let cg = currentImage {
+            let nsImage = NSImage(cgImage: cg, size: NSSize(width: cg.width, height: cg.height))
+            iv.image = nsImage
+            iv.frame = NSRect(x: 0, y: 0, width: cg.width, height: cg.height)
+        }
+        iv.imageScaling = .scaleProportionallyUpOrDown
+        iv.imageAlignment = .alignCenter
+        iv.translatesAutoresizingMaskIntoConstraints = false
+        previewScroll.documentView = iv
+
+        let contentView = NSView(frame: preview.contentView!.bounds)
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(previewScroll)
+        preview.contentView = contentView
+
+        NSLayoutConstraint.activate([
+            previewScroll.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            previewScroll.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            previewScroll.topAnchor.constraint(equalTo: contentView.topAnchor),
+            previewScroll.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+        ])
+
+        // 居中到主窗口
+        let parentFrame = parent.frame
+        let x = parentFrame.origin.x + (parentFrame.width - 720) / 2
+        let y = parentFrame.origin.y + (parentFrame.height - 540) / 2
+        preview.setFrameOrigin(NSPoint(x: x, y: y))
+
+        preview.delegate = self
+        preview.makeKeyAndOrderFront(nil)
+        previewImageView = iv
+        previewWindow = preview
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        // preview 关闭时清空引用
+        if let w = notification.object as? NSWindow, w === previewWindow {
+            previewWindow = nil
+            previewImageView = nil
+        }
+    }
+
+    private func performOCR(on cgImage: CGImage) async throws -> String {
+        return try await withCheckedThrowingContinuation { continuation in
+            let request = VNRecognizeTextRequest { request, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                let observations = (request.results as? [VNRecognizedTextObservation]) ?? []
+                let text = observations
+                    .compactMap { $0.topCandidates(1).first?.string }
+                    .joined(separator: "\n")
+                continuation.resume(returning: text)
+            }
+            request.recognitionLevel = .accurate
+            request.usesLanguageCorrection = true
+            // 支持中英文
+            request.recognitionLanguages = ["zh-Hans", "en-US"]
+
+            let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+            do {
+                try handler.perform([request])
+            } catch {
+                continuation.resume(throwing: error)
+            }
+        }
+    }
+
+    private func setStatus(_ text: String, color: NSColor) {
+        statusLabel.stringValue = text
+        statusLabel.textColor = color
+    }
+}
+
 // MARK: - LogView（日志 Tab 的内容）
 
 final class LogView: NSView {
@@ -1003,8 +1375,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
     var helloView: NSView!
     var translationView: NSView!
+    var ocrView: NSView!
     var logView: NSView!
-    let segmented = NSSegmentedControl(labels: ["Hello", "翻译", "日志"], trackingMode: .selectOne, target: nil, action: nil)
+    let segmented = NSSegmentedControl(labels: ["Hello", "翻译", "OCR", "日志"], trackingMode: .selectOne, target: nil, action: nil)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // 加载 Dock 图标
@@ -1043,6 +1416,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         translationView.isHidden = true
 
+        ocrView = OCRView(frame: .zero)
+        ocrView.isHidden = true
+
         logView = LogView(frame: .zero)
         logView.isHidden = true
 
@@ -1055,6 +1431,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         containerView.addSubview(separator)
         containerView.addSubview(helloView)
         containerView.addSubview(translationView)
+        containerView.addSubview(ocrView)
         containerView.addSubview(logView)
 
         NSLayoutConstraint.activate([
@@ -1075,6 +1452,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             translationView.topAnchor.constraint(equalTo: separator.bottomAnchor, constant: 4),
             translationView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
 
+            ocrView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            ocrView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            ocrView.topAnchor.constraint(equalTo: separator.bottomAnchor, constant: 4),
+            ocrView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+
             logView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             logView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
             logView.topAnchor.constraint(equalTo: separator.bottomAnchor, constant: 4),
@@ -1089,7 +1471,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let idx = segmented.selectedSegment
         helloView.isHidden = (idx != 0)
         translationView.isHidden = (idx != 1)
-        logView.isHidden = (idx != 2)
+        ocrView.isHidden = (idx != 2)
+        logView.isHidden = (idx != 3)
     }
 
     @objc func openSettings(_ sender: Any?) {
