@@ -3,6 +3,7 @@ import SwiftUI
 import Translation
 import Vision
 import Metal
+import ScreenCaptureKit
 
 // 顶层常量：TranslationBridge 用的超时秒数（非 main actor 隔离）
 fileprivate let requestTimeoutSeconds: UInt64 = 30
@@ -1019,6 +1020,221 @@ final class LogStore: @unchecked Sendable {
     }
 }
 
+// MARK: - ScreenshotCapture（ScreenCaptureKit 封装）
+
+enum ScreenshotCapture {
+    enum CaptureError: Error {
+        case noDisplay
+        case failed(Error)
+    }
+
+    /// 截取屏幕指定区域（坐标是全局屏幕坐标）
+    /// 返回 CGImage，坐标系原点在左下角（macOS 屏幕坐标）
+    static func captureRegion(_ region: NSRect) async throws -> CGImage {
+        let content = try await SCShareableContent.current
+        guard let display = content.displays.first else {
+            throw CaptureError.noDisplay
+        }
+
+        let config = SCStreamConfiguration()
+        config.sourceRect = region
+        // 注意：SCScreenshotManager 自动按 Retina 缩放（CGImage.width 是物理像素）
+
+        let filter = SCContentFilter(display: display, excludingWindows: [])
+        do {
+            return try await SCScreenshotManager.captureImage(
+                contentFilter: filter,
+                configuration: config
+            )
+        } catch {
+            throw CaptureError.failed(error)
+        }
+    }
+
+    /// 截图并写入剪贴板
+    /// - Returns: (成功标志, 像素宽×高, 错误信息)
+    static func captureAndCopyToPasteboard(region: NSRect) async -> (success: Bool, size: NSSize?, error: String?) {
+        do {
+            let cgImage = try await captureRegion(region)
+            let nsImage = NSImage(
+                cgImage: cgImage,
+                size: NSSize(width: CGFloat(cgImage.width) / 2, height: CGFloat(cgImage.height) / 2)
+            )
+            let pb = NSPasteboard.general
+            pb.clearContents()
+            pb.writeObjects([nsImage])
+            let size = NSSize(width: CGFloat(cgImage.width), height: CGFloat(cgImage.height))
+            return (true, size, nil)
+        } catch CaptureError.noDisplay {
+            return (false, nil, "未找到活动显示器")
+        } catch CaptureError.failed(let error) {
+            let nsError = error as NSError
+            if nsError.code == -3801 || nsError.domain.contains("SCStreamErrorDomain") {
+                return (false, nil, "屏幕录制权限被拒绝。系统设置 → 隐私与安全性 → 屏幕录制 允许本 App")
+            }
+            return (false, nil, error.localizedDescription)
+        } catch {
+            return (false, nil, error.localizedDescription)
+        }
+    }
+}
+
+// MARK: - ScreenshotOverlayWindow（全屏选区 overlay）
+
+/// 全屏半透明窗口，让用户拖拽选择截图区域。
+/// 调用流程：
+///   1. OCRView 调 startSelection(completion:)
+//   2. 弹此 window（盖住所有屏幕）
+///   3. 用户拖拽选区 → 松开
+///   4. completion(rect) 回调，触发 capture
+///   5. window 自动 orderOut(nil)
+final class ScreenshotOverlayWindow: NSWindow {
+    private let selectionView: SelectionView
+
+    init(completion: @escaping (NSRect) -> Void) {
+        // 用主屏 frame（多屏时只覆盖主屏；扩展到 NSScreen.screens 全部可后续做）
+        let screen = NSScreen.main ?? NSScreen.screens[0]
+        let frame = screen.frame
+
+        self.selectionView = SelectionView(frame: frame, completion: completion)
+
+        super.init(
+            contentRect: frame,
+            styleMask: [.borderless],
+            backing: .buffered,
+            defer: false
+        )
+
+        self.level = .screenSaver  // 盖在所有窗口之上
+        self.isOpaque = false
+        self.backgroundColor = NSColor(white: 0, alpha: 0.3)
+        self.ignoresMouseEvents = false
+        self.contentView = selectionView
+        self.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        self.acceptsMouseMovedEvents = true
+    }
+}
+
+final class SelectionView: NSView {
+    private var startPoint: NSPoint?
+    private(set) var selectionRect: NSRect = .zero
+    private let completion: (NSRect) -> Void
+
+    init(frame frameRect: NSRect, completion: @escaping (NSRect) -> Void) {
+        self.completion = completion
+        super.init(frame: frameRect)
+        wantsLayer = true
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override var acceptsFirstResponder: Bool { true }
+
+    override func mouseDown(with event: NSEvent) {
+        let p = convert(event.locationInWindow, from: nil)
+        startPoint = p
+        selectionRect = NSRect(origin: p, size: .zero)
+        needsDisplay = true
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        guard let start = startPoint else { return }
+        let cur = convert(event.locationInWindow, from: nil)
+        selectionRect = NSRect(
+            x: min(start.x, cur.x),
+            y: min(start.y, cur.y),
+            width: abs(cur.x - start.x),
+            height: abs(cur.y - start.y)
+        )
+        needsDisplay = true
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        guard selectionRect.width > 5, selectionRect.height > 5 else {
+            // 选区太小，视为取消
+            window?.orderOut(nil)
+            return
+        }
+        // 关键：view 坐标 → 屏幕全局坐标
+        // path: view → window（convert(_:to: nil)）→ screen（window.convertToScreen）
+        guard let win = window else { window?.orderOut(nil); return }
+        let inWindow = convert(selectionRect, to: nil)
+        let screenRect = win.convertToScreen(inWindow)
+        let callback = completion
+        window?.orderOut(nil)
+        callback(screenRect)
+    }
+
+    override func keyDown(with event: NSEvent) {
+        // ESC 取消
+        if event.keyCode == 53 {
+            window?.orderOut(nil)
+        }
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        // 半透明黑底已经由 NSWindow.backgroundColor 提供，这里画矩形高亮
+        guard let ctx = NSGraphicsContext.current?.cgContext else { return }
+
+        // 矩形外：再加深一点（让选区更突出）
+        ctx.setFillColor(NSColor(white: 0, alpha: 0.2).cgColor)
+        ctx.fill(bounds)
+
+        // 矩形内：清空（去掉加深）
+        if selectionRect.width > 0 && selectionRect.height > 0 {
+            ctx.setBlendMode(.clear)
+            ctx.fill(selectionRect)
+            ctx.setBlendMode(.normal)
+
+            // 边框：白色 + 蓝色阴影
+            ctx.setStrokeColor(NSColor.white.cgColor)
+            ctx.setLineWidth(1.5)
+            ctx.stroke(selectionRect.insetBy(dx: 0.5, dy: 0.5))
+
+            // 角落标记
+            let handleSize: CGFloat = 6
+            let handles: [NSPoint] = [
+                NSPoint(x: selectionRect.minX, y: selectionRect.minY),
+                NSPoint(x: selectionRect.maxX, y: selectionRect.minY),
+                NSPoint(x: selectionRect.minX, y: selectionRect.maxY),
+                NSPoint(x: selectionRect.maxX, y: selectionRect.maxY),
+            ]
+            ctx.setFillColor(NSColor.systemBlue.cgColor)
+            for p in handles {
+                ctx.fill(NSRect(x: p.x - handleSize / 2, y: p.y - handleSize / 2, width: handleSize, height: handleSize))
+            }
+
+            // 尺寸提示（右下角）
+            let sizeText = "\(Int(selectionRect.width)) × \(Int(selectionRect.height))"
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font: NSFont.systemFont(ofSize: 11, weight: .medium),
+                .foregroundColor: NSColor.white,
+            ]
+            let textSize = (sizeText as NSString).size(withAttributes: attrs)
+            let textOrigin = NSPoint(
+                x: selectionRect.maxX - textSize.width - 8,
+                y: selectionRect.maxY + 4
+            )
+            // 文字背景
+            ctx.setFillColor(NSColor(white: 0, alpha: 0.6).cgColor)
+            ctx.fill(NSRect(x: textOrigin.x - 4, y: textOrigin.y - 2, width: textSize.width + 8, height: textSize.height + 4))
+            (sizeText as NSString).draw(at: textOrigin, withAttributes: attrs)
+        }
+    }
+}
+
+/// OCRView 调这个进入截图模式
+func startScreenshotSelection(completion: @escaping (NSRect?) -> Void) {
+    let window = ScreenshotOverlayWindow { screenRect in
+        Task { @MainActor in
+            let result = await ScreenshotCapture.captureAndCopyToPasteboard(region: screenRect)
+            completion(screenRect)  // 通知调用方截图已完成（或失败时 rect 仍传）
+            _ = result  // 调用方通过自己的 status 行处理
+        }
+    }
+    window.makeKeyAndOrderFront(nil)
+    window.makeFirstResponder(window.contentView)
+}
 // MARK: - OCRView（Vision 文字识别 Tab）
 
 final class OCRView: NSView, NSWindowDelegate {
@@ -1026,6 +1242,7 @@ final class OCRView: NSView, NSWindowDelegate {
     private let imageView = NSImageView()
     private let resultView = NSTextView()
     private let pasteButton = NSButton(title: "从剪贴板粘贴图片", target: nil, action: nil)
+    private let screenshotButton = NSButton(title: "截屏（选区）", target: nil, action: nil)
     private let recognizeButton = NSButton(title: "识别文字", target: nil, action: nil)
     private let clearButton = NSButton(title: "清空", target: nil, action: nil)
     private let copyButton = NSButton(title: "复制结果", target: nil, action: nil)
@@ -1052,6 +1269,11 @@ final class OCRView: NSView, NSWindowDelegate {
         pasteButton.action = #selector(pasteFromClipboard)
         pasteButton.bezelStyle = .rounded
         pasteButton.translatesAutoresizingMaskIntoConstraints = false
+
+        screenshotButton.target = self
+        screenshotButton.action = #selector(screenshotClicked)
+        screenshotButton.bezelStyle = .rounded
+        screenshotButton.translatesAutoresizingMaskIntoConstraints = false
 
         recognizeButton.target = self
         recognizeButton.action = #selector(recognizeClicked)
@@ -1172,6 +1394,7 @@ final class OCRView: NSView, NSWindowDelegate {
 
         // 顶层布局
         addSubview(pasteButton)
+        addSubview(screenshotButton)
         addSubview(recognizeButton)
         addSubview(clearButton)
         addSubview(copyButton)
@@ -1183,7 +1406,10 @@ final class OCRView: NSView, NSWindowDelegate {
             pasteButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             pasteButton.topAnchor.constraint(equalTo: topAnchor, constant: 16),
 
-            recognizeButton.leadingAnchor.constraint(equalTo: pasteButton.trailingAnchor, constant: 8),
+            screenshotButton.leadingAnchor.constraint(equalTo: pasteButton.trailingAnchor, constant: 8),
+            screenshotButton.centerYAnchor.constraint(equalTo: pasteButton.centerYAnchor),
+
+            recognizeButton.leadingAnchor.constraint(equalTo: screenshotButton.trailingAnchor, constant: 8),
             recognizeButton.centerYAnchor.constraint(equalTo: pasteButton.centerYAnchor),
 
             clearButton.leadingAnchor.constraint(equalTo: recognizeButton.trailingAnchor, constant: 8),
@@ -1224,6 +1450,34 @@ final class OCRView: NSView, NSWindowDelegate {
             return
         }
         loadImage(cgImage)
+    }
+
+    @objc private func screenshotClicked() {
+        setStatus("拖拽选择截图区域，松开鼠标确认；按 ESC 取消。", color: .systemBlue)
+        startScreenshotSelection { [weak self] _ in
+            // 截图完成回调：在用户返回 app 后由 status 行展示结果
+            // 真正的成功/失败在 captureAndCopyToPasteboard 内部异步处理
+            Task { @MainActor in
+                self?.refreshAfterScreenshot()
+            }
+        }
+    }
+
+    /// 截图完成后，查询剪贴板最新图片，更新到 UI。
+    /// 用 50ms delay 让 ScreenCaptureKit 写入剪贴板完成。
+    private func refreshAfterScreenshot() {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            let pb = NSPasteboard.general
+            guard let types = pb.types, types.contains(.png) || types.contains(.tiff),
+                  let image = NSImage(pasteboard: pb),
+                  let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+                setStatus("截图取消或失败", color: .systemOrange)
+                return
+            }
+            loadImage(cgImage)
+            setStatus("✓ 已复制截图到剪贴板（\(cgImage.width) × \(cgImage.height)），可以 ⌘V 到其他 App", color: .systemGreen)
+        }
     }
 
     @objc private func recognizeClicked() {
