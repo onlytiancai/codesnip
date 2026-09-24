@@ -5,6 +5,64 @@ import Vision
 import CoreVideo
 import CoreImage
 
+
+func generateForegroundInstanceMask(
+    from image: CGImage
+) throws -> VNInstanceMaskObservation {
+
+    print("开始执行 Vision Foreground Instance 分割...")
+
+    let request =
+        VNGenerateForegroundInstanceMaskRequest()
+
+    let handler = VNImageRequestHandler(
+        cgImage: image,
+        options: [:]
+    )
+
+    try handler.perform([
+        request
+    ])
+
+    guard let observation =
+        request.results?.first else {
+
+        throw NSError(
+            domain: "BackgroundRemover",
+            code: 10,
+            userInfo: [
+                NSLocalizedDescriptionKey:
+                    "Vision 没有返回 Foreground Instance Mask"
+            ]
+        )
+    }
+
+    print("Foreground Instance 分割完成")
+
+    print(
+        "Instance 数量: " +
+        "\(observation.allInstances.count)"
+    )
+
+    return observation
+}
+
+func printInstances(
+    _ observation: VNInstanceMaskObservation
+) {
+
+    print("")
+    print("检测到的 Foreground Instances:")
+
+    for instance in observation.allInstances {
+        print(
+            "Instance: \(instance)"
+        )
+    }
+
+    print("")
+}
+
 func refineMask(
     _ maskPixelBuffer: CVPixelBuffer,
     blurRadius: Double = 0.8
@@ -336,6 +394,113 @@ func savePNG(
     print("PNG 保存成功")
 }
 
+
+func generateInstanceMask(
+    observation: VNInstanceMaskObservation,
+    image: CGImage,
+    instances: IndexSet
+) throws -> CVPixelBuffer {
+
+    print("开始生成 Instance Mask...")
+
+    // 创建 Vision Image Request Handler
+    let handler = VNImageRequestHandler(
+        cgImage: image,
+        options: [:]
+    )
+
+    // 注意：
+    // generateScaledMaskForImage 的 from:
+    // 要传 VNImageRequestHandler，而不是 CGImage
+    let mask = try observation.generateScaledMaskForImage(
+        forInstances: instances,
+        from: handler
+    )
+
+    print(
+        "Instance Mask 尺寸: " +
+        "\(CVPixelBufferGetWidth(mask)) x " +
+        "\(CVPixelBufferGetHeight(mask))"
+    )
+
+    return mask
+}
+
+
+
+func saveMaskAsPNG(
+    _ pixelBuffer: CVPixelBuffer,
+    to url: URL
+) throws {
+
+    print("保存 Mask:")
+    print(url.path)
+
+    // CVPixelBuffer → CIImage
+    let ciImage = CIImage(
+        cvPixelBuffer: pixelBuffer
+    )
+
+    // CIImage → CGImage
+    let context = CIContext()
+
+    guard let cgImage = context.createCGImage(
+        ciImage,
+        from: ciImage.extent
+    ) else {
+        throw NSError(
+            domain: "BackgroundRemover",
+            code: 20,
+            userInfo: [
+                NSLocalizedDescriptionKey:
+                    "无法从 CVPixelBuffer 创建 CGImage"
+            ]
+        )
+    }
+
+    // CGImage → PNG
+    guard let destination =
+        CGImageDestinationCreateWithURL(
+            url as CFURL,
+            "public.png" as CFString,
+            1,
+            nil
+        )
+    else {
+        throw NSError(
+            domain: "BackgroundRemover",
+            code: 21,
+            userInfo: [
+                NSLocalizedDescriptionKey:
+                    "无法创建 PNG 输出"
+            ]
+        )
+    }
+
+    CGImageDestinationAddImage(
+        destination,
+        cgImage,
+        nil
+    )
+
+    guard CGImageDestinationFinalize(
+        destination
+    ) else {
+        throw NSError(
+            domain: "BackgroundRemover",
+            code: 22,
+            userInfo: [
+                NSLocalizedDescriptionKey:
+                    "Mask PNG 保存失败"
+            ]
+        )
+    }
+
+    print("Mask PNG 保存成功")
+}
+
+
+
 // MARK: - Main
 
 func main() throws {
@@ -374,20 +539,47 @@ func main() throws {
     )
     print("")
 
-    // 2. Vision 人像分割
+    let observation =
+        try generateForegroundInstanceMask(
+            from: image
+        )
 
-    let mask = try generatePersonMask(
-        from: image
+    printInstances(observation)    
+
+    let indexSet = observation.allInstances
+
+    let foregroundMask =
+        try generateInstanceMask(
+            observation: observation,
+            image: image,
+            instances: indexSet
+        )
+
+    let maskURL = inputURL
+        .deletingPathExtension()
+        .appendingPathExtension(
+            "foreground-mask.png"
+        )
+
+    try saveMaskAsPNG(
+        foregroundMask,
+        to: maskURL
     )
 
-    print("")
+    // 2. Vision 人像分割
+
+    // let mask = try generatePersonMask(
+    //     from: image
+    // )
+
+    // print("")
 
     // 3. Mask → Alpha → 透明图片
 
     let transparentImage =
         try createTransparentImage(
             image: image,
-            maskPixelBuffer: mask
+            maskPixelBuffer: foregroundMask
         )
 
     print("")
