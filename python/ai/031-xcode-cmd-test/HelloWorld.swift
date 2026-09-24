@@ -1099,40 +1099,33 @@ enum ScreenshotCapture {
 ///   3. 用户拖拽选区 → 松开
 ///   4. completion(rect) 回调，触发 capture
 ///   5. window 自动 orderOut(nil)
-final class ScreenshotOverlayWindow: NSWindow {
-    private let selectionView: SelectionView
+// MARK: - ScreenshotOverlayWindow + SelectionView + AnnotationOverlayView（两阶段：选区 → 标注）
 
-    init(completion: @escaping (NSRect) -> Void) {
-        // 用主屏 frame（多屏时只覆盖主屏；扩展到 NSScreen.screens 全部可后续做）
-        let screen = NSScreen.main ?? NSScreen.screens[0]
-        let frame = screen.frame
-
-        self.selectionView = SelectionView(frame: frame, completion: completion)
-
-        super.init(
-            contentRect: frame,
-            styleMask: [.borderless],
-            backing: .buffered,
-            defer: false
-        )
-
-        self.level = .screenSaver  // 盖在所有窗口之上
-        self.isOpaque = false
-        self.backgroundColor = NSColor(white: 0, alpha: 0.3)
-        self.ignoresMouseEvents = false
-        self.contentView = selectionView
-        self.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        self.acceptsMouseMovedEvents = true
-    }
-}
-
+/// 选区阶段：拖拽矩形
 final class SelectionView: NSView {
-    private var startPoint: NSPoint?
-    private(set) var selectionRect: NSRect = .zero
-    private let completion: (NSRect) -> Void
+    private enum Mode {
+        case drawing          // 拖拽画矩形
+        case adjusting        // 已完成，可拖动 + 缩放
+    }
 
-    init(frame frameRect: NSRect, completion: @escaping (NSRect) -> Void) {
-        self.completion = completion
+    private enum Handle {
+        case topLeft, topRight, bottomLeft, bottomRight  // 4 角
+        case topEdge, bottomEdge, leftEdge, rightEdge    // 4 边
+        case move                                          // 内部拖动
+    }
+
+    private var mode: Mode = .drawing
+    private var startPoint: NSPoint?
+    private var dragOrigin: NSPoint?            // adjust 阶段：拖动 handle 的起始点
+    private var activeHandle: Handle?
+    private var preDragRect: NSRect = .zero
+    private(set) var selectionRect: NSRect = .zero
+    let didCommit: (NSRect) -> Void
+
+    private let handleSize: CGFloat = 10       // 角/边 handle 大小
+
+    init(frame frameRect: NSRect, didCommit: @escaping (NSRect) -> Void) {
+        self.didCommit = didCommit
         super.init(frame: frameRect)
         wantsLayer = true
     }
@@ -1141,96 +1134,787 @@ final class SelectionView: NSView {
 
     override var acceptsFirstResponder: Bool { true }
 
+    // MARK: 鼠标事件
+
     override func mouseDown(with event: NSEvent) {
         let p = convert(event.locationInWindow, from: nil)
-        startPoint = p
-        selectionRect = NSRect(origin: p, size: .zero)
-        needsDisplay = true
+
+        switch mode {
+        case .drawing:
+            startPoint = p
+            selectionRect = NSRect(origin: p, size: .zero)
+            needsDisplay = true
+
+        case .adjusting:
+            // 1. 点 handle？
+            if let h = hitTestHandle(at: p) {
+                activeHandle = h
+                preDragRect = selectionRect
+                dragOrigin = p
+            }
+            // 2. 点内部 → 移动
+            else if selectionRect.contains(p) {
+                activeHandle = .move
+                preDragRect = selectionRect
+                dragOrigin = p
+            }
+            // 3. 点外部 → 重新画
+            else {
+                mode = .drawing
+                startPoint = p
+                selectionRect = NSRect(origin: p, size: .zero)
+                needsDisplay = true
+            }
+        }
     }
 
     override func mouseDragged(with event: NSEvent) {
-        guard let start = startPoint else { return }
         let cur = convert(event.locationInWindow, from: nil)
-        selectionRect = NSRect(
-            x: min(start.x, cur.x),
-            y: min(start.y, cur.y),
-            width: abs(cur.x - start.x),
-            height: abs(cur.y - start.y)
-        )
+
+        switch mode {
+        case .drawing:
+            guard let start = startPoint else { return }
+            selectionRect = NSRect(
+                x: min(start.x, cur.x),
+                y: min(start.y, cur.y),
+                width: abs(cur.x - start.x),
+                height: abs(cur.y - start.y)
+            )
+
+        case .adjusting:
+            guard let h = activeHandle, let origin = dragOrigin else { return }
+            let dx = cur.x - origin.x
+            let dy = cur.y - origin.y
+            var r = preDragRect
+            switch h {
+            case .move:
+                r.origin.x += dx
+                r.origin.y += dy
+            case .topLeft:
+                r.origin.x += dx
+                r.size.width -= dx
+                r.size.height += dy  // bottom-left 原点：向上拖 → dy > 0 → height 增大
+                r.origin.y -= dy     // 但因为 NSView bottom-left 原点，向上拖 dy>0 是减 y
+                // 实际：拖上方边，向上 dy<0，r.origin.y 减小 → 实际变高
+                // 简化：用 NSRect 标准 bottom-left 语义
+                r = NSRect(
+                    x: r.origin.x + dx,
+                    y: r.origin.y,    // bottom 不动
+                    width: preDragRect.width - dx,
+                    height: preDragRect.height + dy
+                )
+            case .topRight:
+                r.size.width += dx
+                r.size.height += dy
+                r = NSRect(
+                    x: r.origin.x,
+                    y: r.origin.y,
+                    width: preDragRect.width + dx,
+                    height: preDragRect.height + dy
+                )
+            case .bottomLeft:
+                r.origin.x += dx
+                r.size.width -= dx
+                r = NSRect(
+                    x: r.origin.x + dx,
+                    y: r.origin.y + dy,
+                    width: preDragRect.width - dx,
+                    height: preDragRect.height - dy
+                )
+            case .bottomRight:
+                r.size.width += dx
+                r.size.height -= dy
+                r = NSRect(
+                    x: r.origin.x,
+                    y: r.origin.y + dy,
+                    width: preDragRect.width + dx,
+                    height: preDragRect.height - dy
+                )
+            case .topEdge:
+                r.size.height += dy
+                r = NSRect(
+                    x: r.origin.x,
+                    y: r.origin.y,
+                    width: preDragRect.width,
+                    height: preDragRect.height + dy
+                )
+            case .bottomEdge:
+                r.size.height -= dy
+                r = NSRect(
+                    x: r.origin.x,
+                    y: r.origin.y + dy,
+                    width: preDragRect.width,
+                    height: preDragRect.height - dy
+                )
+            case .leftEdge:
+                r.origin.x += dx
+                r.size.width -= dx
+                r = NSRect(
+                    x: r.origin.x + dx,
+                    y: r.origin.y,
+                    width: preDragRect.width - dx,
+                    height: preDragRect.height
+                )
+            case .rightEdge:
+                r.size.width += dx
+                r = NSRect(
+                    x: r.origin.x,
+                    y: r.origin.y,
+                    width: preDragRect.width + dx,
+                    height: preDragRect.height
+                )
+            }
+            // 规范化：保证 origin 是左上、width/height 为正
+            selectionRect = normalized(r)
+        }
         needsDisplay = true
     }
 
     override func mouseUp(with event: NSEvent) {
-        guard selectionRect.width > 5, selectionRect.height > 5 else {
-            // 选区太小，视为取消
-            window?.orderOut(nil)
-            return
+        switch mode {
+        case .drawing:
+            guard selectionRect.width > 5, selectionRect.height > 5 else {
+                window?.orderOut(nil)
+                return
+            }
+            mode = .adjusting
+            needsDisplay = true
+
+        case .adjusting:
+            activeHandle = nil
+            dragOrigin = nil
         }
-        // 关键：view 坐标 → 屏幕全局坐标
-        // path: view → window（convert(_:to: nil)）→ screen（window.convertToScreen）
-        guard let win = window else { window?.orderOut(nil); return }
-        let inWindow = convert(selectionRect, to: nil)
-        let screenRect = win.convertToScreen(inWindow)
-        let callback = completion
-        window?.orderOut(nil)
-        callback(screenRect)
     }
 
     override func keyDown(with event: NSEvent) {
-        // ESC 取消
-        if event.keyCode == 53 {
-            window?.orderOut(nil)
+        if event.keyCode == 53 { window?.orderOut(nil) }  // ESC
+        if event.keyCode == 36 {  // Enter
+            if mode == .adjusting { didCommit(selectionRect) }
         }
     }
 
+    // MARK: handle hit-test
+
+    private func hitTestHandle(at p: NSPoint) -> Handle? {
+        let r = selectionRect
+        let hs = handleSize
+        // 4 角
+        if NSRect(x: r.minX - hs, y: r.minY - hs, width: hs * 2, height: hs * 2).contains(p) { return .bottomLeft }
+        if NSRect(x: r.maxX - hs, y: r.minY - hs, width: hs * 2, height: hs * 2).contains(p) { return .bottomRight }
+        if NSRect(x: r.minX - hs, y: r.maxY - hs, width: hs * 2, height: hs * 2).contains(p) { return .topLeft }
+        if NSRect(x: r.maxX - hs, y: r.maxY - hs, width: hs * 2, height: hs * 2).contains(p) { return .topRight }
+        // 4 边
+        if NSRect(x: r.minX, y: r.minY - 4, width: r.width, height: 8).contains(p) { return .bottomEdge }
+        if NSRect(x: r.minX, y: r.maxY - 4, width: r.width, height: 8).contains(p) { return .topEdge }
+        if NSRect(x: r.minX - 4, y: r.minY, width: 8, height: r.height).contains(p) { return .leftEdge }
+        if NSRect(x: r.maxX - 4, y: r.minY, width: 8, height: r.height).contains(p) { return .rightEdge }
+        return nil
+    }
+
+    /// 把可能 origin 在左下/右下 的 rect 规范成「origin 在左下、w/h 为正」
+    private func normalized(_ r: NSRect) -> NSRect {
+        var x = r.origin.x, y = r.origin.y, w = r.width, h = r.height
+        if w < 0 { x += w; w = -w }
+        if h < 0 { y += h; h = -h }
+        return NSRect(x: x, y: y, width: w, height: h)
+    }
+
+    // MARK: 绘制
+
+    override func resetCursorRects() {
+        guard mode == .adjusting else { return }
+        for r in handleRectsForCursor() {
+            addCursorRect(r.rect, cursor: r.cursor)
+        }
+    }
+
+    private func handleRectsForCursor() -> [(rect: NSRect, cursor: NSCursor)] {
+        let r = selectionRect
+        let hs = handleSize
+        return [
+            (NSRect(x: r.minX - hs, y: r.minY - hs, width: hs * 2, height: hs * 2), .crosshair),
+            (NSRect(x: r.maxX - hs, y: r.minY - hs, width: hs * 2, height: hs * 2), .crosshair),
+            (NSRect(x: r.minX - hs, y: r.maxY - hs, width: hs * 2, height: hs * 2), .crosshair),
+            (NSRect(x: r.maxX - hs, y: r.maxY - hs, width: hs * 2, height: hs * 2), .crosshair),
+            (NSRect(x: r.minX, y: r.minY - 4, width: r.width, height: 8), .resizeUpDown),
+            (NSRect(x: r.minX, y: r.maxY - 4, width: r.width, height: 8), .resizeUpDown),
+            (NSRect(x: r.minX - 4, y: r.minY, width: 8, height: r.height), .resizeLeftRight),
+            (NSRect(x: r.maxX - 4, y: r.minY, width: 8, height: r.height), .resizeLeftRight),
+        ]
+    }
+
     override func draw(_ dirtyRect: NSRect) {
-        // 半透明黑底已经由 NSWindow.backgroundColor 提供，这里画矩形高亮
         guard let ctx = NSGraphicsContext.current?.cgContext else { return }
 
-        // 矩形外：再加深一点（让选区更突出）
-        ctx.setFillColor(NSColor(white: 0, alpha: 0.2).cgColor)
+        // 外围蒙版
+        ctx.setFillColor(NSColor(white: 0, alpha: 0.3).cgColor)
         ctx.fill(bounds)
 
-        // 矩形内：清空（去掉加深）
-        if selectionRect.width > 0 && selectionRect.height > 0 {
-            ctx.setBlendMode(.clear)
-            ctx.fill(selectionRect)
-            ctx.setBlendMode(.normal)
+        guard selectionRect.width > 0, selectionRect.height > 0 else { return }
 
-            // 边框：白色 + 蓝色阴影
-            ctx.setStrokeColor(NSColor.white.cgColor)
-            ctx.setLineWidth(1.5)
-            ctx.stroke(selectionRect.insetBy(dx: 0.5, dy: 0.5))
+        // 边框
+        ctx.setStrokeColor(NSColor.systemBlue.cgColor)
+        ctx.setLineWidth(2)
+        ctx.stroke(selectionRect.insetBy(dx: 1, dy: 1))
 
-            // 角落标记
-            let handleSize: CGFloat = 6
-            let handles: [NSPoint] = [
-                NSPoint(x: selectionRect.minX, y: selectionRect.minY),
-                NSPoint(x: selectionRect.maxX, y: selectionRect.minY),
-                NSPoint(x: selectionRect.minX, y: selectionRect.maxY),
-                NSPoint(x: selectionRect.maxX, y: selectionRect.maxY),
-            ]
-            ctx.setFillColor(NSColor.systemBlue.cgColor)
-            for p in handles {
-                ctx.fill(NSRect(x: p.x - handleSize / 2, y: p.y - handleSize / 2, width: handleSize, height: handleSize))
-            }
-
-            // 尺寸提示（右下角）
-            let sizeText = "\(Int(selectionRect.width)) × \(Int(selectionRect.height))"
-            let attrs: [NSAttributedString.Key: Any] = [
-                .font: NSFont.systemFont(ofSize: 11, weight: .medium),
-                .foregroundColor: NSColor.white,
-            ]
-            let textSize = (sizeText as NSString).size(withAttributes: attrs)
-            let textOrigin = NSPoint(
-                x: selectionRect.maxX - textSize.width - 8,
-                y: selectionRect.maxY + 4
-            )
-            // 文字背景
-            ctx.setFillColor(NSColor(white: 0, alpha: 0.6).cgColor)
-            ctx.fill(NSRect(x: textOrigin.x - 4, y: textOrigin.y - 2, width: textSize.width + 8, height: textSize.height + 4))
-            (sizeText as NSString).draw(at: textOrigin, withAttributes: attrs)
+        if mode == .adjusting {
+            drawHandles(in: ctx)
         }
+
+        // 尺寸提示（选区外）
+        let sizeText = "\(Int(selectionRect.width)) × \(Int(selectionRect.height))"
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 11, weight: .medium),
+            .foregroundColor: NSColor.white,
+        ]
+        let textSize = (sizeText as NSString).size(withAttributes: attrs)
+        let bgRect = NSRect(
+            x: selectionRect.maxX - textSize.width - 6,
+            y: selectionRect.maxY + 2,
+            width: textSize.width + 8,
+            height: textSize.height + 4
+        )
+        ctx.setFillColor(NSColor(white: 0, alpha: 0.7).cgColor)
+        ctx.fill(bgRect)
+        (sizeText as NSString).draw(at: NSPoint(x: bgRect.minX + 4, y: bgRect.minY + 2), withAttributes: attrs)
+    }
+
+    private func drawHandles(in ctx: CGContext) {
+        let r = selectionRect
+        let hs = handleSize
+
+        // 4 角（蓝色方块）
+        let corners: [NSPoint] = [
+            NSPoint(x: r.minX, y: r.minY),
+            NSPoint(x: r.maxX, y: r.minY),
+            NSPoint(x: r.minX, y: r.maxY),
+            NSPoint(x: r.maxX, y: r.maxY),
+        ]
+        ctx.setFillColor(NSColor.systemBlue.cgColor)
+        ctx.setStrokeColor(NSColor.white.cgColor)
+        ctx.setLineWidth(1.5)
+        for p in corners {
+            let hr = NSRect(x: p.x - hs / 2, y: p.y - hs / 2, width: hs, height: hs)
+            ctx.fill(hr)
+            ctx.stroke(hr)
+        }
+
+        // 4 边中点（小方块）
+        let edges: [NSPoint] = [
+            NSPoint(x: r.midX, y: r.minY),
+            NSPoint(x: r.midX, y: r.maxY),
+            NSPoint(x: r.minX, y: r.midY),
+            NSPoint(x: r.maxX, y: r.midY),
+        ]
+        ctx.setFillColor(NSColor.white.cgColor)
+        for p in edges {
+            let hr = NSRect(x: p.x - hs / 2 + 0.5, y: p.y - hs / 2 + 0.5, width: hs - 1, height: hs - 1)
+            ctx.fill(hr)
+        }
+    }
+}
+
+/// 标注工具类型
+enum AnnotationTool: Equatable {
+    case none       // 选区/拖拽模式（默认）
+    case rect       // 矩形
+    case arrow      // 箭头
+    case freehand   // 自由画笔
+}
+
+struct Annotation {
+    enum Kind { case rect, arrow, freehand }
+    let kind: Kind
+    let color: NSColor
+    let lineWidth: CGFloat
+    var points: [NSPoint]   // rect: [起点, 终点]; arrow: 同; freehand: 多个路径点
+}
+
+/// 标注 overlay（微信 PC 风格）：
+/// - **不截底图**，直接在屏幕坐标上画标注（与原桌面 1:1）
+/// - view 背景完全透明，下层桌面透出来
+/// - commit 时把整个 overlay window 抓图（含桌面 + 标注）
+final class AnnotationOverlayView: NSView {
+    private let baseImage: CGImage?          // 可选：nil 表示「不画底图」（微信 PC 风格）
+    private let baseRect: NSRect             // overlay view 坐标系内的位置（通常 (0,0,W,H)）
+    private(set) var annotations: [Annotation] = []
+    private var currentTool: AnnotationTool = .none
+    private var currentColor: NSColor = .systemRed
+    private var currentLineWidth: CGFloat = 3.0
+    private var inProgress: Annotation?
+
+    // 工具条（顶层）
+    private let toolbar: AnnotationToolbar
+
+    // 外部回调
+    private let onCommit: (NSImage) -> Void   // 点完成：传合成后的 NSImage
+    private let onCancel: () -> Void          // 点取消
+
+    init(
+        baseImage: CGImage?,
+        baseRect: NSRect,
+        onCommit: @escaping (NSImage) -> Void,
+        onCancel: @escaping () -> Void
+    ) {
+        self.baseImage = baseImage
+        self.baseRect = baseRect
+        self.onCommit = onCommit
+        self.onCancel = onCancel
+        self.toolbar = AnnotationToolbar(frame: .zero)
+
+        super.init(frame: baseRect)
+
+        // 背景完全透明，让下层桌面透上来
+        wantsLayer = true
+        layer?.backgroundColor = NSColor.clear.cgColor
+
+        // 工具条放在底部居中
+        toolbar.translatesAutoresizingMaskIntoConstraints = false
+        toolbar.onToolChanged = { [weak self] tool in
+            self?.currentTool = tool
+            self?.window?.invalidateCursorRects(for: self!)
+        }
+        toolbar.onColorChanged = { [weak self] color in
+            self?.currentColor = color
+        }
+        toolbar.onLineWidthChanged = { [weak self] width in
+            self?.currentLineWidth = width
+        }
+        toolbar.onCommit = { [weak self] in
+            self?.commit()
+        }
+        toolbar.onCancel = { [weak self] in
+            self?.cancel()
+        }
+        toolbar.onUndo = { [weak self] in
+            guard let self = self else { return }
+            if !self.annotations.isEmpty {
+                self.annotations.removeLast()
+                self.needsDisplay = true
+            }
+        }
+        addSubview(toolbar)
+
+        NSLayoutConstraint.activate([
+            toolbar.centerXAnchor.constraint(equalTo: centerXAnchor),
+            toolbar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
+            toolbar.heightAnchor.constraint(equalToConstant: 36),
+        ])
+
+        wantsLayer = true
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override var acceptsFirstResponder: Bool { true }
+
+    override func resetCursorRects() {
+        let crosshair = NSCursor.crosshair
+        let r = bounds
+        addCursorRect(r, cursor: crosshair)
+    }
+
+    // MARK: 鼠标事件
+
+    override func mouseDown(with event: NSEvent) {
+        guard currentTool != .none else { return }
+        let p = convert(event.locationInWindow, from: nil)
+        inProgress = Annotation(
+            kind: kindForTool(currentTool),
+            color: currentColor,
+            lineWidth: currentLineWidth,
+            points: [p]
+        )
+        needsDisplay = true
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        guard var ann = inProgress else { return }
+        let p = convert(event.locationInWindow, from: nil)
+        switch ann.kind {
+        case .rect, .arrow:
+            ann.points = [ann.points[0], p]
+        case .freehand:
+            ann.points.append(p)
+        }
+        inProgress = ann
+        needsDisplay = true
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        guard let ann = inProgress else { return }
+        annotations.append(ann)
+        inProgress = nil
+        needsDisplay = true
+    }
+
+    // MARK: 合成 + 提交/取消
+
+    private func commit() {
+        // 微信 PC 风格：直接抓整个 window（含桌面透出来的部分 + 标注）
+        let composite = window?.snapshotAsImage() ?? NSImage(size: bounds.size)
+        onCommit(composite)
+        window?.orderOut(nil)
+    }
+
+    private func cancel() {
+        onCancel()
+        window?.orderOut(nil)
+    }
+
+    private func kindForTool(_ tool: AnnotationTool) -> Annotation.Kind {
+        switch tool {
+        case .rect: return .rect
+        case .arrow: return .arrow
+        case .freehand: return .freehand
+        case .none: return .freehand
+        }
+    }
+
+    private func drawAnnotation(_ ann: Annotation, in ctx: CGContext) {
+        ctx.setStrokeColor(ann.color.cgColor)
+        ctx.setFillColor(ann.color.cgColor)
+        ctx.setLineWidth(ann.lineWidth)
+        ctx.setLineCap(.round)
+        ctx.setLineJoin(.round)
+
+        switch ann.kind {
+        case .rect:
+            guard ann.points.count >= 2 else { return }
+            let p1 = ann.points[0]
+            let p2 = ann.points[1]
+            let r = NSRect(
+                x: min(p1.x, p2.x), y: min(p1.y, p2.y),
+                width: abs(p2.x - p1.x), height: abs(p2.y - p1.y)
+            )
+            ctx.stroke(r)
+        case .arrow:
+            guard ann.points.count >= 2 else { return }
+            let p1 = ann.points[0]
+            let p2 = ann.points[1]
+            // 直线
+            ctx.move(to: p1)
+            ctx.addLine(to: p2)
+            ctx.strokePath()
+            // 箭头
+            let angle = atan2(p2.y - p1.y, p2.x - p1.x)
+            let arrowLength: CGFloat = 12
+            let arrowAngle: CGFloat = .pi / 7
+            let pA = NSPoint(
+                x: p2.x - arrowLength * cos(angle - arrowAngle),
+                y: p2.y - arrowLength * sin(angle - arrowAngle)
+            )
+            let pB = NSPoint(
+                x: p2.x - arrowLength * cos(angle + arrowAngle),
+                y: p2.y - arrowLength * sin(angle + arrowAngle)
+            )
+            ctx.move(to: p2)
+            ctx.addLine(to: pA)
+            ctx.addLine(to: pB)
+            ctx.closePath()
+            ctx.fillPath()
+        case .freehand:
+            guard ann.points.count >= 2 else { return }
+            ctx.move(to: ann.points[0])
+            for p in ann.points.dropFirst() {
+                ctx.addLine(to: p)
+            }
+            ctx.strokePath()
+        }
+    }
+
+    // MARK: view 绘制（实时显示标注预览）
+
+    override func draw(_ dirtyRect: NSRect) {
+        guard let ctx = NSGraphicsContext.current?.cgContext else { return }
+
+        // 底图（可选）：baseImage 不为 nil 时才画（向后兼容）
+        if let img = baseImage {
+            let nsImage = NSImage(cgImage: img, size: NSSize(width: img.width, height: img.height))
+            let scale = baseRect.width / CGFloat(img.width)
+            ctx.saveGState()
+            ctx.scaleBy(x: scale, y: scale)
+            nsImage.draw(
+                in: NSRect(origin: .zero, size: NSSize(width: img.width, height: img.height)),
+                from: NSRect(origin: .zero, size: NSSize(width: img.width, height: img.height)),
+                operation: .sourceOver,
+                fraction: 1.0
+            )
+            ctx.restoreGState()
+        }
+        // baseImage == nil 时：view 背景完全透明，下层桌面透出来（微信 PC 风格）
+
+        // 已完成的标注
+        for ann in annotations {
+            drawAnnotation(ann, in: ctx)
+        }
+
+        // 当前正在画的
+        if let cur = inProgress {
+            drawAnnotation(cur, in: ctx)
+        }
+
+        // 边框
+        ctx.setStrokeColor(NSColor.systemBlue.cgColor)
+        ctx.setLineWidth(2)
+        ctx.stroke(bounds)
+    }
+}
+
+// MARK: - AnnotationToolbar（标注工具条 UI）
+
+final class AnnotationToolbar: NSView {
+    var onToolChanged: ((AnnotationTool) -> Void)?
+    var onColorChanged: ((NSColor) -> Void)?
+    var onLineWidthChanged: ((CGFloat) -> Void)?
+    var onCommit: (() -> Void)?
+    var onCancel: (() -> Void)?
+    var onUndo: (() -> Void)?
+
+    private var currentTool: AnnotationTool = .none
+    private let rectButton = NSButton(title: "□", target: nil, action: nil)
+    private let arrowButton = NSButton(title: "↗", target: nil, action: nil)
+    private let freeButton = NSButton(title: "✎", target: nil, action: nil)
+    private let colorPopup = NSPopUpButton()
+    private let widthPopup = NSPopUpButton()
+    private let undoButton = NSButton(title: "撤销", target: nil, action: nil)
+    private let cancelButton = NSButton(title: "取消", target: nil, action: nil)
+    private let commitButton = NSButton(title: "完成", target: nil, action: nil)
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        wantsLayer = true
+        // 强制 opaque：白底不透明，深字清晰可见
+        layer?.backgroundColor = NSColor.white.cgColor
+        layer?.cornerRadius = 8
+        layer?.borderColor = NSColor.black.cgColor
+        layer?.borderWidth = 1.5
+        layer?.shadowColor = NSColor.black.cgColor
+        layer?.shadowRadius = 6
+        layer?.shadowOpacity = 0.4
+        layer?.shadowOffset = CGSize(width: 0, height: 3)
+
+        // 工具按钮
+        for (btn, tool) in [(rectButton, AnnotationTool.rect), (arrowButton, .arrow), (freeButton, .freehand)] {
+            btn.target = self
+            btn.action = #selector(toolClicked(_:))
+            btn.bezelStyle = .rounded
+            btn.font = NSFont.systemFont(ofSize: 14, weight: .medium)
+            btn.contentTintColor = .labelColor
+            btn.translatesAutoresizingMaskIntoConstraints = false
+            btn.tag = toolButtonTag(tool)
+            addSubview(btn)
+        }
+
+        // 颜色选择
+        colorPopup.addItems(withTitles: ["红", "黄", "蓝", "绿", "黑"])
+        colorPopup.target = self
+        colorPopup.action = #selector(colorChanged(_:))
+        colorPopup.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(colorPopup)
+
+        // 线宽选择
+        widthPopup.addItems(withTitles: ["细", "中", "粗"])
+        widthPopup.target = self
+        widthPopup.action = #selector(widthChanged(_:))
+        widthPopup.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(widthPopup)
+
+        // 操作按钮
+        for btn in [undoButton, cancelButton, commitButton] {
+            btn.bezelStyle = .rounded
+            btn.contentTintColor = .labelColor
+            btn.translatesAutoresizingMaskIntoConstraints = false
+            btn.target = self
+            btn.action = btn === undoButton ? #selector(undoClicked) :
+                         (btn === cancelButton ? #selector(cancelClicked) : #selector(commitClicked))
+            addSubview(btn)
+        }
+        // 「完成」按钮视觉强调
+        commitButton.bezelStyle = .rounded
+        commitButton.contentTintColor = .systemBlue
+
+        // 布局
+        NSLayoutConstraint.activate([
+            rectButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+            rectButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            rectButton.widthAnchor.constraint(equalToConstant: 32),
+
+            arrowButton.leadingAnchor.constraint(equalTo: rectButton.trailingAnchor, constant: 4),
+            arrowButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            arrowButton.widthAnchor.constraint(equalToConstant: 32),
+
+            freeButton.leadingAnchor.constraint(equalTo: arrowButton.trailingAnchor, constant: 4),
+            freeButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            freeButton.widthAnchor.constraint(equalToConstant: 32),
+
+            // 分隔线（视觉）
+            colorPopup.leadingAnchor.constraint(equalTo: freeButton.trailingAnchor, constant: 12),
+            colorPopup.centerYAnchor.constraint(equalTo: centerYAnchor),
+            colorPopup.widthAnchor.constraint(equalToConstant: 60),
+
+            widthPopup.leadingAnchor.constraint(equalTo: colorPopup.trailingAnchor, constant: 4),
+            widthPopup.centerYAnchor.constraint(equalTo: centerYAnchor),
+            widthPopup.widthAnchor.constraint(equalToConstant: 50),
+
+            undoButton.leadingAnchor.constraint(equalTo: widthPopup.trailingAnchor, constant: 12),
+            undoButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+
+            cancelButton.leadingAnchor.constraint(equalTo: undoButton.trailingAnchor, constant: 4),
+            cancelButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+
+            commitButton.leadingAnchor.constraint(equalTo: cancelButton.trailingAnchor, constant: 4),
+            commitButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            commitButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+        ])
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    private func toolButtonTag(_ tool: AnnotationTool) -> Int {
+        switch tool {
+        case .rect: return 1
+        case .arrow: return 2
+        case .freehand: return 3
+        case .none: return 0
+        }
+    }
+
+    @objc private func toolClicked(_ sender: NSButton) {
+        let tool: AnnotationTool
+        switch sender.tag {
+        case 1: tool = .rect
+        case 2: tool = .arrow
+        case 3: tool = .freehand
+        default: tool = .none
+        }
+        currentTool = tool
+        onToolChanged?(tool)
+    }
+
+    @objc private func colorChanged(_ sender: NSPopUpButton) {
+        let colors: [NSColor] = [.systemRed, .systemYellow, .systemBlue, .systemGreen, .black]
+        let color = colors[sender.indexOfSelectedItem.intClamped(to: 0...(colors.count - 1))]
+        onColorChanged?(color)
+    }
+
+    @objc private func widthChanged(_ sender: NSPopUpButton) {
+        let widths: [CGFloat] = [2.0, 3.0, 5.0]
+        onLineWidthChanged?(widths[sender.indexOfSelectedItem.intClamped(to: 0...(widths.count - 1))])
+    }
+
+    @objc private func undoClicked() { onUndo?() }
+    @objc private func cancelClicked() { onCancel?() }
+    @objc private func commitClicked() { onCommit?() }
+}
+
+private extension Int {
+    func intClamped(to range: ClosedRange<Int>) -> Int {
+        Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
+    }
+}
+
+// MARK: - ScreenshotOverlayWindow 入口（两阶段编排）
+
+final class ScreenshotOverlayWindow: NSWindow {
+    private var didSetupSelection = false
+
+    init(
+        selectionDidComplete: @escaping (NSRect) -> Void
+    ) {
+        let screen = NSScreen.main ?? NSScreen.screens[0]
+        let frame = screen.frame
+
+        super.init(
+            contentRect: frame,
+            styleMask: [.borderless],
+            backing: .buffered,
+            defer: false
+        )
+
+        self.level = .screenSaver
+        self.isOpaque = false
+        self.backgroundColor = NSColor(white: 0, alpha: 0.3)
+        self.ignoresMouseEvents = false
+        self.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        self.acceptsMouseMovedEvents = true
+
+        // 第一阶段：SelectionView（选区）
+        let selection = SelectionView(frame: frame) { [weak self] selectedRect in
+            self?.enterAnnotationStage(selectedRect: selectedRect)
+        }
+        self.contentView = selection
+    }
+
+    /// 选区完成后：截底图 + 切到 AnnotationOverlayView
+    private func enterAnnotationStage(selectedRect: NSRect) {
+        let inWindow = contentView?.convert(selectedRect, to: nil) ?? selectedRect
+        let screenRect = self.convertToScreen(inWindow)
+
+        // 缩 window 到选区大小（保留 origin）
+        setFrame(screenRect, display: true)
+
+        // 用 ScreenCaptureKit 截底图（cacheDisplay 抓不到下层桌面）
+        Task { @MainActor in
+            do {
+                let cgImage = try await ScreenshotCapture.captureRegion(screenRect)
+                self.installAnnotationView(baseImage: cgImage, viewSize: screenRect.size)
+            } catch {
+                LogStore.shared.append("✗ 截图失败：\(error)", source: "Screenshot")
+                self.orderOut(nil)
+            }
+        }
+    }
+
+    private func installAnnotationView(baseImage: CGImage, viewSize: NSSize) {
+        let annotationView = AnnotationOverlayView(
+            baseImage: baseImage,
+            baseRect: NSRect(origin: .zero, size: viewSize),
+            onCommit: { [weak self] composited in
+                Task { @MainActor in
+                    let pb = NSPasteboard.general
+                    pb.clearContents()
+                    pb.writeObjects([composited])
+                    LogStore.shared.append("✓ 已复制带标注的截图到剪贴板", source: "Screenshot")
+                    self?.orderOut(nil)
+                }
+            },
+            onCancel: { [weak self] in
+                self?.orderOut(nil)
+            }
+        )
+        contentView = annotationView
+        self.backgroundColor = .clear
+        self.isOpaque = false
+
+        DispatchQueue.main.async { [weak self] in
+            self?.makeFirstResponder(annotationView)
+        }
+    }
+}
+
+extension NSApplication {
+    static let screenshotTakenNotification = Notification.Name("ScreenshotTakenNotification")
+}
+
+/// 把整个 window 抓成 NSImage（含桌面透出来的部分 + 标注）
+/// 用 NSView.cacheDisplay + bitmapImageRepForCachingDisplay
+extension NSWindow {
+    func snapshotAsImage() -> NSImage {
+        guard let contentView = contentView else {
+            return NSImage(size: frame.size)
+        }
+        let bounds = contentView.bounds
+        guard bounds.width > 0, bounds.height > 0 else {
+            return NSImage(size: bounds.size)
+        }
+        guard let rep = contentView.bitmapImageRepForCachingDisplay(in: bounds) else {
+            return NSImage(size: bounds.size)
+        }
+        contentView.cacheDisplay(in: bounds, to: rep)
+        let image = NSImage(size: bounds.size)
+        image.addRepresentation(rep)
+        return image
     }
 }
 
