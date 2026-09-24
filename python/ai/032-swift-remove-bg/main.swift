@@ -5,6 +5,47 @@ import Vision
 import CoreVideo
 import CoreImage
 
+func refineMask(
+    _ maskPixelBuffer: CVPixelBuffer,
+    blurRadius: Double = 0.8
+) -> CIImage {
+
+    let maskImage = CIImage(
+        cvPixelBuffer: maskPixelBuffer
+    )
+
+    // --------------------------------------------
+    // 第一步：轻微高斯模糊
+    //
+    // 目的：
+    // 让 Mask 边缘产生自然的 alpha 过渡。
+    //
+    // radius 不要太大。
+    // 0.5 ~ 1.5 通常比较保守。
+    // --------------------------------------------
+
+    let blurredMask = maskImage
+        .applyingFilter(
+            "CIGaussianBlur",
+            parameters: [
+                kCIInputRadiusKey: blurRadius
+            ]
+        )
+
+    // --------------------------------------------
+    // GaussianBlur 会扩大 image extent。
+    //
+    // 所以把它裁回原 Mask 范围。
+    // --------------------------------------------
+
+    let refinedMask = blurredMask.cropped(
+        to: maskImage.extent
+    )
+
+    return refinedMask
+}
+
+
 // MARK: - Image Loading
 
 func loadImage(at url: URL) throws -> CGImage {
@@ -100,10 +141,11 @@ func createTransparentImage(
     let originalExtent = inputImage.extent
 
     // Vision 输出的 Mask
-    let maskImage = CIImage(
-        cvPixelBuffer: maskPixelBuffer
-    )
 
+    let maskImage = refineMask(
+        maskPixelBuffer,
+        blurRadius: 0.8
+    )
     print(
         "原图尺寸: " +
         "\(originalExtent.width) x " +
