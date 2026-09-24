@@ -1028,17 +1028,28 @@ enum ScreenshotCapture {
         case failed(Error)
     }
 
-    /// 截取屏幕指定区域（坐标是全局屏幕坐标）
-    /// 返回 CGImage，坐标系原点在左下角（macOS 屏幕坐标）
+    /// 截取屏幕指定区域（坐标是 NSView/Screen 坐标系，左下原点）
+    /// 返回 CGImage，物理像素（Retina 2x）
+    ///
+    /// 重要：SCStreamConfiguration.sourceRect 实际用 **top-left 原点**坐标系
+    /// （与 NSScreen/NSView 的 bottom-left 不同），需要翻转 Y
     static func captureRegion(_ region: NSRect) async throws -> CGImage {
         let content = try await SCShareableContent.current
         guard let display = content.displays.first else {
             throw CaptureError.noDisplay
         }
 
+        // bottom-left (region) → top-left (sourceRect)
+        let flippedY = display.frame.height - (region.origin.y + region.height)
+        let sourceRect = CGRect(
+            x: region.origin.x - display.frame.origin.x,
+            y: flippedY,
+            width: region.width,
+            height: region.height
+        )
+
         let config = SCStreamConfiguration()
-        config.sourceRect = region
-        // 注意：SCScreenshotManager 自动按 Retina 缩放（CGImage.width 是物理像素）
+        config.sourceRect = sourceRect
 
         let filter = SCContentFilter(display: display, excludingWindows: [])
         do {
