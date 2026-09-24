@@ -50,10 +50,8 @@ func generatePersonMask(
 
     let request = VNGeneratePersonSegmentationRequest()
 
-    // 最高质量模式
     request.qualityLevel = .accurate
 
-    // 输出 8-bit 单通道 Mask
     request.outputPixelFormat =
         kCVPixelFormatType_OneComponent8
 
@@ -77,51 +75,196 @@ func generatePersonMask(
 
     let mask = observation.pixelBuffer
 
-    print("Vision 人像分割完成")
     print(
-        "Mask 尺寸: \(CVPixelBufferGetWidth(mask)) x " +
+        "Mask 尺寸: " +
+        "\(CVPixelBufferGetWidth(mask)) x " +
         "\(CVPixelBufferGetHeight(mask))"
     )
 
     return mask
 }
 
-// MARK: - Save PixelBuffer as PNG
+// MARK: - Create Transparent Image
 
-func saveMaskAsPNG(
-    _ pixelBuffer: CVPixelBuffer,
-    to url: URL
-) throws {
+func createTransparentImage(
+    image: CGImage,
+    maskPixelBuffer: CVPixelBuffer
+) throws -> CGImage {
 
-    print("开始保存 Mask: \(url.path)")
+    print("开始生成透明背景图片...")
 
-    let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+    let inputImage = CIImage(
+        cgImage: image
+    )
 
-    let context = CIContext()
+    let originalExtent = inputImage.extent
 
-    guard let cgImage = context.createCGImage(
-        ciImage,
-        from: ciImage.extent
+    // Vision 输出的 Mask
+    let maskImage = CIImage(
+        cvPixelBuffer: maskPixelBuffer
+    )
+
+    print(
+        "原图尺寸: " +
+        "\(originalExtent.width) x " +
+        "\(originalExtent.height)"
+    )
+
+    print(
+        "Mask 尺寸: " +
+        "\(maskImage.extent.width) x " +
+        "\(maskImage.extent.height)"
+    )
+
+    // ------------------------------------------------
+    // 1. 把 Mask 缩放到和原图完全一致
+    // ------------------------------------------------
+
+    let scaleX =
+        originalExtent.width /
+        maskImage.extent.width
+
+    let scaleY =
+        originalExtent.height /
+        maskImage.extent.height
+
+    var resizedMask = maskImage.transformed(
+        by: CGAffineTransform(
+            scaleX: scaleX,
+            y: scaleY
+        )
+    )
+
+    // 确保 Mask 的 origin 和原图一致
+    resizedMask = resizedMask
+        .transformed(
+            by: CGAffineTransform(
+                translationX:
+                    originalExtent.minX -
+                    resizedMask.extent.minX,
+
+                y:
+                    originalExtent.minY -
+                    resizedMask.extent.minY
+            )
+        )
+
+    // ------------------------------------------------
+    // 2. 创建完全透明的背景
+    // ------------------------------------------------
+
+    let transparentBackground =
+        CIImage(
+            color: CIColor(
+                red: 0,
+                green: 0,
+                blue: 0,
+                alpha: 0
+            )
+        )
+        .cropped(
+            to: originalExtent
+        )
+
+    // ------------------------------------------------
+    // 3. CIBlendWithMask
+    // ------------------------------------------------
+
+    guard let filter = CIFilter(
+        name: "CIBlendWithMask"
     ) else {
         throw NSError(
             domain: "BackgroundRemover",
             code: 4,
             userInfo: [
                 NSLocalizedDescriptionKey:
-                    "无法从 Mask 创建 CGImage"
+                    "无法创建 CIBlendWithMask"
             ]
         )
     }
 
-    guard let destination = CGImageDestinationCreateWithURL(
-        url as CFURL,
-        "public.png" as CFString,
-        1,
-        nil
-    ) else {
+    filter.setValue(
+        inputImage,
+        forKey: kCIInputImageKey
+    )
+
+    filter.setValue(
+        transparentBackground,
+        forKey: kCIInputBackgroundImageKey
+    )
+
+    filter.setValue(
+        resizedMask,
+        forKey: kCIInputMaskImageKey
+    )
+
+    // ------------------------------------------------
+    // 4. 获取最终 CIImage
+    // ------------------------------------------------
+
+    guard let outputImage =
+        filter.outputImage else {
+
         throw NSError(
             domain: "BackgroundRemover",
             code: 5,
+            userInfo: [
+                NSLocalizedDescriptionKey:
+                    "CIBlendWithMask 没有产生输出"
+            ]
+        )
+    }
+
+    // ------------------------------------------------
+    // 5. CIImage → CGImage
+    // ------------------------------------------------
+
+    let context = CIContext()
+
+    guard let outputCGImage =
+        context.createCGImage(
+            outputImage,
+            from: originalExtent
+        )
+    else {
+
+        throw NSError(
+            domain: "BackgroundRemover",
+            code: 6,
+            userInfo: [
+                NSLocalizedDescriptionKey:
+                    "无法将 CIImage 转换为 CGImage"
+            ]
+        )
+    }
+
+    print("透明背景图片生成完成")
+
+    return outputCGImage
+}
+
+
+// MARK: - Save PNG
+
+func savePNG(
+    _ image: CGImage,
+    to url: URL
+) throws {
+
+    print("保存 PNG:")
+    print(url.path)
+
+    guard let destination =
+        CGImageDestinationCreateWithURL(
+            url as CFURL,
+            "public.png" as CFString,
+            1,
+            nil
+        )
+    else {
+        throw NSError(
+            domain: "BackgroundRemover",
+            code: 6,
             userInfo: [
                 NSLocalizedDescriptionKey:
                     "无法创建 PNG 输出"
@@ -131,14 +274,16 @@ func saveMaskAsPNG(
 
     CGImageDestinationAddImage(
         destination,
-        cgImage,
+        image,
         nil
     )
 
-    guard CGImageDestinationFinalize(destination) else {
+    guard CGImageDestinationFinalize(
+        destination
+    ) else {
         throw NSError(
             domain: "BackgroundRemover",
-            code: 6,
+            code: 7,
             userInfo: [
                 NSLocalizedDescriptionKey:
                     "PNG 保存失败"
@@ -146,7 +291,7 @@ func saveMaskAsPNG(
         )
     }
 
-    print("Mask 保存成功")
+    print("PNG 保存成功")
 }
 
 // MARK: - Main
@@ -158,9 +303,6 @@ func main() throws {
     guard arguments.count >= 2 else {
         print("用法:")
         print("  BackgroundRemover <input-image>")
-        print("")
-        print("例如:")
-        print("  BackgroundRemover test.jpeg")
         return
     }
 
@@ -170,49 +312,57 @@ func main() throws {
         fileURLWithPath: inputPath
     )
 
-    // 输出到输入图片所在目录
+    // 输出文件名
     let outputURL = inputURL
         .deletingPathExtension()
-        .appendingPathExtension("mask.png")
+        .appendingPathExtension(
+            "transparent.png"
+        )
 
     // 1. 读取原图
+
     let image = try loadImage(
         at: inputURL
     )
 
     print("")
     print("图片读取成功")
-    print("文件: \(inputURL.path)")
     print(
         "尺寸: \(image.width) x \(image.height)"
     )
-    print(
-        "bitsPerComponent: \(image.bitsPerComponent)"
-    )
-    print(
-        "bitsPerPixel: \(image.bitsPerPixel)"
-    )
-    print(
-        "alphaInfo: \(image.alphaInfo)"
-    )
     print("")
 
-    // 2. Vision 生成人像 Mask
+    // 2. Vision 人像分割
+
     let mask = try generatePersonMask(
         from: image
     )
 
     print("")
 
-    // 3. 保存 Mask
-    try saveMaskAsPNG(
-        mask,
+    // 3. Mask → Alpha → 透明图片
+
+    let transparentImage =
+        try createTransparentImage(
+            image: image,
+            maskPixelBuffer: mask
+        )
+
+    print("")
+
+    // 4. 保存 PNG
+
+    try savePNG(
+        transparentImage,
         to: outputURL
     )
 
     print("")
-    print("完成")
-    print("输出: \(outputURL.path)")
+    print("================================")
+    print("处理完成")
+    print("输出:")
+    print(outputURL.path)
+    print("================================")
 }
 
 do {
