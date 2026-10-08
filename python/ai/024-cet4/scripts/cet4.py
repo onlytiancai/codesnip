@@ -17,7 +17,7 @@ from pathlib import Path
 
 # scripts/cet4.py -> 仓库根
 ROOT = Path(__file__).resolve().parent.parent
-JSON_PATH = ROOT / "CET4_2.json"
+JSON_PATH = ROOT / "vocab_all.json"  # 由 scripts/build-vocab.py 合并生成
 INDEX_PATH = JSON_PATH.with_suffix(".idx")
 INDEX_VERSION = 1  # 索引格式版本，未来字段调整时一并失效
 
@@ -138,7 +138,7 @@ def format_detail(row: dict) -> str:
         lines.append(f"# {word_id}")
     lines.append("─" * max(40, len(title)))
 
-    # 释义
+    # 释义（中英双语：中文释义 + 英文释义各占一行）
     trans = c.get("trans") or []
     if trans:
         lines.append("【释义】")
@@ -146,16 +146,14 @@ def format_detail(row: dict) -> str:
             pos = t.get("pos") or ""
             cn = t.get("tranCn") or ""
             other = t.get("tranOther") or ""
-            desc_cn = t.get("descCn") or ""
-            desc_other = t.get("descOther") or ""
             head_txt = pos or ""
-            body = cn or other
-            if not body and not head_txt:
+            if not (head_txt or cn or other):
                 continue
-            line = f"  {head_txt} {body}".rstrip()
-            if desc_cn or desc_other:
-                line += f"  —— {desc_cn}" + (f" / {desc_other}" if desc_other else "")
-            lines.append(line)
+            cn_line = f"  {head_txt} {cn}".rstrip() if cn else f"  {head_txt}".rstrip()
+            lines.append(cn_line)
+            if other:
+                # 英文释义作为下一行，缩进对齐到中文释义的开头
+                lines.append(f"    英 {other}")
 
     # 例句
     sentences = _safe(c, "sentence", "sentences", default=[]) or []
@@ -237,6 +235,75 @@ def format_detail(row: dict) -> str:
 
 
 # ---------------------------------------------------------------------------
+# 找不到时给候选 — 编辑距离 + 词形归一
+# ---------------------------------------------------------------------------
+
+# 按长度倒序，匹配时取第一个且剥后剩余长度 ≥ 2
+_INFLECTION_SUFFIXES: tuple[str, ...] = (
+    "ies", "ied", "ying", "ing", "ed", "er", "est", "es", "ly", "d", "s",
+)
+
+
+def _levenshtein(a: str, b: str) -> int:
+    """经典 DP，两行滚动数组。词长都很小（≤ 30 字符），无需更花哨的算法。"""
+    if len(a) < len(b):
+        a, b = b, a
+    if not b:
+        return len(a)
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        curr = [i] + [0] * len(b)
+        for j, cb in enumerate(b, 1):
+            cost = 0 if ca == cb else 1
+            curr[j] = min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost)
+        prev = curr
+    return prev[-1]
+
+
+def _strip_suffix(word: str) -> str:
+    """剥一个常见词形后缀；剥后剩余 < 2 字符则不动。"""
+    for suf in _INFLECTION_SUFFIXES:
+        if word.endswith(suf) and len(word) - len(suf) >= 2:
+            return word[: -len(suf)]
+    return word
+
+
+def _inflection_aware_similarity(query: str, head: str) -> float:
+    """混合相似度（0..1），对常见词形变化友好。"""
+    if query == head:
+        return 1.0
+    # 1. 各自剥后缀后 stem 相等 → 强匹配
+    q_stem = _strip_suffix(query)
+    h_stem = _strip_suffix(head)
+    if q_stem and q_stem == h_stem:
+        return 0.95
+    # 2. query 是 head 的短前缀（典型截断场景：用户少打几个字母）
+    #    长度差越大越像截断 → 给一点加成；这样 "abandon" 胜过 "a"
+    if head and query and head.startswith(query):
+        diff = len(head) - len(query)
+        if 0 < diff <= 3:
+            return 0.9 + 0.05 * diff / 3
+    # 3. head 是 query 的短前缀（query 在 head 后面多带了尾巴：含形变 / 拼错尾）
+    if query and head and query.startswith(head):
+        diff = len(query) - len(head)
+        if 0 < diff <= 3:
+            return 0.9
+    # 4. 兜底：归一化编辑距离
+    dist = _levenshtein(query, head)
+    return 1.0 - dist / max(len(query), len(head), 1)
+
+
+def suggest_similar(
+    query: str, heads: list[str], k: int = 10
+) -> list[tuple[float, str]]:
+    """返回按相似度降序、score > 0 的前 k 个 (score, head) 候选。"""
+    q = query.lower()
+    scored = [(_inflection_aware_similarity(q, h.lower()), h) for h in heads]
+    scored.sort(key=lambda x: -x[0])
+    return [(s, h) for s, h in scored[:k] if s > 0]
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -268,12 +335,20 @@ def main(argv: list[str] | None = None) -> int:
     if args.word:
         key = args.word.strip()
         if key not in offsets:
-            # 友好提示：列出前 5 个候选
-            preview = ", ".join(heads[:5])
-            print(
-                f"error: 找不到 wordHead={key!r}。可选示例: {preview}…",
-                file=sys.stderr,
-            )
+            suggestions = suggest_similar(key, heads, k=10)
+            if suggestions:
+                print(
+                    f"error: 找不到 wordHead={key!r}。你可能想找:",
+                    file=sys.stderr,
+                )
+                for score, cand in suggestions:
+                    print(f"  - {cand}  (score={score:.2f})", file=sys.stderr)
+            else:
+                preview = ", ".join(heads[:5])
+                print(
+                    f"error: 找不到 wordHead={key!r}。可选示例: {preview}…",
+                    file=sys.stderr,
+                )
             return 2
         head = key
     else:
