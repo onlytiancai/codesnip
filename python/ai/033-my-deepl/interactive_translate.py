@@ -317,6 +317,17 @@ HELP_TEXT = (
 
 
 def main() -> int:
+    # Enable line editing (arrow keys, Ctrl-A/E, history) for input(). Without
+    # this, typing Chinese in the source prompt and trying to use arrow keys
+    # to move the cursor prints the raw escape sequence (e.g. "[[C", "^[[D")
+    # instead of editing the buffer. import readline patches the stdin TTY
+    # mode for the lifetime of the process; the import has no effect on
+    # Windows (readline is unavailable there) and is safe to no-op.
+    try:
+        import readline  # noqa: F401
+    except ImportError:
+        pass
+
     print("Interactive translation. (h for help)")
     print()
 
