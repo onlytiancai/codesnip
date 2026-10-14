@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Interactive translation with word-level replacement suggestions.
+"""Interactive translation with suffix-level replacement suggestions.
 
 REPL flow:
     > Chinese sentence                 -> translate, show sentence + numbered words
-    Word # to replace: <n>             -> ask LLM for single-word alternatives
-    Pick: <n>                          -> substitute just that word, loop
+    Word # to replace: <n>             -> ask LLM for alternative suffixes
+    Pick: <n>                          -> substitute the suffix, loop
+
+Replacing keeps the prefix (everything before the picked word) unchanged.
+The target word is always swapped for a different word; the words after it
+may be rephrased freely (or kept similar — no requirement either way).
 
 Commands:
     /new   start a fresh session
@@ -48,11 +52,19 @@ TRANSLATE_TOOL = {
     },
 }
 
-# Replace ONLY the target word — keep the prefix and the suffix after it as-is.
-# Candidates are single words (one whitespace-separated token).
-REPLACE_WORD_TOOL = {
+# Replace the suffix starting at the target word. The prefix (everything
+# before the target) is FIXED; the target word itself MUST be replaced with a
+# different word, while the words after it are free to change (or stay).
+# Candidates are full multi-word suffixes ending with sentence-final
+# punctuation, and each candidate's first word must differ from the original
+# target word.
+REPHRASE_TOOL = {
     "name": "submit_replacements",
-    "description": "Submit single-word alternatives to replace the target word in place.",
+    "description": (
+        "Submit a list of alternative suffixes that replace the segment "
+        "starting at the target position. Each suffix's first word must "
+        "DIFFER from the original target word."
+    ),
     "input_schema": {
         "type": "object",
         "properties": {
@@ -64,9 +76,11 @@ REPLACE_WORD_TOOL = {
                     "type": "string",
                     "minLength": 1,
                     "description": (
-                        "A SINGLE word (one whitespace-separated token) that could replace "
-                        "the target word at its current position. Punctuation is allowed at "
-                        "the end (e.g. contracted forms like 'isn't' are fine as one token)."
+                        "An alternative SUFFIX replacing the segment starting at the "
+                        "target position and ending with sentence-final punctuation "
+                        "(., !, ?). The prefix before the target position is fixed "
+                        "and must NOT be included. The first word of the new suffix "
+                        "must NOT equal the original target word."
                     ),
                 },
             }
@@ -82,19 +96,28 @@ TRANSLATE_SYSTEM = (
     "Reply by calling the submit_translation tool with the translation."
 )
 
-REPLACE_WORD_SYSTEM = (
-    "You are helping the user refine a translation by substituting a SINGLE word.\n\n"
-    "Given the Chinese source, the current English sentence, and the target word to "
-    "replace, propose 5-8 single-word alternatives. The user wants to swap just that "
-    "one word — the prefix before it and the suffix after it stay EXACTLY as they are.\n\n"
+REPHRASE_SYSTEM = (
+    "You are helping the user refine a translation by replacing the suffix "
+    "starting at a specific position.\n\n"
+    "Given the Chinese source, the current English sentence, the fixed prefix, "
+    "and the original target word, propose 4-8 alternative suffixes that "
+    "rewrite the segment starting at the target position.\n\n"
     "Rules:\n"
-    "- Each candidate must be exactly ONE whitespace-separated token (e.g. 'is', "
-    "  'isn't', 'remains', 'does'). Contractions like 'isn't' or 'wasn't' count as one.\n"
-    "- Punctuation like a trailing period or comma is fine if the word naturally carries it.\n"
-    "- Candidate #1 should be the original target word (so the user can keep it if they like).\n"
-    "- Other candidates should differ in vocabulary or grammatical form but still be a "
-    "  single, sensible English word at that position.\n"
-    "- Do NOT include multi-word phrases, suffixes, or full clauses.\n"
+    "- The PREFIX before the target position is FIXED. Do NOT include it in "
+    "  the candidates — only return the suffix that replaces the target word "
+    "  onward.\n"
+    "- Each candidate's FIRST word MUST be a DIFFERENT word from the original "
+    "  target word. The user explicitly wants the current word to be replaced "
+    "  (no ties, no same-word rephrasing).\n"
+    "- Mix two kinds of candidates so the user has a real choice:\n"
+    "    a) 'Word-only' candidates: keep every word AFTER the target word "
+    "       IDENTICAL to the current English sentence, and swap only the "
+    "       target word itself. Joined with the prefix, only that one word "
+    "       changes.\n"
+    "    b) 'Full-rewrite' candidates: freely rephrase the target word AND "
+    "       the words after it, producing noticeably different phrasing.\n"
+    "  Aim for a roughly even split (e.g. half word-only, half full-rewrite). "
+    "  Do NOT make every candidate a full-rewrite.\n"
     "- Use the Chinese source to keep the meaning consistent with the original.\n"
     "- Call submit_replacements with the candidate list."
 )
@@ -132,36 +155,56 @@ class Translator:
                     return str(data["translation"]).strip()
         raise RuntimeError("LLM did not return a translation.")
 
-    def replace_word(
+    def rephrase(
         self,
         source_zh: str,
         current: str,
+        prefix: str,
         target_word: str,
     ) -> list[str]:
         user_msg = (
             f"Source (Chinese): {source_zh}\n"
             f"Current English sentence: {current}\n"
-            f"Target word to replace: {target_word!r}\n\n"
-            "Generate 5-8 single-word alternatives. Candidate #1 should be the original "
-            "target word. Other candidates should differ in vocabulary or grammatical form."
+            f"Prefix to KEEP unchanged: {prefix!r}\n"
+            f"Original target word (each candidate's FIRST word must NOT equal this): {target_word!r}\n\n"
+            "Generate 4-8 alternative suffixes starting at the target position. Each "
+            "must begin with a word DIFFERENT from the original target word. Produce "
+            "a MIX of two styles:\n"
+            "  (a) 'word-only' candidates that keep every word after the target "
+            "      IDENTICAL to the current English sentence and only swap the "
+            "      target word itself,\n"
+            "  (b) 'full-rewrite' candidates that rephrase the target word AND the "
+            "      words after it.\n"
+            "Aim for a roughly even split (e.g. half word-only, half full-rewrite). "
+            "Do NOT make every candidate a full-rewrite."
         )
         resp = self.client.messages.create(
             model=self.model,
-            system=REPLACE_WORD_SYSTEM,
-            tools=[REPLACE_WORD_TOOL],
+            system=REPHRASE_SYSTEM,
+            tools=[REPHRASE_TOOL],
             tool_choice={"type": "tool", "name": "submit_replacements"},
             messages=[{"role": "user", "content": user_msg}],
-            max_tokens=256,
+            max_tokens=512,
         )
+        raw: list[str] = []
         for block in resp.content:
             if getattr(block, "type", None) == "tool_use":
                 data = getattr(block, "input", None) or {}
                 cands = data.get("candidates", []) if isinstance(data, dict) else []
                 if isinstance(cands, list):
-                    out = [str(c).strip() for c in cands if str(c).strip()]
-                    if out:
-                        return out
-        raise RuntimeError("LLM did not return candidates.")
+                    raw = [str(c).strip() for c in cands if str(c).strip()]
+                    if raw:
+                        break
+        if not raw:
+            raise RuntimeError("LLM did not return candidates.")
+        # Defensive: drop candidates whose first word still equals the original
+        # target word. The user wants the current word replaced, so a candidate
+        # that starts with the same head word violates that intent. If filtering
+        # empties the list, fall back to the raw list so the caller still has
+        # something to pick from (or cancel with 0).
+        target_head = _first_word(target_word)
+        filtered = [c for c in raw if _first_word(c) != target_head]
+        return filtered or raw
 
 
 # --- Spinner ---------------------------------------------------------------
@@ -208,6 +251,18 @@ def tokenize(sentence: str) -> list[str]:
     return sentence.split()
 
 
+def _first_word(s: str) -> str:
+    """Lowercased first whitespace-separated token, with leading/trailing
+    punctuation stripped. Used to compare the head of a candidate suffix with
+    the original target word so we can tell whether the LLM actually swapped
+    it. 'Directly,' / 'directly.' / 'directly' all match the same head word.
+    """
+    s = s.lstrip().lstrip(",.;:!?")
+    if not s:
+        return ""
+    return s.split(maxsplit=1)[0].lower().rstrip(".,!?;:")
+
+
 def render_numbered_blocks(
     sentence: str,
     sep: str = "  ",
@@ -229,13 +284,19 @@ def render_numbered_blocks(
     return indent + sep.join(f"{i}.{w}" for i, w in enumerate(words, 1))
 
 
-def substitute_word(sentence: str, idx: int, new_word: str) -> str:
-    """Replace the idx-th word (1-based) of `sentence` with `new_word`. Other words untouched."""
-    words = tokenize(sentence)
-    if idx < 1 or idx > len(words):
-        raise ValueError(f"index {idx} out of range (sentence has {len(words)} words)")
-    words[idx - 1] = new_word
-    return " ".join(words)
+def join_sentence(prefix: str, suffix: str) -> str:
+    """Join a fixed prefix with a new suffix, handling leading punctuation cleanly.
+
+    `prefix` is everything before the target word (no trailing space). `suffix` is
+    the alternative suffix that starts with the target word. If the suffix begins
+    with a closing-glue punctuation (",", ".", "!", "?", etc.) we glue without a
+    space; otherwise insert a single space.
+    """
+    if not prefix:
+        return suffix
+    if suffix and suffix[0] in (",", ".", "!", "?", ";", ":", ")", "]", "}"):
+        return f"{prefix}{suffix}"
+    return f"{prefix} {suffix}"
 
 
 # --- REPL ------------------------------------------------------------------
@@ -248,7 +309,9 @@ HELP_TEXT = (
     "  h        show this help\n"
     "\n"
     "On the first prompt, type a Chinese sentence to translate.\n"
-    "On the next prompts, type a word number to substitute that single word.\n"
+    "On the next prompts, type a word number to rewrite the suffix starting at\n"
+    "  that word. The prefix before it stays fixed; the target word itself is always\n"
+    "  swapped for a different word, and the words after it may be rephrased.\n"
     "An empty Enter reprints the current sentence."
 )
 
@@ -341,20 +404,21 @@ def main() -> int:
             continue
 
         target_word = words[idx - 1]
+        prefix = " ".join(words[: idx - 1])
 
         try:
-            with spinner("Finding alternatives..."):
-                candidates = translator.replace_word(source_zh, current, target_word)
+            with spinner("Rephrasing..."):
+                candidates = translator.rephrase(source_zh, current, prefix, target_word)
         except Exception as e:  # noqa: BLE001
             print(f"Lookup failed: {e}")
             continue
 
-        # Each candidate is a single word; build the new sentence inline for clarity.
+        # Each candidate is a multi-word suffix; glue onto the fixed prefix for display.
         print()
-        print(f"Replacements for word #{idx} ({target_word!r}):")
+        print(f"Replacements starting at word #{idx} ({target_word!r}):")
         width = max(2, len(str(len(candidates))))
         for i, c in enumerate(candidates, 1):
-            new_sentence = substitute_word(current, idx, c)
+            new_sentence = join_sentence(prefix, c)
             print(f"  {i:>{width}}. {new_sentence}")
         print(f"  0. (cancel, keep current)")
         print()
@@ -389,7 +453,7 @@ def main() -> int:
             print(f"  (out of range; 1-{len(candidates)} or 0)")
             continue
 
-        current = substitute_word(current, idx, candidates[pick_idx - 1])
+        current = join_sentence(prefix, candidates[pick_idx - 1])
         print()
         render_translation("Updated translation")
 
