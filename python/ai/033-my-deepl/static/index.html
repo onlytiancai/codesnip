@@ -21,7 +21,6 @@
       --success-soft: #ecfdf5;
       --danger: #ef4444;
       --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
-      --shadow: 0 4px 14px rgba(0,0,0,.06);
       --radius: 12px;
     }
     * { box-sizing: border-box; }
@@ -33,12 +32,18 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      padding: 32px 16px 80px;
+      padding: 28px 0 80px;
       -webkit-font-smoothing: antialiased;
     }
-    .container { max-width: 760px; margin: 0 auto; }
-    h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -0.02em; }
-    .subtitle { color: var(--text-muted); margin: 0 0 24px; font-size: 14px; }
+    /* Wide-screen, edge-to-edge: no fixed max-width. */
+    .container {
+      width: 100%;
+      padding: 0 28px;
+    }
+    @media (min-width: 1400px) {
+      .container { padding: 0 48px; }
+    }
+    h1 { font-size: 28px; margin: 0 0 18px; letter-spacing: -0.02em; }
 
     .card {
       background: var(--surface);
@@ -48,15 +53,7 @@
       padding: 20px 22px;
       margin-bottom: 18px;
     }
-    .label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-    textarea {
+    .source-input {
       width: 100%;
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -69,7 +66,7 @@
       outline: none;
       transition: border-color .15s, box-shadow .15s;
     }
-    textarea:focus {
+    .source-input:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 3px var(--primary-soft);
     }
@@ -110,46 +107,170 @@
     .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .row.tight { gap: 6px; }
 
+    /* Layout — Chinese source on the left, English translation + candidates
+       on the right. Right column is wider since sentences typically are. */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.8fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .column { min-width: 0; }
+    @media (max-width: 760px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    /* Translation sentence container.
+       - Rewrite mode: renders one .word-token per token. Clicking a word
+         fires pickWord.
+       - Copy mode: swaps the inner content to a read-only textarea so the
+         user can drag-select an exact range for copy.
+       Mode is controlled by the [重写模式 | 复制模式] segmented control
+       below — no more click-on-empty-area magic. */
     .sentence {
       font-size: 18px;
-      line-height: 1.6;
+      line-height: 2;
       padding: 14px 16px;
       background: var(--primary-soft);
       border-radius: 8px;
       color: var(--text);
+      user-select: text;
+      -webkit-user-select: text;
     }
-    .sentence .muted { color: var(--text-muted); }
-
-    .words { display: flex; flex-wrap: wrap; gap: 6px; }
-    .word {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      cursor: pointer;
-      transition: all .12s;
-      font-size: 14px;
-      user-select: none;
-    }
-    .word:hover {
-      border-color: var(--primary);
-      background: var(--primary-soft);
-    }
-    .word .idx {
-      color: var(--text-muted);
-      font-size: 11px;
-      background: var(--surface-2);
-      padding: 1px 6px;
+    .word-token {
+      display: inline-block;
+      padding: 1px 4px;
+      margin-right: 4px;
       border-radius: 4px;
+      cursor: pointer;
+      transition: background-color .12s, color .12s;
+      user-select: text;
+      -webkit-user-select: text;
     }
-    .word.busy {
-      opacity: .5;
-      pointer-events: none;
+    .word-token:last-child { margin-right: 0; }
+    .word-token:hover {
+      background: rgba(99, 102, 241, .18);
+    }
+    /* Keep the busy highlight visible on top of hover so re-clicking the
+       same word during in-flight reads as in-progress, not "hover off". */
+    .word-token.busy,
+    .word-token.busy:hover {
+      background: var(--primary);
+      color: #fff;
     }
 
+    /* Read-only textarea shown in copy mode. Visually matches the div+span
+       view (transparent bg, inherited font) so the swap is seamless.
+       field-sizing auto-grows height to content. */
+    .sentence-textarea {
+      display: block;
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      resize: none;
+      font: inherit;
+      color: inherit;
+      line-height: inherit;
+      padding: 0;
+      margin: 0;
+      min-height: 2.5em;
+      max-height: 50vh;
+      overflow-y: auto;
+      cursor: text;
+      field-sizing: content;
+    }
+
+    .sentence-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* Segmented mode toggle. Two buttons sharing a pill background; the
+       active one is raised with a subtle shadow so the current mode is
+       unambiguous. */
+    .mode-toggle {
+      display: inline-flex;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 0;
+    }
+    .mode-btn {
+      background: transparent;
+      color: var(--text-muted);
+      padding: 5px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 6px;
+      box-shadow: none;
+    }
+    .mode-btn:hover:not(.active) { color: var(--text); }
+    .mode-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .copy-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 6px;
+    }
+    .copy-btn:hover:not(:disabled) {
+      background: var(--surface-2);
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+    .copy-btn.copied {
+      background: var(--success-soft);
+      color: var(--success);
+      border-color: var(--success);
+    }
+    .copy-btn.failed {
+      background: #fef2f2;
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+    .hint {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .empty { color: var(--text-muted); padding: 8px 0; font-size: 14px; }
+
+    /* Status / error — anchored to the translation card (right column) so
+       rephrase and candidate errors appear right where the user is looking,
+       not under the source input. */
+    .status {
+      font-size: 13px;
+      color: var(--text-muted);
+      min-height: 18px;
+      margin-top: 10px;
+    }
+    .status.error { color: var(--danger); }
+    .status.loading { color: var(--primary); }
+
+    /* Candidates. No "Step 3" label — just a small contextual caption
+       showing which position the suggestions start from. */
+    .candidates-cap {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .candidates-cap em {
+      font-style: normal;
+      font-weight: 600;
+      color: var(--text);
+    }
     .candidates { display: grid; gap: 8px; }
     .candidate {
       padding: 12px 14px;
@@ -163,6 +284,8 @@
       gap: 12px;
       line-height: 1.5;
       font-size: 15px;
+      user-select: text;
+      -webkit-user-select: text;
     }
     .candidate:hover {
       border-color: var(--success);
@@ -175,42 +298,6 @@
     }
     .candidate .prefix { color: var(--text-muted); }
     .candidate .suffix { font-weight: 500; }
-
-    .empty { color: var(--text-muted); padding: 8px 0; font-size: 14px; }
-
-    .status {
-      font-size: 13px;
-      color: var(--text-muted);
-      min-height: 18px;
-      padding-top: 8px;
-    }
-    .status.error { color: var(--danger); }
-    .status.loading { color: var(--primary); }
-
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: var(--primary-soft);
-      color: var(--primary-strong);
-      font-size: 11px;
-      font-weight: 500;
-      margin-left: 8px;
-      vertical-align: 1px;
-    }
-
-    .loader {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
-      border: 2px solid var(--primary-soft);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-      vertical-align: -2px;
-      margin-right: 6px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
     .toolbar {
       margin-top: 14px;
@@ -233,74 +320,126 @@
   <div id="app">
     <div class="container">
       <h1>Interactive Translation</h1>
-      <p class="subtitle">中文 → 英文;点词触发重写候选;点击候选替换当前句。</p>
 
-      <!-- Step 1: input -->
-      <div class="card">
-        <div class="label">Step 1 · 中文句子</div>
-        <textarea
-          v-model="sourceZh"
-          rows="2"
-          placeholder="例如:埃隆·马斯克不在领英上。"
-          @keydown.meta.enter="translate"
-          @keydown.ctrl.enter="translate"
-        ></textarea>
-        <div class="row" style="margin-top:12px;">
-          <button class="primary" :disabled="!sourceZh.trim() || busy.step1" @click="translate">
-            <span v-if="busy.step1"><span class="loader"></span>翻译中…</span>
-            <span v-else>翻译 →</span>
-          </button>
-          <button class="ghost" :disabled="!sourceZh && !current" @click="resetAll">重置</button>
-        </div>
-        <div
-          class="status"
-          :class="{ error: !!error, loading: busy.step1 || busy.step2 }"
-        >{{ statusText }}</div>
-      </div>
-
-      <!-- Step 2: current translation -->
-      <div class="card" v-if="current || sourceZh">
-        <div class="label">
-          Step 2 · 当前翻译
-          <span class="badge" v-if="words.length">{{ words.length }} 个词</span>
-        </div>
-        <div class="sentence" v-if="current">{{ current }}</div>
-        <div class="empty" v-else>翻译后会显示完整句子。点击下面任一词语即可改写后半部分。</div>
-        <div v-if="words.length" class="words" style="margin-top: 12px;">
-          <span
-            class="word"
-            :class="{ busy: busy.step2 }"
-            v-for="(w, i) in words"
-            :key="i"
-            @click="pickWord(i)"
-            :title="`点击改写从这个词开始的全部内容`"
-          >
-            <span class="idx">{{ i + 1 }}</span>{{ w }}
-          </span>
-        </div>
-      </div>
-
-      <!-- Step 3: candidates -->
-      <div class="card" v-if="candidates.length || busy.step2">
-        <div class="label">
-          Step 3 · 候选(从 #{{ pickedIdx + 1 }} {{ '"' + pickedWord + '"' }} 开始改写)
-        </div>
-        <div v-if="busy.step2" class="empty"><span class="loader"></span>正在生成候选…</div>
-        <div v-else class="candidates">
-          <div
-            class="candidate"
-            v-for="(c, i) in candidates"
-            :key="i"
-            @click="applyCandidate(i)"
-          >
-            <span class="idx">{{ i + 1 }}</span>
-            <span class="text">
-              <span class="prefix">{{ prefixForDisplay }}</span><span class="suffix">{{ c }}</span>
-            </span>
+      <div class="layout">
+        <!-- Left column: Chinese source -->
+        <div class="column col-left">
+          <div class="card">
+            <textarea
+              v-model="sourceZh"
+              class="source-input"
+              rows="4"
+              placeholder="例如:埃隆·马斯克不在领英上。"
+              @keydown.meta.enter="translate"
+              @keydown.ctrl.enter="translate"
+            ></textarea>
+            <div class="row" style="margin-top:12px;">
+              <button class="primary" :disabled="!sourceZh.trim() || busy.step1" @click="translate">
+                <span v-if="busy.step1"><span class="loader"></span>翻译中…</span>
+                <span v-else>翻译 →</span>
+              </button>
+              <button class="ghost" :disabled="!sourceZh && !current" @click="resetAll">重置</button>
+            </div>
           </div>
         </div>
-        <div class="toolbar" v-if="candidates.length">
-          <button class="ghost" @click="cancelCandidates">取消,保留当前</button>
+
+        <!-- Right column: English translation + candidates.
+             Translation card is always rendered so the empty hint is
+             visible from the start (no popping in/out). -->
+        <div class="column col-right">
+          <div class="card">
+            <!--
+              Two render modes inside .sentence:
+              - mode === 'rewrite' (default): word tokens (click a word → pickWord).
+              - mode === 'copy': read-only textarea (drag-select for copy).
+            -->
+            <div class="sentence" v-if="current">
+              <template v-if="mode === 'rewrite'">
+                <span
+                  v-for="(w, i) in words"
+                  :key="i"
+                  class="word-token"
+                  :class="{ busy: pickedIdx === i && busy.step2 }"
+                  @click="pickWord(i)"
+                  :title="`点击改写从这个词开始的全部内容`"
+                >{{ w }}</span>
+              </template>
+              <textarea
+                v-else
+                ref="copyTa"
+                class="sentence-textarea"
+                readonly
+                spellcheck="false"
+                :value="current"
+              ></textarea>
+            </div>
+            <div class="empty" v-else>翻译后会显示完整句子。</div>
+
+            <div class="sentence-actions" v-if="current">
+              <div class="mode-toggle" role="tablist">
+                <button
+                  class="mode-btn"
+                  :class="{ active: mode === 'rewrite' }"
+                  @click="enterRewriteMode"
+                  role="tab"
+                  :aria-selected="mode === 'rewrite'"
+                >重写模式</button>
+                <button
+                  class="mode-btn"
+                  :class="{ active: mode === 'copy' }"
+                  @click="enterCopyMode"
+                  role="tab"
+                  :aria-selected="mode === 'copy'"
+                >复制模式</button>
+              </div>
+              <button
+                class="copy-btn"
+                :class="{ copied: copyState === 'copied', failed: copyState === 'failed' }"
+                @click="copyTranslation"
+              >
+                <span v-if="copyState === 'copied'">✓ 已复制</span>
+                <span v-else-if="copyState === 'failed'">复制失败,请手动选择复制</span>
+                <span v-else>复制译文</span>
+              </button>
+              <span class="hint" v-if="mode === 'rewrite'">点击单词重写</span>
+              <span class="hint" v-else>自由选择复制</span>
+            </div>
+
+            <!-- Status / error lives with the translation card so rephrase
+                 failures surface right where the user is looking. -->
+            <div
+              class="status"
+              :class="{ error: !!error, loading: busy.step1 || busy.step2 }"
+            >{{ statusText }}</div>
+          </div>
+
+          <!-- Candidates card. Caption sits at the top (no "Step 3" label)
+               so the card still explains what it's for without feeling like
+               a wizard step. -->
+          <div class="card" v-if="candidates.length || busy.step2">
+            <div class="candidates-cap" v-if="pickedIdx >= 0">
+              从第 <em>{{ pickedIdx + 1 }}</em> 个词 <em>{{ pickedWord }}</em> 开始改写
+            </div>
+            <div v-if="busy.step2 && !candidates.length" class="empty">
+              <span class="loader"></span>正在生成候选…
+            </div>
+            <div v-else class="candidates">
+              <div
+                class="candidate"
+                v-for="(c, i) in candidates"
+                :key="i"
+                @click="applyCandidate(i)"
+              >
+                <span class="idx">{{ i + 1 }}</span>
+                <span class="text">
+                  <span class="prefix">{{ prefixForDisplay }}</span><span class="suffix">{{ c }}</span>
+                </span>
+              </div>
+            </div>
+            <div class="toolbar" v-if="candidates.length">
+              <button class="ghost" @click="cancelCandidates">取消</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -309,7 +448,7 @@
   </div>
 
   <script>
-    const { createApp, ref, computed } = Vue;
+    const { createApp, ref, computed, onBeforeUnmount, nextTick } = Vue;
 
     // --- Helpers ---------------------------------------------------------
     function tokenize(s) {
@@ -323,6 +462,12 @@
       return prefix + " " + suffix;
     }
 
+    // Burst control for rephrase clicks: collapse rapid clicks into the
+    // latest one and abort any in-flight request so the LLM endpoint isn't
+    // hammered. The user's click is acknowledged immediately via the busy
+    // highlight on the picked word; we only delay the *send*.
+    const REPHRASE_DEBOUNCE_MS = 250;
+
     createApp({
       setup() {
         const sourceZh = ref("");
@@ -332,19 +477,24 @@
         const prefix = ref("");
         const error = ref("");
         const busy = ref({ step1: false, step2: false });
+        const copyState = ref(""); // '' | 'copied' | 'failed'
+        const mode = ref("rewrite"); // 'rewrite' | 'copy'
+        const copyTa = ref(null);    // template ref to the copy-mode textarea
+
+        // --- Request lifecycle (module-scoped, NOT reactive) -------------
+        let rephraseController = null;
+        let rephraseTimer = null;
+        let rephraseSeq = 0;
+        let copyResetTimer = null;
 
         const words = computed(() => current.value ? tokenize(current.value) : []);
         const pickedWord = computed(() => words.value[pickedIdx.value] || "");
-        // Display the prefix with a trailing space; glue without space mirrors
-        // the actual join_sentence behavior so the visible text matches what
-        // would actually replace the suffix.
         const prefixForDisplay = computed(() => {
           if (!prefix.value) return "";
           const sep = candidates.value.length &&
                       ",.;:!?)]}".includes(candidates.value[0][0]) ? "" : " ";
           return prefix.value + sep;
         });
-
         const statusText = computed(() => {
           if (error.value) return error.value;
           if (busy.value.step2) return "重写中…";
@@ -352,12 +502,20 @@
           return " ";
         });
 
+        // --- Network: translate ------------------------------------------
         async function translate() {
           const text = sourceZh.value.trim();
           if (!text || busy.value.step1) return;
+          // Clear the previous translation immediately so the user sees
+          // feedback that their click was registered. The card stays
+          // visible; only the sentence area disappears until the new
+          // translation arrives.
           error.value = "";
+          current.value = "";
           candidates.value = [];
           pickedIdx.value = -1;
+          mode.value = "rewrite";
+          cancelRephrase();
           busy.value.step1 = true;
           try {
             const r = await fetch("/api/translate", {
@@ -376,21 +534,70 @@
             }
           } catch (e) {
             error.value = `翻译失败: ${e.message}`;
-            current.value = "";
           } finally {
             busy.value.step1 = false;
           }
         }
 
-        async function pickWord(i) {
-          if (!current.value || busy.value.step2) return;
+        // --- Cancel helpers ----------------------------------------------
+        function cancelRephrase() {
+          if (rephraseController) {
+            try { rephraseController.abort(); } catch (_) { /* ignore */ }
+            rephraseController = null;
+          }
+          if (rephraseTimer) {
+            clearTimeout(rephraseTimer);
+            rephraseTimer = null;
+          }
+        }
+
+        // --- Click on a word: schedule rephrase --------------------------
+        function pickWord(i) {
+          if (!current.value) return;
           error.value = "";
           pickedIdx.value = i;
           const ws = words.value;
           prefix.value = ws.slice(0, i).join(" ");
-          const target = ws[i];
           candidates.value = [];
+
+          // Cancel pending debounced send and any in-flight request so only
+          // the new pick's network traffic runs.
+          cancelRephrase();
           busy.value.step2 = true;
+
+          rephraseTimer = setTimeout(() => {
+            rephraseTimer = null;
+            sendRephrase(i);
+          }, REPHRASE_DEBOUNCE_MS);
+        }
+
+        // --- Mode switching ----------------------------------------------
+        function enterRewriteMode() {
+          if (mode.value === "rewrite") return;
+          mode.value = "rewrite";
+        }
+        async function enterCopyMode() {
+          if (mode.value === "copy") return;
+          mode.value = "copy";
+          // Wait for the v-if swap to mount the textarea, then focus it so
+          // the user can immediately drag-select (or press Cmd+A / Cmd+C).
+          await nextTick();
+          if (copyTa.value) copyTa.value.focus();
+        }
+
+        async function sendRephrase(i) {
+          const ws = words.value;
+          // The sentence may have been replaced (apply / translate) between
+          // the debounce firing and now.
+          if (!ws[i]) {
+            busy.value.step2 = false;
+            return;
+          }
+          const seq = ++rephraseSeq;
+          const target = ws[i];
+          const payloadPrefix = ws.slice(0, i).join(" ");
+          const controller = new AbortController();
+          rephraseController = controller;
           try {
             const r = await fetch("/api/rephrase", {
               method: "POST",
@@ -398,54 +605,107 @@
               body: JSON.stringify({
                 source: sourceZh.value,
                 current: current.value,
-                prefix: prefix.value,
+                prefix: payloadPrefix,
                 target_word: target,
               }),
+              signal: controller.signal,
             });
             if (!r.ok) {
               const err = await r.json().catch(() => ({ detail: r.statusText }));
               throw new Error(err.detail || `HTTP ${r.status}`);
             }
             const data = await r.json();
+            // A newer pick has superseded this request — drop silently.
+            if (seq !== rephraseSeq) return;
             candidates.value = Array.isArray(data.candidates) ? data.candidates : [];
             if (!candidates.value.length) {
               error.value = "没有候选,换个词试试";
             }
           } catch (e) {
+            if (e && e.name === "AbortError") return; // superseded by newer click
+            if (seq !== rephraseSeq) return;
             error.value = `重写失败: ${e.message}`;
             candidates.value = [];
           } finally {
-            busy.value.step2 = false;
+            if (seq === rephraseSeq) {
+              busy.value.step2 = false;
+              rephraseController = null;
+            }
           }
         }
 
         function applyCandidate(i) {
           if (i < 0 || i >= candidates.value.length) return;
           current.value = joinSentence(prefix.value, candidates.value[i]);
+          cancelRephrase();
           candidates.value = [];
           pickedIdx.value = -1;
           prefix.value = "";
+          mode.value = "rewrite";
+          busy.value.step2 = false;
         }
 
         function cancelCandidates() {
+          cancelRephrase();
           candidates.value = [];
           pickedIdx.value = -1;
           prefix.value = "";
+          busy.value.step2 = false;
+        }
+
+        // --- Copy translation to clipboard --------------------------------
+        async function copyTranslation() {
+          const text = current.value;
+          if (!text) return;
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(text);
+            } else {
+              // Fallback for non-secure contexts where the async clipboard
+              // API is unavailable (older Safari over http://, etc.).
+              const ta = document.createElement("textarea");
+              ta.value = text;
+              ta.setAttribute("readonly", "");
+              ta.style.position = "fixed";
+              ta.style.top = "-1000px";
+              ta.style.opacity = "0";
+              document.body.appendChild(ta);
+              ta.select();
+              const ok = document.execCommand("copy");
+              document.body.removeChild(ta);
+              if (!ok) throw new Error("execCommand 返回 false");
+            }
+            copyState.value = "copied";
+          } catch (e) {
+            copyState.value = "failed";
+          }
+          if (copyResetTimer) clearTimeout(copyResetTimer);
+          copyResetTimer = setTimeout(() => { copyState.value = ""; }, 1600);
         }
 
         function resetAll() {
+          cancelRephrase();
           sourceZh.value = "";
           current.value = "";
           candidates.value = [];
           pickedIdx.value = -1;
           prefix.value = "";
           error.value = "";
+          busy.value.step1 = false;
+          busy.value.step2 = false;
+          mode.value = "rewrite";
         }
+
+        onBeforeUnmount(() => {
+          cancelRephrase();
+          if (copyResetTimer) clearTimeout(copyResetTimer);
+        });
 
         return {
           sourceZh, current, candidates, pickedIdx, prefix, error, busy,
-          words, pickedWord, prefixForDisplay, statusText,
+          words, pickedWord, prefixForDisplay, copyState, mode, copyTa,
           translate, pickWord, applyCandidate, cancelCandidates, resetAll,
+          copyTranslation, enterRewriteMode, enterCopyMode,
         };
       },
     }).mount("#app");

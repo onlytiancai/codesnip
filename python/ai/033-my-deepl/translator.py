@@ -202,6 +202,16 @@ class Translator:
     rerunning with logging patched in.
     """
 
+    # Generous defaults because the Anthropic-compatible proxy we typically
+    # use (MiniMax-M3.x-Flash-Preview and friends) spends a large fraction
+    # of its output on extended thinking before producing the tool_use
+    # block. 512 was not enough — the model hit `stop_reason: max_tokens`
+    # mid-thought and never emitted the tool call, which surfaced to the
+    # web client as a 500. 2048 leaves comfortable headroom for both the
+    # thinking trace and the actual structured response.
+    MAX_TOKENS_TRANSLATE = 2048
+    MAX_TOKENS_REPHRASE = 2048
+
     def __init__(self, debug: bool = False) -> None:
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         if not api_key:
@@ -297,7 +307,7 @@ class Translator:
             "tools": [TRANSLATE_TOOL],
             "tool_choice": {"type": "tool", "name": "submit_translation"},
             "messages": [{"role": "user", "content": f"Translate: {source_zh}"}],
-            "max_tokens": 512,
+            "max_tokens": self.MAX_TOKENS_TRANSLATE,
         }
         self._dump_request("translate", request_kwargs)
         resp = self.client.messages.create(**request_kwargs)
@@ -351,13 +361,13 @@ class Translator:
             "tools": [REPHRASE_TOOL],
             "tool_choice": {"type": "tool", "name": "submit_replacements"},
             "messages": [{"role": "user", "content": user_msg}],
-            "max_tokens": 512,
+            "max_tokens": self.MAX_TOKENS_REPHRASE,
         }
         self._dump_request("rephrase", request_kwargs)
         resp = self.client.messages.create(**request_kwargs)
         self._dump_response("rephrase", resp)
         raw: list[str] = []
-        for block in resp.content:
+        for block in (getattr(resp, "content", None) or []):
             if getattr(block, "type", None) == "tool_use":
                 data = getattr(block, "input", None) or {}
                 cands = data.get("candidates", []) if isinstance(data, dict) else []
@@ -366,7 +376,18 @@ class Translator:
                     if raw:
                         break
         if not raw:
-            raise RuntimeError("LLM did not return candidates.")
+            # Soft-fail: the LLM did not emit a tool_use block (or it had no
+            # candidates). Common cause with thinking-style models is that
+            # the previous max_tokens ceiling was too low and the response
+            # cut off mid-thought. Returning [] lets the caller surface a
+            # friendly "no candidates" — the user can pick a different word
+            # and retry. The debug dump above already shows the raw response
+            # so the failure is diagnosable without a stack trace.
+            self._dump_summary(
+                "rephrase",
+                {"count": 0, "candidates": [], "note": "no tool_use block in response"},
+            )
+            return []
         target_head = _first_word(target_word)
         filtered = [c for c in raw if _first_word(c) != target_head]
         result = filtered or raw
