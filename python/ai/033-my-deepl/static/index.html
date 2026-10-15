@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Translation · Web</title>
+  <script src="https://cdn.staticfile.net/vue/3.5.22/vue.global.min.js"></script>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --surface: #ffffff;
+      --surface-2: #f3f4f6;
+      --border: #e5e7eb;
+      --border-strong: #d1d5db;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --primary: #6366f1;
+      --primary-strong: #4f46e5;
+      --primary-soft: #eef2ff;
+      --success: #10b981;
+      --success-soft: #ecfdf5;
+      --danger: #ef4444;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+      --shadow: 0 4px 14px rgba(0,0,0,.06);
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   "Helvetica Neue", "PingFang SC", "Hiragino Sans GB",
+                   "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 32px 16px 80px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 760px; margin: 0 auto; }
+    h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -0.02em; }
+    .subtitle { color: var(--text-muted); margin: 0 0 24px; font-size: 14px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 20px 22px;
+      margin-bottom: 18px;
+    }
+    .label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 16px;
+      font-family: inherit;
+      resize: vertical;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+
+    button {
+      cursor: pointer;
+      border: 0;
+      border-radius: 8px;
+      padding: 9px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: inherit;
+      transition: background .15s, transform .05s, box-shadow .15s;
+    }
+    button:active { transform: scale(0.98); }
+    button.primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 1px 2px rgba(99,102,241,.25);
+    }
+    button.primary:hover { background: var(--primary-strong); }
+    button.primary:disabled {
+      background: var(--border-strong);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    button.ghost {
+      background: transparent;
+      color: var(--text-muted);
+      padding: 9px 12px;
+    }
+    button.ghost:hover:not(:disabled) {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+    button:disabled { cursor: not-allowed; opacity: .65; }
+
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .row.tight { gap: 6px; }
+
+    .sentence {
+      font-size: 18px;
+      line-height: 1.6;
+      padding: 14px 16px;
+      background: var(--primary-soft);
+      border-radius: 8px;
+      color: var(--text);
+    }
+    .sentence .muted { color: var(--text-muted); }
+
+    .words { display: flex; flex-wrap: wrap; gap: 6px; }
+    .word {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      transition: all .12s;
+      font-size: 14px;
+      user-select: none;
+    }
+    .word:hover {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+    }
+    .word .idx {
+      color: var(--text-muted);
+      font-size: 11px;
+      background: var(--surface-2);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .word.busy {
+      opacity: .5;
+      pointer-events: none;
+    }
+
+    .candidates { display: grid; gap: 8px; }
+    .candidate {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      cursor: pointer;
+      transition: all .12s;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      line-height: 1.5;
+      font-size: 15px;
+    }
+    .candidate:hover {
+      border-color: var(--success);
+      background: var(--success-soft);
+    }
+    .candidate .idx {
+      font-weight: 600;
+      color: var(--primary);
+      min-width: 22px;
+    }
+    .candidate .prefix { color: var(--text-muted); }
+    .candidate .suffix { font-weight: 500; }
+
+    .empty { color: var(--text-muted); padding: 8px 0; font-size: 14px; }
+
+    .status {
+      font-size: 13px;
+      color: var(--text-muted);
+      min-height: 18px;
+      padding-top: 8px;
+    }
+    .status.error { color: var(--danger); }
+    .status.loading { color: var(--primary); }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary-strong);
+      font-size: 11px;
+      font-weight: 500;
+      margin-left: 8px;
+      vertical-align: 1px;
+    }
+
+    .loader {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid var(--primary-soft);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      vertical-align: -2px;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toolbar {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="container">
+      <h1>Interactive Translation</h1>
+      <p class="subtitle">中文 → 英文;点词触发重写候选;点击候选替换当前句。</p>
+
+      <!-- Step 1: input -->
+      <div class="card">
+        <div class="label">Step 1 · 中文句子</div>
+        <textarea
+          v-model="sourceZh"
+          rows="2"
+          placeholder="例如:埃隆·马斯克不在领英上。"
+          @keydown.meta.enter="translate"
+          @keydown.ctrl.enter="translate"
+        ></textarea>
+        <div class="row" style="margin-top:12px;">
+          <button class="primary" :disabled="!sourceZh.trim() || busy.step1" @click="translate">
+            <span v-if="busy.step1"><span class="loader"></span>翻译中…</span>
+            <span v-else>翻译 →</span>
+          </button>
+          <button class="ghost" :disabled="!sourceZh && !current" @click="resetAll">重置</button>
+        </div>
+        <div
+          class="status"
+          :class="{ error: !!error, loading: busy.step1 || busy.step2 }"
+        >{{ statusText }}</div>
+      </div>
+
+      <!-- Step 2: current translation -->
+      <div class="card" v-if="current || sourceZh">
+        <div class="label">
+          Step 2 · 当前翻译
+          <span class="badge" v-if="words.length">{{ words.length }} 个词</span>
+        </div>
+        <div class="sentence" v-if="current">{{ current }}</div>
+        <div class="empty" v-else>翻译后会显示完整句子。点击下面任一词语即可改写后半部分。</div>
+        <div v-if="words.length" class="words" style="margin-top: 12px;">
+          <span
+            class="word"
+            :class="{ busy: busy.step2 }"
+            v-for="(w, i) in words"
+            :key="i"
+            @click="pickWord(i)"
+            :title="`点击改写从这个词开始的全部内容`"
+          >
+            <span class="idx">{{ i + 1 }}</span>{{ w }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Step 3: candidates -->
+      <div class="card" v-if="candidates.length || busy.step2">
+        <div class="label">
+          Step 3 · 候选(从 #{{ pickedIdx + 1 }} {{ '"' + pickedWord + '"' }} 开始改写)
+        </div>
+        <div v-if="busy.step2" class="empty"><span class="loader"></span>正在生成候选…</div>
+        <div v-else class="candidates">
+          <div
+            class="candidate"
+            v-for="(c, i) in candidates"
+            :key="i"
+            @click="applyCandidate(i)"
+          >
+            <span class="idx">{{ i + 1 }}</span>
+            <span class="text">
+              <span class="prefix">{{ prefixForDisplay }}</span><span class="suffix">{{ c }}</span>
+            </span>
+          </div>
+        </div>
+        <div class="toolbar" v-if="candidates.length">
+          <button class="ghost" @click="cancelCandidates">取消,保留当前</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>Vue 3 · FastAPI · Anthropic Claude</footer>
+  </div>
+
+  <script>
+    const { createApp, ref, computed } = Vue;
+
+    // --- Helpers ---------------------------------------------------------
+    function tokenize(s) {
+      return s.split(/\s+/).filter(Boolean);
+    }
+    // Same logic as translator.join_sentence: glue without a space when the
+    // suffix starts with closing punctuation.
+    function joinSentence(prefix, suffix) {
+      if (!prefix) return suffix;
+      if (suffix && ",.;:!?)]}".includes(suffix[0])) return prefix + suffix;
+      return prefix + " " + suffix;
+    }
+
+    createApp({
+      setup() {
+        const sourceZh = ref("");
+        const current = ref("");
+        const candidates = ref([]);
+        const pickedIdx = ref(-1);
+        const prefix = ref("");
+        const error = ref("");
+        const busy = ref({ step1: false, step2: false });
+
+        const words = computed(() => current.value ? tokenize(current.value) : []);
+        const pickedWord = computed(() => words.value[pickedIdx.value] || "");
+        // Display the prefix with a trailing space; glue without space mirrors
+        // the actual join_sentence behavior so the visible text matches what
+        // would actually replace the suffix.
+        const prefixForDisplay = computed(() => {
+          if (!prefix.value) return "";
+          const sep = candidates.value.length &&
+                      ",.;:!?)]}".includes(candidates.value[0][0]) ? "" : " ";
+          return prefix.value + sep;
+        });
+
+        const statusText = computed(() => {
+          if (error.value) return error.value;
+          if (busy.value.step2) return "重写中…";
+          if (busy.value.step1) return "翻译中…";
+          return " ";
+        });
+
+        async function translate() {
+          const text = sourceZh.value.trim();
+          if (!text || busy.value.step1) return;
+          error.value = "";
+          candidates.value = [];
+          pickedIdx.value = -1;
+          busy.value.step1 = true;
+          try {
+            const r = await fetch("/api/translate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text }),
+            });
+            if (!r.ok) {
+              const err = await r.json().catch(() => ({ detail: r.statusText }));
+              throw new Error(err.detail || `HTTP ${r.status}`);
+            }
+            const data = await r.json();
+            current.value = (data.translation || "").trim();
+            if (!current.value) {
+              error.value = "服务器返回了空翻译";
+            }
+          } catch (e) {
+            error.value = `翻译失败: ${e.message}`;
+            current.value = "";
+          } finally {
+            busy.value.step1 = false;
+          }
+        }
+
+        async function pickWord(i) {
+          if (!current.value || busy.value.step2) return;
+          error.value = "";
+          pickedIdx.value = i;
+          const ws = words.value;
+          prefix.value = ws.slice(0, i).join(" ");
+          const target = ws[i];
+          candidates.value = [];
+          busy.value.step2 = true;
+          try {
+            const r = await fetch("/api/rephrase", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                source: sourceZh.value,
+                current: current.value,
+                prefix: prefix.value,
+                target_word: target,
+              }),
+            });
+            if (!r.ok) {
+              const err = await r.json().catch(() => ({ detail: r.statusText }));
+              throw new Error(err.detail || `HTTP ${r.status}`);
+            }
+            const data = await r.json();
+            candidates.value = Array.isArray(data.candidates) ? data.candidates : [];
+            if (!candidates.value.length) {
+              error.value = "没有候选,换个词试试";
+            }
+          } catch (e) {
+            error.value = `重写失败: ${e.message}`;
+            candidates.value = [];
+          } finally {
+            busy.value.step2 = false;
+          }
+        }
+
+        function applyCandidate(i) {
+          if (i < 0 || i >= candidates.value.length) return;
+          current.value = joinSentence(prefix.value, candidates.value[i]);
+          candidates.value = [];
+          pickedIdx.value = -1;
+          prefix.value = "";
+        }
+
+        function cancelCandidates() {
+          candidates.value = [];
+          pickedIdx.value = -1;
+          prefix.value = "";
+        }
+
+        function resetAll() {
+          sourceZh.value = "";
+          current.value = "";
+          candidates.value = [];
+          pickedIdx.value = -1;
+          prefix.value = "";
+          error.value = "";
+        }
+
+        return {
+          sourceZh, current, candidates, pickedIdx, prefix, error, busy,
+          words, pickedWord, prefixForDisplay, statusText,
+          translate, pickWord, applyCandidate, cancelCandidates, resetAll,
+        };
+      },
+    }).mount("#app");
+  </script>
+</body>
+</html>
