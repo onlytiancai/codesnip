@@ -1,0 +1,304 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Canvas 打砖块</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background: #0b1020;
+    color: white;
+    font-family: system-ui, sans-serif;
+  }
+  .game { width: min(92vw, 800px); }
+  .info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 16px;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    background: #111827;
+    touch-action: none;
+  }
+  button {
+    margin-top: 12px;
+    padding: 10px 18px;
+    border: 0;
+    border-radius: 8px;
+    background: #38bdf8;
+    color: #082f49;
+    font-weight: bold;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="game">
+  <div class="info">
+    <span>得分：<b id="score">0</b></span>
+    <span>生命：<b id="lives">3</b></span>
+    <span id="status">准备开始</span>
+  </div>
+  <canvas id="game" width="800" height="600"></canvas>
+  <button id="restart">重新开始</button>
+  <p>操作：← → 移动挡板，鼠标或手指也可以控制。按空格发球。</p>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const scoreEl = document.getElementById("score");
+const livesEl = document.getElementById("lives");
+const statusEl = document.getElementById("status");
+
+const W = canvas.width, H = canvas.height;
+const paddle = { x: 340, y: 560, w: 120, h: 12, speed: 8 };
+const ball = { x: 400, y: 540, r: 8, vx: 4, vy: -5 };
+
+const keys = {};
+let bricks = [];
+let score = 0, lives = 3;
+let running = false, over = false;
+let lastTime = 0;
+
+function reset() {
+  score = 0;
+  lives = 3;
+  running = false;
+  over = false;
+  paddle.x = (W - paddle.w) / 2;
+  resetBall();
+  createBricks();
+  updateUI();
+  statusEl.textContent = "按空格发球";
+  draw();
+}
+
+function resetBall() {
+  ball.x = paddle.x + paddle.w / 2;
+  ball.y = paddle.y - ball.r - 2;
+  ball.vx = 4 * (Math.random() > 0.5 ? 1 : -1);
+  ball.vy = -5;
+}
+
+function createBricks() {
+  bricks = [];
+  const rows = 5, cols = 10;
+  const gap = 8, bw = 68, bh = 22;
+  const startX = (W - cols * (bw + gap) + gap) / 2;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      bricks.push({
+        x: startX + c * (bw + gap),
+        y: 70 + r * (bh + gap),
+        w: bw, h: bh,
+        color: ["#fb7185", "#fb923c", "#facc15",
+                "#4ade80", "#38bdf8"][r],
+        alive: true
+      });
+    }
+  }
+}
+
+function updateUI() {
+  scoreEl.textContent = score;
+  livesEl.textContent = lives;
+}
+
+function start() {
+  if (over) return;
+  running = true;
+  statusEl.textContent = "游戏进行中";
+}
+
+function update(dt) {
+  if (!running || over) return;
+
+  const step = Math.min(dt / 16.67, 2);
+  if (keys.ArrowLeft) paddle.x -= paddle.speed * step;
+  if (keys.ArrowRight) paddle.x += paddle.speed * step;
+  paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
+
+  ball.x += ball.vx * step;
+  ball.y += ball.vy * step;
+
+  if (ball.x - ball.r < 0) {
+    ball.x = ball.r; ball.vx = Math.abs(ball.vx);
+  }
+  if (ball.x + ball.r > W) {
+    ball.x = W - ball.r; ball.vx = -Math.abs(ball.vx);
+  }
+  if (ball.y - ball.r < 0) {
+    ball.y = ball.r; ball.vy = Math.abs(ball.vy);
+  }
+
+  // 挡板碰撞：根据击中挡板的位置改变反弹角度
+  if (
+    ball.vy > 0 &&
+    ball.y + ball.r >= paddle.y &&
+    ball.y - ball.r <= paddle.y + paddle.h &&
+    ball.x >= paddle.x &&
+    ball.x <= paddle.x + paddle.w
+  ) {
+    const hit = (ball.x - (paddle.x + paddle.w / 2))
+                / (paddle.w / 2);
+    const angle = hit * Math.PI / 3;
+    const speed = Math.min(9, Math.hypot(ball.vx, ball.vy) + 0.1);
+    ball.vx = speed * Math.sin(angle);
+    ball.vy = -speed * Math.cos(angle);
+    ball.y = paddle.y - ball.r;
+  }
+
+  // 砖块碰撞
+  for (const b of bricks) {
+    if (!b.alive) continue;
+    if (
+      ball.x + ball.r > b.x &&
+      ball.x - ball.r < b.x + b.w &&
+      ball.y + ball.r > b.y &&
+      ball.y - ball.r < b.y + b.h
+    ) {
+      b.alive = false;
+      score += 10;
+
+      // 从水平或垂直方向反弹
+      const overlapX = Math.min(
+        ball.x + ball.r - b.x,
+        b.x + b.w - (ball.x - ball.r)
+      );
+      const overlapY = Math.min(
+        ball.y + ball.r - b.y,
+        b.y + b.h - (ball.y - ball.r)
+      );
+      if (overlapX < overlapY) ball.vx *= -1;
+      else ball.vy *= -1;
+
+      updateUI();
+      break;
+    }
+  }
+
+  if (bricks.every(b => !b.alive)) {
+    over = true;
+    running = false;
+    statusEl.textContent = "🎉 你赢了！";
+  }
+
+  if (ball.y - ball.r > H) {
+    lives--;
+    updateUI();
+    if (lives <= 0) {
+      over = true;
+      running = false;
+      statusEl.textContent = "游戏结束";
+    } else {
+      running = false;
+      resetBall();
+      statusEl.textContent = "按空格继续";
+    }
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  // 砖块
+  for (const b of bricks) {
+    if (!b.alive) continue;
+    ctx.fillStyle = b.color;
+    ctx.beginPath();
+    ctx.roundRect(b.x, b.y, b.w, b.h, 5);
+    ctx.fill();
+  }
+
+  // 挡板
+  ctx.fillStyle = "#e2e8f0";
+  ctx.beginPath();
+  ctx.roundRect(paddle.x, paddle.y, paddle.w, paddle.h, 6);
+  ctx.fill();
+
+  // 小球
+  ctx.fillStyle = "#ffffff";
+  ctx.shadowColor = "#38bdf8";
+  ctx.shadowBlur = 14;
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  if (!running && !over) {
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "20px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText("按空格开始", W / 2, 420);
+  }
+
+  if (over) {
+    ctx.fillStyle = "rgba(2, 6, 23, 0.72)";
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 34px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText(
+      bricks.every(b => !b.alive) ? "恭喜通关！" : "游戏结束",
+      W / 2, H / 2
+    );
+    ctx.font = "18px system-ui";
+    ctx.fillText("点击重新开始", W / 2, H / 2 + 42);
+  }
+}
+
+function loop(time) {
+  const dt = lastTime ? time - lastTime : 16.67;
+  lastTime = time;
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+document.addEventListener("keydown", e => {
+  if (["ArrowLeft", "ArrowRight", " "].includes(e.key)) {
+    e.preventDefault();
+  }
+  keys[e.key] = true;
+  if (e.code === "Space") start();
+});
+
+document.addEventListener("keyup", e => {
+  keys[e.key] = false;
+});
+
+function movePaddle(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scale = W / rect.width;
+  paddle.x = (e.clientX - rect.left) * scale - paddle.w / 2;
+  paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
+  if (!running && !over) {
+    ball.x = paddle.x + paddle.w / 2;
+  }
+}
+
+canvas.addEventListener("pointermove", movePaddle);
+canvas.addEventListener("pointerdown", e => {
+  movePaddle(e);
+  if (!over) start();
+});
+
+document.getElementById("restart").addEventListener("click", reset);
+
+reset();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
