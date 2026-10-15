@@ -17,7 +17,9 @@ Commands:
 
 from __future__ import annotations
 
+import argparse
 import itertools
+import json
 import os
 import sys
 import threading
@@ -31,6 +33,18 @@ import anthropic  # type: ignore[import-not-found]
 
 
 MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-haiku-4-5")
+
+
+# Module-level debug flag. Set by parse_args() before Translator is constructed.
+# When True, Translator dumps full request/response JSON to stderr around every
+# API call and the spinner suppresses its TTY animation (since the dump itself
+# flows to stderr and would otherwise be overwritten frame-by-frame).
+_DEBUG = False
+
+
+def _set_debug(flag: bool) -> None:
+    global _DEBUG
+    _DEBUG = flag
 
 
 # --- LLM tool schemas ------------------------------------------------------
@@ -129,7 +143,7 @@ REPHRASE_SYSTEM = (
 class Translator:
     """Thin Anthropic wrapper for translate and replace-word."""
 
-    def __init__(self) -> None:
+    def __init__(self, debug: bool = False) -> None:
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         if not api_key:
             raise RuntimeError("ANTHROPIC_API_KEY is not set.")
@@ -138,21 +152,27 @@ class Translator:
             kwargs["base_url"] = os.environ["ANTHROPIC_BASE_URL"]
         self.client = anthropic.Anthropic(**kwargs)
         self.model = MODEL
+        self.debug = debug
 
     def translate(self, source_zh: str) -> str:
-        resp = self.client.messages.create(
-            model=self.model,
-            system=TRANSLATE_SYSTEM,
-            tools=[TRANSLATE_TOOL],
-            tool_choice={"type": "tool", "name": "submit_translation"},
-            messages=[{"role": "user", "content": f"Translate: {source_zh}"}],
-            max_tokens=512,
-        )
+        request_kwargs = {
+            "model": self.model,
+            "system": TRANSLATE_SYSTEM,
+            "tools": [TRANSLATE_TOOL],
+            "tool_choice": {"type": "tool", "name": "submit_translation"},
+            "messages": [{"role": "user", "content": f"Translate: {source_zh}"}],
+            "max_tokens": 512,
+        }
+        _dump_request("translate", request_kwargs)
+        resp = self.client.messages.create(**request_kwargs)
+        _dump_response("translate", resp)
         for block in resp.content:
             if getattr(block, "type", None) == "tool_use":
                 data = getattr(block, "input", None) or {}
                 if isinstance(data, dict) and data.get("translation"):
-                    return str(data["translation"]).strip()
+                    result = str(data["translation"]).strip()
+                    _dump_summary("translate", {"translation": result})
+                    return result
         raise RuntimeError("LLM did not return a translation.")
 
     def rephrase(
@@ -178,14 +198,17 @@ class Translator:
             "Aim for a roughly even split (e.g. half word-only, half full-rewrite). "
             "Do NOT make every candidate a full-rewrite."
         )
-        resp = self.client.messages.create(
-            model=self.model,
-            system=REPHRASE_SYSTEM,
-            tools=[REPHRASE_TOOL],
-            tool_choice={"type": "tool", "name": "submit_replacements"},
-            messages=[{"role": "user", "content": user_msg}],
-            max_tokens=512,
-        )
+        request_kwargs = {
+            "model": self.model,
+            "system": REPHRASE_SYSTEM,
+            "tools": [REPHRASE_TOOL],
+            "tool_choice": {"type": "tool", "name": "submit_replacements"},
+            "messages": [{"role": "user", "content": user_msg}],
+            "max_tokens": 512,
+        }
+        _dump_request("rephrase", request_kwargs)
+        resp = self.client.messages.create(**request_kwargs)
+        _dump_response("rephrase", resp)
         raw: list[str] = []
         for block in resp.content:
             if getattr(block, "type", None) == "tool_use":
@@ -204,7 +227,81 @@ class Translator:
         # something to pick from (or cancel with 0).
         target_head = _first_word(target_word)
         filtered = [c for c in raw if _first_word(c) != target_head]
-        return filtered or raw
+        result = filtered or raw
+        _dump_summary("rephrase", {"count": len(result), "candidates": result})
+        return result
+
+
+# --- Debug helpers ---------------------------------------------------------
+
+
+def _dump_request(name: str, fields: dict) -> None:
+    """Pretty-print each request field to stderr as labeled JSON. No-op when off."""
+    if not _DEBUG:
+        return
+    sys.stderr.write(f"\n[debug] ── {name} request ──\n")
+    for k, v in fields.items():
+        sys.stderr.write(f"  {k}:\n")
+        for line in json.dumps(v, ensure_ascii=False, indent=2).splitlines():
+            sys.stderr.write(f"    {line}\n")
+    sys.stderr.flush()
+
+
+def _dump_response(name: str, resp) -> None:
+    """Pretty-print the API response to stderr. No-op when off."""
+    if not _DEBUG:
+        return
+    sys.stderr.write(f"[debug] ── {name} response ──\n")
+    sys.stderr.write(json.dumps(_resp_to_dict(resp), ensure_ascii=False, indent=2, default=str))
+    sys.stderr.write("\n")
+    sys.stderr.flush()
+
+
+def _dump_summary(label: str, obj: dict) -> None:
+    """Short one-line '✓' confirmation after a successful call. No-op when off."""
+    if not _DEBUG:
+        return
+    sys.stderr.write(f"[debug] ✓ {label}: {json.dumps(obj, ensure_ascii=False, default=str)}\n")
+    sys.stderr.flush()
+
+
+def _resp_to_dict(resp) -> dict:
+    """Serialize an anthropic Message response to a JSON-safe dict.
+
+    Prefers pydantic v2 `model_dump()` when available, otherwise walks the
+    response attributes manually so we stay compatible with older SDK shapes.
+    """
+    if hasattr(resp, "model_dump"):
+        try:
+            return resp.model_dump()
+        except Exception:  # noqa: BLE001
+            pass
+    blocks: list[dict] = []
+    for b in (getattr(resp, "content", None) or []):
+        d: dict = {"type": getattr(b, "type", None)}
+        if d["type"] == "tool_use":
+            d["id"] = getattr(b, "id", None)
+            d["name"] = getattr(b, "name", None)
+            d["input"] = getattr(b, "input", None)
+        elif d["type"] == "text":
+            d["text"] = getattr(b, "text", None)
+        blocks.append(d)
+    usage = getattr(resp, "usage", None)
+    usage_dict: dict | None = None
+    if usage is not None:
+        usage_dict = {
+            "input_tokens": getattr(usage, "input_tokens", None),
+            "output_tokens": getattr(usage, "output_tokens", None),
+            "cache_creation_input_tokens": getattr(usage, "cache_creation_input_tokens", None),
+            "cache_read_input_tokens": getattr(usage, "cache_read_input_tokens", None),
+        }
+    return {
+        "id": getattr(resp, "id", None),
+        "model": getattr(resp, "model", None),
+        "stop_reason": getattr(resp, "stop_reason", None),
+        "content": blocks,
+        "usage": usage_dict,
+    }
 
 
 # --- Spinner ---------------------------------------------------------------
@@ -215,7 +312,18 @@ _SPINNER_CHARS = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
 
 @contextmanager
 def spinner(message: str):
-    """Print a one-line spinner to stderr while the body runs. Cleared on exit."""
+    """Print a one-line spinner to stderr while the body runs. Cleared on exit.
+
+    With --debug, skip the spinner entirely: the request/response dump already
+    announces what is happening (and the per-frame TTY animation would clobber
+    the dump lines as they scroll by). A single 'Translating...' line is printed
+    instead, for parity with what the spinner would have shown first.
+    """
+    if _DEBUG:
+        sys.stderr.write(f"{message}\n")
+        sys.stderr.flush()
+        yield
+        return
     stop = threading.Event()
 
     def run() -> None:
@@ -299,6 +407,27 @@ def join_sentence(prefix: str, suffix: str) -> str:
     return f"{prefix} {suffix}"
 
 
+# --- CLI -------------------------------------------------------------------
+
+
+def parse_args(argv: list[str] | None = None) -> bool:
+    """Parse sys.argv and return the --debug flag. Exits with usage on error."""
+    parser = argparse.ArgumentParser(
+        prog="interactive_translate",
+        description="Interactive translation with suffix-level replacement suggestions.",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help=(
+            "Print every LLM request and response to stderr in full, and "
+            "suppress the spinner (the dump replaces it visually)."
+        ),
+    )
+    args = parser.parse_args(argv)
+    return args.debug
+
+
 # --- REPL ------------------------------------------------------------------
 
 
@@ -317,6 +446,9 @@ HELP_TEXT = (
 
 
 def main() -> int:
+    debug = parse_args()
+    _set_debug(debug)
+
     # Enable line editing (arrow keys, Ctrl-A/E, history) for input(). Without
     # this, typing Chinese in the source prompt and trying to use arrow keys
     # to move the cursor prints the raw escape sequence (e.g. "[[C", "^[[D")
@@ -329,6 +461,12 @@ def main() -> int:
         pass
 
     print("Interactive translation. (h for help)")
+    if debug:
+        print(
+            "(--debug: full LLM requests and responses will be dumped to stderr; "
+            "spinner suppressed.)",
+            file=sys.stderr,
+        )
     print()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -336,7 +474,7 @@ def main() -> int:
         return 1
 
     try:
-        translator = Translator()
+        translator = Translator(debug=debug)
     except Exception as e:  # noqa: BLE001
         print(f"ERROR: could not init translator: {e}", file=sys.stderr)
         return 1
