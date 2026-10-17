@@ -79,3 +79,16 @@ server/
 │   └── utils/matchCase.ts      # Good→Great / good→great / GOOD→GREAT
 └── tests/                      # vitest
 ```
+
+server/curl-tests.sh     (executable)
+
+用法：
+```
+bash curl-tests.sh           # 跑 healthz + 1 个 translate + 1 个 rewrite（核心冒烟）
+bash curl-tests.sh healthz   # 仅 /healthz
+bash curl-tests.sh translate # /api/translate 三种 case
+bash curl-tests.sh rewrite   # /api/rewrite-word 三种 case（对比有无 sourceSentence）
+bash curl-tests.sh errors    # 4 个错误路径
+BASE=http://host:port bash curl-tests.sh   # 改 base URL
+
+```

@@ -2,8 +2,10 @@ import ollama, { type Ollama } from 'ollama'
 import { buildRewritePrompt, parseCandidates } from '../prompts/rewriteWord.js'
 
 export interface RewriteOptions {
-  /** 当前句/段落上下文，可选；用于消歧 */
+  /** 当前英文句/段落上下文，可选；用于消歧 */
   context?: string
+  /** 当前英文句子对应的中文原文，可选；提升消歧精度 */
+  sourceSentence?: string
   /** 候选数量上限，默认走 deps.defaultMaxCandidates */
   maxCandidates?: number
 }
@@ -34,7 +36,7 @@ export function createOllamaService(deps: CreateOllamaServiceOptions): OllamaSer
         throw new Error('word must be non-empty')
       }
 
-      const prompt = buildRewritePrompt(word, options?.context)
+      const prompt = buildRewritePrompt(word, options?.context, options?.sourceSentence)
       const response = await client.chat({
         model: deps.model,
         messages: [{ role: 'user', content: prompt }],

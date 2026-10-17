@@ -18,6 +18,26 @@ describe('buildRewritePrompt', () => {
     expect(p).not.toContain('Context:')
   })
 
+  it('带 sourceSentence 时附带并触发消歧提示', () => {
+    const p = buildRewritePrompt('idea', undefined, '这是个好主意。')
+    expect(p).toContain('Word: idea')
+    expect(p).toContain('Chinese source: 这是个好主意。')
+    expect(p).toMatch(/disambiguate/i)
+  })
+
+  it('sourceSentence 是空白时不附带、不触发消歧提示', () => {
+    const p = buildRewritePrompt('good', undefined, '   ')
+    expect(p).not.toContain('Chinese source:')
+    expect(p).not.toMatch(/disambiguate/i)
+  })
+
+  it('三者同时：word + context + sourceSentence', () => {
+    const p = buildRewritePrompt('good', 'This is a good idea.', '这是个好主意。')
+    expect(p).toContain('Word: good')
+    expect(p).toContain('Context: This is a good idea.')
+    expect(p).toContain('Chinese source: 这是个好主意。')
+  })
+
   it('prompt 强调 JSON-only', () => {
     const p = buildRewritePrompt('good')
     expect(p).toMatch(/JSON array/i)

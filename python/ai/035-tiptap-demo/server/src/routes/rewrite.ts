@@ -8,7 +8,11 @@ export function createRewriteRouter(service: OllamaService): Router {
   const router = Router()
 
   router.post('/api/rewrite-word', async (req, res) => {
-    const body = (req.body ?? {}) as { word?: unknown; context?: unknown }
+    const body = (req.body ?? {}) as {
+      word?: unknown
+      context?: unknown
+      sourceSentence?: unknown
+    }
 
     // 1. 校验入参
     if (typeof body.word !== 'string' || !body.word.trim()) {
@@ -21,11 +25,18 @@ export function createRewriteRouter(service: OllamaService): Router {
         error: 'context must be a string when provided',
       })
     }
+    if (body.sourceSentence !== undefined && typeof body.sourceSentence !== 'string') {
+      return res.status(400).json({
+        error: 'sourceSentence must be a string when provided',
+      })
+    }
 
     // 2. 调 Ollama service
     try {
       const candidates = await service.rewriteWord(body.word.trim(), {
         context: typeof body.context === 'string' ? body.context : undefined,
+        sourceSentence:
+          typeof body.sourceSentence === 'string' ? body.sourceSentence : undefined,
       })
       return res.json({ candidates })
     } catch (err) {

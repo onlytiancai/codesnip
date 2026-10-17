@@ -9,8 +9,13 @@
 
 export const REWRITE_WORD_SYSTEM = `You are a thesaurus assistant. Given a single English word and optional context, output 3 to 5 synonyms or near-replacement words.`
 
-export function buildRewritePrompt(word: string, context?: string): string {
+export function buildRewritePrompt(
+  word: string,
+  context?: string,
+  sourceSentence?: string,
+): string {
   const ctx = context?.trim()
+  const src = sourceSentence?.trim()
   return `${REWRITE_WORD_SYSTEM}
 
 Rules:
@@ -19,8 +24,9 @@ Rules:
 - Each candidate must keep the SAME part of speech as the input word.
 - Avoid mere morphological variants (e.g. for "big", do not return "bigger" or "biggest").
 - Preserve capitalization: if input is "Good", every candidate must be capitalized like "Great".
+${src ? '- The English sentence comes from translating the provided Chinese sentence; use the Chinese to disambiguate the English word\'s meaning before choosing synonyms.' : ''}
 
-Word: ${word}${ctx ? `\nContext: ${ctx}` : ''}
+Word: ${word}${ctx ? `\nContext: ${ctx}` : ''}${src ? `\nChinese source: ${src}` : ''}
 
 Output:`.trim()
 }
