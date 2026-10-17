@@ -20,7 +20,6 @@ function buildTranslateService(impl?: TranslateService['translate']): TranslateS
       impl ??
       vi.fn(async () => ({
         translation: 'I went to the park yesterday.',
-        sentences: [{ zh: '我昨天去公园。', en: 'I went to the park yesterday.' }],
       })),
   }
 }
@@ -41,7 +40,7 @@ describe('POST /api/translate', () => {
     app = buildApp(service)
   })
 
-  it('正常调用：返回 translation + sentences', async () => {
+  it('正常调用：返回 translation', async () => {
     const spy = vi.spyOn(service, 'translate')
     const res = await request(app)
       .post('/api/translate')
@@ -50,7 +49,6 @@ describe('POST /api/translate', () => {
     expect(res.status).toBe(200)
     expect(res.body).toEqual({
       translation: 'I went to the park yesterday.',
-      sentences: [{ zh: '我昨天去公园。', en: 'I went to the park yesterday.' }],
     })
     expect(spy).toHaveBeenCalledWith('我昨天去公园。')
   })
@@ -100,17 +98,17 @@ describe('POST /api/translate', () => {
     expect(res.body.error).toMatch(/only target="en"/)
   })
 
-  it('service 抛 JSON 解析错误 → 500', async () => {
+  it('service 抛"empty translation"错误 → 500', async () => {
     app = buildApp(
       buildTranslateService(async () => {
-        throw new Error('cannot parse JSON object from model response')
+        throw new Error('empty translation after parsing')
       }),
     )
     const res = await request(app)
       .post('/api/translate')
       .send({ text: '你好' })
     expect(res.status).toBe(500)
-    expect(res.body.error).toMatch(/JSON/)
+    expect(res.body.error).toMatch(/empty translation/)
   })
 
   it('service 抛上游错误 → 502', async () => {

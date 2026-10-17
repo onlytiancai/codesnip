@@ -6,6 +6,8 @@
 export interface RewriteRequest {
   word: string
   context?: string
+  /** 当前英文句子对应的中文原文，提升消歧精度 */
+  sourceSentence?: string
 }
 
 export interface RewriteResponse {

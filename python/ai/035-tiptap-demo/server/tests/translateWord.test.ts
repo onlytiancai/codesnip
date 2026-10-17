@@ -1,149 +1,61 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildTranslatePrompt,
-  parseTranslationResult,
+  parseTranslation,
 } from '../src/prompts/translate.js'
 
 describe('buildTranslatePrompt', () => {
   it('包含原文', () => {
     const p = buildTranslatePrompt('我昨天去公园。')
-    expect(p).toContain('我昨天去公园。')
+    expect(p).toContain('Chinese: 我昨天去公园。')
+    expect(p).toMatch(/English:/)
   })
 
-  it('强调 JSON 输出结构', () => {
+  it('简洁无 JSON 约束', () => {
     const p = buildTranslatePrompt('你好')
-    expect(p).toMatch(/JSON/)
-    expect(p).toMatch(/ONLY/)
-    expect(p).toContain('translation')
-    expect(p).toContain('sentences')
-    expect(p).toContain('zh')
-    expect(p).toContain('en')
-  })
-
-  it('强调逐句对齐', () => {
-    const p = buildTranslatePrompt('你好')
-    expect(p).toMatch(/sentence boundaries|aligned/i)
+    expect(p).not.toMatch(/JSON/)
   })
 })
 
-describe('parseTranslationResult', () => {
-  it('直接解析 JSON', () => {
-    const raw = JSON.stringify({
-      translation: 'I went to the park yesterday.',
-      sentences: [{ zh: '我昨天去公园。', en: 'I went to the park yesterday.' }],
-    })
-    expect(parseTranslationResult(raw)).toEqual({
-      translation: 'I went to the park yesterday.',
-      sentences: [{ zh: '我昨天去公园。', en: 'I went to the park yesterday.' }],
-    })
+describe('parseTranslation', () => {
+  it('纯英文一句话 → 直接返回', () => {
+    expect(parseTranslation('I went to the park yesterday.')).toBe(
+      'I went to the park yesterday.',
+    )
   })
 
-  it('剥 ```json``` 围栏', () => {
-    const raw =
-      '```json\n' +
-      JSON.stringify({
-        translation: 'Hello.',
-        sentences: [{ zh: '你好。', en: 'Hello.' }],
-      }) +
-      '\n```'
-    expect(parseTranslationResult(raw)).toEqual({
-      translation: 'Hello.',
-      sentences: [{ zh: '你好。', en: 'Hello.' }],
-    })
+  it('trim 前后空白', () => {
+    expect(parseTranslation('  Hello.  \n')).toBe('Hello.')
   })
 
-  it('剥 ``` ``` 围栏（无语言标签）', () => {
-    const raw =
-      '```\n' +
-      JSON.stringify({
-        translation: 'Hello.',
-        sentences: [{ zh: '你好。', en: 'Hello.' }],
-      }) +
-      '\n```'
-    expect(parseTranslationResult(raw).translation).toBe('Hello.')
+  it('剥 ``` ``` 围栏', () => {
+    expect(parseTranslation('```\nHello.\n```')).toBe('Hello.')
+    expect(parseTranslation('```text\nHello.\n```')).toBe('Hello.')
   })
 
-  it('从混合文本里抠出 {...}', () => {
-    const raw =
-      'Here is the result:\n' +
-      JSON.stringify({
-        translation: 'Hello.',
-        sentences: [{ zh: '你好。', en: 'Hello.' }],
-      }) +
-      '\nDone.'
-    expect(parseTranslationResult(raw).translation).toBe('Hello.')
+  it('剥 "English:" / "Translation:" 等前缀', () => {
+    expect(parseTranslation('English: Hello.')).toBe('Hello.')
+    expect(parseTranslation('Translation: Hello.')).toBe('Hello.')
+    expect(parseTranslation('英文：你好。')).toBe('你好。')
   })
 
-  it('多条句子对齐', () => {
-    const raw = JSON.stringify({
-      translation: 'I went. And saw.',
-      sentences: [
-        { zh: '我去了。', en: 'I went.' },
-        { zh: '并且看到了。', en: 'And saw.' },
-      ],
-    })
-    expect(parseTranslationResult(raw).sentences).toHaveLength(2)
+  it('剥首尾成对引号', () => {
+    expect(parseTranslation('"Hello."')).toBe('Hello.')
+    expect(parseTranslation("'Hello.'")).toBe('Hello.')
   })
 
-  it('过滤非字符串 zh/en 元素', () => {
-    const raw = JSON.stringify({
-      translation: 'Hello.',
-      sentences: [
-        { zh: '你好。', en: 'Hello.' },
-        { zh: 123, en: 'X' },
-        { zh: 'Y', en: null },
-        { zh: '', en: 'Z' },
-        { zh: 'A', en: '' },
-      ],
-    })
-    const result = parseTranslationResult(raw)
-    expect(result.sentences).toEqual([{ zh: '你好。', en: 'Hello.' }])
-  })
-
-  it('去重（同样的 zh+en 重复出现只留一次）', () => {
-    const raw = JSON.stringify({
-      translation: 'Hello.',
-      sentences: [
-        { zh: '你好。', en: 'Hello.' },
-        { zh: '你好。', en: 'Hello.' },
-      ],
-    })
-    expect(parseTranslationResult(raw).sentences).toHaveLength(1)
+  it('保留中间的标点', () => {
+    expect(parseTranslation("It's a good idea.")).toBe("It's a good idea.")
+    expect(parseTranslation('Hello, world!')).toBe('Hello, world!')
   })
 
   it('空响应抛错', () => {
-    expect(() => parseTranslationResult('')).toThrow()
-    expect(() => parseTranslationResult('   ')).toThrow()
+    expect(() => parseTranslation('')).toThrow()
+    expect(() => parseTranslation('   ')).toThrow()
   })
 
-  it('非 JSON 抛错', () => {
-    expect(() => parseTranslationResult('not a json object')).toThrow()
-  })
-
-  it('顶层不是 object 抛错', () => {
-    expect(() => parseTranslationResult('[1,2,3]')).toThrow()
-  })
-
-  it('缺 translation 字段抛错', () => {
-    const raw = JSON.stringify({ sentences: [{ zh: '你好。', en: 'Hello.' }] })
-    expect(() => parseTranslationResult(raw)).toThrow(/translation/)
-  })
-
-  it('translation 为空字符串抛错', () => {
-    const raw = JSON.stringify({ translation: '   ', sentences: [{ zh: 'a', en: 'b' }] })
-    expect(() => parseTranslationResult(raw)).toThrow(/translation/)
-  })
-
-  it('缺 sentences 数组抛错', () => {
-    const raw = JSON.stringify({ translation: 'Hi' })
-    expect(() => parseTranslationResult(raw)).toThrow(/sentences/)
-  })
-
-  it('sentences 全是非法元素 → 抛错', () => {
-    const raw = JSON.stringify({
-      translation: 'X',
-      sentences: [{ zh: 1, en: 2 }, 'not object'],
-    })
-    expect(() => parseTranslationResult(raw)).toThrow(/no valid sentences/)
+  it('只剥一层引号；不成对的引号保留', () => {
+    expect(parseTranslation('"Hello.')).toBe('"Hello.')
+    expect(parseTranslation('Hello.')).toBe('Hello.')
   })
 })

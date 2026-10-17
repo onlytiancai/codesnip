@@ -39,7 +39,7 @@ export function createTranslateRouter(service: TranslateService): Router {
         msg.includes('object') ||
         msg.includes('array') ||
         msg.includes('missing') ||
-        msg.includes('empty response') ||
+        msg.includes('empty') ||
         msg.includes('no valid')
       const status = isParseError ? 500 : 502
       return res.status(status).json({ error: msg })

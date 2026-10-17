@@ -1,7 +1,8 @@
 import ollama, { type Ollama } from 'ollama'
 import {
+  TRANSLATE_SYSTEM_PROMPT,
   buildTranslatePrompt,
-  parseTranslationResult,
+  parseTranslation,
   type TranslationResult,
 } from '../prompts/translate.js'
 
@@ -34,12 +35,15 @@ export function createTranslateService(deps: CreateTranslateServiceOptions): Tra
       if (!text || !text.trim()) {
         throw new Error('text must be non-empty')
       }
-      const prompt = buildTranslatePrompt(text)
       const response = await client.chat({
         model: deps.model,
-        messages: [{ role: 'user', content: prompt }],
+        messages: [
+          { role: 'system', content: TRANSLATE_SYSTEM_PROMPT },
+          { role: 'user', content: buildTranslatePrompt(text) },
+        ],
       })
-      return parseTranslationResult(response.message?.content ?? '')
+      const translation = parseTranslation(response.message?.content ?? '')
+      return { translation }
     },
   }
 }

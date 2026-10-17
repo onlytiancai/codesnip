@@ -1,14 +1,32 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref } from 'vue'
+import { onBeforeUnmount, ref, watch } from 'vue'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import type { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
-import { getWritingContext, EMPTY_CONTEXT, type WritingContext } from '../composables/useWritingContext'
+import {
+  EMPTY_CONTEXT,
+  getWritingContext,
+  splitEnglishSentences,
+  type WritingContext,
+} from '../composables/useWritingContext'
+import {
+  createHighlightSentenceExtension,
+  rerenderDecorations,
+} from '../composables/highlightSentence'
 import { fetchCandidates, RewriteError } from '../services/rewrite'
 import { matchCase } from '../utils/matchCase'
 
+const props = defineProps<{
+  /** 来自中文侧的高亮：中文句子 i 时，此处把英文第 i 句高亮 */
+  highlightedEnIndex: number
+  /** 当前英文句子对应的中文原文，给改写 API 当 sourceSentence */
+  chineseSentence: string
+}>()
+
 const html = defineModel<string>('html', { default: '' })
-const context = defineModel<WritingContext>('context', { default: () => ({ ...EMPTY_CONTEXT }) })
+const context = defineModel<WritingContext>('context', {
+  default: () => ({ ...EMPTY_CONTEXT }),
+})
 
 // ===== 单词选区检测 =====
 const selectedWord = ref('')
@@ -28,8 +46,7 @@ function detectSelection(editor: Editor) {
   if (/^\w+$/.test(text)) {
     selectedWord.value = text
     selectionRange.value = { from, to }
-    // 取当前段落文本作为 context（限长 200）
-    const ctxInfo = getWritingContext(editor)
+    const ctxInfo = getWritingContext(editor, splitEnglishSentences)
     paragraphText.value = (ctxInfo.paragraph || '').slice(0, 200)
   } else {
     selectedWord.value = ''
@@ -54,6 +71,7 @@ async function openRewrite() {
     candidates.value = await fetchCandidates({
       word: selectedWord.value,
       context: paragraphText.value || undefined,
+      sourceSentence: props.chineseSentence || undefined,
     })
   } catch (err) {
     errorMsg.value =
@@ -97,32 +115,49 @@ onBeforeUnmount(() => {
   closePopover()
 })
 
-// ===== editor 实例 =====
+// 暴露给父组件：翻译完成后整体替换英文段落
+defineExpose({
+  setHtml(html: string) {
+    editor.value?.commands.setContent(html)
+  },
+})
+
+// ===== 跨面板高亮 =====
+const highlightRef = ref(props.highlightedEnIndex)
+watch(
+  () => props.highlightedEnIndex,
+  (v) => {
+    highlightRef.value = v
+    if (editor.value) rerenderDecorations(editor.value)
+  },
+)
+
+// ===== editor 实例（默认空文档） =====
 const editor = useEditor({
-  content: `
-    <p>Reading is the gateway to knowledge, allowing us to explore ideas and worlds far beyond our own experience. A single book can change the way we think, teaching us empathy, patience, and curiosity about the lives of others.</p>
-    <p>When we read regularly, our minds become sharper and our vocabulary grows richer. Writers who read widely develop a natural sense of rhythm and tone that makes their own prose sing.</p>
-  `,
-  extensions: [StarterKit],
+  content: '<p></p>',
+  extensions: [
+    StarterKit,
+    createHighlightSentenceExtension(splitEnglishSentences, () => highlightRef.value),
+  ],
   onUpdate({ editor }) {
     html.value = editor.getHTML()
-    context.value = getWritingContext(editor)
+    context.value = getWritingContext(editor, splitEnglishSentences)
     detectSelection(editor)
   },
   onSelectionUpdate({ editor }) {
-    context.value = getWritingContext(editor)
+    context.value = getWritingContext(editor, splitEnglishSentences)
     detectSelection(editor)
   },
   onCreate({ editor }) {
     html.value = editor.getHTML()
-    context.value = getWritingContext(editor)
+    context.value = getWritingContext(editor, splitEnglishSentences)
     detectSelection(editor)
   },
 })
 </script>
 
 <template>
-  <div class="editor-shell" @keydown="onToolbarKeydown">
+  <div class="editor-shell en-shell" @keydown="onToolbarKeydown">
     <div v-if="editor" class="toolbar">
       <!-- 文本格式 -->
       <div class="toolbar__group">
@@ -146,28 +181,6 @@ const editor = useEditor({
           @click="editor.chain().focus().toggleUnderline().run()" title="下划线 (Ctrl+U)">
           <u>U</u>
         </button>
-      </div>
-
-      <!-- 标题 -->
-      <div class="toolbar__group">
-        <button type="button" :class="{ active: editor.isActive('heading', { level: 1 }) }"
-          @click="editor.chain().focus().toggleHeading({ level: 1 }).run()" title="标题 1">H1</button>
-        <button type="button" :class="{ active: editor.isActive('heading', { level: 2 }) }"
-          @click="editor.chain().focus().toggleHeading({ level: 2 }).run()" title="标题 2">H2</button>
-        <button type="button" :class="{ active: editor.isActive('heading', { level: 3 }) }"
-          @click="editor.chain().focus().toggleHeading({ level: 3 }).run()" title="标题 3">H3</button>
-        <button type="button" :class="{ active: editor.isActive('paragraph') }"
-          @click="editor.chain().focus().setParagraph().run()" title="正文">P</button>
-      </div>
-
-      <!-- 列表 + 引用 -->
-      <div class="toolbar__group">
-        <button type="button" :class="{ active: editor.isActive('bulletList') }"
-          @click="editor.chain().focus().toggleBulletList().run()" title="无序列表">• 列表</button>
-        <button type="button" :class="{ active: editor.isActive('orderedList') }"
-          @click="editor.chain().focus().toggleOrderedList().run()" title="有序列表">1. 列表</button>
-        <button type="button" :class="{ active: editor.isActive('blockquote') }"
-          @click="editor.chain().focus().toggleBlockquote().run()" title="引用">“ 引用</button>
       </div>
 
       <!-- 历史 -->
@@ -194,7 +207,7 @@ const editor = useEditor({
 
     <EditorContent :editor="editor" />
 
-    <!-- popover：从工具栏底部溢出显示 -->
+    <!-- popover -->
     <div v-if="popoverOpen" class="rewrite-popover" role="dialog" aria-label="替换词候选">
       <div class="rewrite-popover__header">
         <span class="rewrite-popover__title">替换 <code>{{ selectedWord }}</code></span>
