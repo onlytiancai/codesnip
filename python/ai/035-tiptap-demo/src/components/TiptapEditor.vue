@@ -1,29 +1,30 @@
 <script setup lang="ts">
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
+import { getWritingContext, EMPTY_CONTEXT, type WritingContext } from '../composables/useWritingContext'
 
 const html = defineModel<string>('html', { default: '' })
+const context = defineModel<WritingContext>('context', { default: () => ({ ...EMPTY_CONTEXT }) })
 
 const editor = useEditor({
   content: `
-    <h1>欢迎使用 Tiptap 👋</h1>
-    <p>这是一个 <strong>最小可运行</strong> 的富文本编辑器 demo，基于 <code>Vue 3 + Tiptap + Vite</code>。</p>
-    <p>试试下面这些操作：</p>
-    <ul>
-      <li>选中文字，使用工具栏加 <em>斜体</em> 或 <s>删除线</s></li>
-      <li>切换 <strong>H1 / H2</strong> 标题</li>
-      <li>用 <code>&lt;/&gt;</code> 按钮插入代码块</li>
-    </ul>
-    <blockquote>右侧会实时输出当前文档的 HTML。</blockquote>
+    <p>Reading is the gateway to knowledge, allowing us to explore ideas and worlds far beyond our own experience. A single book can change the way we think, teaching us empathy, patience, and curiosity about the lives of others.</p>
+    <p>When we read regularly, our minds become sharper and our vocabulary grows richer. Writers who read widely develop a natural sense of rhythm and tone that makes their own prose sing.</p>
   `,
   extensions: [StarterKit],
   // 文档每次更新都把最新 HTML 写回 v-model
   onUpdate({ editor }) {
     html.value = editor.getHTML()
+    context.value = getWritingContext(editor)
+  },
+  // 光标变化时同步上下文
+  onSelectionUpdate({ editor }) {
+    context.value = getWritingContext(editor)
   },
   // 编辑器创建完成时也同步一次（确保初次渲染后 HTML 输出不是空）
   onCreate({ editor }) {
     html.value = editor.getHTML()
+    context.value = getWritingContext(editor)
   },
 })
 </script>
@@ -62,12 +63,12 @@ const editor = useEditor({
         </button>
         <button
           type="button"
-          :class="{ active: editor.isActive('code') }"
-          :disabled="!editor.can().chain().focus().toggleCode().run()"
-          @click="editor.chain().focus().toggleCode().run()"
-          title="行内代码"
+          :class="{ active: editor.isActive('underline') }"
+          :disabled="!editor.can().chain().focus().toggleUnderline().run()"
+          @click="editor.chain().focus().toggleUnderline().run()"
+          title="下划线 (Ctrl+U)"
         >
-          &lt;/&gt;
+          <u>U</u>
         </button>
       </div>
 
@@ -125,32 +126,13 @@ const editor = useEditor({
         >
           1. 列表
         </button>
-      </div>
-
-      <!-- 块级 -->
-      <div class="toolbar__group">
-        <button
-          type="button"
-          :class="{ active: editor.isActive('codeBlock') }"
-          @click="editor.chain().focus().toggleCodeBlock().run()"
-          title="代码块"
-        >
-          代码块
-        </button>
         <button
           type="button"
           :class="{ active: editor.isActive('blockquote') }"
           @click="editor.chain().focus().toggleBlockquote().run()"
           title="引用"
         >
-          引用
-        </button>
-        <button
-          type="button"
-          @click="editor.chain().focus().setHorizontalRule().run()"
-          title="分隔线"
-        >
-          ―
+          “ 引用
         </button>
       </div>
 

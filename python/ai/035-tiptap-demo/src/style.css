@@ -38,7 +38,7 @@ h1 {
 
 /* ===== 应用布局 ===== */
 .app {
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1.25rem 4rem;
 }
@@ -51,6 +51,26 @@ h1 {
   color: var(--muted);
   margin: 0;
   font-size: 0.95rem;
+}
+
+.app__main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .app__main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.app__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0; /* 防止子元素溢出 grid 单元 */
 }
 
 /* ===== 编辑器外壳 ===== */
@@ -220,7 +240,6 @@ h1 {
 
 /* ===== HTML 实时输出 ===== */
 .output {
-  margin-top: 1.5rem;
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
@@ -245,8 +264,79 @@ h1 {
   font-size: 0.85rem;
   line-height: 1.55;
   color: #495057;
-  max-height: 260px;
+  max-height: 220px;
   overflow: auto;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* ===== 上下文面板 ===== */
+.ctx {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.ctx__title {
+  margin: 0;
+  padding: 8px 14px;
+  background: var(--toolbar-bg);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ctx__paragraph,
+.ctx__sentence,
+.ctx__word {
+  margin: 0;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--fg);
+  word-break: break-word;
+}
+
+.ctx__paragraph {
+  max-height: 180px;
+  overflow: auto;
+  font-size: 0.92rem;
+}
+
+.ctx__word {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--toolbar-active-bg);
+  letter-spacing: 0.01em;
+}
+
+.ctx__empty {
+  margin: 0;
+  padding: 12px 14px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* mark 高亮：句子用浅蓝底色，单词用黄色底色 */
+.ctx__hl {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border-radius: 3px;
+}
+
+.ctx__hl--sentence {
+  background: rgba(34, 139, 230, 0.12);
+  box-shadow: 0 0 0 2px rgba(34, 139, 230, 0.18);
+}
+
+.ctx__hl--word {
+  background: rgba(255, 212, 59, 0.55);
+  box-shadow: 0 0 0 2px rgba(255, 196, 0, 0.6);
 }

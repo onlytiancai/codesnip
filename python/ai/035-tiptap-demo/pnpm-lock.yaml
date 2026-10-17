@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@tiptap/core':
+        specifier: ^3.31.4
+        version: 3.32.0(@tiptap/pm@3.32.0)
       '@tiptap/pm':
         specifier: ^3.31.4
         version: 3.32.0
