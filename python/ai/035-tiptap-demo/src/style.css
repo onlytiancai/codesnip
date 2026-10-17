@@ -75,6 +75,7 @@ h1 {
 
 /* ===== 编辑器外壳 ===== */
 .editor-shell {
+  position: relative; /* 让 popover 锚定到这里 */
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
@@ -133,6 +134,161 @@ h1 {
   background: var(--toolbar-active-bg);
   color: var(--toolbar-active-fg);
   border-color: var(--toolbar-active-bg);
+}
+
+/* AI 按钮推到工具栏最右 */
+.toolbar__group--ai {
+  margin-left: auto;
+  padding-right: 0;
+  margin-right: 0;
+  border-right: none;
+}
+
+.toolbar__btn-ai {
+  background: linear-gradient(180deg, #ffd43b 0%, #fab005 100%);
+  border-color: #fab005;
+  color: #5c3a00;
+  font-weight: 600;
+}
+
+.toolbar__btn-ai:hover:not(:disabled) {
+  background: linear-gradient(180deg, #fcc419 0%, #f59f00 100%);
+  border-color: #f59f00;
+  color: #5c3a00;
+}
+
+.toolbar__btn-ai:disabled {
+  background: #f1f3f5;
+  border-color: transparent;
+  color: var(--muted);
+  opacity: 1; /* 覆盖全局 disabled 透明度 */
+}
+
+/* ===== AI 替换词 popover ===== */
+.rewrite-popover {
+  position: absolute;
+  top: 60px; /* 工具栏高度 */
+  right: 12px;
+  width: 260px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+  overflow: hidden;
+  font-size: 0.9rem;
+}
+
+.rewrite-popover__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--toolbar-bg);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.rewrite-popover__title code {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 5px;
+  margin-left: 2px;
+  font-size: 0.85em;
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.rewrite-popover__close {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--muted);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.rewrite-popover__close:hover {
+  background: #e9ecef;
+  color: var(--fg);
+}
+
+.rewrite-popover__loading,
+.rewrite-popover__error {
+  padding: 14px 14px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.rewrite-popover__error {
+  color: #c92a2a;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.rewrite-popover__retry {
+  align-self: center;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 6px;
+  padding: 4px 12px;
+  cursor: pointer;
+  color: var(--fg);
+}
+
+.rewrite-popover__retry:hover {
+  background: #f8f9fa;
+}
+
+.rewrite-popover__list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+}
+
+.rewrite-popover__list li {
+  margin: 0;
+}
+
+.rewrite-popover__cand {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.1s ease, border-color 0.1s ease;
+}
+
+.rewrite-popover__cand:hover {
+  background: rgba(34, 139, 230, 0.08);
+  border-color: rgba(34, 139, 230, 0.3);
+}
+
+.rewrite-popover__word {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--toolbar-active-bg);
+}
+
+.rewrite-popover__hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: 'SF Mono', Menlo, Consolas, 'Courier New', monospace;
 }
 
 /* ===== ProseMirror 编辑区 ===== */
