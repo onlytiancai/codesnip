@@ -1,0 +1,12 @@
+node_modules
+dist
+.env
+.env.local
+coverage
+
+# 编辑器 / 系统
+.DS_Store
+*.local
+.idea
+.vscode/*
+!.vscode/extensions.json

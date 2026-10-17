@@ -91,6 +91,12 @@ const editor = useEditor({
         <button type="button" :disabled="!editor.can().chain().focus().redo().run()"
           @click="editor.chain().focus().redo().run()" title="重做 (Ctrl+Shift+Z)">↷</button>
       </div>
+      <div class="toolbar__group toolbar__group--ai">
+        <button type="button" class="toolbar__btn-clear" title="清空中文内容"
+          :disabled="!editor.getText().trim()" @click="editor.commands.clearContent()">
+          清空
+        </button>
+      </div>
     </div>
     <EditorContent :editor="editor" />
   </div>

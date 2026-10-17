@@ -166,6 +166,33 @@ h1 {
   cursor: not-allowed;
 }
 
+/* 中文栏头部右侧：语气下拉 + 翻译按钮 */
+.app__col-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tone-select {
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.tone-select:hover {
+  border-color: var(--toolbar-active-bg);
+}
+
+.tone-select:focus-visible {
+  outline: 2px solid var(--toolbar-active-bg);
+  outline-offset: 1px;
+}
+
 .app__error {
   padding: 8px 12px;
   border: 1px solid #ffa8a8;
@@ -269,44 +296,56 @@ h1 {
   opacity: 1; /* 覆盖全局 disabled 透明度 */
 }
 
-/* ===== AI 替换词 popover ===== */
-.rewrite-popover {
-  position: absolute;
-  top: 60px; /* 工具栏高度 */
-  right: 12px;
-  width: 260px;
+/* ===== 选区上下文菜单（Teleport 到 body，position: fixed） ===== */
+.ai-menu-anchor {
+  position: fixed;
+  z-index: 1000;
+  width: 320px;
+}
+
+.ai-menu {
   background: #fff;
   border: 1px solid var(--border);
   border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
-  z-index: 10;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   font-size: 0.9rem;
+  animation: ai-menu-in 0.1s ease-out;
 }
 
-.rewrite-popover__header {
+@keyframes ai-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ai-menu__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  gap: 8px;
+  padding: 7px 10px;
   background: var(--toolbar-bg);
   border-bottom: 1px solid var(--border);
   font-size: 0.82rem;
   color: var(--muted);
 }
 
-.rewrite-popover__title code {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  padding: 0 5px;
-  margin-left: 2px;
-  font-size: 0.85em;
-  color: var(--fg);
+.ai-menu__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: 600;
+  color: var(--fg);
 }
 
-.rewrite-popover__close {
+.ai-menu__close {
+  flex: none;
   border: none;
   background: transparent;
   cursor: pointer;
@@ -317,58 +356,22 @@ h1 {
   border-radius: 4px;
 }
 
-.rewrite-popover__close:hover {
+.ai-menu__close:hover {
   background: #e9ecef;
   color: var(--fg);
 }
 
-.rewrite-popover__loading,
-.rewrite-popover__error {
-  padding: 14px 14px;
-  color: var(--muted);
-  font-size: 0.9rem;
-  text-align: center;
+.ai-menu__items {
+  padding: 4px;
 }
 
-.rewrite-popover__error {
-  color: #c92a2a;
+.ai-menu__item {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-}
-
-.rewrite-popover__retry {
-  align-self: center;
-  border: 1px solid var(--border);
-  background: #fff;
-  border-radius: 6px;
-  padding: 4px 12px;
-  cursor: pointer;
-  color: var(--fg);
-}
-
-.rewrite-popover__retry:hover {
-  background: #f8f9fa;
-}
-
-.rewrite-popover__list {
-  list-style: none;
-  margin: 0;
-  padding: 6px;
-}
-
-.rewrite-popover__list li {
-  margin: 0;
-}
-
-.rewrite-popover__cand {
-  display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
   width: 100%;
-  padding: 8px 10px;
+  padding: 7px 10px;
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
@@ -376,24 +379,259 @@ h1 {
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background-color 0.1s ease, border-color 0.1s ease;
+  transition: background-color 0.1s ease;
 }
 
-.rewrite-popover__cand:hover {
+.ai-menu__item:hover:not(:disabled) {
+  background: rgba(34, 139, 230, 0.1);
+}
+
+.ai-menu__item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ai-menu__caret {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+/* ---- 二级面板 ---- */
+.ai-menu__panel {
+  padding: 8px;
+  /* 语气列表有 8 项，结果卡片也可能很长——超出就内部滚动，
+     别把菜单顶出视口（父级 .ai-menu 是 overflow: hidden）。 */
+  max-height: min(420px, calc(100vh - 24px));
+  overflow-y: auto;
+}
+
+.ai-menu__status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 6px 4px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.ai-menu__status > button,
+.ai-menu__refine > button {
+  align-self: stretch;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+}
+
+.ai-menu__status > button:hover:not(:disabled),
+.ai-menu__refine > button:hover:not(:disabled) {
+  background: #f8f9fa;
+}
+
+.ai-menu__status > button:disabled,
+.ai-menu__refine > button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ai-menu__error {
+  color: #c92a2a;
+}
+
+/* ---- 候选列表 ---- */
+.ai-menu__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.ai-menu__list li {
+  margin: 0;
+}
+
+.ai-menu__cand {
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--toolbar-active-bg);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ai-menu__cand:hover {
   background: rgba(34, 139, 230, 0.08);
   border-color: rgba(34, 139, 230, 0.3);
 }
 
-.rewrite-popover__word {
-  font-size: 0.98rem;
-  font-weight: 600;
-  color: var(--toolbar-active-bg);
+/* ---- 语法结果 ---- */
+/* 后端透传模型原文，界面原样显示。模型写的是一段中文说明，不是等宽的代码，
+   所以沿用正文字体；用 pre 是为了保留模型可能自己换行。 */
+.ai-menu__grammar {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--fg);
 }
 
-.rewrite-popover__hint {
-  font-size: 0.75rem;
+/* ---- 指令输入 ---- */
+.ai-menu__textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.88rem;
+  resize: vertical;
+  color: var(--fg);
+  background: #fff;
+}
+
+.ai-menu__textarea:focus {
+  outline: 2px solid var(--toolbar-active-bg);
+  outline-offset: -1px;
+}
+
+.ai-menu__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ai-menu__chip {
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #f8f9fa;
   color: var(--muted);
-  font-family: 'SF Mono', Menlo, Consolas, 'Courier New', monospace;
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.ai-menu__chip:hover {
+  background: #e9ecef;
+  color: var(--fg);
+}
+
+/* ---- 结果卡片 ---- */
+.ai-menu__original,
+.ai-menu__rewritten {
+  margin: 0;
+  padding: 7px 9px;
+  border-radius: 6px;
+  line-height: 1.5;
+}
+
+.ai-menu__original {
+  background: #f8f9fa;
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: #ced4da;
+}
+
+.ai-menu__rewritten {
+  background: #ebfbee;
+  color: #212529;
+  border-left: 3px solid #2f9e44;
+}
+
+.ai-menu__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.ai-menu__actions button {
+  flex: 1;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--fg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ai-menu__actions button:hover {
+  background: #f8f9fa;
+}
+
+.ai-menu__actions .ai-menu__accept {
+  border-color: #2f9e44;
+  background: #2f9e44;
+  color: #fff;
+}
+
+.ai-menu__actions .ai-menu__accept:hover {
+  background: #37b24d;
+}
+
+.ai-menu__refine {
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+}
+
+.ai-menu__refine summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.ai-menu__refine > *:not(summary) {
+  margin-top: 6px;
+}
+
+/* ---- 中文框「清空」按钮 ---- */
+.toolbar__btn-clear {
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.toolbar__btn-clear:hover:not(:disabled) {
+  background: #fff5f5;
+  border-color: #ffa8a8;
+  color: #c92a2a;
+}
+
+/* AI 按钮推到工具栏最右 */
+.toolbar__group--ai {
+  margin-left: auto;
+  padding-right: 0;
+  margin-right: 0;
+  border-right: none;
+  /* 6 个按钮挤在半栏里，不允许组内换行——换行会把工具栏撑成两行 */
+  flex-wrap: nowrap;
+}
+
+.toolbar__group--ai button {
+  /* 比工具栏默认的略窄一点，给这排按钮省出横向空间 */
+  min-width: 0;
+  padding: 0 6px;
+  font-size: 0.82rem;
+  color: var(--fg);
+  white-space: nowrap;
+}
+
+.toolbar__btn-clear:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* ===== ProseMirror 编辑区 ===== */

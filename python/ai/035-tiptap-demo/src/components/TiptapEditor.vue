@@ -13,8 +13,14 @@ import {
   createHighlightSentenceExtension,
   rerenderDecorations,
 } from '../composables/highlightSentence'
-import { fetchCandidates, RewriteError } from '../services/rewrite'
+import {
+  getSelectionInfo,
+  getSentenceAtCursor,
+  type SelectionInfo,
+} from '../composables/useSelectionKind'
 import { matchCase } from '../utils/matchCase'
+import AiContextMenu from './AiContextMenu.vue'
+import type { AiAction } from '../constants/aiActions'
 
 const props = defineProps<{
   /** 来自中文侧的高亮：中文句子 i 时，此处把英文第 i 句高亮 */
@@ -28,91 +34,109 @@ const context = defineModel<WritingContext>('context', {
   default: () => ({ ...EMPTY_CONTEXT }),
 })
 
-// ===== 单词选区检测 =====
-const selectedWord = ref('')
-const selectionRange = ref<{ from: number; to: number } | null>(null)
-const paragraphText = ref('')
+// ===== 选区 → 上下文菜单 =====
+const selection = ref<SelectionInfo | null>(null)
+/** 菜单的 viewport 坐标（配合 Teleport + position: fixed）；null 时不渲染 */
+const menuPos = ref<{ top: number; left: number } | null>(null)
+/** 工具栏按钮点了之后，菜单直接落到哪个面板；null = 停在主菜单 */
+const menuAction = ref<AiAction | null>(null)
+/** 光标所在句；为空时工具栏那排 AI 按钮禁用 */
+const cursorSentence = ref<SelectionInfo | null>(null)
 
-function detectSelection(editor: Editor) {
-  if (!editor) return
-  const { from, to } = editor.state.selection
-  if (from === to) {
-    selectedWord.value = ''
-    selectionRange.value = null
-    paragraphText.value = ''
+function detectSelection(editor: Editor | null) {
+  cursorSentence.value = getSentenceAtCursor(editor)
+  const info = getSelectionInfo(editor)
+  selection.value = info
+  if (!info) {
+    menuPos.value = null
     return
   }
-  const text = editor.state.doc.textBetween(from, to, '', '')
-  if (/^\w+$/.test(text)) {
-    selectedWord.value = text
-    selectionRange.value = { from, to }
-    const ctxInfo = getWritingContext(editor, splitEnglishSentences)
-    paragraphText.value = (ctxInfo.paragraph || '').slice(0, 200)
-  } else {
-    selectedWord.value = ''
-    selectionRange.value = null
-    paragraphText.value = ''
-  }
+  menuPos.value = computeMenuPos(editor!, info)
 }
 
-// ===== popover 状态 =====
-const popoverOpen = ref(false)
-const candidates = ref<string[]>([])
-const loading = ref(false)
-const errorMsg = ref('')
-
-async function openRewrite() {
-  if (!selectedWord.value) return
-  popoverOpen.value = true
-  loading.value = true
-  errorMsg.value = ''
-  candidates.value = []
-  try {
-    candidates.value = await fetchCandidates({
-      word: selectedWord.value,
-      context: paragraphText.value || undefined,
-      sourceSentence: props.chineseSentence || undefined,
-    })
-  } catch (err) {
-    errorMsg.value =
-      err instanceof RewriteError
-        ? `[${err.status}] ${err.message}`
-        : err instanceof Error
-          ? err.message
-          : 'unknown error'
-  } finally {
-    loading.value = false
-  }
+/**
+ * 用 ProseMirror 的 coordsAtPos 把菜单贴到选区上方；上方放不下就翻到下方。
+ * coordsAtPos 返回的就是 viewport 坐标，配合 position: fixed 直接用，
+ * 不用再减去任何祖先的 offset（菜单被 Teleport 到了 body 上）。
+ */
+function computeMenuPos(editor: Editor, info: SelectionInfo) {
+  const start = editor.view.coordsAtPos(info.from)
+  const end = editor.view.coordsAtPos(info.to)
+  return placeMenu(start.top, start.left, end.right, end.bottom)
 }
 
-function closePopover() {
-  popoverOpen.value = false
-  candidates.value = []
-  errorMsg.value = ''
+/** 工具栏按钮走这条：菜单贴着光标，而不是贴着整句。 */
+function computeCursorMenuPos(editor: Editor, pos: number) {
+  const c = editor.view.coordsAtPos(pos)
+  return placeMenu(c.top, c.left, c.left, c.bottom)
 }
 
-function applyCandidate(candidate: string) {
+function placeMenu(top: number, left: number, right: number, bottom: number) {
+  // 菜单宽度按最宽的一档估：结果卡片比菜单列表宽
+  const MENU_W = 320
+  const MENU_H = 280
+  const GAP = 8
+
+  // 上方空间不够（顶到视口上沿）就翻到下方
+  const placeBelow = top - MENU_H - GAP < 4
+  const rawY = placeBelow ? bottom + GAP : top - MENU_H - GAP
+  // 再夹进视口：面板展开后可能比 MENU_H 高，别让它整个跑到屏幕外
+  const y = Math.max(4, Math.min(rawY, Math.max(4, window.innerHeight - MENU_H - 4)))
+
+  // 水平方向夹进视口，别让菜单被裁掉
+  const x = Math.max(8, Math.min((left + right) / 2 - MENU_W / 2, window.innerWidth - MENU_W - 8))
+
+  return { top: y, left: x }
+}
+
+/**
+ * 工具栏的常驻按钮：不需要选中整句，直接作用于光标所在句。
+ * 复用同一套菜单 / 结果卡片，只是把 autoAction 指到对应面板。
+ */
+function runOnCursorSentence(action: AiAction) {
   const editorInst = editor.value
-  const range = selectionRange.value
-  const original = selectedWord.value
-  if (!editorInst || !range || !original) return
-  const replacement = matchCase(original, candidate)
+  if (!editorInst) return
+  const info = getSentenceAtCursor(editorInst)
+  if (!info) return
+  // 每次都给新对象：菜单里 watch(selection) 会据此重置面板状态
+  selection.value = { ...info }
+  menuPos.value = computeCursorMenuPos(editorInst, editorInst.state.selection.head)
+  menuAction.value = action
+}
+
+// ===== 菜单动作 =====
+
+/** 用新文本替换当前选区；单词/短语替换时保留原大小写 */
+function applyReplacement(text: string) {
+  const editorInst = editor.value
+  const sel = selection.value
+  if (!editorInst || !sel) return
+  const replacement =
+    sel.kind === 'word' || sel.kind === 'phrase'
+      ? matchCase(sel.text, text)
+      : text
   editorInst
     .chain()
     .focus()
-    .insertContentAt({ from: range.from, to: range.to }, replacement)
+    .insertContentAt({ from: sel.from, to: sel.to }, replacement)
     .run()
-  closePopover()
 }
 
-function onToolbarKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && popoverOpen.value) {
-    closePopover()
-  }
+function closeMenu() {
+  selection.value = null
+  menuPos.value = null
+  menuAction.value = null
+}
+
+// 点击编辑器别处 → 关菜单
+// 菜单本身 Teleport 到了 body，点它不会走到这里（它自己的 @mousedown.prevent 会先拦下）
+function onShellMousedownCapture() {
+  if (!selection.value) return
+  closeMenu()
 }
 
 onBeforeUnmount(() => {
-  closePopover()
+  closeMenu()
 })
 
 // 暴露给父组件：翻译完成后整体替换英文段落
@@ -133,6 +157,32 @@ watch(
 )
 
 // ===== editor 实例（默认空文档） =====
+
+/**
+ * 工具栏上那排整句操作按钮。
+ * 图标跟菜单项一致，但标签压到 2 个字——6 个按钮挤在半栏宽度里，
+ * 用「改写语气」「检查语法」这种全称会把工具栏撑到换行。完整文案放在 title 上。
+ */
+const AI_BUTTONS: { action: AiAction; icon: string; label: string }[] = [
+  { action: 'tone', icon: '🎨', label: '语气' },
+  { action: 'improve', icon: '✏️', label: '润色' },
+  { action: 'shorten', icon: '✂️', label: '精简' },
+  { action: 'expand', icon: '➕', label: '扩写' },
+  { action: 'grammar', icon: '🔍', label: '语法' },
+  { action: 'instruction', icon: '💬', label: '指令' },
+]
+
+/** 完整文案，只进 title 提示。 */
+const AI_TITLES: Record<AiAction, string> = {
+  candidates: '替换选区',
+  tone: '改写语气',
+  improve: '润色',
+  shorten: '精简',
+  expand: '扩写',
+  grammar: '检查语法',
+  instruction: '自定义指令',
+}
+
 const editor = useEditor({
   content: '<p></p>',
   extensions: [
@@ -157,7 +207,7 @@ const editor = useEditor({
 </script>
 
 <template>
-  <div class="editor-shell en-shell" @keydown="onToolbarKeydown">
+  <div class="editor-shell en-shell" @mousedown.capture="onShellMousedownCapture">
     <div v-if="editor" class="toolbar">
       <!-- 文本格式 -->
       <div class="toolbar__group">
@@ -191,44 +241,38 @@ const editor = useEditor({
           @click="editor.chain().focus().redo().run()" title="重做 (Ctrl+Shift+Z)">↷</button>
       </div>
 
-      <!-- AI：替换词 -->
+      <!-- 整句操作：作用于光标所在句，不需要选中 -->
       <div class="toolbar__group toolbar__group--ai">
         <button
+          v-for="a in AI_BUTTONS"
+          :key="a.action"
           type="button"
-          class="toolbar__btn-ai"
-          :disabled="!selectedWord"
-          :title="selectedWord ? `为「${selectedWord}」找替换词` : '先选中一个单词'"
-          @click="popoverOpen ? closePopover() : openRewrite()"
+          :disabled="!cursorSentence"
+          :title="`对光标所在句：${AI_TITLES[a.action]}`"
+          @click="runOnCursorSentence(a.action)"
         >
-          {{ loading ? '… 生成中' : popoverOpen ? '× 关闭' : '✨ 替换词' }}
+          {{ a.icon }} {{ a.label }}
         </button>
       </div>
     </div>
 
     <EditorContent :editor="editor" />
 
-    <!-- popover -->
-    <div v-if="popoverOpen" class="rewrite-popover" role="dialog" aria-label="替换词候选">
-      <div class="rewrite-popover__header">
-        <span class="rewrite-popover__title">替换 <code>{{ selectedWord }}</code></span>
-        <button type="button" class="rewrite-popover__close" aria-label="关闭" @click="closePopover">×</button>
+    <!-- 选区上下文菜单：选中单词/短语/整句时自动弹出 -->
+    <Teleport to="body">
+      <div
+        v-if="selection && menuPos"
+        class="ai-menu-anchor"
+        :style="{ top: `${menuPos.top}px`, left: `${menuPos.left}px` }"
+      >
+        <AiContextMenu
+          :selection="selection"
+          :chinese-sentence="chineseSentence"
+          :auto-action="menuAction"
+          @replace="applyReplacement"
+          @close="closeMenu"
+        />
       </div>
-
-      <div v-if="loading" class="rewrite-popover__loading">模型生成中…</div>
-
-      <div v-else-if="errorMsg" class="rewrite-popover__error">
-        请求失败：{{ errorMsg }}
-        <button type="button" class="rewrite-popover__retry" @click="openRewrite">重试</button>
-      </div>
-
-      <ul v-else class="rewrite-popover__list">
-        <li v-for="c in candidates" :key="c">
-          <button type="button" class="rewrite-popover__cand" @click="applyCandidate(c)">
-            <span class="rewrite-popover__word">{{ matchCase(selectedWord, c) }}</span>
-            <span class="rewrite-popover__hint">{{ c }}</span>
-          </button>
-        </li>
-      </ul>
-    </div>
+    </Teleport>
   </div>
 </template>

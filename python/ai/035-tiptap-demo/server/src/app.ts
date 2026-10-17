@@ -2,11 +2,11 @@ import cors from 'cors'
 import express, { type Express } from 'express'
 import { createRewriteRouter } from './routes/rewrite.js'
 import { createTranslateRouter } from './routes/translate.js'
-import type { OllamaService } from './services/ollama.js'
+import type { AiService } from './services/ollama.js'
 import type { TranslateService } from './services/translate.js'
 
 export interface CreateAppOptions {
-  rewriteService: OllamaService
+  aiService: AiService
   translateService: TranslateService
 }
 
@@ -17,7 +17,7 @@ export function createApp(options: CreateAppOptions): Express {
   const app = express()
   app.use(cors())
   app.use(express.json())
-  app.use(createRewriteRouter(options.rewriteService))
+  app.use(createRewriteRouter(options.aiService))
   app.use(createTranslateRouter(options.translateService))
 
   app.get('/healthz', (_req, res) => {

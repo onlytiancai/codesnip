@@ -4,6 +4,7 @@ import ChineseEditor from './components/ChineseEditor.vue'
 import TiptapEditor from './components/TiptapEditor.vue'
 import { EMPTY_CONTEXT, splitChineseSentences, type WritingContext } from './composables/useWritingContext'
 import { translateSentences, TranslateHttpError, type AlignedSentence } from './services/translate'
+import { TONES, isToneId, type ToneId } from './constants/tones'
 
 // ===== 两边状态 =====
 const zhHtml = ref('')
@@ -27,6 +28,9 @@ const alignedSentences = ref<AlignedSentence[]>([])
 const translating = ref(false)
 const progress = ref({ done: 0, total: 0 })
 const errorMsg = ref('')
+
+/** 翻译语气；空串 = 不指定，走后端默认 prompt */
+const tone = ref<'' | ToneId>('')
 
 // ===== 焦点跟踪：仅在另一侧获焦时才显示 cross-highlight =====
 // 默认 / 翻译完成后两边都没获焦 → 两边都不高亮
@@ -111,9 +115,13 @@ async function doTranslate() {
   sentencesPerParagraph.forEach((arr) => flat.push(...arr))
 
   try {
-    const results = await translateSentences(flat, (done, total) => {
-      progress.value = { done, total }
-    })
+    const results = await translateSentences(
+      flat,
+      (done, total) => {
+        progress.value = { done, total }
+      },
+      isToneId(tone.value) ? tone.value : undefined,
+    )
     alignedSentences.value = results
 
     // 3. 拼成英文段落 HTML，写回 TiptapEditor
@@ -182,18 +190,24 @@ function onSideBlur(side: 'zh' | 'en') {
       >
         <div class="app__col-header">
           <span class="app__col-label">中文</span>
-          <button
-            type="button"
-            class="btn-translate"
-            :disabled="translating"
-            @click="doTranslate"
-          >
-            {{
-              translating
-                ? `翻译中 ${progress.done}/${progress.total}`
-                : '翻译 →'
-            }}
-          </button>
+          <div class="app__col-actions">
+            <select v-model="tone" class="tone-select" title="翻译语气">
+              <option value="">默认语气</option>
+              <option v-for="t in TONES" :key="t.id" :value="t.id">{{ t.label }}</option>
+            </select>
+            <button
+              type="button"
+              class="btn-translate"
+              :disabled="translating"
+              @click="doTranslate"
+            >
+              {{
+                translating
+                  ? `翻译中 ${progress.done}/${progress.total}`
+                  : '翻译 →'
+              }}
+            </button>
+          </div>
         </div>
 
         <ChineseEditor

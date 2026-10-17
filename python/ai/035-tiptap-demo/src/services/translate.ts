@@ -3,6 +3,8 @@
  * 限并发 3，避免打爆本地 Ollama。
  */
 
+import type { ToneId } from '../constants/tones'
+
 export interface AlignedSentence {
   zh: string
   en: string
@@ -41,11 +43,16 @@ async function pLimit<T, R>(
   return results
 }
 
-export async function translateSentence(zh: string, signal?: AbortSignal): Promise<AlignedSentence> {
+export async function translateSentence(
+  zh: string,
+  tone?: ToneId,
+  signal?: AbortSignal,
+): Promise<AlignedSentence> {
   const res = await fetch('/api/translate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text: zh }),
+    // 不传 tone 时字段整个不出现，后端走默认 prompt，行为与改动前一致
+    body: JSON.stringify(tone ? { text: zh, tone } : { text: zh }),
     signal,
   })
   if (!res.ok) {
@@ -69,18 +76,19 @@ export async function translateSentence(zh: string, signal?: AbortSignal): Promi
  * 批量翻译：每个中文句子并发调一次 /api/translate。
  * 返回与输入顺序一致的 AlignedSentence[]。
  *
- * onProgress(idx, total) 在每句完成时触发，便于 UI 更新"X / N 已完成"。
+ * onProgress(done, total) 在每句完成时触发，便于 UI 更新"X / N 已完成"。
  */
 export async function translateSentences(
   zhSentences: string[],
   onProgress?: (done: number, total: number) => void,
+  tone?: ToneId,
   signal?: AbortSignal,
 ): Promise<AlignedSentence[]> {
   const total = zhSentences.length
   let done = 0
 
   const wrapped = async (zh: string): Promise<AlignedSentence> => {
-    const r = await translateSentence(zh, signal)
+    const r = await translateSentence(zh, tone, signal)
     done++
     onProgress?.(done, total)
     return r

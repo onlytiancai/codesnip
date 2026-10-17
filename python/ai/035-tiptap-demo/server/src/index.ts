@@ -5,9 +5,9 @@ import { createTranslateService } from './services/translate.js'
 const PORT = Number(process.env.PORT ?? 8787)
 const MODEL = process.env.OLLAMA_MODEL ?? 's2021008840/hy-mt2:1.8b'
 
-const rewriteService = createOllamaService({ model: MODEL })
+const aiService = createOllamaService({ model: MODEL })
 const translateService = createTranslateService({ model: MODEL })
-const app = createApp({ rewriteService, translateService })
+const app = createApp({ aiService, translateService })
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console

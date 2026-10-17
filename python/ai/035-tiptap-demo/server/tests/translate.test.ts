@@ -1,43 +1,19 @@
 import request from 'supertest'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createApp } from '../src/app.js'
-import type { OllamaService } from '../src/services/ollama.js'
+import { buildApp, buildTranslateService } from './helpers.js'
 import type { TranslateService } from '../src/services/translate.js'
 
 /**
  * /api/translate 路由层集成测试：注入 mock service，验证入参校验、透传、错误分类。
  */
 
-function buildRewriteService(): OllamaService {
-  return {
-    rewriteWord: vi.fn(async () => ['x']),
-  }
-}
-
-function buildTranslateService(impl?: TranslateService['translate']): TranslateService {
-  return {
-    translate:
-      impl ??
-      vi.fn(async () => ({
-        translation: 'I went to the park yesterday.',
-      })),
-  }
-}
-
-function buildApp(translateService: TranslateService): ReturnType<typeof createApp> {
-  return createApp({
-    rewriteService: buildRewriteService(),
-    translateService,
-  })
-}
-
 describe('POST /api/translate', () => {
-  let app: ReturnType<typeof createApp>
+  let app: ReturnType<typeof buildApp>
   let service: TranslateService
 
   beforeEach(() => {
     service = buildTranslateService()
-    app = buildApp(service)
+    app = buildApp(undefined, service)
   })
 
   it('正常调用：返回 translation', async () => {
@@ -50,16 +26,48 @@ describe('POST /api/translate', () => {
     expect(res.body).toEqual({
       translation: 'I went to the park yesterday.',
     })
-    expect(spy).toHaveBeenCalledWith('我昨天去公园。')
+    expect(spy).toHaveBeenCalledWith('我昨天去公园。', { tone: undefined })
   })
 
   it('允许显式 source="zh" target="en"', async () => {
-    const spy = vi.spyOn(service, 'translate')
     const res = await request(app)
       .post('/api/translate')
       .send({ text: '你好', source: 'zh', target: 'en' })
     expect(res.status).toBe(200)
-    expect(spy).toHaveBeenCalledWith('你好')
+  })
+
+  it('透传合法 tone', async () => {
+    const spy = vi.spyOn(service, 'translate')
+    const res = await request(app)
+      .post('/api/translate')
+      .send({ text: '你好', tone: 'formal' })
+
+    expect(res.status).toBe(200)
+    expect(spy).toHaveBeenCalledWith('你好', { tone: 'formal' })
+  })
+
+  it('8 种语气全部接受', async () => {
+    for (const tone of [
+      'neutral',
+      'formal',
+      'casual',
+      'professional',
+      'friendly',
+      'concise',
+      'detailed',
+      'persuasive',
+    ]) {
+      const res = await request(app).post('/api/translate').send({ text: '你好', tone })
+      expect(res.status).toBe(200)
+    }
+  })
+
+  it('tone 非法 → 400', async () => {
+    const res = await request(app)
+      .post('/api/translate')
+      .send({ text: '你好', tone: 'sarcastic' })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toMatch(/tone/)
   })
 
   it('缺 text → 400', async () => {
@@ -100,8 +108,11 @@ describe('POST /api/translate', () => {
 
   it('service 抛"empty translation"错误 → 500', async () => {
     app = buildApp(
-      buildTranslateService(async () => {
-        throw new Error('empty translation after parsing')
+      undefined,
+      buildTranslateService({
+        translate: vi.fn(async () => {
+          throw new Error('empty translation after parsing')
+        }),
       }),
     )
     const res = await request(app)
@@ -113,8 +124,11 @@ describe('POST /api/translate', () => {
 
   it('service 抛上游错误 → 502', async () => {
     app = buildApp(
-      buildTranslateService(async () => {
-        throw new Error('ECONNREFUSED 127.0.0.1:11434')
+      undefined,
+      buildTranslateService({
+        translate: vi.fn(async () => {
+          throw new Error('ECONNREFUSED 127.0.0.1:11434')
+        }),
       }),
     )
     const res = await request(app)
@@ -127,6 +141,6 @@ describe('POST /api/translate', () => {
   it('text 自动 trim 后传给 service', async () => {
     const spy = vi.spyOn(service, 'translate')
     await request(app).post('/api/translate').send({ text: '  你好  ' })
-    expect(spy).toHaveBeenCalledWith('你好')
+    expect(spy).toHaveBeenCalledWith('你好', { tone: undefined })
   })
 })
