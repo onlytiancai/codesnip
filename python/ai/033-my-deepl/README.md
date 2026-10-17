@@ -68,13 +68,18 @@ Do NOT make every candidate a full-rewrite.
 
 腾讯翻译模型
 
-    ollama run https://ollama.com/s2021008840/hy-mt2
+    https://ollama.com/s2021008840/hy-mt2
+
+    ollama run s2021008840/hy-mt2:1.8b
 
     curl http://localhost:11434/api/chat \
       -d '{
         "model": "s2021008840/hy-mt2:1.8b",
         "messages": [{"role": "user", "content": "Hello!"}]
       }'
+
+    node ollama-test.mjs
+    python ollama-test.py
 
 ### ollama 重写
 
