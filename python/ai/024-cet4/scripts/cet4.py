@@ -118,7 +118,7 @@ def _safe(obj, *path, default=""):
     return cur if cur is not None else default
 
 
-def format_detail(row: dict) -> str:
+def format_detail(row: dict, similar_words: list[tuple[float, str]] | None = None) -> str:
     word_obj = _safe(row, "content", "word", default={})
     c = word_obj.get("content") or {}
     head = word_obj.get("wordHead", "?")
@@ -231,6 +231,12 @@ def format_detail(row: dict) -> str:
         lines.append("【记忆】")
         lines.append(f"  {rem}")
 
+    # 易混词 — 词库里拼写/形变相近的词，便于区分记忆
+    if similar_words:
+        lines.append("【易混词】")
+        for score, sim in similar_words:
+            lines.append(f"  {sim}  (score={score:.2f})")
+
     return "\n".join(lines)
 
 
@@ -303,6 +309,32 @@ def suggest_similar(
     return [(s, h) for s, h in scored[:k] if s > 0]
 
 
+def find_similar_words(
+    query: str, heads: list[str], k: int = 5
+) -> list[tuple[float, str]]:
+    """从词库中找与 query 最相近的 k 个词（排除自身）。
+
+    与 suggest_similar 的区别：本函数会跳过与 query 完全相同的词，并过滤掉
+    仅是同一词形变（stem 相同）的项，让"易混词"列表聚焦在真正容易记混的
+    拼写相近词上。
+    """
+    q = query.lower()
+    q_stem = _strip_suffix(q)
+    scored: list[tuple[float, str]] = []
+    for h in heads:
+        hl = h.lower()
+        if hl == q:
+            continue  # 跳过自己
+        h_stem = _strip_suffix(hl)
+        if q_stem and h_stem == q_stem:
+            continue  # 跳过形变同根（abandoned / abandoning 等）
+        s = _inflection_aware_similarity(q, hl)
+        if s > 0:
+            scored.append((s, h))
+    scored.sort(key=lambda x: -x[0])
+    return scored[:k]
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
@@ -355,7 +387,8 @@ def main(argv: list[str] | None = None) -> int:
         head = random.choice(heads)
 
     row = fetch_row(JSON_PATH, offsets[head])
-    print(format_detail(row))
+    similar_words = find_similar_words(head, heads, k=5)
+    print(format_detail(row, similar_words))
     return 0
 
 
