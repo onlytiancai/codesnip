@@ -12,6 +12,35 @@ pnpm dev                   # tsx watch，监听 8787
 
 可用模型示例：`s2021008840/hy-mt2:1.8b`（默认）。前提：本地 Ollama 已启动并已 `ollama pull` 该模型。
 
+## 手工测试 CLI
+
+不用起 server、不用开浏览器，直接调 service 层：
+
+```bash
+cd server
+pnpm cli --help
+pnpm cli selection --text "very important" --kind phrase --context "Education is very important for children."
+pnpm cli sentence  --text "Education is very important for children." --operation rewrite --tone formal
+pnpm cli grammar   --text "He go to school last yesterday."
+pnpm cli instruction --text "The results were kind of surprising." --instruction "Make it sound more natural."
+echo "教育对孩子很重要。" | pnpm cli translate
+pnpm cli models
+```
+
+命令与 `src/services/ollama.ts` 的方法一一对应：`selection` → `rewriteSelection`、`sentence` → `rewriteSentence`、`grammar` → `grammarCheck`、`instruction` → `rewriteInstruction`，另外有 `translate`（TranslateService）、`raw`（直接发 system/user，不做任何解析）、`models`（列出本地模型）。
+
+调试用的三个开关：
+
+| 开关 | 作用 |
+|---|---|
+| `--prompt` | 打印**实际发出**的 system / user 消息（不是重新拼的，是录到的真实请求） |
+| `--raw` | 打印模型原始输出，绕过 `parseCandidates` / `cleanText`——解析失败时用它看是哪一步炸的 |
+| `--json` | 把 command / model / prompt / raw / result / error / 耗时一次性输出成 JSON |
+
+其他选项：`--model`（默认 `OLLAMA_MODEL`，再默认 `s2021008840/hy-mt2:1.8b`）、`--host`（默认 `http://127.0.0.1:11434`）、`--text` / `--file` / 位置参数 / stdin 管道 / 交互输入（按此优先级取输入）。
+
+CLI 通过给 `createOllamaService` 注入一个「录音 client」实现——它包住真实 `client.chat`，把请求和原始响应记下来再转发，所以测的就是生产代码本身的那条路径。
+
 ## 环境变量
 
 | 变量 | 默认 | 说明 |
@@ -217,6 +246,7 @@ server/
 │   ├── services/
 │   │   ├── translate.ts                # TranslateService（client 可注入）
 │   │   └── ollama.ts                   # AiService：4 个方法 + 私有 chat()，client 可注入
+│   ├── cli.ts                          # 手工测试 CLI（直接调 service，可打印 prompt / raw）
 │   ├── prompts/
 │   │   ├── tones.ts                    # TONE_IDS / TONE_GUIDANCE / toneInstruction
 │   │   ├── cleanText.ts                # 共享清洗：围栏 / 前缀 / 引号

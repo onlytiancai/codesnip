@@ -19,6 +19,17 @@ pnpm dev      # 启动 http://127.0.0.1:8787
 
 > Vite 已配置 `/api` 代理到后端，前端代码里直接 `fetch('/api/...')` 即可。
 
+手工调 prompt / 模型又不想起 server 的话，后端带了个 CLI：
+
+```bash
+cd server
+pnpm cli --help
+pnpm cli selection --text "very important" --kind phrase --context "Education is very important for children."
+pnpm cli sentence --text "Education is very important for children." --operation rewrite --tone formal
+```
+
+细节见 [server/README.md](server/README.md#手工测试-cli)。
+
 ## 主要功能
 
 - **左右两栏**（宽屏），中文编辑器 + 英文编辑器
