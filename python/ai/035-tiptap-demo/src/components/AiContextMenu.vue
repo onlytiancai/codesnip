@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { TONES, type ToneId } from '../constants/tones'
+import { type ToneId } from '../constants/tones'
+import { useTones } from '../composables/useTones'
 import type { AiAction } from '../constants/aiActions'
 import type { SelectionInfo } from '../composables/useSelectionKind'
 import {
@@ -57,6 +58,9 @@ const instruction = ref('')
 const draft = ref('')
 
 const controller = ref<AbortController | null>(null)
+
+/** 语气列表（label 从后端拉，拉不到用内置的） */
+const { tones } = useTones()
 
 function abortInFlight() {
   controller.value?.abort()
@@ -354,7 +358,7 @@ watch(
 
       <!-- 语气选择 -->
       <ul v-else-if="panel.mode === 'tone'" class="ai-menu__list">
-        <li v-for="t in TONES" :key="t.id">
+        <li v-for="t in tones" :key="t.id">
           <button type="button" class="ai-menu__cand" @click="runSentenceRewrite('rewrite', t.id)">
             {{ t.label }}
           </button>

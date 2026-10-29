@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import type { TranslateService } from '../services/translate.js'
-import { isToneId } from '../prompts/tones.js'
+import { isToneId } from '../config/defaults.js'
+import { fail } from './httpError.js'
 
 /**
  * 创建 /api/translate 路由。
@@ -42,18 +43,7 @@ export function createTranslateRouter(service: TranslateService): Router {
       })
       return res.json(result)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'unknown error'
-      // 区分"模型响应解析失败" vs "上游 Ollama 调用失败"
-      const isParseError =
-        msg.includes('JSON') ||
-        msg.includes('parse') ||
-        msg.includes('object') ||
-        msg.includes('array') ||
-        msg.includes('missing') ||
-        msg.includes('empty') ||
-        msg.includes('no valid')
-      const status = isParseError ? 500 : 502
-      return res.status(status).json({ error: msg })
+      return fail(res, err)
     }
   })
 

@@ -1,7 +1,7 @@
 import request from 'supertest'
 import { describe, expect, it, vi } from 'vitest'
 import { buildAiService, buildApp } from './helpers.js'
-import type { AiService } from '../src/services/ollama.js'
+import type { AiService } from '../src/services/ai.js'
 
 /**
  * 四个 AI 端点的路由层测试：入参校验、参数透传、错误分类。

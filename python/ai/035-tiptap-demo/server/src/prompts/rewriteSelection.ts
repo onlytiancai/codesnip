@@ -1,11 +1,8 @@
 /**
- * 选区级改写 prompt：给选中的单词或短语找替换候选。
+ * 选区级改写的解析器。
  *
- * word 与 phrase 的差别主要在 prompt：
- * - word  ：同词性近义词，禁止只做形态变化
- * - phrase：候选可以是多词短语，要求搭配正确、语法正确、与前后文连贯
- *
- * 输出是 JSON 字符串数组，由本文件底部的 parseCandidates 解析。
+ * 提示词本身已经搬到 server/src/config/defaults.ts（可配置、可版本化），
+ * 这里只留下「怎么把模型输出变成候选数组」这段逻辑。
  */
 
 export const SELECTION_KINDS = ['word', 'phrase'] as const
@@ -13,54 +10,6 @@ export type SelectionKind = (typeof SELECTION_KINDS)[number]
 
 export function isSelectionKind(v: unknown): v is SelectionKind {
   return typeof v === 'string' && (SELECTION_KINDS as readonly string[]).includes(v)
-}
-
-export const REWRITE_SELECTION_SYSTEM =
-  'You are an English writing assistant. Given a selection from an English sentence, you produce replacement candidates that fit that exact grammatical slot.'
-
-const KIND_RULES: Record<SelectionKind, string[]> = {
-  word: [
-    '- Each candidate must keep the SAME part of speech as the input word.',
-    '- Avoid mere morphological variants (e.g. for "big", do not return "bigger" or "biggest").',
-  ],
-  phrase: [
-    '- Candidates MAY be multi-word phrases, but each one must fit the same grammatical slot as the original selection.',
-    '- Get the collocation right: the candidate must sound natural in THIS sentence, not just in isolation.',
-    '- Keep the surrounding text grammatical when the candidate is spliced in — check articles, prepositions and verb forms around it.',
-    '- Prefer tighter alternatives over long multi-clause rewrites.',
-  ],
-}
-
-/** system message：输出格式与该 kind 的专属约束。 */
-export function buildRewriteSelectionSystem(kind: SelectionKind): string {
-  return `${REWRITE_SELECTION_SYSTEM}
-
-Rules:
-- Output ONLY a JSON array of strings, nothing else.
-- Do NOT include explanations, notes, or markdown fences.
-${KIND_RULES[kind].join('\n')}
-- Match the capitalization of the input: if input is "Very important", return "Essential", "Of great importance".`
-}
-
-/** user message：这一次的选区与上下文。 */
-export function buildRewriteSelectionPrompt(
-  text: string,
-  context?: string,
-  sourceSentence?: string,
-): string {
-  const ctx = context?.trim()
-  const src = sourceSentence?.trim()
-  return [
-    src
-      ? "The English sentence comes from translating the Chinese sentence below. Use the Chinese to disambiguate the selection's meaning before choosing candidates."
-      : '',
-    `Selection: ${text}`,
-    ctx ? `Context: ${ctx}` : '',
-    src ? `Chinese source: ${src}` : '',
-    'Output:',
-  ]
-    .filter(Boolean)
-    .join('\n')
 }
 
 /**
@@ -107,7 +56,7 @@ export function parseCandidates(raw: string, max = 5): string[] {
   throw new Error('cannot parse JSON array from model response')
 }
 
-function cleanCandidates(value: unknown, max: number): string[] {
+export function cleanCandidates(value: unknown, max: number): string[] {
   if (!Array.isArray(value)) {
     throw new Error('response is not an array')
   }

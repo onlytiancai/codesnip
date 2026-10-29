@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import {
-  buildRewriteSelectionPrompt,
-  buildRewriteSelectionSystem,
-  isSelectionKind,
-  parseCandidates,
-} from '../src/prompts/rewriteSelection.js'
+import { isSelectionKind, parseCandidates } from '../src/prompts/rewriteSelection.js'
+import { renderCapability } from './helpers.js'
 
 describe('isSelectionKind', () => {
   it('只接受 word / phrase', () => {
@@ -16,15 +12,21 @@ describe('isSelectionKind', () => {
   })
 })
 
-describe('buildRewriteSelectionSystem', () => {
+describe('rewriteSelection 提示词模板', () => {
   it('word：要求同词性、禁形态变化', () => {
-    const s = buildRewriteSelectionSystem('word')
+    const s = renderCapability('rewriteSelection', {
+      text: 'good',
+      kind: 'word',
+    }).system
     expect(s).toContain('SAME part of speech')
     expect(s).toContain('morphological variants')
   })
 
   it('phrase：允许多词候选、强调搭配与语法', () => {
-    const s = buildRewriteSelectionSystem('phrase')
+    const s = renderCapability('rewriteSelection', {
+      text: 'very important',
+      kind: 'phrase',
+    }).system
     expect(s).toContain('multi-word phrases')
     expect(s).toContain('collocation')
     expect(s).toContain('surrounding text grammatical')
@@ -33,37 +35,45 @@ describe('buildRewriteSelectionSystem', () => {
 
   it('两者都强约束 JSON 数组输出', () => {
     for (const kind of ['word', 'phrase'] as const) {
-      expect(buildRewriteSelectionSystem(kind)).toContain(
-        'Output ONLY a JSON array',
-      )
+      const s = renderCapability('rewriteSelection', { text: 'x', kind }).system
+      expect(s).toContain('Output ONLY a JSON array')
     }
   })
 
   it('大小写要求对多词候选同样生效', () => {
-    expect(buildRewriteSelectionSystem('phrase')).toContain('"Essential"')
+    const s = renderCapability('rewriteSelection', {
+      text: 'x',
+      kind: 'phrase',
+    }).system
+    expect(s).toContain('"Essential"')
   })
-})
 
-describe('buildRewriteSelectionPrompt', () => {
-  it('包含选区', () => {
-    expect(buildRewriteSelectionPrompt('very important')).toContain(
-      'Selection: very important',
-    )
+  it('user 包含选区', () => {
+    const u = renderCapability('rewriteSelection', {
+      text: 'very important',
+      kind: 'phrase',
+    }).user
+    expect(u).toContain('Selection: very important')
   })
 
   it('带 context / sourceSentence 时分别出现', () => {
-    const p = buildRewriteSelectionPrompt(
-      'important',
-      'Education is very important for children.',
-      '教育对孩子很重要。',
-    )
-    expect(p).toContain('Context: Education is very important for children.')
-    expect(p).toContain('Chinese source: 教育对孩子很重要。')
-    expect(p).toContain('Use the Chinese to disambiguate')
+    const u = renderCapability('rewriteSelection', {
+      text: 'important',
+      kind: 'phrase',
+      context: 'Education is very important for children.',
+      sourceSentence: '教育对孩子很重要。',
+    }).user
+    expect(u).toContain('Context: Education is very important for children.')
+    expect(u).toContain('Chinese source: 教育对孩子很重要。')
+    expect(u).toContain('Use the Chinese to disambiguate')
   })
 
   it('不带中文原文时不提 disambiguate', () => {
-    expect(buildRewriteSelectionPrompt('good')).not.toMatch(/disambiguate/)
+    const u = renderCapability('rewriteSelection', {
+      text: 'good',
+      kind: 'word',
+    }).user
+    expect(u).not.toMatch(/disambiguate/)
   })
 })
 

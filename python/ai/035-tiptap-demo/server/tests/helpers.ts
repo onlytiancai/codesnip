@@ -1,10 +1,25 @@
+import { mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { vi } from 'vitest'
 import { createApp } from '../src/app.js'
-import type { AiService } from '../src/services/ollama.js'
+import {
+  buildContext,
+  renderPrompt,
+  type CapabilityInput,
+} from '../src/config/capabilities.js'
+import { defaultPromptSet } from '../src/config/defaults.js'
+import { ConfigStore } from '../src/config/store.js'
+import type { CapabilityId } from '../src/config/types.js'
+import { ClientRegistry, type LlmClientFactory } from '../src/llm/registry.js'
+import type { ChatRequest, LlmClient } from '../src/llm/types.js'
+import type { AiService } from '../src/services/ai.js'
+import { createAiService } from '../src/services/ai.js'
 import type { TranslateService } from '../src/services/translate.js'
+import { createTranslateService } from '../src/services/translate.js'
 
 /**
- * 路由层测试的公共脚手架：注入 mock service，直接打到真实路由。
+ * 测试用的公共脚手架。
  */
 
 /** 默认各能力返回值；传 overrides 覆盖单个方法。 */
@@ -35,4 +50,96 @@ export function buildApp(
     aiService: ai ?? buildAiService(),
     translateService: translate ?? buildTranslateService(),
   })
+}
+
+// ---------------------------------------------------------------------------
+// 提示词渲染
+// ---------------------------------------------------------------------------
+
+/** 用默认提示词集渲染某个能力，返回实际会发给模型的 system / user。 */
+export function renderCapability(
+  capability: CapabilityId,
+  input: CapabilityInput,
+): { system: string; user: string } {
+  const set = defaultPromptSet()
+  const template = set.templates[capability]
+  const context = buildContext(capability, input, set.tones)
+  return renderPrompt(template, context)
+}
+
+// ---------------------------------------------------------------------------
+// LlmClient 桩
+// ---------------------------------------------------------------------------
+
+export interface StubClient {
+  client: LlmClient
+  chat: ReturnType<typeof vi.fn>
+}
+
+/** 一个只会回固定字符串的 LlmClient 桩，并记录它收到的请求。 */
+export function stubLlmClient(reply: string): StubClient {
+  const chat = vi.fn(async (req: ChatRequest) => ({
+    content: reply,
+    structured: false,
+    system: req.system,
+  }))
+  const client: LlmClient = {
+    kind: 'ollama',
+    chat,
+    listModels: vi.fn(async () => ['stub-model']),
+  }
+  return { client, chat }
+}
+
+/** 用桩 client 组装出两个 service。 */
+export function buildServices(client: LlmClient): {
+  ai: AiService
+  translate: TranslateService
+} {
+  const promptSet = defaultPromptSet()
+  const getActive = () => ({ client, promptSet })
+  return {
+    ai: createAiService({ getActive }),
+    translate: createTranslateService({ getActive }),
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 设置路由用的临时 store
+// ---------------------------------------------------------------------------
+
+export interface TempStore {
+  store: ConfigStore
+  dir: string
+  cleanup: () => void
+}
+
+/** 建一个落在临时目录里的 ConfigStore（不碰仓库里的 server/data）。 */
+export function buildTempStore(): TempStore {
+  const dir = mkdtempSync(join(tmpdir(), 'tiptap-config-'))
+  const store = new ConfigStore({ dataDir: dir })
+  return {
+    store,
+    dir,
+    cleanup: () => {
+      rmSync(dir, { recursive: true, force: true })
+    },
+  }
+}
+
+/** 一个不真的发请求的 client 工厂（设置路由测试用）。 */
+export function stubClientFactory(reply = 'OK'): LlmClientFactory {
+  return () => ({
+    kind: 'ollama',
+    chat: async (req: ChatRequest) => ({
+      content: reply,
+      structured: false,
+      system: req.system,
+    }),
+    listModels: async () => ['stub-model'],
+  })
+}
+
+export function buildRegistry(reply = 'OK'): ClientRegistry {
+  return new ClientRegistry(stubClientFactory(reply))
 }

@@ -1,6 +1,8 @@
 # tiptap-vue3-demo
 
-Tiptap 富文本编辑器 demo：中英逐句翻译 + 英文写作 AI 助手（选区上下文菜单 / 语气改写 / 语法检查）。前端 Vue 3 + Vite，后端 Express + Ollama（独立项目，见 `server/`）。
+Tiptap 富文本编辑器 demo：中英逐句翻译 + 英文写作 AI 助手（选区上下文菜单 / 语气改写 / 语法检查）。前端 Vue 3 + Vite + vue-router，后端 Express（独立项目，见 `server/`）。
+
+**LLM 后端可换**：本地 Ollama、任何 OpenAI 兼容端点、Anthropic Claude —— 在 `/settings` 子页面里配置。**提示词全部在 JSON 里**，可以在同一个页面改，改动留历史、能回滚；每个 provider 有自己独立的一套提示词。
 
 ## 启动
 
@@ -18,6 +20,16 @@ pnpm dev      # 启动 http://127.0.0.1:8787
 ```
 
 > Vite 已配置 `/api` 代理到后端，前端代码里直接 `fetch('/api/...')` 即可。
+
+后端第一次启动会在 `server/data/` 下生成 `config.json`（provider + 提示词）和 `history.json`（版本历史）。到 **http://127.0.0.1:5173/settings** 可以配 LLM provider、改提示词、看历史、回滚、试运行。
+
+命令行工具也走同一份配置：
+
+```bash
+cd server
+pnpm cli --help
+pnpm cli translate --text "教育对孩子很重要。"
+```
 
 手工调 prompt / 模型又不想起 server 的话，后端带了个 CLI：
 
@@ -82,27 +94,68 @@ Escape 逐层退出：面板 → 菜单 → 关闭菜单。菜单关闭时会 `a
 
 两侧 editor 工具栏都有：**B / I / S / U + Undo / Redo**。中文框在历史组右侧多一个 **清空** 按钮；英文框在历史组右侧多一排常驻 AI 按钮（🎨 语气 / ✏️ 润色 / ✂️ 精简 / ➕ 扩写 / 🔍 语法 / 💬 指令），作用于光标所在句、不需要选中字符。按钮标签压到 2 个字（完整文案在 `title` 上）——六个按钮挤在半栏宽度里，用全称会把工具栏撑到换行。
 
+## 设置页（/settings）
+
+编辑器顶栏右上角「⚙️ 设置」进这个子页面（独立路由 `/settings`，不是弹层 —— 提示词编辑要占的地方不小）。两个 tab：
+
+### LLM 供应商
+
+每个 provider 一张卡片，可以**新增 / 编辑 / 删除 / 设为生效 / 测试连接 / 拉模型列表**。字段：
+
+| 字段 | 说明 |
+|---|---|
+| 类型 | Ollama（本地）/ OpenAI 兼容（含 DeepSeek、Moonshot、vLLM…）/ Anthropic |
+| Base URL | Ollama 填 host，其余填 baseURL |
+| 模型 | 可以从「拉取模型列表」里点一下自动填 |
+| API Key | 存到 `server/data/secrets.json`（**不进 git**）；已存时留空表示不修改 |
+| 结构化输出 | 强制 JSON Schema / 只强制 JSON 对象 / 只靠提示词 / 不要求 JSON |
+| max tokens、token 参数名、温度、超时 | 见 `server/README.md` 的 provider 配置表 |
+
+切换生效的 provider **即时生效，不用重启后端**。
+
+### 提示词
+
+顶部选 provider（每个 provider 的提示词**完全独立**），左边选能力（翻译 / 选区候选 / 整句改写 / 语法检查 / 自定义指令 / 语气表），右边编辑：
+
+- System 模板、User 模板（两个 textarea）
+- 可用变量 chip，点一下就插进 User 模板
+- 输出模式：纯文本 / 格式化 JSON（JSON 模式可编辑 JSON Schema）
+- **保存** = 追加一个版本（可填备注）
+- **版本历史**：每条能「查看」或「回滚」——回滚是把旧内容复制成一个**新版本**（历史只增不减）
+- **试运行**：填示例输入 → 用**正在编辑的这个 provider** 真跑一次 → 显示实际发出的 system / user、模型原始输出、解析结果（会真的消耗 API 额度）
+
+也可以「从别的 provider 复制」——把调好的 Ollama 提示词搬给 Claude 再改。
+
 ## 目录
 
 ```
 src/
-├── App.vue                              # 顶栏 + 语气下拉 + 联动 + 调试开关
+├── Root.vue                             # 根组件，只有 <router-view />
+├── App.vue                              # 编辑器页（路由 /）：顶栏 + 语气下拉 + 联动 + 调试开关
+├── router.ts                            # 两条路由：/ 编辑器、/settings 设置
 ├── main.ts                              # 入口
-├── style.css                            # 全局 + .ProseMirror + .ai-menu* + ctx 面板样式
+├── style.css                            # 全局 + .ProseMirror + .ai-menu* + ctx 面板 + 设置页样式
+├── pages/
+│   └── SettingsPage.vue                 # 设置页（路由 /settings）：供应商 / 提示词 两个 tab
 ├── components/
 │   ├── ChineseEditor.vue                # Tiptap 中文编辑器（中文切句 + 清空按钮）
 │   ├── TiptapEditor.vue                 # Tiptap 英文编辑器 + 选区菜单锚点
-│   └── AiContextMenu.vue                # 选区上下文菜单 / 面板 / 结果卡片（autoAction 可直达某面板）
+│   ├── AiContextMenu.vue                # 选区上下文菜单 / 面板 / 结果卡片（autoAction 可直达某面板）
+│   ├── ProviderPanel.vue                # provider 列表 + 编辑表单（baseUrl / model / key / 结构化输出）
+│   └── PromptPanel.vue                  # 提示词编辑（按 provider）+ 版本历史 + 回滚 + 试运行
 ├── composables/
 │   ├── useWritingContext.ts             # 段落/句子/单词提取（sentenceIndex 全局）
 │   ├── useSelectionKind.ts              # 选区分类 word/phrase/sentence；getSentenceAtCursor 供工具栏用
+│   ├── useTones.ts                      # 语气表（label 从后端拉，拉不到用内置的）
 │   └── highlightSentence.ts             # Decoration 工厂：中英跨面板高亮
 ├── constants/
-│   ├── tones.ts                         # 8 种语气的 id + 中文 label（前端唯一来源）
+│   ├── tones.ts                         # 8 种语气的 id（前端唯一来源）+ 内置 label
 │   └── aiActions.ts                     # 菜单项 / 工具栏按钮共用的动作枚举
 ├── services/
+│   ├── http.ts                          # 统一 fetch 封装（把后端 {error} 捞出来）
 │   ├── rewrite.ts                       # fetch rewrite-selection / -sentence / grammar-check / -instruction
-│   └── translate.ts                     # fetch /api/translate（pLimit 并发 3，可带 tone）
+│   ├── translate.ts                     # fetch /api/translate（pLimit 并发 3，可带 tone）
+│   └── settings.ts                      # fetch 设置相关端点（provider / 提示词 / 版本 / 试运行）
 └── utils/
     └── matchCase.ts                     # Good→Great / good→great / GOOD→GREAT
 ```
@@ -121,3 +174,4 @@ pnpm type-check   # vue-tsc --noEmit
 - Vite 端口：见 `vite.config.ts`
 - API 代理：`/api → http://127.0.0.1:8787`
 - `.npmrc`：`auto-install-peers=true`（避免 pnpm peer 警告）
+- **LLM 配置**：全部在 `server/data/config.json`（provider + 每个 provider 的提示词），在 `/settings` 页里改；API Key 在 `server/data/secrets.json`（不进 git）。细节见 [server/README.md](server/README.md#配置)

@@ -1,0 +1,473 @@
+{
+  "version": 1,
+  "activeProviderId": "ollama-local",
+  "providers": [
+    {
+      "id": "ollama-local",
+      "label": "本地 Ollama",
+      "kind": "ollama",
+      "baseUrl": "http://127.0.0.1:11434",
+      "model": "s2021008840/hy-mt2:1.8b",
+      "structuredOutput": "schema",
+      "maxTokens": 2048,
+      "timeoutMs": 120000
+    },
+    {
+      "id": "minimax-anthropic",
+      "label": "MiniMax（Anthropic 接口）",
+      "kind": "anthropic",
+      "baseUrl": "https://api.minimaxi.com/anthropic",
+      "model": "MiniMax-M3",
+      "apiKeyEnv": "ANTHROPIC_API_KEY",
+      "structuredOutput": "schema",
+      "maxTokens": 16000,
+      "timeoutMs": 120000
+    },
+    {
+      "id": "minimax-openai",
+      "label": "MiniMax（OpenAI 接口）",
+      "kind": "openai",
+      "baseUrl": "https://api.minimaxi.com/v1",
+      "model": "MiniMax-M3",
+      "apiKeyEnv": "OPENAI_API_KEY",
+      "structuredOutput": "schema",
+      "maxTokens": 8192,
+      "maxTokensParam": "max_tokens",
+      "timeoutMs": 120000
+    }
+  ],
+  "promptSets": {
+    "ollama-local": {
+      "templates": {
+        "translate": {
+          "id": "translate",
+          "label": "翻译",
+          "system": "You are a Chinese-to-English translator. You translate a single Chinese sentence into one natural English sentence. Output ONLY the English sentence — no quotes, no labels, no explanation.\n{{#tone}}\n{{tone}}\n{{/tone}}",
+          "user": "Chinese: {{text}}\nEnglish:",
+          "responseMode": "text",
+          "jsonSchema": {
+            "type": "object",
+            "properties": {
+              "translation": {
+                "type": "string",
+                "description": "The English translation."
+              }
+            },
+            "required": [
+              "translation"
+            ]
+          }
+        },
+        "rewriteSelection": {
+          "id": "rewriteSelection",
+          "label": "选区候选",
+          "system": "You are an English writing assistant. Given a selection from an English sentence, you produce replacement candidates that fit that exact grammatical slot.\n\nRules:\n- Output ONLY a JSON array of strings, nothing else.\n- Do NOT include explanations, notes, or markdown fences.\n{{#kindWord}}\n- Each candidate must keep the SAME part of speech as the input word.\n- Avoid mere morphological variants (e.g. for \"big\", do not return \"bigger\" or \"biggest\").\n{{/kindWord}}\n{{#kindPhrase}}\n- Candidates MAY be multi-word phrases, but each one must fit the same grammatical slot as the original selection.\n- Get the collocation right: the candidate must sound natural in THIS sentence, not just in isolation.\n- Keep the surrounding text grammatical when the candidate is spliced in — check articles, prepositions and verb forms around it.\n- Prefer tighter alternatives over long multi-clause rewrites.\n{{/kindPhrase}}\n- Match the capitalization of the input: if input is \"Very important\", return \"Essential\", \"Of great importance\".",
+          "user": "{{#hasSource}}\nThe English sentence comes from translating the Chinese sentence below. Use the Chinese to disambiguate the selection's meaning before choosing candidates.\n{{/hasSource}}\nSelection: {{text}}\n{{#context}}\nContext: {{context}}\n{{/context}}\n{{#hasSource}}\nChinese source: {{sourceSentence}}\n{{/hasSource}}\nOutput:",
+          "responseMode": "text",
+          "jsonSchema": {
+            "type": "object",
+            "properties": {
+              "candidates": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Replacement candidates for the selection."
+              }
+            },
+            "required": [
+              "candidates"
+            ]
+          }
+        },
+        "rewriteSentence": {
+          "id": "rewriteSentence",
+          "label": "整句改写",
+          "system": "You are an English writing editor. You rewrite a single English sentence according to the requested operation. Output ONLY the rewritten sentence — no quotes, no labels, no explanation, no before/after pairs. The rewrite must be grammatical, idiomatic English and must stay on topic with the surrounding context.\nOperation: {{operation}} — {{operationGuidance}}\n{{#tone}}\n{{tone}}\n{{/tone}}",
+          "user": "{{#hasSource}}\nThe English sentence was translated from the Chinese sentence below. Keep the meaning aligned with the Chinese.\n{{/hasSource}}\nSentence: {{sentence}}\n{{#context}}\nSurrounding paragraph: {{context}}\n{{/context}}\n{{#hasSource}}\nChinese source: {{sourceSentence}}\n{{/hasSource}}\nOutput:",
+          "responseMode": "text",
+          "jsonSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The rewritten sentence."
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "grammarCheck": {
+          "id": "grammarCheck",
+          "label": "语法检查",
+          "system": "You are an English proofreader helping a Chinese-speaking student.\n\nCheck the sentence for grammar and punctuation errors only. Do not comment on style, tone, vocabulary, or word choice.\n\nReply in Chinese. If the sentence is correct, just say: 这句话没有语法或标点错误。\nOtherwise, write one or two short sentences saying what is wrong and what to write instead. Point at the exact wrong words.",
+          "user": "{{sentence}}",
+          "responseMode": "text",
+          "jsonSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The proofreading feedback, written in Chinese."
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "rewriteInstruction": {
+          "id": "rewriteInstruction",
+          "label": "自定义指令",
+          "system": "You are an English writing editor. You rewrite the given text according to the user's instruction. Output ONLY the rewritten text — no quotes, no labels, no explanation, no restating the instruction. If the instruction asks you to preserve the original, keep it unchanged. Otherwise return the improved version.",
+          "user": "Instruction: {{instruction}}\nText to rewrite: {{text}}\n{{#context}}\nSurrounding context (for coherence; do not include it in the output): {{context}}\n{{/context}}\nOutput:",
+          "responseMode": "text",
+          "jsonSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The rewritten text."
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        }
+      },
+      "tones": [
+        {
+          "id": "neutral",
+          "label": "中性",
+          "guidance": "keep it neutral and matter-of-fact — no strong colouring, no obvious personality"
+        },
+        {
+          "id": "formal",
+          "label": "正式",
+          "guidance": "write formally — precise wording, no contractions, no slang, avoid first-person asides"
+        },
+        {
+          "id": "casual",
+          "label": "口语",
+          "guidance": "write casually and conversationally — natural spoken rhythm, contractions are fine"
+        },
+        {
+          "id": "professional",
+          "label": "专业",
+          "guidance": "write professionally — like a domain expert addressing peers: technical where relevant, concrete and measured"
+        },
+        {
+          "id": "friendly",
+          "label": "友好",
+          "guidance": "write in a friendly, warm voice — approachable and encouraging, but still clear"
+        },
+        {
+          "id": "concise",
+          "label": "简洁",
+          "guidance": "write concisely — cut filler and redundant modifiers, keep every word load-bearing"
+        },
+        {
+          "id": "detailed",
+          "label": "详细",
+          "guidance": "expand with detail — spell out the reasoning and add the specifics a reader would need, without padding"
+        },
+        {
+          "id": "persuasive",
+          "label": "有说服力",
+          "guidance": "write persuasively — lead with the strongest point, use concrete language, build toward a convincing close"
+        }
+      ]
+    },
+    "minimax-anthropic": {
+      "templates": {
+        "translate": {
+          "id": "translate",
+          "label": "翻译",
+          "system": "You are a Chinese-to-English translator. You translate a single Chinese sentence into one natural English sentence. Output ONLY the English sentence — no quotes, no labels, no explanation.\n{{#tone}}\n{{tone}}\n{{/tone}}",
+          "user": "Chinese: {{text}}\nEnglish:",
+          "responseMode": "text",
+          "jsonSchema": {
+            "type": "object",
+            "properties": {
+              "translation": {
+                "type": "string",
+                "description": "The English translation."
+              }
+            },
+            "required": [
+              "translation"
+            ]
+          }
+        },
+        "rewriteSelection": {
+          "id": "rewriteSelection",
+          "label": "选区候选",
+          "system": "You are an English writing assistant. Given a selection from an English sentence, you produce replacement candidates that fit that exact grammatical slot.\n\nRules:\n- Output ONLY a JSON array of strings, nothing else.\n- Do NOT include explanations, notes, or markdown fences.\n{{#kindWord}}\n- Each candidate must keep the SAME part of speech as the input word.\n- Avoid mere morphological variants (e.g. for \"big\", do not return \"bigger\" or \"biggest\").\n{{/kindWord}}\n{{#kindPhrase}}\n- Candidates MAY be multi-word phrases, but each one must fit the same grammatical slot as the original selection.\n- Get the collocation right: the candidate must sound natural in THIS sentence, not just in isolation.\n- Keep the surrounding text grammatical when the candidate is spliced in — check articles, prepositions and verb forms around it.\n- Prefer tighter alternatives over long multi-clause rewrites.\n{{/kindPhrase}}\n- Match the capitalization of the input: if input is \"Very important\", return \"Essential\", \"Of great importance\".",
+          "user": "{{#hasSource}}\nThe English sentence comes from translating the Chinese sentence below. Use the Chinese to disambiguate the selection's meaning before choosing candidates.\n{{/hasSource}}\nSelection: {{text}}\n{{#context}}\nContext: {{context}}\n{{/context}}\n{{#hasSource}}\nChinese source: {{sourceSentence}}\n{{/hasSource}}\nOutput:",
+          "responseMode": "text",
+          "jsonSchema": {
+            "type": "object",
+            "properties": {
+              "candidates": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Replacement candidates for the selection."
+              }
+            },
+            "required": [
+              "candidates"
+            ]
+          }
+        },
+        "rewriteSentence": {
+          "id": "rewriteSentence",
+          "label": "整句改写",
+          "system": "You are an English writing editor. You rewrite a single English sentence according to the requested operation. Output ONLY the rewritten sentence — no quotes, no labels, no explanation, no before/after pairs. The rewrite must be grammatical, idiomatic English and must stay on topic with the surrounding context.\nOperation: {{operation}} — {{operationGuidance}}\n{{#tone}}\n{{tone}}\n{{/tone}}",
+          "user": "{{#hasSource}}\nThe English sentence was translated from the Chinese sentence below. Keep the meaning aligned with the Chinese.\n{{/hasSource}}\nSentence: {{sentence}}\n{{#context}}\nSurrounding paragraph: {{context}}\n{{/context}}\n{{#hasSource}}\nChinese source: {{sourceSentence}}\n{{/hasSource}}\nOutput:",
+          "responseMode": "text",
+          "jsonSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The rewritten sentence."
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "grammarCheck": {
+          "id": "grammarCheck",
+          "label": "语法检查",
+          "system": "You are an English proofreader helping a Chinese-speaking student.\n\nCheck the sentence for grammar and punctuation errors only. Do not comment on style, tone, vocabulary, or word choice.\n\nReply in Chinese. If the sentence is correct, just say: 这句话没有语法或标点错误。\nOtherwise, write one or two short sentences saying what is wrong and what to write instead. Point at the exact wrong words.",
+          "user": "{{sentence}}",
+          "responseMode": "text",
+          "jsonSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The proofreading feedback, written in Chinese."
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "rewriteInstruction": {
+          "id": "rewriteInstruction",
+          "label": "自定义指令",
+          "system": "You are an English writing editor. You rewrite the given text according to the user's instruction. Output ONLY the rewritten text — no quotes, no labels, no explanation, no restating the instruction. If the instruction asks you to preserve the original, keep it unchanged. Otherwise return the improved version.",
+          "user": "Instruction: {{instruction}}\nText to rewrite: {{text}}\n{{#context}}\nSurrounding context (for coherence; do not include it in the output): {{context}}\n{{/context}}\nOutput:",
+          "responseMode": "text",
+          "jsonSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The rewritten text."
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        }
+      },
+      "tones": [
+        {
+          "id": "neutral",
+          "label": "中性",
+          "guidance": "keep it neutral and matter-of-fact — no strong colouring, no obvious personality"
+        },
+        {
+          "id": "formal",
+          "label": "正式",
+          "guidance": "write formally — precise wording, no contractions, no slang, avoid first-person asides"
+        },
+        {
+          "id": "casual",
+          "label": "口语",
+          "guidance": "write casually and conversationally — natural spoken rhythm, contractions are fine"
+        },
+        {
+          "id": "professional",
+          "label": "专业",
+          "guidance": "write professionally — like a domain expert addressing peers: technical where relevant, concrete and measured"
+        },
+        {
+          "id": "friendly",
+          "label": "友好",
+          "guidance": "write in a friendly, warm voice — approachable and encouraging, but still clear"
+        },
+        {
+          "id": "concise",
+          "label": "简洁",
+          "guidance": "write concisely — cut filler and redundant modifiers, keep every word load-bearing"
+        },
+        {
+          "id": "detailed",
+          "label": "详细",
+          "guidance": "expand with detail — spell out the reasoning and add the specifics a reader would need, without padding"
+        },
+        {
+          "id": "persuasive",
+          "label": "有说服力",
+          "guidance": "write persuasively — lead with the strongest point, use concrete language, build toward a convincing close"
+        }
+      ]
+    },
+    "minimax-openai": {
+      "templates": {
+        "translate": {
+          "id": "translate",
+          "label": "翻译",
+          "system": "You are a Chinese-to-English translator. You translate a single Chinese sentence into one natural English sentence. Output ONLY the English sentence — no quotes, no labels, no explanation.\n{{#tone}}\n{{tone}}\n{{/tone}}",
+          "user": "Chinese: {{text}}\nEnglish:",
+          "responseMode": "text",
+          "jsonSchema": {
+            "type": "object",
+            "properties": {
+              "translation": {
+                "type": "string",
+                "description": "The English translation."
+              }
+            },
+            "required": [
+              "translation"
+            ]
+          }
+        },
+        "rewriteSelection": {
+          "id": "rewriteSelection",
+          "label": "选区候选",
+          "system": "You are an English writing assistant. Given a selection from an English sentence, you produce replacement candidates that fit that exact grammatical slot.\n\nRules:\n- Output ONLY a JSON array of strings, nothing else.\n- Do NOT include explanations, notes, or markdown fences.\n{{#kindWord}}\n- Each candidate must keep the SAME part of speech as the input word.\n- Avoid mere morphological variants (e.g. for \"big\", do not return \"bigger\" or \"biggest\").\n{{/kindWord}}\n{{#kindPhrase}}\n- Candidates MAY be multi-word phrases, but each one must fit the same grammatical slot as the original selection.\n- Get the collocation right: the candidate must sound natural in THIS sentence, not just in isolation.\n- Keep the surrounding text grammatical when the candidate is spliced in — check articles, prepositions and verb forms around it.\n- Prefer tighter alternatives over long multi-clause rewrites.\n{{/kindPhrase}}\n- Match the capitalization of the input: if input is \"Very important\", return \"Essential\", \"Of great importance\".",
+          "user": "{{#hasSource}}\nThe English sentence comes from translating the Chinese sentence below. Use the Chinese to disambiguate the selection's meaning before choosing candidates.\n{{/hasSource}}\nSelection: {{text}}\n{{#context}}\nContext: {{context}}\n{{/context}}\n{{#hasSource}}\nChinese source: {{sourceSentence}}\n{{/hasSource}}\nOutput:",
+          "responseMode": "text",
+          "jsonSchema": {
+            "type": "object",
+            "properties": {
+              "candidates": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Replacement candidates for the selection."
+              }
+            },
+            "required": [
+              "candidates"
+            ]
+          }
+        },
+        "rewriteSentence": {
+          "id": "rewriteSentence",
+          "label": "整句改写",
+          "system": "You are an English writing editor. You rewrite a single English sentence according to the requested operation. Output ONLY the rewritten sentence — no quotes, no labels, no explanation, no before/after pairs. The rewrite must be grammatical, idiomatic English and must stay on topic with the surrounding context.\nOperation: {{operation}} — {{operationGuidance}}\n{{#tone}}\n{{tone}}\n{{/tone}}",
+          "user": "{{#hasSource}}\nThe English sentence was translated from the Chinese sentence below. Keep the meaning aligned with the Chinese.\n{{/hasSource}}\nSentence: {{sentence}}\n{{#context}}\nSurrounding paragraph: {{context}}\n{{/context}}\n{{#hasSource}}\nChinese source: {{sourceSentence}}\n{{/hasSource}}\nOutput:",
+          "responseMode": "text",
+          "jsonSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The rewritten sentence."
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "grammarCheck": {
+          "id": "grammarCheck",
+          "label": "语法检查",
+          "system": "You are an English proofreader helping a Chinese-speaking student.\n\nCheck the sentence for grammar and punctuation errors only. Do not comment on style, tone, vocabulary, or word choice.\n\nReply in Chinese. If the sentence is correct, just say: 这句话没有语法或标点错误。\nOtherwise, write one or two short sentences saying what is wrong and what to write instead. Point at the exact wrong words.",
+          "user": "{{sentence}}",
+          "responseMode": "text",
+          "jsonSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The proofreading feedback, written in Chinese."
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "rewriteInstruction": {
+          "id": "rewriteInstruction",
+          "label": "自定义指令",
+          "system": "You are an English writing editor. You rewrite the given text according to the user's instruction. Output ONLY the rewritten text — no quotes, no labels, no explanation, no restating the instruction. If the instruction asks you to preserve the original, keep it unchanged. Otherwise return the improved version.",
+          "user": "Instruction: {{instruction}}\nText to rewrite: {{text}}\n{{#context}}\nSurrounding context (for coherence; do not include it in the output): {{context}}\n{{/context}}\nOutput:",
+          "responseMode": "text",
+          "jsonSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The rewritten text."
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        }
+      },
+      "tones": [
+        {
+          "id": "neutral",
+          "label": "中性",
+          "guidance": "keep it neutral and matter-of-fact — no strong colouring, no obvious personality"
+        },
+        {
+          "id": "formal",
+          "label": "正式",
+          "guidance": "write formally — precise wording, no contractions, no slang, avoid first-person asides"
+        },
+        {
+          "id": "casual",
+          "label": "口语",
+          "guidance": "write casually and conversationally — natural spoken rhythm, contractions are fine"
+        },
+        {
+          "id": "professional",
+          "label": "专业",
+          "guidance": "write professionally — like a domain expert addressing peers: technical where relevant, concrete and measured"
+        },
+        {
+          "id": "friendly",
+          "label": "友好",
+          "guidance": "write in a friendly, warm voice — approachable and encouraging, but still clear"
+        },
+        {
+          "id": "concise",
+          "label": "简洁",
+          "guidance": "write concisely — cut filler and redundant modifiers, keep every word load-bearing"
+        },
+        {
+          "id": "detailed",
+          "label": "详细",
+          "guidance": "expand with detail — spell out the reasoning and add the specifics a reader would need, without padding"
+        },
+        {
+          "id": "persuasive",
+          "label": "有说服力",
+          "guidance": "write persuasively — lead with the strongest point, use concrete language, build toward a convincing close"
+        }
+      ]
+    }
+  }
+}

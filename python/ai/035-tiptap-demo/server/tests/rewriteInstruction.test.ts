@@ -1,32 +1,42 @@
 import { describe, expect, it } from 'vitest'
-import {
-  buildInstructionPrompt,
-  INSTRUCTION_SYSTEM,
-  parseInstructionResult,
-} from '../src/prompts/rewriteInstruction.js'
+import { parseInstructionResult } from '../src/prompts/rewriteInstruction.js'
+import { renderCapability } from './helpers.js'
 
-describe('INSTRUCTION_SYSTEM', () => {
+describe('rewriteInstruction 提示词模板', () => {
   it('强约束纯文本输出', () => {
-    expect(INSTRUCTION_SYSTEM).toContain('Output ONLY the rewritten text')
-    expect(INSTRUCTION_SYSTEM).not.toMatch(/JSON/)
+    const s = renderCapability('rewriteInstruction', {
+      text: 'He said hi.',
+      instruction: 'Make it shorter.',
+    }).system
+    expect(s).toContain('Output ONLY the rewritten text')
+    expect(s).not.toMatch(/JSON/)
   })
-})
 
-describe('buildInstructionPrompt', () => {
   it('原样带上指令与待改写文本', () => {
-    const p = buildInstructionPrompt('He said hi.', 'Make it shorter.')
-    expect(p).toContain('Instruction: Make it shorter.')
-    expect(p).toContain('Text to rewrite: He said hi.')
+    const u = renderCapability('rewriteInstruction', {
+      text: 'He said hi.',
+      instruction: 'Make it shorter.',
+    }).user
+    expect(u).toContain('Instruction: Make it shorter.')
+    expect(u).toContain('Text to rewrite: He said hi.')
   })
 
   it('context 明确标注不进输出', () => {
-    const p = buildInstructionPrompt('hi.', 'Make it formal.', 'Some paragraph.')
-    expect(p).toContain('Surrounding context')
-    expect(p).toContain('do not include it in the output')
+    const u = renderCapability('rewriteInstruction', {
+      text: 'hi.',
+      instruction: 'Make it formal.',
+      context: 'Some paragraph.',
+    }).user
+    expect(u).toContain('Surrounding context')
+    expect(u).toContain('do not include it in the output')
   })
 
   it('不带 context 时不出现该段', () => {
-    expect(buildInstructionPrompt('hi.', 'formal')).not.toContain('Surrounding context')
+    const u = renderCapability('rewriteInstruction', {
+      text: 'hi.',
+      instruction: 'formal',
+    }).user
+    expect(u).not.toContain('Surrounding context')
   })
 })
 

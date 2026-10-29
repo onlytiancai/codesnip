@@ -1,11 +1,12 @@
 import { Router } from 'express'
-import type { AiService } from '../services/ollama.js'
+import type { AiService } from '../services/ai.js'
+import { fail } from './httpError.js'
 import { isSelectionKind } from '../prompts/rewriteSelection.js'
 import {
   isSentenceOperation,
   type SentenceOperation,
 } from '../prompts/rewriteSentence.js'
-import { isToneId, type ToneId } from '../prompts/tones.js'
+import { isToneId, type ToneId } from '../config/defaults.js'
 
 /**
  * AI 改写相关的四个路由：
@@ -16,28 +17,6 @@ import { isToneId, type ToneId } from '../prompts/tones.js'
  *
  * 生产里挂到 express app；测试里挂到 supertest。
  */
-
-/**
- * 模型响应解析失败 → 500；Ollama 上游失败 → 502。
- * 与旧 rewrite 路由同款：靠错误信息里的关键词区分。
- */
-function classify(err: unknown): number {
-  const msg = err instanceof Error ? err.message : 'unknown error'
-  const isParseError =
-    msg.includes('JSON') ||
-    msg.includes('parse') ||
-    msg.includes('array') ||
-    msg.includes('object') ||
-    msg.includes('missing') ||
-    msg.includes('empty') ||
-    msg.includes('no valid')
-  return isParseError ? 500 : 502
-}
-
-function fail(res: import('express').Response, err: unknown) {
-  const msg = err instanceof Error ? err.message : 'unknown error'
-  return res.status(classify(err)).json({ error: msg })
-}
 
 /** 可选字符串字段的公共校验：undefined 放行，非字符串 400。 */
 function checkOptionalString(

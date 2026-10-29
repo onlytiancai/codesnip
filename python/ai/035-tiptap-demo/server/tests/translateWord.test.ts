@@ -1,19 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import {
-  buildTranslatePrompt,
-  parseTranslation,
-} from '../src/prompts/translate.js'
+import { parseTranslation } from '../src/prompts/translate.js'
+import { renderCapability } from './helpers.js'
 
-describe('buildTranslatePrompt', () => {
-  it('包含原文', () => {
-    const p = buildTranslatePrompt('我昨天去公园。')
-    expect(p).toContain('Chinese: 我昨天去公园。')
-    expect(p).toMatch(/English:/)
+describe('translate 提示词模板', () => {
+  it('user 包含原文', () => {
+    const u = renderCapability('translate', { text: '我昨天去公园。' }).user
+    expect(u).toContain('Chinese: 我昨天去公园。')
+    expect(u).toMatch(/English:/)
   })
 
   it('简洁无 JSON 约束', () => {
-    const p = buildTranslatePrompt('你好')
-    expect(p).not.toMatch(/JSON/)
+    const u = renderCapability('translate', { text: '你好' }).user
+    expect(u).not.toMatch(/JSON/)
   })
 })
 

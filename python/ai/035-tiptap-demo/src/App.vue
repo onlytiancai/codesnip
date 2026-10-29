@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { RouterLink } from 'vue-router'
 import ChineseEditor from './components/ChineseEditor.vue'
 import TiptapEditor from './components/TiptapEditor.vue'
 import { EMPTY_CONTEXT, splitChineseSentences, type WritingContext } from './composables/useWritingContext'
+import { loadTones, useTones } from './composables/useTones'
 import { translateSentences, TranslateHttpError, type AlignedSentence } from './services/translate'
-import { TONES, isToneId, type ToneId } from './constants/tones'
+import { isToneId, type ToneId } from './constants/tones'
 
 // ===== 两边状态 =====
 const zhHtml = ref('')
@@ -31,6 +33,13 @@ const errorMsg = ref('')
 
 /** 翻译语气；空串 = 不指定，走后端默认 prompt */
 const tone = ref<'' | ToneId>('')
+
+/** 语气列表（label 从后端拉，各 provider 可改；拉不到用内置的） */
+const { tones } = useTones()
+
+onMounted(() => {
+  void loadTones()
+})
 
 // ===== 焦点跟踪：仅在另一侧获焦时才显示 cross-highlight =====
 // 默认 / 翻译完成后两边都没获焦 → 两边都不高亮
@@ -170,14 +179,17 @@ function onSideBlur(side: 'zh' | 'en') {
     <header class="app__header">
       <div class="app__header-row">
         <h1>中英翻译写作台</h1>
-        <button
-          type="button"
-          class="btn-debug-toggle"
-          :aria-pressed="debugVisible"
-          @click="debugVisible = !debugVisible"
-        >
-          {{ debugVisible ? '隐藏调试' : '显示调试' }}
-        </button>
+        <div class="app__header-actions">
+          <RouterLink to="/settings" class="btn-debug-toggle">⚙️ 设置</RouterLink>
+          <button
+            type="button"
+            class="btn-debug-toggle"
+            :aria-pressed="debugVisible"
+            @click="debugVisible = !debugVisible"
+          >
+            {{ debugVisible ? '隐藏调试' : '显示调试' }}
+          </button>
+        </div>
       </div>
     </header>
 
@@ -193,7 +205,7 @@ function onSideBlur(side: 'zh' | 'en') {
           <div class="app__col-actions">
             <select v-model="tone" class="tone-select" title="翻译语气">
               <option value="">默认语气</option>
-              <option v-for="t in TONES" :key="t.id" :value="t.id">{{ t.label }}</option>
+              <option v-for="t in tones" :key="t.id" :value="t.id">{{ t.label }}</option>
             </select>
             <button
               type="button"

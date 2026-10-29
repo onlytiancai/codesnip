@@ -3,3 +3,6 @@ dist
 .env
 .env.local
 coverage
+
+# API keys live here — never commit
+data/secrets.json

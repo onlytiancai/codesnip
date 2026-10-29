@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 /**
- * 手工测试 CLI：绕过 HTTP 路由，直接调 createOllamaService / createTranslateService。
+ * 手工测试 CLI：绕过 HTTP 路由，直接调 service。
  *
  * 用途：
- * - 单独验证某个 prompt 在本地模型上的表现（不用起 server）
+ * - 单独验证某个提示词在模型上的表现（不用起 server）
  * - 看清楚「实际发给模型的 system / user 消息」与「模型原始输出」
- * - 复现解析失败（parseCandidates / cleanText）时看到底是哪一步炸的
+ * - 复现解析失败时看到底是哪一步炸的
+ *
+ * 走的是和 server 一样的配置：当前生效的 provider + 该 provider 的提示词。
+ * `--provider` / `--model` 可以临时覆盖。
  *
  * 用法见 `pnpm cli --help`。
  */
@@ -13,9 +16,12 @@
 import { readFileSync } from 'node:fs'
 import { createInterface } from 'node:readline/promises'
 import { stdin, stdout } from 'node:process'
-import ollamaDefault, { Ollama, type ChatRequest } from 'ollama'
 
-import { createOllamaService } from './services/ollama.js'
+import { ConfigStore } from './config/store.js'
+import { isToneId, TONE_IDS, type ToneId } from './config/defaults.js'
+import { ClientRegistry } from './llm/registry.js'
+import type { ChatRequest, LlmClient } from './llm/types.js'
+import { createAiService } from './services/ai.js'
 import { createTranslateService } from './services/translate.js'
 import {
   isSelectionKind,
@@ -27,7 +33,6 @@ import {
   SENTENCE_OPERATIONS,
   type SentenceOperation,
 } from './prompts/rewriteSentence.js'
-import { isToneId, TONE_IDS, type ToneId } from './prompts/tones.js'
 
 // ---------------------------------------------------------------- 参数解析
 
@@ -130,10 +135,8 @@ async function readLine(label: string): Promise<string> {
 // ---------------------------------------------------------------- 录音 client
 
 interface Recording {
-  client: Ollama
-  /** 真实 client（--host 生效的那一个），models 命令用 */
-  base: Ollama
-  /** 实际发给模型的请求（含 system / user 两条 message） */
+  client: LlmClient
+  /** 实际发给模型的请求（含 system / user） */
   sent: ChatRequest[]
   /** 模型原始输出（未经 parseCandidates / cleanText） */
   raw: string[]
@@ -141,36 +144,23 @@ interface Recording {
 
 /**
  * 包一层 client，把「发了什么」「回了什么」都录下来。
- * createOllamaService 只用到 .chat，所以这里只实现这一个方法。
  */
-function createRecordingClient(host?: string): Recording {
-  const base = host ? new Ollama({ host }) : ollamaDefault
+function createRecordingClient(inner: LlmClient): Recording {
   const sent: ChatRequest[] = []
   const raw: string[] = []
 
-  const client = {
+  const client: LlmClient = {
+    kind: inner.kind,
     async chat(request: ChatRequest) {
       sent.push(request)
-      const res = await base.chat({ ...request, stream: false })
-      raw.push(res.message?.content ?? '')
+      const res = await inner.chat(request)
+      raw.push(res.content)
       return res
     },
-  } as unknown as Ollama
+    listModels: () => inner.listModels(),
+  }
 
-  return { client, base, sent, raw }
-}
-
-function splitMessages(request: ChatRequest | undefined): { system: string; user: string } {
-  const messages = request?.messages ?? []
-  const system = messages
-    .filter((m) => m.role === 'system')
-    .map((m) => m.content)
-    .join('\n')
-  const user = messages
-    .filter((m) => m.role === 'user')
-    .map((m) => m.content)
-    .join('\n')
-  return { system, user }
+  return { client, sent, raw }
 }
 
 // ---------------------------------------------------------------- 输出
@@ -213,17 +203,17 @@ const USAGE = `
   instruction   自由指令改写（AiService.rewriteInstruction）
   translate     中译英（TranslateService.translate）
   raw           直接发 system/user 给模型，不做任何解析
-  models        列出本地 Ollama 模型
+  models        列出当前 provider 的可用模型
 
 通用选项:
-  --model <name>    模型名（默认取 OLLAMA_MODEL，再默认 s2021008840/hy-mt2:1.8b）
-  --host <url>      Ollama 地址（默认 http://127.0.0.1:11434）
-  --text <str>      输入文本；不给则读位置参数 → stdin → 交互输入
-  --file <path>     从文件读输入（覆盖 --text）
-  --prompt          打印实际发出的 system / user 消息
-  --raw             打印模型原始输出（未经解析）
-  --json            以 JSON 输出全部结果
-  --quiet           不打印装饰性内容（与 --json 一起用）
+  --provider <id>     用哪个 provider（默认取配置里生效的那个）
+  --model <name>      临时覆盖模型名
+  --text <str>        输入文本；不给则读位置参数 → stdin → 交互输入
+  --file <path>       从文件读输入（覆盖 --text）
+  --prompt            打印实际发出的 system / user 消息
+  --raw               打印模型原始输出（未经解析）
+  --json              以 JSON 输出全部结果
+  --quiet             不打印装饰性内容（与 --json 一起用）
 
 selection:
   --kind word|phrase        选区类型，默认 word
@@ -266,19 +256,37 @@ async function run(): Promise<void> {
     return
   }
 
-  const model =
-    str(flags, 'model') || process.env.OLLAMA_MODEL || 's2021008840/hy-mt2:1.8b'
-  const host = str(flags, 'host') || process.env.OLLAMA_HOST || 'http://127.0.0.1:11434'
   const quiet = bool(flags, 'quiet')
   const asJson = bool(flags, 'json')
 
-  const rec = createRecordingClient(host)
-  const ai = createOllamaService({
+  const store = new ConfigStore()
+  const registry = new ClientRegistry()
+
+  // 选 provider：--provider 优先，否则用配置里生效的那个
+  const providerId = str(flags, 'provider') ?? store.getActiveProviderId()
+  const provider = store.getProvider(providerId)
+  if (!provider) {
+    throw new Error(`provider "${providerId}" 不存在`)
+  }
+  // --model 临时覆盖
+  const modelOverride = str(flags, 'model')
+  const effectiveProvider = modelOverride
+    ? { ...provider, model: modelOverride }
+    : provider
+
+  const inner = registry.get(effectiveProvider, store.getApiKey(provider.id))
+  const rec = createRecordingClient(inner)
+
+  const getActive = () => ({
     client: rec.client,
-    model,
+    promptSet: store.getPromptSet(provider.id),
+  })
+
+  const ai = createAiService({
+    getActive,
     defaultMaxCandidates: num(flags, 'max') ?? 5,
   })
-  const translator = createTranslateService({ client: rec.client, model })
+  const translator = createTranslateService({ getActive })
 
   const started = Date.now()
   let result: unknown
@@ -330,7 +338,10 @@ async function run(): Promise<void> {
         const text = await readText(flags, positional, '待改写文本')
         const instruction = str(flags, 'instruction') || (await readLine('改写指令'))
         if (!instruction) throw new Error('缺少 --instruction')
-        result = await ai.rewriteInstruction(text, { instruction, context: str(flags, 'context') })
+        result = await ai.rewriteInstruction(text, {
+          instruction,
+          context: str(flags, 'context'),
+        })
         break
       }
       case 'translate': {
@@ -348,18 +359,15 @@ async function run(): Promise<void> {
         if (!user) throw new Error('缺少 --user')
         const system = str(flags, 'system') ?? ''
         const res = await rec.client.chat({
-          model,
-          messages: [
-            { role: 'system', content: system },
-            { role: 'user', content: user },
-          ],
+          system,
+          user,
+          jsonSchema: undefined,
         })
-        result = res.message?.content ?? ''
+        result = res.content
         break
       }
       case 'models': {
-        const list = await rec.base.list()
-        result = list.models.map((m) => m.name)
+        result = await inner.listModels()
         break
       }
       default:
@@ -370,7 +378,7 @@ async function run(): Promise<void> {
   }
 
   const elapsed = Date.now() - started
-  const { system, user } = splitMessages(rec.sent[0])
+  const request = rec.sent[0]
   const raw = rec.raw[0]
 
   if (asJson) {
@@ -378,9 +386,10 @@ async function run(): Promise<void> {
       JSON.stringify(
         {
           command: cmd,
-          model,
-          host,
-          prompt: rec.sent[0] ? { system, user } : undefined,
+          provider: provider.id,
+          kind: provider.kind,
+          model: effectiveProvider.model,
+          prompt: request ? { system: request.system, user: request.user } : undefined,
           raw,
           result,
           error,
@@ -395,14 +404,14 @@ async function run(): Promise<void> {
   }
 
   if (!quiet) {
-    console.log(`${DIM}command: ${cmd}${RESET}`)
-    console.log(`${DIM}model:   ${model}${RESET}`)
-    console.log(`${DIM}host:    ${host}${RESET}`)
+    console.log(`${DIM}command:  ${cmd}${RESET}`)
+    console.log(`${DIM}provider: ${provider.label} (${provider.kind})${RESET}`)
+    console.log(`${DIM}model:    ${effectiveProvider.model}${RESET}`)
   }
 
-  if (bool(flags, 'prompt') && rec.sent[0]) {
-    printBlock('system', system)
-    printBlock('user', user)
+  if (bool(flags, 'prompt') && request) {
+    printBlock('system', request.system)
+    printBlock('user', request.user)
   }
 
   if (bool(flags, 'raw') && raw !== undefined) {
