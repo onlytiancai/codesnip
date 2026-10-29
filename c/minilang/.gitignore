@@ -1,1 +1,6 @@
+# 编译产物
 minilang
+.minilang
+.minilang.single
+.minilang.multi
+*.o
