@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>电子琴模拟器</title>
+<style>
+:root{color-scheme:dark;--bg:#101720;--panel:#18232e;--line:#2b3948;--blue:#3998ff;--muted:#a8b7c8}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#202d3c,#101720 70%);color:#edf4fc;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:28px}
+main{max-width:1200px;margin:auto}.heading{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}h1{font-size:clamp(26px,4vw,38px);margin:0}.sub{color:var(--muted);margin:5px 0 0}.hint{color:var(--muted);font-size:13px}
+.panel{background:linear-gradient(145deg,#19232e,#121a23);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:14px;box-shadow:0 12px 35px #0003}.panel h2{font-size:17px;margin:0 0 14px}
+.instruments{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.instrument{background:#202b37;color:#e8f0f9;border:1px solid #344252;border-radius:12px;padding:13px 8px;cursor:pointer;min-height:78px;transition:.15s;font:inherit}.instrument .emoji{display:block;font-size:25px;margin-bottom:3px}.instrument:hover{border-color:#72b8ff;transform:translateY(-1px)}.instrument.active{border:2px solid var(--blue);background:#203b57;box-shadow:0 0 0 2px #3998ff1c}
+.controls{display:flex;align-items:center;gap:24px;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:20px;padding-top:18px}.control{display:flex;align-items:center;gap:10px;color:var(--muted)}select,input[type=range]{accent-color:var(--blue)}select{background:#202b37;border:1px solid #3a4b5d;color:#fff;padding:9px;border-radius:8px;font:inherit}.vol{width:min(220px,35vw)}.start{margin-left:auto;background:var(--blue);border:0;border-radius:10px;color:white;padding:12px 20px;font:inherit;font-weight:650;cursor:pointer}.start:hover{filter:brightness(1.1)}
+.keyboard-wrap{padding:16px 12px 20px;background:#0c1117;border:1px solid #344252;border-radius:15px;overflow-x:auto}.keyboard{display:flex;position:relative;min-width:720px;height:260px;user-select:none;touch-action:manipulation}.key{position:relative;flex:1;min-width:0;border:1px solid #aab2bc;border-radius:0 0 7px 7px;background:linear-gradient(90deg,#dce1e7,#fff 30%,#f0f2f5);box-shadow:0 5px 0 #858d97,0 7px 7px #0008;cursor:pointer;z-index:1}.key:first-child{border-radius:0 0 0 7px}.key.pressed{background:linear-gradient(#9bcfff,#d8edff);transform:translateY(3px);box-shadow:0 2px 0 #65717e}.key .note{position:absolute;bottom:10px;left:0;right:0;text-align:center;color:#57616d;font-size:11px;pointer-events:none}.black{position:absolute;top:0;height:61%;width:2.6%;min-width:18px;max-width:31px;background:linear-gradient(90deg,#080b0f,#28313b 35%,#10151b 80%,#05070a);border:1px solid #030507;border-radius:0 0 5px 5px;box-shadow:0 4px 0 #030507,0 6px 6px #0008;z-index:2;transform:translateX(-50%);cursor:pointer}.black.pressed{background:linear-gradient(90deg,#17518b,#64b3ff,#17406a);transform:translate(-50%,3px);box-shadow:0 1px 0 #030507}.black .note{position:absolute;bottom:8px;left:0;right:0;text-align:center;color:#dce7f3;font-size:10px}
+.foot{text-align:center;color:var(--muted);font-size:13px;margin:18px 0}.kbd{display:inline-block;background:#263341;border:1px solid #3b4b5d;border-radius:5px;padding:2px 7px;margin:0 2px;color:#edf4fc}
+@media(max-width:650px){body{padding:14px}.panel{padding:15px}.instruments{grid-template-columns:repeat(2,minmax(0,1fr))}.instrument{min-height:68px}.controls{gap:15px}.start{margin-left:0}.keyboard{height:210px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="heading">
+    <div><h1>♫ 电子琴模拟器</h1><p class="sub">在浏览器中切换音色，弹奏属于你的旋律。</p></div>
+    <div class="hint">🔊 首次使用请点击任意琴键以启用声音</div>
+  </div>
+  <section class="panel">
+    <h2>音色选择</h2>
+    <div class="instruments" id="instruments">
+      <button class="instrument active" data-tone="piano"><span class="emoji">🎹</span>钢琴</button>
+      <button class="instrument" data-tone="guitar"><span class="emoji">🎸</span>吉他</button>
+      <button class="instrument" data-tone="bass"><span class="emoji">🎸</span>贝斯</button>
+      <button class="instrument" data-tone="violin"><span class="emoji">🎻</span>小提琴</button>
+      <button class="instrument" data-tone="flute"><span class="emoji">🪈</span>长笛</button>
+      <button class="instrument" data-tone="trumpet"><span class="emoji">🎺</span>小号</button>
+      <button class="instrument" data-tone="sax"><span class="emoji">🎷</span>萨克斯</button>
+      <button class="instrument" data-tone="synth"><span class="emoji">🎛️</span>合成器</button>
+      <button class="instrument" data-tone="epiano"><span class="emoji">🎹</span>电钢琴</button>
+      <button class="instrument" data-tone="organ"><span class="emoji">🎼</span>风琴</button>
+    </div>
+    <div class="controls">
+      <label class="control">八度
+        <select id="octave"><option value="2">低音</option><option value="3">偏低</option><option value="4" selected>标准</option><option value="5">偏高</option><option value="6">高音</option></select>
+      </label>
+      <label class="control">音量 <input class="vol" id="volume" type="range" min="0" max="100" value="65"><span id="volLabel">65%</span></label>
+      <button class="start" id="audioBtn">▶ 启用声音</button>
+    </div>
+  </section>
+  <section class="keyboard-wrap"><div class="keyboard" id="keyboard" aria-label="虚拟钢琴键盘"></div></section>
+  <p class="foot">鼠标点击或触屏弹奏 · 电脑键盘可弹奏前两组琴键（键位标注在琴键上）</p>
+</main>
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const keyboard = $('#keyboard'), octaveSelect = $('#octave'), volume = $('#volume');
+  const keys = [], active = new Map();
+  const semitones = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const whiteNames = ['C','D','E','F','G','A','B'];
+  const blackNames = ['C#','D#','F#','G#','A#'];
+  const whiteComputerKeys = ['a','s','d','f','g','h','j','k','l',';','z','x','c','v'];
+  const blackComputerKeys = ['w','e','t','y','u','o','p','[','q','r'];
+  let ctx = null, master = null, tone = 'piano';
+
+  function makeKeyboard(){
+    keyboard.innerHTML=''; keys.length=0;
+    const octave = Number(octaveSelect.value);
+    const whiteNotes = [];
+    for(let i=0;i<28;i++){
+      const noteIndex = i % 7;
+      const oct = octave + Math.floor(i/7);
+      const midi = (oct + 1) * 12 + [0,2,4,5,7,9,11][noteIndex];
+      const el=document.createElement('button');
+      el.className='key'; el.type='button';
+      el.setAttribute('aria-label',whiteNames[noteIndex]+oct);
+      const shortcut = whiteComputerKeys[i];
+      el.innerHTML=`<span class="note">${whiteNames[noteIndex]}${oct}${shortcut ? '<br>'+shortcut.toUpperCase() : ''}</span>`;
+      keyboard.appendChild(el);
+      const k={midi,el,black:false,index:i,keyName:whiteComputerKeys[i]};
+      keys.push(k); whiteNotes.push(k);
+      el.addEventListener('pointerdown',e=>{e.preventDefault();startNote(midi,el);});
+      el.addEventListener('pointerup',()=>stopNote(midi));
+      el.addEventListener('pointerleave',e=>{if(e.buttons)stopNote(midi);});
+      el.addEventListener('contextmenu',e=>e.preventDefault());
+    }
+    // Add black keys after C, D, F, G and A across all four octaves.
+    const whiteWidth=100/28;
+    whiteNotes.forEach((w,i)=>{
+      const pitch=w.midi%12;
+      if (![0,2,5,7,9].includes(pitch) || i===whiteNotes.length-1) return;
+      const midi=w.midi+1;
+      const name=semitones[midi%12];
+      const oct=Math.floor(midi/12)-1;
+      const el=document.createElement('button');
+      el.type='button'; el.className='black';
+      el.style.left=((i+1)*whiteWidth)+'%';
+      el.setAttribute('aria-label',name+oct);
+      const shortcut = blackComputerKeys[keys.filter(k=>k.black).length];
+      el.innerHTML=`<span class="note">${shortcut ? shortcut.toUpperCase() : ''}</span>`;
+      keyboard.appendChild(el);
+      const k={midi,el,black:true,index:keys.length,keyName:shortcut};
+      keys.push(k);
+      el.addEventListener('pointerdown',e=>{e.preventDefault();startNote(midi,el);});
+      el.addEventListener('pointerup',()=>stopNote(midi));
+      el.addEventListener('pointerleave',e=>{if(e.buttons)stopNote(midi);});
+    });
+    // Keep computer-key mappings consistent with the visible white/black keys.
+    keyMap.clear();
+    keys.forEach(k=>keyMap.set(k.keyName,k));
+  }
+  async function initAudio(){
+    if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)();master=ctx.createGain();master.gain.value=Number(volume.value)/100;master.connect(ctx.destination);}
+    if(ctx.state==='suspended')await ctx.resume();
+    $('#audioBtn').textContent='✓ 声音已启用';
+  }
+  function startNote(midi,el){
+    initAudio(); stopNote(midi);
+    if(!ctx)return;
+    const freq=440*Math.pow(2,(midi-69)/12), now=ctx.currentTime;
+    const gain=ctx.createGain(), filter=ctx.createBiquadFilter();
+    filter.type='lowpass';
+    const configs={
+      piano:{wave:'triangle',cut:5200,peak:.32,decay:.65,partials:[1,2.01],release:.22},
+      guitar:{wave:'triangle',cut:3000,peak:.30,decay:.35,partials:[1,2,3],release:.16},
+      bass:{wave:'triangle',cut:1100,peak:.36,decay:.7,partials:[1,2],release:.18},
+      violin:{wave:'sawtooth',cut:4200,peak:.22,decay:1.8,partials:[1,2],release:.3},
+      flute:{wave:'sine',cut:2400,peak:.28,decay:1.2,partials:[1,2],release:.2},
+      trumpet:{wave:'sawtooth',cut:3200,peak:.22,decay:.8,partials:[1,2],release:.18},
+      sax:{wave:'sawtooth',cut:2600,peak:.25,decay:1,partials:[1,1.5],release:.2},
+      synth:{wave:'square',cut:5000,peak:.19,decay:1.1,partials:[1,1.005],release:.18},
+      epiano:{wave:'sine',cut:3600,peak:.30,decay:.8,partials:[1,2.7],release:.2},
+      organ:{wave:'square',cut:4200,peak:.18,decay:3,partials:[1,2],release:.12}
+    };
+    const c=configs[tone]||configs.piano;
+    filter.frequency.value=c.cut; filter.Q.value=.6;
+    gain.gain.setValueAtTime(.0001,now);
+    gain.gain.linearRampToValueAtTime(c.peak,now+.012);
+    if(['piano','guitar','bass','epiano'].includes(tone))gain.gain.exponentialRampToValueAtTime(Math.max(.025,c.peak*.35),now+c.decay);
+    const oscillators=[];
+    c.partials.forEach((p,i)=>{
+      const osc=ctx.createOscillator(), og=ctx.createGain();
+      osc.type=c.wave;osc.frequency.value=freq*p;
+      og.gain.value=i===0?1:.22/(i+1);
+      osc.connect(og);og.connect(filter);osc.start(now);oscillators.push(osc);
+    });
+    filter.connect(gain);gain.connect(master);
+    active.set(midi,{gain,oscillators,el,release:c.release});
+    el.classList.add('pressed');
+  }
+  function stopNote(midi){
+    const n=active.get(midi);if(!n)return;
+    active.delete(midi);
+    if(ctx){
+      const now=ctx.currentTime;
+      n.gain.gain.cancelScheduledValues(now);
+      n.gain.gain.setTargetAtTime(.0001,now,Math.max(.025,n.release/4));
+      n.oscillators.forEach(o=>{try{o.stop(now+n.release+.08)}catch(e){}});
+    }
+    n.el.classList.remove('pressed');
+  }
+  $('#instruments').addEventListener('click',e=>{
+    const b=e.target.closest('[data-tone]');if(!b)return;
+    tone=b.dataset.tone;document.querySelectorAll('.instrument').forEach(x=>x.classList.toggle('active',x===b));
+  });
+  octaveSelect.addEventListener('change',()=>{active.forEach((_,m)=>stopNote(m));makeKeyboard();});
+  volume.addEventListener('input',()=>{ $('#volLabel').textContent=volume.value+'%';if(master)master.gain.setTargetAtTime(Number(volume.value)/100,ctx.currentTime,.02);});
+  $('#audioBtn').addEventListener('click',initAudio);
+  const keyMap=new Map();
+  document.addEventListener('keydown',e=>{
+    if(e.repeat||e.ctrlKey||e.metaKey||e.altKey)return;
+    const k=keyMap.get(e.key.toLowerCase());if(k){e.preventDefault();startNote(k.midi,k.el);}
+  });
+  document.addEventListener('keyup',e=>{const k=keyMap.get(e.key.toLowerCase());if(k)stopNote(k.midi);});
+  window.addEventListener('blur',()=>active.forEach((_,m)=>stopNote(m)));
+  makeKeyboard();
+})();
+</script>
+</body>
+</html>
