@@ -5,8 +5,10 @@ import { fail } from './httpError.js'
 
 /**
  * 创建 /api/translate 路由。
- * 请求：{ text, source?: 'zh', target?: 'en', tone?: ToneId }
+ * 请求：{ text, source?: 'zh'|'en', target?: 'zh'|'en', tone?: ToneId }
  * 响应：{ translation }
+ *
+ * 默认 zh → en；en → zh 也支持（走另一个能力 / 另一套提示词）。
  */
 export function createTranslateRouter(service: TranslateService): Router {
   const router = Router()
@@ -25,12 +27,19 @@ export function createTranslateRouter(service: TranslateService): Router {
         error: 'text is required and must be a non-empty string',
       })
     }
-    // source/target 暂时只接受 zh→en，传其他值给 400 提示用户暂不支持
-    if (body.source !== undefined && body.source !== 'zh') {
-      return res.status(400).json({ error: 'only source="zh" is supported' })
+    // source / target：只认 zh 和 en，且方向必须是 zh→en 或 en→zh
+    const source = body.source === undefined ? 'zh' : body.source
+    const target = body.target === undefined ? 'en' : body.target
+    if (source !== 'zh' && source !== 'en') {
+      return res.status(400).json({ error: 'source must be "zh" or "en"' })
     }
-    if (body.target !== undefined && body.target !== 'en') {
-      return res.status(400).json({ error: 'only target="en" is supported' })
+    if (target !== 'zh' && target !== 'en') {
+      return res.status(400).json({ error: 'target must be "zh" or "en"' })
+    }
+    if (source === target) {
+      return res
+        .status(400)
+        .json({ error: 'source and target must differ (zh→en or en→zh)' })
     }
     if (body.tone !== undefined && !isToneId(body.tone)) {
       return res.status(400).json({ error: 'tone is not a supported tone id' })
@@ -39,6 +48,8 @@ export function createTranslateRouter(service: TranslateService): Router {
     // 2. 调 TranslateService
     try {
       const result = await service.translate(body.text.trim(), {
+        source,
+        target,
         tone: isToneId(body.tone) ? body.tone : undefined,
       })
       return res.json(result)

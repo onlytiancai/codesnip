@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "activeProviderId": "ollama-local",
+  "activeProviderId": "minimax-anthropic",
   "providers": [
     {
       "id": "ollama-local",
@@ -18,7 +18,7 @@
       "kind": "anthropic",
       "baseUrl": "https://api.minimaxi.com/anthropic",
       "model": "MiniMax-M3",
-      "apiKeyEnv": "ANTHROPIC_API_KEY",
+      "apiKeyEnv": "MINIMAX_ANTHROPIC_KEY",
       "structuredOutput": "schema",
       "maxTokens": 16000,
       "timeoutMs": 120000
@@ -29,7 +29,7 @@
       "kind": "openai",
       "baseUrl": "https://api.minimaxi.com/v1",
       "model": "MiniMax-M3",
-      "apiKeyEnv": "OPENAI_API_KEY",
+      "apiKeyEnv": "MINIMAX_OPENAI_KEY",
       "structuredOutput": "schema",
       "maxTokens": 8192,
       "maxTokensParam": "max_tokens",

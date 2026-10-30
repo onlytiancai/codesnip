@@ -1,6 +1,6 @@
 # tiptap-rewrite-server
 
-中英翻译 + 英语写作 AI 助手的后端。提供翻译（带语气）、单词/短语替换、整句改写、语法检查、自定义指令改写五个能力。
+中英双向翻译 + 英语写作 AI 助手 + 本地词库查词的后端。提供翻译（中译英 / 英译中，带语气）、单词/短语替换、整句改写、语法检查、自定义指令改写五个 AI 能力，外加一个纯本地的查词服务。
 
 **LLM 后端可换**：本地 Ollama、任何 OpenAI 兼容端点（OpenAI / DeepSeek / Moonshot / Qwen / vLLM…）、Anthropic Claude。每个 provider 各自带一套提示词 —— 因为不同模型需要的措辞不一样（小模型要直白的硬规则，大模型要松弛的指令 + 结构化输出）。
 
@@ -17,15 +17,33 @@ pnpm dev                   # tsx watch，监听 8787
 
 ## 配置
 
-三个文件，各司其职：
+### `server/.env`（不进 git）
 
-| 文件 | 内容 | 进 git？ |
+后端启动时自动加载（`src/config/env.ts`）。`server/.env.example` 是模板。
+
+| 变量 | 默认 | 说明 |
 |---|---|---|
-| `server/data/config.json` | provider 列表、当前生效的 provider、**每个 provider 的提示词集**、语气表 | ✅ |
-| `server/data/history.json` | 提示词的 append-only 版本历史 | ✅ |
-| `server/data/secrets.json` | API Key | ❌（见 `server/.gitignore`） |
+| `PORT` | `8787` | Web 端口 |
+| `OLLAMA_HOST` | `http://127.0.0.1:11434` | 仅首次播种默认 provider 时用 |
+| `OLLAMA_MODEL` | `s2021008840/hy-mt2:1.8b` | 同上 |
+| `MAX_CANDIDATES` | `5` | 候选词数量上限 |
+| `<PROVIDER_ID>_KEY` | — | **API Key**，名字对应 provider id（大写 + `-`→`_` + `_KEY`） |
+| `VOCAB_PATH` | `.../024-cet4/vocab_all.json` | **查词**用的词库 JSON（JSONL） |
 
-`config.json` 里永远没有明文 key —— key 只存在 `secrets.json`（权限 0600）。API 返回 provider 时只带一个 `hasKey: boolean`。
+改 `VOCAB_PATH` 不用重启后端 —— 设置页「词库」tab 点「重新加载」即可（后端会重读 `.env` 并重建索引）。
+用 `SERVER_ENV_FILE=/path/to/other.env` 可以换一个 env 文件。
+
+### `server/data/`（进 git）
+
+| 文件 | 内容 |
+|---|---|
+| `server/data/config.json` | provider 列表、当前生效的 provider、**每个 provider 的提示词集**、语气表 |
+| `server/data/history.json` | 提示词的 append-only 版本历史 |
+
+`config.json` 里**永远没有明文 key** —— key 只在 `.env` 里。provider 的 `apiKeyEnv` 字段指明读哪个变量名，
+API 返回 provider 时只带一个 `hasKey: boolean`。
+
+> 以前 key 存在 `server/data/secrets.json`，那个文件已经删掉了，机制换成 `.env`。
 
 ### provider 配置
 
@@ -48,7 +66,7 @@ pnpm dev                   # tsx watch，监听 8787
 |---|---|
 | `kind` | `ollama` / `openai` / `anthropic` —— 决定用哪个 SDK、baseUrl 怎么映射 |
 | `baseUrl` | Ollama → `host`；OpenAI / Anthropic → `baseURL` |
-| `apiKeyEnv` | 从环境变量取 key 的变量名（优先级低于 `secrets.json`） |
+| `apiKeyEnv` | 从哪个环境变量读 key（`OPENAI_API_KEY` 这种）。留空 = 不用 key |
 | `structuredOutput` | `schema`（API 层强制 JSON Schema）/ `object`（只强制 JSON 对象）/ `prompt`（只靠提示词）/ `off` |
 | `maxTokensParam` | `max_tokens`（兼容面最广，默认）或 `max_completion_tokens`（OpenAI 新写法） |
 | `temperature` | 只在显式配置时才发。**Anthropic 无效** —— 它的 API 已移除采样参数 |
@@ -82,6 +100,7 @@ Rules:
 | 能力 | 变量 |
 |---|---|
 | `translate` | `text`、`tone` |
+| `translateReverse` | `text`、`tone` |
 | `rewriteSelection` | `text`、`context`、`sourceSentence`、`hasSource`、`kindWord`、`kindPhrase` |
 | `rewriteSentence` | `sentence`、`operation`、`operationGuidance`、`tone`、`context`、`sourceSentence`、`hasSource` |
 | `grammarCheck` | `sentence` |
@@ -143,7 +162,8 @@ interface LlmClient {
 | `minimax-anthropic` | Anthropic | `https://api.minimaxi.com/anthropic` | `MiniMax-M3` |
 | `minimax-openai` | OpenAI 兼容 | `https://api.minimaxi.com/v1` | `MiniMax-M3` |
 
-后两个的 key 在 `secrets.json`（不进 git）；也可以直接 `export ANTHROPIC_API_KEY=…` / `export OPENAI_API_KEY=…`（provider 配了 `apiKeyEnv`，环境变量优先级低于 `secrets.json`）。两个都开了 `structuredOutput: 'schema'`，可以在设置页里把任意一个能力的提示词切到 JSON 模式。
+后两个的 key 在 `server/.env` 里（不进 git），变量名分别是 `MINIMAX_ANTHROPIC_KEY` / `MINIMAX_OPENAI_KEY`
+（provider 的 `apiKeyEnv` 字段指明读哪个）。两个都开了 `structuredOutput: 'schema'`，可以在设置页里把任意一个能力的提示词切到 JSON 模式。
 
 ## 手工测试 CLI
 
@@ -157,10 +177,11 @@ pnpm cli sentence  --text "Education is very important for children." --operatio
 pnpm cli grammar   --text "He go to school last yesterday."
 pnpm cli instruction --text "The results were kind of surprising." --instruction "Make it sound more natural."
 echo "教育对孩子很重要。" | pnpm cli translate
+pnpm cli translate --to zh --text "Education is very important for children."   # 英译中
 pnpm cli models
 ```
 
-CLI 走的是和 server 一样的配置（当前生效的 provider + 该 provider 的提示词），`--provider <id>` / `--model <name>` 可以临时覆盖。
+CLI 走的是和 server 一样的配置（当前生效的 provider + 该 provider 的提示词 + `server/.env`），`--provider <id>` / `--model <name>` 可以临时覆盖。
 
 调试用的开关：
 
@@ -172,13 +193,10 @@ CLI 走的是和 server 一样的配置（当前生效的 provider + 该 provide
 
 ## 环境变量
 
-| 变量 | 默认 | 说明 |
-|---|---|---|
-| `PORT` | `8787` | Web 端口 |
-| `OLLAMA_HOST` | `http://127.0.0.1:11434` | **仅首次播种默认 provider 时用**（之后以 `config.json` 为准） |
-| `OLLAMA_MODEL` | `s2021008840/hy-mt2:1.8b` | 同上 |
+**全部在 `server/.env` 里**（不进 git），启动时自动加载 —— 细节见上面的「配置」一节。
+`PORT` / `OLLAMA_HOST` / `OLLAMA_MODEL` / `MAX_CANDIDATES` / `<PROVIDER_ID>_KEY` / `VOCAB_PATH`。
 
-> `MAX_CANDIDATES` 读不到 —— 候选上限在 `src/services/ai.ts` 里默认 5。
+> `SERVER_ENV_FILE=/path/to/other.env` 可以换一个 env 文件。
 
 ## 语气
 
@@ -190,11 +208,15 @@ CLI 走的是和 server 一样的配置（当前生效的 provider + 该 provide
 
 ## API
 
-### AI 能力（契约不变）
+### AI 能力
 
 `POST /api/translate` · `POST /api/rewrite-selection` · `POST /api/rewrite-sentence` · `POST /api/grammar-check` · `POST /api/rewrite-instruction` · `GET /healthz`
 
 请求/响应形状完全没变 —— 无论提示词是纯文本模式还是 JSON 模式，出来的形状都一样（翻译 → `{translation}`，选区 → `{candidates}`，其余 → `{text}`）。
+
+**`/api/translate` 现在支持两个方向**：`{text, source?, target?, tone?}`，
+默认 `source='zh'` / `target='en'`；`source='en'` + `target='zh'` 走**英译中**（另一个能力 / 另一套提示词）。
+`source` / `target` 相同或不是 zh/en → `400`。响应形状不变，还是 `{translation}`。
 
 错误码：
 
@@ -206,13 +228,24 @@ CLI 走的是和 server 一样的配置（当前生效的 provider + 该 provide
 | `502` | 上游（provider）调用失败 |
 | `503` | 服务端配置不全（没有可用 provider、缺提示词模板） |
 
+### 查词（纯本地，不调模型）
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/dictionary/status` | `{path, count, loaded, error?}` —— 当前词库路径 + 索引状态 |
+| POST | `/api/dictionary/reload` | 重读 `.env` + 重建索引，返回新的 status |
+| GET | `/api/dictionary/lookup?word=xxx` | `{found, word, entry?}` —— 词条：音标 / 释义 / 例句 / 短语 / 同反义词 / 记忆法 |
+
+**「查不到」是 200 + `found: false`**，不是 404 —— 查不到是正常结果。
+`word` 缺失 → `400`。词库文件没加载起来时 `found:false` 且带 `error` 说明原因。
+
 ### 设置
 
 | 方法 | 路径 | 说明 |
 |---|---|---|
 | GET | `/api/config` | 一次性拿到生效 provider、provider 列表、语气表、能力列表 |
 | GET | `/api/providers` | provider 列表（带 `hasKey`，没有明文 key） |
-| PUT | `/api/providers` | 新增 / 更新；带 `apiKey` 字段则写入 `secrets.json`（空串 = 删除） |
+| PUT | `/api/providers` | 新增 / 更新。**不收 `apiKey`**（key 在 `.env` 里）—— 带了会 400 |
 | DELETE | `/api/providers/:id` | 删除（连带清掉它的提示词和历史）；当前生效的不给删 |
 | POST | `/api/providers/active` | 切换生效 provider —— **即时生效，不用重启** |
 | POST | `/api/providers/:id/test` | 探活：发一次最小请求 |
@@ -226,6 +259,29 @@ CLI 走的是和 server 一样的配置（当前生效的 provider + 该 provide
 | POST | `/api/providers/:id/prompts/:capabilityId/dry-run` | 试运行：渲染 + 真跑一次，返回 system / user / 原始输出 / 解析结果 |
 | POST | `/api/providers/:id/prompts/copy` | 从别的 provider 复制提示词（整套或单个能力） |
 | GET / PUT | `/api/providers/:id/tones` | 该 provider 的语气表 |
+
+## 查词服务
+
+`src/services/dictionary.ts` 读的是 **JSONL**（一行一个词条）的本地词库：
+
+```
+{"wordRank":1,"headWord":"abandon","content":{"word":{"wordHead":"abandon","content":{
+  "usphone":"ə'bændən","ukphone":"ə'bænd(ə)n",
+  "trans":[{"tranCn":"丢弃；放弃，抛弃","pos":"v","tranOther":"to leave someone..."}],
+  "sentence":{"sentences":[{"sContent":"How could she abandon her own child?","sCn":"她怎么能抛弃自己的孩子？"}]},
+  "phrase":{"phrases":[{"pContent":"abandon ship","pCn":"弃船"}]}, ...}}}}
+```
+
+**索引用「字节偏移索引」** —— 建索引时把整个文件读成一个 Buffer，按 `\n` 扫，
+每行只 `JSON.parse` 一次取 `wordHead`，记下偏移后**立刻丢掉解析结果**。
+12MB / 5011 行的词库建索引 ~50ms，内存里只留 5011 条 `Map<string, number>`；
+查词 = `seek` 到那一行 → `readline` → parse 这一行（~2.5KB），毫秒级。
+（思路和 024-cet4 的 `scripts/cet4.py` 一样。）
+
+词库**只收词头**（`child`），不收变形（`children`）。查不到时会退一步试试常见变形还原
+（`-s` / `-es` / `-ed` / `-ing`），命中就返回，并告诉前端「词库里收的是『child』」。
+
+## 设计约定
 
 ## 设计约定
 
@@ -258,14 +314,16 @@ pnpm type-check      # tsc --noEmit
 | `tests/promptParity.test.ts` | **迁移安全网**：默认提示词集的渲染结果必须和迁移前的 builder 逐字节相同 |
 | `tests/legacy/prompts/*` | 迁移前的原始实现，从 git 抽出来冻存在这儿当对照（**不要改**） |
 | `tests/template.test.ts` | 渲染器：变量 / section / inverted / standalone 行裁剪 / 配平检查 |
-| `tests/configStore.test.ts` | 播种、per-provider 提示词隔离、版本递增、回滚、secrets 隔离 |
+| `tests/configStore.test.ts` | 播种、per-provider 提示词隔离、版本递增、回滚、key 走环境变量 |
 | `tests/llmClients.test.ts` | 三家客户端的请求形状 + 降级链（SDK 用 mock 挡掉） |
 | `tests/capabilities.test.ts` | 提取器（text / json 两种模式）、buildContext、renderPrompt |
 | `tests/settingsRoutes.test.ts` | 设置 API 全流程 |
 | `tests/services.test.ts` | 断言提示词真的进了请求，语法检查原样返回 |
 | `tests/rewriteRoutes.test.ts` | 四个端点的 400 / 500 / 502 路径 |
 | `tests/tones.test.ts` · `tests/translateWord.test.ts` · `tests/rewriteSelection.test.ts` · `tests/rewriteSentence.test.ts` · `tests/rewriteInstruction.test.ts` · `tests/grammarCheck.test.ts` | 各能力的模板渲染 + 解析器 |
-| `tests/translate.test.ts` · `tests/matchCase.test.ts` | 路由层 + 大小写保留 |
+| `tests/translate.test.ts` · `tests/matchCase.test.ts` | 路由层（两个翻译方向）+ 大小写保留 |
+| `tests/env.test.ts` | `.env` 加载：读得到 / 覆盖已有变量 / 文件缺失不炸 |
+| `tests/dictionary.test.ts` | 查词：索引 + 查询 + 查不到 + 坏行跳过 + 词形还原 + 路由层 |
 
 > **`tests/promptParity.test.ts` 为什么用真代码当对照**：开发这个功能时把 `"do not include it in the output"` 抄成了 `"... in your output"`，结果「模板」和「测试里手抄的期望值」一起错，测试反而是绿的 —— 绿得毫无意义。所以期望值不手抄，直接从 git 抽一份原始实现冻在 `tests/legacy/prompts/` 里。
 
@@ -274,15 +332,16 @@ pnpm type-check      # tsc --noEmit
 ```
 server/
 ├── src/
-│   ├── index.ts                        # 入口：建 store / registry / service，listen
-│   ├── app.ts                          # createApp 工厂，挂 rewrite / translate / settings router
+│   ├── index.ts                        # 入口：loadEnv → 建 store / registry / service，listen
+│   ├── app.ts                          # createApp 工厂，挂 rewrite / translate / settings / dictionary router
 │   ├── cli.ts                          # 手工测试 CLI（直接调 service，可打印 prompt / raw）
 │   ├── config/
 │   │   ├── types.ts                    # ProviderConfig / PromptTemplate / ProviderPromptSet / AppConfig
 │   │   ├── defaults.ts                 # 内置默认提示词集（从旧 prompts/*.ts 逐字迁移）
 │   │   ├── template.ts                 # mustache-lite 渲染器
 │   │   ├── capabilities.ts             # 能力注册表：变量表 / 示例输入 / 提取器
-│   │   └── store.ts                    # ConfigStore：config.json + history.json + secrets.json
+│   │   ├── env.ts                      # 加载 server/.env（util.parseEnv）
+│   │   └── store.ts                    # ConfigStore：config.json + history.json（key 走环境变量）
 │   ├── llm/
 │   │   ├── types.ts                    # LlmClient 接口 + JSON 契约
 │   │   ├── ollamaClient.ts             # format 传 schema
@@ -291,12 +350,14 @@ server/
 │   │   └── registry.ts                 # ProviderConfig → LlmClient（带缓存）
 │   ├── services/
 │   │   ├── ai.ts                       # AiService：4 个能力，提示词从 provider 的提示词集取
-│   │   ├── translate.ts                # TranslateService
+│   │   ├── translate.ts                # TranslateService（中译英 / 英译中）
+│   │   ├── dictionary.ts               # 查词：字节偏移索引 + 本地 JSONL 词库
 │   │   └── activeProvider.ts           # 把 store + registry 拼成「当前生效 provider」快照
 │   ├── routes/
-│   │   ├── translate.ts                # POST /api/translate
+│   │   ├── translate.ts                # POST /api/translate（两个方向）
 │   │   ├── rewrite.ts                  # 4 个端点：selection / sentence / grammar / instruction
 │   │   ├── settings.ts                 # provider / 提示词 / 版本 / 回滚 / 试运行
+│   │   ├── dictionary.ts               # /api/dictionary/{status,reload,lookup}
 │   │   └── httpError.ts                # 统一状态码分类
 │   ├── prompts/                        # 只剩解析器（提示词文本已搬到 config/）
 │   │   ├── cleanText.ts                # 共享清洗：围栏 / 前缀 / 引号
@@ -305,7 +366,8 @@ server/
 │   │   ├── rewriteSentence.ts          # isSentenceOperation / parseRewrittenSentence
 │   │   └── rewriteInstruction.ts       # parseInstructionResult
 │   └── utils/matchCase.ts              # Good→Great / good→great / GOOD→GREAT
-├── data/                               # 运行时生成（config.json / history.json 进 git，secrets.json 不进）
+├── .env                                 # 本机配置：端口 / Ollama / API Key / 词库路径（不进 git）
+├── data/                               # 运行时生成（config.json / history.json 进 git）
 └── tests/                              # vitest
 ```
 
@@ -320,6 +382,8 @@ bash curl-tests.sh selection    # /api/rewrite-selection：word / phrase
 bash curl-tests.sh sentence     # /api/rewrite-sentence：4 个 operation + tone
 bash curl-tests.sh grammar      # /api/grammar-check（返回 {text}，模型原文）
 bash curl-tests.sh instruction   # /api/rewrite-instruction
+bash curl-tests.sh translate-reverse  # /api/translate（英译中）
+bash curl-tests.sh dictionary   # /api/dictionary/{status,lookup}
 bash curl-tests.sh errors       # 4 个端点的错误路径（11 个 case）
 BASE=http://host:port bash curl-tests.sh   # 改 base URL
 ```

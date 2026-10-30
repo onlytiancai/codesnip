@@ -40,6 +40,130 @@ h1 {
   margin: 0 0 1rem;
 }
 
+/* ===== 应用外壳（侧栏 + 内容区） ===== */
+.shell {
+  display: flex;
+  min-height: 100vh;
+  align-items: flex-start;
+}
+
+.shell__content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ===== 左侧栏 ===== */
+.sidebar {
+  position: sticky;
+  top: 0;
+  flex: 0 0 auto;
+  width: 196px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 0.75rem;
+  border-right: 1px solid var(--border);
+  background: var(--toolbar-bg);
+  transition: width 0.15s ease;
+}
+
+.sidebar--collapsed {
+  width: 56px;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.sidebar__top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 30px;
+}
+
+.sidebar__toggle {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--fg);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sidebar__toggle:hover {
+  background: var(--toolbar-active-bg);
+  border-color: var(--toolbar-active-bg);
+  color: #fff;
+}
+
+.sidebar__brand {
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.sidebar__foot {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sidebar__item:hover {
+  background: #e9ecef;
+}
+
+.sidebar__item--on {
+  background: var(--toolbar-active-bg);
+  color: #fff;
+  font-weight: 600;
+}
+
+.sidebar__item--on:hover {
+  background: var(--toolbar-active-bg);
+}
+
+.sidebar__icon {
+  flex: 0 0 auto;
+  min-width: 2.2em;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.sidebar--collapsed .sidebar__item {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
 /* ===== 应用布局 ===== */
 .app {
   max-width: 1400px;
@@ -92,6 +216,24 @@ h1 {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
   gap: 1.25rem;
   align-items: start;
+}
+
+/*
+ * 源栏永远在左边。
+ * DOM 顺序固定（中文栏、英文栏），靠 order 换位 ——
+ * 这样切方向时编辑器不重建，内容不丢。
+ */
+.app__main--zh2en .app__col--zh {
+  order: 1;
+}
+.app__main--zh2en .app__col--en {
+  order: 2;
+}
+.app__main--en2zh .app__col--en {
+  order: 1;
+}
+.app__main--en2zh .app__col--zh {
+  order: 2;
 }
 
 @media (max-width: 1100px) {
@@ -311,6 +453,10 @@ h1 {
   overflow: hidden;
   font-size: 0.9rem;
   animation: ai-menu-in 0.1s ease-out;
+  /* 整个菜单不超过视口高度 —— 面板自己内部滚动 */
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 8px);
 }
 
 @keyframes ai-menu-in {
@@ -399,9 +545,11 @@ h1 {
 /* ---- 二级面板 ---- */
 .ai-menu__panel {
   padding: 8px;
-  /* 语气列表有 8 项，结果卡片也可能很长——超出就内部滚动，
+  /* 语气列表有 8 项，结果卡片/词条也可能很长——超出就内部滚动，
      别把菜单顶出视口（父级 .ai-menu 是 overflow: hidden）。 */
-  max-height: min(420px, calc(100vh - 24px));
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: min(420px, calc(100vh - 60px));
   overflow-y: auto;
 }
 
@@ -483,6 +631,91 @@ h1 {
   font-size: 0.88rem;
   line-height: 1.65;
   color: var(--fg);
+}
+
+/* ---- 查词结果（本地词库） ---- */
+.ai-menu__dict {
+  text-align: left;
+}
+
+.ai-menu__dict-head {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.ai-menu__dict-phonetic {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.ai-menu__dict-note {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.ai-menu__dict-list {
+  margin: 0 0 6px;
+  padding-left: 1.1em;
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+
+.ai-menu__dict-list li {
+  margin-bottom: 3px;
+}
+
+.ai-menu__dict-pos {
+  display: inline-block;
+  margin-right: 5px;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--code-bg);
+  color: var(--zh-accent);
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+.ai-menu__dict-en {
+  display: block;
+}
+
+.ai-menu__dict-cn {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.ai-menu__dict-words {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.ai-menu__dict-line {
+  margin: 0 0 4px;
+  font-size: 0.85rem;
+}
+
+.ai-menu__empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.ai-menu__back {
+  margin-top: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: #fff;
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.ai-menu__back:hover {
+  background: var(--toolbar-bg);
 }
 
 /* ---- 指令输入 ---- */
@@ -885,7 +1118,7 @@ h1 {
 /* ===== 设置页（/settings） ===== */
 
 .settings {
-  min-height: 100vh;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   background: var(--bg);
@@ -951,6 +1184,96 @@ h1 {
   flex: 1;
   padding: 20px;
   overflow: auto;
+}
+
+/* ===== 词库设置（/settings 的「词库」tab） ===== */
+.dictionary {
+  max-width: 720px;
+}
+
+.dictionary__hint {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+
+.dictionary__hint code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--code-bg);
+  font-size: 0.85em;
+}
+
+.dictionary__row,
+.dictionary__probe {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.dictionary__row .field,
+.dictionary__probe .field {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.dictionary__status {
+  margin: 4px 0 14px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.dictionary__status strong {
+  color: var(--en-accent);
+}
+
+.dictionary__result {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--output-bg);
+}
+
+.dictionary__word {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.dictionary__phonetic {
+  margin-left: 8px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.dictionary__list {
+  margin: 0 0 6px;
+  padding-left: 1.2em;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.dictionary__pos {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: var(--code-bg);
+  color: var(--zh-accent);
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+.dictionary__cn {
+  color: var(--muted);
+}
+
+.dictionary__missing {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .settings__error,

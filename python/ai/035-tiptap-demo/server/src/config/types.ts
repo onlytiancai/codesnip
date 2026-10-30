@@ -61,9 +61,10 @@ export interface ToneConfig {
   guidance: string
 }
 
-/** 五个能力 id —— 提示词模板的 key */
+/** 六个能力 id —— 提示词模板的 key */
 export const CAPABILITY_IDS = [
   'translate',
+  'translateReverse',
   'rewriteSelection',
   'rewriteSentence',
   'grammarCheck',
@@ -99,6 +100,3 @@ export interface PromptVersion {
 
 /** history.json 的结构：key = "<providerId>/<capabilityId>" */
 export type PromptHistory = Record<string, PromptVersion[]>
-
-/** secrets.json 的结构：key = providerId */
-export type Secrets = Record<string, { apiKey?: string }>

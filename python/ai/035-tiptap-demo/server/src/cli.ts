@@ -18,6 +18,7 @@ import { createInterface } from 'node:readline/promises'
 import { stdin, stdout } from 'node:process'
 
 import { ConfigStore } from './config/store.js'
+import { loadEnv } from './config/env.js'
 import { isToneId, TONE_IDS, type ToneId } from './config/defaults.js'
 import { ClientRegistry } from './llm/registry.js'
 import type { ChatRequest, LlmClient } from './llm/types.js'
@@ -33,6 +34,9 @@ import {
   SENTENCE_OPERATIONS,
   type SentenceOperation,
 } from './prompts/rewriteSentence.js'
+
+// 和 server 一样先读 server/.env（PORT / OLLAMA_* / API key）
+loadEnv()
 
 // ---------------------------------------------------------------- 参数解析
 
@@ -235,6 +239,7 @@ instruction:
 
 translate:
   --tone <id>               语气
+  --to zh|en                目标语言，默认 en（--to zh = 英译中）
 
 raw:
   --system <str>            system 消息
@@ -350,7 +355,17 @@ async function run(): Promise<void> {
         if (tone !== undefined && !isToneId(tone)) {
           throw new Error(`--tone 必须是 ${TONE_IDS.join(' | ')}，收到 "${tone}"`)
         }
-        const out = await translator.translate(text, { tone: tone as ToneId | undefined })
+        // --to zh = 英译中（默认 zh→en）
+        const to = str(flags, 'to') || 'en'
+        if (to !== 'zh' && to !== 'en') {
+          throw new Error(`--to 必须是 zh 或 en，收到 "${to}"`)
+        }
+        const source = to === 'zh' ? 'en' : 'zh'
+        const out = await translator.translate(text, {
+          source,
+          target: to,
+          tone: tone as ToneId | undefined,
+        })
         result = out.translation
         break
       }

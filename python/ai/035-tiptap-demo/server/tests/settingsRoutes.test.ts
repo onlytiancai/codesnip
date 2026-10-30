@@ -49,19 +49,32 @@ describe('GET /api/config', () => {
     expect(res.body.activeProviderId).toBe(store.getActiveProviderId())
     expect(res.body.providers.length).toBeGreaterThan(0)
     expect(res.body.tones).toHaveLength(8)
-    expect(res.body.capabilities).toHaveLength(5)
+    expect(res.body.capabilities).toHaveLength(6)
   })
 })
 
 describe('provider 管理', () => {
-  it('GET /api/providers 不回显明文 key', async () => {
-    await request(app).put('/api/providers').send({ ...NEW_PROVIDER, apiKey: 'sk-secret' })
+  it('GET /api/providers 不回显明文 key（key 在 server/.env 里）', async () => {
+    process.env.TEST_PROVIDER_KEY = 'sk-secret'
+    await request(app)
+      .put('/api/providers')
+      .send({ ...NEW_PROVIDER, apiKeyEnv: 'TEST_PROVIDER_KEY' })
 
     const res = await request(app).get('/api/providers')
     expect(res.status).toBe(200)
     expect(JSON.stringify(res.body)).not.toContain('sk-secret')
     const found = res.body.providers.find((p: { id: string }) => p.id === 'openai-main')
     expect(found.hasKey).toBe(true)
+
+    delete process.env.TEST_PROVIDER_KEY
+  })
+
+  it('PUT /api/providers 带 apiKey → 400（key 已经搬进 .env 了）', async () => {
+    const res = await request(app)
+      .put('/api/providers')
+      .send({ ...NEW_PROVIDER, apiKey: 'sk-secret' })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toMatch(/\.env/)
   })
 
   it('PUT /api/providers 新建 → 自动带一套独立的默认提示词', async () => {
@@ -70,7 +83,7 @@ describe('provider 管理', () => {
 
     const prompts = await request(app).get('/api/providers/openai-main/prompts')
     expect(prompts.status).toBe(200)
-    expect(prompts.body.templates).toHaveLength(5)
+    expect(prompts.body.templates).toHaveLength(6)
     expect(prompts.body.tones).toHaveLength(8)
 
     // 和原 provider 的提示词内容相同，但互不影响
@@ -148,7 +161,7 @@ describe('提示词（按 provider）', () => {
     const id = store.getActiveProviderId()
     const res = await request(app).get(`/api/providers/${id}/prompts`)
     expect(res.status).toBe(200)
-    expect(res.body.templates).toHaveLength(5)
+    expect(res.body.templates).toHaveLength(6)
     expect(res.body.tones).toHaveLength(8)
     expect(res.body.variables.translate).toContain('text')
     expect(res.body.samples.translate.text).toBeTruthy()

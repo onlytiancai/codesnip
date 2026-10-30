@@ -220,42 +220,46 @@ describe('ConfigStore · 复制提示词', () => {
 })
 
 describe('ConfigStore · 密钥', () => {
-  it('key 存在独立的 secrets.json 里，不进 config.json', () => {
+  it('key 从 provider 指名的环境变量里读', () => {
     const s = store()
-    s.upsertProvider(NEW_PROVIDER, 'sk-secret-value')
+    process.env.TEST_PROVIDER_KEY = 'sk-from-env'
+    s.upsertProvider({ ...NEW_PROVIDER, apiKeyEnv: 'TEST_PROVIDER_KEY' })
 
-    expect(s.getApiKey('openai-main')).toBe('sk-secret-value')
+    expect(s.getApiKey('openai-main')).toBe('sk-from-env')
     expect(s.hasApiKey('openai-main')).toBe(true)
 
-    const secrets = JSON.parse(
-      readFileSync(join(tmp!.dir, 'secrets.json'), 'utf8'),
-    ) as Record<string, { apiKey?: string }>
-    expect(secrets['openai-main'].apiKey).toBe('sk-secret-value')
-
-    const config = readFileSync(join(tmp!.dir, 'config.json'), 'utf8')
-    expect(config).not.toContain('sk-secret-value')
+    delete process.env.TEST_PROVIDER_KEY
   })
 
   it('config.json 里永远拿不到明文 key', () => {
     const s = store()
-    s.upsertProvider(NEW_PROVIDER, 'sk-secret-value')
+    process.env.TEST_PROVIDER_KEY = 'sk-secret-value'
+    s.upsertProvider({ ...NEW_PROVIDER, apiKeyEnv: 'TEST_PROVIDER_KEY' })
+
     const listed = s.listProviders()
     expect(JSON.stringify(listed)).not.toContain('sk-secret-value')
+
+    const config = readFileSync(join(tmp!.dir, 'config.json'), 'utf8')
+    expect(config).not.toContain('sk-secret-value')
+
+    delete process.env.TEST_PROVIDER_KEY
   })
 
-  it('传空串 → 删掉 key', () => {
+  it('没配 apiKeyEnv → 拿不到 key', () => {
     const s = store()
-    s.upsertProvider(NEW_PROVIDER, 'sk-secret-value')
-    s.upsertProvider(NEW_PROVIDER, '')
+    s.upsertProvider(NEW_PROVIDER)
     expect(s.getApiKey('openai-main')).toBeUndefined()
+    expect(s.hasApiKey('openai-main')).toBe(false)
   })
 
-  it('apiKeyEnv 指向的环境变量也能取到 key', () => {
+  it('环境变量被清掉 → 立刻拿不到 key（不用重启）', () => {
     const s = store()
     process.env.TEST_PROVIDER_KEY = 'sk-from-env'
     s.upsertProvider({ ...NEW_PROVIDER, apiKeyEnv: 'TEST_PROVIDER_KEY' })
     expect(s.getApiKey('openai-main')).toBe('sk-from-env')
+
     delete process.env.TEST_PROVIDER_KEY
+    expect(s.getApiKey('openai-main')).toBeUndefined()
   })
 })
 

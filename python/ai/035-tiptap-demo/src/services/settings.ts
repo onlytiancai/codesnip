@@ -105,12 +105,7 @@ export const fetchProviders = (signal?: AbortSignal) =>
 
 export const saveProvider = (
   provider: Partial<ProviderConfig> & { id: string; label: string; kind: ProviderKind },
-  apiKey?: string,
-) =>
-  http.put<{ provider: ProviderConfig }>('/api/providers', {
-    ...provider,
-    ...(apiKey !== undefined ? { apiKey } : {}),
-  })
+) => http.put<{ provider: ProviderConfig }>('/api/providers', provider)
 
 export const deleteProvider = (id: string) =>
   http.del<{ ok: boolean }>(`/api/providers/${encodeURIComponent(id)}`)

@@ -12,28 +12,37 @@ import {
   RewriteError,
   type SentenceOperation,
 } from '../services/rewrite'
+import { lookupWord, type DictionaryEntry } from '../services/dictionary'
 
 /**
  * 跟随选区弹出的 AI 上下文菜单。
  *
  * 三层状态：
  *   menu    —— 顶部菜单，项随选区类型变化
- *   panel   —— 二级面板（候选列表 / 语气 / 语法结果 / 指令输入 / 结果卡片）
+ *   panel   —— 二级面板（候选列表 / 语气 / 语法结果 / 指令输入 / 词条 / 结果卡片）
  *   关闭    —— 父组件把 selection 置空即销毁
  *
  * 关键交互：整块区域在 mousedown 上 preventDefault，
  * 否则 ProseMirror 会先把选区吃掉，点「候选词」时 range 已经没了。
+ *
+ * `allowAi=false`（英译中模式）时，菜单里只剩「📖 查词」——
+ * 那个方向只要翻译，不要改写/润色/语法那一套。
  */
 
 /** 打开就直接落到某个面板——工具栏那排常驻按钮走这条路径。 */
 
-const props = defineProps<{
-  selection: SelectionInfo
-  /** 选区所在句对应的中文原文，传给 API 消歧 */
-  chineseSentence?: string
-  /** 非空则一打开就直接进入该面板（跳过菜单） */
-  autoAction?: AiAction | null
-}>()
+const props = withDefaults(
+  defineProps<{
+    selection: SelectionInfo
+    /** 选区所在句对应的中文原文，传给 API 消歧 */
+    chineseSentence?: string
+    /** 非空则一打开就直接进入该面板（跳过菜单） */
+    autoAction?: AiAction | null
+    /** 改写/语法/指令那几项要不要显示（英译中模式关掉） */
+    allowAi?: boolean
+  }>(),
+  { allowAi: true },
+)
 
 const emit = defineEmits<{
   /** 用新文本替换当前选区 */
@@ -48,6 +57,7 @@ type Panel =
   | { mode: 'tone' }
   | { mode: 'grammar'; text: string }
   | { mode: 'instruction' }
+  | { mode: 'lookup'; word: string; entry: DictionaryEntry | null; missing: string }
   | { mode: 'result'; original: string; rewritten: string }
 
 const panel = ref<Panel | null>(null)
@@ -223,6 +233,23 @@ function runAction(action: AiAction): void | Promise<void> {
       instruction.value = ''
       panel.value = { mode: 'instruction' }
       return
+    case 'lookup':
+      return runLookup()
+  }
+}
+
+// ---- 查词（本地词库，不调模型）----
+
+async function runLookup() {
+  const s = sel.value
+  const word = s.text.trim()
+  const result = await run((signal) => lookupWord(word, signal))
+  if (result === null) return
+  panel.value = {
+    mode: 'lookup',
+    word,
+    entry: result.entry ?? null,
+    missing: result.entry ? '' : (result.error ?? '词典里没有这个词'),
   }
 }
 
@@ -292,7 +319,7 @@ watch(
     <!-- ============ 主菜单 ============ -->
     <nav v-if="!panel" class="ai-menu__items">
       <button
-        v-if="selection.kind !== 'sentence'"
+        v-if="allowAi && selection.kind !== 'sentence'"
         type="button"
         class="ai-menu__item"
         :disabled="loading"
@@ -301,7 +328,7 @@ watch(
         {{ selection.kind === 'word' ? '🔄 替换词' : '🔄 替换短语' }}
       </button>
 
-      <template v-if="selection.kind === 'sentence'">
+      <template v-if="allowAi && selection.kind === 'sentence'">
         <button
           type="button"
           class="ai-menu__item ai-menu__item--sub"
@@ -321,8 +348,19 @@ watch(
         </button>
       </template>
 
+      <!-- 查词：本地词库，两个方向都有 -->
       <button
-        v-if="selection.kind !== 'phrase'"
+        v-if="selection.kind === 'word'"
+        type="button"
+        class="ai-menu__item"
+        :disabled="loading"
+        @click="runLookup"
+      >
+        📖 查词
+      </button>
+
+      <button
+        v-if="allowAi && selection.kind !== 'phrase'"
         type="button"
         class="ai-menu__item"
         :disabled="loading"
@@ -331,7 +369,13 @@ watch(
         🔍 检查语法
       </button>
 
-      <button type="button" class="ai-menu__item" :disabled="loading" @click="panel = { mode: 'instruction' }">
+      <button
+        v-if="allowAi"
+        type="button"
+        class="ai-menu__item"
+        :disabled="loading"
+        @click="panel = { mode: 'instruction' }"
+      >
         💬 自定义指令…
       </button>
     </nav>
@@ -368,6 +412,71 @@ watch(
       <!-- 语法结果：模型写的原文，只提示不自动改 -->
       <div v-else-if="panel.mode === 'grammar'" class="ai-menu__status">
         <pre class="ai-menu__grammar">{{ panel.text }}</pre>
+      </div>
+
+      <!-- 查词结果：本地词库 -->
+      <div v-else-if="panel.mode === 'lookup'" class="ai-menu__status ai-menu__dict">
+        <template v-if="panel.entry">
+          <p class="ai-menu__dict-head">
+            <strong>{{ panel.entry.word }}</strong>
+            <span v-if="panel.entry.ukphone || panel.entry.usphone" class="ai-menu__dict-phonetic">
+              /{{ panel.entry.ukphone || panel.entry.usphone }}/
+            </span>
+          </p>
+
+          <!-- 词库只收词头：查 children 会命中 child -->
+          <p
+            v-if="panel.entry.word.toLowerCase() !== panel.word.toLowerCase()"
+            class="ai-menu__dict-note"
+          >
+            词库里收的是「{{ panel.entry.word }}」
+          </p>
+
+          <ul v-if="panel.entry.trans.length" class="ai-menu__dict-list">
+            <li v-for="(t, i) in panel.entry.trans" :key="i">
+              <span v-if="t.pos" class="ai-menu__dict-pos">{{ t.pos }}</span>
+              {{ t.cn }}
+            </li>
+          </ul>
+
+          <ul v-if="panel.entry.sentences.length" class="ai-menu__dict-list">
+            <li v-for="(s, i) in panel.entry.sentences" :key="`s${i}`">
+              <span class="ai-menu__dict-en">{{ s.en }}</span>
+              <span v-if="s.cn" class="ai-menu__dict-cn">{{ s.cn }}</span>
+            </li>
+          </ul>
+
+          <ul v-if="panel.entry.phrases.length" class="ai-menu__dict-list">
+            <li v-for="(p, i) in panel.entry.phrases" :key="`p${i}`">
+              <span class="ai-menu__dict-en">{{ p.en }}</span>
+              <span v-if="p.cn" class="ai-menu__dict-cn">{{ p.cn }}</span>
+            </li>
+          </ul>
+
+          <ul v-if="panel.entry.synonyms.length" class="ai-menu__dict-list">
+            <li v-for="(s, i) in panel.entry.synonyms" :key="`y${i}`">
+              <span v-if="s.pos" class="ai-menu__dict-pos">{{ s.pos }}</span>
+              <span v-if="s.tran">{{ s.tran }}</span>
+              <span v-if="s.words.length" class="ai-menu__dict-words">
+                （{{ s.words.join(' / ') }}）
+              </span>
+            </li>
+          </ul>
+
+          <p v-if="panel.entry.antonyms.length" class="ai-menu__dict-line">
+            <span class="ai-menu__dict-pos">反义</span>
+            {{ panel.entry.antonyms.join(' / ') }}
+          </p>
+
+          <p v-if="panel.entry.mnemonic" class="ai-menu__dict-line">
+            <span class="ai-menu__dict-pos">记忆</span>
+            {{ panel.entry.mnemonic }}
+          </p>
+        </template>
+
+        <p v-else class="ai-menu__empty">{{ panel.missing }}</p>
+
+        <button type="button" class="ai-menu__back" @click="backToMenu">返回</button>
       </div>
 
       <!-- 指令输入 -->

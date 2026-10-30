@@ -1,5 +1,6 @@
 import cors from 'cors'
 import express, { type Express } from 'express'
+import { createDictionaryRouter } from './routes/dictionary.js'
 import { createRewriteRouter } from './routes/rewrite.js'
 import { createSettingsRouter } from './routes/settings.js'
 import { createTranslateRouter } from './routes/translate.js'
@@ -7,6 +8,7 @@ import type { ConfigStore } from './config/store.js'
 import type { ClientRegistry } from './llm/registry.js'
 import type { AiService } from './services/ai.js'
 import type { TranslateService } from './services/translate.js'
+import type { DictionaryService } from './services/dictionary.js'
 
 export interface CreateAppOptions {
   aiService: AiService
@@ -14,6 +16,8 @@ export interface CreateAppOptions {
   /** 传了才挂载设置相关路由 */
   configStore?: ConfigStore
   registry?: ClientRegistry
+  /** 传了才挂载查词相关路由 */
+  dictionaryService?: DictionaryService
 }
 
 /**
@@ -32,6 +36,9 @@ export function createApp(options: CreateAppOptions): Express {
         registry: options.registry,
       }),
     )
+  }
+  if (options.dictionaryService) {
+    app.use(createDictionaryRouter({ dictionaryService: options.dictionaryService }))
   }
 
   app.get('/healthz', (_req, res) => {

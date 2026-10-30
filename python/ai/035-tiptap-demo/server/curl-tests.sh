@@ -4,10 +4,12 @@
 # 用法：bash curl-tests.sh              # 全部跑一遍（每个能力一个代表 case）
 #       bash curl-tests.sh healthz      # 只跑 /healthz
 #       bash curl-tests.sh translate    # 只跑 /api/translate（含语气）
+#       bash curl-tests.sh translate-reverse  # 只跑 /api/translate（英译中）
 #       bash curl-tests.sh selection    # 只跑 /api/rewrite-selection（word / phrase）
 #       bash curl-tests.sh sentence     # 只跑 /api/rewrite-sentence（4 个 operation + tone）
 #       bash curl-tests.sh grammar      # 只跑 /api/grammar-check
 #       bash curl-tests.sh instruction   # 只跑 /api/rewrite-instruction
+#       bash curl-tests.sh dictionary   # 只跑 /api/dictionary/*
 #       bash curl-tests.sh errors       # 只跑错误路径
 
 set -u
@@ -60,6 +62,29 @@ case "${1:-all}" in
     curl -sS -w "\nHTTP %{http_code}\n" -X POST "$BASE/api/translate" \
       -H 'Content-Type: application/json' \
       -d '{"text":"我们都应该保护环境。","tone":"persuasive"}'
+    ;;
+
+  translate-reverse)
+    hr "POST /api/translate  （英译中：source=en target=zh）"
+    curl -sS -w "\nHTTP %{http_code}\n" -X POST "$BASE/api/translate" \
+      -H 'Content-Type: application/json' \
+      -d '{"text":"Education is very important for children.","source":"en","target":"zh"}'
+    ;;
+
+  dictionary)
+    hr "GET /api/dictionary/status  （词库路径 + 词数）"
+    curl -sS -w "\nHTTP %{http_code}\n" "$BASE/api/dictionary/status"
+
+    hr "GET /api/dictionary/lookup?word=important  （命中）"
+    curl -sS -w "\nHTTP %{http_code}\n" \
+      "$BASE/api/dictionary/lookup?word=important"
+
+    hr "GET /api/dictionary/lookup?word=zzzz  （查不到 → 200 + found:false）"
+    curl -sS -w "\nHTTP %{http_code}\n" \
+      "$BASE/api/dictionary/lookup?word=zzzz"
+
+    hr "GET /api/dictionary/lookup  （缺 word → 400）"
+    curl -sS -w "\nHTTP %{http_code}\n" "$BASE/api/dictionary/lookup"
     ;;
 
   selection)
@@ -161,10 +186,15 @@ case "${1:-all}" in
     curl -sS -w "\nHTTP %{http_code}\n" -X POST "$BASE/api/translate" \
       -H 'Content-Type: application/json' -d '{}'
 
-    hr "POST /api/translate  （source=en 不支持 → 400）"
+    hr "POST /api/translate  （source 和 target 相同 → 400）"
     curl -sS -w "\nHTTP %{http_code}\n" -X POST "$BASE/api/translate" \
       -H 'Content-Type: application/json' \
       -d '{"text":"hello","source":"en","target":"en"}'
+
+    hr "POST /api/translate  （source 非法 → 400）"
+    curl -sS -w "\nHTTP %{http_code}\n" -X POST "$BASE/api/translate" \
+      -H 'Content-Type: application/json' \
+      -d '{"text":"hello","source":"fr","target":"en"}'
 
     hr "POST /api/translate  （tone 不在枚举内 → 400）"
     curl -sS -w "\nHTTP %{http_code}\n" -X POST "$BASE/api/translate" \

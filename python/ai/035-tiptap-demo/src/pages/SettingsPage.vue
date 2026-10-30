@@ -3,16 +3,18 @@ import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import ProviderPanel from '../components/ProviderPanel.vue'
 import PromptPanel from '../components/PromptPanel.vue'
+import DictionaryPanel from '../components/DictionaryPanel.vue'
 import { fetchConfig, type ProviderConfig } from '../services/settings'
 
 /**
- * 设置页：LLM provider + 每个 provider 各自的提示词。
+ * 设置页：LLM provider + 每个 provider 各自的提示词 + 词库。
  *
  * 和编辑器是两个独立路由（/ 和 /settings），不是弹层 ——
  * 提示词编辑要占的地方不小，弹层里塞不下。
+ * 侧栏在两个页面都在，所以「← 回到编辑器」之外也能直接切翻译方向。
  */
 
-const tab = ref<'providers' | 'prompts'>('providers')
+const tab = ref<'providers' | 'prompts' | 'dictionary'>('providers')
 const providers = ref<ProviderConfig[]>([])
 const activeProviderId = ref('')
 const error = ref('')
@@ -62,6 +64,13 @@ onMounted(load)
       >
         提示词
       </button>
+      <button
+        class="settings__tab"
+        :class="{ 'settings__tab--on': tab === 'dictionary' }"
+        @click="tab = 'dictionary'"
+      >
+        词库
+      </button>
     </nav>
 
     <p v-if="error" class="settings__error">{{ error }}</p>
@@ -75,10 +84,11 @@ onMounted(load)
         @changed="load"
       />
       <PromptPanel
-        v-else
+        v-else-if="tab === 'prompts'"
         :providers="providers"
         :active-provider-id="activeProviderId"
       />
+      <DictionaryPanel v-else />
     </main>
   </div>
 </template>

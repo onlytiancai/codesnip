@@ -33,6 +33,13 @@ watch(
   },
 )
 
+// 父组件把译文整体写进来（英译中模式下中文栏是译侧）
+defineExpose({
+  setHtml(html: string) {
+    editor.value?.commands.setContent(html)
+  },
+})
+
 const editor = useEditor({
   content: '<p></p>',
   extensions: [

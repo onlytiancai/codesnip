@@ -1,10 +1,12 @@
 /**
- * 配置存储：读写 config.json / history.json / secrets.json。
+ * 配置存储：读写 config.json / history.json。
  *
- * 三个文件的分工：
+ * 两个文件的分工：
  * - config.json   —— provider 列表 + 当前生效的 provider + 每个 provider 的提示词集（进 git）
  * - history.json  —— 提示词的 append-only 版本历史（进 git）
- * - secrets.json  —— API key（**不进 git**，见 server/.gitignore）
+ *
+ * **API key 不在这里** —— 它在 server/.env 里，由 provider 的 apiKeyEnv 字段指明读哪个变量。
+ * （以前是 secrets.json，现在统一收进 .env，见 config/env.ts。）
  *
  * 写入一律「先写 .tmp 再 rename」，避免半截文件。
  */
@@ -22,7 +24,6 @@ import {
   type PromptVersion,
   type ProviderConfig,
   type ProviderPromptSet,
-  type Secrets,
   type ToneConfig,
 } from './types.js'
 
@@ -73,21 +74,17 @@ export class ConfigStore {
   private readonly dataDir: string
   private readonly configPath: string
   private readonly historyPath: string
-  private readonly secretsPath: string
 
   private config: AppConfig
   private history: PromptHistory
-  private secrets: Secrets
 
   constructor(options: ConfigStoreOptions = {}) {
     this.dataDir = options.dataDir ?? DEFAULT_DATA_DIR
     this.configPath = join(this.dataDir, 'config.json')
     this.historyPath = join(this.dataDir, 'history.json')
-    this.secretsPath = join(this.dataDir, 'secrets.json')
 
     this.config = this.loadConfig()
     this.history = this.loadHistory()
-    this.secrets = this.loadSecrets()
 
     // history.json 即使是空的也要存在 —— 它是要进 git 的文件
     if (!existsSync(this.historyPath)) {
@@ -133,13 +130,6 @@ export class ConfigStore {
     return raw as PromptHistory
   }
 
-  private loadSecrets(): Secrets {
-    const raw = this.readJsonFile(this.secretsPath)
-    if (!raw) return {}
-    if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return {}
-    return raw as Secrets
-  }
-
   private readJsonFile(path: string): unknown {
     if (!existsSync(path)) return undefined
     try {
@@ -150,12 +140,11 @@ export class ConfigStore {
     }
   }
 
-  private writeJsonFile(path: string, value: unknown, mode?: number): void {
+  private writeJsonFile(path: string, value: unknown): void {
     mkdirSync(this.dataDir, { recursive: true })
     const tmp = `${path}.tmp`
     writeFileSync(tmp, `${JSON.stringify(value, null, 2)}\n`, {
       encoding: 'utf8',
-      mode,
     })
     renameSync(tmp, path)
   }
@@ -166,10 +155,6 @@ export class ConfigStore {
 
   private writeHistory(): void {
     this.writeJsonFile(this.historyPath, this.history)
-  }
-
-  private writeSecrets(): void {
-    this.writeJsonFile(this.secretsPath, this.secrets, 0o600)
   }
 
   // -------------------------------------------------------------------------
@@ -210,8 +195,10 @@ export class ConfigStore {
    *
    * 新增时会用内置默认提示词集初始化它的一套独立提示词 —— 之后各 provider
    * 的提示词互不影响，可以单独改。
+   *
+   * API key 不在这里管 —— 它在 server/.env 里，provider 只记一个变量名（apiKeyEnv）。
    */
-  upsertProvider(provider: ProviderConfig, apiKey?: string): ProviderConfig {
+  upsertProvider(provider: ProviderConfig): ProviderConfig {
     const idx = this.config.providers.findIndex((p) => p.id === provider.id)
     const isNew = idx === -1
 
@@ -224,10 +211,6 @@ export class ConfigStore {
       if (!this.config.promptSets[provider.id]) {
         this.config.promptSets[provider.id] = clonePromptSet(defaultPromptSet())
       }
-    }
-
-    if (apiKey !== undefined) {
-      this.setApiKey(provider.id, apiKey || undefined)
     }
 
     this.writeConfig()
@@ -245,10 +228,8 @@ export class ConfigStore {
     for (const key of Object.keys(this.history)) {
       if (key.startsWith(`${id}/`)) delete this.history[key]
     }
-    delete this.secrets[id]
     this.writeConfig()
     this.writeHistory()
-    this.writeSecrets()
   }
 
   setActiveProvider(id: string): void {
@@ -400,29 +381,21 @@ export class ConfigStore {
   // 密钥
   // -------------------------------------------------------------------------
 
-  /** key 优先级：secrets.json > provider.apiKeyEnv 指向的环境变量。 */
+  /**
+   * API key 只从环境变量读 —— provider 的 apiKeyEnv 字段指明读哪个变量名。
+   *
+   * key 本身写在 server/.env 里（见 config/env.ts），不进 git。
+   */
   getApiKey(providerId: string): string | undefined {
-    const fromFile = this.secrets[providerId]?.apiKey
-    if (fromFile) return fromFile
     const provider = this.getProvider(providerId)
-    if (provider?.apiKeyEnv) {
-      const fromEnv = process.env[provider.apiKeyEnv]
-      if (fromEnv) return fromEnv
-    }
-    return undefined
+    const name = provider?.apiKeyEnv
+    if (!name) return undefined
+    const value = process.env[name]
+    return value && value.trim() ? value : undefined
   }
 
   hasApiKey(providerId: string): boolean {
     return Boolean(this.getApiKey(providerId))
-  }
-
-  setApiKey(providerId: string, apiKey: string | undefined): void {
-    if (apiKey) {
-      this.secrets[providerId] = { apiKey }
-    } else {
-      delete this.secrets[providerId]
-    }
-    this.writeSecrets()
   }
 }
 

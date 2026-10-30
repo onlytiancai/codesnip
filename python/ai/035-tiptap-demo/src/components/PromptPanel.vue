@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import {
   copyPrompts,
   dryRunPrompt,
@@ -94,6 +94,12 @@ function selectTemplate(t: PromptTemplate) {
 
 watch(providerId, (id) => {
   void loadPromptSet(id)
+})
+
+// 组件挂载时 providerId 已经定了 —— watch 不会触发，得自己先载一次，
+// 否则左边的能力列表是空的（只有「语气表」）。
+onMounted(() => {
+  void loadPromptSet(providerId.value)
 })
 
 watch(selected, () => {

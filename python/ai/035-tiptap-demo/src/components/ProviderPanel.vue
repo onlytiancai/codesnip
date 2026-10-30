@@ -44,7 +44,6 @@ interface Draft {
   kind: ProviderKind
   baseUrl: string
   model: string
-  apiKey: string
   apiKeyEnv: string
   structuredOutput: StructuredOutputMode
   maxTokens: number | undefined
@@ -55,7 +54,6 @@ interface Draft {
 
 const editing = ref<Draft | null>(null)
 const editingOriginalId = ref<string | null>(null)
-const clearKey = ref(false)
 const busy = ref(false)
 const message = ref('')
 const error = ref('')
@@ -70,7 +68,6 @@ function blankDraft(): Draft {
     kind: 'openai',
     baseUrl: '',
     model: '',
-    apiKey: '',
     apiKeyEnv: '',
     structuredOutput: 'schema',
     maxTokens: undefined,
@@ -83,7 +80,6 @@ function blankDraft(): Draft {
 function startNew() {
   editing.value = blankDraft()
   editingOriginalId.value = null
-  clearKey.value = false
   modelOptions.value = []
   message.value = ''
   error.value = ''
@@ -96,7 +92,6 @@ function startEdit(p: ProviderConfig) {
     kind: p.kind,
     baseUrl: p.baseUrl,
     model: p.model,
-    apiKey: '',
     apiKeyEnv: p.apiKeyEnv ?? '',
     structuredOutput: p.structuredOutput,
     maxTokens: p.maxTokens,
@@ -105,7 +100,6 @@ function startEdit(p: ProviderConfig) {
     timeoutMs: p.timeoutMs,
   }
   editingOriginalId.value = p.id
-  clearKey.value = false
   modelOptions.value = []
   message.value = ''
   error.value = ''
@@ -114,7 +108,6 @@ function startEdit(p: ProviderConfig) {
 function cancel() {
   editing.value = null
   editingOriginalId.value = null
-  clearKey.value = false
   message.value = ''
   error.value = ''
 }
@@ -138,15 +131,12 @@ async function save() {
       model: d.model.trim(),
       structuredOutput: d.structuredOutput,
     }
+    // 环境变量名：留空 = 这个 provider 不读环境变量
     if (d.apiKeyEnv.trim()) body.apiKeyEnv = d.apiKeyEnv.trim()
     if (d.maxTokens !== undefined) body.maxTokens = d.maxTokens
     if (d.maxTokensParam) body.maxTokensParam = d.maxTokensParam
     if (d.temperature !== undefined) body.temperature = d.temperature
     if (d.timeoutMs !== undefined) body.timeoutMs = d.timeoutMs
-
-    // key 只在用户真的填了 / 点了清除时才发 —— 空串不动现有 key
-    if (d.apiKey) body.apiKey = d.apiKey
-    else if (clearKey.value) body.apiKey = ''
 
     await saveProvider(body as never)
     message.value = isNew.value
@@ -154,7 +144,6 @@ async function save() {
       : '已保存'
     editing.value = null
     editingOriginalId.value = null
-    clearKey.value = false
     emit('changed')
   } catch (err) {
     error.value = err instanceof Error ? err.message : String(err)
@@ -253,7 +242,7 @@ async function loadModels() {
             <span v-if="p.id === activeProviderId" class="providers__badge providers__badge--on">
               使用中
             </span>
-            <span v-if="p.hasKey" class="providers__badge providers__badge--key">已存 key</span>
+            <span v-if="p.hasKey" class="providers__badge providers__badge--key">key 已配置</span>
           </div>
           <div class="providers__meta">
             <span>{{ p.model }}</span>
@@ -333,16 +322,15 @@ async function loadModels() {
         </label>
 
         <label class="field">
-          <span class="field__label">API Key</span>
+          <span class="field__label">环境变量名</span>
           <input
-            v-model="editing.apiKey"
+            v-model="editing.apiKeyEnv"
             class="field__input"
-            type="password"
-            :placeholder="isNew ? 'sk-…' : '已保存，留空则不修改'"
+            placeholder="MINIMAX_ANTHROPIC_KEY"
             autocomplete="off"
           />
-          <span v-if="!isNew && !clearKey" class="field__hint">
-            存在 server/data/secrets.json（不进 git）
+          <span class="field__hint">
+            key 写在 server/.env 里（不进 git），这里只填变量名。留空 = 不用 key。
           </span>
         </label>
 
@@ -411,10 +399,6 @@ async function loadModels() {
           拉取模型列表
         </button>
         <button class="btn btn--ghost" @click="cancel">取消</button>
-        <label v-if="!isNew" class="providers__clear">
-          <input v-model="clearKey" type="checkbox" />
-          清除已保存的 key
-        </label>
       </div>
 
       <div v-if="modelOptions.length" class="providers__models">

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import type { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
@@ -22,12 +22,20 @@ import { matchCase } from '../utils/matchCase'
 import AiContextMenu from './AiContextMenu.vue'
 import type { AiAction } from '../constants/aiActions'
 
-const props = defineProps<{
-  /** 来自中文侧的高亮：中文句子 i 时，此处把英文第 i 句高亮 */
-  highlightedEnIndex: number
-  /** 当前英文句子对应的中文原文，给改写 API 当 sourceSentence */
-  chineseSentence: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    /** 来自中文侧的高亮：中文句子 i 时，此处把英文第 i 句高亮 */
+    highlightedEnIndex: number
+    /** 当前英文句子对应的中文原文，给改写 API 当 sourceSentence */
+    chineseSentence: string
+    /**
+     * 改写/润色/语法那一套 AI 能力要不要开。
+     * 英译中模式下英文栏是「源文」，没有中文原文可消歧 → 关掉，只留「📖 查词」。
+     */
+    aiEnabled?: boolean
+  }>(),
+  { aiEnabled: true },
+)
 
 const html = defineModel<string>('html', { default: '' })
 const context = defineModel<WritingContext>('context', {
@@ -46,45 +54,101 @@ const cursorSentence = ref<SelectionInfo | null>(null)
 function detectSelection(editor: Editor | null) {
   cursorSentence.value = getSentenceAtCursor(editor)
   const info = getSelectionInfo(editor)
-  selection.value = info
-  if (!info) {
+  // 关掉 AI 能力时（英译中模式），菜单里只剩「📖 查词」—— 只在选中单个单词时才有意义。
+  // 其它情况（比如选了短语）菜单里空荡荡的，索性不弹。
+  if (!info || (!props.aiEnabled && info.kind !== 'word')) {
+    selection.value = null
     menuPos.value = null
+    anchorBox.value = null
     return
   }
-  menuPos.value = computeMenuPos(editor!, info)
+  selection.value = info
+  anchorBox.value = selectionBox(editor!, info)
+  menuPos.value = placeMenu(anchorBox.value, MENU_H_ESTIMATE)
+  void syncMenuPosition()
+}
+
+/** 选区在 viewport 里的矩形 —— 菜单贴着它摆。 */
+interface AnchorBox {
+  top: number
+  bottom: number
+  left: number
+  right: number
+}
+
+const anchorBox = ref<AnchorBox | null>(null)
+/** 菜单锚点元素（Teleport 到 body 的那个容器） */
+const menuAnchorRef = ref<HTMLElement | null>(null)
+/** 菜单高度估计值 —— 只是用来决定「放上面还是放下面」，真正定位用实测高度。 */
+const MENU_H_ESTIMATE = 280
+
+function selectionBox(editor: Editor, info: SelectionInfo): AnchorBox {
+  const start = editor.view.coordsAtPos(info.from)
+  const end = editor.view.coordsAtPos(info.to)
+  return { top: start.top, bottom: end.bottom, left: start.left, right: end.right }
 }
 
 /**
- * 用 ProseMirror 的 coordsAtPos 把菜单贴到选区上方；上方放不下就翻到下方。
+ * 菜单展开后高度会变（查词词条、语法结果卡片都很长），
+ * 所以定位要按**实测高度**算，不能用估计值 ——
+ * 否则菜单底部会跑到视口外被裁掉。
+ *
+ * 用 ResizeObserver 盯着菜单：面板一展开就重新摆一次。
+ */
+let menuObserver: ResizeObserver | null = null
+
+async function syncMenuPosition() {
+  await nextTick()
+  observeMenu()
+  applyMeasuredPosition()
+}
+
+function observeMenu() {
+  menuObserver?.disconnect()
+  const el = menuAnchorRef.value?.querySelector('.ai-menu')
+  if (!el || typeof ResizeObserver === 'undefined') return
+  menuObserver = new ResizeObserver(() => applyMeasuredPosition())
+  menuObserver.observe(el)
+}
+
+/** 按实测高度重新定位。 */
+function applyMeasuredPosition() {
+  const box = anchorBox.value
+  if (!box) return
+  const el = menuAnchorRef.value?.querySelector('.ai-menu')
+  const height = el?.getBoundingClientRect().height ?? MENU_H_ESTIMATE
+  menuPos.value = placeMenu(box, height)
+}
+
+/**
+ * 用 ProseMirror 的 coordsAtPos 拿选区的 viewport 矩形，
+ * 菜单默认贴在上方；上方放不下就翻到下方，最后再夹进视口。
  * coordsAtPos 返回的就是 viewport 坐标，配合 position: fixed 直接用，
  * 不用再减去任何祖先的 offset（菜单被 Teleport 到了 body 上）。
  */
-function computeMenuPos(editor: Editor, info: SelectionInfo) {
-  const start = editor.view.coordsAtPos(info.from)
-  const end = editor.view.coordsAtPos(info.to)
-  return placeMenu(start.top, start.left, end.right, end.bottom)
-}
 
 /** 工具栏按钮走这条：菜单贴着光标，而不是贴着整句。 */
 function computeCursorMenuPos(editor: Editor, pos: number) {
   const c = editor.view.coordsAtPos(pos)
-  return placeMenu(c.top, c.left, c.left, c.bottom)
+  return { top: c.top, bottom: c.bottom, left: c.left, right: c.left }
 }
 
-function placeMenu(top: number, left: number, right: number, bottom: number) {
+function placeMenu(box: AnchorBox, height: number) {
   // 菜单宽度按最宽的一档估：结果卡片比菜单列表宽
   const MENU_W = 320
-  const MENU_H = 280
   const GAP = 8
 
-  // 上方空间不够（顶到视口上沿）就翻到下方
-  const placeBelow = top - MENU_H - GAP < 4
-  const rawY = placeBelow ? bottom + GAP : top - MENU_H - GAP
-  // 再夹进视口：面板展开后可能比 MENU_H 高，别让它整个跑到屏幕外
-  const y = Math.max(4, Math.min(rawY, Math.max(4, window.innerHeight - MENU_H - 4)))
+  // 上方放得下就放上方，放不下就翻到下方
+  let y = box.top - GAP - height
+  if (y < 4) y = box.bottom + GAP
+  // 再夹进视口（面板展开后可能比预估高）
+  y = Math.max(4, Math.min(y, Math.max(4, window.innerHeight - height - 4)))
 
   // 水平方向夹进视口，别让菜单被裁掉
-  const x = Math.max(8, Math.min((left + right) / 2 - MENU_W / 2, window.innerWidth - MENU_W - 8))
+  const x = Math.max(
+    8,
+    Math.min((box.left + box.right) / 2 - MENU_W / 2, window.innerWidth - MENU_W - 8),
+  )
 
   return { top: y, left: x }
 }
@@ -100,8 +164,10 @@ function runOnCursorSentence(action: AiAction) {
   if (!info) return
   // 每次都给新对象：菜单里 watch(selection) 会据此重置面板状态
   selection.value = { ...info }
-  menuPos.value = computeCursorMenuPos(editorInst, editorInst.state.selection.head)
+  anchorBox.value = computeCursorMenuPos(editorInst, editorInst.state.selection.head)
+  menuPos.value = placeMenu(anchorBox.value, MENU_H_ESTIMATE)
   menuAction.value = action
+  void syncMenuPosition()
 }
 
 // ===== 菜单动作 =====
@@ -136,6 +202,8 @@ function onShellMousedownCapture() {
 }
 
 onBeforeUnmount(() => {
+  menuObserver?.disconnect()
+  menuObserver = null
   closeMenu()
 })
 
@@ -181,6 +249,7 @@ const AI_TITLES: Record<AiAction, string> = {
   expand: '扩写',
   grammar: '检查语法',
   instruction: '自定义指令',
+  lookup: '查词',
 }
 
 const editor = useEditor({
@@ -242,7 +311,7 @@ const editor = useEditor({
       </div>
 
       <!-- 整句操作：作用于光标所在句，不需要选中 -->
-      <div class="toolbar__group toolbar__group--ai">
+      <div v-if="aiEnabled" class="toolbar__group toolbar__group--ai">
         <button
           v-for="a in AI_BUTTONS"
           :key="a.action"
@@ -262,6 +331,7 @@ const editor = useEditor({
     <Teleport to="body">
       <div
         v-if="selection && menuPos"
+        ref="menuAnchorRef"
         class="ai-menu-anchor"
         :style="{ top: `${menuPos.top}px`, left: `${menuPos.left}px` }"
       >
@@ -269,6 +339,7 @@ const editor = useEditor({
           :selection="selection"
           :chinese-sentence="chineseSentence"
           :auto-action="menuAction"
+          :allow-ai="aiEnabled"
           @replace="applyReplacement"
           @close="closeMenu"
         />

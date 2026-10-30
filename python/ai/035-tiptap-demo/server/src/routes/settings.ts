@@ -52,7 +52,7 @@ export interface CreateSettingsRouterOptions {
   registry: ClientRegistry
 }
 
-/** provider 对外暴露的形状 —— 附带 hasKey，明文 key 永远不返回。 */
+/** provider 对外暴露的形状 —— 附带 hasKey，明文 key 永远不返回（它在 server/.env 里）。 */
 function publicProvider(
   provider: ProviderConfig,
   store: ConfigStore,
@@ -70,8 +70,6 @@ function isCapabilityId(v: unknown): v is CapabilityId {
 
 interface ParsedProvider {
   provider: ProviderConfig
-  /** undefined = 不动现有 key；空串 = 删掉 key */
-  apiKey?: string
 }
 
 function parseProvider(body: unknown): ParsedProvider | { error: string } {
@@ -103,8 +101,10 @@ function parseProvider(body: unknown): ParsedProvider | { error: string } {
     model,
     structuredOutput,
   }
-  if (typeof b.apiKeyEnv === 'string' && b.apiKeyEnv.trim()) {
-    provider.apiKeyEnv = b.apiKeyEnv.trim()
+  // 环境变量名：留空 = 这个 provider 不读环境变量（清空时要真的清掉）
+  if (typeof b.apiKeyEnv === 'string') {
+    const name = b.apiKeyEnv.trim()
+    if (name) provider.apiKeyEnv = name
   }
   if (typeof b.maxTokens === 'number' && Number.isFinite(b.maxTokens)) {
     provider.maxTokens = Math.floor(b.maxTokens)
@@ -123,7 +123,13 @@ function parseProvider(body: unknown): ParsedProvider | { error: string } {
   }
 
   const parsed: ParsedProvider = { provider }
-  if (typeof b.apiKey === 'string') parsed.apiKey = b.apiKey
+  // API key 已经搬进 server/.env 了 —— 这里只认「环境变量名」，不再收明文 key。
+  if (b.apiKey !== undefined) {
+    return {
+      error:
+        'API Key 不再由设置页保存 —— 请把它写进 server/.env，并在「环境变量名」里填对应的变量名',
+    }
+  }
   return parsed
 }
 
@@ -193,7 +199,8 @@ function buildDryRunInput(
   }
 
   switch (capabilityId) {
-    case 'translate': {
+    case 'translate':
+    case 'translateReverse': {
       const text = str('text') ?? ''
       if (!text.trim()) return { error: '缺少 text' }
       const tone = str('tone')
@@ -289,7 +296,7 @@ export function createSettingsRouter(options: CreateSettingsRouterOptions): Rout
       return res.status(400).json({ error: parsed.error })
     }
     try {
-      const saved = store.upsertProvider(parsed.provider, parsed.apiKey)
+      const saved = store.upsertProvider(parsed.provider)
       res.json({ provider: publicProvider(saved, store) })
     } catch (err) {
       return fail(res, err)

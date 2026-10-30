@@ -89,6 +89,7 @@ export type CapabilityInput =
 /** 各能力模板里可用的变量名 —— UI 用来显示提示 chip。 */
 export const CAPABILITY_VARIABLES: Record<CapabilityId, string[]> = {
   translate: ['text', 'tone'],
+  translateReverse: ['text', 'tone'],
   rewriteSelection: [
     'text',
     'context',
@@ -113,6 +114,7 @@ export const CAPABILITY_VARIABLES: Record<CapabilityId, string[]> = {
 /** 试运行时的示例输入。 */
 export const CAPABILITY_SAMPLES: Record<CapabilityId, Record<string, string>> = {
   translate: { text: '今天天气很好，我们去公园散步吧。' },
+  translateReverse: { text: 'Education is very important for children.' },
   rewriteSelection: {
     text: 'very important',
     kind: 'phrase',
@@ -160,6 +162,10 @@ export function buildContext(
 ): Record<string, unknown> {
   switch (capability) {
     case 'translate': {
+      const i = input as TranslateInput
+      return { text: i.text, tone: toneInstruction(tones, i.tone) }
+    }
+    case 'translateReverse': {
       const i = input as TranslateInput
       return { text: i.text, tone: toneInstruction(tones, i.tone) }
     }
@@ -302,6 +308,7 @@ export function extractOutput(
   if (mode === 'json') {
     switch (capability) {
       case 'translate':
+      case 'translateReverse':
         return pickJsonField(raw, capability, 'string') as string
       case 'rewriteSelection': {
         const list = pickJsonField(raw, capability, 'array') as string[]
@@ -317,6 +324,7 @@ export function extractOutput(
 
   switch (capability) {
     case 'translate':
+    case 'translateReverse':
       return cleanText(raw)
     case 'rewriteSelection':
       return parseCandidates(raw, options?.maxCandidates ?? 5)

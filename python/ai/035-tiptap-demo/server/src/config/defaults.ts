@@ -120,6 +120,21 @@ const TRANSLATE_SYSTEM = [
 const TRANSLATE_USER = 'Chinese: {{text}}\nEnglish:'
 
 /**
+ * 英译中。
+ *
+ * 和「翻译」一样是「一个能力 = 一套模板」，所以英译中单独占一个 capability id
+ * （而不是给 translate 加个方向变量）—— 每个 provider 可以给两个方向各调一套措辞。
+ */
+const TRANSLATE_REVERSE_SYSTEM = [
+  'You are an English-to-Chinese translator. You translate a single English sentence into one natural Chinese sentence. Output ONLY the Chinese sentence — no quotes, no labels, no explanation.',
+  '{{#tone}}',
+  '{{tone}}',
+  '{{/tone}}',
+].join('\n')
+
+const TRANSLATE_REVERSE_USER = 'English: {{text}}\nChinese:'
+
+/**
  * 选区级改写：给选中的单词或短语找替换候选。
  *
  * 旧实现的 system 是「基础句 + 空行 + Rules: + 两条固定规则 + 该 kind 的规则 + 大写规则」，
@@ -243,6 +258,13 @@ export const CAPABILITY_JSON_SCHEMAS: Record<CapabilityId, JsonSchema> = {
     },
     required: ['translation'],
   },
+  translateReverse: {
+    type: 'object',
+    properties: {
+      translation: { type: 'string', description: 'The Chinese translation.' },
+    },
+    required: ['translation'],
+  },
   rewriteSelection: {
     type: 'object',
     properties: {
@@ -283,6 +305,7 @@ export const CAPABILITY_JSON_SCHEMAS: Record<CapabilityId, JsonSchema> = {
 /** 每个能力期望的 JSON 字段名 —— 提取器和 schema 校验都用它。 */
 export const CAPABILITY_JSON_KEY: Record<CapabilityId, string> = {
   translate: 'translation',
+  translateReverse: 'translation',
   rewriteSelection: 'candidates',
   rewriteSentence: 'text',
   grammarCheck: 'text',
@@ -295,6 +318,7 @@ export const CAPABILITY_JSON_KEY: Record<CapabilityId, string> = {
 
 const TEMPLATE_LABELS: Record<CapabilityId, string> = {
   translate: '翻译',
+  translateReverse: '英译中',
   rewriteSelection: '选区候选',
   rewriteSentence: '整句改写',
   grammarCheck: '语法检查',
@@ -310,6 +334,14 @@ function makeTemplates(): Record<CapabilityId, PromptTemplate> {
       user: TRANSLATE_USER,
       responseMode: 'text',
       jsonSchema: CAPABILITY_JSON_SCHEMAS.translate,
+    },
+    translateReverse: {
+      id: 'translateReverse',
+      label: TEMPLATE_LABELS.translateReverse,
+      system: TRANSLATE_REVERSE_SYSTEM,
+      user: TRANSLATE_REVERSE_USER,
+      responseMode: 'text',
+      jsonSchema: CAPABILITY_JSON_SCHEMAS.translateReverse,
     },
     rewriteSelection: {
       id: 'rewriteSelection',

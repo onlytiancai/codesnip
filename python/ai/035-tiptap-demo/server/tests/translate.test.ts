@@ -26,7 +26,11 @@ describe('POST /api/translate', () => {
     expect(res.body).toEqual({
       translation: 'I went to the park yesterday.',
     })
-    expect(spy).toHaveBeenCalledWith('我昨天去公园。', { tone: undefined })
+    expect(spy).toHaveBeenCalledWith('我昨天去公园。', {
+      source: 'zh',
+      target: 'en',
+      tone: undefined,
+    })
   })
 
   it('允许显式 source="zh" target="en"', async () => {
@@ -36,6 +40,28 @@ describe('POST /api/translate', () => {
     expect(res.status).toBe(200)
   })
 
+  it('英译中：source="en" target="zh" 也放行', async () => {
+    const spy = vi.spyOn(service, 'translate')
+    const res = await request(app)
+      .post('/api/translate')
+      .send({ text: 'I went to the park yesterday.', source: 'en', target: 'zh' })
+
+    expect(res.status).toBe(200)
+    expect(spy).toHaveBeenCalledWith('I went to the park yesterday.', {
+      source: 'en',
+      target: 'zh',
+      tone: undefined,
+    })
+  })
+
+  it('source 和 target 相同 → 400', async () => {
+    const res = await request(app)
+      .post('/api/translate')
+      .send({ text: 'hi', source: 'en', target: 'en' })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toMatch(/must differ/)
+  })
+
   it('透传合法 tone', async () => {
     const spy = vi.spyOn(service, 'translate')
     const res = await request(app)
@@ -43,7 +69,11 @@ describe('POST /api/translate', () => {
       .send({ text: '你好', tone: 'formal' })
 
     expect(res.status).toBe(200)
-    expect(spy).toHaveBeenCalledWith('你好', { tone: 'formal' })
+    expect(spy).toHaveBeenCalledWith('你好', {
+      source: 'zh',
+      target: 'en',
+      tone: 'formal',
+    })
   })
 
   it('8 种语气全部接受', async () => {
@@ -90,20 +120,20 @@ describe('POST /api/translate', () => {
     expect(res.status).toBe(400)
   })
 
-  it('source 不是 zh → 400', async () => {
+  it('source 不是 zh / en → 400', async () => {
     const res = await request(app)
       .post('/api/translate')
-      .send({ text: 'hi', source: 'en' })
+      .send({ text: 'hi', source: 'fr' })
     expect(res.status).toBe(400)
-    expect(res.body.error).toMatch(/only source="zh"/)
+    expect(res.body.error).toMatch(/source must be/)
   })
 
-  it('target 不是 en → 400', async () => {
+  it('target 不是 zh / en → 400', async () => {
     const res = await request(app)
       .post('/api/translate')
       .send({ text: 'hi', target: 'fr' })
     expect(res.status).toBe(400)
-    expect(res.body.error).toMatch(/only target="en"/)
+    expect(res.body.error).toMatch(/target must be/)
   })
 
   it('service 抛"empty translation"错误 → 500', async () => {
@@ -141,6 +171,10 @@ describe('POST /api/translate', () => {
   it('text 自动 trim 后传给 service', async () => {
     const spy = vi.spyOn(service, 'translate')
     await request(app).post('/api/translate').send({ text: '  你好  ' })
-    expect(spy).toHaveBeenCalledWith('你好', { tone: undefined })
+    expect(spy).toHaveBeenCalledWith('你好', {
+      source: 'zh',
+      target: 'en',
+      tone: undefined,
+    })
   })
 })
