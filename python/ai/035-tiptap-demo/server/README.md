@@ -423,6 +423,24 @@ pnpm type-check      # tsc --noEmit
 
 测试用 `supertest` + `vitest`，通过 `tests/helpers.ts` 注入 mock 打到真实路由层，无需启动真模型。
 
+### 跑测试为什么这么重（vitest.config.ts）
+
+这套测试**很小**（18 个文件 / 264 个用例 / 全套 ~0.9s），但默认配置下 vitest 会按 CPU 核数开 **9 个 fork worker**（这台 M4 上），每个 worker 都要重做一遍同样的准备工作，CPU 能跑到 540%、磁盘狂转 IO —— 而且 **wall time 反而更慢**（并行拆分的调度 + 重复准备的开销 > 省下的执行时间）。
+
+`vitest.config.ts` 里做了两件事：
+
+1. **`pool: 'forks'` + `singleFork: true`** —— 全部测试文件在一个 fork 里顺序跑。`isolate` 保持默认的 `true`，每个测试文件仍然拿到干净的模块表，`vi.mock` / `vi.spyOn` 不会跨文件串味。
+2. **`resolve.alias` 把三个 LLM SDK 指向 `tests/stubs/` 下的桩** —— `openai` / `ollama` / `@anthropic-ai/sdk` 光 import 就要 ~180ms，而仓库里 13 个测试文件都会间接 import 到它们（vitest 每个文件一份干净模块表，等于每轮重复 import 十几遍）。真 SDK 在测试里本来就被 `vi.mock(..., factory)` 整个替换掉了，从来没被真正执行过。
+
+| | wall | user CPU | sys CPU | 进程 CPU |
+|---|---|---|---|---|
+| 默认 | ~1.5s | 6.4s | 2.1s | ~540% |
+| 现在 | ~0.9s | 0.9s | 0.26s | ~115% |
+
+**注意**：三个 SDK 桩必须是**三个独立文件** —— vitest 的 mock 注册表按「解析后的路径」做 key，alias 到同一个文件的话 `vi.mock` 会互相覆盖（症状：`No "Ollama" export is defined on the "@anthropic-ai/sdk" mock`）。
+
+> 以后如果套件长大了（几十个文件 / 单个文件上百毫秒），就把 `singleFork` 去掉、改成 `maxWorkers: 2` 或 `3` —— 现在不并行是因为**并行在这个体量下是净亏**。
+
 | 文件 | 覆盖 |
 |---|---|
 | `tests/promptParity.test.ts` | **迁移安全网**：默认提示词集的渲染结果必须和迁移前的 builder 逐字节相同 |
@@ -489,7 +507,9 @@ server/
 │       └── debug.ts                    # debugLog：server/.env 的 DEBUG 开关
 ├── .env                                 # 本机配置：端口 / Ollama / API Key / 词库路径 / 登录 / 调试（不进 git）
 ├── data/                               # app.db（不进 git）+ config.json / history.json（老导入源，进 git）
+├── vitest.config.ts                    # 单 fork + SDK alias 到桩（见上面「跑测试为什么这么重」）
 └── tests/                              # vitest
+    └── stubs/                           # openai / ollama / anthropic 的 import 桩（省掉每文件 ~180ms）
 ```
 
 server/curl-tests.sh     (executable)
