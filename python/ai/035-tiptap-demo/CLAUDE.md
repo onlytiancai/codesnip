@@ -7,6 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 启动时必读 `README.md`（前端）和 `server/README.md`（后端）—— 细节都在那里面。
 - 做完重要改动后更新这两个文件。
 - 本项目不需要你打开浏览器测试，用户自己测。
+- **不写新的自动化测试** —— 现有测试保持绿就行；新功能靠手测 + 调试日志验证。
+- **加调试日志**（`server/.env` 的 `DEBUG=1` 开关，server 端 + 浏览器 console 共用），
+  写完代码告诉用户怎么测，用户会把日志贴回来。日志前缀统一 `[debug]` / `[auth]` / `[usage]` / `[llm]`。
 - 用 pnpm，不用 npm。
 
 ## 仓库结构
