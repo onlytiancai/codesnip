@@ -52,6 +52,10 @@ export function createOllamaClient(
           content: stripReasoning(res.message?.content ?? ''),
           structured: enforceSchema && wantsJson,
           system,
+          usage: {
+            inputTokens: res.prompt_eval_count ?? 0,
+            outputTokens: res.eval_count ?? 0,
+          },
         }
       } catch (err) {
         throw new Error(errorMessage(err))

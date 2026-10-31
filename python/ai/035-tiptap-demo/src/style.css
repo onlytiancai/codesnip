@@ -164,6 +164,149 @@ h1 {
   padding-right: 0;
 }
 
+/* ===== 侧栏：用户信息 + token 用量 ===== */
+
+.sidebar__user {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+.sidebar__user-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.sidebar__user-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__usage {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 2.7em;
+}
+
+.sidebar__usage-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.sidebar__usage-tag {
+  flex: 0 0 auto;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.sidebar__usage-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.sidebar__logout {
+  margin-top: 2px;
+  margin-left: 2.7em;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.72rem;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.sidebar__logout:hover {
+  color: #a02020;
+}
+
+/* 收缩态：只留一个图标 */
+.sidebar--collapsed .sidebar__user {
+  align-items: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* ===== 登录页 ===== */
+
+.login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--toolbar-bg);
+}
+
+.login__card {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.login__title {
+  margin: 0 0 2px;
+  font-size: 1.35rem;
+}
+
+.login__hint {
+  margin: 0 0 12px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.login__submit {
+  margin-top: 8px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  background: var(--toolbar-active-bg);
+  border-color: var(--toolbar-active-bg);
+  color: #fff;
+}
+
+.login__submit:hover:not(:disabled) {
+  border-color: var(--toolbar-active-bg);
+  color: #fff;
+}
+
+.login__switch {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.login__link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--toolbar-active-bg);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* ===== 应用布局 ===== */
 .app {
   max-width: 1400px;

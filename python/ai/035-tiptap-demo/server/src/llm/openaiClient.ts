@@ -96,6 +96,11 @@ export function createOpenAiClient(
       content: stripReasoning(res.choices[0]?.message?.content ?? ''),
       structured: enforce !== 'none',
       system,
+      // usage 写在 call() 里 —— 降级链里成功的这一次 attempt 才带得上
+      usage: {
+        inputTokens: res.usage?.prompt_tokens ?? 0,
+        outputTokens: res.usage?.completion_tokens ?? 0,
+      },
     }
   }
 

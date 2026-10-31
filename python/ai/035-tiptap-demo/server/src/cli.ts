@@ -18,7 +18,8 @@ import { createInterface } from 'node:readline/promises'
 import { stdin, stdout } from 'node:process'
 
 import { ConfigStore } from './config/store.js'
-import { loadEnv } from './config/env.js'
+import { DEFAULT_DB_PATH, openDatabase } from './config/db.js'
+import { envValue, loadEnv } from './config/env.js'
 import { isToneId, TONE_IDS, type ToneId } from './config/defaults.js'
 import { ClientRegistry } from './llm/registry.js'
 import type { ChatRequest, LlmClient } from './llm/types.js'
@@ -264,7 +265,9 @@ async function run(): Promise<void> {
   const quiet = bool(flags, 'quiet')
   const asJson = bool(flags, 'json')
 
-  const store = new ConfigStore()
+  const store = new ConfigStore({
+    db: openDatabase(envValue('DB_PATH') ?? DEFAULT_DB_PATH),
+  })
   const registry = new ClientRegistry()
 
   // 选 provider：--provider 优先，否则用配置里生效的那个
@@ -285,6 +288,7 @@ async function run(): Promise<void> {
   const getActive = () => ({
     client: rec.client,
     promptSet: store.getPromptSet(provider.id),
+    provider: effectiveProvider,
   })
 
   const ai = createAiService({

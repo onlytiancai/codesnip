@@ -10,6 +10,7 @@ import {
 } from '../src/config/capabilities.js'
 import { defaultPromptSet } from '../src/config/defaults.js'
 import { ConfigStore } from '../src/config/store.js'
+import { openDatabase } from '../src/config/db.js'
 import type { CapabilityId } from '../src/config/types.js'
 import { ClientRegistry, type LlmClientFactory } from '../src/llm/registry.js'
 import type { ChatRequest, LlmClient } from '../src/llm/types.js'
@@ -114,10 +115,18 @@ export interface TempStore {
   cleanup: () => void
 }
 
-/** 建一个落在临时目录里的 ConfigStore（不碰仓库里的 server/data）。 */
+/**
+ * 建一个落在临时目录里的 ConfigStore（不碰仓库里的 server/data）。
+ *
+ * 配置现在存在 SQLite 里 —— 所以这里建一个临时的库文件。
+ * 注意：不传 legacyDataDir，所以**不会**导入仓库里的 config.json。
+ */
 export function buildTempStore(): TempStore {
   const dir = mkdtempSync(join(tmpdir(), 'tiptap-config-'))
-  const store = new ConfigStore({ dataDir: dir })
+  const store = new ConfigStore({
+    db: openDatabase(join(dir, 'test.db')),
+    legacyDataDir: dir,
+  })
   return {
     store,
     dir,
@@ -125,6 +134,14 @@ export function buildTempStore(): TempStore {
       rmSync(dir, { recursive: true, force: true })
     },
   }
+}
+
+/** 用同一个库文件再开一个 ConfigStore（模拟重启服务）。 */
+export function reopenStore(tmp: TempStore): ConfigStore {
+  return new ConfigStore({
+    db: openDatabase(join(tmp.dir, 'test.db')),
+    legacyDataDir: tmp.dir,
+  })
 }
 
 /** 一个不真的发请求的 client 工厂（设置路由测试用）。 */

@@ -13,7 +13,8 @@ pnpm install
 pnpm dev                   # tsx watch，监听 8787
 ```
 
-首次启动会在 `server/data/` 下生成 `config.json`（provider 列表 + 每个 provider 的提示词）和 `history.json`（版本历史）。
+首次启动会在 `server/data/` 下建 `app.db`（SQLite —— 配置 + 用户 + 会话 + token 用量全在里面），
+并**自动导入**老的 `config.json` + `history.json`（如果还在的话）。
 
 ## 配置
 
@@ -29,18 +30,37 @@ pnpm dev                   # tsx watch，监听 8787
 | `MAX_CANDIDATES` | `5` | 候选词数量上限 |
 | `<PROVIDER_ID>_KEY` | — | **API Key**，名字对应 provider id（大写 + `-`→`_` + `_KEY`） |
 | `VOCAB_PATH` | `.../024-cet4/vocab_all.json` | **查词**用的词库 JSON（JSONL） |
+| `DB_PATH` | `server/data/app.db` | SQLite 库文件（配置 + 用户 + 会话 + token 用量） |
+| `ADMIN_USERNAME` | `admin` | 首次启动播种的账号名 |
+| `ADMIN_PASSWORD` | `admin123` | 同上的密码（**只在播种时用一次**；日志里不回显） |
+| `AUTH_LOCAL_BYPASS` | `1` | 本地工具（curl / CLI）免登录放行；设 0 = 全部要登录 |
+| `DEBUG` | — | 设 `1` 打开调试日志（server 端 + 浏览器 console 共用一个开关） |
 
 改 `VOCAB_PATH` 不用重启后端 —— 设置页「词库」tab 点「重新加载」即可（后端会重读 `.env` 并重建索引）。
 用 `SERVER_ENV_FILE=/path/to/other.env` 可以换一个 env 文件。
 
-### `server/data/`（进 git）
+### `server/data/`（`*.db` 不进 git）
 
-| 文件 | 内容 |
+**所有持久化都在 `server/data/app.db`（SQLite）里** —— 用 Node 内置的 `node:sqlite`，零第三方依赖。
+
+| 表 | 内容 |
 |---|---|
-| `server/data/config.json` | provider 列表、当前生效的 provider、**每个 provider 的提示词集**、语气表 |
-| `server/data/history.json` | 提示词的 append-only 版本历史 |
+| `providers` | provider 列表（id / 顺序 / 配置 JSON） |
+| `app_state` | 当前生效的 provider id 等全局状态 |
+| `prompt_templates` | 每个 provider 的 6 个能力模板 |
+| `prompt_tones` | 每个 provider 的语气表 |
+| `prompt_versions` | 提示词的 append-only 版本历史 |
+| `users` | 用户（id / 用户名 / 密码哈希 / 建号时间） |
+| `sessions` | 登录会话（token / user_id / 过期时间） |
+| `token_usage` | **每人每天**的 token 消耗（input / output / 调用次数） |
 
-`config.json` 里**永远没有明文 key** —— key 只在 `.env` 里。provider 的 `apiKeyEnv` 字段指明读哪个变量名，
+> `server/data/config.json` 和 `history.json` 现在只是**首次导入源**：
+> 库里还没有 provider 时会自动把它们导进来（导入后不再回写）。老文件仍在 git 里，
+> 所以全新 clone 出来的库也有你那份 provider 配置。
+
+**库文件不进 git**（`server/.gitignore` 里有 `data/*.db*`）—— 在 UI 里改的提示词只存在本地库里。
+
+`app.db` 里**永远没有明文 key** —— key 只在 `.env` 里。provider 的 `apiKeyEnv` 字段指明读哪个变量名，
 API 返回 provider 时只带一个 `hasKey: boolean`。
 
 > 以前 key 存在 `server/data/secrets.json`，那个文件已经删掉了，机制换成 `.env`。
@@ -110,7 +130,7 @@ Rules:
 
 ### 版本历史与回滚
 
-保存一次提示词 = 追加一条版本记录（`history.json` 里 key 是 `<providerId>/<capabilityId>`）。
+保存一次提示词 = 追加一条版本记录（`prompt_versions` 表，主键是 `<providerId>/<capabilityId>/<version>`）。
 
 **回滚不改历史** —— 它把旧版本的内容复制成一个**新版本**再设为当前。这样版本号只增不减，回滚本身也是一条可追溯的记录。
 
@@ -154,7 +174,7 @@ interface LlmClient {
 
 ### 预置的 provider
 
-`config.json` 里预置了三个：
+库里预置了三个（老 `config.json` 里也是这三个，首次启动会整个导进来）：
 
 | id | 类型 | 端点 | 模型 |
 |---|---|---|---|
@@ -181,7 +201,9 @@ pnpm cli translate --to zh --text "Education is very important for children."   
 pnpm cli models
 ```
 
-CLI 走的是和 server 一样的配置（当前生效的 provider + 该 provider 的提示词 + `server/.env`），`--provider <id>` / `--model <name>` 可以临时覆盖。
+CLI 走的是和 server 一样的配置（同一个 `app.db` 里的当前生效 provider + 该 provider 的提示词 + `server/.env`），`--provider <id>` / `--model <name>` 可以临时覆盖。
+
+**CLI 不计入任何用户的 token 用量** —— 它不经过 HTTP，没有登录用户身份。
 
 调试用的开关：
 
@@ -194,7 +216,8 @@ CLI 走的是和 server 一样的配置（当前生效的 provider + 该 provide
 ## 环境变量
 
 **全部在 `server/.env` 里**（不进 git），启动时自动加载 —— 细节见上面的「配置」一节。
-`PORT` / `OLLAMA_HOST` / `OLLAMA_MODEL` / `MAX_CANDIDATES` / `<PROVIDER_ID>_KEY` / `VOCAB_PATH`。
+`PORT` / `OLLAMA_HOST` / `OLLAMA_MODEL` / `MAX_CANDIDATES` / `<PROVIDER_ID>_KEY` / `VOCAB_PATH` /
+`DB_PATH` / `ADMIN_USERNAME` / `ADMIN_PASSWORD` / `AUTH_LOCAL_BYPASS` / `DEBUG`。
 
 > `SERVER_ENV_FILE=/path/to/other.env` 可以换一个 env 文件。
 
@@ -223,10 +246,26 @@ CLI 走的是和 server 一样的配置（当前生效的 provider + 该 provide
 | 状态码 | 含义 |
 |---|---|
 | `400` | 入参不合法 |
+| `401` | 需要登录（见下面的「登录与 token 统计」） |
 | `404` | 找不到指定的 provider / 版本 |
 | `500` | 模型返回了无法解析的内容 |
 | `502` | 上游（provider）调用失败 |
 | `503` | 服务端配置不全（没有可用 provider、缺提示词模板） |
+
+### 登录
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| POST | `/api/auth/register` | `{username, password}` → 建号 + 直接发 cookie 登录（201） |
+| POST | `/api/auth/login` | `{username, password}` → 发 cookie；密码错 → `401` |
+| POST | `/api/auth/logout` | 删会话 + 清 cookie |
+| GET | `/api/auth/me` | `{user, today, month}` —— 当前用户 + 今日/本月 token 用量；没登录 → `401` |
+
+### 调试
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/debug` | `{enabled}` —— 后端的 `DEBUG` 开关（前端拿它决定要不要打 console.log） |
 
 ### 查词（纯本地，不调模型）
 
@@ -259,6 +298,81 @@ CLI 走的是和 server 一样的配置（当前生效的 provider + 该 provide
 | POST | `/api/providers/:id/prompts/:capabilityId/dry-run` | 试运行：渲染 + 真跑一次，返回 system / user / 原始输出 / 解析结果 |
 | POST | `/api/providers/:id/prompts/copy` | 从别的 provider 复制提示词（整套或单个能力） |
 | GET / PUT | `/api/providers/:id/tones` | 该 provider 的语气表 |
+
+## 登录与 token 统计
+
+### 谁能调哪些接口
+
+**所有消耗 token 的接口都必须登录**（无 session → `401`）：
+
+```
+/api/translate
+/api/rewrite-selection
+/api/rewrite-sentence
+/api/grammar-check
+/api/rewrite-instruction
+/api/providers/:id/test
+/api/providers/:id/prompts/:capabilityId/dry-run
+```
+
+不花 token 的（`/api/config`、provider 的增删改、查词、`/api/auth/*`）不需要登录。
+
+### 本地工具免登录
+
+浏览器打前端（Vite 5173）→ Vite 代理到后端（8787）→ **后端看到的 IP 也是 127.0.0.1**。
+所以只看 IP 会把浏览器流量一起放行 —— 登录在开发环境就等于没有。
+
+区分靠**浏览器一定会带的请求头**：
+
+| | 浏览器（fetch） | curl / CLI |
+|---|---|---|
+| `Origin` | POST 一定有（`http://127.0.0.1:5173`） | 无 |
+| `Sec-Fetch-Site` | 一定有（`same-origin`） | 无 |
+
+规则：**回环地址 + 没有 `Origin` + 没有 `Sec-Fetch-Site` → 判定为本地工具调用，放行**。
+所以 `server/curl-tests.sh` 不用改；但这类请求**没有用户身份，不计入任何人的用量**。
+
+`.env` 里 `AUTH_LOCAL_BYPASS=0` 可以把这个放行整个关掉（所有请求都必须登录）。
+
+### 密码和会话
+
+- **密码**：`node:crypto` 的 `scryptSync(password, salt, 64)`，库里存 `saltHex:hashHex`，
+  校验用 `timingSafeEqual`（防时序攻击）。零第三方依赖。
+- **会话**：token 是 32 字节随机数（base64url），服务端存 `sessions` 表，浏览器只拿 cookie
+  （`sid`，HttpOnly / Path=/ / SameSite=Lax / 30 天）。
+- 用户名规则：3-32 位 `[A-Za-z0-9_-]`；密码 ≥ 4 位。
+- 播种：库里一个用户都没有时，用 `ADMIN_USERNAME` / `ADMIN_PASSWORD` 建一个（**日志里不回显密码**）。
+
+### token 用量怎么记
+
+1. 三个 LLM 客户端把 provider 返回的 usage 塞进 `ChatResult.usage`：
+   - Ollama：`prompt_eval_count` / `eval_count`
+   - OpenAI：`usage.prompt_tokens` / `usage.completion_tokens`（写在内部 `call()` 里 → 降级链里成功的那次也带得上）
+   - Anthropic：`usage.input_tokens` / `usage.output_tokens`（**加上** cache 读写那两段 —— 那也算真实消耗；两个 return 点都要加）
+2. service 层（`services/ai.ts` / `services/translate.ts`）在 `chat()` 成功后、`extractOutput()` **之前**记账 ——
+   解析失败也算钱，token 已经花了。
+3. 「记到谁头上」从 **AsyncLocalStorage** 里取当前用户（`services/requestContext.ts`）。
+   登录守卫里 `runAsUser(user, next)` 把身份挂进请求上下文 —— 并发安全，
+   而且**不用改任何 service 的方法签名**。
+4. 落库：`token_usage` 表每人每天一行（`PRIMARY KEY (user_id, day)`），UPSERT 累加。
+
+**`day` 用 INTEGER（`YYYYMMDD`，如 `20261031`）** —— SQLite 没有真正的 DATE 类型
+（声明 `DATE` 只是给 NUMERIC affinity，底层还是文本），而这一列只做等值和范围比较，
+INTEGER 比较最干净、没有 affinity 歧义。
+
+日/月边界按**服务端本地时区**算（`getFullYear/getMonth/getDate`），不用 UTC —— 避免东八区晚上记到「明天」。
+本月区间是 `[当月1号, 下月1号)` 的开区间，跨年不用特判。
+
+**CLI 不计入任何用户** —— 它不经过 HTTP，没有用户身份。
+
+### 调试日志
+
+`.env` 里 `DEBUG=1` 打开。前后端共用这一个开关（前端通过 `GET /api/debug` 拿）。
+
+server 端会打：启动信息、库路径、登录/登出/401/本地放行、每次 LLM 调用的
+（能力 / 模型 / input / output token / 耗时）、token 落库、配置变更。
+
+浏览器端会给 `window.fetch` 打补丁，每个请求一行 `[debug] GET /api/... → 200 (12ms)`。
 
 ## 查词服务
 
@@ -297,7 +411,7 @@ CLI 走的是和 server 一样的配置（当前生效的 provider + 该 provide
 
 `src/routes/httpError.ts` 里的 `classifyError(err)` 统一做状态码分类（500 解析失败 / 502 上游失败 / 503 配置不全 / 404 不存在 / 400 请求不合法）。
 
-**DI**：`createApp({ aiService, translateService, configStore, registry })`。测试注入 mock service，不需要启动真模型。
+**DI**：`createApp({ aiService, translateService, configStore, registry, dictionaryService, userStore, recordUsage })`。测试注入 mock service，不需要启动真模型。**`userStore` 不传 = 不启用鉴权**（单元测试靠这个绕开登录；生产入口 `src/index.ts` 一定传）。
 
 ## 测试
 
@@ -332,8 +446,8 @@ pnpm type-check      # tsc --noEmit
 ```
 server/
 ├── src/
-│   ├── index.ts                        # 入口：loadEnv → 建 store / registry / service，listen
-│   ├── app.ts                          # createApp 工厂，挂 rewrite / translate / settings / dictionary router
+│   ├── index.ts                        # 入口：loadEnv → 建库 / store / registry / service，播种 admin，listen
+│   ├── app.ts                          # createApp 工厂，挂 rewrite / translate / settings / dictionary / auth router
 │   ├── cli.ts                          # 手工测试 CLI（直接调 service，可打印 prompt / raw）
 │   ├── config/
 │   │   ├── types.ts                    # ProviderConfig / PromptTemplate / ProviderPromptSet / AppConfig
@@ -341,9 +455,11 @@ server/
 │   │   ├── template.ts                 # mustache-lite 渲染器
 │   │   ├── capabilities.ts             # 能力注册表：变量表 / 示例输入 / 提取器
 │   │   ├── env.ts                      # 加载 server/.env（util.parseEnv）
-│   │   └── store.ts                    # ConfigStore：config.json + history.json（key 走环境变量）
+│   │   ├── db.ts                       # openDatabase：建库 + 全部建表语句（node:sqlite，零依赖）
+│   │   ├── store.ts                    # ConfigStore：配置存在 SQLite（老 config.json 只作首次导入源）
+│   │   └── userStore.ts                # UserStore：用户 / 会话 / 每人每日 token 用量
 │   ├── llm/
-│   │   ├── types.ts                    # LlmClient 接口 + JSON 契约
+│   │   ├── types.ts                    # LlmClient 接口 + JSON 契约 + TokenUsage
 │   │   ├── ollamaClient.ts             # format 传 schema
 │   │   ├── openaiClient.ts             # response_format + 三级降级
 │   │   ├── anthropicClient.ts          # tool-use 强制 + 降级
@@ -352,12 +468,14 @@ server/
 │   │   ├── ai.ts                       # AiService：4 个能力，提示词从 provider 的提示词集取
 │   │   ├── translate.ts                # TranslateService（中译英 / 英译中）
 │   │   ├── dictionary.ts               # 查词：字节偏移索引 + 本地 JSONL 词库
-│   │   └── activeProvider.ts           # 把 store + registry 拼成「当前生效 provider」快照
+│   │   ├── activeProvider.ts           # 把 store + registry 拼成「当前生效 provider」快照
+│   │   └── requestContext.ts           # AsyncLocalStorage：当前请求的登录用户
 │   ├── routes/
 │   │   ├── translate.ts                # POST /api/translate（两个方向）
 │   │   ├── rewrite.ts                  # 4 个端点：selection / sentence / grammar / instruction
 │   │   ├── settings.ts                 # provider / 提示词 / 版本 / 回滚 / 试运行
 │   │   ├── dictionary.ts               # /api/dictionary/{status,reload,lookup}
+│   │   ├── auth.ts                     # /api/auth/{register,login,logout,me} + requireUser 守卫
 │   │   └── httpError.ts                # 统一状态码分类
 │   ├── prompts/                        # 只剩解析器（提示词文本已搬到 config/）
 │   │   ├── cleanText.ts                # 共享清洗：围栏 / 前缀 / 引号
@@ -365,9 +483,12 @@ server/
 │   │   ├── rewriteSelection.ts         # isSelectionKind / parseCandidates
 │   │   ├── rewriteSentence.ts          # isSentenceOperation / parseRewrittenSentence
 │   │   └── rewriteInstruction.ts       # parseInstructionResult
-│   └── utils/matchCase.ts              # Good→Great / good→great / GOOD→GREAT
-├── .env                                 # 本机配置：端口 / Ollama / API Key / 词库路径（不进 git）
-├── data/                               # 运行时生成（config.json / history.json 进 git）
+│   └── utils/
+│       ├── matchCase.ts                # Good→Great / good→great / GOOD→GREAT
+│       ├── day.ts                      # 日桶键（YYYYMMDD 整数）+ 当月区间（本地时区）
+│       └── debug.ts                    # debugLog：server/.env 的 DEBUG 开关
+├── .env                                 # 本机配置：端口 / Ollama / API Key / 词库路径 / 登录 / 调试（不进 git）
+├── data/                               # app.db（不进 git）+ config.json / history.json（老导入源，进 git）
 └── tests/                              # vitest
 ```
 
@@ -387,3 +508,7 @@ bash curl-tests.sh dictionary   # /api/dictionary/{status,lookup}
 bash curl-tests.sh errors       # 4 个端点的错误路径（11 个 case）
 BASE=http://host:port bash curl-tests.sh   # 改 base URL
 ```
+
+> curl 走的是「本地工具调用」路径 —— 免登录放行（`AUTH_LOCAL_BYPASS=1` 时），
+> 所以这个脚本不用改。但这些调用**不计入任何用户的 token 用量**。
+> `.env` 里把 `AUTH_LOCAL_BYPASS` 设成 0 的话，curl 也会拿到 401。

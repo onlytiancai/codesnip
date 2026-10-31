@@ -6,6 +6,7 @@
  */
 
 import type { ToneId } from '../constants/tones'
+import { markUnauthorized } from '../composables/useAuth'
 
 export type { ToneId }
 
@@ -36,6 +37,8 @@ async function post<T>(path: string, body: unknown, signal?: AbortSignal): Promi
     } catch {
       // ignore
     }
+    // 会话过期 → 清掉登录态（路由守卫会跳登录页）
+    if (res.status === 401) markUnauthorized()
     throw new RewriteError(detail || `HTTP ${res.status}`, res.status)
   }
 

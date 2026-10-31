@@ -18,6 +18,6 @@ export function createActiveProviderGetter(
     const apiKey = store.getApiKey(provider.id)
     const client = registry.get(provider, apiKey)
     const promptSet = store.getPromptSet(provider.id)
-    return { client, promptSet }
+    return { client, promptSet, provider }
   }
 }

@@ -13,8 +13,9 @@ import {
   type TranslateInput,
 } from '../config/capabilities.js'
 import type { ToneId } from '../config/defaults.js'
-import type { LlmClient } from '../llm/types.js'
-import type { CapabilityId, ProviderPromptSet } from '../config/types.js'
+import type { LlmClient, TokenUsage } from '../llm/types.js'
+import type { CapabilityId, ProviderConfig, ProviderPromptSet } from '../config/types.js'
+import { debugLog } from '../utils/debug.js'
 
 export interface TranslationResult {
   translation: string
@@ -46,11 +47,15 @@ export function directionOf(
 export interface ActiveProvider {
   client: LlmClient
   promptSet: ProviderPromptSet
+  /** provider 配置本身 —— 只用于调试日志（模型名） */
+  provider?: ProviderConfig
 }
 
 export interface CreateTranslateServiceOptions {
   /** 取当前生效的 provider —— 每次请求都调，切换立即生效 */
   getActive: () => ActiveProvider
+  /** 记录这次调用的 token 用量（不传就不记） */
+  recordUsage?: (usage: TokenUsage) => void
 }
 
 export interface TranslateService {
@@ -72,7 +77,8 @@ export function createTranslateService(
       const capability: CapabilityId =
         direction === 'en2zh' ? 'translateReverse' : 'translate'
 
-      const { client, promptSet } = deps.getActive()
+      const activeProvider = deps.getActive()
+      const { client, promptSet } = activeProvider
       const template = promptSet.templates[capability]
       if (!template) {
         throw new Error(`没有 "${capability}" 的提示词模板`)
@@ -83,11 +89,27 @@ export function createTranslateService(
       const { system, user } = renderPrompt(template, context)
 
       const mode = template.responseMode
+      const startedAt = Date.now()
       const result = await client.chat({
         system,
         user,
         jsonSchema: mode === 'json' ? template.jsonSchema : undefined,
       })
+      const elapsed = Date.now() - startedAt
+
+      // 记账在解析之前 —— 就算模型回了解析不了的东西，token 也已经花了
+      if (result.usage) deps.recordUsage?.(result.usage)
+
+      debugLog(
+        '[llm]',
+        capability,
+        '|',
+        activeProvider.provider?.model ?? client.kind,
+        '|',
+        `${result.usage?.inputTokens ?? 0} in / ${result.usage?.outputTokens ?? 0} out`,
+        '|',
+        `${elapsed}ms`,
+      )
 
       const translation = extractOutput(capability, result.content, mode)
       return { translation: translation as string }

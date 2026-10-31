@@ -1,9 +1,10 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
+import { openDatabase } from '../src/config/db.js'
 import { ConfigStore } from '../src/config/store.js'
 import type { CapabilityId, ProviderConfig } from '../src/config/types.js'
-import { buildTempStore, type TempStore } from './helpers.js'
+import { buildTempStore, reopenStore, type TempStore } from './helpers.js'
 
 let tmp: TempStore | undefined
 
@@ -27,12 +28,14 @@ const NEW_PROVIDER: ProviderConfig = {
 }
 
 describe('ConfigStore · 初始化', () => {
-  it('首次运行播种默认 provider 和提示词集，并落盘', () => {
+  it('首次运行播种默认 provider 和提示词集，并落库', () => {
     const s = store()
     expect(s.listProviders()).toHaveLength(1)
     expect(s.getActiveProviderId()).toBe(s.listProviders()[0].id)
-    expect(existsSync(join(tmp!.dir, 'config.json'))).toBe(true)
-    expect(existsSync(join(tmp!.dir, 'history.json'))).toBe(true)
+    // 重开同一个库 → 数据还在
+    const s2 = reopenStore(tmp!)
+    expect(s2.listProviders()).toHaveLength(1)
+    expect(s2.getActiveProviderId()).toBe(s.getActiveProviderId())
   })
 
   it('每个 provider 都有完整的提示词集', () => {
@@ -52,12 +55,15 @@ describe('ConfigStore · 初始化', () => {
     expect(set.tones).toHaveLength(8)
   })
 
-  it('config.json 损坏 → 回落默认配置，服务器仍能起来', () => {
+  it('老的 config.json 损坏 → 回落默认配置，服务器仍能起来', () => {
     const s = store()
-    const path = join(tmp!.dir, 'config.json')
-    require('node:fs').writeFileSync(path, '{ not json', 'utf8')
-    const s2 = new ConfigStore({ dataDir: tmp!.dir })
+    writeFileSync(join(tmp!.dir, 'config.json'), '{ not json', 'utf8')
+    const s2 = new ConfigStore({
+      db: openDatabase(join(tmp!.dir, 'other.db')),
+      legacyDataDir: tmp!.dir,
+    })
     expect(s2.listProviders().length).toBeGreaterThan(0)
+    expect(s2.getActiveProviderId()).toBeTruthy()
     expect(s).toBeDefined()
   })
 })
@@ -170,20 +176,17 @@ describe('ConfigStore · 版本历史', () => {
     expect(() => s.rollback(id, 'translate', 99)).toThrow(/不存在/)
   })
 
-  it('历史落盘到 history.json，重开后还在', () => {
+  it('版本历史落库，重开后还在', () => {
     const s = store()
     const id = s.getActiveProviderId()
     const tpl = s.getPrompt(id, 'translate')
     s.savePrompt(id, 'translate', { ...tpl, system: 'A' }, 'note here')
 
-    const raw = JSON.parse(
-      readFileSync(join(tmp!.dir, 'history.json'), 'utf8'),
-    ) as Record<string, { version: number; note?: string }[]>
-    expect(raw[`${id}/translate`]).toHaveLength(1)
-    expect(raw[`${id}/translate`][0].note).toBe('note here')
-
-    const s2 = new ConfigStore({ dataDir: tmp!.dir })
-    expect(s2.listVersions(id, 'translate')).toHaveLength(1)
+    const s2 = reopenStore(tmp!)
+    const versions = s2.listVersions(id, 'translate')
+    expect(versions).toHaveLength(1)
+    expect(versions[0].note).toBe('note here')
+    expect(versions[0].template.system).toBe('A')
   })
 })
 
@@ -231,7 +234,7 @@ describe('ConfigStore · 密钥', () => {
     delete process.env.TEST_PROVIDER_KEY
   })
 
-  it('config.json 里永远拿不到明文 key', () => {
+  it('库里永远拿不到明文 key', () => {
     const s = store()
     process.env.TEST_PROVIDER_KEY = 'sk-secret-value'
     s.upsertProvider({ ...NEW_PROVIDER, apiKeyEnv: 'TEST_PROVIDER_KEY' })
@@ -239,8 +242,11 @@ describe('ConfigStore · 密钥', () => {
     const listed = s.listProviders()
     expect(JSON.stringify(listed)).not.toContain('sk-secret-value')
 
-    const config = readFileSync(join(tmp!.dir, 'config.json'), 'utf8')
-    expect(config).not.toContain('sk-secret-value')
+    // 整个库目录（含 WAL 附属文件）里都搜不到明文
+    const dump = readdirSync(tmp!.dir)
+      .map((name) => readFileSync(join(tmp!.dir, name)).toString('utf8'))
+      .join('\n')
+    expect(dump).not.toContain('sk-secret-value')
 
     delete process.env.TEST_PROVIDER_KEY
   })

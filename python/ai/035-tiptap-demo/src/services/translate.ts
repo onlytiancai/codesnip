@@ -4,6 +4,7 @@
  */
 
 import type { ToneId } from '../constants/tones'
+import { markUnauthorized } from '../composables/useAuth'
 
 export interface AlignedSentence {
   /** 源句 */
@@ -74,6 +75,8 @@ export async function translateSentence(
     } catch {
       // ignore
     }
+    // 会话过期 → 清掉登录态（路由守卫会跳登录页）
+    if (res.status === 401) markUnauthorized()
     throw new TranslateHttpError(detail || `HTTP ${res.status}`, res.status)
   }
   // 后端响应：{ translation: "..." } —— 一句源句对应一句译文

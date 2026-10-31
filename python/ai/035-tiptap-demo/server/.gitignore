@@ -3,3 +3,8 @@ dist
 .env
 .env.local
 coverage
+
+# SQLite 库（含 WAL 附属文件）
+data/*.db
+data/*.db-wal
+data/*.db-shm

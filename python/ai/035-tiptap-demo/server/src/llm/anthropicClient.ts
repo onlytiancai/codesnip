@@ -28,6 +28,7 @@ import {
   type ChatRequest,
   type ChatResult,
   type LlmClient,
+  type TokenUsage,
 } from './types.js'
 
 const RESULT_TOOL_NAME = 'result'
@@ -82,6 +83,24 @@ export function createAnthropicClient(
     )
   }
 
+  /**
+   * token 用量。
+   *
+   * Anthropic 的 input_tokens **不含**缓存命中的那部分 —— SDK 注释里写的是
+   * 「总输入 = input_tokens + cache_creation_input_tokens + cache_read_input_tokens」。
+   * 记账按真实消耗算，所以三段都算进去。
+   */
+  function extractUsage(res: Anthropic.Message): TokenUsage {
+    const usage = res.usage
+    return {
+      inputTokens:
+        (usage?.input_tokens ?? 0) +
+        (usage?.cache_creation_input_tokens ?? 0) +
+        (usage?.cache_read_input_tokens ?? 0),
+      outputTokens: usage?.output_tokens ?? 0,
+    }
+  }
+
   return {
     kind: 'anthropic',
 
@@ -97,7 +116,12 @@ export function createAnthropicClient(
       try {
         try {
           const res = await client.messages.create(buildParams(req, system, useTool))
-          return { content: extractContent(res), structured: useTool, system }
+          return {
+            content: extractContent(res),
+            structured: useTool,
+            system,
+            usage: extractUsage(res),
+          }
         } catch (err) {
           // 部分代理端点不支持 tools → 降到纯提示词
           if (!useTool || !isBadRequest(err)) throw err
@@ -105,7 +129,12 @@ export function createAnthropicClient(
           const res = await client.messages.create(
             buildParams(req, fallbackSystem, false),
           )
-          return { content: extractContent(res), structured: false, system: fallbackSystem }
+          return {
+            content: extractContent(res),
+            structured: false,
+            system: fallbackSystem,
+            usage: extractUsage(res),
+          }
         }
       } catch (err) {
         throw new Error(errorMessage(err))

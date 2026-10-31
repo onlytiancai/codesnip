@@ -17,12 +17,14 @@ import {
 } from '../config/capabilities.js'
 import type {
   CapabilityId,
+  ProviderConfig,
   ProviderPromptSet,
 } from '../config/types.js'
-import type { LlmClient } from '../llm/types.js'
+import type { LlmClient, TokenUsage } from '../llm/types.js'
 import type { SelectionKind } from '../prompts/rewriteSelection.js'
 import type { SentenceOperation } from '../prompts/rewriteSentence.js'
 import type { ToneId } from '../config/defaults.js'
+import { debugLog } from '../utils/debug.js'
 
 export interface RewriteSelectionOptions {
   /** 选区所在段落/句子上下文，用于消歧 */
@@ -49,6 +51,8 @@ export interface InstructionOptions {
 export interface ActiveProvider {
   client: LlmClient
   promptSet: ProviderPromptSet
+  /** provider 配置本身 —— 只用于调试日志（模型名） */
+  provider?: ProviderConfig
 }
 
 export interface CreateAiServiceOptions {
@@ -60,6 +64,13 @@ export interface CreateAiServiceOptions {
   getActive: () => ActiveProvider
   /** 默认候选上限 */
   defaultMaxCandidates?: number
+  /**
+   * 记录这次调用的 token 用量。
+   *
+   * 不传就不记（CLI / 单元测试不关心用量）。
+   * 具体「记到谁头上」由调用方决定（它从 AsyncLocalStorage 里取当前用户）。
+   */
+  recordUsage?: (usage: TokenUsage) => void
 }
 
 export interface AiService {
@@ -89,7 +100,8 @@ export function createAiService(deps: CreateAiServiceOptions): AiService {
     input: unknown,
     options?: { maxCandidates?: number },
   ): Promise<string | string[]> {
-    const { client, promptSet } = deps.getActive()
+    const activeProvider = deps.getActive()
+    const { client, promptSet } = activeProvider
     const template = promptSet.templates[capability]
     if (!template) {
       throw new Error(`没有 "${capability}" 的提示词模板`)
@@ -103,11 +115,27 @@ export function createAiService(deps: CreateAiServiceOptions): AiService {
     const { system, user } = renderPrompt(template, context)
 
     const mode = template.responseMode
+    const startedAt = Date.now()
     const result = await client.chat({
       system,
       user,
       jsonSchema: mode === 'json' ? template.jsonSchema : undefined,
     })
+    const elapsed = Date.now() - startedAt
+
+    // 记账在解析之前 —— 就算模型回了解析不了的东西，token 也已经花了
+    if (result.usage) deps.recordUsage?.(result.usage)
+
+    debugLog(
+      '[llm]',
+      capability,
+      '|',
+      activeProvider.provider?.model ?? client.kind,
+      '|',
+      `${result.usage?.inputTokens ?? 0} in / ${result.usage?.outputTokens ?? 0} out`,
+      '|',
+      `${elapsed}ms`,
+    )
 
     return extractOutput(capability, result.content, mode, {
       maxCandidates: options?.maxCandidates ?? defaultMax,

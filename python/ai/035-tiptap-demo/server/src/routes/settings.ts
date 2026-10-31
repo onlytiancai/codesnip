@@ -35,6 +35,7 @@ import {
 } from '../config/types.js'
 import { isBalanced } from '../config/template.js'
 import { ClientRegistry } from '../llm/registry.js'
+import type { TokenUsage } from '../llm/types.js'
 import { isSelectionKind } from '../prompts/rewriteSelection.js'
 import { isSentenceOperation } from '../prompts/rewriteSentence.js'
 import { fail } from './httpError.js'
@@ -50,6 +51,8 @@ const STRUCTURED_MODES: StructuredOutputMode[] = [
 export interface CreateSettingsRouterOptions {
   store: ConfigStore
   registry: ClientRegistry
+  /** 记录 token 用量（试运行和探活也会真的调模型） */
+  recordUsage?: (usage: TokenUsage) => void
 }
 
 /** provider 对外暴露的形状 —— 附带 hasKey，明文 key 永远不返回（它在 server/.env 里）。 */
@@ -263,6 +266,7 @@ function buildDryRunInput(
 
 export function createSettingsRouter(options: CreateSettingsRouterOptions): Router {
   const { store, registry } = options
+  const recordUsage = options.recordUsage
   const router = Router()
 
   // ---- 总览 ----
@@ -338,6 +342,7 @@ export function createSettingsRouter(options: CreateSettingsRouterOptions): Rout
         user: 'ping',
         jsonSchema: undefined,
       })
+      if (result.usage) recordUsage?.(result.usage)
       res.json({
         ok: true,
         sample: result.content.trim().slice(0, 200),
@@ -558,6 +563,7 @@ export function createSettingsRouter(options: CreateSettingsRouterOptions): Rout
           jsonSchema:
             template.responseMode === 'json' ? template.jsonSchema : undefined,
         })
+        if (result.usage) recordUsage?.(result.usage)
         let parsed: unknown
         let parseError: string | undefined
         try {

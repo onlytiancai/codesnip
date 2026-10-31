@@ -30,6 +30,21 @@ export interface ChatResult {
   structured: boolean
   /** 实际发出去的 system 消息（可能追加了 JSON 契约） */
   system: string
+  /** 本次调用的 token 用量（provider 没报就是 undefined） */
+  usage?: TokenUsage
+}
+
+/**
+ * 一次调用的 token 用量。
+ *
+ * 三家 provider 的口径不一样，这里统一成「输入 / 输出」两个数：
+ * - Ollama   ：prompt_eval_count / eval_count
+ * - OpenAI   ：usage.prompt_tokens / usage.completion_tokens
+ * - Anthropic：usage.input_tokens / usage.output_tokens
+ */
+export interface TokenUsage {
+  inputTokens: number
+  outputTokens: number
 }
 
 export interface LlmClient {
