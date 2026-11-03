@@ -44,7 +44,7 @@ cd 001
 ```text
 [1:1] LET      let
 [1:5] ID       x
-[1:7] ASSIGN   = 
+[1:7] ASSIGN   =
 [1:9] NUM      10  (10)
 [1:11] SEMI     ;
 ...
@@ -53,8 +53,9 @@ cd 001
 
 （这里为了篇幅省略了中间几行，完整输出见第 7 节。）
 
-注意 `=` 那一行末尾有一个空格：`printf("%-8s ", type_name(...))` 会把类型名补齐到 8 个字符，
-然后再打一个空格，接着打印 token 的原始文本 `=`。所以你看到的确实是 `ASSIGN   = `（末尾带空格）。
+注意 `=` 前面有三个空格：`printf("%-8s ", type_name(...))` 会把类型名补齐到 8 个字符
+（`ASSIGN` 是 6 个，补 2 个空格），然后再打一个空格，接着打印 token 的原始文本 `=`。
+所以这一行就是 `ASSIGN   =`——类型名和原文之间有空格，原文后面没有多余的东西。
 
 ## 4. 前置知识回顾
 
@@ -197,10 +198,28 @@ switch (c) {
 看起来也能工作；不过 `strncmp` 更直白地表达了"我只比较前 2 个字符"的意图，
 而且即使 `two` 没有以 `'\0'` 结尾也不会越界读。**在长度受限的缓冲区上，用 `strncmp` 更安全。**
 
-一个细节：单字符运算符走 `switch` 之后，调用的是 `add_token(ty, two, 0, line, col)`——
-传的是 `two` 而不是 `&c`。为什么？`two[0] == c`，所以 `two` 里正好也是这个字符，
-而 `two` 一定是以 `'\0'` 结尾的（初始化为 `{0,0,0}`），可以直接当 C 字符串用。
-如果传 `&c`（`char *`），`add_token` 里的 `snprintf` 只会复制 1 个字符，后面的垃圾就没了。
+一个细节：单字符运算符走 `switch` 之后，调用的是 `add_token(ty, one, 0, line, col)`——
+传的是 `one` 而不是 `two`。为什么？
+
+`two` 里装的是**「当前字符 + 下一个字符」**（`two[0] = c; two[1] = src[i+1];`），
+它是给双字符运算符做匹配用的。把 `two` 直接交给 `add_token` 就会出事：
+token 的 `text` 会多出一个字符。比如源码是 `print("hello\n");`，
+`(` 后面紧跟着的是 `"`，于是 `(` 的 `text` 变成了 `("`，打印出来是：
+
+```text
+[1:6] LP       ("
+```
+
+`;` 后面紧跟着换行符时更离谱——`text` 里塞进了一个真的 `'\n'`，
+打印时会把一行拆成两行。所以单字符运算符要另用一个只有 1 个字符的缓冲区：
+
+```c
+char one[2] = { (char)c, 0 };   /* 单字符运算符：文本只有它自己 */
+add_token(ty, one, 0, line, col);
+```
+
+也不能传 `&c`：`c` 是 `int`，`&c` 指向的是 4 个字节的整数内存，
+`add_token` 里的 `snprintf` 按字符串拷贝，读出来是乱码。
 
 ### 5.5 关键字：为什么先当标识符，再查表
 
@@ -815,7 +834,8 @@ static void lex(void) {
             default:   fatal_at((Token){.line=line, .col=col}, "无法识别字符 '%c'", c);
         }
         i++; src_col++;
-        add_token(ty, two, 0, line, col);
+        char one[2] = { (char)c, 0 };   /* 单字符运算符：文本只有它自己 */
+        add_token(ty, one, 0, line, col);
     }
     add_token(T_EOF, "<文件结束>", 0, src_line, src_col);
 }
@@ -984,84 +1004,78 @@ C 语言要求"先声明后使用"。如果 `lex()` 里调用了 `fatal_at()`，
 ▶ demo.ml
   | [2:1] LET      let
   | [2:5] ID       x
-  | [2:7] ASSIGN   = 
+  | [2:7] ASSIGN   =
   | [2:9] NUM      10  (10)
   | [2:11] SEMI     ;
-  | 
   | [3:1] LET      let
   | [3:5] ID       y
-  | [3:7] ASSIGN   = 
+  | [3:7] ASSIGN   =
   | [3:9] NUM      3.14  (3.14)
   | [3:13] SEMI     ;
-  | 
   | [4:1] LET      let
   | [4:5] ID       name
-  | [4:10] ASSIGN   = 
+  | [4:10] ASSIGN   =
   | [4:12] STR      "MiniLang"
   | [4:22] SEMI     ;
-  | 
   | [6:1] FN       fn
   | [6:4] ID       add
-  | [6:7] LP       (a
+  | [6:7] LP       (
   | [6:8] ID       a
-  | [6:9] COMMA    , 
+  | [6:9] COMMA    ,
   | [6:11] ID       b
-  | [6:12] RP       ) 
-  | [6:14] LB       { 
+  | [6:12] RP       )
+  | [6:14] LB       {
   | [6:16] RETURN   return
   | [6:23] ID       a
-  | [6:25] PLUS     + 
+  | [6:25] PLUS     +
   | [6:27] ID       b
-  | [6:28] SEMI     ; 
+  | [6:28] SEMI     ;
   | [6:30] RB       }
-  | 
   | [7:1] IF       if
-  | [7:4] LP       (x
+  | [7:4] LP       (
   | [7:5] ID       x
-  | [7:7] GT       > 
+  | [7:7] GT       >
   | [7:9] NUM      1  (1)
-  | [7:10] RP       ) 
-  | [7:12] LB       { 
+  | [7:10] RP       )
+  | [7:12] LB       {
   | [7:14] ID       print
-  | [7:19] LP       ("
+  | [7:19] LP       (
   | [7:20] STR      "big\n"
-  | [7:27] RP       );
-  | [7:28] SEMI     ; 
-  | [7:30] RB       } 
+  | [7:27] RP       )
+  | [7:28] SEMI     ;
+  | [7:30] RB       }
   | [7:32] ELSE     else
-  | [7:37] LB       { 
+  | [7:37] LB       {
   | [7:39] ID       print
-  | [7:44] LP       ("
+  | [7:44] LP       (
   | [7:45] STR      "small\n"
-  | [7:54] RP       );
-  | [7:55] SEMI     ; 
+  | [7:54] RP       )
+  | [7:55] SEMI     ;
   | [7:57] RB       }
-  | 
   | [8:1] FOR      for
-  | [8:5] LP       (l
+  | [8:5] LP       (
   | [8:6] LET      let
   | [8:10] ID       i
-  | [8:12] ASSIGN   = 
+  | [8:12] ASSIGN   =
   | [8:14] NUM      0  (0)
-  | [8:15] SEMI     ; 
+  | [8:15] SEMI     ;
   | [8:17] ID       i
-  | [8:19] LT       < 
+  | [8:19] LT       <
   | [8:21] NUM      3  (3)
-  | [8:22] SEMI     ; 
+  | [8:22] SEMI     ;
   | [8:24] ID       i
-  | [8:26] ASSIGN   = 
+  | [8:26] ASSIGN   =
   | [8:28] ID       i
-  | [8:30] PLUS     + 
+  | [8:30] PLUS     +
   | [8:32] NUM      1  (1)
-  | [8:33] RP       ) 
-  | [8:35] LB       { 
+  | [8:33] RP       )
+  | [8:35] LB       {
   | [8:37] ID       print
-  | [8:42] LP       ("
+  | [8:42] LP       (
   | [8:43] STR      "{i}\n"
-  | [8:50] RP       );
-  | [8:51] SEMI     ; 
+  | [8:50] RP       )
+  | [8:51] SEMI     ;
   | [8:53] RB       }
-  | 
   | [9:1] EOF      <文件结束>
 
 ✅ 全部通过（8 项）
@@ -1073,7 +1087,7 @@ C 语言要求"先声明后使用"。如果 `lex()` 里调用了 `fatal_at()`，
 |---|---|---|---|
 | `case_01_numbers.ml` | `let x = 10;` / `let y = 3.14;` | stdout 见下 | `let` 是关键字 → `T_LET`；`x` 是标识符 → `T_ID`；`10` 是数字 → `T_NUM` 且额外打印 `(10)`（`%g` 格式） |
 | `case_02_keywords.ml` | `let fn return if else for` | 6 个关键字 token | 证明"先当标识符再查表"这条路走通了：每个词都被查表改成了对应的类型 |
-| `case_03_strings.ml` | `print("hello\n");` | `STR` token 内容是 `"hello\n"` | 字符串里的 `\n` 被解转义成真的换行，打印时 `print_escaped()` 又显示回 `\n`。注意 `LP` 那一行末尾是 `("`——`(` 是括号 token，字符串是另一个 token |
+| `case_03_strings.ml` | `print("hello\n");` | `STR` token 内容是 `"hello\n"` | 字符串里的 `\n` 被解转义成真的换行，打印时 `print_escaped()` 又显示回 `\n`。注意 `LP` 那一行只有一个 `(`——`(` 是括号 token，字符串是另一个 token |
 | `case_04_comments.ml` | 整行注释 + 行尾注释 | 只剩 4 个 token | 注释被完全跳过；但行号**没有**被压缩——第 2 行的 `let` 依然报告 `[2:1]`，说明注释"占位置" |
 | `case_05_operators.ml` | `a == b != c <= d >= e && f || g ! h` | 12 个 token | 双字符运算符全部被正确识别。`!` 单独出现是 `T_NOT`，不是 `T_NE` |
 | `case_06_bad_char.ml` | `let x = 1 @ 2;` | stderr `错误 [1:11]: 无法识别字符 '@'`，退出码 1 | `@` 不在任何一个分支里，走到 `switch` 的 `default`，`fatal_at` 报错并 `exit(1)`。列号 11 是 `@` 的位置 |
@@ -1084,16 +1098,14 @@ C 语言要求"先声明后使用"。如果 `lex()` 里调用了 `fatal_at()`，
 ```text
 [1:1] LET      let
 [1:5] ID       x
-[1:7] ASSIGN   = 
+[1:7] ASSIGN   =
 [1:9] NUM      10  (10)
 [1:11] SEMI     ;
-
 [2:1] LET      let
 [2:5] ID       y
-[2:7] ASSIGN   = 
+[2:7] ASSIGN   =
 [2:9] NUM      3.14  (3.14)
 [2:13] SEMI     ;
-
 [3:1] EOF      <文件结束>
 ```
 

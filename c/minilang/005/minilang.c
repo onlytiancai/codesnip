@@ -215,7 +215,8 @@ static void lex(void) {
             default:   fatal_at((Token){.line=line, .col=col}, "无法识别字符 '%c'", c);
         }
         i++; src_col++;
-        add_token(ty, two, 0, line, col);
+        char one[2] = { (char)c, 0 };   /* 单字符运算符：文本只有它自己 */
+        add_token(ty, one, 0, line, col);
     }
     add_token(T_EOF, "<文件结束>", 0, src_line, src_col);
 }

@@ -58,11 +58,10 @@ $ cat /tmp/tok.ml
 print("a\tb\n");
 $ ./minilang /tmp/tok.ml tokens
 [1:1] ID       print
-[1:6] LP       ("
+[1:6] LP       (
 [1:7] STR      "a\tb\n"
-[1:15] RP      );
+[1:15] RP      )
 [1:16] SEMI    ;
-
 [2:1] EOF      <文件结束>
 ```
 
