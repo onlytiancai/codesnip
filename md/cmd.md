@@ -48,3 +48,7 @@ iostat 看磁盘压力
     ...
     901 1000
     $ cat ranges.txt | xargs -n 2 -P 10 ./worker.sh
+
+按第三列倒序排，第三列是浮点数字
+
+    sort -k3,3nr file.txt
