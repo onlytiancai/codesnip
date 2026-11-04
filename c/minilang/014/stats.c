@@ -12,7 +12,7 @@
  *   ./stats -f data.txt -m nearest          # 用最近秩算法（监控系统常用）
  *   ./stats -p 99.9,99.5,75,25 -f data.txt  # 自定义百分位列表
  *   seq 1 100 | ./stats -c                  # 输出两行 CSV，便于脚本处理
- *   seq 1 2000000 | ./stats -n 0 -c         # 取消数量上限
+ *   ./stats -n 0 -f huge.txt -c             # 取消数量上限
  *   ./stats -h                              # 查看帮助
  *
  * 默认最多接收 100 万个数值，超出即报错退出；-n / --max 可调整，0 表示不限制。
