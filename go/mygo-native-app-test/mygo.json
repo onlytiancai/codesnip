@@ -1,0 +1,6 @@
+{
+  "name": "mygo-native-app-test",
+  "identifier": "com.example.mygonativeapptest",
+  "version": "0.1.0",
+  "out": "build"
+}
