@@ -52,3 +52,13 @@ iostat 看磁盘压力
 按第三列倒序排，第三列是浮点数字
 
     sort -k3,3nr file.txt
+
+claude 滚动条修复
+
+    /tui default
+    /tui fullscreen
+    /terminal-setup
+
+复制 screen 输出的文本
+
+    screen -S session_name -X hardcopy -h /tmp/screen.log
