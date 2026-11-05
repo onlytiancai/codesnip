@@ -1,0 +1,8 @@
+.neon
+node_modules/
+dist/
+
+# Local secrets — never commit the Neon connection strings.
+.env
+.env.local
+.env.*.local

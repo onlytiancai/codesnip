@@ -1,0 +1,24 @@
+{
+  "name": "neon-notes",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Minimal notes API backed by Neon (Lakebase) Postgres",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node --env-file-if-exists=.env dist/src/server.js",
+    "migrate": "node --env-file-if-exists=.env dist/src/migrate.js",
+    "smoke": "node --env-file-if-exists=.env dist/src/smoke.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@neon/config": "^1.11.1",
+    "@neon/env": "^1.6.13",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/pg": "^8.23.1",
+    "typescript": "^7.0.2"
+  }
+}
