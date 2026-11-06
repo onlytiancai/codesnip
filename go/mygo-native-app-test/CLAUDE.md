@@ -149,6 +149,7 @@ python3 e2e/drive.py        # 本项目的驱动脚本
    **解法**：读 `tree` 之前先 `capture` 一次 —— 它会强制渲染一帧，树就跟上来了；
    另外把窗口置前（`osascript` 设 `frontmost`）让人眼也能看到。
 
+**完整做法、协议细节和排查手册见 [docs/e2e-testing.md](docs/e2e-testing.md)。**
 ## 本项目的探索过程
 
 按踩坑顺序记下来，省得下次重走：
