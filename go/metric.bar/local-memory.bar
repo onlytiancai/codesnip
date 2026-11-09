@@ -1,0 +1,298 @@
+<bar protocol-version="0"
+     category="system"
+     version="1.0.0"
+     icon="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxyZWN0IHg9IjEuNSIgeT0iNi41IiB3aWR0aD0iMjEiIGhlaWdodD0iMTEiIHJ4PSIxLjUiLz48cGF0aCBkPSJNNS41IDE3LjV2MyIvPjxwYXRoIGQ9Ik05LjUgMTcuNXYzIi8+PHBhdGggZD0iTTE0LjUgMTcuNXYzIi8+PHBhdGggZD0iTTE4LjUgMTcuNXYzIi8+PHBhdGggZD0iTTUuNSAxMHY0Ii8+PHBhdGggZD0iTTkuNSAxMHY0Ii8+PHBhdGggZD0iTTE0LjUgMTB2NCIvPjwvc3ZnPg=="
+     description="在菜单栏显示当前内存占用百分比。"
+     license="AGPL-3.0-only"
+     homepage="https://metrix.bar/"
+     id="local-memory"
+     title="内存"
+     refresh="10s"
+     material="solid">
+
+  <inputs>
+    <input name="warn"
+           type="integer"
+           label="警告阈值"
+           default="70"
+           help="占用达到该百分比时显示为橙色。" />
+    <input name="critical"
+           type="integer"
+           label="严重阈值"
+           default="85"
+           help="占用达到该百分比时显示为红色。" />
+  </inputs>
+
+  <docs><![CDATA[直接使用，无需任何账号或密钥。
+
+数据来自本机系统指标（metrics.snapshot），每 10 秒采样一次，面板中的曲线保留最近约 15 分钟。
+
+可在下方调整「警告阈值」和「严重阈值」，占用达到阈值时托盘与面板会变色。]]></docs>
+
+  <script apis="metrics"><![CDATA[
+// 本机内存占用看板。只用宿主的 metrics 能力，不发起任何网络请求。
+
+const h = (type, props, ...children) =>
+  ({ type, props: props || {}, children: children.flat().filter(c => c !== null && c !== undefined && c !== false) });
+const TX = (text, props) => h("Text", props, String(text));
+
+const K = { muted: "textMuted", ok: "success", warn: "warning", bad: "danger" };
+const W = 340;
+const MAX_POINTS = 90; // 10s × 90 ≈ 15 分钟
+
+const svg = paths =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+const ICON = {
+  ram: svg(`<rect x="1.5" y="6.5" width="21" height="11" rx="1.5"/><path d="M5.5 17.5v3"/><path d="M9.5 17.5v3"/><path d="M14.5 17.5v3"/><path d="M18.5 17.5v3"/><path d="M5.5 10v4"/><path d="M9.5 10v4"/><path d="M14.5 10v4"/>`),
+  refresh: svg(`<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>`),
+  alert: svg(`<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>`),
+};
+const Icon = (name, size, color, extra) =>
+  h("Icon", { svg: ICON[name], ...extra,
+    tw: `text-[${size || 14}px] size-[${size || 14}px] text-${color || K.muted} shrink-0 ${extra && extra.tw || ""}` });
+
+// ---------------------------------------------------------------------------
+// 格式化
+// ---------------------------------------------------------------------------
+
+const GB = 1073741824;
+const gb = n => (Number.isFinite(n) && n >= 0 ? (n / GB).toFixed(1) + " GB" : "—");
+const one = n => (Number.isFinite(n) ? n.toFixed(1) : "—");
+const hhmm = t => {
+  const d = new Date(t);
+  return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0") +
+    ":" + String(d.getSeconds()).padStart(2, "0");
+};
+
+// ---------------------------------------------------------------------------
+// 状态
+// ---------------------------------------------------------------------------
+
+let mem = null;     // { total, used, available, percent }
+let swap = null;    // { total, used, percent }
+let samples = [];   // [{ x, y, label, valueLabel }]
+let error = "";
+let loading = false;
+let inflight = null;
+let updatedAt = 0;
+let seq = 0;
+
+// 阈值：输入非法时回落到默认值，严重阈值永远高于警告阈值。
+function limits(env) {
+  const raw = (env && env.inputs) || {};
+  const w = Number(raw.warn);
+  const c = Number(raw.critical);
+  let warn = Number.isFinite(w) && w > 0 && w < 100 ? w : 70;
+  let crit = Number.isFinite(c) && c > 0 && c < 100 ? c : 85;
+  if (crit <= warn) crit = Math.min(99, warn + 1);
+  return { warn, crit };
+}
+
+function tone(percent, lim) {
+  if (!Number.isFinite(percent)) return K.muted;
+  if (percent >= lim.crit) return K.bad;
+  if (percent >= lim.warn) return K.warn;
+  return K.ok;
+}
+
+// ---------------------------------------------------------------------------
+// 采样
+// ---------------------------------------------------------------------------
+
+async function readMemory() {
+  const snap = await $metrix.system("metrics.snapshot");
+  const m = snap && snap.memory;
+  if (!m || !(m.totalBytes > 0)) throw new Error("本系统未提供内存统计");
+
+  const used = Number.isFinite(m.usedBytes) ? m.usedBytes : m.totalBytes - m.availableBytes;
+  const next = {
+    total: m.totalBytes,
+    used: used,
+    available: Number.isFinite(m.availableBytes) ? m.availableBytes : Math.max(0, m.totalBytes - used),
+    percent: Math.max(0, Math.min(100, used / m.totalBytes * 100)),
+  };
+
+  // 交换空间是补充信息，拿不到就整块隐藏。
+  let sw = null;
+  try {
+    const v = await $metrix.system("metrics.memory.virtual");
+    if (v && Number.isFinite(v.swapTotal) && v.swapTotal > 0) {
+      const free = Number.isFinite(v.swapFree) ? v.swapFree : 0;
+      const usedSwap = Math.max(0, v.swapTotal - free);
+      sw = { total: v.swapTotal, used: usedSwap, percent: usedSwap / v.swapTotal * 100 };
+    }
+  } catch (e) {
+    sw = null;
+  }
+  return { next, sw };
+}
+
+function refresh() {
+  if (inflight) return inflight;
+  loading = true;
+  $metrix.invalidate();
+  inflight = readMemory()
+    .then(({ next, sw }) => {
+      mem = next;
+      swap = sw;
+      error = "";
+      updatedAt = Date.now();
+      samples.push({ x: seq++, y: mem.percent, label: hhmm(updatedAt), valueLabel: one(mem.percent) + "%" });
+      if (samples.length > MAX_POINTS) samples = samples.slice(-MAX_POINTS);
+    })
+    .catch(e => {
+      error = String(e && e.message || e);
+    })
+    .finally(() => {
+      inflight = null;
+      loading = false;
+      $metrix.invalidate();
+    });
+  return inflight;
+}
+const launchRefresh = () => { void refresh(); };
+
+// ---------------------------------------------------------------------------
+// 组件
+// ---------------------------------------------------------------------------
+
+const bone = (w, hgt, extra) => h("Box", { ...extra,
+  tw: `w-[${w}px] h-[${hgt}px] rounded bg-surfaceHover shrink-0 ${extra && extra.tw || ""}` });
+
+function IconButton(name, label, onClick, busy) {
+  return h("Column", {
+    tw: "w-7 h-7 items-center justify-center rounded-[7px] shrink-0 cursor-pointer hover:bg-surfaceHover pressed:bg-surfacePressed",
+    label, tooltip: label, onClick,
+  }, Icon(name, 15, K.muted, busy ? { keyframes: { duration: 900, repeat: -1, ease: "linear",
+    frames: [{ at: 0, rotate: 0 }, { at: 1, rotate: 360 }] } } : null));
+}
+
+function Header() {
+  return h("Column", { tw: "w-full" },
+    h("Row", { tw: "gap-2 pt-3 pr-3 pb-2.5 pl-4 items-center w-full min-w-0" },
+      Icon("ram", 18, "text"),
+      TX("内存", { tw: "text-sm font-semibold truncate min-w-0 shrink" }),
+      h("Spacer"),
+      IconButton("refresh", "刷新", launchRefresh, loading)),
+    h("Divider"));
+}
+
+function Pill(t) {
+  const label = t === K.bad ? "告警" : t === K.warn ? "偏高" : "正常";
+  return h("Box", { tw: "px-2 py-0.5 rounded-full bg-surfaceHover items-center justify-center shrink-0" },
+    TX(label, { tw: `text-[11px] font-medium text-${t}` }));
+}
+
+function Hero(lim) {
+  const t = tone(mem.percent, lim);
+  return h("Column", { tw: "gap-2.5 w-full" },
+    h("Row", { tw: "gap-2.5 items-center w-full" },
+      TX(Math.round(mem.percent) + "%", { tw: "text-4xl font-[650] tabular-nums tracking-[-1.2px]",
+        contentTransition: { numeric: true }, textColor: t, tooltip: one(mem.percent) + "%" }),
+      h("Spacer"),
+      Pill(t)),
+    h("Box", { tw: "w-full h-2 rounded-full bg-surfaceHover overflow-hidden" },
+      h("Box", { width: mem.percent.toFixed(1) + "%", tw: `h-full rounded-full bg-${t}` })));
+}
+
+function Stat(label, value, tip) {
+  return h("Row", { tw: "gap-3 items-center w-full min-w-0", tooltip: tip },
+    TX(label, { tw: "text-xs text-textMuted shrink-0" }),
+    h("Spacer"),
+    TX(value, { tw: "text-[13px] font-semibold tabular-nums shrink-0" }));
+}
+
+function Stats() {
+  return h("Column", { tw: "gap-2 w-full" },
+    Stat("已用", gb(mem.used), "正在使用的物理内存"),
+    Stat("可用", gb(mem.available), "系统估算的可回收内存"),
+    Stat("总量", gb(mem.total), "物理内存总量"),
+    swap ? Stat("Swap", gb(swap.used) + " / " + gb(swap.total), "交换空间已用 / 总量") : null);
+}
+
+function Trend() {
+  if (samples.length < 2) return null;
+  const points = samples.map(p => ({ x: p.x, y: p.y, label: p.label, valueLabel: p.valueLabel }));
+  const first = points[0].x;
+  const last = points[points.length - 1].x;
+  let peak = 0;
+  for (const p of samples) if (p.y > peak) peak = p.y;
+  return h("Column", { tw: "gap-2 w-full" },
+    h("Row", { tw: "gap-1.5 items-center w-full" },
+      TX("最近 15 分钟", { tw: "text-xs font-semibold text-textMuted" }),
+      h("Spacer"),
+      TX("峰值 " + Math.round(peak) + "%", { tw: "text-xs font-semibold tabular-nums" })),
+    h("Chart", { type: "area", xKind: "number", axes: false, grid: false, hover: true,
+      height: 60, yDomain: [0, 100], xDomain: [first, last], label: "内存占用曲线", tw: "w-full",
+      series: [{ name: "内存占用", color: "accent", points }] }));
+}
+
+function Banner() {
+  return h("Row", { tw: "gap-2 py-2 px-2.5 rounded-lg bg-surfaceHover items-center w-full min-w-0" },
+    Icon("alert", 14, K.bad),
+    TX(error, { tw: "text-xs min-w-0 shrink grow leading-[1.3]" }),
+    h("Row", { tw: "py-0.75 px-2 rounded-[5px] cursor-pointer shrink-0 hover:bg-surfacePressed",
+      label: "重试", onClick: launchRefresh },
+      TX("重试", { tw: "text-xs font-medium" })));
+}
+
+function Problem(title, detail, retry) {
+  return h("Column", { tw: "grow items-center justify-center gap-2 py-6 px-8" },
+    Icon("alert", 22, K.bad),
+    TX(title, { tw: "text-sm font-semibold text-center" }),
+    TX(detail, { tw: "text-xs text-textMuted text-center leading-[1.35]" }),
+    retry ? h("Button", { onClick: launchRefresh }, "重试") : null);
+}
+
+function Skeleton() {
+  return h("Column", { tw: "gap-4.5 pt-3.5 pr-4 pb-4 pl-4 w-full" },
+    h("Row", { tw: "gap-2.5 items-center" }, bone(22, 22, { tw: "rounded-[11px]" }), bone(120, 28)),
+    bone(320, 8, { tw: "rounded-full" }),
+    h("Column", { tw: "gap-3" }, [0, 1, 2, 3].map(() =>
+      h("Row", { tw: "h-5 items-center" }, bone(60, 12), h("Spacer"), bone(90, 12)))));
+}
+
+function Body(env) {
+  const lim = limits(env);
+  if (!mem) return error ? Problem("无法读取内存", error, true) : Skeleton();
+  return h("Scroll", { tw: "grow min-h-0 w-full" },
+    h("Column", { tw: "gap-4.5 pt-3.5 pr-4 pb-4 pl-4 w-full min-w-0" },
+      error ? Banner() : null,
+      Hero(lim), Stats(), Trend()));
+}
+
+const panelTree = env => h("Column", {
+  preferredWidth: W, preferredHeight: 460, safeArea: true,
+  tw: "size-full text-[13px] text-text min-w-0 min-h-0",
+  shortcuts: { "CmdOrCtrl+R": launchRefresh },
+}, Header(), Body(env));
+
+const trayTree = () => ({
+  icon: "data:image/svg+xml," + encodeURIComponent(ICON.ram),
+  iconTemplate: true,
+  title: mem ? Math.round(mem.percent) + "%" : "",
+  tooltip: mem ? `内存 ${Math.round(mem.percent)}% · 已用 ${gb(mem.used)} / ${gb(mem.total)}` : "内存",
+  error: error || "",
+  menu: [
+    { label: "刷新", onClick: launchRefresh },
+    { label: "打开面板", onClick: () => { void $metrix.togglePanel(); } },
+  ],
+});
+
+export default {
+  async scheduled() {
+    await refresh();
+  },
+
+  render(env) {
+    return { tray: trayTree(), panel: panelTree(env) };
+  },
+
+  event(name, payload) {
+    // 打开面板时补一次采样，间隔内保持最新。
+    if (name === "lifecycle" && payload && payload.type === "expand" && !inflight &&
+        Date.now() - updatedAt > 20e3) launchRefresh();
+  },
+};
+  ]]></script>
+</bar>
