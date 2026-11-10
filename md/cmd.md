@@ -62,3 +62,47 @@ claude 滚动条修复
 复制 screen 输出的文本
 
     screen -S session_name -X hardcopy -h /tmp/screen.log
+
+screen 日志
+
+    screen -S hao -X logfile /tmp/my_screen.log
+    screen -S hao -X log on
+    tail -f /tmp/my_screen.log
+    screen -S hao -X log off
+测试 ollama API
+
+    curl -s http://localhost:11434/api/generate \
+      -d '{
+        "model": "s2021008840/hy-mt2:1.8b",
+        "prompt": "Translate Chinese to English: 我喜欢人工智能。",
+        "stream": false
+      }' | jq -r '.response'
+
+去掉代理使用 curl
+
+    curl -s --noproxy '*' http://localhost:11434/api/tags
+
+duckdb 把csv转parquet
+
+    COPY (
+        SELECT
+            id::BIGINT AS id,
+            parent_id::BIGINT AS parent_id,
+            is_parent::TINYINT AS is_parent,
+            file_id::INTEGER AS file_id
+        FROM read_csv(
+            '202611.csv',
+            header = false,
+            columns = {
+                'id': 'BIGINT',
+                'parent_id': 'BIGINT',
+                'is_parent': 'TINYINT',
+                'file_id': 'INTEGER'
+            }
+        )
+    ) TO '202611.parquet'
+    (FORMAT PARQUET, COMPRESSION ZSTD);
+
+jsonl 处理
+
+    jq 'select(.id==517115)|.data' out.jsonl
