@@ -3,15 +3,13 @@ import { ref, watch } from 'vue'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import {
-  EMPTY_CONTEXT,
-  getWritingContext,
+  getSentenceIndex,
   splitChineseSentences,
-  type WritingContext,
 } from '../composables/useWritingContext'
 import {
-  createHighlightSentenceExtension,
+  createContextHighlightExtension,
   rerenderDecorations,
-} from '../composables/highlightSentence'
+} from '../composables/highlightContext'
 
 const props = defineProps<{
   /** 来自英文侧的高亮：英文句子 i 时，此处把中文第 i 句高亮 */
@@ -19,9 +17,8 @@ const props = defineProps<{
 }>()
 
 const html = defineModel<string>('html', { default: '' })
-const context = defineModel<WritingContext>('context', {
-  default: () => ({ ...EMPTY_CONTEXT }),
-})
+/** 光标所在句子的文档级全局索引（跨面板对齐的唯一依据） */
+const sentenceIndex = defineModel<number>('sentenceIndex', { default: -1 })
 
 // 闭包给 ProseMirror 读
 const highlightRef = ref(props.highlightedZhIndex)
@@ -51,18 +48,23 @@ const editor = useEditor({
       bulletList: false,
       orderedList: false,
     }),
-    createHighlightSentenceExtension(splitChineseSentences, () => highlightRef.value),
+    createContextHighlightExtension({
+      splitFn: splitChineseSentences,
+      getCrossIndex: () => highlightRef.value,
+      // 中文框只要紫色的跨栏高亮，不要段落/句子/单词三层
+      showContextLayers: () => false,
+    }),
   ],
   onUpdate({ editor }) {
     html.value = editor.getHTML()
-    context.value = getWritingContext(editor, splitChineseSentences)
+    sentenceIndex.value = getSentenceIndex(editor.state, splitChineseSentences)
   },
   onSelectionUpdate({ editor }) {
-    context.value = getWritingContext(editor, splitChineseSentences)
+    sentenceIndex.value = getSentenceIndex(editor.state, splitChineseSentences)
   },
   onCreate({ editor }) {
     html.value = editor.getHTML()
-    context.value = getWritingContext(editor, splitChineseSentences)
+    sentenceIndex.value = getSentenceIndex(editor.state, splitChineseSentences)
   },
 })
 </script>

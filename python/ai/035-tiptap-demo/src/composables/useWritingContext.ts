@@ -1,35 +1,20 @@
-import type { Editor } from '@tiptap/core'
+import type { Node as PMNode } from '@tiptap/pm/model'
+import type { EditorState } from '@tiptap/pm/state'
 
 /**
- * 当前光标所在的写作上下文。
- * - paragraph: 整个段落文本
- * - paragraphHlStart/End: 当前句子在段落中的起止偏移（用于高亮）
- * - sentence: 当前句子文本
- * - sentenceHlStart/End: 当前单词在句子中的起止偏移
- * - word: 当前光标所在的单词（去尾随标点前的部分）
- * - sentenceIndex: 当前句子在文档中的全局索引（0-based，跨段落累计）
+ * 写作上下文：段落 / 句子 / 单词 的定位，以及「文本偏移 ↔ ProseMirror 位置」的换算。
+ *
+ * 这里算的东西有两个出口：
+ *  1. 编辑器每次事务后上报「当前句子的全局索引」→ EditorPage 用它做双栏对齐
+ *  2. highlightContext.ts 的装饰扩展用它算 Decoration 的位置
+ *
+ * 两边共用同一套算法，所以「高亮」和「索引」永远不会各算各的。
+ *
+ * ⚠️ 偏移口径：`splitFn` 切的是**段落纯文本**（= node.textContent），
+ * 位置口径是 **doc 坐标**。两者不是一回事 —— hardBreak（Shift+Enter）在 textContent 里
+ * 不占字符，但在 doc 里占 1 个位置。所以不能直接 `段落起点 + 偏移`，
+ * 得先经过下面的 Chunk 映射。
  */
-export interface WritingContext {
-  paragraph: string
-  paragraphHlStart: number
-  paragraphHlEnd: number
-  sentence: string
-  sentenceHlStart: number
-  sentenceHlEnd: number
-  word: string
-  sentenceIndex: number
-}
-
-export const EMPTY_CONTEXT: WritingContext = {
-  paragraph: '',
-  paragraphHlStart: 0,
-  paragraphHlEnd: 0,
-  sentence: '',
-  sentenceHlStart: 0,
-  sentenceHlEnd: 0,
-  word: '',
-  sentenceIndex: -1,
-}
 
 export interface Sentence {
   text: string
@@ -64,10 +49,12 @@ function splitByRegex(text: string, regex: RegExp): Sentence[] {
   return out
 }
 
+export type SplitFn = (text: string) => Sentence[]
+
 /**
  * 在 text 中定位包含 offset 的"句子"。返回句子的 text/start/end + 索引。
  */
-function findSentenceInfo(
+export function findSentenceInfo(
   offset: number,
   sentences: Sentence[],
 ): { info: Sentence; idx: number } | null {
@@ -85,7 +72,7 @@ function findSentenceInfo(
  * 在 text 中定位包含 offset 的"单词"。
  * 单词 = 连续的非空白字符。
  */
-function findWordAt(
+export function findWordAt(
   text: string,
   offset: number,
 ): { text: string; start: number; end: number } | null {
@@ -102,66 +89,257 @@ function findWordAt(
   return null
 }
 
-export type SplitFn = (text: string) => Sentence[]
+// ===== 位置几何 =====
 
 /**
- * 从 selection 反推当前段落 / 句子 / 单词。
- * 段落定义为最近包含光标的 paragraph 或 heading 节点。
- *
- * splitFn 决定用什么标点切句——英文用 splitEnglishSentences，中文用 splitChineseSentences。
- * sentenceIndex 是文档级的全局索引（跨段落累计），用于跨面板对齐。
+ * 段落里的一个片段。
+ * - text：这段的纯文本（叶子节点如 hardBreak 不贡献字符）
+ * - from/to：这段在 doc 里的位置区间 [from, to)
  */
-export function getWritingContext(editor: Editor, splitFn: SplitFn): WritingContext {
-  const { state } = editor
+export interface Chunk {
+  text: string
+  from: number
+  to: number
+}
+
+/**
+ * 把段落摊平成「文本片段 + doc 位置」。
+ *
+ * 纯文本节点的 text 拼起来 === para.textContent（切句口径不变），
+ * 但 doc 位置是对的 —— 叶子节点（hardBreak）虽然不含字符，仍占 1 个位置。
+ */
+export function buildChunks(para: PMNode, paraStart: number): Chunk[] {
+  const chunks: Chunk[] = []
+  para.forEach((child, offset) => {
+    const from = paraStart + 1 + offset
+    chunks.push({
+      text: child.isText ? (child.text ?? '') : '',
+      from,
+      to: from + child.nodeSize,
+    })
+  })
+  return chunks
+}
+
+/** 片段纯文本拼起来（=== node.textContent） */
+export function chunkText(chunks: Chunk[]): string {
+  let text = ''
+  for (const c of chunks) text += c.text
+  return text
+}
+
+/**
+ * 找出「文本偏移」落在哪个片段上。
+ * 返回 -1 表示越界。
+ *
+ * prefer='end'   → 取**第一个**命中的片段（边界落在前一段末尾）
+ * prefer='start' → 取**最后一个**命中的片段（边界落在后一段开头）
+ *
+ * 两者只在片段边界上不同 —— 那正是 hardBreak 造成的位置空隙所在，
+ * 区间映射用 from='start' / to='end' 就能自动跨过这个空隙。
+ */
+function findChunkIndex(chunks: Chunk[], offset: number, prefer: 'start' | 'end'): number {
+  let acc = 0
+  let found = -1
+  for (let i = 0; i < chunks.length; i++) {
+    const c = chunks[i]
+    if (!c.text.length) continue
+    const start = acc
+    const end = acc + c.text.length
+    if (offset >= start && offset <= end) {
+      found = i
+      if (prefer === 'end') break
+    }
+    acc = end
+  }
+  return found
+}
+
+/**
+ * 段落内的「文本偏移」→ doc 位置。
+ */
+export function posAt(chunks: Chunk[], offset: number, prefer: 'start' | 'end'): number {
+  const i = findChunkIndex(chunks, offset, prefer)
+  if (i < 0) {
+    // 越界（正常不会发生）：落到最后一个有文本的片段末尾
+    let last = -1
+    for (let k = 0; k < chunks.length; k++) if (chunks[k].text.length) last = k
+    return last >= 0 ? chunks[last].to : 0
+  }
+  let acc = 0
+  for (let k = 0; k < i; k++) acc += chunks[k].text.length
+  return chunks[i].from + (offset - acc)
+}
+
+/**
+ * doc 位置 → 段落内的「文本偏移」（光标位置换算用）。
+ */
+export function textOffsetAt(chunks: Chunk[], pos: number): number {
+  let acc = 0
+  for (const c of chunks) {
+    if (!c.text.length) continue
+    if (pos >= c.from && pos <= c.to) return acc + (pos - c.from)
+    acc += c.text.length
+  }
+  return acc
+}
+
+// ===== 句子收集 =====
+
+/**
+ * 一句话在 doc 里的位置。
+ */
+export interface SentenceSpan {
+  /** 文档级全局句子索引（0-based，跨段落累计） */
+  index: number
+  /** 所在段落节点的区间（给 Decoration.node 用） */
+  paraFrom: number
+  paraTo: number
+  /** 这句话的区间（给 Decoration.inline 用） */
+  from: number
+  to: number
+  text: string
+}
+
+/**
+ * 把 doc 里的所有句子按顺序收集起来，附全局索引。
+ *
+ * 只数**顶层**的 paragraph / heading —— 别的块类型（列表、代码块…）
+ * 不参与编号，这样「编辑器里的句子序号」和「跨栏对齐用的序号」是同一套。
+ */
+export function collectSentences(doc: PMNode, splitFn: SplitFn): SentenceSpan[] {
+  const out: SentenceSpan[] = []
+  let index = 0
+  doc.forEach((node, offset) => {
+    const name = node.type.name
+    if (name !== 'paragraph' && name !== 'heading') return
+    const paraFrom = offset
+    const paraTo = offset + node.nodeSize
+    const chunks = buildChunks(node, paraFrom)
+    for (const s of splitFn(chunkText(chunks))) {
+      out.push({
+        index: index++,
+        paraFrom,
+        paraTo,
+        from: posAt(chunks, s.start, 'start'),
+        to: posAt(chunks, s.end, 'end'),
+        text: s.text,
+      })
+    }
+  })
+  return out
+}
+
+// ===== 光标上下文 =====
+
+/**
+ * 光标所在位置的三层上下文（段落 / 句子 / 单词），全部是 doc 位置。
+ */
+export interface ContextSpan {
+  /** 段落节点区间（Decoration.node） */
+  paraFrom: number
+  paraTo: number
+  /** 句子区间（Decoration.inline） */
+  sentFrom: number
+  sentTo: number
+  /** 单词区间（Decoration.inline） */
+  wordFrom: number
+  wordTo: number
+  paragraph: string
+  sentence: string
+  word: string
+  /** 文档级全局句子索引；光标不在任何句子里时是 -1 */
+  sentenceIndex: number
+}
+
+/**
+ * 从光标位置反推当前段落 / 句子 / 单词。
+ *
+ * 段落 = 光标所在的 paragraph 或 heading 节点。
+ * 句子 = 段落里按标点切出来的、包含光标的那句。
+ * 单词 = 句子里包含光标的那段连续非空白字符。
+ */
+export function resolveContext(state: EditorState, splitFn: SplitFn): ContextSpan | null {
   const { $from } = state.selection
-  const { doc } = state
+  const doc = state.doc
 
   // 1. 找到最近的段落级节点
-  let paragraphDepth = -1
+  let depth = -1
   for (let d = $from.depth; d > 0; d--) {
     const name = $from.node(d).type.name
     if (name === 'paragraph' || name === 'heading') {
-      paragraphDepth = d
+      depth = d
       break
     }
   }
-  if (paragraphDepth === -1) return EMPTY_CONTEXT
+  if (depth === -1) return null
 
-  const paragraphNode = $from.node(paragraphDepth)
-  const paragraphText = paragraphNode.textContent
-  // paragraph 节点在 doc 中的起始位置（NOT $from.start(paragraphDepth)，
-  // 后者是段落内容起点，会把本段落本身累加进 baseIdx）
-  const paragraphPos = $from.before(paragraphDepth)
-  const paragraphStart = $from.start(paragraphDepth)
-  const offsetInParagraph = $from.pos - paragraphStart
+  const para = $from.node(depth)
+  const paraFrom = $from.before(depth)
+  const paraTo = paraFrom + para.nodeSize
+  const chunks = buildChunks(para, paraFrom)
+  const paragraph = chunkText(chunks)
 
-  // 2. 累计：本段落之前所有段落的总句数
-  let baseIdx = 0
-  doc.nodesBetween(0, paragraphPos, (node) => {
-    if (node.isTextblock) {
-      baseIdx += splitFn(node.textContent).length
-    }
-  })
+  // 2. 光标在段落纯文本里的偏移
+  const offset = textOffsetAt(chunks, $from.pos)
 
   // 3. 在段落中找包含光标的句子
-  const sentences = splitFn(paragraphText)
-  const found = findSentenceInfo(offsetInParagraph, sentences)
+  const sentences = splitFn(paragraph)
+  const found = findSentenceInfo(offset, sentences)
   if (!found) {
-    return { ...EMPTY_CONTEXT, paragraph: paragraphText }
+    // 光标不在任何句子里（空段落）→ 没有句子索引
+    return {
+      paraFrom,
+      paraTo,
+      sentFrom: $from.pos,
+      sentTo: $from.pos,
+      wordFrom: $from.pos,
+      wordTo: $from.pos,
+      paragraph,
+      sentence: '',
+      word: '',
+      sentenceIndex: -1,
+    }
   }
 
   // 4. 在句子中找包含光标的单词
-  const offsetInSentence = offsetInParagraph - found.info.start
-  const wordInfo = findWordAt(found.info.text, offsetInSentence)
+  const wordInfo = findWordAt(found.info.text, offset - found.info.start)
+
+  const sentFrom = posAt(chunks, found.info.start, 'start')
+  const sentTo = posAt(chunks, found.info.end, 'end')
 
   return {
-    paragraph: paragraphText,
-    paragraphHlStart: found.info.start,
-    paragraphHlEnd: found.info.end,
+    paraFrom,
+    paraTo,
+    sentFrom,
+    sentTo,
+    wordFrom: wordInfo ? posAt(chunks, found.info.start + wordInfo.start, 'start') : sentFrom,
+    wordTo: wordInfo ? posAt(chunks, found.info.start + wordInfo.end, 'end') : sentFrom,
+    paragraph,
     sentence: found.info.text,
-    sentenceHlStart: wordInfo?.start ?? 0,
-    sentenceHlEnd: wordInfo?.end ?? 0,
     word: wordInfo?.text ?? '',
-    sentenceIndex: baseIdx + found.idx,
+    sentenceIndex: countSentencesBefore(doc, paraFrom, splitFn) + found.idx,
   }
+}
+
+/**
+ * 本段落之前所有顶层 paragraph / heading 里的句子总数。
+ */
+function countSentencesBefore(doc: PMNode, paraFrom: number, splitFn: SplitFn): number {
+  let count = 0
+  doc.forEach((node, offset) => {
+    if (offset >= paraFrom) return
+    const name = node.type.name
+    if (name !== 'paragraph' && name !== 'heading') return
+    count += splitFn(node.textContent).length
+  })
+  return count
+}
+
+/**
+ * 光标所在句子的全局索引（跨面板对齐的唯一依据）。
+ * 光标不在任何段落/句子里时是 -1。
+ */
+export function getSentenceIndex(state: EditorState, splitFn: SplitFn): number {
+  return resolveContext(state, splitFn)?.sentenceIndex ?? -1
 }

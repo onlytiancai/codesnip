@@ -125,13 +125,27 @@ Escape 逐层退出：面板 → 菜单 → 关闭菜单。菜单关闭时会 `a
 
 工具栏按钮的实现方式是给菜单加一个 `autoAction` prop：点击后菜单贴着光标弹出，并直接落到对应面板（`tone` → 语气列表，`improve` → 润色中…）。光标落在句间空白时归到前一句；光标不在任何段落里时按钮禁用。
 
-## 调试模式
+## 编辑器内高亮
 
-顶栏右上角"显示调试 / 隐藏调试"按钮切换以下面板：
-- 当前中文句子
-- 当前段落 / 句子 / 单词
-- 对应中文原文（传给改写 API）
-- 右侧 meta "第 N 句 / 共 M 句"
+英文框里直接用颜色标出光标上下文，不用再开调试面板：
+
+| 颜色 | 含义 |
+| --- | --- |
+| 淡绿（整段底色） | 光标所在的**段落** |
+| 淡蓝 | 光标所在的**句子** |
+| 黄色 | 光标所在的**单词** |
+| 紫色 | **跨栏对齐**：对侧光标所在句对应的这一句 |
+
+规则：
+
+- 焦点在**英文框** → 画淡绿 / 淡蓝 / 黄三层。
+- 焦点在**中文框** → 英文框画紫色的跨栏高亮 + 它所在段落的淡绿底
+  （不画蓝/黄，因为中英之间没有词级对应）；中文框画紫色的跨栏高亮。
+- 也就是说：**哪边没焦点，哪边就高亮「对侧光标对应的那一句」**；焦点所在的那边画自己的三层上下文。
+  中文框不画淡绿/淡蓝/黄三层。
+
+实现是 ProseMirror 的 `Decoration`（段落用 `Decoration.node`，句子/单词用 `Decoration.inline`），
+**不是真的 `<mark>`** —— 编辑器的 HTML 就是翻译接口的入参，塞真 mark 会污染发给后端的文本和句子对齐。
 
 浏览器 DevTools Console 里 `[debug] ...` 日志会打印对齐表 + 当前光标的双侧索引，方便排查错位。
 
@@ -190,9 +204,9 @@ src/
 ├── App.vue                              # 应用外壳：AppSidebar + <RouterView />
 ├── router.ts                            # 路由：/login（顶层）+ 外壳 / → 编辑器、/settings + 登录守卫
 ├── main.ts                              # 入口（顺便问后端要 DEBUG 开关）
-├── style.css                            # 全局 + .ProseMirror + .ai-menu* + 侧栏 + ctx 面板 + 设置页 + 登录页样式
+├── style.css                            # 全局 + .ProseMirror + .ai-menu* + 侧栏 + 编辑器内高亮 + 设置页 + 登录页样式
 ├── pages/
-│   ├── EditorPage.vue                   # 编辑器页：源/译两栏（方向随侧栏切）+ 联动 + 调试开关
+│   ├── EditorPage.vue                   # 编辑器页：源/译两栏（方向随侧栏切）+ 联动
 │   ├── SettingsPage.vue                 # 设置页（路由 /settings）：供应商 / 提示词 / 词库 三个 tab
 │   └── LoginPage.vue                    # 登录页（路由 /login，不套侧栏外壳）+ 注册切换
 ├── components/
@@ -204,12 +218,12 @@ src/
 │   ├── PromptPanel.vue                  # 提示词编辑（按 provider）+ 版本历史 + 回滚 + 试运行
 │   └── DictionaryPanel.vue              # 词库 tab：路径（只读）+ 重新加载 + 测试查询
 ├── composables/
-│   ├── useWritingContext.ts             # 段落/句子/单词提取（sentenceIndex 全局）
+│   ├── useWritingContext.ts             # 段落/句子/单词定位 + 文本偏移↔doc 位置换算（sentenceIndex 全局）
 │   ├── useSelectionKind.ts              # 选区分类 word/phrase/sentence；getSentenceAtCursor 供工具栏用
 │   ├── useTones.ts                      # 语气表（label 从后端拉，拉不到用内置的）
 │   ├── useMode.ts                       # 翻译方向（zh2en / en2zh），模块级单例 + localStorage
 │   ├── useAuth.ts                       # 当前登录用户 + 今日/本月 token 用量，模块级单例
-│   └── highlightSentence.ts             # Decoration 工厂：源/译跨面板高亮
+│   └── highlightContext.ts              # Decoration 工厂：跨栏高亮 + 段落/句子/单词三层
 ├── constants/
 │   ├── tones.ts                         # 8 种语气的 id（前端唯一来源）+ 内置 label
 │   └── aiActions.ts                     # 菜单项 / 工具栏按钮共用的动作枚举（含 lookup）

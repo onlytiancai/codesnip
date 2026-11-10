@@ -4,15 +4,13 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import type { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import {
-  EMPTY_CONTEXT,
-  getWritingContext,
+  getSentenceIndex,
   splitEnglishSentences,
-  type WritingContext,
 } from '../composables/useWritingContext'
 import {
-  createHighlightSentenceExtension,
+  createContextHighlightExtension,
   rerenderDecorations,
-} from '../composables/highlightSentence'
+} from '../composables/highlightContext'
 import {
   getSelectionInfo,
   getSentenceAtCursor,
@@ -38,9 +36,8 @@ const props = withDefaults(
 )
 
 const html = defineModel<string>('html', { default: '' })
-const context = defineModel<WritingContext>('context', {
-  default: () => ({ ...EMPTY_CONTEXT }),
-})
+/** 光标所在句子的文档级全局索引（跨面板对齐的唯一依据） */
+const sentenceIndex = defineModel<number>('sentenceIndex', { default: -1 })
 
 // ===== 选区 → 上下文菜单 =====
 const selection = ref<SelectionInfo | null>(null)
@@ -256,20 +253,24 @@ const editor = useEditor({
   content: '<p></p>',
   extensions: [
     StarterKit,
-    createHighlightSentenceExtension(splitEnglishSentences, () => highlightRef.value),
+    createContextHighlightExtension({
+      splitFn: splitEnglishSentences,
+      getCrossIndex: () => highlightRef.value,
+      showContextLayers: () => true,
+    }),
   ],
   onUpdate({ editor }) {
     html.value = editor.getHTML()
-    context.value = getWritingContext(editor, splitEnglishSentences)
+    sentenceIndex.value = getSentenceIndex(editor.state, splitEnglishSentences)
     detectSelection(editor)
   },
   onSelectionUpdate({ editor }) {
-    context.value = getWritingContext(editor, splitEnglishSentences)
+    sentenceIndex.value = getSentenceIndex(editor.state, splitEnglishSentences)
     detectSelection(editor)
   },
   onCreate({ editor }) {
     html.value = editor.getHTML()
-    context.value = getWritingContext(editor, splitEnglishSentences)
+    sentenceIndex.value = getSentenceIndex(editor.state, splitEnglishSentences)
     detectSelection(editor)
   },
 })

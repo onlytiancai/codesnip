@@ -1,5 +1,13 @@
 import type { Editor } from '@tiptap/core'
-import { splitEnglishSentences, type Sentence } from './useWritingContext'
+import {
+  buildChunks,
+  chunkText,
+  posAt,
+  splitEnglishSentences,
+  textOffsetAt,
+  type Chunk,
+  type Sentence,
+} from './useWritingContext'
 
 /**
  * 选区分类 —— 上下文菜单弹什么，取决于选中了什么。
@@ -33,17 +41,23 @@ export interface SelectionInfo {
 
 /**
  * 找到 $from 所在的 paragraph / heading 节点。
- * 段落定位逻辑与 useWritingContext.getWritingContext 一致。
+ * 段落定位逻辑与 useWritingContext.resolveContext 一致。
+ *
+ * 偏移和 doc 位置不是一回事（hardBreak 在 textContent 里不占字符，在 doc 里占 1 个位置），
+ * 所以这里带上 chunks，用 posAt / textOffsetAt 换算。
  */
-function findTextblock(editor: Editor): { text: string; start: number } | null {
+function findTextblock(
+  editor: Editor,
+): { text: string; chunks: Chunk[] } | null {
   const { $from } = editor.state.selection
   for (let d = $from.depth; d > 0; d--) {
     const name = $from.node(d).type.name
     if (name === 'paragraph' || name === 'heading') {
+      // before(depth) 是节点起点（段落内容从 +1 开始）
+      const chunks = buildChunks($from.node(d), $from.before(d))
       return {
-        text: $from.node(d).textContent,
-        // start(depth) 是内容起点；before(depth) 是节点起点，会差一个
-        start: $from.start(d),
+        text: chunkText(chunks),
+        chunks,
       }
     }
   }
@@ -53,25 +67,25 @@ function findTextblock(editor: Editor): { text: string; start: number } | null {
 /**
  * 选区落在哪一句里。
  *
- * splitEnglishSentences 切出来的偏移是相对段落文本的，加 paragraphStart 才回到 doc 坐标。
+ * splitEnglishSentences 切出来的偏移是相对段落文本的，
+ * 要用 posAt 换算回 doc 坐标（不能直接加段落起点 —— 硬换行会偏）。
  */
 function locateSentence(
-  paragraphStart: number,
-  paragraphText: string,
+  block: { chunks: Chunk[]; text: string },
   from: number,
   to: number,
 ): { sentence: Sentence; sentenceFrom: number; sentenceTo: number } | null {
-  const sentences = splitEnglishSentences(paragraphText)
-  const fromOffset = from - paragraphStart
-  const toOffset = to - paragraphStart
+  const sentences = splitEnglishSentences(block.text)
+  const fromOffset = textOffsetAt(block.chunks, from)
+  const toOffset = textOffsetAt(block.chunks, to)
 
   for (const s of sentences) {
     // 选区必须整体落在同一句内；to 允许恰好等于句尾
     if (fromOffset >= s.start && toOffset <= s.end) {
       return {
         sentence: s,
-        sentenceFrom: paragraphStart + s.start,
-        sentenceTo: paragraphStart + s.end,
+        sentenceFrom: posAt(block.chunks, s.start, 'start'),
+        sentenceTo: posAt(block.chunks, s.end, 'end'),
       }
     }
   }
@@ -93,7 +107,7 @@ export function getSelectionInfo(editor: Editor | null): SelectionInfo | null {
   const block = findTextblock(editor)
   if (!block) return null
 
-  const located = locateSentence(block.start, block.text, from, to)
+  const located = locateSentence(block, from, to)
   if (!located) return null // 跨句或跨段 → 不弹
 
   // 选中文本 trim 后与整句 trim 后一致 → 用户选的就是整句
@@ -135,7 +149,8 @@ export function getSentenceAtCursor(editor: Editor | null): SelectionInfo | null
   if (!block || !block.text.trim()) return null
 
   const pos = editor.state.selection.from
-  const offset = Math.min(Math.max(pos - block.start, 0), block.text.length)
+  // doc 位置 → 段落纯文本里的偏移（硬换行会差位，所以不能直接减段落起点）
+  const offset = Math.min(Math.max(textOffsetAt(block.chunks, pos), 0), block.text.length)
 
   const sentences = splitEnglishSentences(block.text)
   if (sentences.length === 0) return null
@@ -147,14 +162,17 @@ export function getSentenceAtCursor(editor: Editor | null): SelectionInfo | null
     if (!hit) hit = sentences[0]
   }
 
+  const from = posAt(block.chunks, hit.start, 'start')
+  const to = posAt(block.chunks, hit.end, 'end')
+
   return {
     kind: 'sentence',
-    from: block.start + hit.start,
-    to: block.start + hit.end,
+    from,
+    to,
     text: hit.text,
     sentence: hit.text,
-    sentenceFrom: block.start + hit.start,
-    sentenceTo: block.start + hit.end,
+    sentenceFrom: from,
+    sentenceTo: to,
     paragraph: block.text.slice(0, 400),
     isWholeSentence: true,
   }

@@ -14,6 +14,12 @@
   --en-accent: #2b8a3e;
   --cross-hl: rgba(168, 50, 168, 0.18);
   --cross-hl-border: rgba(168, 50, 168, 0.35);
+  /* 编辑器内上下文高亮：段落（淡绿）> 句子（淡蓝）> 单词（黄） */
+  --cur-para-bg: rgba(43, 138, 62, 0.07);
+  --cur-sentence-bg: rgba(34, 139, 230, 0.18);
+  --cur-sentence-ring: rgba(34, 139, 230, 0.22);
+  --cur-word-bg: rgba(255, 196, 0, 0.55);
+  --cur-word-ring: rgba(255, 196, 0, 0.6);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
@@ -331,28 +337,6 @@ h1 {
   gap: 1rem;
 }
 
-.btn-debug-toggle {
-  padding: 5px 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--fg);
-  font: inherit;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: background-color 0.12s ease;
-}
-
-.btn-debug-toggle:hover {
-  background: var(--toolbar-bg);
-}
-
-.btn-debug-toggle[aria-pressed='true'] {
-  background: var(--zh-accent);
-  border-color: var(--zh-accent);
-  color: #fff;
-}
-
 /* 宽屏两栏 */
 .app__main {
   display: grid;
@@ -423,11 +407,6 @@ h1 {
 
 .app__col--en .app__col-label::before {
   background: var(--en-accent);
-}
-
-.app__col-meta {
-  color: var(--muted);
-  font-size: 0.85rem;
 }
 
 .btn-translate {
@@ -1145,77 +1124,6 @@ h1 {
   word-break: break-word;
 }
 
-/* ===== 上下文面板 ===== */
-.ctx {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-
-.ctx__title {
-  margin: 0;
-  padding: 8px 14px;
-  background: var(--toolbar-bg);
-  border-bottom: 1px solid var(--border);
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--muted);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.ctx__paragraph,
-.ctx__sentence,
-.ctx__word {
-  margin: 0;
-  padding: 12px 14px;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: var(--fg);
-  word-break: break-word;
-}
-
-.ctx__paragraph {
-  max-height: 180px;
-  overflow: auto;
-  font-size: 0.92rem;
-}
-
-.ctx__word {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--toolbar-active-bg);
-  letter-spacing: 0.01em;
-}
-
-.ctx__empty {
-  margin: 0;
-  padding: 12px 14px;
-  color: var(--muted);
-  font-size: 0.9rem;
-  font-style: italic;
-}
-
-/* mark 高亮：句子用浅蓝底色，单词用黄色底色 */
-.ctx__hl {
-  background: transparent;
-  color: inherit;
-  padding: 0;
-  border-radius: 3px;
-}
-
-.ctx__hl--sentence {
-  background: rgba(34, 139, 230, 0.12);
-  box-shadow: 0 0 0 2px rgba(34, 139, 230, 0.18);
-}
-
-.ctx__hl--word {
-  background: rgba(255, 212, 59, 0.55);
-  box-shadow: 0 0 0 2px rgba(255, 196, 0, 0.6);
-}
-
 /* ===== 中英面板区分 ===== */
 .zh-shell {
   border-color: rgba(25, 113, 194, 0.35);
@@ -1249,15 +1157,24 @@ h1 {
   border-radius: 3px;
 }
 
-/* 中文句子在英文面板的显示 */
-.ctx__zh {
-  margin: 0;
-  padding: 12px 14px;
-  font-size: 0.95rem;
-  color: var(--zh-accent);
-  line-height: 1.7;
-  word-break: break-word;
+/* 编辑器内的上下文高亮：段落 > 句子 > 单词，三层嵌套，越内层颜色越强 */
+.cur-paragraph {
+  background: var(--cur-para-bg);
+  border-radius: 4px;
 }
+
+.cur-sentence {
+  background: var(--cur-sentence-bg);
+  box-shadow: 0 0 0 2px var(--cur-sentence-ring);
+  border-radius: 3px;
+}
+
+.cur-word {
+  background: var(--cur-word-bg);
+  box-shadow: 0 0 0 2px var(--cur-word-ring);
+  border-radius: 2px;
+}
+
 /* ===== 设置页（/settings） ===== */
 
 .settings {
