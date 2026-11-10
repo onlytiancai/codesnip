@@ -106,3 +106,11 @@ duckdb 把csv转parquet
 jsonl 处理
 
     jq 'select(.id==517115)|.data' out.jsonl
+
+git 撤回最近一次提交里的一个文件
+
+    # 撤回最后一次 commit，保留暂存区
+    git reset --soft HEAD~1
+
+    # 将不想提交的文件从暂存区移除
+    git restore --staged 文件名

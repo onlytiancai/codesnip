@@ -6,6 +6,7 @@ import StarterKit from '@tiptap/starter-kit'
 import {
   getSentenceIndex,
   splitEnglishSentences,
+  topBlockContentRanges,
 } from '../composables/useWritingContext'
 import {
   createContextHighlightExtension,
@@ -208,6 +209,28 @@ onBeforeUnmount(() => {
 defineExpose({
   setHtml(html: string) {
     editor.value?.commands.setContent(html)
+  },
+
+  /**
+   * 把译文按段落写回（实时翻译用）。
+   *
+   * 只替换**变了的那几段**，而且从后往前改 —— 改后面的段落不会影响前面段落的
+   * doc 位置。整篇 setContent 的话译文框会闪一下、滚动位置还会跳回顶部。
+   * 段落数对不上（用户手动加过段落）就整体重建。
+   */
+  applyParagraphs(paragraphs: string[], changed: number[]) {
+    const ed = editor.value
+    if (!ed) return
+    const ranges = topBlockContentRanges(ed.state.doc)
+    if (ranges.length !== paragraphs.length) {
+      ed.commands.setContent(paragraphs.map((t) => `<p>${t}</p>`).join(''))
+      return
+    }
+    for (const p of [...changed].sort((a, b) => b - a)) {
+      const r = ranges[p]
+      if (!r) continue
+      ed.commands.insertContentAt({ from: r.from, to: r.to }, paragraphs[p])
+    }
   },
 })
 

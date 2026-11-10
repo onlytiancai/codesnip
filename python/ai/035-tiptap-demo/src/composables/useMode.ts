@@ -40,8 +40,8 @@ export function useMode() {
   return { mode, setMode }
 }
 
-/** 每个方向的展示信息 —— 侧栏菜单和编辑器标题共用。 */
-export const MODES: Record<TranslationMode, { label: string; icon: string; title: string }> = {
-  zh2en: { label: '中译英', icon: '中→英', title: '中英翻译写作台' },
-  en2zh: { label: '英译中', icon: '英→中', title: '英中翻译写作台' },
+/** 每个方向的展示信息 —— 侧栏菜单用。 */
+export const MODES: Record<TranslationMode, { label: string; icon: string }> = {
+  zh2en: { label: '中译英', icon: '中→英' },
+  en2zh: { label: '英译中', icon: '英→中' },
 }

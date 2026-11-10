@@ -337,6 +337,34 @@ h1 {
   gap: 1rem;
 }
 
+/* 实时翻译开关 */
+.btn-live-toggle {
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.btn-live-toggle:hover {
+  background: var(--toolbar-bg);
+}
+
+.btn-live-toggle[aria-pressed='true'] {
+  background: var(--en-accent);
+  border-color: var(--en-accent);
+  color: #fff;
+}
+
+.btn-live-toggle:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 /* 宽屏两栏 */
 .app__main {
   display: grid;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import ChineseEditor from '../components/ChineseEditor.vue'
 import TiptapEditor from '../components/TiptapEditor.vue'
 import {
@@ -7,7 +7,7 @@ import {
   splitEnglishSentences,
 } from '../composables/useWritingContext'
 import { loadTones, useTones } from '../composables/useTones'
-import { MODES, useMode } from '../composables/useMode'
+import { useMode } from '../composables/useMode'
 import {
   translateSentences,
   TranslateHttpError,
@@ -194,6 +194,13 @@ async function doTranslate() {
     )
     aligned.value[mode.value] = results
 
+    // 顺手把实时翻译的缓存也填上 —— 否则开实时翻译会把刚翻过的句子再翻一遍
+    if (mode.value === 'zh2en') {
+      liveCache.clear()
+      for (const r of results) liveCache.set(liveCacheKey(r.source), r.target)
+      lastLiveSentences = sentencesPerParagraph
+    }
+
     // 3. 拼成译文段落 HTML，写回译侧编辑器
     //    中文不用空格连接，英文用空格
     const sep = targetLang.value === 'zh' ? '' : ' '
@@ -226,6 +233,195 @@ function extractParagraphs(html: string): string[] {
   return Array.from(doc.querySelectorAll('p')).map((p) => p.textContent ?? '').filter(Boolean)
 }
 
+/** HTML 里还有没有文字（<p></p> 算空）。 */
+function htmlHasText(html: string): boolean {
+  return html.replace(/<[^>]*>/g, '').trim().length > 0
+}
+
+// ===== 实时翻译 =====
+
+/** 停止输入多久后发翻译请求。 */
+const LIVE_DEBOUNCE = 800
+
+/** 开关存 localStorage —— 刷新后还保持上次的选择。 */
+const LIVE_KEY = 'tiptap-demo.liveTranslate'
+
+function readLiveFlag(): boolean {
+  try {
+    return localStorage.getItem(LIVE_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+const liveTranslate = ref(readLiveFlag())
+
+function toggleLiveTranslate() {
+  liveTranslate.value = !liveTranslate.value
+  try {
+    localStorage.setItem(LIVE_KEY, liveTranslate.value ? '1' : '0')
+  } catch {
+    // 存不了就算了，内存里的状态照样能用
+  }
+  if (liveTranslate.value) scheduleLiveTranslate()
+}
+
+/**
+ * 源句 → 译文 的缓存。
+ *
+ * 同一句话不重复翻（打字过程中句子经常只改一两个字，没改过的句子直接复用）。
+ * 语气算进 key —— 换了语气译文就变了。
+ */
+const liveCache = new Map<string, string>()
+
+function liveCacheKey(sentence: string): string {
+  return `${tone.value}\u0000${sentence}`
+}
+
+/** 上一次写回译侧的源段落句子结构 —— 用来算哪几段变了。 */
+let lastLiveSentences: string[][] = []
+
+/** 在飞的实时翻译 —— 新的一轮开始前先把旧的掐掉。 */
+let liveAbort: AbortController | null = null
+let liveTimer: ReturnType<typeof setTimeout> | undefined
+
+onBeforeUnmount(() => {
+  if (liveTimer) clearTimeout(liveTimer)
+  liveAbort?.abort()
+})
+
+/** 中文改了 → 排一次实时翻译（防抖）。 */
+function scheduleLiveTranslate() {
+  if (!liveTranslate.value) return
+  if (mode.value !== 'zh2en') return
+  if (liveTimer) clearTimeout(liveTimer)
+  liveTimer = setTimeout(() => {
+    liveTimer = undefined
+    void runLiveTranslate()
+  }, LIVE_DEBOUNCE)
+}
+
+/**
+ * 跑一轮实时翻译：只翻没翻过的句子，只改变了的段落。
+ *
+ * 写回是「按段落替换」而不是整篇 setContent —— 整篇重写会让译文框闪一下、
+ * 滚动位置跳回顶部；只换改动的段落就没这些问题。
+ */
+async function runLiveTranslate() {
+  if (!liveTranslate.value || mode.value !== 'zh2en') return
+  if (translating.value) return // 手动翻译在跑，不插队
+
+  const srcAtStart = zhHtml.value
+  const paragraphs = extractParagraphs(srcAtStart)
+  if (paragraphs.length === 0) return // 源侧空了 → 交给「源侧清空 → 译侧清空」那条规则
+
+  const sentencesPerParagraph = paragraphs.map((p) =>
+    splitChineseSentences(p).map((s) => s.text),
+  )
+
+  // 哪些句子还没翻过
+  const missing: string[] = []
+  for (const list of sentencesPerParagraph) {
+    for (const s of list) {
+      if (!liveCache.has(liveCacheKey(s)) && !missing.includes(s)) missing.push(s)
+    }
+  }
+
+  if (missing.length > 0) {
+    liveAbort?.abort()
+    const ctl = new AbortController()
+    liveAbort = ctl
+    try {
+      const results = await translateSentences(
+        missing,
+        undefined,
+        isToneId(tone.value) ? tone.value : undefined,
+        'zh',
+        'en',
+        ctl.signal,
+      )
+      for (const r of results) liveCache.set(liveCacheKey(r.source), r.target)
+    } catch (err) {
+      if (ctl.signal.aborted) return // 又改字了，等下一轮
+      errorMsg.value =
+        err instanceof TranslateHttpError
+          ? `[${err.status}] ${err.message}`
+          : err instanceof Error
+            ? err.message
+            : 'unknown error'
+      return
+    } finally {
+      if (liveAbort === ctl) liveAbort = null
+    }
+  }
+
+  // 翻译期间又改字了 → 这轮结果已经过期，交给下一轮
+  if (zhHtml.value !== srcAtStart) return
+
+  // 哪些段落变了
+  const changed: number[] = []
+  const structureChanged = sentencesPerParagraph.length !== lastLiveSentences.length
+  for (let p = 0; p < sentencesPerParagraph.length; p++) {
+    const before = lastLiveSentences[p] ?? []
+    const after = sentencesPerParagraph[p]
+    if (before.length !== after.length || before.some((s, i) => s !== after[i])) {
+      changed.push(p)
+    }
+  }
+  if (!structureChanged && changed.length === 0) return
+
+  // 拼译文段落（英文用空格连接）
+  const targetParagraphs = sentencesPerParagraph.map((list) =>
+    list.map((s) => liveCache.get(liveCacheKey(s)) ?? '').join(' '),
+  )
+
+  if (structureChanged) {
+    // 段落数变了 → 整体重建
+    enRef.value?.setHtml(targetParagraphs.map((t) => `<p>${t}</p>`).join(''))
+  } else {
+    enRef.value?.applyParagraphs(targetParagraphs, changed)
+  }
+  lastLiveSentences = sentencesPerParagraph
+
+  // 对齐表：跨栏高亮、「对应中文原文」都靠它
+  aligned.value.zh2en = sentencesPerParagraph.flatMap((list) =>
+    list.map((s) => ({ source: s, target: liveCache.get(liveCacheKey(s)) ?? '' })),
+  )
+}
+
+// 中文改了 → 实时翻译（中译英方向）
+watch(zhHtml, () => {
+  if (!liveTranslate.value) return
+  if (mode.value !== 'zh2en') return
+  scheduleLiveTranslate()
+})
+
+// 换语气 → 译文全变，缓存作废重来
+watch(tone, () => {
+  if (!liveTranslate.value) return
+  liveCache.clear()
+  lastLiveSentences = []
+  scheduleLiveTranslate()
+})
+
+// 换方向 → 实时翻译的缓存作废（中译英的译文对英译中没用）
+watch(mode, () => {
+  liveCache.clear()
+  lastLiveSentences = []
+})
+
+// ===== 源侧清空 → 译侧跟着清空 =====
+watch(sourceHtml, (html) => {
+  if (htmlHasText(html)) return
+  // 源侧已经空了，译文没有意义 → 一起清掉
+  const targetHtml = targetLang.value === 'zh' ? zhHtml.value : enHtml.value
+  if (!htmlHasText(targetHtml)) return
+  targetEditor.value?.setHtml('')
+  aligned.value[mode.value] = []
+  // 实时翻译的「上次结构」也作废，否则重新写一句会被当成没变
+  lastLiveSentences = []
+})
+
 /**
  * 焦点离开本侧 column 时清掉本侧的 focus 标记。
  * 如果另一侧的 focusin 紧跟着触发，focusedSide 会被改成另一侧 → 这里不会再清。
@@ -239,7 +435,25 @@ function onSideBlur(side: 'source' | 'target') {
   <div class="app">
     <header class="app__header">
       <div class="app__header-row">
-        <h1>{{ MODES[mode].title }}</h1>
+        <h1>翻译工作台</h1>
+        <div class="app__header-actions">
+          <button
+            type="button"
+            class="btn-live-toggle"
+            :aria-pressed="liveTranslate"
+            :disabled="mode !== 'zh2en'"
+            :title="
+              mode !== 'zh2en'
+                ? '实时翻译目前只支持中译英方向'
+                : liveTranslate
+                  ? '实时翻译已开启：中文改完自动翻英文'
+                  : '实时翻译已关闭：需要点「翻译 →」'
+            "
+            @click="toggleLiveTranslate"
+          >
+            {{ liveTranslate ? '实时翻译 ●' : '实时翻译 ○' }}
+          </button>
+        </div>
       </div>
     </header>
 

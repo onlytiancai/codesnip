@@ -184,6 +184,20 @@ export function textOffsetAt(chunks: Chunk[], pos: number): number {
   return acc
 }
 
+/**
+ * doc 里所有顶层块节点的内容区间（不含节点自身的开闭位置）。
+ *
+ * 给 `insertContentAt` 替换段落内容用 ——
+ * from = 节点起点 +1，to = 节点终点 -1，正好是段落里的内容。
+ */
+export function topBlockContentRanges(doc: PMNode): { from: number; to: number }[] {
+  const ranges: { from: number; to: number }[] = []
+  doc.forEach((node, offset) => {
+    ranges.push({ from: offset + 1, to: offset + node.nodeSize - 1 })
+  })
+  return ranges
+}
+
 // ===== 句子收集 =====
 
 /**
