@@ -588,6 +588,70 @@ h1 {
   opacity: 1; /* 覆盖全局 disabled 透明度 */
 }
 
+/* ===== AI 下拉（Teleport 到 body，position: fixed） ===== */
+.toolbar .toolbar__btn-ai-menu {
+  padding: 0 10px;
+  border-color: var(--border);
+  background: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.toolbar .toolbar__btn-ai-menu:hover:not(:disabled) {
+  background: #e9ecef;
+}
+
+.toolbar .toolbar__btn-ai-menu.active {
+  background: var(--toolbar-active-bg);
+  border-color: var(--toolbar-active-bg);
+  color: var(--toolbar-active-fg);
+}
+
+
+.ai-dropdown {
+  position: fixed;
+  z-index: 1000;
+  width: 176px;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.ai-dropdown .ai-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: auto;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.88rem;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ai-dropdown .ai-dropdown__item:hover:not(:disabled) {
+  background: rgba(34, 139, 230, 0.08);
+  color: var(--toolbar-active-bg);
+}
+
+.ai-dropdown .ai-dropdown__item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ai-dropdown__icon {
+  width: 1.2em;
+  text-align: center;
+}
+
 /* ===== 选区上下文菜单（Teleport 到 body，position: fixed） ===== */
 .ai-menu-anchor {
   position: fixed;
@@ -1047,24 +1111,22 @@ h1 {
 }
 
 /* ---- 英文框「复制」按钮 ---- */
-.toolbar__btn-copy {
+/* 注意用 `.toolbar xxx` 复合选择器：`.toolbar button` 的特异性更高，
+   单写 `.toolbar__btn-copy` 会被它盖掉。 */
+.toolbar .toolbar__btn-copy {
   padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--muted);
   font-size: 0.85rem;
   /* 「复制」→「✓ 已复制」宽度不变，工具栏不抖 */
   min-width: 76px;
 }
 
-.toolbar__btn-copy:hover:not(:disabled) {
+.toolbar .toolbar__btn-copy:hover:not(:disabled) {
   background: #ebfbee;
   border-color: #69db7c;
   color: var(--en-accent);
 }
 
-.toolbar__btn-copy.is-copied {
+.toolbar .toolbar__btn-copy.is-copied {
   background: #ebfbee;
   border-color: #69db7c;
   color: var(--en-accent);

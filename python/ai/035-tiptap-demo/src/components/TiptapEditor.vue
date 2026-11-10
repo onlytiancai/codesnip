@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import type { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
@@ -292,29 +292,98 @@ watch(
 // ===== editor 实例（默认空文档） =====
 
 /**
- * 工具栏上那排整句操作按钮。
- * 图标跟菜单项一致，但标签压到 2 个字——6 个按钮挤在半栏宽度里，
- * 用「改写语气」「检查语法」这种全称会把工具栏撑到换行。完整文案放在 title 上。
+ * 工具栏上的整句操作，收在一个下拉里。
+ *
+ * 原来 6 个按钮直接摊在工具栏上，把半栏宽度占满了；
+ * 现在只留一个「✨ AI」按钮，点开才是完整清单。
  */
-const AI_BUTTONS: { action: AiAction; icon: string; label: string }[] = [
-  { action: 'tone', icon: '🎨', label: '语气' },
-  { action: 'improve', icon: '✏️', label: '润色' },
-  { action: 'shorten', icon: '✂️', label: '精简' },
-  { action: 'expand', icon: '➕', label: '扩写' },
-  { action: 'grammar', icon: '🔍', label: '语法' },
-  { action: 'instruction', icon: '💬', label: '指令' },
+const AI_BUTTONS: { action: AiAction; icon: string }[] = [
+  { action: 'tone', icon: '🎨' },
+  { action: 'improve', icon: '✏️' },
+  { action: 'shorten', icon: '✂️' },
+  { action: 'expand', icon: '➕' },
+  { action: 'grammar', icon: '🔍' },
+  { action: 'instruction', icon: '💬' },
 ]
 
-/** 完整文案，只进 title 提示。 */
+/** 下拉里的文案。 */
 const AI_TITLES: Record<AiAction, string> = {
   candidates: '替换选区',
-  tone: '改写语气',
+  tone: '换个语气',
   improve: '润色',
   shorten: '精简',
   expand: '扩写',
   grammar: '检查语法',
   instruction: '自定义指令',
   lookup: '查词',
+}
+
+// ===== AI 下拉 =====
+/** 下拉菜单宽度 / 高度（项数固定，高度可预估） */
+const AI_DROPDOWN_W = 176
+const AI_DROPDOWN_H = 240
+
+const aiMenuOpen = ref(false)
+/** 下拉在 viewport 里的位置（Teleport 到 body，用 fixed 定位） */
+const aiMenuPos = ref<{ top: number; left: number } | null>(null)
+const aiBtnRef = ref<HTMLElement | null>(null)
+const aiMenuRef = ref<HTMLElement | null>(null)
+
+function toggleAiMenu() {
+  if (aiMenuOpen.value) {
+    aiMenuOpen.value = false
+    return
+  }
+  const el = aiBtnRef.value
+  if (!el) return
+  const rect = el.getBoundingClientRect()
+  // 右对齐按钮；下方放不下就翻到上面
+  const left = Math.max(
+    8,
+    Math.min(rect.right - AI_DROPDOWN_W, window.innerWidth - AI_DROPDOWN_W - 8),
+  )
+  const below = rect.bottom + 6
+  const top =
+    below + AI_DROPDOWN_H > window.innerHeight
+      ? Math.max(8, rect.top - AI_DROPDOWN_H - 6)
+      : below
+  aiMenuPos.value = { top, left }
+  aiMenuOpen.value = true
+}
+
+/** 点外面 / 选中一项就收起。 */
+function closeAiMenu() {
+  aiMenuOpen.value = false
+}
+
+/** 文档级点击：点在按钮和菜单外面就收起。 */
+function onDocMouseDown(e: MouseEvent) {
+  if (!aiMenuOpen.value) return
+  const t = e.target as Node | null
+  if (t && (aiBtnRef.value?.contains(t) || aiMenuRef.value?.contains(t))) return
+  closeAiMenu()
+}
+
+/** Esc 收起下拉。 */
+function onKeydown(e: KeyboardEvent) {
+  if (e.key !== 'Escape' || !aiMenuOpen.value) return
+  e.stopPropagation()
+  closeAiMenu()
+}
+
+onMounted(() => {
+  document.addEventListener('mousedown', onDocMouseDown)
+  window.addEventListener('keydown', onKeydown)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', onDocMouseDown)
+  window.removeEventListener('keydown', onKeydown)
+})
+
+/** 下拉里点一项 → 跑那个动作，然后收起。 */
+function runAiAction(action: AiAction) {
+  closeAiMenu()
+  runOnCursorSentence(action)
 }
 
 const editor = useEditor({
@@ -393,22 +462,49 @@ const editor = useEditor({
         </button>
       </div>
 
-      <!-- 整句操作：作用于光标所在句，不需要选中 -->
+      <!-- 整句操作：收在一个下拉里，作用于光标所在句，不需要选中 -->
       <div v-if="aiEnabled" class="toolbar__group toolbar__group--ai">
         <button
-          v-for="a in AI_BUTTONS"
-          :key="a.action"
+          ref="aiBtnRef"
           type="button"
-          :disabled="!cursorSentence"
-          :title="`对光标所在句：${AI_TITLES[a.action]}`"
-          @click="runOnCursorSentence(a.action)"
+          class="toolbar__btn-ai-menu"
+          :class="{ active: aiMenuOpen }"
+          :aria-expanded="aiMenuOpen"
+          aria-haspopup="menu"
+          title="AI 指令（作用于光标所在句）"
+          @click="toggleAiMenu"
         >
-          {{ a.icon }} {{ a.label }}
+          ✨ AI ▾
         </button>
       </div>
     </div>
 
     <EditorContent :editor="editor" />
+
+    <!-- AI 下拉：Teleport 到 body（编辑器外框 overflow:hidden 会裁掉它） -->
+    <Teleport to="body">
+      <div
+        v-if="aiMenuOpen && aiMenuPos"
+        ref="aiMenuRef"
+        class="ai-dropdown"
+        role="menu"
+        :style="{ top: `${aiMenuPos.top}px`, left: `${aiMenuPos.left}px` }"
+      >
+        <button
+          v-for="a in AI_BUTTONS"
+          :key="a.action"
+          type="button"
+          role="menuitem"
+          class="ai-dropdown__item"
+          :disabled="!cursorSentence"
+          :title="`对光标所在句：${AI_TITLES[a.action]}`"
+          @click="runAiAction(a.action)"
+        >
+          <span class="ai-dropdown__icon">{{ a.icon }}</span>
+          <span>{{ AI_TITLES[a.action] }}</span>
+        </button>
+      </div>
+    </Teleport>
 
     <!-- 选区上下文菜单：选中单词/短语/整句时自动弹出 -->
     <Teleport to="body">
