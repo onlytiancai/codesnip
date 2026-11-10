@@ -84,6 +84,7 @@ pnpm cli models
 - **跨组件状态用模块级单例 composable**（`useMode` / `useTones` / `useAuth`），不是 Pinia。原因是侧栏在 `App.vue`、编辑器在 `EditorPage.vue`，不是父子关系；状态同时写 localStorage（刷新保留）。
 - **双栏方向**：两个编辑器的 DOM 位置固定，靠 CSS `order` 排源/译 —— 切方向不重建编辑器，内容不丢。`mode` 只有 `zh2en` / `en2zh` 两个值。
 - **句子对齐是双栏联动的唯一依据**：`useWritingContext.ts` 按标点切句（中文 `。！？.!?`、英文 `.!?`，换行也算边界），`sentenceIndex` 是**文档级全局索引**（跨段落累计）。源侧和译侧的句子必须**数量相同、顺序一致** —— 任何一边多句/少句，高亮和「对应中文原文」就全错位。
+  **点不是见到就断句**：`PHP8.4` / `3.14` / `www.a.com` / `Mr. Smith` / `e.g.` / `U.S.` 里的点都不是句号 —— 规则：点后面（跳过右括号引号）得是空白、中日韩字符或结尾，且点前面那个词不能是缩写。
 - **选区分类**：`useSelectionKind.getSelectionInfo()` 返回 `word` / `phrase` / `sentence`，跨句跨段或只有光标返回 `null`（不弹菜单）。工具栏那排常驻按钮用 `getSentenceAtCursor()`，作用于光标所在句，不需要选中字符。
 - **浮动菜单定位**（`AiContextMenu.vue`）：`editor.view.coordsAtPos()` 取选区上下两条 client rect → `Teleport` 到 body → `position: fixed` 定位。**定位必须按菜单实测高度算**（`ResizeObserver` 盯高度），不能用估计值，否则查词词条 / 语法结果卡片会被裁到视口外。菜单整体在 `mousedown` 上 `preventDefault`，否则 ProseMirror 先吃掉选区，点候选时 range 已经没了。
 - **API 调用**统一走 `src/services/http.ts`（`http.get/post/put/del`），它会把后端 `{error}` 字段捞成 `ApiError`。`services/translate.ts` 是例外（自带 `pLimit` 并发 3）。

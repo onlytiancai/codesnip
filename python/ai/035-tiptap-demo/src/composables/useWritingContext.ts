@@ -23,30 +23,106 @@ export interface Sentence {
 }
 
 /**
+ * 常见缩写 —— 这些后面的点不是句号。
+ * （比较时统一小写）
+ */
+const ABBREVIATIONS = new Set([
+  'mr', 'mrs', 'ms', 'dr', 'prof', 'sr', 'jr', 'st', 'rev', 'vs', 'etc',
+  'al', 'inc', 'ltd', 'co', 'corp', 'dept', 'est', 'fig', 'no', 'vol',
+  'approx', 'univ', 'assn', 'e.g', 'i.e', 'a.m', 'p.m', 'u.s', 'u.k',
+])
+
+/** 句号后面可能跟的右括号 / 右引号 —— 判断「下一个字符」时先跳过它们。 */
+const CLOSING = new Set([')', ']', '}', '»', '”', '’', '"', "'"])
+
+/** 中日韩字符（含全角标点）—— 中文不用空格，所以「他好.然后」也算断句。 */
+const CJK = /[⺀-鿿豈-﫿＀-￯]/
+
+/** 英文的句末标点（换行也算边界）。 */
+const ENGLISH_BOUNDARIES = new Set(['.', '!', '?', '\n'])
+
+/** 中文的句末标点 —— 中文里也常有半角的 . ! ?，一并认。 */
+const CHINESE_BOUNDARIES = new Set(['。', '！', '？', '.', '!', '?', '\n'])
+
+/**
+ * text[i] 这个点是不是句末的句号。
+ *
+ * 两条规则：
+ *
+ *  1. **点后面（跳过右括号右引号）得是空白、中日韩字符、或者文本结尾** ——
+ *     "PHP8.4"、"3.14"、"www.example.com" 里的点都不是断句。
+ *     这一条把绝大多数「点被误当句号」的情况挡掉了。
+ *  2. **点前面那个词不能是缩写** ——
+ *     "Mr. Smith"、"e.g. this"、"the U.S. economy" 里的点不是句号。
+ */
+function isEndDot(text: string, i: number): boolean {
+  // 1. 后面必须是空白、中日韩字符或结尾
+  let j = i + 1
+  while (j < text.length && CLOSING.has(text[j])) j++
+  if (j < text.length && !/\s/.test(text[j]) && !CJK.test(text[j])) return false
+
+  // 2. 前面那个词不能是缩写
+  const m = /([A-Za-z][A-Za-z.]*)$/.exec(text.slice(0, i))
+  if (m) {
+    const token = m[1].toLowerCase()
+    // 带点的缩写（U.S / e.g）或者常见缩写（Mr / etc）
+    if (token.includes('.') || ABBREVIATIONS.has(token)) return false
+  }
+  return true
+}
+
+/**
+ * 按句末标点切句。
+ *
+ * 换行是边界但**不算进句子**（和以前的正则行为一致）；
+ * 其余标点算进前一句。
+ */
+function splitSentences(text: string, boundaries: Set<string>): Sentence[] {
+  const out: Sentence[] = []
+  let start = 0
+
+  const push = (from: number, to: number) => {
+    const s = text.slice(from, to)
+    // 整段都是标点（开头连着的标点）就跳过
+    let hasContent = false
+    for (const ch of s) {
+      if (!boundaries.has(ch)) {
+        hasContent = true
+        break
+      }
+    }
+    if (hasContent) out.push({ text: s, start: from, end: to })
+  }
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]
+    if (!boundaries.has(ch)) continue
+    if (ch === '.' && !isEndDot(text, i)) continue
+    // 换行不进句子，其余标点归前一句
+    push(start, ch === '\n' ? i : i + 1)
+    start = i + 1
+  }
+  if (start < text.length) push(start, text.length)
+
+  return out
+}
+
+/**
  * 英文切句（. ! ?）。hardBreak / 换行也视为边界。
+ *
+ * 点不是见到就断句 —— "PHP8.4"、"Mr. Smith"、"www.a.com" 都不会被劈开。
  */
 export function splitEnglishSentences(text: string): Sentence[] {
-  return splitByRegex(text, /[^.!?\n]+[.!?]?/g)
+  return splitSentences(text, ENGLISH_BOUNDARIES)
 }
 
 /**
  * 中文切句（。！？.!?）。同样把 hardBreak / 换行视为边界。
+ *
+ * 中文里也常有 "PHP8.4"、"3.14" 这种带点的串，点同样不乱断。
  */
 export function splitChineseSentences(text: string): Sentence[] {
-  return splitByRegex(text, /[^。！？.!?\n]+[。！？.!?]?/g)
-}
-
-function splitByRegex(text: string, regex: RegExp): Sentence[] {
-  const out: Sentence[] = []
-  regex.lastIndex = 0
-  let m: RegExpExecArray | null
-  while ((m = regex.exec(text)) !== null) {
-    const start = m.index
-    const end = start + m[0].length
-    out.push({ text: m[0], start, end })
-    if (m[0].length === 0) regex.lastIndex++ // 防 zero-width 死循环
-  }
-  return out
+  return splitSentences(text, CHINESE_BOUNDARIES)
 }
 
 export type SplitFn = (text: string) => Sentence[]
