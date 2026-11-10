@@ -881,6 +881,35 @@ h1 {
   color: var(--fg);
 }
 
+/* 查词没查到时给的「相近的词」 —— 点一下就能看那个词的解释 */
+.ai-menu__dict-suggest {
+  margin-top: 6px;
+}
+
+.ai-menu__dict-suggest-title {
+  margin: 0 0 5px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.ai-menu__chip--word {
+  background: rgba(34, 139, 230, 0.08);
+  border-color: rgba(34, 139, 230, 0.3);
+  color: var(--toolbar-active-bg);
+  font-weight: 600;
+}
+
+.ai-menu__chip--word:hover {
+  background: rgba(34, 139, 230, 0.16);
+  border-color: rgba(34, 139, 230, 0.5);
+  color: var(--toolbar-active-bg);
+}
+
+.ai-menu__chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* ---- 结果卡片 ---- */
 .ai-menu__original,
 .ai-menu__rewritten {

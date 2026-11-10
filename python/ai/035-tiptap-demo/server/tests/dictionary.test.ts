@@ -29,7 +29,9 @@ function vocabRow(wordHead: string, tranCn: string, sContent: string, sCn: strin
           sentence: { sentences: [{ sContent, sCn }], desc: '例句' },
           phrase: { phrases: [{ pContent: 'test phrase', pCn: '测试短语' }], desc: '短语' },
           syno: { synos: [{ pos: 'v', tran: '同义', hwds: [{ w: 'trial' }] }], desc: '同近' },
-          anto: { anto: [{ hwd: 'fail' }], desc: '反义' },
+          // 反义词在真实词库里是 `antos`（不是 `anto`）—— fixture 要跟真实数据一致，
+          // 否则代码写错了测试也照样绿
+          antos: { anto: [{ hwd: 'fail' }], desc: '反义' },
           remMethod: { val: '记忆法', desc: '记忆' },
         },
       },

@@ -54,6 +54,8 @@ export interface DictionaryStatus {
 
 export interface DictionaryService {
   lookup(word: string): Promise<DictionaryEntry | undefined>
+  /** 查不到时给的相近词（词库里的词头），点一下就能看那个词的解释 */
+  suggest(word: string, limit?: number): Promise<string[]>
   status(): DictionaryStatus
   /** 重新读 .env + 重建索引 */
   reload(): Promise<DictionaryStatus>
@@ -106,7 +108,8 @@ interface RawRecord {
         sentence?: { sentences?: RawSentence[] }
         phrase?: { phrases?: RawPhrase[] }
         syno?: { synos?: RawSyno[] }
-        anto?: { anto?: { hwd?: unknown }[] }
+        /** 反义词 —— 注意是 `antos`（词库里 236 个词条都这么写），不是 `anto` */
+        antos?: { anto?: { hwd?: unknown }[] }
         remMethod?: { val?: unknown }
       }
     }
@@ -122,9 +125,12 @@ function arr(v: unknown): unknown[] {
 }
 
 /**
- * 词库只收词头（child），不收变形（children / children）。
+ * 词库只收词头（abandon），不收变形（abandons）。
  * 查不到的时候退一步：试试常见的变形还原，命中就返回，
- * 同时告诉前端「你查的是 children，词库里是 child」。
+ * 同时告诉前端「你查的是 abandons，词库里是 abandon」。
+ *
+ * 只认规则后缀 —— children → child 这种不规则复数还原不出来，
+ * 那类词靠 suggest() 给的相近词兜底。
  */
 export function stemVariants(word: string): string[] {
   const w = word.toLowerCase()
@@ -144,6 +150,120 @@ export function stemVariants(word: string): string[] {
     push(w.slice(0, -3) + 'e')
   }
   return out
+}
+
+/** 建议最多给几个词。 */
+export const DEFAULT_SUGGEST_LIMIT = 8
+
+/** 至少要多长的公共前缀才算「相近」。 */
+const MIN_PREFIX = 3
+
+/** 「公共前缀相关」那一档最多给几个。 */
+const PREFIX_LIMIT = 5
+
+/** 「编辑距离最短」那一档给几个。 */
+const DISTANCE_LIMIT = 5
+
+/** 两个词的公共前缀长度。 */
+function commonPrefixLength(a: string, b: string): number {
+  const max = Math.min(a.length, b.length)
+  let i = 0
+  while (i < max && a[i] === b[i]) i++
+  return i
+}
+
+/**
+ * 编辑距离（OSA / Damerau-Levenshtein）—— 判断拼写有多接近。
+ *
+ * 比普通 Levenshtein 多算一种编辑：**相邻字符换位**算 1 次。
+ * "recieve" → "receive" 就是 ie / ei 换位，按普通距离算是 2，
+ * 换成 1 才能让它排到 "recipe" 前面去。
+ */
+function editDistance(a: string, b: string): number {
+  if (a === b) return 0
+  if (!a.length) return b.length
+  if (!b.length) return a.length
+
+  const d: number[][] = []
+  for (let i = 0; i <= a.length; i++) d.push([i, ...new Array<number>(b.length).fill(0)])
+  for (let j = 0; j <= b.length; j++) d[0][j] = j
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost)
+      // 相邻两个字符换位
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1)
+      }
+    }
+  }
+  return d[a.length][b.length]
+}
+
+/**
+ * 在词库的词头里找和 word 相近的词。
+ *
+ * 给两档，合起来去重：
+ *
+ *  1. **公共前缀相关**（前缀至少 3 个字符）—— 真正的「相近的词」。
+ *     "scenarios" → scene / scenery。只按编辑距离排的话，
+ *     "scenarios" 会被匹配到 "serious" / "sunrise" 这种毫不相干的词。
+ *     这一档内部的排序看：词头是不是查询词的前缀（查 scenes → scene）、
+ *     公共前缀多长、拼写有多接近。
+ *  2. **编辑距离最短的 5 个** —— 拼错的词靠它兜底。
+ *     "recieve" → receive（相邻字符换位，OSA 距离算 1）。
+ *
+ * 两档都拿**用户实际打的那个词**去比（不拿词干比）：
+ * 词干短，比出来的距离会失真 —— 拿 "scenario" 去比，
+ * "scar" 看着只差 1，可用户明明打的是 "scenarios"。
+ */
+export function suggestSimilar(
+  heads: Iterable<string>,
+  word: string,
+  limit = DEFAULT_SUGGEST_LIMIT,
+): string[] {
+  const key = word.trim().toLowerCase()
+  if (!key) return []
+
+  interface Scored {
+    head: string
+    /** 公共前缀长度 */
+    cp: number
+    /** 编辑距离 */
+    dist: number
+    /** 综合分，越高越像 */
+    score: number
+  }
+
+  const scored: Scored[] = []
+  for (const head of heads) {
+    if (head === key) continue // 别把自己推给自己
+    const cp = commonPrefixLength(head, key)
+    const dist = editDistance(head, key)
+    let score = cp * 20 - dist * 40 - Math.abs(head.length - key.length) * 5
+    if (key.startsWith(head)) score += 1000 // 词头是查询词的前缀
+    else if (head.startsWith(key)) score += 800 // 词头是查询词的延伸
+    scored.push({ head, cp, dist, score })
+  }
+
+  // 第一档：公共前缀相关的
+  const byPrefix = scored
+    .filter((s) => s.cp >= MIN_PREFIX)
+    .sort((a, b) => b.score - a.score || a.head.localeCompare(b.head))
+    .slice(0, PREFIX_LIMIT)
+
+  // 第二档：编辑距离最短的 5 个（距离相同时按综合分排）
+  const byDistance = [...scored]
+    .sort((a, b) => a.dist - b.dist || b.score - a.score || a.head.localeCompare(b.head))
+    .slice(0, DISTANCE_LIMIT)
+
+  // 合并去重：第一档在前，第二档补后面
+  const out: string[] = []
+  for (const s of [...byPrefix, ...byDistance]) {
+    if (!out.includes(s.head)) out.push(s.head)
+  }
+  return out.slice(0, limit)
 }
 
 /** 从一条原始记录里抽出我们要的字段。 */
@@ -179,7 +299,7 @@ export function toEntry(raw: unknown): DictionaryEntry | undefined {
         .map((h) => str((h as { w?: unknown }).w))
         .filter((w): w is string => Boolean(w)),
     })),
-    antonyms: arr(c.anto?.anto)
+    antonyms: arr(c.antos?.anto)
       .map((a) => str((a as { hwd?: unknown }).hwd))
       .filter((w): w is string => Boolean(w)),
     mnemonic: str(c.remMethod?.val),
@@ -336,6 +456,12 @@ export function createDictionaryService(
         if (hit) return hit
       }
       return undefined
+    },
+
+    async suggest(word, limit) {
+      await building
+      if (!loaded) return []
+      return suggestSimilar(index.keys(), word, limit)
     },
 
     status,

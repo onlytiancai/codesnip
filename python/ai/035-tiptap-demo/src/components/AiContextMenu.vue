@@ -57,11 +57,20 @@ type Panel =
   | { mode: 'tone' }
   | { mode: 'grammar'; text: string }
   | { mode: 'instruction' }
-  | { mode: 'lookup'; word: string; entry: DictionaryEntry | null; missing: string }
+  | {
+      mode: 'lookup'
+      word: string
+      entry: DictionaryEntry | null
+      missing: string
+      /** 词库里和它相近的词，点一下直接看那个词的解释 */
+      suggestions: string[]
+    }
   | { mode: 'result'; original: string; rewritten: string }
 
 const panel = ref<Panel | null>(null)
 const loading = ref(false)
+/** loading 时显示什么 —— 查词是本地查库，别说「模型生成中…」 */
+const loadingLabel = ref('模型生成中…')
 const errorMsg = ref('')
 const instruction = ref('')
 /** 连续调整时的中间稿 */
@@ -91,11 +100,15 @@ function resetState() {
 watch(() => props.selection, resetState)
 
 /** 统一的请求包装：管 loading / error / 取消。 */
-async function run<T>(fn: (signal: AbortSignal) => Promise<T>): Promise<T | null> {
+async function run<T>(
+  fn: (signal: AbortSignal) => Promise<T>,
+  label = '模型生成中…',
+): Promise<T | null> {
   abortInFlight()
   const ctl = new AbortController()
   controller.value = ctl
   loading.value = true
+  loadingLabel.value = label
   errorMsg.value = ''
   try {
     return await fn(ctl.signal)
@@ -116,6 +129,14 @@ async function run<T>(fn: (signal: AbortSignal) => Promise<T>): Promise<T | null
 }
 
 const sel = computed(() => props.selection)
+
+/**
+ * 菜单标题：查词面板显示「正在查的那个词」（点了相近词会换），
+ * 其它面板显示选中的文本。
+ */
+const menuTitle = computed(() =>
+  panel.value?.mode === 'lookup' ? panel.value.word : props.selection.text,
+)
 
 // ---- 候选词 / 短语 ----
 
@@ -242,15 +263,28 @@ function runAction(action: AiAction): void | Promise<void> {
 
 async function runLookup() {
   const s = sel.value
-  const word = s.text.trim()
-  const result = await run((signal) => lookupWord(word, signal))
+  await lookupWordInto(s.text.trim())
+}
+
+/**
+ * 查一个词并把结果铺到面板上。
+ * 查不到时把后端给的相近词一起带上面板，用户点一下就能看那个词。
+ */
+async function lookupWordInto(word: string) {
+  const result = await run((signal) => lookupWord(word, signal), '查词中…')
   if (result === null) return
   panel.value = {
     mode: 'lookup',
     word,
     entry: result.entry ?? null,
     missing: result.entry ? '' : (result.error ?? '词典里没有这个词'),
+    suggestions: result.entry ? [] : (result.suggestions ?? []),
   }
+}
+
+/** 点「相近的词」→ 换成查那个词，面板内容跟着换。 */
+async function openSuggestion(word: string) {
+  await lookupWordInto(word)
 }
 
 // ---- 结果卡片 ----
@@ -312,7 +346,7 @@ watch(
   <div class="ai-menu" role="dialog" :aria-label="`对「${selection.text}」的 AI 操作`" @mousedown.prevent>
     <!-- 头部 -->
     <header class="ai-menu__head">
-      <span class="ai-menu__title" :title="selection.text">{{ selection.text }}</span>
+      <span class="ai-menu__title" :title="menuTitle">{{ menuTitle }}</span>
       <button type="button" class="ai-menu__close" aria-label="关闭" @click="emit('close')">×</button>
     </header>
 
@@ -383,7 +417,7 @@ watch(
     <!-- ============ 二级面板 ============ -->
     <div v-else class="ai-menu__panel">
       <!-- loading -->
-      <div v-if="loading" class="ai-menu__status">模型生成中…</div>
+      <div v-if="loading" class="ai-menu__status">{{ loadingLabel }}</div>
 
       <!-- 错误 -->
       <div v-else-if="errorMsg" class="ai-menu__error">
@@ -424,7 +458,7 @@ watch(
             </span>
           </p>
 
-          <!-- 词库只收词头：查 children 会命中 child -->
+          <!-- 词库只收词头：查 abandons 会命中 abandon -->
           <p
             v-if="panel.entry.word.toLowerCase() !== panel.word.toLowerCase()"
             class="ai-menu__dict-note"
@@ -474,7 +508,26 @@ watch(
           </p>
         </template>
 
-        <p v-else class="ai-menu__empty">{{ panel.missing }}</p>
+        <template v-else>
+          <p class="ai-menu__empty">{{ panel.missing }}</p>
+
+          <!-- 查不到 → 列出词库里相近的词，点一下直接看那个词的解释 -->
+          <div v-if="panel.suggestions.length" class="ai-menu__dict-suggest">
+            <p class="ai-menu__dict-suggest-title">词库里相近的词：</p>
+            <div class="ai-menu__chips">
+              <button
+                v-for="w in panel.suggestions"
+                :key="w"
+                type="button"
+                class="ai-menu__chip ai-menu__chip--word"
+                :disabled="loading"
+                @click="openSuggestion(w)"
+              >
+                {{ w }}
+              </button>
+            </div>
+          </div>
+        </template>
 
         <button type="button" class="ai-menu__back" @click="backToMenu">返回</button>
       </div>

@@ -118,7 +118,8 @@ pnpm cli sentence --text "Education is very important for children." --operation
 - **润色 / 精简 / 扩写** → `improve` / `shorten` / `expand`
 - **替换词 / 替换短语** → `/api/rewrite-selection`，候选可以是多词短语（如 `very important` → `essential` / `of great importance`）。prompt 明确要求**搭配正确、拼接后语法正确、与前后文连贯**。点候选即替换，单词/短语都保留原大小写（`matchCase`）。
 - **检查语法** → `/api/grammar-check`，**只提示不自动改**。后端把模型写的文字**原样透传**（`{text}`），面板直接原样显示（`<pre class="ai-menu__grammar">`），不做任何解析——本地默认模型 `hy-mt2` 只有 1.8B，让它吐结构化 JSON 不可靠，解析只会把「模型回了段自然语言」变成 `cannot parse JSON`。所以连输出格式也不要：user message 就是英文原句本身，system prompt 让模型用中文写一两句大白话（指出哪错了、改成什么），没错误时回「这句话没有语法或标点错误。」
-- **查词** → `/api/dictionary/lookup`，**纯本地**（不调模型，零 API 开销）。显示音标、词性释义、例句、短语、同近义词、反义词、记忆法。词库只收词头（`child`），所以查变形（`children`）会退一步还原，命中时提示「词库里收的是『child』」
+- **查词** → `/api/dictionary/lookup`，**纯本地**（不调模型，零 API 开销）。显示音标、词性释义、例句、短语、同近义词、反义词、记忆法。词库只收词头（`abandon`），所以查变形（`abandons`）会退一步还原，命中时提示「词库里收的是『abandon』」
+- **查不到也能继续查**：词库里没有这个词时（比如 `scenarios`），面板会列出**词库里和它相近的词** —— 一档是**公共前缀相关**的（scene / scenery），一档是**编辑距离最短的 5 个**（拼错的词靠它，recieve → receive）。点一下就直接看那个词的解释，不用关掉菜单重新选中
 - **自定义指令…** → 文本框 + 5 个常用指令快捷 chip（`Make it more academic.` 等），结果以**结果卡片**呈现：`✓ 接受` / `✕ 拒绝`，另有「继续调整」——在已有结果上再追加一句要求跑下一轮。接受 = `insertContentAt({from,to}, text)`，Ctrl+Z 可撤销。
 
 Escape 逐层退出：面板 → 菜单 → 关闭菜单。菜单关闭时会 `abort()` 掉在飞的请求。改写类请求都带上当前英文句对应的中文原文作 `sourceSentence`，提高消歧精度。

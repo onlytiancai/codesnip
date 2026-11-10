@@ -273,10 +273,12 @@ CLI 走的是和 server 一样的配置（同一个 `app.db` 里的当前生效 
 |---|---|---|
 | GET | `/api/dictionary/status` | `{path, count, loaded, error?}` —— 当前词库路径 + 索引状态 |
 | POST | `/api/dictionary/reload` | 重读 `.env` + 重建索引，返回新的 status |
-| GET | `/api/dictionary/lookup?word=xxx` | `{found, word, entry?}` —— 词条：音标 / 释义 / 例句 / 短语 / 同反义词 / 记忆法 |
+| GET | `/api/dictionary/lookup?word=xxx` | `{found, word, entry?, suggestions?}` —— 词条：音标 / 释义 / 例句 / 短语 / 同反义词 / 记忆法；查不到时 `suggestions` 给几个相近词 |
 
 **「查不到」是 200 + `found: false`**，不是 404 —— 查不到是正常结果。
 `word` 缺失 → `400`。词库文件没加载起来时 `found:false` 且带 `error` 说明原因。
+查不到时还会顺带返回 `suggestions`（词库里和它相近的词，最多 8 个），
+前端列出来让用户点一下就能看那个词的解释。
 
 ### 设置
 
@@ -392,8 +394,24 @@ server 端会打：启动信息、库路径、登录/登出/401/本地放行、�
 查词 = `seek` 到那一行 → `readline` → parse 这一行（~2.5KB），毫秒级。
 （思路和 024-cet4 的 `scripts/cet4.py` 一样。）
 
-词库**只收词头**（`child`），不收变形（`children`）。查不到时会退一步试试常见变形还原
-（`-s` / `-es` / `-ed` / `-ing`），命中就返回，并告诉前端「词库里收的是『child』」。
+词库**只收词头**（`abandon`），不收变形（`abandons`）。查不到时会退一步试试常见变形还原
+（`-s` / `-es` / `-ed` / `-ing`），命中就返回，并告诉前端「词库里收的是『abandon』」。
+只认规则后缀 —— `children` → `child` 这种不规则复数还原不出来（那种靠下面的相近词兜底）。
+
+连变形也还原不出来时（比如 `scenarios`），`suggest()` 会在索引的词头里找**相近的词**，给两档：
+
+| 档 | 规则 | 例（查 `scenarios`） |
+|---|---|---|
+| 1 | **公共前缀** ≥3 字符 | scenery, scene, sceptical |
+| 2 | **编辑距离最短的 5 个** | serious, senior, series |
+
+第 1 档是「真正相近的词」；第 2 档兜底「拼错的词」（`recieve` → receive）。
+距离用 OSA 口径（相邻字符换位算 1 次），好让 `recieve` → `receive` 排第一。
+纯靠编辑距离筛会给出 `serious` / `sunrise` 这种毫不相干的词，所以编辑距离只用来**排序**，
+筛候选用公共前缀。
+
+两档都拿**用户实际打的词**去比，不拿词干比 —— 词干短，距离会失真
+（拿 `scenario` 比，`scar` 看着只差 1，可用户打的是 `scenarios`）。
 
 ## 设计约定
 

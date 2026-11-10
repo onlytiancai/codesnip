@@ -38,6 +38,8 @@ export interface LookupResult {
   entry?: DictionaryEntry
   /** 词库没加载起来时的原因 */
   error?: string
+  /** 查不到时给的相近词（点一下就能看那个词的解释） */
+  suggestions?: string[]
 }
 
 /** 查一个单词。没查到不算错 —— found:false。 */
@@ -54,6 +56,7 @@ export async function lookupWord(
     word: body.word ?? word,
     entry: body.entry,
     error: body.error,
+    suggestions: body.suggestions,
   }
 }
 
