@@ -114,3 +114,31 @@ git 撤回最近一次提交里的一个文件
 
     # 将不想提交的文件从暂存区移除
     git restore --staged 文件名
+
+gocryptfs 加密文件夹
+
+    sudo apt update
+    sudo apt install gocryptfs
+
+    gocryptfs -version
+    ls -l /dev/fuse
+
+    mkdir -p ~/secret.encrypted
+    mkdir -p ~/secret.mount
+
+    gocryptfs -init ~/secret.encrypted
+
+    gocryptfs ~/secret.encrypted ~/secret.mount
+    gocryptfs -i 10m ~/secret.encrypted ~/secret.mount
+
+    echo "My secret information" > ~/secret.mount/password.txt
+    mkdir ~/secret.mount/private
+    echo "Sensitive data" > ~/secret.mount/private/data.txt
+
+    fusermount3 -u ~/secret.mount
+
+    vim ~/.bash_logout
+    # Automatically unmount gocryptfs on logout
+    if mountpoint -q "$HOME/secret.mount"; then
+        fusermount3 -u "$HOME/secret.mount"
+    fi

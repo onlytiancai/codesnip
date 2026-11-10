@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "myenc"
+version = "1.0.0"
+description = "Password-based encryption CLI for text files, with an in-memory unlock cache"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "argon2-cffi>=23.1",
+    "cryptography>=42",
+]
+
+[project.scripts]
+myenc = "myenc.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/myenc"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
