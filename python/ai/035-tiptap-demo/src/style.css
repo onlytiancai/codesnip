@@ -1046,6 +1046,30 @@ h1 {
   cursor: not-allowed;
 }
 
+/* ---- 英文框「复制」按钮 ---- */
+.toolbar__btn-copy {
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 0.85rem;
+  /* 「复制」→「✓ 已复制」宽度不变，工具栏不抖 */
+  min-width: 76px;
+}
+
+.toolbar__btn-copy:hover:not(:disabled) {
+  background: #ebfbee;
+  border-color: #69db7c;
+  color: var(--en-accent);
+}
+
+.toolbar__btn-copy.is-copied {
+  background: #ebfbee;
+  border-color: #69db7c;
+  color: var(--en-accent);
+}
+
 /* ===== ProseMirror 编辑区 ===== */
 .ProseMirror {
   outline: none;

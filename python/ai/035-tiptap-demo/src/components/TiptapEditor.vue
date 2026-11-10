@@ -203,7 +203,52 @@ onBeforeUnmount(() => {
   menuObserver?.disconnect()
   menuObserver = null
   closeMenu()
+  if (copiedTimer) clearTimeout(copiedTimer)
 })
+
+// ===== 复制内容 =====
+/** 刚复制完（按钮变个色提示一下） */
+const copied = ref(false)
+let copiedTimer: ReturnType<typeof setTimeout> | undefined
+
+/**
+ * 把英文框里的内容复制成纯文本。
+ *
+ * 段落之间用换行，段内的硬换行（Shift+Enter）也还原成换行 ——
+ * 直接用 getText() 的话硬换行会被吃掉，两行粘成一行。
+ */
+async function copyContent() {
+  const ed = editor.value
+  if (!ed) return
+  const doc = ed.state.doc
+  const text = doc.textBetween(
+    0,
+    doc.content.size,
+    '\n',
+    (node) => (node.type.name === 'hardBreak' ? '\n' : ''),
+  )
+  if (!text.trim()) return
+
+  try {
+    await navigator.clipboard.writeText(text)
+  } catch {
+    // 剪贴板 API 不可用（非安全上下文，比如用局域网 IP 访问）→ 退回老办法
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select()
+    document.execCommand('copy')
+    document.body.removeChild(ta)
+  }
+
+  copied.value = true
+  if (copiedTimer) clearTimeout(copiedTimer)
+  copiedTimer = setTimeout(() => {
+    copied.value = false
+  }, 1500)
+}
 
 // 暴露给父组件：翻译完成后整体替换英文段落
 defineExpose({
@@ -332,6 +377,20 @@ const editor = useEditor({
           @click="editor.chain().focus().undo().run()" title="撤销 (Ctrl+Z)">↶</button>
         <button type="button" :disabled="!editor.can().chain().focus().redo().run()"
           @click="editor.chain().focus().redo().run()" title="重做 (Ctrl+Shift+Z)">↷</button>
+      </div>
+
+      <!-- 复制内容 -->
+      <div class="toolbar__group">
+        <button
+          type="button"
+          class="toolbar__btn-copy"
+          :class="{ 'is-copied': copied }"
+          :disabled="!editor.getText().trim()"
+          :title="copied ? '已复制到剪贴板' : '复制英文内容'"
+          @click="copyContent"
+        >
+          {{ copied ? '✓ 已复制' : '复制' }}
+        </button>
       </div>
 
       <!-- 整句操作：作用于光标所在句，不需要选中 -->
