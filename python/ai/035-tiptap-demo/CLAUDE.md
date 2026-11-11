@@ -82,7 +82,7 @@ pnpm cli models
 - **外壳 + 嵌套路由**：`App.vue` = `AppSidebar` + `<RouterView>`；子路由 `/`（编辑器）、`/settings`（设置页）。侧栏在两个页面常驻。**`/login` 是顶层路由**（不套外壳）—— 必须排在 `'/'` 之前，否则会被父路由吃掉。
 - **登录守卫**：`router.beforeEach` 里 `await loadAuth()`，没登录就跳 `/login`。`useAuth` 是模块级单例，**不 import router**（避免 `router → pages → services → useAuth → router` 的循环）—— 跳转逻辑放在 `router.ts` 里。
 - **跨组件状态用模块级单例 composable**（`useMode` / `useTones` / `useAuth`），不是 Pinia。原因是侧栏在 `App.vue`、编辑器在 `EditorPage.vue`，不是父子关系；状态同时写 localStorage（刷新保留）。
-- **双栏方向**：两个编辑器的 DOM 位置固定，靠 CSS `order` 排源/译 —— 切方向不重建编辑器，内容不丢。`mode` 只有 `zh2en` / `en2zh` 两个值。
+- **双栏方向**：两个编辑器的 DOM 位置固定，靠 CSS `order` 排源/译 —— 切方向不重建编辑器。**两个方向各存一份两栏内容**（`EditorPage.vue` 的 `modeHtml`）：切方向时把旧方向的存下、装上新方向的 —— 中译英里输入的中文不会带进英译中，各自独立。装内容期间用 `restoring` 标志屏蔽「源侧清空 → 译侧跟着清」和实时翻译。`mode` 只有 `zh2en` / `en2zh` 两个值。
 - **句子对齐是双栏联动的唯一依据**：`useWritingContext.ts` 按标点切句（中文 `。！？.!?`、英文 `.!?`，换行也算边界），`sentenceIndex` 是**文档级全局索引**（跨段落累计）。源侧和译侧的句子必须**数量相同、顺序一致** —— 任何一边多句/少句，高亮和「对应中文原文」就全错位。
   **点不是见到就断句**：`PHP8.4` / `3.14` / `www.a.com` / `Mr. Smith` / `e.g.` / `U.S.` 里的点都不是句号 —— 规则：点后面（跳过右括号引号）得是空白、中日韩字符或结尾，且点前面那个词不能是缩写。
 - **选区分类**：`useSelectionKind.getSelectionInfo()` 返回 `word` / `phrase` / `sentence`，跨句跨段或只有光标返回 `null`（不弹菜单）。工具栏「✨ AI」下拉里的那几项用 `getSentenceAtCursor()`，作用于光标所在句，不需要选中字符。

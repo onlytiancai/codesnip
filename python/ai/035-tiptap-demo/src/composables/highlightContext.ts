@@ -74,9 +74,13 @@ export function createContextHighlightExtension(options: ContextHighlightOptions
                 // 本侧获焦 → 高亮光标自己的段落 / 句子 / 单词
                 const ctx = resolveContext(state, options.splitFn)
                 if (ctx) {
-                  decorations.push(
-                    Decoration.node(ctx.paraFrom, ctx.paraTo, { class: 'cur-paragraph' }),
-                  )
+                  // 空段落不画段落底色 —— 否则编辑器一打开，光标所在的空 <p>
+                  // 就顶着一条淡绿底，看起来像凭空多了一行浅色背景
+                  if (ctx.paragraph.trim()) {
+                    decorations.push(
+                      Decoration.node(ctx.paraFrom, ctx.paraTo, { class: 'cur-paragraph' }),
+                    )
+                  }
                   if (ctx.sentFrom < ctx.sentTo) {
                     decorations.push(
                       Decoration.inline(ctx.sentFrom, ctx.sentTo, { class: 'cur-sentence' }),

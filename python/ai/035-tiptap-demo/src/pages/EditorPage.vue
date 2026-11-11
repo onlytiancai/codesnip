@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import ChineseEditor from '../components/ChineseEditor.vue'
 import TiptapEditor from '../components/TiptapEditor.vue'
 import {
@@ -39,6 +39,26 @@ const zhSentenceIndex = ref(-1)
 const enHtml = ref('')
 /** 英文侧光标所在句子的全局索引 */
 const enSentenceIndex = ref(-1)
+
+/**
+ * 每个方向各存一份两栏内容。
+ *
+ * 中译英和英译中是**两套互不相干的状态**：在中译英的中文栏输入的字，
+ * 切到英译中不会带过去（英译中的中文栏是空的），英文栏同理。
+ * 每个方向的内容各自存着，切回来还在。
+ */
+const modeHtml = ref<Record<'zh2en' | 'en2zh', { zh: string; en: string }>>({
+  zh2en: { zh: '', en: '' },
+  en2zh: { zh: '', en: '' },
+})
+
+/**
+ * 正在换方向（要把旧方向的内容存起来、把新方向的内容装进去）。
+ *
+ * 这期间两栏的 html 会整体突变 —— 别让「源侧清空 → 译侧跟着清」
+ * 「实时翻译」这些联动规则误触发。
+ */
+let restoring = false
 
 const sourceHtml = computed(() => (sourceLang.value === 'zh' ? zhHtml.value : enHtml.value))
 const sourceSentenceIndex = computed(() =>
@@ -153,6 +173,9 @@ const targetEditor = computed(() =>
 async function doTranslate() {
   errorMsg.value = ''
 
+  // 记下发起时的方向 —— 翻译期间切了方向，这次结果就不写进任何一栏
+  const modeAtStart = mode.value
+
   // 1. 抓源侧全文，按句切
   const paragraphs = extractParagraphs(sourceHtml.value)
   if (paragraphs.length === 0) {
@@ -192,7 +215,10 @@ async function doTranslate() {
       sourceLang.value,
       targetLang.value,
     )
-    aligned.value[mode.value] = results
+    // 翻译期间切了方向 → 结果作废，不写进任何一栏
+    if (mode.value !== modeAtStart) return
+
+    aligned.value[modeAtStart] = results
 
     // 顺手把实时翻译的缓存也填上 —— 否则开实时翻译会把刚翻过的句子再翻一遍
     if (mode.value === 'zh2en') {
@@ -391,6 +417,8 @@ async function runLiveTranslate() {
 
 // 中文改了 → 实时翻译（中译英方向）
 watch(zhHtml, () => {
+  // 换方向时两栏内容会整体替换 —— 那不是用户编辑，别触发实时翻译
+  if (restoring) return
   if (!liveTranslate.value) return
   if (mode.value !== 'zh2en') return
   scheduleLiveTranslate()
@@ -404,10 +432,42 @@ watch(tone, () => {
   scheduleLiveTranslate()
 })
 
-// 换方向 → 实时翻译的缓存作废（中译英的译文对英译中没用）
-watch(mode, () => {
+/**
+ * 换方向 = 换一套**独立**的编辑器状态。
+ *
+ * 中译英和英译中互不继承：在中译英的中文栏输入的字，切到英译中不会带过去
+ * （英译中的中文栏是空的），英文栏同理。每个方向的内容各自存着，切回来还在。
+ */
+watch(mode, (next, prev) => {
+  // 1. 当前两栏内容存回上一个方向
+  modeHtml.value[prev] = { zh: zhHtml.value, en: enHtml.value }
+
+  // 2. 在飞的实时翻译要掐掉 —— 它会把译文写进英文栏，那栏马上要换主人了
+  liveAbort?.abort()
+
+  // 3. 装上新方向的内容（没存过就是空的）
+  restoring = true
+  const nextState = modeHtml.value[next]
+  zhHtml.value = nextState.zh
+  enHtml.value = nextState.en
+  zhRef.value?.setHtml(nextState.zh || '<p></p>')
+  enRef.value?.setHtml(nextState.en || '<p></p>')
+
+  // 4. 光标 / 焦点 / 报错状态重置
+  zhSentenceIndex.value = -1
+  enSentenceIndex.value = -1
+  focusedSide.value = null
+  errorMsg.value = ''
+  progress.value = { done: 0, total: 0 }
+
+  // 5. 实时翻译的缓存作废（中译英的译文对英译中没用）
   liveCache.clear()
   lastLiveSentences = []
+
+  // 6. 装完再放开联动规则 —— 两栏 html 突变触发的 watcher 跟这一轮 flush 一起跑
+  void nextTick(() => {
+    restoring = false
+  })
 })
 
 // ===== 源侧清空 → 译侧跟着清空 =====
@@ -429,9 +489,11 @@ function onSourceCleared(html: string) {
 }
 
 watch(zhHtml, (html) => {
+  if (restoring) return
   if (sourceLang.value === 'zh') onSourceCleared(html)
 })
 watch(enHtml, (html) => {
+  if (restoring) return
   if (sourceLang.value === 'en') onSourceCleared(html)
 })
 
