@@ -10,11 +10,20 @@ import {
   createContextHighlightExtension,
   rerenderDecorations,
 } from '../composables/highlightContext'
+import { useCopyContent } from '../composables/useCopyContent'
 
-const props = defineProps<{
-  /** 来自英文侧的高亮：英文句子 i 时，此处把中文第 i 句高亮 */
-  highlightedZhIndex: number
-}>()
+const props = withDefaults(
+  defineProps<{
+    /** 来自英文侧的高亮：英文句子 i 时，此处把中文第 i 句高亮 */
+    highlightedZhIndex: number
+    /**
+     * 是不是源侧。源侧给「清空」，译侧给「复制」——
+     * 切方向时两个框的按钮跟着互换。
+     */
+    isSource?: boolean
+  }>(),
+  { isSource: true },
+)
 
 const html = defineModel<string>('html', { default: '' })
 /** 光标所在句子的文档级全局索引（跨面板对齐的唯一依据） */
@@ -67,6 +76,9 @@ const editor = useEditor({
     sentenceIndex.value = getSentenceIndex(editor.state, splitChineseSentences)
   },
 })
+
+// ===== 复制内容 =====
+const { copied, copyContent } = useCopyContent(() => editor.value)
 </script>
 
 <template>
@@ -100,10 +112,28 @@ const editor = useEditor({
         <button type="button" :disabled="!editor.can().chain().focus().redo().run()"
           @click="editor.chain().focus().redo().run()" title="重做 (Ctrl+Shift+Z)">↷</button>
       </div>
-      <div class="toolbar__group toolbar__group--ai">
-        <button type="button" class="toolbar__btn-clear" title="清空中文内容"
-          :disabled="!editor.getText().trim()" @click="editor.commands.clearContent()">
+      <div class="toolbar__group toolbar__group--end">
+        <!-- 源侧：清空；译侧：复制 -->
+        <button
+          v-if="isSource"
+          type="button"
+          class="toolbar__btn-clear"
+          title="清空中文内容"
+          :disabled="!editor.getText().trim()"
+          @click="editor.commands.clearContent()"
+        >
           清空
+        </button>
+        <button
+          v-else
+          type="button"
+          class="toolbar__btn-copy"
+          :class="{ 'is-copied': copied }"
+          :disabled="!editor.getText().trim()"
+          :title="copied ? '已复制到剪贴板' : '复制中文内容'"
+          @click="copyContent"
+        >
+          {{ copied ? '✓ 已复制' : '复制' }}
         </button>
       </div>
     </div>

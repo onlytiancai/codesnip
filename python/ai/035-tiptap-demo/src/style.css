@@ -1070,8 +1070,10 @@ h1 {
   margin-top: 6px;
 }
 
-/* ---- 中文框「清空」按钮 ---- */
-.toolbar__btn-clear {
+/* ---- 「清空」按钮 ---- */
+/* 注意用 `.toolbar xxx` 复合选择器：`.toolbar button` 的特异性更高，
+   单写 `.toolbar__btn-clear` 会被盖掉。 */
+.toolbar .toolbar__btn-clear {
   padding: 0 10px;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -1080,10 +1082,18 @@ h1 {
   font-size: 0.85rem;
 }
 
-.toolbar__btn-clear:hover:not(:disabled) {
+.toolbar .toolbar__btn-clear:hover:not(:disabled) {
   background: #fff5f5;
   border-color: #ffa8a8;
   color: #c92a2a;
+}
+
+/* 工具栏最右侧的一组（AI 按钮 / 清空 / 复制） */
+.toolbar__group--end {
+  margin-left: auto;
+  padding-right: 0;
+  margin-right: 0;
+  border-right: none;
 }
 
 /* AI 按钮推到工具栏最右 */
@@ -1092,7 +1102,7 @@ h1 {
   padding-right: 0;
   margin-right: 0;
   border-right: none;
-  /* 6 个按钮挤在半栏里，不允许组内换行——换行会把工具栏撑成两行 */
+  /* 按钮挤在半栏里，不允许组内换行——换行会把工具栏撑成两行 */
   flex-wrap: nowrap;
 }
 
@@ -1105,7 +1115,7 @@ h1 {
   white-space: nowrap;
 }
 
-.toolbar__btn-clear:disabled {
+.toolbar .toolbar__btn-clear:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }

@@ -91,7 +91,9 @@ pnpm cli models
 - **浮动菜单定位**（`AiContextMenu.vue`）：`editor.view.coordsAtPos()` 取选区上下两条 client rect → `Teleport` 到 body → `position: fixed` 定位。**定位必须按菜单实测高度算**（`ResizeObserver` 盯高度），不能用估计值，否则查词词条 / 语法结果卡片会被裁到视口外。菜单整体在 `mousedown` 上 `preventDefault`，否则 ProseMirror 先吃掉选区，点候选时 range 已经没了。
 - **API 调用**统一走 `src/services/http.ts`（`http.get/post/put/del`），它会把后端 `{error}` 字段捞成 `ApiError`。`services/translate.ts` 是例外（自带 `pLimit` 并发 3）。
 - **实时翻译**（`EditorPage.vue`，默认关，只中译英方向）：中文改了停手 800ms 自动翻，**以句子为单位** —— `liveCache`（源句→译文，语气算进 key）复用没改过的句子，只翻新增/改动的；写回时 `TiptapEditor.applyParagraphs()` **只替换变了的那几段**（从后往前改，避免前面段落的 doc 位置被带偏），整篇 `setContent` 会让译文框闪一下、滚动跳回顶部。段落数变了才整体重建。
-- **源侧清空 → 译侧跟着清**：译文没意义了，`watch(sourceHtml)` 里清掉译侧和对齐表。
+- **工具栏的清空/复制跟着源译侧走**：两个编辑器组件都有 `isSource` prop —— **源侧渲染「清空」，译侧渲染「复制」**，切方向时自动互换（中译英：中文=清空 / 英文=复制；英译中反过来）。复制逻辑抽在 `composables/useCopyContent.ts`（纯文本提取 + 剪贴板 + 「✓ 已复制」提示），两个框共用。
+- **源侧清空 → 译侧跟着清**：译文没意义了，`EditorPage.vue` 里清掉译侧和对齐表。
+  ⚠️ **不能 `watch(sourceHtml)`**（它是随 mode 变的 computed）—— 切方向的瞬间新方向的源侧通常是空的，会把另一栏的用户内容误清掉。要**分别 watch `zhHtml` / `enHtml`**，再按当前 `sourceLang` 判断该不该联动。
 - 英译中模式下英文侧 `aiEnabled=false` —— 改写 / 润色 / 语法 / 指令全部关掉，只留「查词」。
 
 ## 后端架构要点

@@ -142,3 +142,38 @@ gocryptfs 加密文件夹
     if mountpoint -q "$HOME/secret.mount"; then
         fusermount3 -u "$HOME/secret.mount"
     fi
+
+python uv
+
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    uv self update
+    uv init
+    uv python install 3.12
+    uv python pin 3.12
+
+    uv python list --only-installed
+
+    uv add numpy pandas matplotlib
+    uv add --dev pytest ruff
+    uv tree
+    uv remove pandas
+    uv sync
+    uv pip list
+    uv pip freeze
+
+    uv run python main.py
+    uv run pytest
+    uv run ruff check .
+
+    uv venv
+    uv venv --python 3.12
+    source .venv/bin/activate
+    deactivate
+
+    uv add requests # 项目管理模式，会维护项目依赖声明；
+    uv pip install requests # pip 兼容模式，主要用于直接管理虚拟环境中的包。
+
+    uv tool list
+    uv tool install ruff
+    uv tool uninstall ruff
+    uvx ruff check .

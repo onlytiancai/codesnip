@@ -411,15 +411,28 @@ watch(mode, () => {
 })
 
 // ===== 源侧清空 → 译侧跟着清空 =====
-watch(sourceHtml, (html) => {
+/**
+ * 源侧被清空时，译文没有意义 → 一起清掉。
+ *
+ * 分别监听两栏（而不是监听 computed 的 sourceHtml）：
+ * sourceHtml 随 mode 变，**切方向**也会触发 —— 新方向的源侧往往是空的，
+ * 那样会在切方向的瞬间把译文（也就是另一栏的用户内容）误清掉。
+ */
+function onSourceCleared(html: string) {
   if (htmlHasText(html)) return
-  // 源侧已经空了，译文没有意义 → 一起清掉
   const targetHtml = targetLang.value === 'zh' ? zhHtml.value : enHtml.value
   if (!htmlHasText(targetHtml)) return
   targetEditor.value?.setHtml('')
   aligned.value[mode.value] = []
   // 实时翻译的「上次结构」也作废，否则重新写一句会被当成没变
   lastLiveSentences = []
+}
+
+watch(zhHtml, (html) => {
+  if (sourceLang.value === 'zh') onSourceCleared(html)
+})
+watch(enHtml, (html) => {
+  if (sourceLang.value === 'en') onSourceCleared(html)
 })
 
 /**
@@ -489,6 +502,7 @@ function onSideBlur(side: 'source' | 'target') {
         <ChineseEditor
           ref="zhRef"
           :highlighted-zh-index="highlightedZhIndex"
+          :is-source="zhSide === 'source'"
           v-model:html="zhHtml"
           v-model:sentence-index="zhSentenceIndex"
         />
@@ -529,6 +543,7 @@ function onSideBlur(side: 'source' | 'target') {
           :highlighted-en-index="highlightedEnIndex"
           :chinese-sentence="currentChineseSentence"
           :ai-enabled="mode === 'zh2en'"
+          :is-source="enSide === 'source'"
           v-model:html="enHtml"
           v-model:sentence-index="enSentenceIndex"
         />

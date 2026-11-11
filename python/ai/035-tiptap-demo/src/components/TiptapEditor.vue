@@ -17,6 +17,7 @@ import {
   getSentenceAtCursor,
   type SelectionInfo,
 } from '../composables/useSelectionKind'
+import { useCopyContent } from '../composables/useCopyContent'
 import { matchCase } from '../utils/matchCase'
 import AiContextMenu from './AiContextMenu.vue'
 import type { AiAction } from '../constants/aiActions'
@@ -32,8 +33,13 @@ const props = withDefaults(
      * 英译中模式下英文栏是「源文」，没有中文原文可消歧 → 关掉，只留「📖 查词」。
      */
     aiEnabled?: boolean
+    /**
+     * 是不是源侧。源侧给「清空」，译侧给「复制」——
+     * 切方向时两个框的按钮跟着互换。
+     */
+    isSource?: boolean
   }>(),
-  { aiEnabled: true },
+  { aiEnabled: true, isSource: false },
 )
 
 const html = defineModel<string>('html', { default: '' })
@@ -203,52 +209,7 @@ onBeforeUnmount(() => {
   menuObserver?.disconnect()
   menuObserver = null
   closeMenu()
-  if (copiedTimer) clearTimeout(copiedTimer)
 })
-
-// ===== 复制内容 =====
-/** 刚复制完（按钮变个色提示一下） */
-const copied = ref(false)
-let copiedTimer: ReturnType<typeof setTimeout> | undefined
-
-/**
- * 把英文框里的内容复制成纯文本。
- *
- * 段落之间用换行，段内的硬换行（Shift+Enter）也还原成换行 ——
- * 直接用 getText() 的话硬换行会被吃掉，两行粘成一行。
- */
-async function copyContent() {
-  const ed = editor.value
-  if (!ed) return
-  const doc = ed.state.doc
-  const text = doc.textBetween(
-    0,
-    doc.content.size,
-    '\n',
-    (node) => (node.type.name === 'hardBreak' ? '\n' : ''),
-  )
-  if (!text.trim()) return
-
-  try {
-    await navigator.clipboard.writeText(text)
-  } catch {
-    // 剪贴板 API 不可用（非安全上下文，比如用局域网 IP 访问）→ 退回老办法
-    const ta = document.createElement('textarea')
-    ta.value = text
-    ta.style.position = 'fixed'
-    ta.style.opacity = '0'
-    document.body.appendChild(ta)
-    ta.select()
-    document.execCommand('copy')
-    document.body.removeChild(ta)
-  }
-
-  copied.value = true
-  if (copiedTimer) clearTimeout(copiedTimer)
-  copiedTimer = setTimeout(() => {
-    copied.value = false
-  }, 1500)
-}
 
 // 暴露给父组件：翻译完成后整体替换英文段落
 defineExpose({
@@ -411,6 +372,9 @@ const editor = useEditor({
     detectSelection(editor)
   },
 })
+
+// ===== 复制内容 =====
+const { copied, copyContent } = useCopyContent(() => editor.value)
 </script>
 
 <template>
@@ -448,9 +412,20 @@ const editor = useEditor({
           @click="editor.chain().focus().redo().run()" title="重做 (Ctrl+Shift+Z)">↷</button>
       </div>
 
-      <!-- 复制内容 -->
-      <div class="toolbar__group">
+      <!-- 源侧：清空；译侧：复制 -->
+      <div class="toolbar__group" :class="{ 'toolbar__group--end': !aiEnabled }">
         <button
+          v-if="isSource"
+          type="button"
+          class="toolbar__btn-clear"
+          title="清空英文内容"
+          :disabled="!editor.getText().trim()"
+          @click="editor.commands.clearContent()"
+        >
+          清空
+        </button>
+        <button
+          v-else
           type="button"
           class="toolbar__btn-copy"
           :class="{ 'is-copied': copied }"
