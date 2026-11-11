@@ -177,3 +177,16 @@ python uv
     uv tool install ruff
     uv tool uninstall ruff
     uvx ruff check .
+
+ssh 禁止密码登录
+
+    sudo vim /etc/ssh/sshd_config
+
+    PasswordAuthentication no
+    KbdInteractiveAuthentication no
+    PubkeyAuthentication yes
+    PermitEmptyPasswords no
+
+    sudo sshd -t
+    sudo sshd -T | grep -E 'passwordauthentication|kbdinteractiveauthentication|pubkeyauthentication'
+    sudo systemctl restart ssh
