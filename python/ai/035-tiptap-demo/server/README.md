@@ -31,8 +31,9 @@ pnpm dev                   # tsx watch，监听 8787
 | `<PROVIDER_ID>_KEY` | — | **API Key**，名字对应 provider id（大写 + `-`→`_` + `_KEY`） |
 | `VOCAB_PATH` | `.../024-cet4/vocab_all.json` | **查词**用的词库 JSON（JSONL） |
 | `DB_PATH` | `server/data/app.db` | SQLite 库文件（配置 + 用户 + 会话 + token 用量） |
-| `ADMIN_USERNAME` | `admin` | 首次启动播种的账号名 |
+| `ADMIN_USERNAME` | `admin` | 首次启动播种的账号名（**同时是管理员**） |
 | `ADMIN_PASSWORD` | `admin123` | 同上的密码（**只在播种时用一次**；日志里不回显） |
+| `ADMIN_USERS` | — | 额外的管理员，逗号分隔（`alice,bob`）。名单里的人每次启动都会被提成 admin |
 | `AUTH_LOCAL_BYPASS` | `1` | 本地工具（curl / CLI）免登录放行；设 0 = 全部要登录 |
 | `DEBUG` | — | 设 `1` 打开调试日志（server 端 + 浏览器 console 共用一个开关） |
 
@@ -50,9 +51,11 @@ pnpm dev                   # tsx watch，监听 8787
 | `prompt_templates` | 每个 provider 的 6 个能力模板 |
 | `prompt_tones` | 每个 provider 的语气表 |
 | `prompt_versions` | 提示词的 append-only 版本历史 |
-| `users` | 用户（id / 用户名 / 密码哈希 / 建号时间） |
+| `users` | 用户（id / 用户名 / 密码哈希 / 建号时间 / **角色** / **套餐** / **禁用时间**） |
 | `sessions` | 登录会话（token / user_id / 过期时间） |
 | `token_usage` | **每人每天**的 token 消耗（input / output / 调用次数） |
+| `plan_requests` | **套餐升级申请**（用户 / 原套餐 → 目标套餐 / 状态 / 审核意见） |
+| `invite_codes` | **邀请码池**（码 / 绑定套餐 / 批次 / 用掉的人 / 作废时间） |
 
 > `server/data/config.json` 和 `history.json` 现在只是**首次导入源**：
 > 库里还没有 provider 时会自动把它们导进来（导入后不再回写）。老文件仍在 git 里，
@@ -259,7 +262,38 @@ CLI 走的是和 server 一样的配置（同一个 `app.db` 里的当前生效 
 | POST | `/api/auth/register` | `{username, password}` → 建号 + 直接发 cookie 登录（201） |
 | POST | `/api/auth/login` | `{username, password}` → 发 cookie；密码错 → `401` |
 | POST | `/api/auth/logout` | 删会话 + 清 cookie |
-| GET | `/api/auth/me` | `{user, today, month}` —— 当前用户 + 今日/本月 token 用量；没登录 → `401` |
+| GET | `/api/auth/me` | `{user, today, month, pendingRequest}` —— 当前用户（**含角色 / 套餐 / 配额**）+ 今日/本月 token 用量；没登录 → `401` |
+
+### 套餐（用户侧）
+
+只要求登录（`requireLogin`），**不查配额** —— 超配额的用户也得能点升级。
+也不给本地工具（curl / CLI）放行：这些操作必须有真人身份。
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/plans` | `{plans}` —— 全部套餐 |
+| POST | `/api/plans/redeem` | `{code}` → 邀请码兑换，**一次性永久升级**到该码绑定的套餐；码无效/已用/已作废 → `400` |
+| POST | `/api/plans/request` | `{toPlan, note?}` → 提交升级申请，等管理员审核（201）；同一套餐已有待审申请 → `409` |
+| GET | `/api/plans/requests` | `{requests}` —— 我自己的申请记录 |
+
+### 管理端
+
+全部要管理员身份（`requireAdmin`）：登录 + `users.role = 'admin'`。
+禁用账号一律 `403`；不是管理员 → `403`；没登录 → `401`。本地工具不给放行。
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/admin/users` | `{users}` —— 用户列表（套餐 / 禁用状态 / 今日 / 本月用量） |
+| GET | `/api/admin/users/:id` | `{user, series}` —— 用户详情 + **近 30 天**每日用量 |
+| POST | `/api/admin/users/:id/disable` | 禁用（**顺手删掉他的所有会话**，立即生效）；不能禁用管理员 |
+| POST | `/api/admin/users/:id/enable` | 启用 |
+| POST | `/api/admin/users/:id/plan` | `{planId}` —— 直接改套餐（不走审核） |
+| GET | `/api/admin/plan-requests` | `{requests, plans}` —— 升级申请列表（`?status=pending\|approved\|rejected`） |
+| POST | `/api/admin/plan-requests/:id/approve` | 通过 → **顺手把用户套餐改掉** |
+| POST | `/api/admin/plan-requests/:id/reject` | 驳回（可带 `note` 审核意见） |
+| GET | `/api/admin/invite-codes` | `{codes, plans}` —— 邀请码池（`?batch=` / `?status=unused\|used\|revoked`） |
+| POST | `/api/admin/invite-codes` | `{planId, count, batch?}` → **批量生成**（1~200 个），返回码列表 |
+| POST | `/api/admin/invite-codes/revoke` | `{code}` → 作废（只用掉的码作废不了） |
 
 ### 调试
 
@@ -366,6 +400,41 @@ INTEGER 比较最干净、没有 affinity 歧义。
 本月区间是 `[当月1号, 下月1号)` 的开区间，跨年不用特判。
 
 **CLI 不计入任何用户** —— 它不经过 HTTP，没有用户身份。
+
+### 套餐、配额与管理员
+
+**套餐定义写在代码里**（`src/config/plans.ts`），库里只存用户属于哪一档（`users.plan_id`）——
+要改配额改那个文件就行，不用做套餐的增删改界面。
+
+| 套餐 | 每日 token | 每月 token | 能自己申请升级 |
+|---|---|---|---|
+| 免费版 `free`（新用户默认） | 20,000 | 100,000 | — |
+| 基础版 `basic` | 100,000 | 1,000,000 | ✅ |
+| 专业版 `pro` | 500,000 | 5,000,000 | ✅ |
+| 不限量 `unlimited` | 不限 | 不限 | ❌（只能管理员发码） |
+
+- **配额单位是 token**（输入 + 输出），和 `token_usage` 表的口径一致。
+- **超额 = 直接拒绝**：`requireUser` 守卫在放行前查「今日/本月已用 vs 套餐上限」，
+  超了返回 `403` + 文案（「免费版今日配额已用完（20,000 token），请升级套餐」）。
+  **管理员不受配额限制**。
+- 记账顺序不变：超额后**下一次**请求被拦（已经花掉的照记）。
+- **谁被拦**：只有消耗 token 的那批接口（`PROTECTED_API_PATHS`）。查词、设置、套餐申请都不受配额影响 ——
+  超配额的用户也得能点升级。
+
+**两条升级路径**：
+
+1. **邀请码**（免审核，立刻生效）—— 管理员批量生成（绑定一个套餐），用户输入码就升级。
+   码是一次性的：用掉就记 `used_by` / `used_at`；作废记 `revoked_at`。
+   抢码用一条带条件的 `UPDATE ... WHERE used_by IS NULL AND revoked_at IS NULL` —— 并发下也只会成功一个。
+2. **升级申请**（走审核）—— 用户提交 → 管理员在设置页「用户管理」里通过 / 驳回。
+   通过时顺手把 `users.plan_id` 改掉。
+
+**角色与禁用**：
+
+- `users.role`：`user` / `admin`。`.env` 的 `ADMIN_USERNAME` + `ADMIN_USERS`（逗号分隔）是管理员名单，
+  **每次启动都会把名单里的人提成 admin**（.env 是唯一来源）。
+- `users.disabled_at`：非空 = 已禁用。禁用时**顺手删掉他的所有会话**（立即生效）；
+  禁用账号登录 → `403`「账号已被禁用，请联系管理员」。
 
 ### 调试日志
 

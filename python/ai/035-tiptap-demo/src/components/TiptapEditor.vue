@@ -15,7 +15,9 @@ import {
 import {
   getSelectionInfo,
   getSentenceAtCursor,
+  getWordInfoAt,
   type SelectionInfo,
+  type WordPickMode,
 } from '../composables/useSelectionKind'
 import { useCopyContent } from '../composables/useCopyContent'
 import { matchCase } from '../utils/matchCase'
@@ -61,11 +63,19 @@ function detectSelection(editor: Editor | null) {
   // 关掉 AI 能力时（英译中模式），菜单里只剩「📖 查词」—— 只在选中单个单词时才有意义。
   // 其它情况（比如选了短语）菜单里空荡荡的，索性不弹。
   if (!info || (!props.aiEnabled && info.kind !== 'word')) {
+    // 只有光标（没选中东西）→ 菜单该关。
+    // 但刚点过鼠标的那一下例外：点词会自动换成那个词的候选词，
+    // 先关掉、过一会儿再弹出来 —— 中间那半秒看着就是「一闪而过」。
+    if (!info && props.aiEnabled && Date.now() - lastClickAt < 500) return
     selection.value = null
     menuPos.value = null
     anchorBox.value = null
+    menuAction.value = null
+    autoWordKey = ''
     return
   }
+  // 手动选中的 → 走主菜单（不要自动接着上次的动作跑）
+  menuAction.value = null
   selection.value = info
   anchorBox.value = selectionBox(editor!, info)
   menuPos.value = placeMenu(anchorBox.value, MENU_H_ESTIMATE)
@@ -174,6 +184,66 @@ function runOnCursorSentence(action: AiAction) {
   void syncMenuPosition()
 }
 
+// ===== 光标停在词首 / 点击单词 → 直接给出可替换的候选词 =====
+
+/**
+ * 自动弹候选词的去重键（from:to）。
+ * 同一个词不重复开菜单；菜单关掉时会清掉，下次再点同一个词还能弹。
+ */
+let autoWordKey = ''
+
+/** 最近一次鼠标点击的时间 —— 用来分辨「点出来的」和「方向键移过来的」。 */
+let lastClickAt = 0
+
+/** 触发防抖：光标连续移动时不至于每个位置都发一次请求。 */
+const AUTO_WORD_DELAY = 180
+let autoWordTimer: ReturnType<typeof setTimeout> | undefined
+
+function clearAutoWordTimer() {
+  if (autoWordTimer) clearTimeout(autoWordTimer)
+  autoWordTimer = undefined
+}
+
+/**
+ * 打开「这个词能换成什么」的候选面板。
+ */
+function openWordCandidates(info: SelectionInfo) {
+  const ed = editor.value
+  if (!ed) return
+  const key = `${info.from}:${info.to}`
+  if (key === autoWordKey) return // 这个词已经开着候选了
+  autoWordKey = key
+
+  selection.value = info
+  anchorBox.value = selectionBox(ed, info)
+  menuPos.value = placeMenu(anchorBox.value, MENU_H_ESTIMATE)
+  menuAction.value = 'candidates'
+  void syncMenuPosition()
+}
+
+/**
+ * 排一次「弹候选词」。
+ *
+ * mode='leftEdge' → 只认「光标正好停在词的最左侧」（词在光标右边）
+ * mode='any'      → 点击落在词上就算（点的位置直接用，不用等选区更新）
+ */
+function scheduleWordCandidates(pos: number, mode: WordPickMode) {
+  if (!props.aiEnabled) return
+  const ed = editor.value
+  if (!ed) return
+
+  clearAutoWordTimer()
+  autoWordTimer = setTimeout(() => {
+    autoWordTimer = undefined
+    // 有选区 → 选区菜单已经在管了，别再自动弹候选（会把选区顶掉）
+    const { from, to } = ed.state.selection
+    if (from !== to) return
+    const info = getWordInfoAt(ed, pos, mode)
+    if (!info) return
+    openWordCandidates(info)
+  }, AUTO_WORD_DELAY)
+}
+
 // ===== 菜单动作 =====
 
 /** 用新文本替换当前选区；单词/短语替换时保留原大小写 */
@@ -196,18 +266,33 @@ function closeMenu() {
   selection.value = null
   menuPos.value = null
   menuAction.value = null
+  autoWordKey = ''
 }
 
 // 点击编辑器别处 → 关菜单
 // 菜单本身 Teleport 到了 body，点它不会走到这里（它自己的 @mousedown.prevent 会先拦下）
-function onShellMousedownCapture() {
+function onShellMousedownCapture(e: MouseEvent) {
   if (!selection.value) return
+
+  // 点在某个词上 → 别关：等下会自动换成那个词的候选词。
+  // 关了再弹出来，中间那半秒看着就是「一闪而过」。
+  if (props.aiEnabled) {
+    const ed = editor.value
+    if (!ed) {
+      closeMenu()
+      return
+    }
+    const pos = ed.view.posAtCoords({ left: e.clientX, top: e.clientY })?.pos
+    if (pos != null && getWordInfoAt(ed, pos, 'any')) return
+  }
+
   closeMenu()
 }
 
 onBeforeUnmount(() => {
   menuObserver?.disconnect()
   menuObserver = null
+  clearAutoWordTimer()
   closeMenu()
 })
 
@@ -362,9 +447,27 @@ const editor = useEditor({
     sentenceIndex.value = getSentenceIndex(editor.state, splitEnglishSentences)
     detectSelection(editor)
   },
-  onSelectionUpdate({ editor }) {
+  editorProps: {
+    // 点在某个词上 → 直接给出这个词能换成什么（不用先拖选）
+    //
+    // ProseMirror 的 handleClick 跑在**选区更新之前**（mouseup 里先调它，
+    // 再更新选区），所以这里直接用点击给的 pos，别等选区。
+    handleClick: (_view, pos) => {
+      lastClickAt = Date.now()
+      scheduleWordCandidates(pos, 'any')
+      return false
+    },
+  },
+  onSelectionUpdate({ editor, transaction }) {
     sentenceIndex.value = getSentenceIndex(editor.state, splitEnglishSentences)
     detectSelection(editor)
+    // 打字会同时改文档 —— 那不是「光标停在词首」，别自动弹候选
+    if (transaction.docChanged) return
+    const { from, to } = editor.state.selection
+    if (from !== to) return // 有选区 → 走选区菜单
+    // 刚点过鼠标 → 点击那一路已经排过了，别用「词首」规则把它顶掉
+    if (Date.now() - lastClickAt < 500) return
+    scheduleWordCandidates(from, 'leftEdge')
   },
   onCreate({ editor }) {
     html.value = editor.getHTML()

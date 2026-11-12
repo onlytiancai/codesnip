@@ -43,7 +43,10 @@ CREATE TABLE IF NOT EXISTS users (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   username      TEXT    NOT NULL UNIQUE,
   password_hash TEXT    NOT NULL,
-  created_at    TEXT    NOT NULL
+  created_at    TEXT    NOT NULL,
+  role          TEXT    NOT NULL DEFAULT 'user',   -- 'user' | 'admin'
+  plan_id       TEXT    NOT NULL DEFAULT 'free',    -- 套餐 id（见 config/plans.ts）
+  disabled_at   TEXT                              -- 非空 = 已禁用
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
@@ -68,6 +71,37 @@ CREATE TABLE IF NOT EXISTS token_usage (
   updated_at    TEXT    NOT NULL,
   PRIMARY KEY (user_id, day)
 );
+
+-- ===== 套餐升级申请 =====
+-- 用户提交 → 管理员审核 → 通过就改 users.plan_id
+CREATE TABLE IF NOT EXISTS plan_requests (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  from_plan   TEXT    NOT NULL,
+  to_plan     TEXT    NOT NULL,
+  status      TEXT    NOT NULL,        -- 'pending' | 'approved' | 'rejected'
+  note        TEXT,                   -- 用户备注
+  created_at  TEXT    NOT NULL,
+  reviewed_at TEXT,
+  reviewed_by INTEGER REFERENCES users(id),
+  review_note TEXT                    -- 管理员的审核意见
+);
+CREATE INDEX IF NOT EXISTS idx_plan_requests_status ON plan_requests(status);
+CREATE INDEX IF NOT EXISTS idx_plan_requests_user ON plan_requests(user_id);
+
+-- ===== 邀请码池 =====
+-- 管理员批量生成（绑定一个套餐），用户兑换 → 一次性永久升级
+CREATE TABLE IF NOT EXISTS invite_codes (
+  code       TEXT PRIMARY KEY,
+  plan_id    TEXT    NOT NULL,
+  batch      TEXT,                    -- 批次名，方便管理员认哪一批
+  created_at TEXT    NOT NULL,
+  created_by INTEGER REFERENCES users(id),
+  used_by    INTEGER REFERENCES users(id),
+  used_at    TEXT,
+  revoked_at TEXT                    -- 非空 = 已作废
+);
+CREATE INDEX IF NOT EXISTS idx_invite_codes_batch ON invite_codes(batch);
 
 -- ===== 全局配置（原来在 config.json / history.json）=====
 CREATE TABLE IF NOT EXISTS providers (
@@ -107,6 +141,32 @@ CREATE TABLE IF NOT EXISTS prompt_versions (
 `
 
 /**
+ * 幂等地给已有表补列。
+ *
+ * ALTER TABLE ... ADD COLUMN 没有 IF NOT EXISTS —— 对已存在的列再跑一遍会报
+ * "duplicate column name"。所以先查 pragma table_info，没有才加。
+ */
+function ensureColumns(db: Db): void {
+  const columns = (table: string): Set<string> => {
+    const rows = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{
+      name: string
+    }>
+    return new Set(rows.map((r) => r.name))
+  }
+
+  const users = columns('users')
+  if (!users.has('role')) {
+    db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'")
+  }
+  if (!users.has('plan_id')) {
+    db.exec("ALTER TABLE users ADD COLUMN plan_id TEXT NOT NULL DEFAULT 'free'")
+  }
+  if (!users.has('disabled_at')) {
+    db.exec('ALTER TABLE users ADD COLUMN disabled_at TEXT')
+  }
+}
+
+/**
  * 打开（或创建）库文件，并确保表结构是最新的。
  */
 export function openDatabase(path: string): Db {
@@ -116,5 +176,6 @@ export function openDatabase(path: string): Db {
   db.exec('PRAGMA journal_mode = WAL')
   db.exec('PRAGMA foreign_keys = ON')
   db.exec(SCHEMA)
+  ensureColumns(db)
   return db
 }

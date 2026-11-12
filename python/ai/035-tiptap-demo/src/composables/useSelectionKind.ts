@@ -49,12 +49,25 @@ export interface SelectionInfo {
 function findTextblock(
   editor: Editor,
 ): { text: string; chunks: Chunk[] } | null {
-  const { $from } = editor.state.selection
-  for (let d = $from.depth; d > 0; d--) {
-    const name = $from.node(d).type.name
+  return findTextblockAt(editor, editor.state.selection.from)
+}
+
+/**
+ * 找 pos 所在的 paragraph / heading 节点。
+ *
+ * 和 findTextblock 一样，只是位置由参数给 —— 鼠标点的位置不一定等于选区位置。
+ */
+function findTextblockAt(
+  editor: Editor,
+  pos: number,
+): { text: string; chunks: Chunk[] } | null {
+  const doc = editor.state.doc
+  const $pos = doc.resolve(Math.min(Math.max(pos, 0), doc.content.size))
+  for (let d = $pos.depth; d > 0; d--) {
+    const name = $pos.node(d).type.name
     if (name === 'paragraph' || name === 'heading') {
       // before(depth) 是节点起点（段落内容从 +1 开始）
-      const chunks = buildChunks($from.node(d), $from.before(d))
+      const chunks = buildChunks($pos.node(d), $pos.before(d))
       return {
         text: chunkText(chunks),
         chunks,
@@ -132,6 +145,137 @@ export function getSelectionInfo(editor: Editor | null): SelectionInfo | null {
     sentenceTo: located.sentenceTo,
     paragraph: block.text.slice(0, 400),
     isWholeSentence,
+  }
+}
+
+// ===== 光标 / 点击处的单词 =====
+
+/** 词字符：字母 / 数字 / 下划线（和上面 /\w+$/ 的判定保持一致）。 */
+function isWordChar(c: string): boolean {
+  return /[A-Za-z0-9_]/.test(c)
+}
+
+/** 撇号 —— don't 里的那个，词**内部**的撇号算一个词的一部分。 */
+function isApostrophe(c: string): boolean {
+  return c === "'" || c === '\u2019'
+}
+
+/** 取词的方式 */
+export type WordPickMode = 'leftEdge' | 'any'
+
+/**
+ * 从 offset 处找词。
+ *
+ * mode='leftEdge' → 光标必须正好停在词的**最左侧**（词在光标右边）；
+ *                    光标在词中间（方向键走进这个词）不算。
+ * mode='any'      → 点在词上就算：光标在词里取整个词；
+ *                    光标停在词的**末尾**（点在词的右半边）取左边那个词。
+ */
+function scanWord(
+  text: string,
+  offset: number,
+  mode: WordPickMode,
+): { from: number; to: number } | null {
+  if (offset < 0 || offset > text.length) return null
+
+  let s = offset
+  let e = offset
+
+  if (isWordChar(text[offset] ?? '')) {
+    // 向左扩
+    while (s > 0) {
+      const c = text[s - 1]
+      if (isWordChar(c)) {
+        s -= 1
+        continue
+      }
+      // 词内部的撇号：don't 的 n 前面那个 ' 算词的一部分
+      if (isApostrophe(c) && s >= 2 && isWordChar(text[s - 2])) {
+        s -= 2
+        continue
+      }
+      break
+    }
+
+    // 向右扩
+    while (e < text.length) {
+      const c = text[e]
+      if (isWordChar(c)) {
+        e += 1
+        continue
+      }
+      if (isApostrophe(c) && e + 1 < text.length && isWordChar(text[e + 1])) {
+        e += 2
+        continue
+      }
+      break
+    }
+  } else if (mode === 'any' && offset > 0 && isWordChar(text[offset - 1])) {
+    // 光标停在词的末尾（点在词的右半边）→ 取左边那个词
+    e = offset
+    s = offset - 1
+    while (s > 0) {
+      const c = text[s - 1]
+      if (isWordChar(c)) {
+        s -= 1
+        continue
+      }
+      if (isApostrophe(c) && s >= 2 && isWordChar(text[s - 2])) {
+        s -= 2
+        continue
+      }
+      break
+    }
+  } else {
+    return null
+  }
+
+  if (mode === 'leftEdge' && s !== offset) return null
+  return { from: s, to: e }
+}
+
+/**
+ * 光标 / 点击处的单词，组装成 SelectionInfo（和选区那套同一个结构）。
+ *
+ * 两种触发：
+ *   mode='leftEdge' → 光标停在词的最左侧（词在光标右边）
+ *   mode='any'      → 鼠标点在这个词上（点词中间、点词的右半边都算）
+ */
+export function getWordInfoAt(
+  editor: Editor | null,
+  pos: number,
+  mode: WordPickMode,
+): SelectionInfo | null {
+  if (!editor) return null
+
+  const block = findTextblockAt(editor, pos)
+  if (!block) return null
+
+  const offset = textOffsetAt(block.chunks, pos)
+  const word = scanWord(block.text, offset, mode)
+  if (!word) return null
+
+  const from = posAt(block.chunks, word.from, 'start')
+  const to = posAt(block.chunks, word.to, 'end')
+  const text = block.text.slice(word.from, word.to).trim()
+  if (!text) return null
+
+  const located = locateSentence(block, from, to)
+  if (!located) return null
+
+  // 和选区分类同一套判定：纯单词 → 'word'，带撇号的（don't）算 'phrase'
+  const kind: SelectionKind = /^\w+$/.test(text) ? 'word' : 'phrase'
+
+  return {
+    kind,
+    from,
+    to,
+    text,
+    sentence: located.sentence.text,
+    sentenceFrom: located.sentenceFrom,
+    sentenceTo: located.sentenceTo,
+    paragraph: block.text.slice(0, 400),
+    isWholeSentence: false,
   }
 }
 

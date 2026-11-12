@@ -32,11 +32,32 @@ const userStore = new UserStore({ db })
 if (userStore.countUsers() === 0) {
   const username = envValue('ADMIN_USERNAME') ?? 'admin'
   const password = envValue('ADMIN_PASSWORD') ?? 'admin123'
-  userStore.createUser(username, password)
+  userStore.createUser(username, password, { role: 'admin' })
   // **不回显密码** —— 它在 server/.env 里，日志里只说账号名
   console.log(
     `[tiptap-rewrite-server] 已创建默认账号：${username}（密码见 server/.env 的 ADMIN_PASSWORD）`,
   )
+}
+
+/**
+ * 管理员名单。
+ *
+ * ADMIN_USERNAME（主管理员）+ ADMIN_USERS（逗号分隔，可以多个）。
+ * 名单里的人每次启动都会被提成 admin —— .env 就是管理员名单的唯一来源。
+ */
+const adminNames = new Set<string>()
+const primaryAdmin = envValue('ADMIN_USERNAME')
+if (primaryAdmin) adminNames.add(primaryAdmin)
+for (const raw of (envValue('ADMIN_USERS') ?? '').split(',')) {
+  const name = raw.trim()
+  if (name) adminNames.add(name)
+}
+for (const name of adminNames) {
+  const user = userStore.findUserByUsername(name)
+  if (user && user.role !== 'admin') {
+    userStore.setUserRole(user.id, 'admin')
+    console.log(`[tiptap-rewrite-server] 已把 ${name} 设为管理员`)
+  }
 }
 
 /**

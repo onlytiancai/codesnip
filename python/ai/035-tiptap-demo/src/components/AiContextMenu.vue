@@ -51,6 +51,9 @@ const emit = defineEmits<{
   close: []
 }>()
 
+/** 顶栏的两个 tab（词 / 短语选中时才有） */
+type Tab = 'candidates' | 'lookup'
+
 /** 面板模式 */
 type Panel =
   | { mode: 'candidates'; candidates: string[] }
@@ -68,6 +71,8 @@ type Panel =
   | { mode: 'result'; original: string; rewritten: string }
 
 const panel = ref<Panel | null>(null)
+/** 当前停在哪个 tab */
+const tab = ref<Tab>('candidates')
 const loading = ref(false)
 /** loading 时显示什么 —— 查词是本地查库，别说「模型生成中…」 */
 const loadingLabel = ref('模型生成中…')
@@ -96,8 +101,13 @@ function resetState() {
   draft.value = ''
 }
 
-// 选区变了（或者组件是新开的）→ 状态清零
-watch(() => props.selection, resetState)
+/**
+ * 词 / 短语选中 → 顶栏用两个 tab（其它候选单词 / 查词），直接落在第一个 tab。
+ * 整句选中 → 还是原来的菜单项清单（改写语气 / 润色 / 精简 / 扩写）。
+ *
+ * 关掉 AI 能力（英译中）时也走菜单项清单 —— 那边只剩「📖 查词」。
+ */
+const showTabs = computed(() => props.allowAi && props.selection.kind !== 'sentence')
 
 /** 统一的请求包装：管 loading / error / 取消。 */
 async function run<T>(
@@ -140,7 +150,30 @@ const menuTitle = computed(() =>
 
 // ---- 候选词 / 短语 ----
 
-async function openCandidates() {
+/** 候选词请求的防抖：拖选时选区一直在变，等它稳下来再发。 */
+const CANDIDATES_DELAY = 250
+let candidatesTimer: ReturnType<typeof setTimeout> | undefined
+
+/**
+ * 打开候选词面板。
+ *
+ * 面板**先摆出来**（空列表 + loading），请求延后一点点再发 ——
+ * 拖选的时候选区每挪一下就变一次，不防抖的话每变一次发一次请求。
+ */
+function openCandidates() {
+  panel.value = { mode: 'candidates', candidates: [] }
+  loading.value = true
+  loadingLabel.value = '模型生成中…'
+  errorMsg.value = ''
+  abortInFlight()
+  if (candidatesTimer) clearTimeout(candidatesTimer)
+  candidatesTimer = setTimeout(() => {
+    candidatesTimer = undefined
+    void fetchCandidates()
+  }, CANDIDATES_DELAY)
+}
+
+async function fetchCandidates() {
   const s = sel.value
   const cands = await run((signal) =>
     fetchSelectionCandidates(
@@ -159,6 +192,13 @@ async function openCandidates() {
     return
   }
   panel.value = { mode: 'candidates', candidates: cands }
+}
+
+/** 切顶栏的 tab。 */
+function switchTab(next: Tab) {
+  tab.value = next
+  if (next === 'candidates') void openCandidates()
+  else void runLookup()
 }
 
 // ---- 整句改写 ----
@@ -302,15 +342,21 @@ function reject() {
 
 function backToMenu() {
   abortInFlight()
-  panel.value = null
   errorMsg.value = ''
+  // tab 模式下「返回」= 回到「其它候选单词」那个 tab
+  if (showTabs.value) {
+    switchTab('candidates')
+    return
+  }
+  panel.value = null
 }
 
 /** Escape 逐层退出：面板 → 菜单 → 关闭 */
 function onKeydown(e: KeyboardEvent) {
   if (e.key !== 'Escape') return
   e.stopPropagation()
-  if (panel.value) {
+  // tab 模式下面板一直开着，没有「上一层」可退 → 直接关掉
+  if (panel.value && !showTabs.value) {
     backToMenu()
     return
   }
@@ -329,9 +375,25 @@ onBeforeUnmount(() => {
 const instructionInput = ref<HTMLTextAreaElement | null>(null)
 watch(instructionInput, (el) => el?.focus())
 
+// 选区变了（或者组件是新开的）→ 状态清零；词/短语直接落在「其它候选单词」。
+//
+// 两个 watcher 都放 setup 末尾：immediate 回调是同步跑的，
+// 选区那个会摸 candidatesTimer、autoAction 那个会摸 sel / panel ——
+// 写在这些声明前面就还在 TDZ 里。
+//
+// 顺序也有讲究：选区的 watcher 要在 autoAction 前面 —— 它会 resetState()
+// （顺手掐掉在飞的请求），反过来会把 autoAction 刚发出去的请求掐掉。
+watch(
+  () => props.selection,
+  () => {
+    resetState()
+    tab.value = 'candidates'
+    if (showTabs.value) void openCandidates()
+  },
+  { immediate: true },
+)
+
 // autoAction：工具栏按钮直接落到某个面板。
-// 必须放在 setup 末尾——immediate 回调是同步跑的，而 runAction 会摸 sel / panel，
-// 写在它们前面就还在 TDZ 里。
 watch(
   () => props.autoAction,
   (action) => {
@@ -350,18 +412,32 @@ watch(
       <button type="button" class="ai-menu__close" aria-label="关闭" @click="emit('close')">×</button>
     </header>
 
-    <!-- ============ 主菜单 ============ -->
-    <nav v-if="!panel" class="ai-menu__items">
+    <!-- ============ 顶栏 tab（词 / 短语选中） ============ -->
+    <div v-if="showTabs" class="ai-menu__tabs" role="tablist">
       <button
-        v-if="allowAi && selection.kind !== 'sentence'"
         type="button"
-        class="ai-menu__item"
-        :disabled="loading"
-        @click="openCandidates"
+        class="ai-menu__tab"
+        :class="{ 'ai-menu__tab--active': tab === 'candidates' }"
+        role="tab"
+        :aria-selected="tab === 'candidates'"
+        @click="switchTab('candidates')"
       >
-        {{ selection.kind === 'word' ? '🔄 替换词' : '🔄 替换短语' }}
+        其它候选单词
       </button>
+      <button
+        type="button"
+        class="ai-menu__tab"
+        :class="{ 'ai-menu__tab--active': tab === 'lookup' }"
+        role="tab"
+        :aria-selected="tab === 'lookup'"
+        @click="switchTab('lookup')"
+      >
+        查词
+      </button>
+    </div>
 
+    <!-- ============ 菜单项清单（整句 / 关掉 AI 能力时） ============ -->
+    <nav v-if="!showTabs && !panel" class="ai-menu__items">
       <template v-if="allowAi && selection.kind === 'sentence'">
         <button
           type="button"
@@ -382,7 +458,7 @@ watch(
         </button>
       </template>
 
-      <!-- 查词：本地词库，两个方向都有 -->
+      <!-- 查词：本地词库（tab 模式下它在顶栏，这里是关掉 AI 能力时的入口） -->
       <button
         v-if="selection.kind === 'word'"
         type="button"
@@ -392,30 +468,10 @@ watch(
       >
         📖 查词
       </button>
-
-      <button
-        v-if="allowAi && selection.kind !== 'phrase'"
-        type="button"
-        class="ai-menu__item"
-        :disabled="loading"
-        @click="runGrammarCheck"
-      >
-        🔍 检查语法
-      </button>
-
-      <button
-        v-if="allowAi"
-        type="button"
-        class="ai-menu__item"
-        :disabled="loading"
-        @click="panel = { mode: 'instruction' }"
-      >
-        💬 自定义指令…
-      </button>
     </nav>
 
     <!-- ============ 二级面板 ============ -->
-    <div v-else class="ai-menu__panel">
+    <div v-if="panel" class="ai-menu__panel">
       <!-- loading -->
       <div v-if="loading" class="ai-menu__status">{{ loadingLabel }}</div>
 
@@ -529,7 +585,7 @@ watch(
           </div>
         </template>
 
-        <button type="button" class="ai-menu__back" @click="backToMenu">返回</button>
+        <button v-if="!showTabs" type="button" class="ai-menu__back" @click="backToMenu">返回</button>
       </div>
 
       <!-- 指令输入 -->
@@ -574,6 +630,11 @@ watch(
           <button type="button" :disabled="!instruction.trim()" @click="refineInstruction">继续生成</button>
         </details>
       </div>
+    </div>
+
+    <!-- tab 模式下 panel 还没摆出来的瞬间（正常只有一帧） -->
+    <div v-else-if="showTabs" class="ai-menu__panel">
+      <div class="ai-menu__status">{{ loadingLabel }}</div>
     </div>
   </div>
 </template>

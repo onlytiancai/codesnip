@@ -86,15 +86,22 @@ pnpm cli models
 - **句子对齐是双栏联动的唯一依据**：`useWritingContext.ts` 按标点切句（中文 `。！？.!?`、英文 `.!?`，换行也算边界），`sentenceIndex` 是**文档级全局索引**（跨段落累计）。源侧和译侧的句子必须**数量相同、顺序一致** —— 任何一边多句/少句，高亮和「对应中文原文」就全错位。
   **点不是见到就断句**：`PHP8.4` / `3.14` / `www.a.com` / `Mr. Smith` / `e.g.` / `U.S.` 里的点都不是句号 —— 规则：点后面（跳过右括号引号）得是空白、中日韩字符或结尾，且点前面那个词不能是缩写。
 - **选区分类**：`useSelectionKind.getSelectionInfo()` 返回 `word` / `phrase` / `sentence`，跨句跨段或只有光标返回 `null`（不弹菜单）。工具栏「✨ AI」下拉里的那几项用 `getSentenceAtCursor()`，作用于光标所在句，不需要选中字符。
+- **点词即候选**（只中译英的英文框，`aiEnabled` 时才开）：光标停在某个词的**最左侧**、或鼠标点在这个词上 → 直接弹这个词的**候选词**面板（不用先拖选），点候选词就替换掉原词。找词用 `useSelectionKind.getWordInfoAt(editor, pos, mode)`，`mode` = `'leftEdge'`（只认词首，词在光标右边）/ `'any'`（点击取整个词，词内撇号算一个词）。
+  ⚠️ ProseMirror 的 `handleClick` 跑在**选区更新之前**（mouseup 里先调它再更新选区）—— 点击那条路必须用它给的 `pos`；选区更新那条路要用 `lastClickAt`（500ms 内）让开，否则「词首」规则会把点击的结果顶掉。另外打字时 transaction 改了文档，要靠 `transaction.docChanged` 挡掉，不然每敲一个字都会弹一次。
+  ⚠️ **菜单不许「闪」**：点词时菜单要**原地换内容**，不能先关掉再弹出来。所以 `onShellMousedownCapture` 遇到「点在词上」时**不关菜单**，`detectSelection` 遇到「只有光标 + 刚点过鼠标」时也**不关**。
 - **工具栏的 AI 指令收在下拉里**（`TiptapEditor.vue`）：工具栏只留一个「✨ AI」按钮，点开才是 6 项清单。下拉**必须 Teleport 到 body** —— `.editor-shell` 是 `overflow: hidden`，放在工具栏里会被裁掉；用 `position: fixed` + 按钮的 `getBoundingClientRect()` 定位（右对齐、下方放不下就往上翻）。点外面 / Esc / 选一项都收起。
   ⚠️ 工具栏按钮的样式要用 `.toolbar .xxx` **复合选择器**：`.toolbar button` 的特异性比单个类高，只写 `.toolbar__btn-copy` 会被盖掉。
 - **浮动菜单定位**（`AiContextMenu.vue`）：`editor.view.coordsAtPos()` 取选区上下两条 client rect → `Teleport` 到 body → `position: fixed` 定位。**定位必须按菜单实测高度算**（`ResizeObserver` 盯高度），不能用估计值，否则查词词条 / 语法结果卡片会被裁到视口外。菜单整体在 `mousedown` 上 `preventDefault`，否则 ProseMirror 先吃掉选区，点候选时 range 已经没了。
+- **悬浮框的结构**（`AiContextMenu.vue`）：选中**词 / 短语**时顶栏是**两个 tab** ——「其它候选单词」（默认落在这个 tab，直接给候选词）/「查词」；选中**整句**时是菜单项清单（改写语气 / 润色 / 精简 / 扩写）。**语法检查、自定义指令已从悬浮框移除**（工具栏「✨ AI」下拉里还有）。英译中（`allowAi=false`）不出现 tab，只剩「📖 查词」。
+  ⚠️ 两个 `immediate: true` 的 watcher（选区的、autoAction 的）**都放 setup 末尾**，且**选区的那个在前** —— 它会 `resetState()`（顺手 `abort()` 在飞的请求），反过来会把 autoAction 刚发出去的请求掐掉。选区那个还会摸 `candidatesTimer`，写在它声明前面就是 TDZ。
+  ⚠️ 候选词请求**防抖 250ms**：拖选时选区每挪一下就变一次，不防抖的话每变一次发一次请求。
 - **API 调用**统一走 `src/services/http.ts`（`http.get/post/put/del`），它会把后端 `{error}` 字段捞成 `ApiError`。`services/translate.ts` 是例外（自带 `pLimit` 并发 3）。
 - **实时翻译**（`EditorPage.vue`，默认关，只中译英方向）：中文改了停手 800ms 自动翻，**以句子为单位** —— `liveCache`（源句→译文，语气算进 key）复用没改过的句子，只翻新增/改动的；写回时 `TiptapEditor.applyParagraphs()` **只替换变了的那几段**（从后往前改，避免前面段落的 doc 位置被带偏），整篇 `setContent` 会让译文框闪一下、滚动跳回顶部。段落数变了才整体重建。
 - **工具栏的清空/复制跟着源译侧走**：两个编辑器组件都有 `isSource` prop —— **源侧渲染「清空」，译侧渲染「复制」**，切方向时自动互换（中译英：中文=清空 / 英文=复制；英译中反过来）。复制逻辑抽在 `composables/useCopyContent.ts`（纯文本提取 + 剪贴板 + 「✓ 已复制」提示），两个框共用。
 - **源侧清空 → 译侧跟着清**：译文没意义了，`EditorPage.vue` 里清掉译侧和对齐表。
   ⚠️ **不能 `watch(sourceHtml)`**（它是随 mode 变的 computed）—— 切方向的瞬间新方向的源侧通常是空的，会把另一栏的用户内容误清掉。要**分别 watch `zhHtml` / `enHtml`**，再按当前 `sourceLang` 判断该不该联动。
 - 英译中模式下英文侧 `aiEnabled=false` —— 改写 / 润色 / 语法 / 指令全部关掉，只留「查词」。
+- **设置页的 tab**（`SettingsPage.vue`）：LLM 供应商 / 提示词 / 词库 / **我的套餐** / **用户管理**（最后一个只有 `user.role === 'admin'` 才渲染）。`PlanPanel.vue` 管自己的套餐和申请，`AdminPanel.vue` 管用户 / 审核 / 邀请码池。
 
 ## 后端架构要点
 
@@ -132,14 +139,23 @@ pnpm cli models
 - **`day` 列是 INTEGER（YYYYMMDD）**，不是 TEXT —— SQLite 没有真正的 DATE 类型，INTEGER 比较没有 affinity 歧义。日/月边界按**服务端本地时区**算。
 - CLI 不经过 HTTP → 不计入任何用户。
 
+## 套餐、配额与管理员（新增）
+
+- **套餐定义在代码里**（`server/src/config/plans.ts`），库里只存 `users.plan_id`。四档：free（2万/日、10万/月，新用户默认）/ basic / pro / unlimited（0/0 = 不限，只能管理员发码）。**配额单位是 token**（输入+输出）。
+- **超额 = 直接拒绝**：`requireUser` 守卫放行前查「今日/本月已用 vs 上限」，超了 `403` + 文案。**管理员不受限**。只挡消耗 token 的那批接口 —— 查词/设置/**套餐申请**不受影响（超配额也得能点升级）。
+- **三条守卫**（都在 `routes/auth.ts`）：`requireUser`（登录 + 查配额）、`requireLogin`（只要登录，不查配额，给套餐路由用）、`requireAdmin`（登录 + role=admin）。后两个**不给本地工具放行**。
+- **两条升级路**：① 邀请码（一次性永久升级，抢码用 `UPDATE ... WHERE used_by IS NULL AND revoked_at IS NULL`，并发下只成功一个）② 升级申请（管理员审核通过时顺手改 `users.plan_id`）。
+- **角色 / 禁用**：`users.role`（user/admin）+ `users.disabled_at`。`.env` 的 `ADMIN_USERNAME` + `ADMIN_USERS`（逗号分隔）是管理员名单，**每次启动都把名单里的人提成 admin**。禁用时**删掉他的所有会话**（立即生效）。
+- **老库迁移**：`config/db.ts` 的 `ensureColumns()` —— `ALTER TABLE ADD COLUMN` 没有 `IF NOT EXISTS`，重复跑会报 duplicate column，所以先查 `PRAGMA table_info` 再决定加不加。
+
 ## 调试日志
 
 `server/.env` 的 `DEBUG=1` 一个开关同时控制 server 端（`utils/debug.ts` 的 `debugLog`）和浏览器端（前端通过 `GET /api/debug` 拿到开关后给 `window.fetch` 打补丁）。**前端不单独配 .env。**
 
 ## 配置
 
-- `server/.env`（**不进 git**）：`PORT` / `OLLAMA_HOST` / `OLLAMA_MODEL` / `MAX_CANDIDATES` / `<PROVIDER_ID>_KEY` / `VOCAB_PATH` / `DB_PATH` / `ADMIN_USERNAME` / `ADMIN_PASSWORD` / `AUTH_LOCAL_BYPASS` / `DEBUG`。启动时自动加载（`config/env.ts`），`SERVER_ENV_FILE` 可换文件。
-- `server/data/app.db`（**不进 git**）：配置 + 用户 + 会话 + token 用量。库里**永远没有明文 key** —— provider 的 `apiKeyEnv` 只记变量名。
+- `server/.env`（**不进 git**）：`PORT` / `OLLAMA_HOST` / `OLLAMA_MODEL` / `MAX_CANDIDATES` / `<PROVIDER_ID>_KEY` / `VOCAB_PATH` / `DB_PATH` / `ADMIN_USERNAME` / `ADMIN_PASSWORD` / `ADMIN_USERS` / `AUTH_LOCAL_BYPASS` / `DEBUG`。启动时自动加载（`config/env.ts`），`SERVER_ENV_FILE` 可换文件。
+- `server/data/app.db`（**不进 git**）：配置 + 用户 + 会话 + token 用量 + 升级申请 + 邀请码池。库里**永远没有明文 key** —— provider 的 `apiKeyEnv` 只记变量名。
 - 切换生效 provider **即时生效**，不用重启后端（服务层每次请求都重新问 `activeProvider.ts` 的 getter）。
 - 改 `VOCAB_PATH` 后可在设置页「词库」tab 点「重新加载」，不用重启。
 
@@ -153,6 +169,8 @@ pnpm cli models
 
 ## 容易踩的坑
 
+- **`requireUser` 会查配额** —— 新加「消耗 token 的接口」要挂它的时候想清楚：超配额的用户会被 403 挡掉，这是有意的。但套餐申请 / 兑换要挂 **`requireLogin`**（不查配额），否则超配额的用户连升级都点不了。
+- **`requireLogin` / `requireAdmin` 不给本地工具（curl / CLI）放行** —— 只有 `requireUser` 有那个 bypass。管理操作必须有真人身份。
 - 后端库里 provider 的 `apiKeyEnv` 存的是**变量名**；`PUT /api/providers` 收 `apiKey` 会直接 400。
 - `structuredOutput` 的 `temperature` 对 Anthropic 无效（API 已移除采样参数）；Anthropic 的 `max_tokens` 是必填，且是「思考 + 回复」的共同上限（默认 16000）。
 - OpenAI 的 `strict: true` 只支持 JSON Schema 子集 → 代码里固定 `strict: false`。

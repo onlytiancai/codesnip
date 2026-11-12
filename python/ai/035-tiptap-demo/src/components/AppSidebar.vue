@@ -69,6 +69,12 @@ function fmt(n: number | undefined): string {
   if (n === undefined) return '—'
   return n.toLocaleString('zh-CN')
 }
+
+/** 配额条百分比（0~100）。上限 0 = 不限 → 0。 */
+function percent(used: number | undefined, limit: number | undefined): number {
+  if (!used || !limit || limit <= 0) return 0
+  return Math.min(100, Math.round((used / limit) * 100))
+}
 </script>
 
 <template>
@@ -116,6 +122,24 @@ function fmt(n: number | undefined): string {
         <span class="sidebar__icon">👤</span>
         <span v-if="!collapsed" class="sidebar__user-name">
           {{ user?.username ?? '未登录' }}
+        </span>
+        <span v-if="!collapsed && user" class="sidebar__plan">{{ user.plan.label }}</span>
+      </div>
+
+      <!-- 今日配额条 -->
+      <div v-if="!collapsed && user" class="sidebar__quota">
+        <div class="sidebar__bar">
+          <div
+            class="sidebar__bar-fill"
+            :class="{ 'sidebar__bar-fill--over': user.quota.dailyExceeded }"
+            :style="{
+              width: `${percent(user.quota.dailyUsed, user.quota.dailyLimit)}%`,
+            }"
+          />
+        </div>
+        <span class="sidebar__quota-num">
+          今日 {{ fmt(user.quota.dailyUsed) }} /
+          {{ user.quota.dailyLimit > 0 ? fmt(user.quota.dailyLimit) : '不限' }}
         </span>
       </div>
 

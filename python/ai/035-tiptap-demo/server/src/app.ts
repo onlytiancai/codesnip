@@ -5,7 +5,9 @@ import {
   PROTECTED_API_PATHS,
   requireUser,
 } from './routes/auth.js'
+import { createAdminRouter } from './routes/admin.js'
 import { createDictionaryRouter } from './routes/dictionary.js'
+import { createPlansRouter } from './routes/plans.js'
 import { createRewriteRouter } from './routes/rewrite.js'
 import { createSettingsRouter } from './routes/settings.js'
 import { createTranslateRouter } from './routes/translate.js'
@@ -48,6 +50,10 @@ export function createApp(options: CreateAppOptions): Express {
     for (const path of PROTECTED_API_PATHS) {
       app.use(path, guard)
     }
+    // 套餐（申请 / 兑换）和管理端 —— 守卫挂在各自 router 内部，
+    // 免得把「只要登录就行」和「查配额」的规则搞混
+    app.use(createPlansRouter({ userStore: options.userStore }))
+    app.use(createAdminRouter({ userStore: options.userStore }))
   }
 
   app.use(createRewriteRouter(options.aiService))

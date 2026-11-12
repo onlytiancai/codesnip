@@ -20,6 +20,8 @@ import { Router, type Request, type RequestHandler } from 'express'
 import { SESSION_COOKIE, SESSION_TTL_MS, UserStore } from '../config/userStore.js'
 import type { User } from '../config/userStore.js'
 import { runAsUser } from '../services/requestContext.js'
+import { getPlan, publicPlan } from '../config/plans.js'
+import { quotaError, quotaStatus } from '../services/quota.js'
 import { debugLog } from '../utils/debug.js'
 
 export interface CreateAuthRouterOptions {
@@ -106,6 +108,19 @@ export function requireUser(userStore: UserStore): RequestHandler {
     const user = token ? userStore.findSessionUser(token) : undefined
 
     if (user) {
+      // 被禁用 → 403（不是 401：登录态是好的，只是账号被停了）
+      if (user.disabledAt) {
+        debugLog('[auth]', `${req.method} ${req.path}`, '→ 账号已禁用')
+        res.status(403).json({ error: '账号已被禁用，请联系管理员' })
+        return
+      }
+      // 配额：超了直接拒。管理员不限。
+      const quota = quotaError(userStore, user)
+      if (quota) {
+        debugLog('[quota]', `${req.method} ${req.path}`, '→', quota)
+        res.status(403).json({ error: quota })
+        return
+      }
       debugLog('[auth]', `${req.method} ${req.path}`, '→', user.username)
       runAsUser({ id: user.id, username: user.username }, next)
       return
@@ -122,8 +137,64 @@ export function requireUser(userStore: UserStore): RequestHandler {
   }
 }
 
+/**
+ * 只要登录，**不查配额**。
+ *
+ * 套餐申请 / 邀请码兑换这类接口用它 —— 超配额的用户也得能点升级。
+ * 也不给本地工具放行：这些操作必须有真人身份。
+ */
+export function requireLogin(userStore: UserStore): RequestHandler {
+  return (req, res, next) => {
+    const token = readCookie(req, SESSION_COOKIE)
+    const user = token ? userStore.findSessionUser(token) : undefined
+    if (!user) {
+      return res.status(401).json({ error: '需要登录' })
+    }
+    if (user.disabledAt) {
+      return res.status(403).json({ error: '账号已被禁用，请联系管理员' })
+    }
+    runAsUser({ id: user.id, username: user.username }, next)
+  }
+}
+
+/**
+ * 管理员守卫：登录 + role = 'admin'。
+ *
+ * 本地工具（curl / CLI）不给放行 —— 管理操作必须有人。
+ */
+export function requireAdmin(userStore: UserStore): RequestHandler {
+  return (req, res, next) => {
+    const token = readCookie(req, SESSION_COOKIE)
+    const user = token ? userStore.findSessionUser(token) : undefined
+    if (!user) {
+      return res.status(401).json({ error: '需要登录' })
+    }
+    if (user.disabledAt) {
+      return res.status(403).json({ error: '账号已被禁用，请联系管理员' })
+    }
+    if (user.role !== 'admin') {
+      debugLog('[auth]', `${req.method} ${req.path}`, '→ 不是管理员')
+      return res.status(403).json({ error: '需要管理员权限' })
+    }
+    runAsUser({ id: user.id, username: user.username }, next)
+  }
+}
+
 function publicUser(user: User): { id: number; username: string } {
   return { id: user.id, username: user.username }
+}
+
+/** 完整用户信息：角色 + 套餐 + 配额 + 禁用状态。 */
+function fullUser(user: User, userStore: UserStore): Record<string, unknown> {
+  const plan = getPlan(user.planId)
+  return {
+    ...publicUser(user),
+    role: user.role,
+    planId: plan.id,
+    plan: publicPlan(plan),
+    quota: quotaStatus(userStore, user),
+    disabled: Boolean(user.disabledAt),
+  }
 }
 
 export function createAuthRouter(options: CreateAuthRouterOptions): Router {
@@ -160,7 +231,7 @@ export function createAuthRouter(options: CreateAuthRouterOptions): Router {
     }
     startSession(res, user)
     debugLog('[auth]', '注册成功:', username)
-    res.status(201).json({ user: publicUser(user) })
+    res.status(201).json({ user: fullUser(user, userStore) })
   })
 
   router.post('/api/auth/login', (req, res) => {
@@ -174,10 +245,14 @@ export function createAuthRouter(options: CreateAuthRouterOptions): Router {
       debugLog('[auth]', '登录失败:', body.username.trim())
       return res.status(401).json({ error: '用户名或密码不对' })
     }
+    if (user.disabledAt) {
+      debugLog('[auth]', '登录被拒（账号已禁用）:', user.username)
+      return res.status(403).json({ error: '账号已被禁用，请联系管理员' })
+    }
     userStore.pruneExpiredSessions()
     startSession(res, user)
     debugLog('[auth]', '登录成功:', user.username)
-    res.json({ user: publicUser(user) })
+    res.json({ user: fullUser(user, userStore) })
   })
 
   router.post('/api/auth/logout', (req, res) => {
@@ -195,9 +270,11 @@ export function createAuthRouter(options: CreateAuthRouterOptions): Router {
       return res.status(401).json({ error: '需要登录' })
     }
     res.json({
-      user: publicUser(user),
+      user: fullUser(user, userStore),
       today: userStore.usageToday(user.id),
       month: userStore.usageThisMonth(user.id),
+      /** 有没有待审核的升级申请 */
+      pendingRequest: userStore.hasPendingRequest(user.id),
     })
   })
 
