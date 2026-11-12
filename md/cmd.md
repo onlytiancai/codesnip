@@ -199,3 +199,30 @@ ssh 禁止密码登录
 
     ssh-keygen -p -f ~/.ssh/id_rsa
     ssh-keygen -p -f ~/.ssh/id_ed25519
+
+ZeroTier 使用
+
+    ip -d link show ztwfuexqwn
+    ps aux | grep -Ei 'vpn|wireguard|zerotier|tailscale|openvpn|sing-box|clash|mihomo'
+    ip route
+    ip rule
+    ethtool -i ztwfuexqwn
+
+    sudo zerotier-cli status
+    sudo zerotier-cli listnetworks
+    sudo zerotier-cli peers
+    sudo zerotier-cli info
+    sudo zerotier-cli join <NETWORK_ID>
+    sudo zerotier-cli leave <NETWORK_ID>
+
+
+卸载 ZeroTier
+
+    sudo systemctl stop zerotier-one
+    sudo systemctl disable zerotier-one
+    sudo apt purge zerotier-one -y
+    sudo apt autoremove -y
+    sudo rm -rf /var/lib/zerotier-one
+    pgrep -a zerotier
+    ip link show | grep -i zt
+    systemctl status zerotier-one
