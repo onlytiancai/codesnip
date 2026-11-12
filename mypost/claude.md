@@ -1,0 +1,21 @@
+## 如何更好的使用 Claude Code 开发
+
+- 使用长期记忆 `~/.claude/CLAUDE.md` 和 `./.claude/CLAUDE.md` 记录自己的偏好，比如用中文回复我，我使用 pnpm 等
+- 使用 [chrome-devtools-tcp](https://github.com/ChromeDevTools/chrome-devtools-mcp) 辅助前端开发，它会自动查看控制台错误，网络请求，页面截图等
+- 在项目里用 .mcp.json 设置本项目用的 MCP，这样不同的项目可以使用不同的 MCP
+- MCP（模型上下文协议）是一种标准化协议，它使人工智能助手能够访问外部数据源和工具。
+    - 例子：Nuxt UI 提供了一个 [MCP 服务器](https://ui.nuxt.com/docs/getting-started/ai/mcp)，允许 Claude Code 直接访问组件信息、源代码和使用示例。
+- LLMs.txt 是一种专为大型语言模型 (LLM) 设计的结构化文档格式，很多框架提供了它。
+    - 例子：Nuxt UI 提供 [LLMs.txt](https://ui.nuxt.com/docs/getting-started/ai/llms-txt) 文件，其中包含有关我们组件库的全面信息，使 AI 工具能够轻松理解并协助 Nuxt UI 开发。
+- Skills 是结构化的知识文件，它为 Agent 提供关于库、框架或代码库的上下文信息。与提供实时工具访问的 MCP 服务器不同，技能直接加载到代理的上下文中，以便它在整个对话过程中可以引用它们。
+    - 例子：Nuxt UI 提供了 [Skills](https://ui.nuxt.com/docs/getting-started/ai/skills), 教人工智能代理如何使用 Nuxt UI 构建用户界面：installation, theming, components, composables, forms, overlays, and layouts.
+- 假如你用的技术栈它没有提供 LLMs.txt 和 MCP，我的做法是自己写一个 html-to-md 的工具，把它的文档抓下来保存到本地，然后让 Claude Code 参考，也有一些相关的工具
+    - [Skill Seeker](https://github.com/moinulmoin/doc2skill) 是一款自动化工具，可以将任何文档网站转换为可用于生产环境的 Claude AI Skills，无需手动阅读和总结文档，即可完成这项工作。  
+    - [llms.txt generator](https://www.docsforllm.dev/)
+    - https://llmstxt.firecrawl.dev/
+- 创建项目里的 .claude/settings.json 自动允许一些命令，比如 pnpm 等
+- 允许 claude code 提交 git
+- 有些项目可以用 claude --dangerously-skip-permissions 自动全部授权，减少人工干预，不放心的话可以用 lumen 创建一个虚拟机
+- 总是先使用 plan 模式和 agent 多轮讨论需求，需求确认后再开始开发，不管是实现新功能，还是修复 bug。
+- 真正实现功能前，先让 agent 用 tailwind 画出原型图确认需求。
+- 使用 hooks 在 agent 需要人工干预时，弹出一个桌面通知，这样就不用担心忘记看 agent 运行情况了。

@@ -1,11 +1,11 @@
 初始化 web app
 
     pnpm create vite
-    npm install tailwindcss @tailwindcss/vite
+    pnpm add tailwindcss @tailwindcss/vite
 
 
     % cat src/style.css 
-    @import "tailwindcss";%                                                                                                                                             
+    @import "tailwindcss";
 
     % cat vite.config.ts 
     import { defineConfig } from 'vite'
@@ -30,3 +30,6 @@
     </style>
 
     pnpm dev
+
+    .trae/rules/project_rules.md
+    技术栈：pnpm+vite+vue3+ts+tailwindcss4
