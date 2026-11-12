@@ -52,7 +52,15 @@ function switchMode(next: 'login' | 'register') {
 <template>
   <div class="login">
     <form class="login__card" @submit.prevent="submit">
-      <h1 class="login__title">{{ mode === 'login' ? '登录' : '注册' }}</h1>
+      <div class="login__brand">
+        <span class="login__logo">🌐</span>
+        <h1 class="login__brand-title">翻译工作台</h1>
+      </div>
+      <p class="login__subtitle">中英双向逐句翻译 · 写作 AI 助手</p>
+
+      <hr class="login__divider" />
+
+      <h2 class="login__title">{{ mode === 'login' ? '登录' : '注册' }}</h2>
       <p class="login__hint">
         {{
           mode === 'login'
@@ -67,7 +75,6 @@ function switchMode(next: 'login' | 'register') {
           v-model="username"
           class="field__input"
           autocomplete="username"
-          placeholder="admin"
           @keyup.enter="submit"
         />
       </label>

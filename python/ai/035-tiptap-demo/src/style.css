@@ -119,7 +119,7 @@ h1 {
   flex: 1;
 }
 
-.sidebar__foot {
+.sidebar__bottom {
   margin-top: auto;
   padding-top: 0.75rem;
   border-top: 1px solid var(--border);
@@ -170,22 +170,39 @@ h1 {
   padding-right: 0;
 }
 
-/* ===== 侧栏：用户信息 + token 用量 ===== */
+/* ===== 侧栏：用量 + 用户（点用户名弹菜单） ===== */
+
+/* 用量块：在用户块上面，铺满侧栏宽度 */
+.sidebar__usage-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 10px;
+}
+
+/* 用户块容器 —— 菜单相对它定位 */
+.sidebar__user-wrap {
+  position: relative;
+}
 
 .sidebar__user {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px 10px;
-  border-top: 1px solid var(--border);
-  margin-top: 8px;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
 }
 
-.sidebar__user-head {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
+.sidebar__user:hover {
+  background: #e9ecef;
 }
 
 .sidebar__user-name {
@@ -197,21 +214,69 @@ h1 {
 }
 
 .sidebar__plan {
-  margin-left: auto;
   flex: none;
   padding: 1px 6px;
   border-radius: 999px;
-  background: var(--toolbar-bg);
+  background: #fff;
   border: 1px solid var(--border);
   font-size: 0.68rem;
   color: var(--muted);
+}
+
+.sidebar__caret {
+  margin-left: auto;
+  flex: none;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+/* 用户菜单：从下往上弹（用户块贴着底边） */
+.sidebar__menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  min-width: 150px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  z-index: 20;
+}
+
+.sidebar__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sidebar__menu-item:hover {
+  background: #e9ecef;
+}
+
+/* 收缩态：菜单往右开，不然塞不下 */
+.sidebar--collapsed .sidebar__menu {
+  left: calc(100% + 6px);
+  right: auto;
+  bottom: 0;
 }
 
 .sidebar__quota {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding-left: 2.7em;
 }
 
 .sidebar__bar {
@@ -242,7 +307,6 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding-left: 2.7em;
 }
 
 .sidebar__usage-row {
@@ -262,24 +326,6 @@ h1 {
 
 .sidebar__usage-num {
   font-variant-numeric: tabular-nums;
-}
-
-.sidebar__logout {
-  margin-top: 2px;
-  margin-left: 2.7em;
-  padding: 2px 0;
-  border: none;
-  background: none;
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.72rem;
-  text-align: left;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.sidebar__logout:hover {
-  color: #a02020;
 }
 
 /* 收缩态：只留一个图标 */
@@ -313,9 +359,41 @@ h1 {
   box-shadow: var(--shadow);
 }
 
+.login__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.login__logo {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.login__brand-title {
+  margin: 0;
+  font-size: 1.3rem;
+  letter-spacing: 0.02em;
+}
+
+.login__subtitle {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.login__divider {
+  height: 1px;
+  margin: 14px 0;
+  border: none;
+  background: var(--border);
+}
+
 .login__title {
   margin: 0 0 2px;
-  font-size: 1.35rem;
+  font-size: 1.05rem;
 }
 
 .login__hint {
@@ -2465,9 +2543,4 @@ h1 {
 
 .account__form {
   margin-top: 12px;
-}
-
-/* 侧栏的「修改密码」：不是危险操作，别做成红色的 */
-.sidebar__logout--plain:hover {
-  color: var(--fg);
 }

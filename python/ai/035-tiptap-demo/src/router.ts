@@ -44,6 +44,18 @@ router.beforeEach(async (to) => {
   return true
 })
 
+/** 标签页标题跟着页面变。 */
+const TITLES: Record<string, string> = {
+  login: '登录 · 翻译工作台',
+  editor: '翻译工作台',
+  settings: '设置 · 翻译工作台',
+}
+
+router.afterEach((to) => {
+  const name = typeof to.name === 'string' ? to.name : ''
+  document.title = TITLES[name] ?? '翻译工作台'
+})
+
 // 接口返回 401（会话过期）→ 清掉登录态，跳登录页
 watch(user, (next) => {
   if (next === null && router.currentRoute.value.name !== 'login') {

@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from 'vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { MODES, setMode, useMode, type TranslationMode } from '../composables/useMode'
 import { doLogout, refreshUsage, useAuth } from '../composables/useAuth'
 import { debugLog } from '../utils/debug'
 
 /**
- * 左侧栏：可收缩，收纳翻译方向切换，底部钉着「⚙️ 设置」。
+ * 左侧栏：可收缩，收纳翻译方向切换。
  *
  * 收缩状态存 localStorage —— 刷新后还是收着的。
  *
- * 设置项**上方**是用户信息块：用户名 + 今日/本月 token 消耗。
+ * **左下角是用户块**：用户名 + 套餐徽标，点它弹出菜单（设置 / 退出登录）。
+ * 用户块**上面**是用量（今日配额条 + 今日/本月 token）。
  */
 
 const STORAGE_KEY = 'tiptap-demo.sidebar-collapsed'
@@ -47,28 +48,66 @@ const ORDER: TranslationMode[] = ['zh2en', 'en2zh']
 const USAGE_POLL_MS = 20_000
 let timer: number | undefined
 
+// ---------------------------------------------------------------------------
+// 用户菜单（点用户名弹出来）
+// ---------------------------------------------------------------------------
+
+const menuOpen = ref(false)
+/** 菜单所在的容器 —— 点它外面要关菜单。 */
+const menuWrap = ref<HTMLElement | null>(null)
+
+function toggleMenu() {
+  menuOpen.value = !menuOpen.value
+}
+
+/** 点菜单外面 → 关。 */
+function onDocMousedown(e: MouseEvent) {
+  if (!menuOpen.value) return
+  const el = menuWrap.value
+  if (el && !el.contains(e.target as Node)) {
+    menuOpen.value = false
+  }
+}
+
+/** Esc → 关。 */
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') menuOpen.value = false
+}
+
+/** 进设置页（和以前左下角那个「⚙️ 设置」一样）。 */
+async function goSettings() {
+  menuOpen.value = false
+  debugLog('[auth] 侧栏菜单点击设置')
+  await router.push('/settings')
+}
+
+/** 退出登录。 */
+async function logout() {
+  menuOpen.value = false
+  debugLog('[auth] 侧栏菜单点击退出登录')
+  await doLogout()
+  await router.push({ name: 'login' })
+}
+
+// 路由一变（比如点了设置）就把菜单收起来
+watch(() => route.path, () => {
+  menuOpen.value = false
+})
+
 onMounted(() => {
   void refreshUsage()
   timer = window.setInterval(() => {
     void refreshUsage()
   }, USAGE_POLL_MS)
+  document.addEventListener('mousedown', onDocMousedown)
+  document.addEventListener('keydown', onKeydown)
 })
 
 onUnmounted(() => {
   if (timer !== undefined) window.clearInterval(timer)
+  document.removeEventListener('mousedown', onDocMousedown)
+  document.removeEventListener('keydown', onKeydown)
 })
-
-async function logout() {
-  debugLog('[auth] 侧栏点击退出登录')
-  await doLogout()
-  await router.push({ name: 'login' })
-}
-
-/** 跳到设置页的「账号」tab 改密码。 */
-async function goAccount() {
-  debugLog('[auth] 侧栏点击修改密码')
-  await router.push({ path: '/settings', query: { tab: 'account' } })
-}
 
 /** 大数字加千分位，界面上好看点。 */
 function fmt(n: number | undefined): string {
@@ -115,87 +154,88 @@ function percent(used: number | undefined, limit: number | undefined): number {
       </button>
     </nav>
 
-    <!-- 用户信息 + token 用量（贴在设置项上方） -->
-    <div class="sidebar__user">
-      <div
-        class="sidebar__user-head"
-        :title="
-          collapsed
-            ? `${user?.username ?? ''}｜今日 ${fmt(usage?.today.totalTokens)} token`
-            : undefined
-        "
-      >
-        <span class="sidebar__icon">👤</span>
-        <span v-if="!collapsed" class="sidebar__user-name">
-          {{ user?.username ?? '未登录' }}
-        </span>
-        <span v-if="!collapsed && user" class="sidebar__plan">{{ user.plan.label }}</span>
-      </div>
-
-      <!-- 今日配额条 -->
-      <div v-if="!collapsed && user" class="sidebar__quota">
-        <div class="sidebar__bar">
-          <div
-            class="sidebar__bar-fill"
-            :class="{ 'sidebar__bar-fill--over': user.quota.dailyExceeded }"
-            :style="{
-              width: `${percent(user.quota.dailyUsed, user.quota.dailyLimit)}%`,
-            }"
-          />
-        </div>
-        <span class="sidebar__quota-num">
-          今日 {{ fmt(user.quota.dailyUsed) }} /
-          {{ user.quota.dailyLimit > 0 ? fmt(user.quota.dailyLimit) : '不限' }}
-        </span>
-      </div>
-
-      <div v-if="!collapsed" class="sidebar__usage">
-        <div class="sidebar__usage-row">
-          <span class="sidebar__usage-tag">今日</span>
-          <span class="sidebar__usage-num">
-            入 {{ fmt(usage?.today.inputTokens) }} · 出
-            {{ fmt(usage?.today.outputTokens) }}
+    <!-- 底部：用量（上）+ 用户（下，点用户名弹菜单） -->
+    <div class="sidebar__bottom">
+      <!-- 用量：今日配额条 + 今日/本月 token -->
+      <div v-if="!collapsed && user" class="sidebar__usage-block">
+        <div class="sidebar__quota">
+          <div class="sidebar__bar">
+            <div
+              class="sidebar__bar-fill"
+              :class="{ 'sidebar__bar-fill--over': user.quota.dailyExceeded }"
+              :style="{
+                width: `${percent(user.quota.dailyUsed, user.quota.dailyLimit)}%`,
+              }"
+            />
+          </div>
+          <span class="sidebar__quota-num">
+            今日 {{ fmt(user.quota.dailyUsed) }} /
+            {{ user.quota.dailyLimit > 0 ? fmt(user.quota.dailyLimit) : '不限' }}
           </span>
         </div>
-        <div class="sidebar__usage-row">
-          <span class="sidebar__usage-tag">本月</span>
-          <span class="sidebar__usage-num">
-            入 {{ fmt(usage?.month.inputTokens) }} · 出
-            {{ fmt(usage?.month.outputTokens) }}
-          </span>
+
+        <div class="sidebar__usage">
+          <div class="sidebar__usage-row">
+            <span class="sidebar__usage-tag">今日</span>
+            <span class="sidebar__usage-num">
+              入 {{ fmt(usage?.today.inputTokens) }} · 出
+              {{ fmt(usage?.today.outputTokens) }}
+            </span>
+          </div>
+          <div class="sidebar__usage-row">
+            <span class="sidebar__usage-tag">本月</span>
+            <span class="sidebar__usage-num">
+              入 {{ fmt(usage?.month.inputTokens) }} · 出
+              {{ fmt(usage?.month.outputTokens) }}
+            </span>
+          </div>
         </div>
       </div>
 
-      <button
-        v-if="!collapsed"
-        type="button"
-        class="sidebar__logout"
-        @click="logout"
-      >
-        退出登录
-      </button>
+      <!-- 用户：用户名 + 套餐徽标，点开菜单 -->
+      <div ref="menuWrap" class="sidebar__user-wrap">
+        <button
+          type="button"
+          class="sidebar__user"
+          :title="collapsed ? user?.username ?? '未登录' : '点击打开菜单'"
+          :aria-haspopup="'menu'"
+          :aria-expanded="menuOpen"
+          @click="toggleMenu"
+        >
+          <span class="sidebar__icon">👤</span>
+          <span v-if="!collapsed" class="sidebar__user-name">
+            {{ user?.username ?? '未登录' }}
+          </span>
+          <span v-if="!collapsed && user" class="sidebar__plan">
+            {{ user.plan.label }}
+          </span>
+          <span v-if="!collapsed" class="sidebar__caret">{{
+            menuOpen ? '▴' : '▾'
+          }}</span>
+        </button>
 
-      <button
-        v-if="!collapsed"
-        type="button"
-        class="sidebar__logout sidebar__logout--plain"
-        @click="goAccount"
-      >
-        修改密码
-      </button>
-    </div>
-
-    <!-- 底部（左下角）：设置 -->
-    <div class="sidebar__foot">
-      <RouterLink
-        to="/settings"
-        class="sidebar__item"
-        :class="{ 'sidebar__item--on': route.path.startsWith('/settings') }"
-        :title="collapsed ? '设置' : undefined"
-      >
-        <span class="sidebar__icon">⚙️</span>
-        <span v-if="!collapsed" class="sidebar__label">设置</span>
-      </RouterLink>
+        <!-- 菜单：设置 / 退出登录（向上弹，因为贴着底边） -->
+        <div v-if="menuOpen" class="sidebar__menu" role="menu">
+          <button
+            type="button"
+            class="sidebar__menu-item"
+            role="menuitem"
+            @click="goSettings"
+          >
+            <span class="sidebar__icon">⚙️</span>
+            <span v-if="!collapsed">设置</span>
+          </button>
+          <button
+            type="button"
+            class="sidebar__menu-item"
+            role="menuitem"
+            @click="logout"
+          >
+            <span class="sidebar__icon">⏻</span>
+            <span v-if="!collapsed">退出登录</span>
+          </button>
+        </div>
+      </div>
     </div>
   </aside>
 </template>

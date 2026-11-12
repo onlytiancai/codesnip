@@ -80,7 +80,8 @@ pnpm cli models
 ## 前端架构要点
 
 - **外壳 + 嵌套路由**：`App.vue` = `AppSidebar` + `<RouterView>`；子路由 `/`（编辑器）、`/settings`（设置页）。侧栏在两个页面常驻。**`/login` 是顶层路由**（不套外壳）—— 必须排在 `'/'` 之前，否则会被父路由吃掉。
-- **登录守卫**：`router.beforeEach` 里 `await loadAuth()`，没登录就跳 `/login`。`useAuth` 是模块级单例，**不 import router**（避免 `router → pages → services → useAuth → router` 的循环）—— 跳转逻辑放在 `router.ts` 里。
+- **登录守卫**：`router.beforeEach` 里 `await loadAuth()`，没登录就跳 `/login`。`useAuth` 是模块级单例，**不 import router**（避免 `router → pages → services → useAuth → router` 的循环）—— 跳转逻辑放在 `router.ts` 里。标签页标题在 `router.afterEach` 里按路由名设（`TITLES` 表）。
+- **侧栏底部**：**用量在上、用户块在下**。用户块 = 用户名 + 套餐徽标，**点它弹菜单**（设置 / 退出登录），菜单用 `position: absolute` 相对 `.sidebar__user-wrap` **向上弹**（用户块贴着底边）。点外面 / Esc / 换路由都收起。
 - **跨组件状态用模块级单例 composable**（`useMode` / `useTones` / `useAuth`），不是 Pinia。原因是侧栏在 `App.vue`、编辑器在 `EditorPage.vue`，不是父子关系；状态同时写 localStorage（刷新保留）。
 - **双栏方向**：两个编辑器的 DOM 位置固定，靠 CSS `order` 排源/译 —— 切方向不重建编辑器。**两个方向各存一份两栏内容**（`EditorPage.vue` 的 `modeHtml`）：切方向时把旧方向的存下、装上新方向的 —— 中译英里输入的中文不会带进英译中，各自独立。装内容期间用 `restoring` 标志屏蔽「源侧清空 → 译侧跟着清」和实时翻译。`mode` 只有 `zh2en` / `en2zh` 两个值。
 - **句子对齐是双栏联动的唯一依据**：`useWritingContext.ts` 按标点切句（中文 `。！？.!?`、英文 `.!?`，换行也算边界），`sentenceIndex` 是**文档级全局索引**（跨段落累计）。源侧和译侧的句子必须**数量相同、顺序一致** —— 任何一边多句/少句，高亮和「对应中文原文」就全错位。
@@ -102,7 +103,7 @@ pnpm cli models
   ⚠️ **不能 `watch(sourceHtml)`**（它是随 mode 变的 computed）—— 切方向的瞬间新方向的源侧通常是空的，会把另一栏的用户内容误清掉。要**分别 watch `zhHtml` / `enHtml`**，再按当前 `sourceLang` 判断该不该联动。
 - 英译中模式下英文侧 `aiEnabled=false` —— 改写 / 润色 / 语法 / 指令全部关掉，只留「查词」。
 - **设置页的 tab**（`SettingsPage.vue`）：LLM 供应商 / 提示词 / 词库 / **账号** / **我的套餐** / **用户管理**（最后一个只有 `user.role === 'admin'` 才渲染）。`AccountPanel.vue` 管账号信息和改密码，`PlanPanel.vue` 管自己的套餐和申请，`AdminPanel.vue` 管用户 / 审核 / 邀请码池。
-  当前 tab 记在 URL 的 `?tab=` 上（`selectTab()` 同步 query，watch query 反向切 tab）—— 侧栏的「修改密码」入口直接跳 `?tab=account`，刷新也不会跳回第一个 tab。
+  当前 tab 记在 URL 的 `?tab=` 上（`selectTab()` 同步 query，watch query 反向切 tab）—— 刷新不会跳回第一个 tab。
 
 ## 后端架构要点
 
