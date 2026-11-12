@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>texture debug</title></head>
+  <body>
+    <h1>texture debug</h1>
+    <div id="out">starting…</div>
+    <script type="module">
+      const log = (s) => {
+        console.info('[debug]', s)
+        document.getElementById('out').textContent = s
+      }
+      const { sunTexture, mercuryTexture, venusTexture, earthTexture, earthCloudTexture } = await import('/src/scene/ProceduralTextures.ts')
+      log('sunTexture 开始')
+      sunTexture(512)
+      log('sunTexture 完成')
+      mercuryTexture(512)
+      log('mercuryTexture 完成')
+      venusTexture(512)
+      log('venusTexture 完成')
+      earthTexture(512)
+      log('earthTexture 完成')
+      earthCloudTexture(512)
+      log('earthCloudTexture 完成')
+      const { marsTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture, moonTexture, saturnRingTexture, uranusRingTexture, glowTexture, nebulaTexture } = await import('/src/scene/ProceduralTextures.ts')
+      marsTexture(512); log('mars 完成')
+      jupiterTexture(512); log('jupiter 完成')
+      saturnTexture(512); log('saturn 完成')
+      uranusTexture(512); log('uranus 完成')
+      neptuneTexture(512); log('neptune 完成')
+      moonTexture(512); log('moon 完成')
+      saturnRingTexture(512); log('saturnRing 完成')
+      uranusRingTexture(512); log('uranusRing 完成')
+      glowTexture(256); log('glow 完成')
+      nebulaTexture(256, 140, 90, 220); log('nebula 完成')
+      log('ALL DONE ✓')
+    </script>
+  </body>
+</html>

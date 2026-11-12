@@ -1,0 +1,170 @@
+{
+  "id": "15",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/15.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Holiday",
+    "scene_zh": "节日庆祝",
+    "task_en": "Thanksgiving",
+    "task_zh": "感恩节",
+    "context": "感恩节当天，家人朋友们围坐在餐桌旁，火鸡已经上桌，大家正准备开始享用美食前，有人举杯或开口想要表达感恩之情。",
+    "sentence_zh": "我很感激身边有你们。",
+    "explanation": "感恩节的核心就是表达感激之情。在家人团聚的餐桌上，可以用'Happy Thanksgiving'简单问候，也可以用更深情的句子如'I'm so grateful to have you all'来表达对亲人的感恩。如果是正式场合或祝酒，可以选择更完整的表达如'I have so much to be thankful for'。注意感恩节强调的不是物质而是情感和陪伴，句子要真诚自然。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 14,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "节日庆祝：感恩节。感恩节当天，家人朋友们围坐在餐桌旁，火鸡已经上桌，大家正准备开始享用美食前，有人举杯或开口想要表达感恩之情。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/15/0-0-zh.mp3",
+          "duration_ms": 12458
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 5,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "感恩节快乐！",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/15/1-0-zh.mp3",
+          "duration_ms": 1184
+        },
+        {
+          "lang": "en",
+          "text": "Happy Thanksgiving!",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/15/1-1-en.mp3",
+          "duration_ms": 1312
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "Happy Thanksgiving!",
+      "phonetic": "ˈhæpi ˈθæŋksɡɪviŋ",
+      "literal_translation": "感恩节快乐！",
+      "note": "最简单直接的说法，适用于任何场合"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 8,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我很感激你们出现在我的生命中。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/15/2-0-zh.mp3",
+          "duration_ms": 3019
+        },
+        {
+          "lang": "en",
+          "text": "I'm so grateful to have you all in my life.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/15/2-1-en.mp3",
+          "duration_ms": 2473
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "I'm so grateful to have you all in my life.",
+      "phonetic": "aɪm səʊ ˈɡreɪtfəl tu hæv ju ɔl ɪn maɪ laɪf",
+      "literal_translation": "我很感激你们出现在我的生命中。",
+      "note": "正式且真诚，适合在节日祝酒时使用"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "这一年我有太多值得感恩的事。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/15/3-0-zh.mp3",
+          "duration_ms": 2937
+        },
+        {
+          "lang": "en",
+          "text": "I have so much to be thankful for this year.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/15/3-1-en.mp3",
+          "duration_ms": 2299
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "I have so much to be thankful for this year.",
+      "phonetic": "aɪ hæv səʊ mʌtʃ tu bi ˈθæŋkfəl fɔː ðɪs jɪə",
+      "literal_translation": "这一年我有太多值得感恩的事。",
+      "note": "表达对过去一年的感恩，常见于节日演讲或祝酒"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 6,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "谢谢你们能来这里陪我们。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/15/4-0-zh.mp3",
+          "duration_ms": 2090
+        },
+        {
+          "lang": "en",
+          "text": "Thanks for being here with us.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/15/4-1-en.mp3",
+          "duration_ms": 1486
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "Thanks for being here with us.",
+      "phonetic": "θæŋks fɔː ˈbiɪŋ hɪə wɪð ʌs",
+      "literal_translation": "谢谢你们能来这里陪我们。",
+      "note": "轻松随意的表达，适合家庭聚餐"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 5,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "让我们一起感恩吧。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/15/5-0-zh.mp3",
+          "duration_ms": 1660
+        },
+        {
+          "lang": "en",
+          "text": "Let's give thanks together.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/15/5-1-en.mp3",
+          "duration_ms": 1405
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "Let's give thanks together.",
+      "phonetic": "lɛts ɡɪv θæŋks təˈɡɛðər",
+      "literal_translation": "让我们一起感恩吧。",
+      "note": "邀请大家一起感恩，富有感染力"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 29,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "感恩节的核心就是表达感激之情。在家人团聚的餐桌上，可以用'Happy Thanksgiving'简单问候，也可以用更深情的句子如'I'm so grateful to have you all'来表达对亲人的感恩。如果是正式场合或祝酒，可以选择更完整的表达如'I have so much to be thankful for'。注意感恩节强调的不是物质而是情感和陪伴，句子要真诚自然。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/15/6-0-zh.mp3",
+          "duration_ms": 27324
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Holiday scene, Thanksgiving task. Scene situation: 感恩节当天. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/15.jpg"
+  },
+  "duration_frames": 2220,
+  "duration_sec": 74
+}

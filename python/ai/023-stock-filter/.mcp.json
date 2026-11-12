@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "eltdx": {
+      "command": "eltdx-mcp"
+    }
+  }
+}

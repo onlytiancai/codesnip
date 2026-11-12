@@ -1,0 +1,17 @@
+# 凭据
+.env
+
+# TTS 缓存（按 sha1 文件名堆积的 .mp3，避免污染仓库）
+data/tts-cache/
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+
+# 注意: public/vendor-*.js 是 vendor 化的 CDN 文件,纳入版本控制便于离线运行

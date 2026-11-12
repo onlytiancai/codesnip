@@ -1,0 +1,13 @@
+{
+  "name": "cet4-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:words": "node scripts/build-words.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

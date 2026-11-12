@@ -1,0 +1,247 @@
+{
+  "metadata": {
+    "title": "",
+    "title_zh": "",
+    "author": "",
+    "author_zh": "",
+    "date": "",
+    "source": "",
+    "author_bio": "",
+    "preprocessing_notes": [
+      "由 generate.ts split 步骤生成",
+      "已去除 markdown 语法、保留文本"
+    ]
+  },
+  "intro": "你有没有想过,白手起家赚到十亿美元到底需要什么?是运气、继承,还是一场豪赌?\n\n今天我们要精读的这篇文章,作者是保罗·格雷厄姆(Paul Graham)——硅谷传奇人物、Y Combinator(简称 YC)的创始人。在二十多年里,他亲手扶持过 Airbnb、Stripe、Reddit 等无数改变世界的初创公司,所以他对「如何创造巨额财富」这个问题的看法,绝对值得一听。\n\n这篇文章的核心论点很简单:真正能赚到十亿美元的人,不是靠投机或继承,而是靠「创造一家极具价值的公司」。换句话说,财富的本质不是钱,而是你为世界创造的有用之物。\n\n接下来,我会带你逐句拆解这篇文章的英文表达,同时帮你理解格雷厄姆的底层思考框架。学完之后,你不只是读懂了一篇商业文章,更是掌握了一套看世界的杠杆思维。",
+  "paragraphs": [
+    {
+      "id": "p1",
+      "sentences": [
+        {
+          "id": "p1-s1",
+          "en": "How to Earn a Billion Dollars"
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p2",
+      "sentences": [
+        {
+          "id": "p2-s1",
+          "en": "Paul Graham argues that the best way to understand how people become billionaires is not by studying speculation, inheritance, or luck, but by studying how people create enormous companies.",
+          "translation": "保罗·格雷厄姆认为,理解人们究竟是如何成为亿万富翁的,最佳途径不是去研究投机、继承或运气,而是研究他们如何打造出巨头企业。",
+          "explanation": "核心结构:'Paul Graham argues that...'(主张/认为),that 引导宾语从句。注意 'how people become billionaires' 是名词性从句(疑问句式压缩作宾语),作 understand 的宾语,意为'人们是如何成为亿万富翁的'。重点是平行结构 'not by studying X, but by studying Y'(不是通过……而是借助……),并列了三个名词 'speculation 投机、inheritance 继承、luck 运气',by 短语前后呼应,reading 重复出现以增强排比感。文化梗:Paul Graham 是 Y Combinator 的联合创始人、知名科技作家和天使投资人,写过多篇关于创业、财富与黑客文化的经典散文;他一贯反对把成功归功于运气的叙事,所以才会强调要研究'创造'而非运气。此外,后半句中动词 'create' 与复数主语 'people' 在数上一致,别漏掉 s。"
+        },
+        {
+          "id": "p2-s2",
+          "en": "Based on his experience as the founder of Y Combinator and his observation of many successful startups, he believes that entrepreneurship is one of the clearest ways in modern society to create extreme wealth from nothing.",
+          "translation": "基于他作为 Y Combinator 创始人的经验以及对众多成功创业公司的观察，他认为在当今社会，创业是从一无所有到创造巨额财富最清晰的途径之一。",
+          "explanation": "这句话结构清晰：开头的 'Based on his experience... and his observation...' 是介词短语作状语，说明后面观点的依据；主干是 'he believes that...'，that 引导宾语从句。从句里有一个高频搭配 'one of the clearest ways to do sth'（做某事最清晰的方式之一）。'Y Combinator' 是硅谷传奇创业孵化器，被誉为'创业公司的大学'，曾孵化 Airbnb、Dropbox、Reddit 等明星企业，主角是创始人 Paul Graham，所以这里 'his' 指他。'observation' 是名词（动词是 observe），注意拼写中那个 t。短语 'extreme wealth from nothing' 是点睛之笔——'from nothing' 强调白手起家、一无所有，带有浓厚的'美国梦'色彩，与 'extreme'（极端的、巨额的）形成强烈反差，让整个表达既客观又带一点叙事张力。顺便记一个搭配：'create wealth' 创造财富。"
+        },
+        {
+          "id": "p2-s3",
+          "en": "Although there are other paths to becoming rich, building a company that creates massive value is one of the most common.",
+          "translation": "虽然还有其他通往致富的道路，但创办一家能够创造巨大价值的公司，是最常见的途径之一。",
+          "explanation": "这句话结构清晰，适合精读。\n\n1. 让步状语从句：\"Although there are other paths...\" 用 \"Although\"（虽然）引导让步从句，先退一步承认还有其他可能，再引出主句观点——这是英文写作中非常经典的\"先让步、后立论\"结构。\n2. 介词 + 动名词：\"paths to becoming rich\" 中，\"to\" 是介词（不是不定式标志），后面必须接动名词 \"becoming\"，这是易错点。\n3. 动名词作主语：\"building a company...\" 是整个句子的主语，动名词短语作主语是英文常见表达，避免了头重脚轻。\n4. 定语从句：\"that creates massive value\" 修饰 \"company\"，\"that\" 指代公司，说明这家公司的特点是创造巨大价值。\n5. 高频搭配：\"one of the most + 形容词复数 + 名词\" 意为\"最……之一\"，注意名词和形容词都要用复数。比如 one of the most common ways（最常见的方式之一）。\n6. 词汇：\"massive\"（巨大的）是口语和商业写作中的高频词，比 \"huge\" 更有气势；\"path\"（道路）既可指字面的小路，也可抽象地指\"途径、方法\"，比 \"way\" 更书面。\n\n文化背景：这句话反映了硅谷式创业哲学——创造价值（value creation）是商业成功的核心，与彼得·蒂尔《从0到1》的观点一致。"
+        }
+      ],
+      "summary": "作为文章开篇段落，本段引出Paul Graham的核心论点：在继承、投机与运气之外，创业——即打造一家能创造巨大价值的公司——是现代社会普通人从一无所有走向亿万财富的最清晰路径之一，这一总括性论断为后文具体剖析亿万富翁的创业路径奠定基调。"
+    },
+    {
+      "id": "p3",
+      "sentences": [
+        {
+          "id": "p3-s1",
+          "en": "The key to earning a billion dollars is not simply making money, but creating something that many people genuinely want."
+        },
+        {
+          "id": "p3-s2",
+          "en": "Graham distinguishes between money and wealth: money is only a tool for measuring and exchanging value, while real wealth consists of useful things, such as better products, improved services, and new technologies."
+        },
+        {
+          "id": "p3-s3",
+          "en": "Throughout history, great fortunes have often been created because entrepreneurs increased the total amount of value in the world rather than merely taking value from others."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p4",
+      "sentences": [
+        {
+          "id": "p4-s1",
+          "en": "Large-scale wealth creation usually comes from leverage."
+        },
+        {
+          "id": "p4-s2",
+          "en": "A normal job mainly involves selling personal time, which limits how much one person can earn."
+        },
+        {
+          "id": "p4-s3",
+          "en": "Entrepreneurship is different because founders create systems that can grow beyond their own direct effort."
+        },
+        {
+          "id": "p4-s4",
+          "en": "For example, software can be used by millions of people without requiring the developer to spend millions of times more hours."
+        },
+        {
+          "id": "p4-s5",
+          "en": "A successful company allows a small team’s ideas and work to reach a global audience."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p5",
+      "sentences": [
+        {
+          "id": "p5-s1",
+          "en": "According to Graham, successful startups usually depend on three major factors: technology, market demand, and rapid growth."
+        },
+        {
+          "id": "p5-s2",
+          "en": "Technology gives small teams the ability to accomplish things that previously required large organizations."
+        },
+        {
+          "id": "p5-s3",
+          "en": "Market demand determines whether a product actually solves a meaningful problem, while growth determines whether a company can become extremely valuable."
+        },
+        {
+          "id": "p5-s4",
+          "en": "Many successful startups do not begin with a perfect plan; instead, they improve through continuous experimentation and learning from users."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p6",
+      "sentences": [
+        {
+          "id": "p6-s1",
+          "en": "A common mistake among entrepreneurs is building something they personally like rather than something people truly need."
+        },
+        {
+          "id": "p6-s2",
+          "en": "A founder’s passion alone does not create a market."
+        },
+        {
+          "id": "p6-s3",
+          "en": "Successful entrepreneurs pay close attention to users’ problems and search for solutions that people are willing to adopt or pay for."
+        },
+        {
+          "id": "p6-s4",
+          "en": "The best startup ideas often come not from asking “What do I want to build?”"
+        },
+        {
+          "id": "p6-s5",
+          "en": "but from asking “What important problem has not yet been solved?”"
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p7",
+      "sentences": [
+        {
+          "id": "p7-s1",
+          "en": "Choosing the right competitive environment is also important."
+        },
+        {
+          "id": "p7-s2",
+          "en": "Large companies are usually good at improving existing markets but often struggle to explore completely new opportunities because they must protect existing businesses and follow established processes."
+        },
+        {
+          "id": "p7-s3",
+          "en": "Startups have an advantage because they can move quickly, experiment, and enter small but promising markets."
+        },
+        {
+          "id": "p7-s4",
+          "en": "Many companies that later became giants started with ideas that initially seemed insignificant but grew because they solved an important problem."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p8",
+      "sentences": [
+        {
+          "id": "p8-s1",
+          "en": "Entrepreneurs also need the ability to persist through uncertainty and difficulty."
+        },
+        {
+          "id": "p8-s2",
+          "en": "Creating a billion-dollar company rarely happens because of one brilliant idea."
+        },
+        {
+          "id": "p8-s3",
+          "en": "It usually requires years of testing, failure, adjustment, and improvement."
+        },
+        {
+          "id": "p8-s4",
+          "en": "Successful founders are not people who always know the answer from the beginning; they are people who learn quickly, respond to reality, and keep searching for better solutions."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p9",
+      "sentences": [
+        {
+          "id": "p9-s1",
+          "en": "Graham also points out that wealth creation follows a power-law pattern: a small number of companies create a huge proportion of the total value."
+        },
+        {
+          "id": "p9-s2",
+          "en": "Most businesses achieve ordinary results, while a few exceptional companies transform entire industries."
+        },
+        {
+          "id": "p9-s3",
+          "en": "Therefore, anyone aiming for extraordinary success must be willing to pursue difficult problems with the potential for enormous impact rather than simply seeking average opportunities."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p10",
+      "sentences": [
+        {
+          "id": "p10-s1",
+          "en": "However, becoming a billionaire should not be viewed as merely a pursuit of money."
+        },
+        {
+          "id": "p10-s2",
+          "en": "The most successful entrepreneurs are usually motivated by creating something valuable rather than by wealth alone."
+        },
+        {
+          "id": "p10-s3",
+          "en": "Money is often the result of solving important problems at a large scale."
+        },
+        {
+          "id": "p10-s4",
+          "en": "When entrepreneurs focus on building great products and improving people’s lives, financial success often follows."
+        }
+      ],
+      "summary": ""
+    },
+    {
+      "id": "p11",
+      "sentences": [
+        {
+          "id": "p11-s1",
+          "en": "In conclusion, Graham believes that one of the most reliable ways to create enormous wealth is to identify a significant problem, build a scalable solution, and continuously expand its impact through technology and innovation."
+        },
+        {
+          "id": "p11-s2",
+          "en": "Wealth is not created by taking from others but by creating something new that benefits society."
+        },
+        {
+          "id": "p11-s3",
+          "en": "People who can recognize opportunities, act quickly, learn continuously, and solve meaningful problems have the greatest chance of building companies worth billions of dollars."
+        }
+      ],
+      "summary": ""
+    }
+  ],
+  "outro": "让我们快速回顾全文要点:财富不是抢来的,而是被「创造」出来的;真正值钱的不是你投入的时间,而是你能撬动的杠杆;科技、需求、增长,是创业成功的三大支柱;最危险的想法,是只做自己喜欢的东西;而伟大公司往往诞生于那些「起初看起来微不足道」的问题。\n\n格雷厄姆给我们的最大启示是:金钱只是价值的副产品。当你死磕一个真正重要的问题,并用可扩展的方式去解决它,财富自然会跟上来。这是一种「先创造,后收获」的逆向思维。\n\n对于正在学习或准备创业的你,我有三个建议:第一,学会分辨 money 和 wealth 的差别,别把手段当目的;第二,找到你愿意长期死磕的「小问题」,而不是追逐风口;第三,持续快速地学习和迭代,别怕失败,怕的是停下脚步。\n\n记住:这世上不存在「快速赚十亿」的秘籍,但存在「看清世界如何运转」的眼睛。希望今天这期节目,能帮你装上这样一双眼睛。"
+}

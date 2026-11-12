@@ -1,0 +1,766 @@
+# 最速降线与摆线：从变分法到几何之美
+
+> 写给数学基础薄弱但有好奇心的读者。每一步都尽量拆细，关键思想用"为什么"而不是"是什么"来引出。
+
+---
+
+## 0. 这篇文档在讲什么
+
+**一句话**：把一个小球从 A 点松手，让它沿一条曲线滑到 B 点，所用时间最短的曲线是什么？答案是一条叫**摆线**的曲线。这条曲线本身有一段很美的几何故事——它是一个轮子在地面上滚动时，轮缘上某一点画出的轨迹。
+
+我们这篇文章要做三件事：
+
+1. 解释"为什么直线不是最快的"，建立物理直觉。
+2. 从零开始推导出**摆线方程**（这要用到变分法和欧拉-拉格朗日方程）。
+3. 计算摆线**一拱**（参数从 0 到 2π）的**弧长**和**所围面积**。
+
+全文需要的先修知识只有：导数、积分、三角恒等式。变分法部分我会从头讲。
+
+---
+
+## 1. 一个古老的问题
+
+### 1.1 历史
+
+1696 年，瑞士数学家**约翰·伯努利**（Johann Bernoulli）在《教师学报》上向全欧洲的数学家发出挑战：
+
+> "我，约翰·伯努利，向全世界最杰出的数学家们致敬……我要向他们提出一个极富挑战性的问题……给定两个高度不同的点，在两点之间找一条曲线，使得质点在自身重力作用下沿该曲线从一点滑到另一点所用时间最短。"
+
+这道题叫**最速降线问题**（Brachistochrone Problem，源自希腊语 *brakhistos*（最短）+ *khronos*（时间））。它引发了一场跨越欧陆的数学竞赛，约翰的哥哥雅各布·伯努利、牛顿、莱布尼茨、洛必达都给出了解答。答案出人意料地**不是直线**，而是一种叫**摆线（cycloid）**的曲线。
+
+### 1.2 为什么不是直线？
+
+你的第一反应可能是"两点之间线段最短"。但注意：题目要求**时间**最短，不是**距离**最短。
+
+直线有一个根本"缺点"——**它的斜率全程不变**。
+
+换句话说，它既不能在顶端更陡一些（让质点一开始就快速加速），也不能在底端更平一些（让已经积累的高速横向展开更长的距离）。任何一条直线都只能取一个折中的斜率：偏陡了，顶端加速好但底端高度预算用得太快；偏平了，底端高速段长但顶端浪费太多时间——两端都没占上便宜。
+
+最优策略其实是**先用一段陡坡快速加速**（哪怕为此多走了一些路径），**再在底部高速水平滑行**——这是赛车的过弯策略，也是为什么滑雪场的速降赛道是"先掉一段悬崖再铺平"。
+
+摆线恰好满足这种"先掉得深、再水平走"的形状：它在起点处的切线是**垂直的**（这意味着质点一开始就是自由落体），到终点处的切线是**水平的**（最后是纯高速滑行，不再加速）。
+
+### 1.3 一张图先剧透
+
+下面这张图是同一个落体问题中，三条候选路径的比较：
+
+- 蓝色直线：从左上到右下的直线。
+- 红色摆线：最优解。
+- 绿色抛物线：另一个常见猜测。
+
+可以直观看到，摆线在中段比直线"下凹得更多"，在底部又比直线更"平"。
+
+![三条候选路径对比](figure1.png)
+
+---
+
+## 2. 物理准备：质点在曲线上怎么加速
+
+要写出"时间"，我们需要两件事：每一段的速度，以及每一段的长度。
+
+### 2.1 能量守恒（机械能守恒）
+
+设质点从高度 $h$ 处无摩擦滑下，重力加速度 $g$。在任意时刻：
+
+$$\frac{1}{2} m v^2 = m g h$$
+
+其中 $h$ 是它**已经下降的高度**。所以速度大小只取决于"掉下来多少"，与走过的路径无关：
+
+$$v = \sqrt{2 g h}$$
+
+> 这是高中物理的能量守恒。如果忘了为什么，记住一句话：**下得越深，速度越大**。
+
+### 2.2 弧长元素
+
+设曲线用 $y = y(x)$ 表示，$x$ 取水平方向，$y$ **向下为正**（这是最速降线问题的标准设置：起点 $y=0$，终点 $y>0$）。
+
+#### 把曲线切成无数小段：每段近似于直线
+
+虽然整条曲线是弯的，但只要切得足够细，每一小段都可以近似看成一截直线——这就是微积分"以直代曲"的核心想法。
+
+把这一小段往水平和竖直两个方向投影，得到一个直角三角形：
+
+```
+       ds
+      ╱│
+     ╱ │
+    ╱  │ dy
+   ╱   │
+  ╱────┘
+    dx
+```
+
+三条边的角色是：
+
+- **斜边 $ds$**：这一小段曲线的实际长度（图中的对角线）；
+- **水平腿 $dx$**：沿 $x$ 方向走的距离（图中的底边）；
+- **竖直腿 $dy$**：沿 $y$ 方向走的距离，向下为正（图中的右边）。
+
+> 直观类比：一个人在山坡上行走，水平走了 3 米、竖直下降了 4 米，那么他沿斜坡走过的长度就是 $\sqrt{3^2 + 4^2} = 5$ 米。
+
+#### 第一步：勾股定理
+
+由勾股定理（斜边² = 两条直角边² 之和）：
+
+$$ds^2 = (dx)^2 + (dy)^2$$
+
+由于 $ds > 0$，两边开方得：
+
+$$ds = \sqrt{(dx)^2 + (dy)^2}$$
+
+> 为什么"无限小"段可以直接用勾股定理？因为段足够短时，曲线几乎与它的切线重合，可以视为一段直线，而 $dx$、$dy$ 就是这段直线在水平和竖直两个坐标轴上的投影长度。
+
+#### 第二步：把 $dx$ 提到根号外
+
+接下来要把总时间写成对 $x$ 的积分（见 2.4 节），所以希望 $ds$ 里**不再出现单独的 $dy$**，而是统一用 $dx$ 和导数 $y' = dy/dx$ 表示。
+
+办法是把 $(dx)^2$ 从根号里因式分解出来：
+
+$$(dx)^2 + (dy)^2 \;=\; (dx)^2 \cdot \left[\,1 + \frac{(dy)^2}{(dx)^2}\,\right] \;=\; (dx)^2 \cdot \left[\,1 + \left(\frac{dy}{dx}\right)^2\,\right]$$
+
+代回 $ds$：
+
+$$ds \;=\; \sqrt{(dx)^2 \cdot \left[\,1 + \left(\frac{dy}{dx}\right)^2\,\right]} \;=\; \sqrt{(dx)^2} \cdot \sqrt{1 + \left(\frac{dy}{dx}\right)^2}$$
+
+这里有一个容易忽略但关键的小细节：$\sqrt{(dx)^2}$ 不一定等于 $dx$，严格说应该是 $|dx|$。但因为我们后面沿 $x$ 正方向积分（从 $x=0$ 走到 $x=a$），$dx$ 始终为正，所以：
+
+$$\sqrt{(dx)^2} = |dx| = dx$$
+
+于是最终得到：
+
+$$ds \;=\; \sqrt{1 + \left(\frac{dy}{dx}\right)^2}\,dx$$
+
+> 一句话总结：勾股定理把"水平 + 竖直 = 斜边"翻译成 $(dx)^2 + (dy)^2$；把 $dx$ 提到根号外、把 $dy$ 换成 $y'\,dx$，就把 $ds$ 全部用 $x$、$y$、$y'$ 三个量表达——这正是后面能把它对 $x$ 积分的前提。
+
+#### 简写
+
+把 $y' = dy/dx$ 简写，弧长元素记作：
+
+$$ds = \sqrt{1 + (y')^2}\,dx$$
+
+这就是我们构造总时间被积函数（见 2.3 节）的基本构件。
+
+### 2.3 时间元素
+
+速度 $v$ 走弧长 $ds$ 需要时间：
+
+$$dt = \frac{ds}{v} = \frac{\sqrt{1 + (y')^2}}{\sqrt{2 g y}} \, dx$$
+
+> 这里用了 $h = y$：当质点滑到坐标 $(x, y)$ 处时，它已经下降了 $y$（因为我们设 $y$ 向下为正，且起点在原点）。
+
+### 2.4 总时间：我们要最小化的对象
+
+把 $dt$ 从起点 $x=0$ 积分到终点 $x=a$，得到总时间：
+
+$$T[y] = \int_0^a \frac{\sqrt{1 + (y')^2}}{\sqrt{2 g y}} \, dx \tag{★}$$
+
+注意：这里的 $T$ **不是** $y$ 的普通函数——你输入一个**整条曲线** $y(x)$，它才输出一个**数**（时间）。这种"函数的函数"叫**泛函**。
+
+我们要找的，就是让这个泛函取得最小值的曲线 $y(x)$。
+
+---
+
+## 3. 数学准备：变分法
+
+### 3.1 函数 vs. 泛函
+
+- **函数**：吃一个数，吐一个数。例如 $f(x) = x^2$。我们问"哪个 $x$ 让 $f(x)$ 最小？"——取导数令其为零。
+- **泛函**：吃一个**函数**，吐一个数。例如 $T[y]$：你给一条曲线，它告诉你滑下来要多久。我们问"哪个 $y(x)$ 让 $T[y]$ 最小？"
+
+泛函的极值问题，需要一个推广版的"令导数为零"——这就是**变分法**。
+
+### 3.2 直观：邻域内的微小扰动
+
+要找泛函 $J[y]$ 的极值，我们考察把最优曲线 $y(x)$ **轻微扰动**一下会怎样。
+
+设 $y(x)$ 是最优曲线。令
+
+$$y_\varepsilon(x) = y(x) + \varepsilon \eta(x)$$
+
+其中 $\eta(x)$ 是任意一个**在 $y$ 的两个端点处为零的平滑函数**——具体说就是 $\eta(x_0) = \eta(x_1) = 0$，其中 $x_0$、$x_1$ 是曲线 $y(x)$ 的两个端点对应的 $x$ 坐标。这个约束保证扰动后的曲线 $y_\varepsilon = y + \varepsilon\eta$ 在端点处的值与 $y$ 相同：$y_\varepsilon(x_0) = y(x_0) + \varepsilon\eta(x_0) = y(x_0)$，$y_\varepsilon(x_1)$ 同理。直观上，$\eta$ 就像一座"中间凸起、两端踩在零线上"的小山，叠在 $y$ 上只动中间、不动端点；$\varepsilon$ 是一个很小的实数，控制扰动的幅度。
+
+把整族扰动曲线 $y_\varepsilon$（一个 $\varepsilon$ 对应一条具体的曲线）代入泛函 $J$：由于 $J$ 吃函数、吐数字，每固定一个 $\varepsilon$ 就得到一个确定的数；让 $\varepsilon$ 自由变化，这些数就构成一个**关于 $\varepsilon$ 的普通实值函数**。我们把这个函数记作：
+
+$$J[\varepsilon] := J[y_\varepsilon]$$
+
+> 这一步是变分法的关键"降级"：原来的问题"找最优曲线 $y$"是泛函极值问题；现在被等价转成"找 $J[\varepsilon]$ 在 $\varepsilon = 0$ 处的极值"——这就是普通微积分里"令导数为零"的套路，只是自变量从 $x$ 换成了 $\varepsilon$。
+
+具体到最速降线，泛函是：
+
+$$J[y] = \int_0^a \frac{\sqrt{1 + (y')^2}}{\sqrt{2gy}}\,dx$$
+
+把 $y_\varepsilon = y + \varepsilon\eta$（以及 $y_\varepsilon' = y' + \varepsilon\eta'$）代入，得到：
+
+$$J[\varepsilon] = \int_0^a \frac{\sqrt{1 + (y' + \varepsilon\eta')^2}}{\sqrt{2g(y + \varepsilon\eta)}}\,dx$$
+
+这里 $y$ 和 $\eta$ 已经被"冻住"成固定函数，所以右端只随 $\varepsilon$ 变。如果 $y$ 是最优的，那么 $\varepsilon = 0$ 必须是 $J[\varepsilon]$ 的极值点，于是：
+
+$$\left. \frac{d J}{d \varepsilon} \right|_{\varepsilon = 0} = 0$$
+
+这就是"变分法的基本引理"的精神：**最优曲线在任意扰动下的一阶变分为零**。
+
+### 3.3 推导欧拉-拉格朗日方程
+
+设泛函形如：
+
+$$J[y] = \int_a^b L(x, y, y') \, dx$$
+
+其中 $L$ 是已知的"被积函数"（对最速降线，$L = \sqrt{(1+(y')^2)/(2gy)}$）。
+
+把 $y_\varepsilon = y + \varepsilon \eta$ 代入，对 $\varepsilon$ 求导：
+
+$$\frac{dJ}{d\varepsilon} = \int_a^b \left[ \frac{\partial L}{\partial y} \eta + \frac{\partial L}{\partial y'} \eta' \right] dx$$
+
+> 注意：$L$ 通过 $y$ 和 $y'$ 依赖于 $\varepsilon$。$y$ 给出第一项，$y'$ 给出第二项。
+
+对第二项做**分部积分**（$\int u dv = uv - \int v du$）：
+
+$$\int_a^b \frac{\partial L}{\partial y'} \eta' \, dx = \left[ \frac{\partial L}{\partial y'} \eta \right]_a^b - \int_a^b \frac{d}{dx}\left( \frac{\partial L}{\partial y'} \right) \eta \, dx$$
+
+因为 $\eta$ 在端点处为零（$y_\varepsilon$ 必须满足同样的端点条件），第一项为零：
+
+$$\frac{dJ}{d\varepsilon} = \int_a^b \left[ \frac{\partial L}{\partial y} - \frac{d}{dx} \frac{\partial L}{\partial y'} \right] \eta \, dx$$
+
+令 $\varepsilon=0$ 时此式为零，且 $\eta(x)$ 是**任意**满足端点为零的函数，那么一个深刻的结论是**括号里的东西必须处处为零**（这就是"基本引理"或"du Bois-Reymond 引理"的结论：连续函数与任意 $\eta$ 的内积为零，则函数本身为零）。
+
+于是得到**欧拉-拉格朗日方程**：
+
+$$\boxed{\frac{\partial L}{\partial y} - \frac{d}{dx} \frac{\partial L}{\partial y'} = 0} \tag{E-L}$$
+
+这就是泛函取极值的必要条件。看起来复杂，其实就是把"令导数为零"的思路推广到了函数空间。
+
+### 3.4 一个小例子熟悉一下
+
+对泛函 $J[y] = \int_0^1 (y')^2\,dx$，固定 $y(0)=0,\ y(1)=1$。
+
+**关键认知**：在 E-L 方程里，$L(x, y, y')$ 是被当作**三个独立变量**的函数来求偏导的。虽然实际中 $y' = dy/dx$ 是 $y$ 关于 $x$ 的导数，但在求偏导那一刻，我们暂时把 $x$、$y$、$y'$ 当成"互不相关"的三个输入——就像多元函数 $f(a, b, c)$ 那样，对哪个变量求偏导就只动那个，其他冻住。
+
+具体到这个例子，$L = (y')^2$：
+
+- $\partial L / \partial y$：把 $x$ 和 $y'$ 冻住，只对 $y$ 求偏导。因为 $L$ 里压根没有 $y$，所以 $\partial L/\partial y = 0$。
+- $\partial L / \partial y'$：把 $x$ 和 $y$ 冻住，只对 $y'$ 求偏导。这就是普通的幂函数求导：$(y')^2 \to 2y'$。
+
+E-L 方程：$\;0 - \dfrac{d}{dx}(2y') = 0\;$。
+
+把它展开来看——一共四步等价变形：
+
+$$0 - \frac{d}{dx}(2y') = 0 \;\Longleftrightarrow\; \frac{d}{dx}(2y') = 0 \;\Longleftrightarrow\; 2\,\frac{dy'}{dx} = 0 \;\Longleftrightarrow\; 2y'' = 0 \;\Longleftrightarrow\; y'' = 0$$
+
+> 关键符号：**$\dfrac{dy'}{dx} = y''$**。$y'$ 本身是 $x$ 的函数，对它再求一次关于 $x$ 的导数，就是 $y$ 的二阶导数 $y'' = \dfrac{d^2 y}{dx^2}$。
+
+整条链其实就是两个动作：**移负号**把 $0$ 移到右边，**认出 $y''$** 把 $\dfrac{dy'}{dx}$ 替换成 $y''$。常数 2 直接约掉。
+
+**积分求解**：$y'' = 0$ 是一个**二阶 ODE**（Ordinary Differential Equation，常微分方程——只含对单一自变量 $x$ 的导数；阶数 = 最高导数的阶数）。它的几何含义是"斜率不变"——所以曲线一定是直线。积分两次：
+
+$$y''(x) = 0 \;\xrightarrow{\int dx}\; y'(x) = C_1 \;\xrightarrow{\int dx}\; y(x) = C_1 x + C_2$$
+
+两个待定常数 $C_1, C_2$，正好两个边界条件：
+
+- $y(0) = 0 \Rightarrow C_2 = 0$
+- $y(1) = 1 \Rightarrow C_1 = 1$
+
+代入得 $y(x) = x$，确实是从 $(0,0)$ 到 $(1,1)$ 的直线——和我们"两点之间线段最短"的直觉一致。
+
+> 一般规律：$n$ 阶 ODE 积分 $n$ 次会冒出 $n$ 个积分常数，需要 $n$ 个条件（边界或初始）才能把它们全部定下来。这里 2 阶 ODE + 2 个边界条件，正好对上。
+
+> 但注意：这里的泛函是 $\int y'^2\,dx$，**最小化的是"陡峭程度"**，不是距离也不是时间。所以"两点之间线段最短"对距离泛函 $\int \sqrt{1+(y')^2}\,dx$ 成立，对别的泛函就不一定——这就是最速降线问题的来源。
+>
+> **怎么理解"陡峭程度"**：$(y')^2$ 是曲线上每一点的斜率平方——斜率越大（越陡）就贡献越多，平方是为了"只管陡不陡、不管方向"。把全程的"陡"加起来就是 $\int (y')^2\,dx$，这个数值刻画"整条曲线整体有多陡"。最小化它就是让曲线尽量平缓。
+>
+> **那 $\int \sqrt{1+(y')^2}\,dx$ 是什么**：这就是**弧长公式**（见 2.2 节）——我们已经推过 $ds = \sqrt{1+(y')^2}\,dx$，把 $ds$ 沿曲线积分就得到弧长。这是另一条泛函，度量的是"沿曲线走的实际距离"。
+>
+> **三条泛函对照**（都满足 $y(0)=0, y(1)=1$）：
+>
+> | 泛函 | 名字 | 度量什么 | 最优解 |
+> |---|---|---|---|
+> | $\int (y')^2\,dx$ | 陡峭能量 | 斜率平方的累积 | 直线 $y=x$ |
+> | $\int \sqrt{1+(y')^2}\,dx$ | 弧长 | 沿曲线走的实际距离 | 直线 $y=x$（"两点之间线段最短"） |
+> | $\int \dfrac{\sqrt{1+(y')^2}}{\sqrt{2gy}}\,dx$ | 时间 | 沿曲线滑下来的时间 | **不是**直线，而是摆线 |
+>
+> 同样是"两点之间"找最优，对**不同的泛函**结果可能完全不同。最速降线用的是最下面那条**时间泛函**，它的被积函数里多了一个 $\sqrt{2gy}$——意味着**斜率**和**位置 $y$ 本身**对时间的贡献不对称。直线在这条泛函下只是"折中"，而摆线更懂得"先用陡坡换速度、再用平坡拉远横向距离"，所以才最快。
+>
+> 另外，关于"假装 $y$ 和 $y'$ 独立"——其实**不是 trick，是形式偏导的本来意义**。
+>
+> 当写 $L = L(x, y, y')$ 时，$L$ 在形式上是**三个符号** $(x, y, y')$ 的函数。$\partial L/\partial y$ 的定义就是"**固定另外两个符号，只对 $y$ 求导**"——这是一个纯代数操作，跟 $y$ 和 $y'$ 在实际意义上是不是独立无关。
+>
+> 把这些形式偏导代入 E-L 方程，得到的是一个**关于 $y(x)$ 的 ODE**（这里是 $y''=0$）。ODE 的解 $y(x)$ 自然满足 $y' = dy/dx$——这是 ODE 求解的天然属性，不是额外约束。
+>
+> **关键桥接是扰动 $y_\varepsilon = y + \varepsilon\eta$**：当 $\varepsilon$ 变化时，扰动量 $\varepsilon\eta$ 和它的导数 $\varepsilon\eta'$ 在函数空间里是两个独立的方向（一个动函数值，一个动斜率）。所以形式上把 $y$ 和 $y'$ 当独立量算偏导，等价于在**扰动空间**里沿独立方向求导——这才是 E-L 算法正确的真正原因。
+>
+> 总结一下三个层面：
+>
+> - **代数层面**：$\partial L/\partial y$ 是形式偏导（按定义算）
+> - **ODE 层面**：解出来的 $y(x)$ 自动有 $y' = dy/dx$
+> - **变分层面**：扰动 $\eta$ 和 $\eta'$ 在函数空间里独立，所以形式偏导法等价于真实约束法
+
+### 3.5 先看个数值证据
+
+我们先用 $\int \sqrt{(1+y'^2)/(2gy)} \, dx$ 这个时间泛函，对前面提的三条候选路径数值积分，看看谁更快。结果（同一个起点 $(0,0)$ 到终点 $(\pi, 2)$，$g=1$）：
+
+![三条路径的总滑行时间对比](figure3.png)
+
+注意：
+- **直线** $T \approx 3.63$
+- **抛物线** $T \approx 11.65$（反而最慢——它在底部斜率太大，浪费了势能）
+- **摆线** $T \approx 3.15$（最快，比直线快约 13.5%）
+
+直觉告诉我们的"直线最快"是错的。下面我们用变分法严格推导出摆线为什么是最优解。
+
+---
+
+## 4. 应用 E-L 方程解最速降线
+
+### 4.1 写出 $L$
+
+从 $(★)$ 拿出被积函数（常数 $\sqrt{1/(2g)}$ 可以扔掉，因为它不影响最优曲线）：
+
+$$L(x, y, y') = \sqrt{\frac{1 + (y')^2}{y}}$$
+
+### 4.2 简化第一步：Beltrami 恒等式
+
+观察到 $L$ **不显式依赖 $x$**（没有 $x$ 自己出现）。这种情况下，E-L 方程有一个**第一积分**，叫 Beltrami 恒等式：
+
+$$L - y' \frac{\partial L}{\partial y'} = C \quad (\text{常数})$$
+
+**怎么得到？** 把 E-L 方程两边乘以 $y'$，稍作整理。因为 $\frac{dL}{dx} = \frac{\partial L}{\partial y} y' + \frac{\partial L}{\partial y'} y''$，有：
+
+$$0 = \left( \frac{\partial L}{\partial y} - \frac{d}{dx} \frac{\partial L}{\partial y'} \right) y' = \frac{dL}{dx} - \frac{d}{dx} \left( y' \frac{\partial L}{\partial y'} \right)$$
+
+积分得 $L - y' \partial L/\partial y' = C$。**这就是 Beltrami 恒等式**。
+
+> 它的物理直觉：$L$ 像"系统的拉格朗日量"，$y' \partial L/\partial y'$ 像"广义动量"，它们的差不显含 $x$，所以是守恒量——这就是"能量守恒"。
+
+### 4.3 代入计算
+
+$$L = \sqrt{\frac{1 + (y')^2}{y}}, \quad \frac{\partial L}{\partial y'} = \frac{y'}{\sqrt{y(1 + (y')^2)}}$$
+
+于是：
+
+$$L - y' \frac{\partial L}{\partial y'} = \frac{1 + (y')^2 - (y')^2}{\sqrt{y(1 + (y')^2)}} = \frac{1}{\sqrt{y(1 + (y')^2)}} = C$$
+
+两边平方再取倒数：
+
+$$y(1 + (y')^2) = \frac{1}{C^2}$$
+
+令 $\dfrac{1}{C^2} = 2a$（$a$ 是某个正常数），得到最速降线的**常微分方程**：
+
+$$\boxed{y(1 + (y')^2) = 2a} \tag{★}$$
+
+### 4.4 求解：换参数
+
+这是一个非线性 ODE，直接求解需要点技巧。我们引入参数 $\theta$，设：
+
+$$y = a(1 - \cos \theta)$$
+
+> 启发：右边 $\sqrt{1+(y')^2}$ 是弧长元素的几何因子，常用三角代换让它变简单。
+
+计算 $dy$：
+
+$$dy = a \sin \theta \, d\theta$$
+
+回到方程 $y(1 + (y')^2) = 2a$：
+
+$$1 + (y')^2 = \frac{2a}{y} = \frac{2a}{a(1-\cos\theta)} = \frac{2}{1 - \cos\theta}$$
+
+利用 $1 - \cos\theta = 2\sin^2\left(\dfrac{\theta}{2}\right)$，所以：
+
+$$1 + (y')^2 = \frac{1}{\sin^2\left(\dfrac{\theta}{2}\right)}$$
+
+即：
+
+$$(y')^2 = \frac{1}{\sin^2\left(\dfrac{\theta}{2}\right)} - 1 = \frac{1 - \sin^2\left(\dfrac{\theta}{2}\right)}{\sin^2\left(\dfrac{\theta}{2}\right)} = \frac{\cos^2\left(\dfrac{\theta}{2}\right)}{\sin^2\left(\dfrac{\theta}{2}\right)}$$
+
+$$y' = \pm \frac{\cos\left(\dfrac{\theta}{2}\right)}{\sin\left(\dfrac{\theta}{2}\right)} = \pm \cot\left(\dfrac{\theta}{2}\right)$$
+
+取正号（质点在 $\theta$ 增加时下落，$y$ 增加，$x$ 也增加）：
+
+$$y' = \cot\left(\dfrac{\theta}{2}\right)$$
+
+又 $y' = \dfrac{dy/d\theta}{dx/d\theta}$，所以：
+
+$$\frac{dx}{d\theta} = \frac{dy/d\theta}{y'} = \frac{a \sin\theta}{\cot\left(\dfrac{\theta}{2}\right)} = a \sin\theta \cdot \tan\left(\dfrac{\theta}{2}\right)$$
+
+用倍角公式 $\sin\theta = 2 \sin\left(\dfrac{\theta}{2}\right)\cos\left(\dfrac{\theta}{2}\right)$：
+
+$$\frac{dx}{d\theta} = a \cdot 2\sin\left(\dfrac{\theta}{2}\right)\cos\left(\dfrac{\theta}{2}\right) \cdot \frac{\sin\left(\dfrac{\theta}{2}\right)}{\cos\left(\dfrac{\theta}{2}\right)} = 2a \sin^2\left(\dfrac{\theta}{2}\right) = a(1 - \cos\theta)$$
+
+> 注意：$dx/d\theta$ 恰好等于 $dy/d\theta$ 在 $x$ 上的对应物——这给出一个非常对称的结果。
+
+积分，取起点 $\theta=0$ 时 $x=0, y=0$：
+
+$$x(\theta) = \int_0^\theta a(1 - \cos u) \, du = a(\theta - \sin \theta)$$
+
+$$y(\theta) = a(1 - \cos \theta)$$
+
+### 4.5 得到摆线方程
+
+$$\boxed{\begin{cases} x(\theta) = a(\theta - \sin \theta) \\ y(\theta) = a(1 - \cos \theta) \end{cases}} \tag{cycloid}$$
+
+其中 $a > 0$ 是由起点 $(0,0)$ 和终点 $(X, Y)$ 唯一确定的常数（让 $x=a\theta = X, y = 2a = Y$ 时曲线通过终点）。
+
+> 这是经典的**摆线（cycloid）**方程。常数 $a$ 既是"轮子半径"，也是方程中的特征长度。
+
+---
+
+## 5. 摆线是什么：一个轮子的故事
+
+### 5.1 几何构造
+
+想象一个半径为 $a$ 的圆，沿着一条直线**无滑动地滚动**。取轮缘上的一个点（开始时正好接触地面），画出它在不同时间的轨迹，就是一条摆线。
+
+参数方程的物理含义：
+
+- $\theta$：轮子转过的角度。
+- $a\theta$：轮子中心水平走过的距离（圆周 = $a\theta$，也等于滚动过的水平距离）。
+- $a\sin\theta$：点在轮子上的水平位置（相对中心）。
+- $a(1-\cos\theta)$：点在轮子上的竖直位置（相对地面）。当 $\theta=0$，点在地面上 $y=0$；当 $\theta=\pi$，点在最高 $y=2a$；当 $\theta=2\pi$，点又回到地面。
+
+所以水平方向 $x = $ "轮子走了多远" $-$ "点在轮子上的水平偏移"，刚好抵消使轨迹来回"摆"。
+
+### 5.2 一拱
+
+参数 $\theta$ 从 0 到 $2\pi$，对应轮子刚好转一圈，轨迹是一个**摆线拱（cycloid arch）**，长 $2\pi a$，最高 $2a$。
+
+- 起拱点：$(0, 0)$，切线垂直（$dy/dx = \cot\left(\dfrac{\theta}{2}\right)$ 在 $\theta\to 0$ 时趋于 $\infty$）。
+- 拱顶：$(\pi a, 2a)$，切线水平。
+- 落拱点：$(2\pi a, 0)$，切线又垂直。
+
+> 这个"起落处陡、中段平"的形状，恰恰就是最优滑道的形状。物理直觉和数学严格结果吻合。
+
+### 5.3 看图
+
+下图展示了轮子滚动过程中，轮缘点（红点）描出的轨迹。每个蓝色圆是一个瞬间的轮子位置；红色虚线是圆心到轮缘点的半径。浅灰色曲线是完整摆线。
+
+![摆线的几何构造：轮子滚动](figure2.png)
+
+### 5.4 一拱的几何一览
+
+下图标注了摆线一拱的关键点（起点、四个等分点、终点）和关键长度（半径 $a$）。
+
+![摆线一拱的关键几何](figure4.png)
+
+---
+
+## 6. 摆线一拱的弧长（0 到 2π）
+
+### 6.1 公式
+
+参数曲线的弧长公式：
+
+$$s = \int_\alpha^\beta \sqrt{\left(\frac{dx}{d\theta}\right)^2 + \left(\frac{dy}{d\theta}\right)^2} \, d\theta$$
+
+### 6.2 求导代入
+
+从 [4.5 节](025-fastest-descent-line/brachistochrone.md#L395) 的摆线参数方程出发：
+
+$$x(\theta) = a(\theta - \sin\theta), \quad y(\theta) = a(1 - \cos\theta)$$
+
+**对 $x(\theta)$ 求导**：常数 $a$ 提到外面，对括号里逐项微分：
+
+$$\frac{dx}{d\theta} = a \cdot \frac{d}{d\theta}(\theta - \sin\theta) = a(1 - \cos\theta)$$
+
+其中：
+- $\dfrac{d}{d\theta}(\theta) = 1$
+- $\dfrac{d}{d\theta}(\sin\theta) = \cos\theta$
+
+**对 $y(\theta)$ 求导**：同样逐项微分：
+
+$$\frac{dy}{d\theta} = a \cdot \frac{d}{d\theta}(1 - \cos\theta) = a\sin\theta$$
+
+其中：
+- $\dfrac{d}{d\theta}(1) = 0$（常数项消失）
+- $\dfrac{d}{d\theta}(-\cos\theta) = -(-\sin\theta) = \sin\theta$
+
+合起来：
+
+$$\boxed{\frac{dx}{d\theta} = a(1 - \cos\theta), \quad \frac{dy}{d\theta} = a \sin\theta}$$
+
+> **直觉核对**：
+>
+> | $\theta$ | 物理含义 | $dx/d\theta$ | $dy/d\theta$ | 说明 |
+> |---|---|---|---|---|
+> | $0$ | 起点（底部） | $0$ | $0$ | 水平和垂直速度都为零——正要启动 |
+> | $\pi$ | 拱顶（最高点） | $2a$ | $0$ | 水平速度最大，垂直速度归零 |
+> | $2\pi$ | 终点（底部） | $0$ | $0$ | 又一个"暂停"瞬间 |
+>
+> 注意 $\theta=0$ 处 $dx/d\theta=0$——分母为零意味着斜率 $dy/dx \to \infty$，对应 1.2 节说的"起点切线垂直"；$\theta=\pi$ 处 $dy/d\theta=0$——分子为零意味着斜率 $dy/dx = 0$，对应"终点切线水平"。求导结果和前面的几何直觉是自洽的。
+
+$$\left(\frac{dx}{d\theta}\right)^2 + \left(\frac{dy}{d\theta}\right)^2 = a^2(1 - \cos\theta)^2 + a^2 \sin^2\theta$$
+
+> **这两项从哪里来**：不是凭空凑的——是直接把 $(dx/d\theta)^2$ 和 $(dy/d\theta)^2$ 分别代入 [6.2 节](025-fastest-descent-line/brachistochrone.md#L452) 算出的结果。第一项来自 $dx/d\theta = a(1-\cos\theta)$ 平方，第二项来自 $dy/d\theta = a\sin\theta$ 平方。"加 $\sin^2\theta$" 其实是说"把 $(dy/d\theta)^2$ 这一项也写出来"。
+
+**第一步：把 $a^2$ 提到外面**
+
+两项都含 $a^2$，提出来：
+
+$$a^2\big[(1 - \cos\theta)^2 + \sin^2\theta\big]$$
+
+> 提了 $a^2$ 之后，第二项就只剩 $\sin^2\theta$ 自己了——这也是为什么下面展开式中没有 $a^2$。
+
+**第二步：展开 $(1 - \cos\theta)^2$，与 $\sin^2\theta$ 相加**
+
+$$a^2\big[\underbrace{1 - 2\cos\theta + \cos^2\theta}_{(1-\cos\theta)^2 \text{展开}} + \sin^2\theta\big]$$
+
+**第三步：用 $\cos^2\theta + \sin^2\theta = 1$ 消项**
+
+$$a^2\big[1 - 2\cos\theta + \underbrace{\cos^2\theta + \sin^2\theta}_{=1}\big] = a^2(1 - 2\cos\theta + 1) = 2a^2(1 - \cos\theta)$$
+
+> **关键恒等式**：$\cos^2\theta + \sin^2\theta = 1$（来自单位圆定义）。没有它，多出来的两项消不掉，整个化简就进行不下去。这一步是整个弧长公式能化到 $\sqrt{1-\cos\theta}$ 形式的"魔法"。
+
+**第四步：开方**
+
+$$\sqrt{\left(\frac{dx}{d\theta}\right)^2 + \left(\frac{dy}{d\theta}\right)^2} = \sqrt{2a^2(1 - \cos\theta)} = a\sqrt{2(1 - \cos\theta)}$$
+
+> 这里又有一个隐含动作：$\sqrt{a^2} = a$（因为 $a > 0$）——所以开方后 $a$ 留在外面、$a^2$ 变成 $a$。整个化简有两条"提取"：**进积分前提 $a^2$**、**出积分后提 $a$**。
+
+所以最终：
+
+$$\boxed{\sqrt{\left(\frac{dx}{d\theta}\right)^2 + \left(\frac{dy}{d\theta}\right)^2} = a\sqrt{2(1-\cos\theta)}}$$
+
+### 6.3 半角公式
+
+$$1 - \cos\theta = 2\sin^2\left(\dfrac{\theta}{2}\right)$$
+
+$$\sqrt{2(1-\cos\theta)} = \sqrt{4\sin^2\left(\dfrac{\theta}{2}\right)} = 2\left|\sin\left(\dfrac{\theta}{2}\right)\right|$$
+
+在 $[0, 2\pi]$ 上，$\sin\left(\dfrac{\theta}{2}\right) \geq 0$，所以绝对值可以去掉：
+
+$$\sqrt{\left(\frac{dx}{d\theta}\right)^2 + \left(\frac{dy}{d\theta}\right)^2} = 2a \sin\left(\dfrac{\theta}{2}\right)$$
+
+### 6.4 积分
+
+$$s = \int_0^{2\pi} 2a \sin\left(\dfrac{\theta}{2}\right) \, d\theta$$
+
+**先算不定积分 $\int \sin(\theta/2)\,d\theta$**：用换元 $u = \theta/2$，则 $du = \dfrac{1}{2}d\theta$，即 $d\theta = 2\,du$：
+
+$$\int \sin\left(\dfrac{\theta}{2}\right) d\theta = \int \sin(u) \cdot 2 \, du = 2\int \sin(u) \, du = 2\big(-\cos u + C\big) = -2\cos u + C = -2\cos\left(\dfrac{\theta}{2}\right) + C$$
+
+> **拆开看每一步**：
+>
+> 1. **常数可提出**：$\int 2\sin(u)\,du = 2\int \sin(u)\,du$——常数 $2$ 不参与积分运算，提到外面。
+> 2. **标准积分公式**：$\int \sin u \, du = -\cos u + C$（基本积分表里的）。
+> 3. **乘回去**：$2 \cdot (-\cos u + C) = -2\cos u + 2C$。
+> 4. **重新命名常数**：$2C$ 仍是任意常数（任意常数的任意倍仍是任意常数），记作 $C'$ 也行，但为统一写法就直接写成 $C$——这是个标准约定，不是逻辑漏洞。
+
+> **括号里的 $-2$ 从哪里来**：从换元那一步的 $d\theta = 2\,du$——把 $d\theta$ 换成 $du$ 时多出来的系数。等价地理解：$\dfrac{d}{d\theta}(\theta/2) = 1/2$，链式法则反过来要除以 $1/2$（即乘 $2$）来补偿——补偿因子 = $\dfrac{1}{\text{内层导数}}$。
+
+代回原式（$2a$ 是常数提到外面）：
+
+$$= 2a \left[ -2\cos\left(\dfrac{\theta}{2}\right) \right]_0^{2\pi}$$
+
+$$= 2a \left[ -2\cos(\pi) - (-2\cos 0) \right]$$
+
+$$= 2a \left[ -2(-1) + 2(1) \right] = 2a \cdot 4 = 8a$$
+
+### 6.5 结果
+
+$$\boxed{s_{\text{arch}} = 8a}$$
+
+> 一拱摆线的弧长是轮子直径 $2a$ 的**四倍**——一个非常干净的结果。
+
+### 6.6 看图
+
+下图展示了弧长元素 $ds$ 沿摆线的累积过程：红色短线段是切向量，把它们"首尾相接"的长度就是总弧长 $8a$。
+
+![弧长元素 ds 沿曲线累积](figure5.png)
+
+---
+
+## 7. 摆线一拱下方的面积
+
+### 7.1 公式
+
+参数曲线下方的面积（这里"下方"指 $y$ 一侧，因为 $y \geq 0$，$x$ 是水平坐标）：
+
+$$A = \int y \, dx$$
+
+参数化下：
+
+$$A = \int_\alpha^\beta y(\theta) \cdot \frac{dx}{d\theta} \, d\theta$$
+
+### 7.2 代入
+
+$$A = \int_0^{2\pi} a(1 - \cos\theta) \cdot a(1 - \cos\theta) \, d\theta = a^2 \int_0^{2\pi} (1 - \cos\theta)^2 \, d\theta$$
+
+### 7.3 展开
+
+$$(1 - \cos\theta)^2 = 1 - 2\cos\theta + \cos^2\theta$$
+
+把 $\cos^2\theta$ 用半角公式 $\cos^2\theta = \dfrac{1 + \cos 2\theta}{2}$：
+
+$$(1-\cos\theta)^2 = 1 - 2\cos\theta + \frac{1}{2} + \frac{\cos 2\theta}{2} = \frac{3}{2} - 2\cos\theta + \frac{\cos 2\theta}{2}$$
+
+### 7.4 逐项积分
+
+在 $[0, 2\pi]$ 上：
+
+- $\int_0^{2\pi} \frac{3}{2} \, d\theta = \frac{3}{2} \cdot 2\pi = 3\pi$
+- $\int_0^{2\pi} -2\cos\theta \, d\theta = -2 \cdot [\sin\theta]_0^{2\pi} = 0$
+- $\int_0^{2\pi} \frac{\cos 2\theta}{2} \, d\theta = \frac{1}{2} \cdot [\frac{\sin 2\theta}{2}]_0^{2\pi} = 0$
+
+三项相加：$3\pi$。
+
+### 7.5 结果
+
+$$\boxed{A_{\text{arch}} = 3\pi a^2}$$
+
+> 摆线一拱下的面积是 $\pi a^2$（轮子面积）的**三倍**——又是非常干净的结果。
+
+### 7.6 看图
+
+下图展示了面积元素 $y \, dx$ 沿 x 轴的累积过程：把摆线一拱所围区域切成许多竖直窄条（红色矩形），每条面积 $y \, dx$，加总得到 $3\pi a^2$。
+
+![面积元素 y dx 沿 x 累积](figure6.png)
+
+---
+
+## 8. 总结表
+
+| 量 | 公式 | 数值（$a=1$） |
+|---|---|---|
+| 参数方程 | $x = a(\theta - \sin\theta)$, $y = a(1-\cos\theta)$ | — |
+| 一拱水平跨度 | $x(2\pi) = 2\pi a$ | $2\pi \approx 6.28$ |
+| 一拱最大高度 | $y(\pi) = 2a$ | $2$ |
+| 一拱弧长 | $8a$ | $8$ |
+| 一拱面积 | $3\pi a^2$ | $3\pi \approx 9.42$ |
+| 轮子面积 | $\pi a^2$ | $\pi \approx 3.14$ |
+
+弧长是直径的四倍，拱面积是轮面积的三倍——简洁到让人怀疑上帝也是工程师。
+
+---
+
+## 9. 复盘：我们做了什么
+
+让我们回头梳理一遍逻辑链：
+
+1. **物理建模**：用能量守恒把速度用高度表示 $v = \sqrt{2gy}$，把时间写成一个泛函 $T[y] = \int \sqrt{(1+(y')^2)/(2gy)} dx$。
+2. **变分法**：把"求泛函极值"转化为 E-L 方程 $\partial L/\partial y - d/dx(\partial L/\partial y') = 0$。
+3. **Beltrami 恒等式**：因为 $L$ 不显含 $x$，用第一积分简化，得到 $y(1+(y')^2) = 2a$。
+4. **参数化**：用三角代换解出 $x(\theta) = a(\theta - \sin\theta), y(\theta) = a(1-\cos\theta)$——摆线方程。
+5. **弧长和面积**：用参数弧长公式和半角公式，得到 $8a$ 和 $3\pi a^2$。
+
+每一步都不神秘——只要你愿意跟着算。
+
+---
+
+## 10. 拓展阅读
+
+- 历史背景：约翰·伯努利的原始论文与挑战，牛顿匿名投稿的解答（编辑猜到了作者）。
+- 进阶：从最速降线推广到"等时曲线（tautochrone）"——摆线不仅是最快的，还是**不管从哪点出发都同时到达**的曲线。伽利略误以为是圆弧，摆线才是对的。
+- 物理实现：把小球放在最速降线形状的滑槽里释放，与直线轨道对比时间。可以用 3D 打印做一个。
+
+---
+
+## 附录：如何重新生成配图
+
+如果修改了脚本或者想重新生成图片，在当前目录运行：
+
+```bash
+python figures.py all      # 重新生成全部 6 张图
+python figures.py verify   # 数值验证 8a 和 3πa²
+python figures.py N        # 只生成第 N 张（N=1~6）
+```
+
+生成的图片会保存到当前目录，文件名 `figure1.png` 到 `figure6.png`，直接被上面的 Markdown 引用。
+
+---
+
+## 附录：常用术语速查
+
+### ODE（Ordinary Differential Equation，常微分方程）
+
+含对**单一自变量**的导数的方程。"常"对应 *ordinary*，对应普通导数符号 $d/dx$。
+
+**判断特征**：
+- 只出现全导数符号 $d/dx$、$d^2/dx^2$
+- 未知函数只依赖一个自变量（如 $y(x)$）
+
+**阶数** = 最高阶导数的阶数。
+
+**例子**：
+- $y' + 2y = 0$：一阶
+- $y'' = 0$：二阶
+- $y^{(4)} + y = x$：四阶
+
+**标准解法**：积分 $n$ 次（$n$ = 阶数）得 $n$ 个积分常数，再用 $n$ 个条件（初始 / 边界）定常数。
+
+### PDE（Partial Differential Equation，偏微分方程）
+
+含对**多个自变量**的偏导数的方程。"偏"对应 *partial*，对应偏导符号 $\partial$。
+
+**判断特征**：
+- 出现偏导符号 $\partial$
+- 未知函数依赖多个自变量（如 $u(t,x)$）
+
+**例子**：
+- $\dfrac{\partial u}{\partial t} = \dfrac{\partial^2 u}{\partial x^2}$：热传导方程
+- $\dfrac{\partial^2 u}{\partial t^2} = c^2 \dfrac{\partial^2 u}{\partial x^2}$：波动方程
+- $\nabla^2 u = 0$：拉普拉斯方程（$\nabla^2 = \partial^2/\partial x^2 + \partial^2/\partial y^2 + \partial^2/\partial z^2$）
+
+### 速查对照表
+
+| | ODE | PDE |
+|---|---|---|
+| 中文 | 常微分方程 | 偏微分方程 |
+| 自变量数 | 1 个 | ≥ 2 个 |
+| 导数符号 | $d/dx$（全导数） | $\partial/\partial x$（偏导） |
+| 典型学科 | 经典力学、电路 | 流体力学、量子力学、电磁学 |
+| 通用解法 | 积分 | 分离变量、特征线、有限元… |
+
+### 为什么最速降线是 ODE 不是 PDE
+
+最速降线的 E-L 方程是：
+
+$$\frac{\partial L}{\partial y} - \frac{d}{dx}\frac{\partial L}{\partial y'} = 0$$
+
+这里**两种符号**混在一起：
+
+- $\partial L / \partial y$：偏导——但被偏的是 $L(x,y,y')$ 这个把 $(x,y,y')$ 当独立量的辅助函数，不是 $y(x)$ 本身
+- $\dfrac{d}{dx}\dfrac{\partial L}{\partial y'}$：全导数——这才是真正的 ODE 特征
+
+整个方程只有一个真正的自变量 $x$，所以归类为 ODE，不是 PDE。
+
+---
+
+## 附录：常用积分速查
+
+### 核心直觉：积分是求导的逆运算
+
+$\displaystyle\int f(u)\,du$ 的意思是：找一个函数 $F(u)$，让 $F'(u) = f(u)$。$F$ 叫 $f$ 的**原函数**或**反导数**。
+
+知道这个后，$\int \sin u \, du = -\cos u + C$ 就非常自然：
+
+1. 先看 $\dfrac{d}{du}(\cos u)$：由链式法则，$\dfrac{d}{du}(\cos u) = -\sin u$
+2. 两边同时取负号：$\dfrac{d}{du}(-\cos u) = -(-\sin u) = \sin u$
+3. 所以 $-\cos u$ 就是 $\sin u$ 的原函数
+4. 加 $C$：任何常数 $C$ 求导都是 $0$，所以 $-\cos u + C$ 也都是原函数（这就是"一族"原函数的来源）
+
+把上面四步倒过来念，就是 $\int \sin u \, du = -\cos u + C$ 的由来——不是凭空记忆，而是"想一个求导能得到 $\sin u$ 的函数"。
+
+### 速查表
+
+下面这些公式都按"求导能还原"来验证，可以放心使用：
+
+| 积分 | 原函数 | 验证：原函数对 $u$ 求导 |
+|---|---|---|
+| $\displaystyle\int \sin u \, du$ | $-\cos u + C$ | $\dfrac{d}{du}(-\cos u) = -(-\sin u) = \sin u$ ✓ |
+| $\displaystyle\int \cos u \, du$ | $\sin u + C$ | $\dfrac{d}{du}(\sin u) = \cos u$ ✓ |
+| $\displaystyle\int u^n \, du$ （$n \ne -1$） | $\dfrac{u^{n+1}}{n+1} + C$ | $\dfrac{d}{du}\!\left(\dfrac{u^{n+1}}{n+1}\right) = \dfrac{(n+1)u^n}{n+1} = u^n$ ✓ |
+| $\displaystyle\int \dfrac{1}{u}\,du$ | $\ln\lvert u\rvert + C$ | $\dfrac{d}{du}\ln\lvert u\rvert = \dfrac{1}{u}$ ✓ |
+| $\displaystyle\int e^u \, du$ | $e^u + C$ | $\dfrac{d}{du}e^u = e^u$ ✓ |
+| $\displaystyle\int \sec^2 u \, du$ | $\tan u + C$ | $\dfrac{d}{du}\tan u = \sec^2 u$ ✓ |
+| $\displaystyle\int \dfrac{1}{\sqrt{1-u^2}}\,du$ | $\arcsin u + C$ | $\dfrac{d}{du}\arcsin u = \dfrac{1}{\sqrt{1-u^2}}$ ✓ |
+| $\displaystyle\int \dfrac{1}{1+u^2}\,du$ | $\arctan u + C$ | $\dfrac{d}{du}\arctan u = \dfrac{1}{1+u^2}$ ✓ |
+
+### 链式法则版的推广
+
+当被积函数里 $u$ 变成某个函数 $g(x)$（如 $\sin(3x)$ 而不是 $\sin u$），要补一个 $g'(x)$，这就是 6.4 节那个 $-2$ 的来源：
+
+$$\int f(g(x)) \cdot g'(x)\,dx = F(g(x)) + C$$
+
+比如 $\int \sin(\theta/2) \cdot \frac{1}{2}\,d\theta = -\cos(\theta/2) + C$——里面的 $\frac{1}{2}$ 就是 $g'(\theta)$，必须和外面的 $\sin(g(\theta))$ 配对才能直接套公式。
+
+### 为什么都有 $+C$
+
+任何常数 $C$ 求导都是 $0$，所以 $F(u)$ 和 $F(u)+C$ 都是同一 $f(u)$ 的原函数。积分给出的是一族曲线，不是唯一一条；这就是不定积分里"不定"的含义。
+

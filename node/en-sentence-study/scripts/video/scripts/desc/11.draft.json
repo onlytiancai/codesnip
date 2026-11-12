@@ -1,0 +1,170 @@
+{
+  "id": "11",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/11.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Directions",
+    "scene_zh": "问路",
+    "task_en": "Estimated Time",
+    "task_zh": "预计时间",
+    "context": "你刚到东京，想去浅草寺参观。在地铁站里，你不确定从这里到浅草寺需要多长时间，于是向路人询问。你手里拿着地图，但不太确定方向。",
+    "sentence_zh": "从这里到浅草寺大概需要多长时间？",
+    "explanation": "问预计时间是问路时的常见需求。以上5种表达覆盖了从口语到正式的不同场景：'How long does it take' 是最通用自然的表达；'How long will it take' 强调结果；'How long is the journey' 较为礼貌友好；'estimated travel time' 适合问工作人员或查询信息时使用；'How far' 直接问距离也是常见说法。注意重音在 'long' 上，'Senso-ji' 的重音在第二个音节。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 16,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "问路：预计时间。你刚到东京，想去浅草寺参观。在地铁站里，你不确定从这里到浅草寺需要多长时间，于是向路人询问。你手里拿着地图，但不太确定方向。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/11/0-0-zh.mp3",
+          "duration_ms": 14501
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 8,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "从这里到浅草寺需要多长时间？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/11/1-0-zh.mp3",
+          "duration_ms": 2508
+        },
+        {
+          "lang": "en",
+          "text": "How long does it take to get to Senso-ji Temple from here?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/11/1-1-en.mp3",
+          "duration_ms": 3019
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "How long does it take to get to Senso-ji Temple from here?",
+      "phonetic": "haʊ lɔŋ dʌz ɪt teɪk tə ɡet tuː ˌsensɔːˈdʒiː ˈtempl frəm hɪə",
+      "literal_translation": "从这里到浅草寺需要多长时间？",
+      "note": "最常用的问路表达，'does it take' 表示一般情况"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "到浅草寺需要多长时间？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/11/2-0-zh.mp3",
+          "duration_ms": 2218
+        },
+        {
+          "lang": "en",
+          "text": "How long will it take to get to Senso-ji Temple?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/11/2-1-en.mp3",
+          "duration_ms": 2810
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "How long will it take to get to Senso-ji Temple?",
+      "phonetic": "haʊ lɔŋ wɪl ɪt teɪk tə ɡet tuː ˌsensɔːˈdʒiː ˈtempl",
+      "literal_translation": "到浅草寺需要多长时间？",
+      "note": "用将来时will，强调到达目的地所需的时间"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "到浅草寺的旅程需要多长时间？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/11/3-0-zh.mp3",
+          "duration_ms": 2682
+        },
+        {
+          "lang": "en",
+          "text": "How long is the journey to Senso-ji Temple?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/11/3-1-en.mp3",
+          "duration_ms": 2601
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "How long is the journey to Senso-ji Temple?",
+      "phonetic": "haʊ lɔŋ ɪz ðə ˈdʒɜːni tuː ˌsensɔːˈdʒiː ˈtempl",
+      "literal_translation": "到浅草寺的旅程需要多长时间？",
+      "note": "'journey'较为正式友好，适用于询问陌生人"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 8,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "到浅草寺的预计旅行时间是多少？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/11/4-0-zh.mp3",
+          "duration_ms": 2891
+        },
+        {
+          "lang": "en",
+          "text": "What's the estimated travel time to Senso-ji Temple?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/11/4-1-en.mp3",
+          "duration_ms": 3019
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "What's the estimated travel time to Senso-ji Temple?",
+      "phonetic": "wɒts ðiː ˈestɪmeɪtɪd ˈtrævl taɪm tuː ˌsensɔːˈdʒiː ˈtempl",
+      "literal_translation": "到浅草寺的预计旅行时间是多少？",
+      "note": "用'estimated'显得更正式专业，适合问工作人员"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 6,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "浅草寺离这里有多远？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/11/5-0-zh.mp3",
+          "duration_ms": 1962
+        },
+        {
+          "lang": "en",
+          "text": "How far is Senso-ji Temple from here?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/11/5-1-en.mp3",
+          "duration_ms": 1997
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "How far is Senso-ji Temple from here?",
+      "phonetic": "haʊ fɑːr ɪz ˌsensɔːˈdʒiː ˈtempl frəm hɪə",
+      "literal_translation": "浅草寺离这里有多远？",
+      "note": "问距离而非时间，更口语化的问法"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 31,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "问预计时间是问路时的常见需求。以上5种表达覆盖了从口语到正式的不同场景：'How long does it take' 是最通用自然的表达；'How long will it take' 强调结果；'How long is the journey' 较为礼貌友好；'estimated travel time' 适合问工作人员或查询信息时使用；'How far' 直接问距离也是常见说法。注意重音在 'long' 上，'Senso-ji' 的重音在第二个音节。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/11/6-0-zh.mp3",
+          "duration_ms": 29268
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Directions scene, Estimated Time task. Scene situation: 你刚到东京. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/11.jpg"
+  },
+  "duration_frames": 2490,
+  "duration_sec": 83
+}

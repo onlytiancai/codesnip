@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CET-4 核心词分组浏览</title>
+
+    <!-- Tailwind 4 browser (本地 vendor, 来源: unpkg.com/@tailwindcss/browser@4) -->
+    <script src="/vendor-tw.js"></script>
+
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        font-family:
+          Inter,
+          -apple-system,
+          BlinkMacSystemFont,
+          'PingFang SC',
+          'Hiragino Sans GB',
+          'Microsoft YaHei',
+          'Helvetica Neue',
+          Arial,
+          sans-serif;
+        color: #1e293b; /* slate-800 */
+        background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 50%, #fffbeb 100%);
+      }
+      /* 自定义滚动条 */
+      .thin-scroll::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      .thin-scroll::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.4);
+        border-radius: 3px;
+      }
+      .thin-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(148, 163, 184, 0.7);
+      }
+      .thin-scroll::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      /* 抽屉过渡（用 transform translate + class） */
+      .drawer {
+        transition: transform 0.28s ease-out;
+      }
+      .drawer-open {
+        transform: translateX(0);
+      }
+      .drawer-closed {
+        transform: translateX(100%);
+      }
+      .drawer-open-left {
+        transform: translateX(0);
+      }
+      .drawer-closed-left {
+        transform: translateX(-100%);
+      }
+      /* prose 优化中文 */
+      .zh-prose p,
+      .zh-prose li {
+        line-height: 1.85;
+      }
+
+      /* 桌面端 (>=1024px):右侧抽屉作为布局第三列常驻可见,
+         强制覆盖 Vue 给的 drawer-closed/drawer-open 类。
+         <lg 时此规则失效(mobile 仍走 drawer-open/closed 滑入动画)。 */
+      @media (min-width: 1024px) {
+        .drawer.drawer-detail {
+          position: sticky !important;
+          top: 68px !important;
+          transform: none !important;
+          height: calc(100vh - 68px) !important;
+          width: auto !important;
+          z-index: auto !important;
+          border-left: none !important;
+          background: white !important;
+          box-shadow: none !important;
+          pointer-events: auto !important;
+          border-radius: 1rem !important;
+          margin-right: 0.25rem !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body class="thin-scroll">
+    <div id="app">
+      <!-- 顶部 Header -->
+      <header
+        class="sticky top-0 z-30 border-b border-slate-200/70 bg-white/85 backdrop-blur"
+      >
+        <div
+          class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3"
+        >
+          <div class="flex items-center gap-3">
+            <!-- 移动端分类抽屉触发器 -->
+            <button
+              class="rounded-lg border border-slate-300 bg-white p-1.5 text-slate-700 lg:hidden"
+              @click="mobileCategoryDrawerOpen = true"
+              aria-label="打开分类目录"
+            >
+              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M3 4h14v2H3V4zm0 5h14v2H3V9zm0 5h14v2H3v-2z"/>
+              </svg>
+            </button>
+            <div
+              class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-amber-400 text-white font-bold shadow"
+            >
+              📚
+            </div>
+            <div>
+              <h1 class="text-base font-semibold text-slate-800">
+                CET-4 核心词分组浏览
+              </h1>
+              <p class="text-xs text-slate-500">
+                {{ totalGroups }} 组 · {{ categories.length }} 分类 · {{ totalWords }} 词
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <span
+              class="hidden sm:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1"
+              :class="health?.ok ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'"
+              v-if="health"
+            >
+              <span
+                class="inline-block h-1.5 w-1.5 rounded-full"
+                :class="health?.ok ? 'bg-emerald-500' : 'bg-rose-500'"
+              ></span>
+              服务 {{ health.ok ? '正常' : '异常' }}
+            </span>
+            <span
+              class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-slate-600"
+              v-if="health"
+            >
+              <span
+                class="inline-block h-1.5 w-1.5 rounded-full"
+                :class="health.hasKey ? 'bg-emerald-500' : 'bg-amber-500'"
+              ></span>
+              TTS Key {{ health.hasKey ? '已配置' : '缺失' }}
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <!-- 三栏主体（lg 三栏:侧栏/主面板/抽屉常驻;<lg 单栏 + 抽屉 overlay） -->
+      <main class="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-4 py-5 lg:grid-cols-[14rem_minmax(0,1fr)_24rem] lg:px-5">
+        <!-- 左:分类侧栏 (lg 以下折叠到抽屉) -->
+        <aside class="hidden w-60 shrink-0 lg:w-56 lg:block">
+          <div
+            class="sticky top-[68px] max-h-[calc(100vh-88px)] overflow-y-auto rounded-2xl border border-slate-200/70 bg-white/80 p-2 shadow-sm thin-scroll"
+          >
+            <h2
+              class="px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-wider text-slate-400"
+            >
+              分类目录
+            </h2>
+            <ul class="space-y-1">
+              <li v-for="cat in categories" :key="cat.id">
+                <button
+                  class="group flex w-full flex-col gap-0.5 rounded-lg px-3 py-2 text-left transition"
+                  :class="
+                    selectedCategoryId === cat.id
+                      ? 'bg-amber-200 text-amber-900 shadow-inner'
+                      : 'hover:bg-amber-50 text-slate-700'
+                  "
+                  @click="selectCategory(cat.id); mobileCategoryDrawerOpen = false"
+                  :aria-pressed="selectedCategoryId === cat.id"
+                >
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium">
+                      <span class="mr-1 text-slate-400">#{{ cat.id }}</span>
+                      {{ cat.name_zh }}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-2 text-[11px]">
+                    <span
+                      class="rounded bg-white/70 px-1.5 py-0.5 text-slate-500"
+                    >{{ cat.groupCount }} 组</span>
+                    <span
+                      class="rounded bg-white/70 px-1.5 py-0.5 text-slate-500"
+                    >{{ cat.wordCount }} 词</span>
+                  </div>
+                </button>
+              </li>
+            </ul>
+          </div>
+        </aside>
+
+        <!-- 中:主面板 -->
+        <section class="min-w-0 flex-1">
+          <!-- Loading 状态 -->
+          <div
+            v-if="!data"
+            class="flex h-64 items-center justify-center rounded-2xl border border-slate-200/70 bg-white/80 text-slate-400"
+          >
+            <div class="text-center">
+              <div
+                class="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-2 border-amber-400 border-t-transparent"
+              ></div>
+              <p>加载中...</p>
+              <p v-if="loadError" class="mt-2 text-rose-500 text-xs">
+                {{ loadError }}
+              </p>
+            </div>
+          </div>
+
+          <div v-else>
+            <!-- 当前分类 group 长卡 -->
+            <article
+              v-if="currentGroup"
+              class="rounded-2xl border border-slate-200/70 bg-white shadow-sm"
+            >
+              <!-- 卡片头 -->
+              <header
+                class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 bg-gradient-to-r from-amber-50 to-sky-50 px-5 py-4"
+              >
+                <div>
+                  <div class="text-[11px] uppercase tracking-wider text-amber-600">
+                    第 {{ currentGroup.group_id }} 组 ·
+                    {{ currentCategory?.name_zh || '' }}
+                  </div>
+                  <h2 class="mt-0.5 text-lg font-semibold text-slate-800">
+                    {{ currentGroup.title_zh }}
+                  </h2>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-700 shadow-sm transition hover:bg-amber-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                    :disabled="!currentGroup.explanation_zh"
+                    :aria-label="`朗读第 ${currentGroup.group_id} 组讲解`"
+                    @click="playTTS(currentGroup.explanation_zh, 'zh', groupKey(currentGroup.group_id))"
+                  >
+                    <span v-if="playingId === groupKey(currentGroup.group_id)">⏸</span>
+                    <span v-else>🔊</span>
+                    <span>{{ playingId === groupKey(currentGroup.group_id) ? '播放中' : '朗读讲解' }}</span>
+                  </button>
+                </div>
+              </header>
+
+              <!-- 词 chips -->
+              <div class="flex flex-wrap gap-2 border-b border-slate-100 bg-white px-5 py-3">
+                <span
+                  v-for="w in currentGroup.words"
+                  :key="w"
+                  class="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700 shadow-sm"
+                >
+                  <button
+                    class="hover:underline focus:outline-none"
+                    @click="openDrawerForWord(w)"
+                    :aria-label="`查看单词 ${w}`"
+                  >{{ w }}</button>
+                  <button
+                    class="flex h-5 w-5 items-center justify-center rounded-full text-xs transition"
+                    :class="
+                      playingId === wordKey(w)
+                        ? 'bg-sky-500 text-white'
+                        : 'bg-white text-sky-500 hover:bg-sky-100'
+                    "
+                    :aria-label="`朗读单词 ${w}`"
+                    @click="playTTS(w, 'en', wordKey(w))"
+                  >🔊</button>
+                </span>
+              </div>
+
+              <!-- 讲解段落 -->
+              <div class="zh-prose px-5 py-4 text-sm text-slate-700">
+                <p
+                  v-for="(para, i) in explanationParagraphs"
+                  :key="i"
+                  class="mb-2 last:mb-0"
+                >
+                  {{ para }}
+                </p>
+              </div>
+            </article>
+
+            <!-- 同分类卡片网格 -->
+            <section
+              v-if="currentCategory"
+              class="mt-6"
+            >
+              <h3
+                class="mb-3 px-1 text-xs font-semibold uppercase tracking-wider text-slate-500"
+              >
+                同分类其他组 · {{ currentCategory.name_zh }}
+              </h3>
+              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                <button
+                  v-for="g in siblingGroups"
+                  :key="g.group_id"
+                  class="group flex flex-col gap-2 rounded-xl border border-slate-200/70 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-md"
+                  :class="
+                    currentGroup?.group_id === g.group_id
+                      ? 'border-amber-400 ring-2 ring-amber-300'
+                      : ''
+                  "
+                  @click="selectGroup(g.group_id)"
+                  :aria-label="`切换到第 ${g.group_id} 组: ${g.title_zh}`"
+                >
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="text-sm font-semibold text-slate-800">
+                      <span class="text-amber-500 mr-1">#{{ g.group_id }}</span>
+                      {{ g.title_zh }}
+                    </div>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5">
+                    <span
+                      v-for="w in g.words.slice(0, 3)"
+                      :key="w"
+                      class="rounded bg-sky-50 px-1.5 py-0.5 text-[11px] text-sky-700"
+                    >{{ w }}</span>
+                    <span
+                      v-if="g.words.length > 3"
+                      class="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-500"
+                    >+{{ g.words.length - 3 }}</span>
+                  </div>
+                </button>
+              </div>
+            </section>
+
+      
+          </div>
+        </section>
+
+      <!-- 右侧抽屉:单词详情 -->
+      <!-- lg: 常驻布局第三列(始终可见,作为 grid item,无 overlay) -->
+      <!-- <lg: fixed overlay + 滑入滑出 -->
+      <div
+        class="drawer drawer-detail fixed inset-y-0 right-0 z-40 flex w-full flex-col border-l border-slate-200 bg-white shadow-2xl lg:!static lg:!translate-x-0 lg:h-[calc(100vh-68px)] lg:w-auto lg:z-auto lg:border-l-0 lg:bg-white lg:shadow-none"
+        :class="drawerOpen || isDesktop ? 'drawer-open pointer-events-auto' : 'drawer-closed pointer-events-none'"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="dictEntry?.headWord || '单词详情'"
+      >
+        <header class="flex items-center justify-between border-b border-slate-200 px-5 py-3 bg-gradient-to-r from-sky-50 to-amber-50">
+          <h2 class="text-lg font-semibold text-slate-800">
+            <span v-if="dictEntry">{{ dictEntry.headWord }}</span>
+            <span v-else class="text-slate-400">单词详情</span>
+          </h2>
+          <button
+            class="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 lg:hidden"
+            :aria-label="'关闭抽屉'"
+            @click="closeDrawer"
+          >
+            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M6.225 4.811a1 1 0 011.414 0L10 7.182l2.361-2.371a1 1 0 111.418 1.414L11.418 8.596l2.361 2.371a1 1 0 01-1.418 1.414L10 10.01l-2.361 2.371a1 1 0 01-1.418-1.414l2.361-2.371-2.361-2.371a1 1 0 010-1.414z"/>
+            </svg>
+          </button>
+        </header>
+
+        <!-- 抽屉内容 -->
+        <div class="thin-scroll flex-1 overflow-y-auto px-5 py-4">
+          <!-- Loading -->
+          <div v-if="dictLoading" class="flex h-32 items-center justify-center text-sm text-slate-400">
+            <div class="text-center">
+              <div class="mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-2 border-sky-400 border-t-transparent"></div>
+              <p>查询词典中...</p>
+            </div>
+          </div>
+
+          <div v-else-if="dictError" class="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {{ dictError }}
+          </div>
+
+          <!-- 桌面端空态: 提示点词 chip -->
+          <div
+            v-else-if="!dictEntry"
+            class="hidden h-full items-center justify-center text-sm text-slate-400 lg:flex"
+          >
+            <div class="text-center">
+              <div class="mb-2 text-4xl">📖</div>
+              <p>点击左侧或网格中的<span class="mx-1 font-medium text-slate-600">词 chip</span>查看详情</p>
+            </div>
+          </div>
+
+          <div v-else-if="dictEntry" class="space-y-5 text-sm">
+            <!-- 音标 + 操作 -->
+            <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1 rounded-lg bg-slate-50 px-3 py-2">
+              <div class="text-base font-mono text-slate-700">
+                <span class="mr-1 text-[10px] text-slate-400">US</span>/{{ dictWordContent?.usphone || '—' }}/
+                <span class="ml-3 mr-1 text-[10px] text-slate-400">UK</span>/{{ dictWordContent?.ukphone || '—' }}/
+              </div>
+              <div class="ml-auto flex items-center gap-1.5">
+                <button
+                  class="inline-flex items-center gap-1 rounded-md border border-sky-300 bg-white px-2.5 py-1 text-xs font-medium text-sky-700 hover:bg-sky-50 disabled:opacity-50"
+                  :disabled="!dictEntry.headWord"
+                  :aria-label="`朗读单词 ${dictEntry.headWord}`"
+                  @click="playTTS(dictEntry.headWord, 'en', 'drawer-word-' + dictEntry.headWord)"
+                >
+                  <span v-if="playingId === 'drawer-word-' + dictEntry.headWord">⏸</span>
+                  <span v-else>🔊</span> 朗读
+                </button>
+                <button
+                  class="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                  :aria-label="`复制单词 ${dictEntry.headWord}`"
+                  @click="copyWord(dictEntry.headWord)"
+                >📋 复制</button>
+              </div>
+            </div>
+
+            <!-- 缩略图 -->
+            <div v-if="dictWordContent?.picture" class="overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+              <img
+                :src="dictWordContent.picture"
+                :alt="dictEntry.headWord"
+                class="block max-h-48 w-full object-contain"
+                referrerpolicy="no-referrer"
+              />
+            </div>
+
+            <!-- 翻译 -->
+            <section v-if="(dictWordContent?.trans || []).length">
+              <h3 class="mb-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">翻译</h3>
+              <ul class="space-y-1">
+                <li
+                  v-for="(t, i) in dictWordContent.trans"
+                  :key="i"
+                  class="rounded-md bg-sky-50 px-3 py-1.5 text-sm text-slate-700"
+                >
+                  <span class="mr-2 font-mono text-xs italic text-sky-600">{{ t.pos }}</span>
+                  {{ t.tranCn }}
+                  <span v-if="t.tranOther" class="ml-1 text-xs text-slate-500">· {{ t.tranOther }}</span>
+                </li>
+              </ul>
+            </section>
+
+            <!-- 同近义词 -->
+            <section v-if="(dictWordContent?.syno?.synos || []).length">
+              <h3 class="mb-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">同近义词</h3>
+              <div class="space-y-2">
+                <div
+                  v-for="(s, i) in dictWordContent.syno.synos"
+                  :key="i"
+                  class="rounded-md border border-slate-200 px-3 py-2"
+                >
+                  <div class="flex items-baseline gap-2 text-sm">
+                    <span class="font-mono text-xs italic text-sky-600">{{ s.pos }}</span>
+                    <span class="text-slate-700">{{ s.tranCn }}</span>
+                  </div>
+                  <div v-if="(s.hwds || []).length" class="mt-1.5 flex flex-wrap gap-1.5">
+                    <span
+                      v-for="h in s.hwds"
+                      :key="h.w"
+                      class="inline-flex items-center gap-1 rounded bg-emerald-50 px-1.5 py-0.5 text-xs text-emerald-700"
+                    >
+                      <span>{{ h.w }}</span>
+                      <button
+                        class="text-emerald-500 hover:text-emerald-700"
+                        :aria-label="`朗读单词 ${h.w}`"
+                        @click="playTTS(h.w, 'en', 'drawer-syno-' + h.w)"
+                      >🔊</button>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- 短语 -->
+            <section v-if="(dictWordContent?.phrase?.phrases || []).length">
+              <h3 class="mb-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">短语</h3>
+              <ul class="space-y-1.5">
+                <li
+                  v-for="(p, i) in dictWordContent.phrase.phrases"
+                  :key="i"
+                  class="rounded-md border border-slate-100 bg-white px-3 py-2 text-sm"
+                >
+                  <div class="flex items-center gap-2 font-medium text-slate-800">
+                    <span>{{ p.pContent }}</span>
+                    <button
+                      class="text-sky-500 hover:text-sky-700"
+                      :aria-label="`朗读短语 ${p.pContent}`"
+                      @click="playTTS(p.pContent, 'en', 'drawer-phrase-' + i)"
+                    >🔊</button>
+                  </div>
+                  <div v-if="p.pCn" class="mt-0.5 text-xs text-slate-500">{{ p.pCn }}</div>
+                </li>
+              </ul>
+            </section>
+
+            <!-- 同根词 -->
+            <section v-if="(dictWordContent?.relWord?.rels || []).length">
+              <h3 class="mb-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">同根词</h3>
+              <div
+                v-for="(r, i) in dictWordContent.relWord.rels"
+                :key="i"
+                class="rounded-md border border-slate-100 px-3 py-2 mb-2"
+              >
+                <div class="mb-1 text-xs text-slate-500">
+                  <span class="mr-2 font-mono italic text-sky-600">{{ r.pos }}</span>
+                  <span v-if="r.meaning">{{ r.meaning }}</span>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <div
+                    v-for="(wd, j) in r.words || []"
+                    :key="j"
+                    class="inline-flex items-center gap-1 rounded bg-amber-50 px-2 py-0.5 text-xs"
+                  >
+                    <span class="font-semibold text-amber-800">{{ wd.hwd }}</span>
+                    <span class="text-amber-700">{{ wd.tran }}</span>
+                    <button
+                      class="ml-1 text-amber-500 hover:text-amber-700"
+                      :aria-label="`朗读同根词 ${wd.hwd}`"
+                      @click="playTTS(wd.hwd, 'en', 'drawer-rel-' + wd.hwd)"
+                    >🔊</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- 例句 -->
+            <section v-if="(dictWordContent?.sentence?.sentences || []).length">
+              <h3 class="mb-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                例句 · 前 5 条
+              </h3>
+              <ol class="space-y-2">
+                <li
+                  v-for="(s, i) in (dictWordContent.sentence.sentences || []).slice(0, 5)"
+                  :key="i"
+                  class="rounded-md border border-slate-100 bg-slate-50/60 px-3 py-2 text-sm"
+                >
+                  <div class="flex items-start gap-2 text-slate-800">
+                    <span class="mt-0.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-sky-400"></span>
+                    <span>{{ s.sContent }}</span>
+                    <button
+                      class="ml-auto shrink-0 text-sky-500 hover:text-sky-700"
+                      :aria-label="'朗读例句'"
+                      @click="playTTS(s.sContent, 'en', 'drawer-sent-' + i)"
+                    >🔊</button>
+                  </div>
+                  <div v-if="s.sCn" class="mt-1 pl-3.5 text-xs text-slate-500">{{ s.sCn }}</div>
+                </li>
+              </ol>
+            </section>
+
+            <!-- 真题例句 -->
+            <section v-if="(dictWordContent?.realExamSentence?.sentences || []).length">
+              <h3 class="mb-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-600">
+                真题例句 · 前 3 条
+              </h3>
+              <ol class="space-y-2">
+                <li
+                  v-for="(s, i) in (dictWordContent.realExamSentence.sentences || []).slice(0, 3)"
+                  :key="i"
+                  class="rounded-md border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm"
+                >
+                  <div class="text-slate-800">
+                    <span class="mr-1.5 align-middle text-xs text-emerald-500">●</span>
+                    {{ s.sContent }}
+                  </div>
+                  <div
+                    v-if="s.sourceInfo"
+                    class="mt-1 inline-flex items-center gap-1 rounded bg-white/80 px-1.5 py-0.5 text-[10px] text-emerald-700"
+                  >
+                    <span v-if="s.sourceInfo.paper">{{ s.sourceInfo.paper }}</span>
+                    <span v-if="s.sourceInfo.year">· {{ s.sourceInfo.year }}</span>
+                    <span v-if="s.sourceInfo.level">· {{ s.sourceInfo.level }}</span>
+                    <span v-if="s.sourceInfo.type">· {{ s.sourceInfo.type }}</span>
+                  </div>
+                </li>
+              </ol>
+            </section>
+
+            <!-- 记忆方法 -->
+            <section v-if="dictWordContent?.remMethod?.val">
+              <h3 class="mb-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">记忆方法</h3>
+              <div class="rounded-md bg-amber-50 px-3 py-2 text-sm text-slate-700">
+                {{ dictWordContent.remMethod.val }}
+              </div>
+            </section>
+
+            <!-- 真题 -->
+            <section v-if="(dictWordContent?.exam || []).length">
+              <h3 class="mb-1.5 text-xs font-semibold uppercase tracking-wider text-rose-600">真题</h3>
+              <ol class="space-y-3">
+                <li
+                  v-for="(e, i) in dictWordContent.exam"
+                  :key="i"
+                  class="rounded-md border border-rose-200 bg-rose-50/40 px-3 py-2 text-sm"
+                >
+                  <div v-if="e.questionStem" class="font-medium text-slate-800">
+                    {{ e.questionStem }}
+                  </div>
+                  <ul v-if="(e.options || []).length" class="mt-1.5 space-y-1 pl-2">
+                    <li
+                      v-for="(o, j) in e.options"
+                      :key="j"
+                      class="text-slate-700"
+                    >
+                      <span class="mr-1 font-mono text-xs text-slate-400">{{ String.fromCharCode(65 + j) }}.</span>
+                      {{ o }}
+                    </li>
+                  </ul>
+                  <div
+                    v-if="e.analysis"
+                    class="mt-1.5 rounded bg-white/70 px-2 py-1 text-xs text-slate-600"
+                  >
+                    <span class="font-semibold text-rose-600">解析：</span>{{ e.analysis }}
+                  </div>
+                </li>
+              </ol>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <!-- 抽屉背景遮罩（仅 mobile 显示） -->
+      <div
+        v-if="drawerOpen && !isDesktop"
+        class="fixed inset-0 z-30 bg-slate-900/30 lg:hidden"
+        @click="closeDrawer"
+        aria-hidden="true"
+      ></div>
+    
+      </main>
+
+      
+
+      <!-- 移动端分类抽屉 (lg 以下) -->
+      <div
+        class="drawer fixed inset-y-0 left-0 z-40 flex w-full max-w-[320px] flex-col border-r border-slate-200 bg-white shadow-2xl lg:hidden"
+        :class="mobileCategoryDrawerOpen ? 'drawer-open-left' : 'drawer-closed-left pointer-events-none'"
+        role="dialog"
+        aria-modal="true"
+        aria-label="分类目录"
+      >
+        <header class="flex items-center justify-between border-b border-slate-200 px-4 py-3 bg-gradient-to-r from-amber-50 to-sky-50">
+          <h2 class="text-base font-semibold text-slate-800">分类目录</h2>
+          <button
+            class="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            aria-label="关闭分类目录"
+            @click="mobileCategoryDrawerOpen = false"
+          >
+            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M6.225 4.811a1 1 0 011.414 0L10 7.182l2.361-2.371a1 1 0 111.418 1.414L11.418 8.596l2.361 2.371a1 1 0 01-1.418 1.414L10 10.01l-2.361 2.371a1 1 0 01-1.418-1.414l2.361-2.371-2.361-2.371a1 1 0 010-1.414z"/>
+            </svg>
+          </button>
+        </header>
+        <ul class="thin-scroll flex-1 space-y-1 overflow-y-auto p-2">
+          <li v-for="cat in categories" :key="cat.id">
+            <button
+              class="flex w-full flex-col gap-0.5 rounded-lg px-3 py-2.5 text-left transition"
+              :class="
+                selectedCategoryId === cat.id
+                  ? 'bg-amber-200 text-amber-900 shadow-inner'
+                  : 'hover:bg-amber-50 text-slate-700'
+              "
+              @click="selectCategory(cat.id); mobileCategoryDrawerOpen = false"
+              :aria-pressed="selectedCategoryId === cat.id"
+            >
+              <span class="text-sm font-medium">
+                <span class="mr-1 text-slate-400">#{{ cat.id }}</span>
+                {{ cat.name_zh }}
+              </span>
+              <span class="text-[11px] text-slate-500">
+                {{ cat.groupCount }} 组 · {{ cat.wordCount }} 词
+              </span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div
+        v-if="mobileCategoryDrawerOpen"
+        class="fixed inset-0 z-30 bg-slate-900/30 lg:hidden"
+        @click="mobileCategoryDrawerOpen = false"
+        aria-hidden="true"
+      ></div>
+
+      <!-- Toast -->
+      <div
+        v-if="toast"
+        class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-slate-800/90 px-4 py-2 text-sm text-white shadow-lg"
+        role="status"
+        aria-live="polite"
+      >{{ toast }}</div>
+    </div>
+
+    <!-- Vue 3 (本地 vendor, 来源: cdn.staticfile.net) -->
+    <script src="/vendor-vue.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

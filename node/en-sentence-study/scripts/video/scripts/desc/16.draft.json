@@ -1,0 +1,170 @@
+{
+  "id": "16",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/16.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Taxi/Ride-hailing",
+    "scene_zh": "打车",
+    "task_en": "Paying the Fare",
+    "task_zh": "支付车费",
+    "context": "乘客到达目的地，司机停下车，乘客准备下车时询问车费金额。",
+    "sentence_zh": "多少钱？",
+    "explanation": "在打车场景中，最简单的问价方式就是'How much'开头。如果用出租车，可以问'How much is the fare?'；如果用网约车，可以问'What's the total?'。口语中'How much do I owe you?'也很常见，表示询问欠多少钱。在美国打车，通常会直接看计价器，或者司机告诉你金额。有些司机也会主动说'That's X dollars'。注意在美国给小费是常见的文化，通常会给15-20%的车费作为小费。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 9,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "打车：支付车费。乘客到达目的地，司机停下车，乘客准备下车时询问车费金额。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/16/0-0-zh.mp3",
+          "duration_ms": 7082
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 5,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "费用是多少？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/16/1-0-zh.mp3",
+          "duration_ms": 1277
+        },
+        {
+          "lang": "en",
+          "text": "How much is the fare?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/16/1-1-en.mp3",
+          "duration_ms": 1277
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "How much is the fare?",
+      "phonetic": "haʊ mʌtʃ ɪz ðə feə",
+      "literal_translation": "费用是多少？",
+      "note": "标准通用的询问方式"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 5,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我应该给你多少钱？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/16/2-0-zh.mp3",
+          "duration_ms": 1567
+        },
+        {
+          "lang": "en",
+          "text": "How much do I owe you?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/16/2-1-en.mp3",
+          "duration_ms": 1486
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "How much do I owe you?",
+      "phonetic": "haʊ mʌtʃ duː aɪ ˈəʊ juː",
+      "literal_translation": "我应该给你多少钱？",
+      "note": "口语化表达，'owe'表示欠多少钱"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 4,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "总数是多少？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/16/3-0-zh.mp3",
+          "duration_ms": 1149
+        },
+        {
+          "lang": "en",
+          "text": "What's the total?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/16/3-1-en.mp3",
+          "duration_ms": 1022
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "What's the total?",
+      "phonetic": "wɒts ðə ˈtəʊtəl",
+      "literal_translation": "总数是多少？",
+      "note": "询问总价，适用于网约车平台"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 5,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我应该付多少钱？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/16/4-0-zh.mp3",
+          "duration_ms": 1486
+        },
+        {
+          "lang": "en",
+          "text": "How much should I pay?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/16/4-1-en.mp3",
+          "duration_ms": 1358
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "How much should I pay?",
+      "phonetic": "haʊ mʌtʃ ʃʊd aɪ peɪ",
+      "literal_translation": "我应该付多少钱？",
+      "note": "客气询问，语气友好"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 4,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "它多少钱？",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/16/5-0-zh.mp3",
+          "duration_ms": 1149
+        },
+        {
+          "lang": "en",
+          "text": "How much is it?",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/16/5-1-en.mp3",
+          "duration_ms": 1103
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "How much is it?",
+      "phonetic": "haʊ mʌtʃ ɪz ɪt",
+      "literal_translation": "它多少钱？",
+      "note": "最简单的口语表达，'it'指代车费"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 34,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "在打车场景中，最简单的问价方式就是'How much'开头。如果用出租车，可以问'How much is the fare?'；如果用网约车，可以问'What's the total?'。口语中'How much do I owe you?'也很常见，表示询问欠多少钱。在美国打车，通常会直接看计价器，或者司机告诉你金额。有些司机也会主动说'That's X dollars'。注意在美国给小费是常见的文化，通常会给15-20%的车费作为小费。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/16/6-0-zh.mp3",
+          "duration_ms": 32724
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Taxi/Ride-hailing scene, Paying the Fare task. Scene situation: 乘客到达目的地. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/16.jpg"
+  },
+  "duration_frames": 1980,
+  "duration_sec": 66
+}

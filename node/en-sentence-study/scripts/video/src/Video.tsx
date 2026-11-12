@@ -1,10 +1,15 @@
+import { Fragment } from 'react';
 import { AbsoluteFill, Sequence } from 'remotion';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { IntroCard } from './components/cards/IntroCard';
+import { ContextCard } from './components/cards/ContextCard';
 import { ExpressionCard } from './components/cards/ExpressionCard';
 import { SummaryCard } from './components/cards/SummaryCard';
 import { THEME_COLORS, Theme } from './theme';
+
+// 封面停留时长（intro 第 0 段 → 1 秒纯视觉封面，之后接 ContextCard）
+const COVER_FRAMES = 30;
 
 // ── desc JSON 类型（与 generate-desc.ts 输出对齐）──
 export type TtsSegment = {
@@ -97,41 +102,59 @@ export const Video: React.FC<VideoProps> = (props) => {
   return (
     <AbsoluteFill style={{ background: THEME_COLORS[desc.theme].bg }}>
       {/* 各卡片 Sequence 拼接 */}
-      {cardTimings.map(({ card, startFrame, durFrames, exprIdx }) => (
-        <Sequence key={card.index} from={startFrame} durationInFrames={durFrames}>
-          {card.type === 'intro' && (
-            <IntroCard
-              meta={desc.meta}
-              tts_segments={card.tts_segments}
-              theme={desc.theme}
-              dayNumber={dayNumber}
-              scene_image={desc.scene_image}
-            />
-          )}
-          {card.type === 'expression' && (
-            <ExpressionCard
-              card={{
-                index: card.index,
-                style: card.style ?? 'neutral',
-                literal_translation: card.literal_translation ?? '',
-                sentence_en: card.sentence_en ?? '',
-                phonetic: card.phonetic ?? '',
-                note: card.note ?? '',
-                tts_segments: card.tts_segments,
-              }}
-              theme={desc.theme}
-              progress={expressionTotal > 0 ? { current: exprIdx, total: expressionTotal } : undefined}
-            />
-          )}
-          {card.type === 'summary' && (
-            <SummaryCard
-              meta={desc.meta}
-              tts_segments={card.tts_segments}
-              theme={desc.theme}
-            />
-          )}
-        </Sequence>
-      ))}
+      {cardTimings.map(({ card, startFrame, durFrames, exprIdx }) => {
+        // intro 拆成「封面 (1s) + ContextCard」两段；封面静音，音频交给 ContextCard 播
+        if (card.type === 'intro') {
+          const contextDur = Math.max(0, durFrames - COVER_FRAMES);
+          return (
+            <Fragment key={card.index}>
+              <Sequence from={startFrame} durationInFrames={COVER_FRAMES}>
+                <IntroCard
+                  meta={desc.meta}
+                  tts_segments={[]}
+                  theme={desc.theme}
+                  dayNumber={dayNumber}
+                  scene_image={desc.scene_image}
+                />
+              </Sequence>
+              <Sequence from={startFrame + COVER_FRAMES} durationInFrames={contextDur}>
+                <ContextCard
+                  meta={desc.meta}
+                  tts_segments={card.tts_segments}
+                  theme={desc.theme}
+                  dayNumber={dayNumber}
+                />
+              </Sequence>
+            </Fragment>
+          );
+        }
+        return (
+          <Sequence key={card.index} from={startFrame} durationInFrames={durFrames}>
+            {card.type === 'expression' && (
+              <ExpressionCard
+                card={{
+                  index: card.index,
+                  style: card.style ?? 'neutral',
+                  literal_translation: card.literal_translation ?? '',
+                  sentence_en: card.sentence_en ?? '',
+                  phonetic: card.phonetic ?? '',
+                  note: card.note ?? '',
+                  tts_segments: card.tts_segments,
+                }}
+                theme={desc.theme}
+                progress={expressionTotal > 0 ? { current: exprIdx, total: expressionTotal } : undefined}
+              />
+            )}
+            {card.type === 'summary' && (
+              <SummaryCard
+                meta={desc.meta}
+                tts_segments={card.tts_segments}
+                theme={desc.theme}
+              />
+            )}
+          </Sequence>
+        );
+      })}
 
       {/* 全局 Header / Footer（盖在最上层，全程可见） */}
       <Header text={headerText ?? '蛙蛙英语口语 | 每日一句'} theme={desc.theme} />

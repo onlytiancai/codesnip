@@ -1,0 +1,12 @@
+{
+  "voice_id": "ttv-voice-2026071616583226-fyC3LpJa",
+  "prompt": "一位中年男性的恐怖故事讲述者，声音低沉浑厚略带沙哑，语速缓慢阴森，咬字清晰，善用停顿营造诡异悬疑的气氛，仿佛在深夜的篝火旁对听众娓娓道来，带有压迫感和神秘感。",
+  "preview_text": "那是民国年间一个深秋的夜晚，村里接连死了三头牛，脖子上的伤口整整齐齐，却找不到半点血迹。我爹说，那东西，又回来了。",
+  "target_text": "你们别笑，那事儿真真切切发生在我太爷爷身上。那年腊月二十九，他一个人走夜路经过乱葬岗，忽然听见背后有人叫他名字，回头一看，月亮底下空空荡荡，连个鬼影子都没有。可那声音清清楚楚，分明就是他死去三年的娘。",
+  "preview_file": "voice_design_preview.mp3",
+  "target_file": "voice_design_reading.mp3",
+  "preview_size_bytes": 213252,
+  "target_size_bytes": 498804,
+  "target_audio_length_ms": 31068,
+  "usage_characters": 190
+}

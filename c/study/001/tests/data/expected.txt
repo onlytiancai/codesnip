@@ -1,0 +1,10 @@
+count      5
+min        22
+max        100
+mean       58.2
+median     50
+p85        83.8
+p90        89.2
+p95        94.6
+p99        98.92
+method     linear

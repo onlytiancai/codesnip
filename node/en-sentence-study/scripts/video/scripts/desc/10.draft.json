@@ -1,0 +1,170 @@
+{
+  "id": "10",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/10.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Taxi/Ride-hailing",
+    "scene_zh": "打车",
+    "task_en": "Rating the Driver",
+    "task_zh": "评价司机",
+    "context": "乘客小李使用打车软件到达目的地后，对司机王师傅的服务非常满意，准备结束行程并给予好评的场景。",
+    "sentence_zh": "谢谢师傅，给您个好评！",
+    "explanation": "在打车场景中给予司机好评是非常常见的社交行为。通常乘客会在下车前或到达目的地后对司机表示认可和感谢。需要注意的是，在中国打车文化中，给'好评'是一个约定俗成的礼貌行为，英文中会用'five stars'或'rating'来表达类似概念。不同风格的表达适用于不同的交流场景：casual风格适合轻松愉快的氛围；neutral适合大多数日常场景；polite则更适合需要表达高度感谢或正式场合的情况。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 12,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "打车：评价司机。乘客小李使用打车软件到达目的地后，对司机王师傅的服务非常满意，准备结束行程并给予好评的场景。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/10/0-0-zh.mp3",
+          "duration_ms": 10704
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "谢谢你，司机！五星！",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/10/1-0-zh.mp3",
+          "duration_ms": 2171
+        },
+        {
+          "lang": "en",
+          "text": "Thank you, driver! Five stars!",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/10/1-1-en.mp3",
+          "duration_ms": 2554
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "Thank you, driver! Five stars!",
+      "phonetic": "θæŋk ˈjuː ˈdraɪvə! ˈfaɪv stɑːz!",
+      "literal_translation": "谢谢你，司机！五星！",
+      "note": "非常口语化的表达，直接说五星好评，适合轻松的交流场景"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 8,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "感谢您的驾驶！我会给您一个好评。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/10/2-0-zh.mp3",
+          "duration_ms": 2891
+        },
+        {
+          "lang": "en",
+          "text": "Thanks for the ride! I'll give you a great rating.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/10/2-1-en.mp3",
+          "duration_ms": 2763
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "Thanks for the ride! I'll give you a great rating.",
+      "phonetic": "θæŋks fɔːr ðə raɪd! aɪl gɪv juː ə greɪt ˈreɪtɪŋ!",
+      "literal_translation": "感谢您的驾驶！我会给您一个好评。",
+      "note": "中性表达，表示感谢并说明会给好评，适合大多数场景"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 8,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "非常感谢！您是一位很棒的司机。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/10/3-0-zh.mp3",
+          "duration_ms": 3019
+        },
+        {
+          "lang": "en",
+          "text": "Thank you so much! You were a great driver.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/10/3-1-en.mp3",
+          "duration_ms": 2937
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "Thank you so much! You were a great driver.",
+      "phonetic": "θæŋk juː soʊ mʌtʃ! juː wɜːr ə greɪt ˈdraɪvə.",
+      "literal_translation": "非常感谢！您是一位很棒的司机。",
+      "note": "礼貌表达，先感谢再称赞司机，非常友善客气"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 8,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "超棒的司机！我给您一个五星评价。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/10/4-0-zh.mp3",
+          "duration_ms": 2763
+        },
+        {
+          "lang": "en",
+          "text": "Awesome driver! Getting a five-star review from me.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/10/4-1-en.mp3",
+          "duration_ms": 3413
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "Awesome driver! Getting a five-star review from me.",
+      "phonetic": "ˈɔːsəm ˈdraɪvə! ˈɡetɪŋ ə ˈfaɪv stɑː rɪˈvjuː frʌm miː.",
+      "literal_translation": "超棒的司机！我给您一个五星评价。",
+      "note": "很口语化，带有热情和活力，适合年轻人或轻松的氛围"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 10,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我非常感谢您的服务。我一定会留下一个正面评价。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/10/5-0-zh.mp3",
+          "duration_ms": 3704
+        },
+        {
+          "lang": "en",
+          "text": "I really appreciate your service. I'll make sure to leave a positive rating.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/10/5-1-en.mp3",
+          "duration_ms": 4261
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "I really appreciate your service. I'll make sure to leave a positive rating.",
+      "phonetic": "aɪ ˈrɪli əˈpriːʃieɪt jɔːr ˈsɜːvɪs. aɪl meɪk ʃʊr tə liːv ə pəˈzɪtɪv ˈreɪtɪŋ.",
+      "literal_translation": "我非常感谢您的服务。我一定会留下一个正面评价。",
+      "note": "正式礼貌的表达，完整说明会留下正面评价，适合正式感谢场景"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 37,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "在打车场景中给予司机好评是非常常见的社交行为。通常乘客会在下车前或到达目的地后对司机表示认可和感谢。需要注意的是，在中国打车文化中，给'好评'是一个约定俗成的礼貌行为，英文中会用'five stars'或'rating'来表达类似概念。不同风格的表达适用于不同的交流场景：casual风格适合轻松愉快的氛围；neutral适合大多数日常场景；polite则更适合需要表达高度感谢或正式场合的情况。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/10/6-0-zh.mp3",
+          "duration_ms": 35316
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Taxi/Ride-hailing scene, Rating the Driver task. Scene situation: 乘客小李使用打车软件到达目的地后. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/10.jpg"
+  },
+  "duration_frames": 2700,
+  "duration_sec": 90
+}

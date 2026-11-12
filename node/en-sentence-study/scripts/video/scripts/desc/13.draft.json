@@ -1,0 +1,170 @@
+{
+  "id": "13",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/13.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Daily Expressions",
+    "scene_zh": "日常表达",
+    "task_en": "Best Wishes",
+    "task_zh": "祝福",
+    "context": "小李明天要参加一场重要的面试，张老师在上完课后特意走到他面前，给他一些鼓励和祝福，希望他能顺利通过面试。",
+    "sentence_zh": "祝你一切顺利！",
+    "explanation": "祝福语在英语中有很多表达方式，选择哪种取决于你与对方的亲疏关系和场合正式程度。正式场合如商务会议、面试等，推荐使用 'I wish you all the best!' 或 'Wishing you every success!'。日常交流和鼓励朋友时，'Good luck!' 和 'You got this!' 更自然轻松。注意 'Good luck' 虽然常见，但有些年轻人觉得有点老套，'You got this' 是更现代的口语鼓励方式。另外，祝福时配合适当的眼神接触和微笑能让表达更加真诚。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 14,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "日常表达：祝福。小李明天要参加一场重要的面试，张老师在上完课后特意走到他面前，给他一些鼓励和祝福，希望他能顺利通过面试。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/13/0-0-zh.mp3",
+          "duration_ms": 12109
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 5,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我祝愿你一切最好",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/13/1-0-zh.mp3",
+          "duration_ms": 1614
+        },
+        {
+          "lang": "en",
+          "text": "I wish you all the best!",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/13/1-1-en.mp3",
+          "duration_ms": 1486
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "I wish you all the best!",
+      "phonetic": "aɪ wɪʃ juː ɔːl ðə best",
+      "literal_translation": "我祝愿你一切最好",
+      "note": "这是最经典、最正式的祝福语，适用于正式场合和商务交流"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 4,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "好运",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/13/2-0-zh.mp3",
+          "duration_ms": 929
+        },
+        {
+          "lang": "en",
+          "text": "Good luck!",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/13/2-1-en.mp3",
+          "duration_ms": 848
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "Good luck!",
+      "phonetic": "ɡʊd lʌk",
+      "literal_translation": "好运",
+      "note": "简短口语化的祝福，适合轻松的朋友之间或日常鼓励"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 5,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "祝愿你一切成功",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/13/3-0-zh.mp3",
+          "duration_ms": 1405
+        },
+        {
+          "lang": "en",
+          "text": "Wishing you every success!",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/13/3-1-en.mp3",
+          "duration_ms": 1869
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "Wishing you every success!",
+      "phonetic": "ˈwɪʃɪŋ juː ˈɛvri səkˈsɛs",
+      "literal_translation": "祝愿你一切成功",
+      "note": "带有愿望的正式表达，语气温暖而真诚"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 6,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我希望一切进行的顺利",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/13/4-0-zh.mp3",
+          "duration_ms": 1997
+        },
+        {
+          "lang": "en",
+          "text": "I hope everything goes well for you!",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/13/4-1-en.mp3",
+          "duration_ms": 1788
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "I hope everything goes well for you!",
+      "phonetic": "aɪ həʊp ˈɛvrɪθɪŋ ɡəʊz wɛl fə juː",
+      "literal_translation": "我希望一切进行的顺利",
+      "note": "中性表达，通用场合都适用，表达真诚的关心"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 6,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "你肯定行的！",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/13/5-0-zh.mp3",
+          "duration_ms": 1312
+        },
+        {
+          "lang": "en",
+          "text": "You got this! / You've got this!",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/13/5-1-en.mp3",
+          "duration_ms": 2554
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "You got this! / You've got this!",
+      "phonetic": "juː ɡɒt ðɪs",
+      "literal_translation": "你肯定行的！",
+      "note": "非常口语化的鼓励语，意思是'你肯定行的'，带有很多信心"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 35,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "祝福语在英语中有很多表达方式，选择哪种取决于你与对方的亲疏关系和场合正式程度。正式场合如商务会议、面试等，推荐使用 'I wish you all the best!' 或 'Wishing you every success!'。日常交流和鼓励朋友时，'Good luck!' 和 'You got this!' 更自然轻松。注意 'Good luck' 虽然常见，但有些年轻人觉得有点老套，'You got this' 是更现代的口语鼓励方式。另外，祝福时配合适当的眼神接触和微笑能让表达更加真诚。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/13/6-0-zh.mp3",
+          "duration_ms": 33804
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Daily Expressions scene, Best Wishes task. Scene situation: 小李明天要参加一场重要的面试. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/13.jpg"
+  },
+  "duration_frames": 2250,
+  "duration_sec": 75
+}

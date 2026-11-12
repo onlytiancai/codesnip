@@ -100,3 +100,5 @@
   "explanation": "职场networking常用开场白。先表达礼貌热情，再简述职业，最后询问对方。"
 }
 ```
+
+literal_translation 要翻译的自然一些

@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Translation · Web</title>
+  <script src="https://cdn.staticfile.net/vue/3.5.22/vue.global.min.js"></script>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --surface: #ffffff;
+      --surface-2: #f3f4f6;
+      --border: #e5e7eb;
+      --border-strong: #d1d5db;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --primary: #6366f1;
+      --primary-strong: #4f46e5;
+      --primary-soft: #eef2ff;
+      --success: #10b981;
+      --success-soft: #ecfdf5;
+      --danger: #ef4444;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   "Helvetica Neue", "PingFang SC", "Hiragino Sans GB",
+                   "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 28px 0 80px;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Wide-screen, edge-to-edge: no fixed max-width. */
+    .container {
+      width: 100%;
+      padding: 0 28px;
+    }
+    @media (min-width: 1400px) {
+      .container { padding: 0 48px; }
+    }
+    h1 { font-size: 28px; margin: 0 0 18px; letter-spacing: -0.02em; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 20px 22px;
+      margin-bottom: 18px;
+    }
+    .source-input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 16px;
+      font-family: inherit;
+      resize: vertical;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .source-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+
+    button {
+      cursor: pointer;
+      border: 0;
+      border-radius: 8px;
+      padding: 9px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: inherit;
+      transition: background .15s, transform .05s, box-shadow .15s;
+    }
+    button:active { transform: scale(0.98); }
+    button.primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 1px 2px rgba(99,102,241,.25);
+    }
+    button.primary:hover { background: var(--primary-strong); }
+    button.primary:disabled {
+      background: var(--border-strong);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    button.ghost {
+      background: transparent;
+      color: var(--text-muted);
+      padding: 9px 12px;
+    }
+    button.ghost:hover:not(:disabled) {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+    button:disabled { cursor: not-allowed; opacity: .65; }
+
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .row.tight { gap: 6px; }
+
+    /* Layout — Chinese source on the left, English translation + candidates
+       on the right. Right column is wider since sentences typically are. */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.8fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .column { min-width: 0; }
+    @media (max-width: 760px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    /* Translation sentence container.
+       - Rewrite mode: renders one .word-token per token. Clicking a word
+         fires pickWord.
+       - Copy mode: swaps the inner content to a read-only textarea so the
+         user can drag-select an exact range for copy.
+       Mode is controlled by the [重写模式 | 复制模式] segmented control
+       below — no more click-on-empty-area magic. */
+    .sentence {
+      font-size: 18px;
+      line-height: 2;
+      padding: 14px 16px;
+      background: var(--primary-soft);
+      border-radius: 8px;
+      color: var(--text);
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    .word-token {
+      display: inline-block;
+      padding: 1px 4px;
+      margin-right: 4px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color .12s, color .12s;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    .word-token:last-child { margin-right: 0; }
+    .word-token:hover {
+      background: rgba(99, 102, 241, .18);
+    }
+    /* Keep the busy highlight visible on top of hover so re-clicking the
+       same word during in-flight reads as in-progress, not "hover off". */
+    .word-token.busy,
+    .word-token.busy:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Read-only textarea shown in copy mode. Visually matches the div+span
+       view (transparent bg, inherited font) so the swap is seamless.
+       field-sizing auto-grows height to content. */
+    .sentence-textarea {
+      display: block;
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      resize: none;
+      font: inherit;
+      color: inherit;
+      line-height: inherit;
+      padding: 0;
+      margin: 0;
+      min-height: 2.5em;
+      max-height: 50vh;
+      overflow-y: auto;
+      cursor: text;
+      field-sizing: content;
+    }
+
+    .sentence-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* Segmented mode toggle. Two buttons sharing a pill background; the
+       active one is raised with a subtle shadow so the current mode is
+       unambiguous. */
+    .mode-toggle {
+      display: inline-flex;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 0;
+    }
+    .mode-btn {
+      background: transparent;
+      color: var(--text-muted);
+      padding: 5px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 6px;
+      box-shadow: none;
+    }
+    .mode-btn:hover:not(.active) { color: var(--text); }
+    .mode-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .copy-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 6px;
+    }
+    .copy-btn:hover:not(:disabled) {
+      background: var(--surface-2);
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+    .copy-btn.copied {
+      background: var(--success-soft);
+      color: var(--success);
+      border-color: var(--success);
+    }
+    .copy-btn.failed {
+      background: #fef2f2;
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+    .hint {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .empty { color: var(--text-muted); padding: 8px 0; font-size: 14px; }
+
+    /* Status / error — anchored to the translation card (right column) so
+       rephrase and candidate errors appear right where the user is looking,
+       not under the source input. */
+    .status {
+      font-size: 13px;
+      color: var(--text-muted);
+      min-height: 18px;
+      margin-top: 10px;
+    }
+    .status.error { color: var(--danger); }
+    .status.loading { color: var(--primary); }
+
+    /* Candidates. No "Step 3" label — just a small contextual caption
+       showing which position the suggestions start from. */
+    .candidates-cap {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .candidates-cap em {
+      font-style: normal;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .candidates { display: grid; gap: 8px; }
+    .candidate {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      cursor: pointer;
+      transition: all .12s;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      line-height: 1.5;
+      font-size: 15px;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    .candidate:hover {
+      border-color: var(--success);
+      background: var(--success-soft);
+    }
+    .candidate .idx {
+      font-weight: 600;
+      color: var(--primary);
+      min-width: 22px;
+    }
+    .candidate .prefix { color: var(--text-muted); }
+    .candidate .suffix { font-weight: 500; }
+
+    .toolbar {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="container">
+      <h1>Interactive Translation</h1>
+
+      <div class="layout">
+        <!-- Left column: Chinese source -->
+        <div class="column col-left">
+          <div class="card">
+            <textarea
+              v-model="sourceZh"
+              class="source-input"
+              rows="4"
+              placeholder="例如:埃隆·马斯克不在领英上。"
+              @keydown.meta.enter="translate"
+              @keydown.ctrl.enter="translate"
+            ></textarea>
+            <div class="row" style="margin-top:12px;">
+              <button class="primary" :disabled="!sourceZh.trim() || busy.step1" @click="translate">
+                <span v-if="busy.step1"><span class="loader"></span>翻译中…</span>
+                <span v-else>翻译 →</span>
+              </button>
+              <button class="ghost" :disabled="!sourceZh && !current" @click="resetAll">重置</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column: English translation + candidates.
+             Translation card is always rendered so the empty hint is
+             visible from the start (no popping in/out). -->
+        <div class="column col-right">
+          <div class="card">
+            <!--
+              Two render modes inside .sentence:
+              - mode === 'rewrite' (default): word tokens (click a word → pickWord).
+              - mode === 'copy': read-only textarea (drag-select for copy).
+            -->
+            <div class="sentence" v-if="current">
+              <template v-if="mode === 'rewrite'">
+                <span
+                  v-for="(w, i) in words"
+                  :key="i"
+                  class="word-token"
+                  :class="{ busy: pickedIdx === i && busy.step2 }"
+                  @click="pickWord(i)"
+                  :title="`点击改写从这个词开始的全部内容`"
+                >{{ w }}</span>
+              </template>
+              <textarea
+                v-else
+                ref="copyTa"
+                class="sentence-textarea"
+                readonly
+                spellcheck="false"
+                :value="current"
+              ></textarea>
+            </div>
+            <div class="empty" v-else>翻译后会显示完整句子。</div>
+
+            <div class="sentence-actions" v-if="current">
+              <div class="mode-toggle" role="tablist">
+                <button
+                  class="mode-btn"
+                  :class="{ active: mode === 'rewrite' }"
+                  @click="enterRewriteMode"
+                  role="tab"
+                  :aria-selected="mode === 'rewrite'"
+                >重写模式</button>
+                <button
+                  class="mode-btn"
+                  :class="{ active: mode === 'copy' }"
+                  @click="enterCopyMode"
+                  role="tab"
+                  :aria-selected="mode === 'copy'"
+                >复制模式</button>
+              </div>
+              <button
+                class="copy-btn"
+                :class="{ copied: copyState === 'copied', failed: copyState === 'failed' }"
+                @click="copyTranslation"
+              >
+                <span v-if="copyState === 'copied'">✓ 已复制</span>
+                <span v-else-if="copyState === 'failed'">复制失败,请手动选择复制</span>
+                <span v-else>复制译文</span>
+              </button>
+              <span class="hint" v-if="mode === 'rewrite'">点击单词重写</span>
+              <span class="hint" v-else>自由选择复制</span>
+            </div>
+
+            <!-- Status / error lives with the translation card so rephrase
+                 failures surface right where the user is looking. -->
+            <div
+              class="status"
+              :class="{ error: !!error, loading: busy.step1 || busy.step2 }"
+            >{{ statusText }}</div>
+          </div>
+
+          <!-- Candidates card. Caption sits at the top (no "Step 3" label)
+               so the card still explains what it's for without feeling like
+               a wizard step. -->
+          <div class="card" v-if="candidates.length || busy.step2">
+            <div class="candidates-cap" v-if="pickedIdx >= 0">
+              从第 <em>{{ pickedIdx + 1 }}</em> 个词 <em>{{ pickedWord }}</em> 开始改写
+            </div>
+            <div v-if="busy.step2 && !candidates.length" class="empty">
+              <span class="loader"></span>正在生成候选…
+            </div>
+            <div v-else class="candidates">
+              <div
+                class="candidate"
+                v-for="(c, i) in candidates"
+                :key="i"
+                @click="applyCandidate(i)"
+              >
+                <span class="idx">{{ i + 1 }}</span>
+                <span class="text">
+                  <span class="prefix">{{ prefixForDisplay }}</span><span class="suffix">{{ c }}</span>
+                </span>
+              </div>
+            </div>
+            <div class="toolbar" v-if="candidates.length">
+              <button class="ghost" @click="cancelCandidates">取消</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>Vue 3 · FastAPI · Anthropic Claude</footer>
+  </div>
+
+  <script>
+    const { createApp, ref, computed, onBeforeUnmount, nextTick } = Vue;
+
+    // --- Helpers ---------------------------------------------------------
+    function tokenize(s) {
+      return s.split(/\s+/).filter(Boolean);
+    }
+    // Same logic as translator.join_sentence: glue without a space when the
+    // suffix starts with closing punctuation.
+    function joinSentence(prefix, suffix) {
+      if (!prefix) return suffix;
+      if (suffix && ",.;:!?)]}".includes(suffix[0])) return prefix + suffix;
+      return prefix + " " + suffix;
+    }
+
+    // Burst control for rephrase clicks: collapse rapid clicks into the
+    // latest one and abort any in-flight request so the LLM endpoint isn't
+    // hammered. The user's click is acknowledged immediately via the busy
+    // highlight on the picked word; we only delay the *send*.
+    const REPHRASE_DEBOUNCE_MS = 250;
+
+    createApp({
+      setup() {
+        const sourceZh = ref("");
+        const current = ref("");
+        const candidates = ref([]);
+        const pickedIdx = ref(-1);
+        const prefix = ref("");
+        const error = ref("");
+        const busy = ref({ step1: false, step2: false });
+        const copyState = ref(""); // '' | 'copied' | 'failed'
+        const mode = ref("rewrite"); // 'rewrite' | 'copy'
+        const copyTa = ref(null);    // template ref to the copy-mode textarea
+
+        // --- Request lifecycle (module-scoped, NOT reactive) -------------
+        let rephraseController = null;
+        let rephraseTimer = null;
+        let rephraseSeq = 0;
+        let copyResetTimer = null;
+
+        const words = computed(() => current.value ? tokenize(current.value) : []);
+        const pickedWord = computed(() => words.value[pickedIdx.value] || "");
+        const prefixForDisplay = computed(() => {
+          if (!prefix.value) return "";
+          const sep = candidates.value.length &&
+                      ",.;:!?)]}".includes(candidates.value[0][0]) ? "" : " ";
+          return prefix.value + sep;
+        });
+        const statusText = computed(() => {
+          if (error.value) return error.value;
+          if (busy.value.step2) return "重写中…";
+          if (busy.value.step1) return "翻译中…";
+          return " ";
+        });
+
+        // --- Network: translate ------------------------------------------
+        async function translate() {
+          const text = sourceZh.value.trim();
+          if (!text || busy.value.step1) return;
+          // Clear the previous translation immediately so the user sees
+          // feedback that their click was registered. The card stays
+          // visible; only the sentence area disappears until the new
+          // translation arrives.
+          error.value = "";
+          current.value = "";
+          candidates.value = [];
+          pickedIdx.value = -1;
+          mode.value = "rewrite";
+          cancelRephrase();
+          busy.value.step1 = true;
+          try {
+            const r = await fetch("/api/translate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text }),
+            });
+            if (!r.ok) {
+              const err = await r.json().catch(() => ({ detail: r.statusText }));
+              throw new Error(err.detail || `HTTP ${r.status}`);
+            }
+            const data = await r.json();
+            current.value = (data.translation || "").trim();
+            if (!current.value) {
+              error.value = "服务器返回了空翻译";
+            }
+          } catch (e) {
+            error.value = `翻译失败: ${e.message}`;
+          } finally {
+            busy.value.step1 = false;
+          }
+        }
+
+        // --- Cancel helpers ----------------------------------------------
+        function cancelRephrase() {
+          if (rephraseController) {
+            try { rephraseController.abort(); } catch (_) { /* ignore */ }
+            rephraseController = null;
+          }
+          if (rephraseTimer) {
+            clearTimeout(rephraseTimer);
+            rephraseTimer = null;
+          }
+        }
+
+        // --- Click on a word: schedule rephrase --------------------------
+        function pickWord(i) {
+          if (!current.value) return;
+          error.value = "";
+          pickedIdx.value = i;
+          const ws = words.value;
+          prefix.value = ws.slice(0, i).join(" ");
+          candidates.value = [];
+
+          // Cancel pending debounced send and any in-flight request so only
+          // the new pick's network traffic runs.
+          cancelRephrase();
+          busy.value.step2 = true;
+
+          rephraseTimer = setTimeout(() => {
+            rephraseTimer = null;
+            sendRephrase(i);
+          }, REPHRASE_DEBOUNCE_MS);
+        }
+
+        // --- Mode switching ----------------------------------------------
+        function enterRewriteMode() {
+          if (mode.value === "rewrite") return;
+          mode.value = "rewrite";
+        }
+        async function enterCopyMode() {
+          if (mode.value === "copy") return;
+          mode.value = "copy";
+          // Wait for the v-if swap to mount the textarea, then focus it so
+          // the user can immediately drag-select (or press Cmd+A / Cmd+C).
+          await nextTick();
+          if (copyTa.value) copyTa.value.focus();
+        }
+
+        async function sendRephrase(i) {
+          const ws = words.value;
+          // The sentence may have been replaced (apply / translate) between
+          // the debounce firing and now.
+          if (!ws[i]) {
+            busy.value.step2 = false;
+            return;
+          }
+          const seq = ++rephraseSeq;
+          const target = ws[i];
+          const payloadPrefix = ws.slice(0, i).join(" ");
+          const controller = new AbortController();
+          rephraseController = controller;
+          try {
+            const r = await fetch("/api/rephrase", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                source: sourceZh.value,
+                current: current.value,
+                prefix: payloadPrefix,
+                target_word: target,
+              }),
+              signal: controller.signal,
+            });
+            if (!r.ok) {
+              const err = await r.json().catch(() => ({ detail: r.statusText }));
+              throw new Error(err.detail || `HTTP ${r.status}`);
+            }
+            const data = await r.json();
+            // A newer pick has superseded this request — drop silently.
+            if (seq !== rephraseSeq) return;
+            candidates.value = Array.isArray(data.candidates) ? data.candidates : [];
+            if (!candidates.value.length) {
+              error.value = "没有候选,换个词试试";
+            }
+          } catch (e) {
+            if (e && e.name === "AbortError") return; // superseded by newer click
+            if (seq !== rephraseSeq) return;
+            error.value = `重写失败: ${e.message}`;
+            candidates.value = [];
+          } finally {
+            if (seq === rephraseSeq) {
+              busy.value.step2 = false;
+              rephraseController = null;
+            }
+          }
+        }
+
+        function applyCandidate(i) {
+          if (i < 0 || i >= candidates.value.length) return;
+          current.value = joinSentence(prefix.value, candidates.value[i]);
+          cancelRephrase();
+          candidates.value = [];
+          pickedIdx.value = -1;
+          prefix.value = "";
+          mode.value = "rewrite";
+          busy.value.step2 = false;
+        }
+
+        function cancelCandidates() {
+          cancelRephrase();
+          candidates.value = [];
+          pickedIdx.value = -1;
+          prefix.value = "";
+          busy.value.step2 = false;
+        }
+
+        // --- Copy translation to clipboard --------------------------------
+        async function copyTranslation() {
+          const text = current.value;
+          if (!text) return;
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(text);
+            } else {
+              // Fallback for non-secure contexts where the async clipboard
+              // API is unavailable (older Safari over http://, etc.).
+              const ta = document.createElement("textarea");
+              ta.value = text;
+              ta.setAttribute("readonly", "");
+              ta.style.position = "fixed";
+              ta.style.top = "-1000px";
+              ta.style.opacity = "0";
+              document.body.appendChild(ta);
+              ta.select();
+              const ok = document.execCommand("copy");
+              document.body.removeChild(ta);
+              if (!ok) throw new Error("execCommand 返回 false");
+            }
+            copyState.value = "copied";
+          } catch (e) {
+            copyState.value = "failed";
+          }
+          if (copyResetTimer) clearTimeout(copyResetTimer);
+          copyResetTimer = setTimeout(() => { copyState.value = ""; }, 1600);
+        }
+
+        function resetAll() {
+          cancelRephrase();
+          sourceZh.value = "";
+          current.value = "";
+          candidates.value = [];
+          pickedIdx.value = -1;
+          prefix.value = "";
+          error.value = "";
+          busy.value.step1 = false;
+          busy.value.step2 = false;
+          mode.value = "rewrite";
+        }
+
+        onBeforeUnmount(() => {
+          cancelRephrase();
+          if (copyResetTimer) clearTimeout(copyResetTimer);
+        });
+
+        return {
+          sourceZh, current, candidates, pickedIdx, prefix, error, busy,
+          words, pickedWord, prefixForDisplay, copyState, mode, copyTa,
+          translate, pickWord, applyCandidate, cancelCandidates, resetAll,
+          copyTranslation, enterRewriteMode, enterCopyMode,
+        };
+      },
+    }).mount("#app");
+  </script>
+</body>
+</html>

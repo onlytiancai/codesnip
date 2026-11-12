@@ -1,0 +1,170 @@
+{
+  "id": "12",
+  "source_json": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/output/12.json",
+  "fps": 30,
+  "theme": "mint",
+  "meta": {
+    "scene_en": "Work",
+    "scene_zh": "工作",
+    "task_en": "Meeting Speech",
+    "task_zh": "会议发言",
+    "context": "在公司的项目讨论会议中，项目经理刚刚汇报完方案进展，一位同事发表了自己的看法。你作为团队成员，想要在认同对方观点的同时，补充一些自己的想法和建议。",
+    "sentence_zh": "我同意刚才的观点，但我想补充几点。",
+    "explanation": "在英语会议中表达「我同意但想补充」时，Polite风格适合正式商务会议或面对上级时使用；Neutral风格是日常办公会议最常用的表达；Casual风格适合轻松的内部讨论。注意在正式场合避免过于口语化的表达（如gonna、wanna），而'I've got something to add'或'Building on that'也是常见的补充观点的方式。"
+  },
+  "cards": [
+    {
+      "index": 0,
+      "type": "intro",
+      "duration_sec": 17,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "工作：会议发言。在公司的项目讨论会议中，项目经理刚刚汇报完方案进展，一位同事发表了自己的看法。你作为团队成员，想要在认同对方观点的同时，补充一些自己的想法和建议。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/12/0-0-zh.mp3",
+          "duration_ms": 15488
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "type": "expression",
+      "duration_sec": 9,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我同意之前的观点，但我想补充几点。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/12/1-0-zh.mp3",
+          "duration_ms": 3065
+        },
+        {
+          "lang": "en",
+          "text": "I agree with the previous point, but I'd like to add a few points.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/12/1-1-en.mp3",
+          "duration_ms": 3576
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "I agree with the previous point, but I'd like to add a few points.",
+      "phonetic": "aɪ əˈɡriː wɪð ðə ˈpriːviəs pɔɪnt, bʌt aɪd laɪk tu æd ə fjuː pɔɪnts",
+      "literal_translation": "我同意之前的观点，但我想补充几点。",
+      "note": "正式商务场合，尊重他人发言后再补充观点"
+    },
+    {
+      "index": 2,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我同意，我也想补充一些内容。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/12/2-0-zh.mp3",
+          "duration_ms": 2380
+        },
+        {
+          "lang": "en",
+          "text": "I agree, and I'd also like to add something.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/12/2-1-en.mp3",
+          "duration_ms": 2763
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "I agree, and I'd also like to add something.",
+      "phonetic": "aɪ əˈɡriː, ænd aɪd ˈɔːlsəu laɪk tu æd ˈsʌmθɪŋ",
+      "literal_translation": "我同意，我也想补充一些内容。",
+      "note": "中性表达，办公室会议常用，简洁自然"
+    },
+    {
+      "index": 3,
+      "type": "expression",
+      "duration_sec": 8,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我完全同意，而且我想补充说...",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/12/3-0-zh.mp3",
+          "duration_ms": 3112
+        },
+        {
+          "lang": "en",
+          "text": "I totally agree with that, and just to add on...",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/12/3-1-en.mp3",
+          "duration_ms": 2891
+        }
+      ],
+      "style": "casual",
+      "sentence_en": "I totally agree with that, and just to add on...",
+      "phonetic": "aɪ ˈtuːtəli əˈɡriː wɪð ðæt, ænd dʒʌst tu æd ɒn",
+      "literal_translation": "我完全同意，而且我想补充说...",
+      "note": "轻松随意的会议氛围，适合团队内部讨论"
+    },
+    {
+      "index": 4,
+      "type": "expression",
+      "duration_sec": 9,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "这是个很好的观点，我也想分享我的想法。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/12/4-0-zh.mp3",
+          "duration_ms": 3274
+        },
+        {
+          "lang": "en",
+          "text": "That's a great point. I'd also like to contribute my thoughts.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/12/4-1-en.mp3",
+          "duration_ms": 3576
+        }
+      ],
+      "style": "polite",
+      "sentence_en": "That's a great point. I'd also like to contribute my thoughts.",
+      "phonetic": "ðæts ə ɡreɪt pɔɪnt. aɪd ˈɔːlsəu laɪk tu kənˈtrɪbjuːt maɪ θɔːts",
+      "literal_translation": "这是个很好的观点，我也想分享我的想法。",
+      "note": "先肯定对方观点，再礼貌地提出自己的想法"
+    },
+    {
+      "index": 5,
+      "type": "expression",
+      "duration_sec": 7,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "我附议，这是我的补充。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/12/5-0-zh.mp3",
+          "duration_ms": 2218
+        },
+        {
+          "lang": "en",
+          "text": "I second that, and here's my addition.",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/12/5-1-en.mp3",
+          "duration_ms": 2682
+        }
+      ],
+      "style": "neutral",
+      "sentence_en": "I second that, and here's my addition.",
+      "phonetic": "aɪ ˈsekənd ðæt, ænd hɪəz maɪ əˈdɪʃən",
+      "literal_translation": "我附议，这是我的补充。",
+      "note": "简洁有力，'second'表示附议，适合快速表达"
+    },
+    {
+      "index": 6,
+      "type": "summary",
+      "duration_sec": 25,
+      "tts_segments": [
+        {
+          "lang": "zh",
+          "text": "在英语会议中表达「我同意但想补充」时，Polite风格适合正式商务会议或面对上级时使用；Neutral风格是日常办公会议最常用的表达；Casual风格适合轻松的内部讨论。注意在正式场合避免过于口语化的表达（如gonna、wanna），而'I've got something to add'或'Building on that'也是常见的补充观点的方式。",
+          "audio_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/audio/12/6-0-zh.mp3",
+          "duration_ms": 23616
+        }
+      ]
+    }
+  ],
+  "scene_image": {
+    "prompt": "A bright, minimalist flat illustration of Work scene, Meeting Speech task. Scene situation: 在公司的项目讨论会议中. Soft pastel colors (mint green, peach, light yellow). White background, no text, no real people faces, no watermark, 16:9 landscape composition, vector art style, cheerful mood.",
+    "url": null,
+    "local_path": "/Users/huhao/src/codesnip/node/en-sentence-study/scripts/video/public/images/12.jpg"
+  },
+  "duration_frames": 2460,
+  "duration_sec": 82
+}

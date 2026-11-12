@@ -1,0 +1,7 @@
+[1:1] LET      let
+[1:5] FN       fn
+[1:8] RETURN   return
+[1:15] IF       if
+[1:18] ELSE     else
+[1:23] FOR      for
+[2:1] EOF      <文件结束>

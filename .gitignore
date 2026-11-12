@@ -14,3 +14,5 @@ log.txt
 .venv
 .env
 *.db
+python/ai/024-cet4/vocab_all.json.gz
+.serena/
