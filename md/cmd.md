@@ -190,3 +190,12 @@ ssh 禁止密码登录
     sudo sshd -t
     sudo sshd -T | grep -E 'passwordauthentication|kbdinteractiveauthentication|pubkeyauthentication'
     sudo systemctl restart ssh
+
+带进度多进程压缩
+
+    pv largefile.csv | pigz -p $(nproc) > compressed.csv.gz
+
+给 ssh 私钥加密码，减少密钥泄漏被利用风险
+
+    ssh-keygen -p -f ~/.ssh/id_rsa
+    ssh-keygen -p -f ~/.ssh/id_ed25519

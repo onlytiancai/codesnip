@@ -262,6 +262,7 @@ CLI 走的是和 server 一样的配置（同一个 `app.db` 里的当前生效 
 | POST | `/api/auth/register` | `{username, password}` → 建号 + 直接发 cookie 登录（201） |
 | POST | `/api/auth/login` | `{username, password}` → 发 cookie；密码错 → `401` |
 | POST | `/api/auth/logout` | 删会话 + 清 cookie |
+| POST | `/api/auth/change-password` | `{currentPassword, newPassword}` → 改密码。**要校验当前密码**（错 → `400`）；改完其它设备上的会话作废，当前浏览器保留。挂 `requireLogin`（不查配额） |
 | GET | `/api/auth/me` | `{user, today, month, pendingRequest}` —— 当前用户（**含角色 / 套餐 / 配额**）+ 今日/本月 token 用量；没登录 → `401` |
 
 ### 套餐（用户侧）

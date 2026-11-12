@@ -190,8 +190,9 @@ Escape 逐层退出：面板 → 菜单 → 关闭菜单（tab 模式下没有�
 
 ## 设置页（/settings）
 
-侧栏左下角「⚙️ 设置」进这个子页面（独立路由 `/settings`，不是弹层 —— 提示词编辑要占的地方不小）。五个 tab：
-**LLM 供应商 / 提示词 / 词库 / 我的套餐 / 用户管理**（最后一个只有管理员能看见）。
+侧栏左下角「⚙️ 设置」进这个子页面（独立路由 `/settings`，不是弹层 —— 提示词编辑要占的地方不小）。六个 tab：
+**LLM 供应商 / 提示词 / 词库 / 账号 / 我的套餐 / 用户管理**（最后一个只有管理员能看见）。
+当前 tab 记在 URL 的 `?tab=` 上（侧栏的「修改密码」直接跳 `?tab=account`），刷新不会跳回第一个。
 
 ### LLM 供应商
 
@@ -232,6 +233,13 @@ Escape 逐层退出：面板 → 菜单 → 关闭菜单（tab 模式下没有�
 - **重新加载** —— 后端重读 `.env` 并重建索引，改完 `.env` 不用重启后端
 - 测试查询框 —— 输个单词看命中不命中，用来验证路径改对了没
 
+### 账号
+
+- **账号信息**：用户名 / 角色（普通用户 / 管理员）/ 当前套餐
+- **修改密码**：填**当前密码** + 新密码 + 确认新密码（至少 4 位）。
+  改完之后**其它设备上的登录立即失效**，当前这个浏览器不受影响。
+  侧栏用户区底下也有个「修改密码」入口，直接跳到这个 tab。
+
 ### 我的套餐
 
 - **当前套餐卡**：套餐名 + 今日/本月配额条（超了变红 + 一行提示）
@@ -257,7 +265,7 @@ src/
 ├── style.css                            # 全局 + .ProseMirror + .ai-menu* + 侧栏 + 编辑器内高亮 + 设置页 + 登录页样式
 ├── pages/
 │   ├── EditorPage.vue                   # 编辑器页：源/译两栏（方向随侧栏切）+ 联动
-│   ├── SettingsPage.vue                 # 设置页（路由 /settings）：供应商 / 提示词 / 词库 三个 tab
+│   ├── SettingsPage.vue                 # 设置页（路由 /settings）：供应商 / 提示词 / 词库 / 账号 / 我的套餐 / 用户管理
 │   └── LoginPage.vue                    # 登录页（路由 /login，不套侧栏外壳）+ 注册切换
 ├── components/
 │   ├── AppSidebar.vue                   # 左侧栏：方向切换 + 用户信息/token 用量 + 左下角「⚙️ 设置」
@@ -266,7 +274,10 @@ src/
 │   ├── AiContextMenu.vue                # 选区上下文菜单 / 面板 / 结果卡片 / 查词面板
 │   ├── ProviderPanel.vue                # provider 列表 + 编辑表单（baseUrl / model / 环境变量名 / 结构化输出）
 │   ├── PromptPanel.vue                  # 提示词编辑（按 provider）+ 版本历史 + 回滚 + 试运行
-│   └── DictionaryPanel.vue              # 词库 tab：路径（只读）+ 重新加载 + 测试查询
+│   ├── DictionaryPanel.vue              # 词库 tab：路径（只读）+ 重新加载 + 测试查询
+│   ├── AccountPanel.vue                 # 账号 tab：账号信息 + 修改密码
+│   ├── PlanPanel.vue                    # 我的套餐 tab：配额条 + 邀请码兑换 + 升级申请
+│   └── AdminPanel.vue                   # 用户管理 tab（仅管理员）：用户表 + 用量明细 + 审核 + 邀请码池
 ├── composables/
 │   ├── useWritingContext.ts             # 段落/句子/单词定位 + 文本偏移↔doc 位置换算（sentenceIndex 全局）
 │   ├── useSelectionKind.ts              # 选区分类 word/phrase/sentence；getSentenceAtCursor 供工具栏用

@@ -101,7 +101,8 @@ pnpm cli models
 - **源侧清空 → 译侧跟着清**：译文没意义了，`EditorPage.vue` 里清掉译侧和对齐表。
   ⚠️ **不能 `watch(sourceHtml)`**（它是随 mode 变的 computed）—— 切方向的瞬间新方向的源侧通常是空的，会把另一栏的用户内容误清掉。要**分别 watch `zhHtml` / `enHtml`**，再按当前 `sourceLang` 判断该不该联动。
 - 英译中模式下英文侧 `aiEnabled=false` —— 改写 / 润色 / 语法 / 指令全部关掉，只留「查词」。
-- **设置页的 tab**（`SettingsPage.vue`）：LLM 供应商 / 提示词 / 词库 / **我的套餐** / **用户管理**（最后一个只有 `user.role === 'admin'` 才渲染）。`PlanPanel.vue` 管自己的套餐和申请，`AdminPanel.vue` 管用户 / 审核 / 邀请码池。
+- **设置页的 tab**（`SettingsPage.vue`）：LLM 供应商 / 提示词 / 词库 / **账号** / **我的套餐** / **用户管理**（最后一个只有 `user.role === 'admin'` 才渲染）。`AccountPanel.vue` 管账号信息和改密码，`PlanPanel.vue` 管自己的套餐和申请，`AdminPanel.vue` 管用户 / 审核 / 邀请码池。
+  当前 tab 记在 URL 的 `?tab=` 上（`selectTab()` 同步 query，watch query 反向切 tab）—— 侧栏的「修改密码」入口直接跳 `?tab=account`，刷新也不会跳回第一个 tab。
 
 ## 后端架构要点
 
@@ -132,6 +133,7 @@ pnpm cli models
 ## 鉴权与用量记账（新增）
 
 - **会话**：httpOnly cookie（`sid`，30 天）+ `sessions` 表。密码用 `node:crypto` 的 `scryptSync`（零依赖），库里存 `saltHex:hashHex`。
+- **改密码**（`POST /api/auth/change-password`）：必须填**当前密码**（错 → 400）；改完用 `deleteOtherSessions()` 把**其它设备上的会话作废**、当前浏览器的留着。挂 `requireLogin`（不查配额）—— 超配额也得能改密码。
 - **消耗 token 的接口必须登录**（`routes/auth.ts` 的 `requireUser`）：`/api/translate`、`/api/rewrite-*`、`/api/providers/:id/test`、`.../dry-run`。
 - **本地工具免登录**：浏览器经 Vite 代理过来时后端看到的 IP 也是 127.0.0.1，所以**不能只看 IP** —— 靠浏览器特有的 `Origin` / `Sec-Fetch-Site` 头区分。回环 + 无这两个头 = 本地工具（curl / CLI）→ 放行但不记账。`.env` 的 `AUTH_LOCAL_BYPASS=0` 可关。
 - **用量记账**：`ChatResult.usage` 由三个客户端填充（Ollama `prompt_eval_count`/`eval_count`；OpenAI `prompt_tokens`/`completion_tokens`；Anthropic `input_tokens`/`output_tokens` + cache 两段）→ service 层在 `chat()` 成功后、`extractOutput()` **之前**记 → 落到 `token_usage` 表（每人每天一行，UPSERT 累加）。
@@ -171,6 +173,7 @@ pnpm cli models
 
 - **`requireUser` 会查配额** —— 新加「消耗 token 的接口」要挂它的时候想清楚：超配额的用户会被 403 挡掉，这是有意的。但套餐申请 / 兑换要挂 **`requireLogin`**（不查配额），否则超配额的用户连升级都点不了。
 - **`requireLogin` / `requireAdmin` 不给本地工具（curl / CLI）放行** —— 只有 `requireUser` 有那个 bypass。管理操作必须有真人身份。
+- **守卫不把用户塞进 `req`** —— 拿「当前登录用户」用 `currentUser()`（`services/requestContext.ts`，`requireLogin` / `requireAdmin` 挂上去之后身份在 AsyncLocalStorage 里）。别自己再去读 cookie 解析一遍。
 - 后端库里 provider 的 `apiKeyEnv` 存的是**变量名**；`PUT /api/providers` 收 `apiKey` 会直接 400。
 - `structuredOutput` 的 `temperature` 对 Anthropic 无效（API 已移除采样参数）；Anthropic 的 `max_tokens` 是必填，且是「思考 + 回复」的共同上限（默认 16000）。
 - OpenAI 的 `strict: true` 只支持 JSON Schema 子集 → 代码里固定 `strict: false`。
