@@ -64,6 +64,12 @@ async function logout() {
   await router.push({ name: 'login' })
 }
 
+/** 跳到设置页的「账号」tab 改密码。 */
+async function goAccount() {
+  debugLog('[auth] 侧栏点击修改密码')
+  await router.push({ path: '/settings', query: { tab: 'account' } })
+}
+
 /** 大数字加千分位，界面上好看点。 */
 function fmt(n: number | undefined): string {
   if (n === undefined) return '—'
@@ -167,6 +173,15 @@ function percent(used: number | undefined, limit: number | undefined): number {
         @click="logout"
       >
         退出登录
+      </button>
+
+      <button
+        v-if="!collapsed"
+        type="button"
+        class="sidebar__logout sidebar__logout--plain"
+        @click="goAccount"
+      >
+        修改密码
       </button>
     </div>
 

@@ -64,6 +64,13 @@ export const register = (username: string, password: string) =>
 
 export const logout = () => http.post<{ ok: boolean }>('/api/auth/logout')
 
+/** 修改密码：后端会校验当前密码，改完踢掉其它设备上的会话。 */
+export const changePassword = (currentPassword: string, newPassword: string) =>
+  http.post<{ ok: boolean }>('/api/auth/change-password', {
+    currentPassword,
+    newPassword,
+  })
+
 /** 当前登录用户 + 今日/本月 token 用量。没登录会抛 ApiError(401)。 */
 export const fetchMe = (signal?: AbortSignal) =>
   http.get<MeInfo>('/api/auth/me', signal)

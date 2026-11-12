@@ -2429,3 +2429,45 @@ h1 {
   white-space: pre-wrap;
   word-break: break-all;
 }
+
+/* ===== 账号（修改密码） ===== */
+
+.account__info {
+  margin-bottom: 22px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--toolbar-bg);
+}
+
+.account__info-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 4px 0;
+  font-size: 0.86rem;
+}
+
+.account__info-label {
+  width: 64px;
+  flex: none;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.account__info-value {
+  font-weight: 600;
+}
+
+.account__password {
+  max-width: 420px;
+}
+
+.account__form {
+  margin-top: 12px;
+}
+
+/* 侧栏的「修改密码」：不是危险操作，别做成红色的 */
+.sidebar__logout--plain:hover {
+  color: var(--fg);
+}

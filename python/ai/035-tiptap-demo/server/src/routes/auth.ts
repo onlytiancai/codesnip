@@ -4,6 +4,7 @@
  *   POST /api/auth/register   注册（顺带直接登录）
  *   POST /api/auth/login      登录
  *   POST /api/auth/logout     登出
+ *   POST /api/auth/change-password  修改密码（要校验当前密码）
  *   GET  /api/auth/me         当前用户 + 今日/本月 token 用量
  *
  * **会话**：token 是 32 字节随机数，服务端存 sessions 表，浏览器只拿 cookie
@@ -19,7 +20,7 @@
 import { Router, type Request, type RequestHandler } from 'express'
 import { SESSION_COOKIE, SESSION_TTL_MS, UserStore } from '../config/userStore.js'
 import type { User } from '../config/userStore.js'
-import { runAsUser } from '../services/requestContext.js'
+import { currentUser, runAsUser } from '../services/requestContext.js'
 import { getPlan, publicPlan } from '../config/plans.js'
 import { quotaError, quotaStatus } from '../services/quota.js'
 import { debugLog } from '../utils/debug.js'
@@ -276,6 +277,46 @@ export function createAuthRouter(options: CreateAuthRouterOptions): Router {
       /** 有没有待审核的升级申请 */
       pendingRequest: userStore.hasPendingRequest(user.id),
     })
+  })
+
+  /**
+   * 修改密码。
+   *
+   * - 要校验**当前密码** —— 拿到 cookie 就能改密码的话，cookie 泄漏等于密码泄漏
+   * - 改完把**其它设备上的会话**作废（当前这个保留，不然自己被踢下线）
+   * - 挂 requireLogin（不查配额）：超配额也得能改密码
+   */
+  router.post('/api/auth/change-password', requireLogin(userStore), (req, res) => {
+    const body = (req.body ?? {}) as {
+      currentPassword?: unknown
+      newPassword?: unknown
+    }
+    if (typeof body.currentPassword !== 'string' || !body.currentPassword) {
+      return res.status(400).json({ error: '请输入当前密码' })
+    }
+    const invalid = UserStore.validatePassword(body.newPassword)
+    if (invalid) {
+      return res.status(400).json({ error: invalid })
+    }
+    const newPassword = body.newPassword as string
+    if (newPassword === body.currentPassword) {
+      return res.status(400).json({ error: '新密码不能和当前密码一样' })
+    }
+
+    const who = currentUser()
+    if (!who) return res.status(401).json({ error: '需要登录' })
+
+    // 当前密码不对 → 和登录失败一样，不透露更多信息
+    if (!userStore.authenticate(who.username, body.currentPassword)) {
+      debugLog('[auth]', '修改密码失败（当前密码不对）:', who.username)
+      return res.status(400).json({ error: '当前密码不对' })
+    }
+
+    userStore.setUserPassword(who.id, newPassword)
+    const token = readCookie(req, SESSION_COOKIE) ?? ''
+    userStore.deleteOtherSessions(who.id, token)
+    debugLog('[auth]', '密码已修改:', who.username, '（其它设备会话已失效）')
+    res.json({ ok: true })
   })
 
   return router

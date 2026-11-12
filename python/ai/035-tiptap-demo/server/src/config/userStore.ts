@@ -143,6 +143,17 @@ export class UserStore {
     return undefined
   }
 
+  /** 校验「新密码」的格式。合法返回 undefined，否则返回错误信息。 */
+  static validatePassword(password: unknown): string | undefined {
+    if (typeof password !== 'string' || password.length < MIN_PASSWORD_LENGTH) {
+      return `密码至少 ${MIN_PASSWORD_LENGTH} 位`
+    }
+    if (password.length > 128) {
+      return '密码太长了（最多 128 位）'
+    }
+    return undefined
+  }
+
   countUsers(): number {
     const row = this.db.prepare('SELECT COUNT(*) AS n FROM users').get()
     return Number(row?.n ?? 0)
@@ -323,6 +334,28 @@ export class UserStore {
   /** 改角色。 */
   setUserRole(userId: number, role: UserRole): void {
     this.db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, userId)
+  }
+
+  /** 改密码（自己改 / 管理员重置都走这里）。 */
+  setUserPassword(userId: number, password: string): void {
+    this.db
+      .prepare('UPDATE users SET password_hash = ? WHERE id = ?')
+      .run(UserStore.hashPassword(password), userId)
+  }
+
+  /**
+   * 踢掉某个用户的**其它**会话，保留 keepToken 那一个。
+   *
+   * 改密码之后调用 —— 密码变了，别的设备上的旧会话应该失效。
+   */
+  deleteOtherSessions(userId: number, keepToken: string): void {
+    if (!keepToken) {
+      this.db.prepare('DELETE FROM sessions WHERE user_id = ?').run(userId)
+      return
+    }
+    this.db
+      .prepare('DELETE FROM sessions WHERE user_id = ? AND token != ?')
+      .run(userId, keepToken)
   }
 
   // -------------------------------------------------------------------------
