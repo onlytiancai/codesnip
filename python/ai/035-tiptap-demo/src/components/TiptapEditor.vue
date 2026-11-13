@@ -4,6 +4,7 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import type { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import {
+  collectSentences,
   getSentenceIndex,
   splitEnglishSentences,
   topBlockContentRanges,
@@ -21,6 +22,7 @@ import {
 } from '../composables/useSelectionKind'
 import { useCopyContent } from '../composables/useCopyContent'
 import { matchCase } from '../utils/matchCase'
+import { escapeHtml } from '../utils/html'
 import AiContextMenu from './AiContextMenu.vue'
 import type { AiAction } from '../constants/aiActions'
 
@@ -40,8 +42,23 @@ const props = withDefaults(
      * 切方向时两个框的按钮跟着互换。
      */
     isSource?: boolean
+    /** 正在翻译的句子（全局句子索引）—— 这些句子显示 loading */
+    loadingIndexes?: number[]
+    /** 翻译失败的句子（全局句子索引） */
+    failedIndexes?: number[]
+    /** 能不能编辑。翻译期间会被锁住 */
+    editable?: boolean
+    /** 每个英文句子对应的中文（按全局句子索引）—— hover 气泡用 */
+    chineseSentences?: string[]
   }>(),
-  { aiEnabled: true, isSource: false },
+  {
+    aiEnabled: true,
+    isSource: false,
+    loadingIndexes: () => [],
+    failedIndexes: () => [],
+    editable: true,
+    chineseSentences: () => [],
+  },
 )
 
 const html = defineModel<string>('html', { default: '' })
@@ -58,6 +75,12 @@ const menuAction = ref<AiAction | null>(null)
 const cursorSentence = ref<SelectionInfo | null>(null)
 
 function detectSelection(editor: Editor | null) {
+  // 翻译期间编辑器是锁着的 —— 别弹 AI 菜单（那时的译文还没对齐好）
+  if (!props.editable) {
+    closeMenu()
+    cursorSentence.value = null
+    return
+  }
   cursorSentence.value = getSentenceAtCursor(editor)
   const info = getSelectionInfo(editor)
   // 关掉 AI 能力时（英译中模式），菜单里只剩「📖 查词」—— 只在选中单个单词时才有意义。
@@ -229,6 +252,7 @@ function openWordCandidates(info: SelectionInfo) {
  */
 function scheduleWordCandidates(pos: number, mode: WordPickMode) {
   if (!props.aiEnabled) return
+  if (!props.editable) return
   const ed = editor.value
   if (!ed) return
 
@@ -294,6 +318,8 @@ onBeforeUnmount(() => {
   menuObserver = null
   clearAutoWordTimer()
   closeMenu()
+  if (hoverRaf) cancelAnimationFrame(hoverRaf)
+  clearHover()
 })
 
 // 暴露给父组件：翻译完成后整体替换英文段落
@@ -314,14 +340,18 @@ defineExpose({
     if (!ed) return
     const ranges = topBlockContentRanges(ed.state.doc)
     if (ranges.length !== paragraphs.length) {
-      ed.commands.setContent(paragraphs.map((t) => `<p>${t}</p>`).join(''))
+      ed.commands.setContent(paragraphs.map((t) => `<p>${escapeHtml(t)}</p>`).join(''))
       return
     }
+    // 从后往前改 —— 改后面的段落不会影响前面段落的 doc 位置。
+    // 用 insertText 纯文本替换（不走 HTML 解析），译文里的 < > & 不会被吃掉。
+    const tr = ed.state.tr
     for (const p of [...changed].sort((a, b) => b - a)) {
       const r = ranges[p]
       if (!r) continue
-      ed.commands.insertContentAt({ from: r.from, to: r.to }, paragraphs[p])
+      tr.insertText(paragraphs[p], r.from, r.to)
     }
+    ed.view.dispatch(tr)
   },
 })
 
@@ -334,6 +364,124 @@ watch(
     if (editor.value) rerenderDecorations(editor.value)
   },
 )
+
+// ===== 翻译中的句子 =====
+/** 正在翻的句子（全局索引）—— 给装饰扩展读 */
+let loadingSet = new Set<number>()
+/** 翻失败的句子（全局索引） */
+let failedSet = new Set<number>()
+
+watch(
+  () => props.loadingIndexes,
+  (v) => {
+    loadingSet = new Set(v)
+    if (editor.value) rerenderDecorations(editor.value)
+  },
+)
+watch(
+  () => props.failedIndexes,
+  (v) => {
+    failedSet = new Set(v)
+    if (editor.value) rerenderDecorations(editor.value)
+  },
+)
+
+// ===== 翻译期间锁住编辑器 =====
+watch(
+  () => props.editable,
+  (v) => {
+    editor.value?.setEditable(v)
+  },
+)
+
+// ===== 鼠标悬停单词 → 气泡显示这句的中文原文 =====
+
+/** 气泡内容与位置；null = 不显示 */
+const hoverTip = ref<{
+  top: number
+  bottom: number
+  left: number
+  word: string
+  chinese: string
+  sentence: string
+  below: boolean
+} | null>(null)
+
+/** 悬停单词在 doc 里的区间 —— 给装饰扩展读 */
+let hoverRange: { from: number; to: number } | null = null
+
+function setHoverRange(r: { from: number; to: number } | null) {
+  const same =
+    (r === null && hoverRange === null) ||
+    (r !== null &&
+      hoverRange !== null &&
+      r.from === hoverRange.from &&
+      r.to === hoverRange.to)
+  if (same) return
+  hoverRange = r
+  if (editor.value) rerenderDecorations(editor.value)
+}
+
+function clearHover() {
+  setHoverRange(null)
+  hoverTip.value = null
+}
+
+/** 鼠标移动 —— 一帧算一次，别每个 mousemove 都扫一遍文档 */
+let hoverRaf = 0
+let hoverMouse: { x: number; y: number } | null = null
+
+function onMouseMove(e: MouseEvent) {
+  hoverMouse = { x: e.clientX, y: e.clientY }
+  if (hoverRaf) return
+  hoverRaf = requestAnimationFrame(() => {
+    hoverRaf = 0
+    if (hoverMouse) updateHover(hoverMouse.x, hoverMouse.y)
+  })
+}
+
+function updateHover(x: number, y: number) {
+  const ed = editor.value
+  if (!ed) return
+  // AI 菜单开着的时候不弹气泡 —— 两个浮层叠在一起太乱
+  if (selection.value) {
+    clearHover()
+    return
+  }
+  const pos = ed.view.posAtCoords({ left: x, top: y })?.pos
+  if (pos == null) {
+    clearHover()
+    return
+  }
+  const info = getWordInfoAt(ed, pos, 'any')
+  if (!info) {
+    clearHover()
+    return
+  }
+
+  // 这个词属于第几句（全局句子索引）→ 对齐表里就是它的中文原文
+  const spans = collectSentences(ed.state.doc, splitEnglishSentences)
+  const span = spans.find((s) => info.from >= s.from && info.to <= s.to)
+  const chinese = span ? (props.chineseSentences[span.index] ?? '') : ''
+
+  setHoverRange({ from: info.from, to: info.to })
+
+  const coords = ed.view.coordsAtPos(info.from)
+  // 气泡锚在单词左端（CSS 里 translateX(-50%)），左右各留一半宽度
+  const half = 180
+  const maxLeft = Math.max(half, window.innerWidth - half)
+  const left = Math.min(Math.max(coords.left, half), maxLeft)
+  hoverTip.value = {
+    top: coords.top,
+    bottom: coords.bottom,
+    left,
+    word: info.text,
+    chinese,
+    sentence: info.sentence,
+    // 顶到屏幕上方就翻到单词下面
+    below: coords.top < 90,
+  }
+}
 
 // ===== editor 实例（默认空文档） =====
 
@@ -420,10 +568,13 @@ function onKeydown(e: KeyboardEvent) {
 onMounted(() => {
   document.addEventListener('mousedown', onDocMouseDown)
   window.addEventListener('keydown', onKeydown)
+  // 页面滚动 → 气泡是 viewport 坐标，会跑位
+  window.addEventListener('scroll', clearHover)
 })
 onBeforeUnmount(() => {
   document.removeEventListener('mousedown', onDocMouseDown)
   window.removeEventListener('keydown', onKeydown)
+  window.removeEventListener('scroll', clearHover)
 })
 
 /** 下拉里点一项 → 跑那个动作，然后收起。 */
@@ -440,12 +591,17 @@ const editor = useEditor({
       splitFn: splitEnglishSentences,
       getCrossIndex: () => highlightRef.value,
       showContextLayers: () => true,
+      getLoadingIndexes: () => loadingSet,
+      getFailedIndexes: () => failedSet,
+      getHoverRange: () => hoverRange,
     }),
   ],
   onUpdate({ editor }) {
     html.value = editor.getHTML()
     sentenceIndex.value = getSentenceIndex(editor.state, splitEnglishSentences)
     detectSelection(editor)
+    // 内容变了 → 气泡里的中文原文可能已经对不上，收掉
+    clearHover()
   },
   editorProps: {
     // 点在某个词上 → 直接给出这个词能换成什么（不用先拖选）
@@ -456,6 +612,14 @@ const editor = useEditor({
       lastClickAt = Date.now()
       scheduleWordCandidates(pos, 'any')
       return false
+    },
+    handleDOMEvents: {
+      // 鼠标停在单词上 → 气泡显示这句的中文原文
+      mousemove: (_view, event) => {
+        const e = event as MouseEvent
+        onMouseMove(e)
+        return false
+      },
     },
   },
   onSelectionUpdate({ editor, transaction }) {
@@ -470,6 +634,7 @@ const editor = useEditor({
     scheduleWordCandidates(from, 'leftEdge')
   },
   onCreate({ editor }) {
+    editor.setEditable(props.editable)
     html.value = editor.getHTML()
     sentenceIndex.value = getSentenceIndex(editor.state, splitEnglishSentences)
     detectSelection(editor)
@@ -481,27 +646,33 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
 </script>
 
 <template>
-  <div class="editor-shell en-shell" @mousedown.capture="onShellMousedownCapture">
+  <div
+    class="editor-shell en-shell"
+    :class="{ 'is-locked': !editable }"
+    @mousedown.capture="onShellMousedownCapture"
+    @mouseleave="clearHover"
+    @scroll.capture="clearHover"
+  >
     <div v-if="editor" class="toolbar">
       <!-- 文本格式 -->
       <div class="toolbar__group">
         <button type="button" :class="{ active: editor.isActive('bold') }"
-          :disabled="!editor.can().chain().focus().toggleBold().run()"
+          :disabled="!editable || !editor.can().chain().focus().toggleBold().run()"
           @click="editor.chain().focus().toggleBold().run()" title="加粗 (Ctrl+B)">
           <strong>B</strong>
         </button>
         <button type="button" :class="{ active: editor.isActive('italic') }"
-          :disabled="!editor.can().chain().focus().toggleItalic().run()"
+          :disabled="!editable || !editor.can().chain().focus().toggleItalic().run()"
           @click="editor.chain().focus().toggleItalic().run()" title="斜体 (Ctrl+I)">
           <em>I</em>
         </button>
         <button type="button" :class="{ active: editor.isActive('strike') }"
-          :disabled="!editor.can().chain().focus().toggleStrike().run()"
+          :disabled="!editable || !editor.can().chain().focus().toggleStrike().run()"
           @click="editor.chain().focus().toggleStrike().run()" title="删除线">
           <s>S</s>
         </button>
         <button type="button" :class="{ active: editor.isActive('underline') }"
-          :disabled="!editor.can().chain().focus().toggleUnderline().run()"
+          :disabled="!editable || !editor.can().chain().focus().toggleUnderline().run()"
           @click="editor.chain().focus().toggleUnderline().run()" title="下划线 (Ctrl+U)">
           <u>U</u>
         </button>
@@ -509,9 +680,9 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
 
       <!-- 历史 -->
       <div class="toolbar__group">
-        <button type="button" :disabled="!editor.can().chain().focus().undo().run()"
+        <button type="button" :disabled="!editable || !editor.can().chain().focus().undo().run()"
           @click="editor.chain().focus().undo().run()" title="撤销 (Ctrl+Z)">↶</button>
-        <button type="button" :disabled="!editor.can().chain().focus().redo().run()"
+        <button type="button" :disabled="!editable || !editor.can().chain().focus().redo().run()"
           @click="editor.chain().focus().redo().run()" title="重做 (Ctrl+Shift+Z)">↷</button>
       </div>
 
@@ -522,7 +693,7 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
           type="button"
           class="toolbar__btn-clear"
           title="清空英文内容"
-          :disabled="!editor.getText().trim()"
+          :disabled="!editable || !editor.getText().trim()"
           @click="editor.commands.clearContent()"
         >
           清空
@@ -549,6 +720,7 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
           :class="{ active: aiMenuOpen }"
           :aria-expanded="aiMenuOpen"
           aria-haspopup="menu"
+          :disabled="!editable"
           title="AI 指令（作用于光标所在句）"
           @click="toggleAiMenu"
         >
@@ -600,6 +772,23 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
           @replace="applyReplacement"
           @close="closeMenu"
         />
+      </div>
+    </Teleport>
+
+    <!-- 悬停气泡：鼠标停在单词上 → 显示这句的中文原文 -->
+    <Teleport to="body">
+      <div
+        v-if="hoverTip"
+        class="hover-tip"
+        :style="{
+          left: `${hoverTip.left}px`,
+          top: `${hoverTip.below ? hoverTip.bottom : hoverTip.top}px`,
+          transform: hoverTip.below ? 'translate(-50%, 0)' : 'translate(-50%, -100%)',
+        }"
+      >
+        <div class="hover-tip__word">{{ hoverTip.word }}</div>
+        <div v-if="hoverTip.chinese" class="hover-tip__zh">{{ hoverTip.chinese }}</div>
+        <div v-else class="hover-tip__zh hover-tip__zh--empty">{{ hoverTip.sentence }}</div>
       </div>
     </Teleport>
   </div>

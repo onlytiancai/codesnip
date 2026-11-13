@@ -31,6 +31,12 @@ export interface ContextHighlightOptions {
   getCrossIndex: () => number
   /** 是否画「上下文三层」（段落 / 句子 / 单词）。中文框传 false */
   showContextLayers?: () => boolean
+  /** 正在翻译的句子索引（全局）—— 这些句子画 loading 装饰 */
+  getLoadingIndexes?: () => Set<number>
+  /** 翻译失败的句子索引（全局）—— 这些句子画 failed 装饰 */
+  getFailedIndexes?: () => Set<number>
+  /** 鼠标悬停的单词区间 —— 画 hover 装饰 */
+  getHoverRange?: () => { from: number; to: number } | null
 }
 
 export function createContextHighlightExtension(options: ContextHighlightOptions) {
@@ -91,6 +97,34 @@ export function createContextHighlightExtension(options: ContextHighlightOptions
                       Decoration.inline(ctx.wordFrom, ctx.wordTo, { class: 'cur-word' }),
                     )
                   }
+                }
+              }
+
+              // ===== 翻译状态 / 悬停 =====
+              // 这两种装饰跟「谁获焦」无关，只要集合非空就画。
+              const loading = options.getLoadingIndexes?.()
+              const failed = options.getFailedIndexes?.()
+              const hover = options.getHoverRange?.()
+
+              if ((loading && loading.size) || (failed && failed.size) || hover) {
+                const spans = collectSentences(state.doc, options.splitFn)
+                for (const span of spans) {
+                  if (span.from >= span.to) continue
+                  if (loading?.has(span.index)) {
+                    decorations.push(
+                      Decoration.inline(span.from, span.to, { class: 'sentence-loading' }),
+                    )
+                  }
+                  if (failed?.has(span.index)) {
+                    decorations.push(
+                      Decoration.inline(span.from, span.to, { class: 'sentence-failed' }),
+                    )
+                  }
+                }
+                if (hover && hover.from < hover.to) {
+                  decorations.push(
+                    Decoration.inline(hover.from, hover.to, { class: 'hover-word' }),
+                  )
                 }
               }
 

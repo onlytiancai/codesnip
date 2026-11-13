@@ -113,4 +113,58 @@ export async function translateSentences(
   return pLimit(sentences, wrapped, 3)
 }
 
+/**
+ * 流式批量翻译的回调。
+ *
+ * index 是句子在**输入数组**里的下标 —— 调用方拿它去对号入座。
+ */
+export interface TranslateStreamHooks {
+  /** 某句开始请求时触发（用来给它挂 loading） */
+  onStart?: (index: number) => void
+  /** 某句结束时触发：成功给 result，失败给 error */
+  onSettled?: (index: number, result: AlignedSentence | null, error: unknown | null) => void
+}
+
+/**
+ * 流式批量翻译 —— 跟 translateSentences 一样是「每句一次请求、并发 3」，
+ * 区别是**每句一完成就回调一次**，让界面能一句一句地显示译文。
+ *
+ * 与 translateSentences 的另一个区别：**单句失败不会中断整批**。
+ * 失败的句子结果为 null，错误交给 onSettled，由调用方决定怎么呈现。
+ * （登录过期、配额用尽这种「整体失败」的情况，调用方可以在 onSettled 里 abort。）
+ */
+export async function translateSentencesStream(
+  sentences: string[],
+  tone?: ToneId,
+  source: TranslateLang = 'zh',
+  target: TranslateLang = 'en',
+  signal?: AbortSignal,
+  hooks?: TranslateStreamHooks,
+): Promise<(AlignedSentence | null)[]> {
+  const results: (AlignedSentence | null)[] = new Array(sentences.length).fill(null)
+  let cursor = 0
+
+  const worker = async () => {
+    while (cursor < sentences.length) {
+      // 中途 abort 了 → 不要再发起新请求
+      if (signal?.aborted) return
+      const idx = cursor++
+      hooks?.onStart?.(idx)
+      try {
+        const r = await translateSentence(sentences[idx], tone, signal, source, target)
+        results[idx] = r
+        hooks?.onSettled?.(idx, r, null)
+      } catch (err) {
+        // abort 引起的失败不算「这句翻错了」，交给调用方按 aborted 判断
+        hooks?.onSettled?.(idx, null, err)
+        if (signal?.aborted) return
+      }
+    }
+  }
+
+  const pool = Array.from({ length: Math.min(3, sentences.length) }, worker)
+  await Promise.all(pool)
+  return results
+}
+
 export { TranslateHttpError }

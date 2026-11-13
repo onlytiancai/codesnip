@@ -5,12 +5,14 @@ import StarterKit from '@tiptap/starter-kit'
 import {
   getSentenceIndex,
   splitChineseSentences,
+  topBlockContentRanges,
 } from '../composables/useWritingContext'
 import {
   createContextHighlightExtension,
   rerenderDecorations,
 } from '../composables/highlightContext'
 import { useCopyContent } from '../composables/useCopyContent'
+import { escapeHtml, htmlToPlainParagraphs } from '../utils/html'
 
 const props = withDefaults(
   defineProps<{
@@ -21,8 +23,14 @@ const props = withDefaults(
      * 切方向时两个框的按钮跟着互换。
      */
     isSource?: boolean
+    /** 正在翻译的句子（全局句子索引）—— 这些句子显示 loading */
+    loadingIndexes?: number[]
+    /** 翻译失败的句子（全局句子索引） */
+    failedIndexes?: number[]
+    /** 能不能编辑。翻译期间会被锁住 */
+    editable?: boolean
   }>(),
-  { isSource: true },
+  { isSource: true, loadingIndexes: () => [], failedIndexes: () => [], editable: true },
 )
 
 const html = defineModel<string>('html', { default: '' })
@@ -39,10 +47,63 @@ watch(
   },
 )
 
+// ===== 翻译中的句子 =====
+/** 正在翻的句子（全局索引）—— 给装饰扩展读 */
+let loadingSet = new Set<number>()
+/** 翻失败的句子（全局索引） */
+let failedSet = new Set<number>()
+
+watch(
+  () => props.loadingIndexes,
+  (v) => {
+    loadingSet = new Set(v)
+    if (editor.value) rerenderDecorations(editor.value)
+  },
+)
+watch(
+  () => props.failedIndexes,
+  (v) => {
+    failedSet = new Set(v)
+    if (editor.value) rerenderDecorations(editor.value)
+  },
+)
+
+// ===== 翻译期间锁住编辑器 =====
+watch(
+  () => props.editable,
+  (v) => {
+    editor.value?.setEditable(v)
+  },
+)
+
 // 父组件把译文整体写进来（英译中模式下中文栏是译侧）
 defineExpose({
   setHtml(html: string) {
     editor.value?.commands.setContent(html)
+  },
+
+  /**
+   * 把译文按段落写回（逐句显示用）。
+   *
+   * 只替换**变了的那几段**，而且从后往前改 —— 改后面的段落不会影响前面段落的
+   * doc 位置。整篇 setContent 的话译文框会闪一下、滚动位置还会跳回顶部。
+   * 段落数对不上（用户手动加过段落）就整体重建。
+   */
+  applyParagraphs(paragraphs: string[], changed: number[]) {
+    const ed = editor.value
+    if (!ed) return
+    const ranges = topBlockContentRanges(ed.state.doc)
+    if (ranges.length !== paragraphs.length) {
+      ed.commands.setContent(paragraphs.map((t) => `<p>${escapeHtml(t)}</p>`).join(''))
+      return
+    }
+    const tr = ed.state.tr
+    for (const p of [...changed].sort((a, b) => b - a)) {
+      const r = ranges[p]
+      if (!r) continue
+      tr.insertText(paragraphs[p], r.from, r.to)
+    }
+    ed.view.dispatch(tr)
   },
 })
 
@@ -62,8 +123,19 @@ const editor = useEditor({
       getCrossIndex: () => highlightRef.value,
       // 中文框只要紫色的跨栏高亮，不要段落/句子/单词三层
       showContextLayers: () => false,
+      getLoadingIndexes: () => loadingSet,
+      getFailedIndexes: () => failedSet,
     }),
   ],
+  editorProps: {
+    /**
+     * 粘贴 → 纯文本。
+     *
+     * 从 Word / 网页复制过来的一堆加粗、代码块、引用、列表全丢掉，
+     * 只留文字和段落划分 —— 中文框只是译文输入，不需要格式。
+     */
+    transformPastedHTML: (html: string) => htmlToPlainParagraphs(html),
+  },
   onUpdate({ editor }) {
     html.value = editor.getHTML()
     sentenceIndex.value = getSentenceIndex(editor.state, splitChineseSentences)
@@ -72,6 +144,7 @@ const editor = useEditor({
     sentenceIndex.value = getSentenceIndex(editor.state, splitChineseSentences)
   },
   onCreate({ editor }) {
+    editor.setEditable(props.editable)
     html.value = editor.getHTML()
     sentenceIndex.value = getSentenceIndex(editor.state, splitChineseSentences)
   },
@@ -82,34 +155,34 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
 </script>
 
 <template>
-  <div class="editor-shell zh-shell">
+  <div class="editor-shell zh-shell" :class="{ 'is-locked': !editable }">
     <div v-if="editor" class="toolbar">
       <div class="toolbar__group">
         <button type="button" :class="{ active: editor.isActive('bold') }"
-          :disabled="!editor.can().chain().focus().toggleBold().run()"
+          :disabled="!editable || !editor.can().chain().focus().toggleBold().run()"
           @click="editor.chain().focus().toggleBold().run()" title="加粗 (Ctrl+B)">
           <strong>B</strong>
         </button>
         <button type="button" :class="{ active: editor.isActive('italic') }"
-          :disabled="!editor.can().chain().focus().toggleItalic().run()"
+          :disabled="!editable || !editor.can().chain().focus().toggleItalic().run()"
           @click="editor.chain().focus().toggleItalic().run()" title="斜体 (Ctrl+I)">
           <em>I</em>
         </button>
         <button type="button" :class="{ active: editor.isActive('strike') }"
-          :disabled="!editor.can().chain().focus().toggleStrike().run()"
+          :disabled="!editable || !editor.can().chain().focus().toggleStrike().run()"
           @click="editor.chain().focus().toggleStrike().run()" title="删除线">
           <s>S</s>
         </button>
         <button type="button" :class="{ active: editor.isActive('underline') }"
-          :disabled="!editor.can().chain().focus().toggleUnderline().run()"
+          :disabled="!editable || !editor.can().chain().focus().toggleUnderline().run()"
           @click="editor.chain().focus().toggleUnderline().run()" title="下划线 (Ctrl+U)">
           <u>U</u>
         </button>
       </div>
       <div class="toolbar__group">
-        <button type="button" :disabled="!editor.can().chain().focus().undo().run()"
+        <button type="button" :disabled="!editable || !editor.can().chain().focus().undo().run()"
           @click="editor.chain().focus().undo().run()" title="撤销 (Ctrl+Z)">↶</button>
-        <button type="button" :disabled="!editor.can().chain().focus().redo().run()"
+        <button type="button" :disabled="!editable || !editor.can().chain().focus().redo().run()"
           @click="editor.chain().focus().redo().run()" title="重做 (Ctrl+Shift+Z)">↷</button>
       </div>
       <div class="toolbar__group toolbar__group--end">
@@ -119,7 +192,7 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
           type="button"
           class="toolbar__btn-clear"
           title="清空中文内容"
-          :disabled="!editor.getText().trim()"
+          :disabled="!editable || !editor.getText().trim()"
           @click="editor.commands.clearContent()"
         >
           清空

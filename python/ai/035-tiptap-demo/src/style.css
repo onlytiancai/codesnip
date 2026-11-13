@@ -1497,6 +1497,102 @@ h1 {
   border-radius: 2px;
 }
 
+/* ===== 翻译状态：正在翻的句子 / 翻失败的句子 ===== */
+
+/* 正在翻：琥珀色底来回扫，句尾跟一个小转圈 */
+.sentence-loading {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 196, 0, 0.12) 0%,
+    rgba(255, 196, 0, 0.34) 50%,
+    rgba(255, 196, 0, 0.12) 100%
+  );
+  background-size: 220% 100%;
+  animation: sentence-loading 1.4s ease-in-out infinite;
+  box-shadow: 0 0 0 2px rgba(255, 196, 0, 0.22);
+  border-radius: 3px;
+}
+
+/* 转圈是伪元素 —— 不进编辑器内容，翻译接口拿到的还是干净的原文 */
+.sentence-loading::after {
+  content: '⟳';
+  display: inline-block;
+  margin-left: 0.25em;
+  font-size: 0.85em;
+  color: #e8a200;
+  vertical-align: 2px;
+  animation: sentence-spin 1s linear infinite;
+}
+
+@keyframes sentence-loading {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
+}
+
+@keyframes sentence-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 翻失败：红色波浪线 */
+.sentence-failed {
+  background: rgba(220, 0, 0, 0.07);
+  box-shadow: 0 0 0 2px rgba(220, 0, 0, 0.18);
+  border-radius: 3px;
+  text-decoration: underline wavy rgba(220, 0, 0, 0.5);
+  text-underline-offset: 3px;
+}
+
+/* ===== 鼠标悬停单词 ===== */
+
+.hover-word {
+  background: rgba(34, 139, 230, 0.12);
+  border-bottom: 2px solid rgba(34, 139, 230, 0.5);
+  border-radius: 2px;
+}
+
+/* 悬停气泡（Teleport 到 body，position: fixed） */
+.hover-tip {
+  position: fixed;
+  z-index: 900;
+  max-width: 360px;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  pointer-events: none;
+}
+
+.hover-tip__word {
+  margin-bottom: 2px;
+  font-weight: 600;
+  color: var(--toolbar-active-bg);
+  word-break: break-all;
+}
+
+.hover-tip__zh {
+  color: var(--fg);
+  word-break: break-word;
+}
+
+.hover-tip__zh--empty {
+  color: var(--muted);
+}
+
+/* 翻译期间锁住的编辑器 */
+.editor-shell.is-locked .ProseMirror {
+  background: #fbfcfd;
+  cursor: progress;
+}
+
 /* ===== 设置页（/settings） ===== */
 
 .settings {

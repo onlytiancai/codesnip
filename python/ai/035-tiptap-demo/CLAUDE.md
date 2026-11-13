@@ -98,6 +98,11 @@ pnpm cli models
   ⚠️ 候选词请求**防抖 250ms**：拖选时选区每挪一下就变一次，不防抖的话每变一次发一次请求。
 - **API 调用**统一走 `src/services/http.ts`（`http.get/post/put/del`），它会把后端 `{error}` 字段捞成 `ApiError`。`services/translate.ts` 是例外（自带 `pLimit` 并发 3）。
 - **实时翻译**（`EditorPage.vue`，默认关，只中译英方向）：中文改了停手 800ms 自动翻，**以句子为单位** —— `liveCache`（源句→译文，语气算进 key）复用没改过的句子，只翻新增/改动的；写回时 `TiptapEditor.applyParagraphs()` **只替换变了的那几段**（从后往前改，避免前面段落的 doc 位置被带偏），整篇 `setContent` 会让译文框闪一下、滚动跳回顶部。段落数变了才整体重建。
+- **手动翻译是流式的**（`EditorPage.vue` 的 `doTranslate`）：走 `services/translate.ts` 的 `translateSentencesStream`，**每句一回调**。译侧先铺一层占位（每句一个 `…`），翻完一句就把那一段重写一次（`applyParagraphs`，只改一段）；源侧正在翻的句子用 Decoration 画 `.sentence-loading`（琥珀色脉冲 + 句尾转圈，伪元素不进编辑器内容），失败的画 `.sentence-failed`。
+- **loading 索引 = 源侧的全局句子索引**：跟 `collectSentences`（`useWritingContext.ts`）同一套编号（跨段落累计），所以装饰能直接对上。索引来源是 `extractParagraphs` + 切句后的**摊平下标** —— 中文框只有段落（heading/list 都禁了），两者对得上；英文框有列表时列表里的句子不参与编号（老问题）。
+- **翻译期间锁编辑器**：两个编辑器组件都有 `editable` prop → `editor.setEditable(false)`；成功/失败都在 `finally` 里解锁。整体失败（401/403）时译侧还原回原来的内容。`loadingOwner` 标记谁在占用 loading 状态 —— 手动翻译会掐掉实时翻译，没有这个标记会互相清空。
+- **中文框粘贴去格式**：`ChineseEditor.vue` 的 `editorProps.transformPastedHTML` → `utils/html.ts` 的 `htmlToPlainParagraphs`（DOMParser 取纯文本 + 段落划分，加粗/代码块/引用/列表全丢）。只对中文框生效。
+- **英文框悬停气泡**：`TiptapEditor.vue` 的 mousemove → `posAtCoords` → `getWordInfoAt` → 用 `aligned` 对齐表查这句的中文原文；rAF 节流，AI 菜单开着时不弹（免得两个浮层叠一起）。装饰 `.hover-word`。
 - **工具栏的清空/复制跟着源译侧走**：两个编辑器组件都有 `isSource` prop —— **源侧渲染「清空」，译侧渲染「复制」**，切方向时自动互换（中译英：中文=清空 / 英文=复制；英译中反过来）。复制逻辑抽在 `composables/useCopyContent.ts`（纯文本提取 + 剪贴板 + 「✓ 已复制」提示），两个框共用。
 - **源侧清空 → 译侧跟着清**：译文没意义了，`EditorPage.vue` 里清掉译侧和对齐表。
   ⚠️ **不能 `watch(sourceHtml)`**（它是随 mode 变的 computed）—— 切方向的瞬间新方向的源侧通常是空的，会把另一栏的用户内容误清掉。要**分别 watch `zhHtml` / `enHtml`**，再按当前 `sourceLang` 判断该不该联动。
