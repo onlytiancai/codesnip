@@ -2,9 +2,15 @@
 
     /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir=/Users/huhao/chrome-profile-for-ai
 
-mac 查看端口
+查看端口
 
+    # mac
     netstat -anp tcp | grep LISTEN
+
+    # 查看 udb 绑定端口
+    sudo ss -unlp
+    # 查看 tcp 监听端口
+    sudo ss -tnlp
 
 启动 ttyd 共享终端
 
@@ -226,3 +232,110 @@ ZeroTier 使用
     pgrep -a zerotier
     ip link show | grep -i zt
     systemctl status zerotier-one
+
+find 
+
+    # 排除某些目录名
+    find ./ -type d -name "node_modules" -prune -o -name "*.md" -print
+    # 排除某目录
+    find . -path ./server -prune -o -path ./node_modules -prune -o -name '*.md'
+
+ufw
+    sudo ufw allow 22
+
+certbot
+
+    sudo apt install certbot
+    sudo apt install python3-certbot-nginx -y
+    sudo certbot plugins
+    sudo certbot --nginx    
+    sudo ls /etc/letsencrypt/live/
+    sudo certbot certificates
+    sudo certbot renew --dry-run
+    sudo systemctl status certbot.timer
+    sudo systemctl status certbot.service
+    apt list --installed 2>/dev/null | grep certbot
+
+nginx 设置密码
+
+    sudo apt install apache2-utils
+    sudo htpasswd -c /etc/nginx/.htpasswd admin 
+    sudo htpasswd /etc/nginx/.htpasswd user2
+
+    # nginx 配置
+    auth_basic "Restricted Access";
+    auth_basic_user_file /etc/nginx/.htpasswd;
+
+tcpdump
+
+    # 发送端抓包
+    sudo tcpdump -i any -nn 'udp and dst host <接收端IP> and dst port 8125'
+    # 接收端抓包
+    sudo tcpdump -i any -nn -A udp port 8125
+    sudo tcpdump -i any -nn 'udp and dst port 8125'
+    sudo tcpdump -i any -nn 'host <发送端公网IP> and udp port 8125'
+
+statsD 测试发送
+
+    echo "test.counter:1|c" | nc -u -w1 192.168.1.100 8125
+
+路由查看
+
+    ip route get 124.237.177.164
+
+iptables
+    
+    # 是否有丢包
+    sudo iptables -vnL INPUT --line-numbers
+
+docker
+
+    sudo apt update
+    sudo apt install -y docker.io docker-compose-v2
+
+    sudo systemctl enable --now docker
+    docker --version
+    docker compose version    
+
+    sudo docker compose up -d
+    sudo docker compose ps
+    sudo docker logs -f graphite
+    docker exec -it graphite bash
+
+apt-get 自动更新锁问题检查
+
+    sudo tail -100 /var/log/apt/term.log
+    sudo tail -100 /var/log/unattended-upgrades/unattended-upgrades.log
+
+    ps -p 1038256 -o pid,ppid,stat,etime,time,%cpu,%mem,cmd
+
+    sudo lsof /var/lib/dpkg/lock-frontend
+    sudo lsof /var/lib/dpkg/lock
+
+    sudo systemctl stop unattended-upgrades
+    sudo apt-get -f install
+    sudo dpkg --configure -a
+    sudo apt-get update
+
+    sudo systemctl status unattended-upgrades
+    sudo systemctl disable --now unattended-upgrades
+
+    ps -o pid,ppid,stat,wchan:32,cmd -p 948435,142761
+    sudo cat /proc/948435/status | grep -E 'State|SigPnd|ShdPnd'
+    sudo cat /proc/948435/wchan
+    sudo pstree -ap 948435
+    systemctl list-jobs
+    sudo systemctl --failed
+
+    sudo systemctl cat nginx.service
+    sudo systemctl show nginx.service \
+      -p Type \
+      -p NotifyAccess \
+      -p TimeoutStartUSec \
+      -p ExecStart \
+      -p MainPID \
+      -p ActiveState \
+      -p SubState
+查看日志
+
+    sudo journalctl -u unattended-upgrades --since "7 days ago"
