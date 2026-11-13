@@ -65,6 +65,16 @@ export function getPlan(id: string | null | undefined): Plan {
   return PLANS.find((p) => p.id === id) ?? PLANS[0]
 }
 
+/**
+ * 是不是付费套餐（免费版之外都算）。
+ *
+ * 用来卡「付费功能」—— 比如用户自定义指令。
+ * 管理员不受这个限制（管理员本来就什么都能干）。
+ */
+export function isPaidPlan(id: string | null | undefined): boolean {
+  return getPlan(id).id !== FREE_PLAN_ID
+}
+
 /** 套餐 id 是否存在 —— 管理员改套餐时要校验。 */
 export function isPlanId(id: unknown): id is string {
   return typeof id === 'string' && PLANS.some((p) => p.id === id)

@@ -153,6 +153,25 @@ CREATE TABLE IF NOT EXISTS prompt_versions (
   template      TEXT    NOT NULL,      -- JSON 快照
   PRIMARY KEY (provider_id, capability_id, version)
 );
+
+-- ===== 用户自定义指令（用户提示词）=====
+-- 每个用户每个 provider 一套 —— 换供应商就是另一套自己的指令。
+-- instruction 是用户写的那段自然语言指令；跑起来时套在系统提示词
+-- （rewriteInstruction 能力）后面。
+CREATE TABLE IF NOT EXISTS user_prompts (
+  id              TEXT    PRIMARY KEY,
+  user_id         INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  provider_id     TEXT    NOT NULL,
+  label           TEXT    NOT NULL,      -- 名字（工具栏上显示的）
+  icon            TEXT    NOT NULL DEFAULT '✨',
+  scope           TEXT    NOT NULL,      -- 'sentence' | 'paragraph' | 'full'
+  instruction     TEXT    NOT NULL,      -- 用户写的那段指令文本
+  show_in_toolbar INTEGER NOT NULL DEFAULT 1,
+  ordinal         INTEGER NOT NULL DEFAULT 0,
+  created_at      TEXT    NOT NULL,
+  updated_at      TEXT    NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_user_prompts_user ON user_prompts(user_id, provider_id);
 `
 
 /**

@@ -96,6 +96,11 @@ pnpm cli models
 - **悬浮框的结构**（`AiContextMenu.vue`）：选中**词 / 短语**时顶栏是**两个 tab** ——「其它候选单词」（默认落在这个 tab，直接给候选词）/「查词」；选中**整句**时是菜单项清单（改写语气 / 润色 / 精简 / 扩写）。**语法检查、自定义指令已从悬浮框移除**（工具栏「✨ AI」下拉里还有）。英译中（`allowAi=false`）不出现 tab，只剩「📖 查词」。
   ⚠️ 两个 `immediate: true` 的 watcher（选区的、autoAction 的）**都放 setup 末尾**，且**选区的那个在前** —— 它会 `resetState()`（顺手 `abort()` 在飞的请求），反过来会把 autoAction 刚发出去的请求掐掉。选区那个还会摸 `candidatesTimer`，写在它声明前面就是 TDZ。
   ⚠️ 候选词请求**防抖 250ms**：拖选时选区每挪一下就变一次，不防抖的话每变一次发一次请求。
+- **自定义指令（用户提示词）**：`composables/useCustomPrompts.ts` 是模块级单例（当前用户的指令 + 跟着**当前生效的 provider** 走）。
+  英文编辑器的工具栏（`toolbar__btn-prompt`，最多 5 个）和「✨ AI ▾ → 我的指令」都从它取。
+  ⚠️ **作用范围**决定改哪一段（`resolveCustomTarget()`）：当前句 → text=光标所在句、context=所在段落；当前段 → text=所在段、context=全文摘要；所有正文 → text=整篇正文。
+  跑指令走 `POST /api/custom-prompts/:id/run`（**指令文本从库里取**，客户端只送 text/context/sourceSentence）→ 结果卡片复用 `AiContextMenu.vue` 的 `customResult` prop（`✓接受/✕拒绝/继续调整`）。
+  ⚠️ 接受时按范围替换：句子/段落用 `insertContentAt` 局部替换，**「所有正文」要整篇 `setContent`**（按换行拆回段落，别把结构拍平）。
 - **API 调用**统一走 `src/services/http.ts`（`http.get/post/put/del`），它会把后端 `{error}` 字段捞成 `ApiError`。`services/translate.ts` 是例外（自带 `pLimit` 并发 3）。
 - **实时翻译**（`EditorPage.vue`，默认关，只中译英方向）：中文改了停手 800ms 自动翻，**以句子为单位** —— `liveCache`（源句→译文，语气算进 key）复用没改过的句子，只翻新增/改动的；写回时 `TiptapEditor.applyParagraphs()` **只替换变了的那几段**（从后往前改，避免前面段落的 doc 位置被带偏），整篇 `setContent` 会让译文框闪一下、滚动跳回顶部。段落数变了才整体重建。
 - **手动翻译是流式的**（`EditorPage.vue` 的 `doTranslate`）：走 `services/translate.ts` 的 `translateSentencesStream`，**每句一回调**。译侧先铺一层占位（每句一个 `…`），翻完一句就把那一段重写一次（`applyParagraphs`，只改一段）；源侧正在翻的句子用 Decoration 画 `.sentence-loading`（琥珀色脉冲 + 句尾转圈，伪元素不进编辑器内容），失败的画 `.sentence-failed`。
@@ -107,7 +112,9 @@ pnpm cli models
 - **源侧清空 → 译侧跟着清**：译文没意义了，`EditorPage.vue` 里清掉译侧和对齐表。
   ⚠️ **不能 `watch(sourceHtml)`**（它是随 mode 变的 computed）—— 切方向的瞬间新方向的源侧通常是空的，会把另一栏的用户内容误清掉。要**分别 watch `zhHtml` / `enHtml`**，再按当前 `sourceLang` 判断该不该联动。
 - 英译中模式下英文侧 `aiEnabled=false` —— 改写 / 润色 / 语法 / 指令全部关掉，只留「查词」。
-- **设置页的 tab**（`SettingsPage.vue`）：LLM 供应商 / 提示词 / 词库 / **账号** / **我的套餐** / **用户管理**（最后一个只有 `user.role === 'admin'` 才渲染）。`AccountPanel.vue` 管账号信息和改密码，`PlanPanel.vue` 管自己的套餐和申请，`AdminPanel.vue` 管用户 / 审核 / 邀请码池。
+- **设置页的 tab**（`SettingsPage.vue`）：LLM 供应商 / 提示词 / 词库 / **账号** / **我的套餐** / **用户管理**。
+  ⚠️ **tab 按权限显隐**：`canSeeTab()` —— 「LLM 供应商」「词库」「用户管理」只有 `user.role === 'admin'` 才渲染，其他 tab 谁都能看。
+  「提示词」tab 里面再分两块：**系统提示词**（`PromptPanel.vue`，非管理员 `readonly` —— 能看不能改）和**我的指令**（`UserPromptsPanel.vue`）。`AccountPanel.vue` 管账号信息和改密码，`PlanPanel.vue` 管自己的套餐和申请，`AdminPanel.vue` 管用户 / 审核 / 邀请码池。
   当前 tab 记在 URL 的 `?tab=` 上（`selectTab()` 同步 query，watch query 反向切 tab）—— 刷新不会跳回第一个 tab。
 
 ## 后端架构要点
@@ -140,6 +147,34 @@ pnpm cli models
 
 - **会话**：httpOnly cookie（`sid`，30 天）+ `sessions` 表。密码用 `node:crypto` 的 `scryptSync`（零依赖），库里存 `saltHex:hashHex`。
 - **改密码**（`POST /api/auth/change-password`）：必须填**当前密码**（错 → 400）；改完用 `deleteOtherSessions()` 把**其它设备上的会话作废**、当前浏览器的留着。挂 `requireLogin`（不查配额）—— 超配额也得能改密码。
+
+## 权限分档（新增）
+
+三档，**写全局配置的接口一律 `requireAdmin`**（不给本地工具放行）：
+
+| 档 | 能干什么 | 守卫 |
+|---|---|---|
+| 游客 | 查词、读配置（provider 列表、系统提示词只读） | 无 |
+| 登录用户 | 用 AI 能力（查配额）；改自己的自定义指令；查词 | `requireUser` / `requireLogin` |
+| 管理员 | 供应商增删改 / 切生效 / 语气表 / 系统提示词保存·回滚·复制 / 重新加载词库 | `requireAdmin` |
+
+- `routes/settings.ts` 的**写**接口和 `routes/dictionary.ts` 的 `reload` 都挂了 `admin` 守卫。
+  守卫是**可选注入**的（`userStore` 不传 = 不鉴权）—— 单元测试靠这个绕开登录（`tests/settingsRoutes.test.ts`）。
+- `routes/customPrompts.ts`（新增）：用户自定义指令的 CRUD + `run`。
+  指令存在 `user_prompts` 表（`user_id` + `provider_id`）—— 换 provider 就是另一套。
+  付费判定用 `plans.ts` 的 `isPaidPlan()`（免费版不能新建；管理员不限）。
+- ⚠️ **`currentUser()` 以前只带 `{id, username}`** —— 现在带 `role` / `planId` 了（`services/requestContext.ts` 的 `AuthUser`），
+  权限判断要用的就是这两个。
+
+## 用户自定义指令（新增）
+
+- **系统提示词**（管理员维护，全局）vs **用户指令**（用户自己写，每个 provider 一套）—— 两回事。
+- 用户指令只是一段**自然语言**（比如「改成学术腔」）；跑起来时被塞进**系统提示词的 `rewriteInstruction` 能力**里
+  → 所以 system 那一侧始终是管理员定的，用户碰不到。
+- `run` 接口的指令文本**从库里取**，客户端只送 `{text, context?, sourceSentence?, extraInstruction?}`。
+- `extraInstruction` = 结果卡片里「继续调整」补的那句，拼在用户指令后面。
+- `rewriteInstruction` 能力新增了两个模板变量 `sourceSentence` / `hasSource` —— **默认模板不用它们**，
+  渲染结果逐字节不变（`tests/promptParity.test.ts` 守着这条）。
 
 ## 邮箱注册与验证码（新增）
 

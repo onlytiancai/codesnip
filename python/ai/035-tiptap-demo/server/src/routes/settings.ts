@@ -38,6 +38,8 @@ import { ClientRegistry } from '../llm/registry.js'
 import type { TokenUsage } from '../llm/types.js'
 import { isSelectionKind } from '../prompts/rewriteSelection.js'
 import { isSentenceOperation } from '../prompts/rewriteSentence.js'
+import type { UserStore } from '../config/userStore.js'
+import { requireAdmin } from './auth.js'
 import { fail } from './httpError.js'
 
 const PROVIDER_KINDS: ProviderKind[] = ['ollama', 'openai', 'anthropic']
@@ -53,6 +55,12 @@ export interface CreateSettingsRouterOptions {
   registry: ClientRegistry
   /** 记录 token 用量（试运行和探活也会真的调模型） */
   recordUsage?: (usage: TokenUsage) => void
+  /**
+   * 传了才启用「只有管理员能改配置」的守卫。
+   *
+   * 不传 = 不鉴权（单元测试靠这个绕开登录）。
+   */
+  userStore?: UserStore
 }
 
 /** provider 对外暴露的形状 —— 附带 hasKey，明文 key 永远不返回（它在 server/.env 里）。 */
@@ -269,6 +277,17 @@ export function createSettingsRouter(options: CreateSettingsRouterOptions): Rout
   const recordUsage = options.recordUsage
   const router = Router()
 
+  /**
+   * 「改配置」的管理员守卫。
+   *
+   * 供应商的增删改、切换生效、语气表、系统提示词（保存 / 回滚 / 复制）
+   * 都是全局配置 —— 只有管理员能动。
+   * 没传 userStore（单元测试）时不鉴权。
+   */
+  const admin = options.userStore
+    ? requireAdmin(options.userStore)
+    : (_req: unknown, _res: unknown, next: () => void) => next()
+
   // ---- 总览 ----
 
   router.get('/api/config', (_req, res) => {
@@ -294,7 +313,7 @@ export function createSettingsRouter(options: CreateSettingsRouterOptions): Rout
     })
   })
 
-  router.put('/api/providers', (req, res) => {
+  router.put('/api/providers', admin, (req, res) => {
     const parsed = parseProvider(req.body)
     if ('error' in parsed) {
       return res.status(400).json({ error: parsed.error })
@@ -307,7 +326,7 @@ export function createSettingsRouter(options: CreateSettingsRouterOptions): Rout
     }
   })
 
-  router.delete('/api/providers/:id', (req, res) => {
+  router.delete('/api/providers/:id', admin, (req, res) => {
     try {
       store.deleteProvider(req.params.id)
       res.json({ ok: true })
@@ -316,7 +335,7 @@ export function createSettingsRouter(options: CreateSettingsRouterOptions): Rout
     }
   })
 
-  router.post('/api/providers/active', (req, res) => {
+  router.post('/api/providers/active', admin, (req, res) => {
     const id = (req.body as { id?: unknown })?.id
     if (typeof id !== 'string' || !id.trim()) {
       return res.status(400).json({ error: 'id is required' })
@@ -330,7 +349,7 @@ export function createSettingsRouter(options: CreateSettingsRouterOptions): Rout
   })
 
   /** 探活：用该 provider 发一次最小请求。 */
-  router.post('/api/providers/:id/test', async (req, res) => {
+  router.post('/api/providers/:id/test', admin, async (req, res) => {
     const provider = store.getProvider(req.params.id)
     if (!provider) {
       return res.status(404).json({ error: `provider "${req.params.id}" 不存在` })
@@ -423,7 +442,7 @@ export function createSettingsRouter(options: CreateSettingsRouterOptions): Rout
   })
 
   /** 保存 → 产生新版本。 */
-  router.put('/api/providers/:id/prompts/:capabilityId', (req, res) => {
+  router.put('/api/providers/:id/prompts/:capabilityId', admin, (req, res) => {
     const { id, capabilityId } = req.params
     if (!isCapabilityId(capabilityId)) {
       return res.status(400).json({ error: `未知的 capability "${capabilityId}"` })
@@ -489,7 +508,7 @@ export function createSettingsRouter(options: CreateSettingsRouterOptions): Rout
   )
 
   /** 回滚：把旧版本复制成一个新版本（历史只增不减）。 */
-  router.post('/api/providers/:id/prompts/:capabilityId/rollback', (req, res) => {
+  router.post('/api/providers/:id/prompts/:capabilityId/rollback', admin, (req, res) => {
     const { id, capabilityId } = req.params
     if (!isCapabilityId(capabilityId)) {
       return res.status(400).json({ error: `未知的 capability "${capabilityId}"` })
@@ -517,6 +536,7 @@ export function createSettingsRouter(options: CreateSettingsRouterOptions): Rout
    */
   router.post(
     '/api/providers/:id/prompts/:capabilityId/dry-run',
+    admin,
     async (req, res) => {
       const { id, capabilityId } = req.params
       if (!isCapabilityId(capabilityId)) {
@@ -598,7 +618,7 @@ export function createSettingsRouter(options: CreateSettingsRouterOptions): Rout
    *
    * 必须注册在 `/prompts/:capabilityId` 前面 —— 否则 "copy" 会被当成 capabilityId。
    */
-  router.post('/api/providers/:id/prompts/copy', (req, res) => {
+  router.post('/api/providers/:id/prompts/copy', admin, (req, res) => {
     const toProviderId = req.params.id
     const body = (req.body ?? {}) as Record<string, unknown>
     const fromProviderId = typeof body.fromProviderId === 'string' ? body.fromProviderId : ''
@@ -630,7 +650,7 @@ export function createSettingsRouter(options: CreateSettingsRouterOptions): Rout
     }
   })
 
-  router.put('/api/providers/:id/tones', (req, res) => {
+  router.put('/api/providers/:id/tones', admin, (req, res) => {
     const body = (req.body ?? {}) as Record<string, unknown>
     const raw = Array.isArray(body.tones) ? body.tones : []
     const tones: ToneConfig[] = []

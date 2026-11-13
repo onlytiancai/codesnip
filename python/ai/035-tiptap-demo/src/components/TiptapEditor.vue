@@ -5,6 +5,8 @@ import type { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import {
   collectSentences,
+  docText,
+  findParagraphAt,
   getSentenceIndex,
   splitEnglishSentences,
   topBlockContentRanges,
@@ -21,6 +23,13 @@ import {
   type WordPickMode,
 } from '../composables/useSelectionKind'
 import { useCopyContent } from '../composables/useCopyContent'
+import { loadCustomPrompts, useCustomPrompts } from '../composables/useCustomPrompts'
+import {
+  runCustomPrompt as runCustomPromptApi,
+  type UserPrompt,
+} from '../services/customPrompts'
+import { SCOPE_LABEL, type PromptScope } from '../constants/customPrompts'
+import { ApiError } from '../services/http'
 import { matchCase } from '../utils/matchCase'
 import { escapeHtml } from '../utils/html'
 import AiContextMenu from './AiContextMenu.vue'
@@ -275,6 +284,20 @@ function applyReplacement(text: string) {
   const editorInst = editor.value
   const sel = selection.value
   if (!editorInst || !sel) return
+
+  // 自定义指令的「所有正文」→ 整篇替换（按换行拆回段落，别把结构拍平）
+  if (customTarget.value?.full) {
+    const paras = text
+      .split(/\n+/)
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .map((p) => `<p>${escapeHtml(p)}</p>`)
+      .join('')
+    editorInst.commands.setContent(paras || '<p></p>')
+    customTarget.value = null
+    return
+  }
+
   const replacement =
     sel.kind === 'word' || sel.kind === 'phrase'
       ? matchCase(sel.text, text)
@@ -291,6 +314,12 @@ function closeMenu() {
   menuPos.value = null
   menuAction.value = null
   autoWordKey = ''
+  // 自定义指令那套状态也一起收掉
+  customResult.value = null
+  customError.value = ''
+  customBusy.value = false
+  customTarget.value = null
+  currentCustomPrompt.value = null
 }
 
 // 点击编辑器别处 → 关菜单
@@ -483,6 +512,168 @@ function updateHover(x: number, y: number) {
   }
 }
 
+// ===== 用户自定义指令 =====
+
+/** 当前用户的指令（跟着当前生效的 provider 走） */
+const { prompts: customPrompts, toolbarPrompts } = useCustomPrompts()
+
+/** 正在跑的那条指令（「继续调整」时要知道是哪一条） */
+const currentCustomPrompt = ref<UserPrompt | null>(null)
+
+/** 这一轮指令要处理的文本范围。 */
+interface CustomTarget {
+  from: number
+  to: number
+  /** 要发给模型的正文 */
+  text: string
+  /** 自动填的上下文（比 text 更大一层） */
+  context?: string
+  /** 对应的中文原文（有的话带上，消歧用） */
+  sourceSentence?: string
+  /** 是不是「所有正文」—— 接受时要整篇替换 */
+  full: boolean
+}
+
+const customTarget = ref<CustomTarget | null>(null)
+const customResult = ref<{ original: string; rewritten: string } | null>(null)
+const customBusy = ref(false)
+const customError = ref('')
+
+/** 截断上下文 —— 全文摘要别把 prompt 撑爆。 */
+function truncate(text: string, max: number): string {
+  const t = text.trim()
+  return t.length > max ? `${t.slice(0, max)}…` : t
+}
+
+/**
+ * 按作用范围算出「要改哪一段 + 带上什么上下文」。
+ *
+ *  - 当前句：text = 光标所在句，context = 它所在的段落
+ *  - 当前段：text = 光标所在段，context = 全文摘要
+ *  - 所有正文：text = 整篇正文，没有 context
+ */
+function resolveCustomTarget(scope: PromptScope): CustomTarget | null {
+  const ed = editor.value
+  if (!ed) return null
+  const state = ed.state
+
+  if (scope === 'full') {
+    const text = docText(state.doc)
+    if (!text.trim()) return null
+    return { from: 0, to: state.doc.content.size, text, full: true }
+  }
+
+  if (scope === 'paragraph') {
+    const para = findParagraphAt(state)
+    if (!para || !para.text.trim()) return null
+    return {
+      from: para.from,
+      to: para.to,
+      text: para.text,
+      context: truncate(docText(state.doc), 800),
+      full: false,
+    }
+  }
+
+  // 当前句
+  const info = getSentenceAtCursor(ed)
+  if (!info || !info.text.trim()) return null
+  const para = findParagraphAt(state)
+  const spans = collectSentences(state.doc, splitEnglishSentences)
+  const span = spans.find((s) => info.from >= s.from && info.to <= s.to)
+  return {
+    from: info.from,
+    to: info.to,
+    text: info.text,
+    context: para?.text,
+    sourceSentence: span ? (props.chineseSentences[span.index] ?? '') : '',
+    full: false,
+  }
+}
+
+/** 把菜单摆到光标处，并让它知道自己处理的是哪一段。 */
+function openCustomMenu(target: CustomTarget | null) {
+  const ed = editor.value
+  if (!ed) return
+  const from = target?.from ?? ed.state.selection.from
+  const to = target?.to ?? ed.state.selection.to
+  selection.value = {
+    kind: 'sentence',
+    from,
+    to,
+    text: target?.text ?? '',
+    sentence: target?.text ?? '',
+    sentenceFrom: from,
+    sentenceTo: to,
+    paragraph: target?.context ?? '',
+    isWholeSentence: false,
+  }
+  const c = ed.view.coordsAtPos(ed.state.selection.head)
+  anchorBox.value = { top: c.top, bottom: c.bottom, left: c.left, right: c.left }
+  menuPos.value = placeMenu(anchorBox.value, MENU_H_ESTIMATE)
+  void syncMenuPosition()
+}
+
+/**
+ * 跑一条用户指令。
+ *
+ * extra = 「继续调整」补的那句话；overrideText = 重新跑时的输入（默认还是原文）。
+ */
+async function runCustomPrompt(
+  prompt: UserPrompt,
+  extra = '',
+  overrideText?: string,
+) {
+  const ed = editor.value
+  if (!ed) return
+
+  // 「继续调整」要沿用上一轮的范围；新跑一条则按它的作用范围重新取
+  const base =
+    overrideText !== undefined ? customTarget.value : resolveCustomTarget(prompt.scope)
+  if (!base) {
+    // 没有可处理的文本 —— 还是把菜单打开，让用户看得到这句话
+    customError.value = '这里没有可处理的内容 —— 先把光标放到正文里。'
+    customBusy.value = false
+    openCustomMenu(null)
+    return
+  }
+  const target: CustomTarget = { ...base, text: overrideText ?? base.text }
+
+  currentCustomPrompt.value = prompt
+  customTarget.value = target
+  customResult.value = null
+  customError.value = ''
+  customBusy.value = true
+  openCustomMenu(target)
+
+  try {
+    const res = await runCustomPromptApi(prompt.id, {
+      text: target.text,
+      context: target.context,
+      sourceSentence: target.sourceSentence,
+      ...(extra ? { extraInstruction: extra } : {}),
+    })
+    customResult.value = { original: target.text, rewritten: res.text }
+  } catch (err) {
+    customError.value =
+      err instanceof ApiError
+        ? `[${err.status}] ${err.message}`
+        : err instanceof Error
+          ? err.message
+          : '指令执行失败'
+  } finally {
+    customBusy.value = false
+  }
+}
+
+/** 结果卡片里的「继续调整」—— 拿当前草稿再跑一遍同一条指令。 */
+function refineCustomPrompt(extra: string) {
+  const prompt = currentCustomPrompt.value
+  if (!prompt) return
+  const draft = customResult.value?.rewritten
+  void runCustomPrompt(prompt, extra, draft)
+}
+
 // ===== editor 实例（默认空文档） =====
 
 /**
@@ -513,15 +704,22 @@ const AI_TITLES: Record<AiAction, string> = {
 }
 
 // ===== AI 下拉 =====
-/** 下拉菜单宽度 / 高度（项数固定，高度可预估） */
+/** 下拉菜单宽度 / 高度（高度按项数估 —— 「我的指令」是动态的） */
 const AI_DROPDOWN_W = 176
-const AI_DROPDOWN_H = 240
+const AI_DROPDOWN_ITEM_H = 34
 
 const aiMenuOpen = ref(false)
 /** 下拉在 viewport 里的位置（Teleport 到 body，用 fixed 定位） */
 const aiMenuPos = ref<{ top: number; left: number } | null>(null)
 const aiBtnRef = ref<HTMLElement | null>(null)
 const aiMenuRef = ref<HTMLElement | null>(null)
+
+/** 下拉的实际高度（含「我的指令」那几行）。 */
+function aiDropdownHeight(): number {
+  const base = AI_BUTTONS.length * AI_DROPDOWN_ITEM_H + 16
+  const extra = customPrompts.value.length ? customPrompts.value.length * AI_DROPDOWN_ITEM_H + 28 : 0
+  return base + extra
+}
 
 function toggleAiMenu() {
   if (aiMenuOpen.value) {
@@ -537,9 +735,10 @@ function toggleAiMenu() {
     Math.min(rect.right - AI_DROPDOWN_W, window.innerWidth - AI_DROPDOWN_W - 8),
   )
   const below = rect.bottom + 6
+  const height = aiDropdownHeight()
   const top =
-    below + AI_DROPDOWN_H > window.innerHeight
-      ? Math.max(8, rect.top - AI_DROPDOWN_H - 6)
+    below + height > window.innerHeight
+      ? Math.max(8, rect.top - height - 6)
       : below
   aiMenuPos.value = { top, left }
   aiMenuOpen.value = true
@@ -570,6 +769,9 @@ onMounted(() => {
   window.addEventListener('keydown', onKeydown)
   // 页面滚动 → 气泡是 viewport 坐标，会跑位
   window.addEventListener('scroll', clearHover)
+  // 拉一次当前用户的自定义指令（跟着当前生效的 provider）
+  // 强制刷新 —— 管理员在设置页换过 provider 之后回来，看到的得是新那套
+  void loadCustomPrompts(true)
 })
 onBeforeUnmount(() => {
   document.removeEventListener('mousedown', onDocMouseDown)
@@ -686,6 +888,22 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
           @click="editor.chain().focus().redo().run()" title="重做 (Ctrl+Shift+Z)">↷</button>
       </div>
 
+      <!-- 用户自定义指令：钉在工具栏上的那些 -->
+      <div v-if="toolbarPrompts.length" class="toolbar__group toolbar__group--prompts">
+        <button
+          v-for="p in toolbarPrompts"
+          :key="p.id"
+          type="button"
+          class="toolbar__btn-prompt"
+          :disabled="!editable"
+          :title="`${p.label}（${SCOPE_LABEL[p.scope]}）`"
+          @click="runCustomPrompt(p)"
+        >
+          <span class="toolbar__btn-prompt-icon">{{ p.icon }}</span>
+          <span class="toolbar__btn-prompt-label">{{ p.label }}</span>
+        </button>
+      </div>
+
       <!-- 源侧：清空；译侧：复制 -->
       <div class="toolbar__group" :class="{ 'toolbar__group--end': !aiEnabled }">
         <button
@@ -712,7 +930,7 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
       </div>
 
       <!-- 整句操作：收在一个下拉里，作用于光标所在句，不需要选中 -->
-      <div v-if="aiEnabled" class="toolbar__group toolbar__group--ai">
+      <div v-if="aiEnabled || customPrompts.length" class="toolbar__group toolbar__group--ai">
         <button
           ref="aiBtnRef"
           type="button"
@@ -740,19 +958,42 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
         role="menu"
         :style="{ top: `${aiMenuPos.top}px`, left: `${aiMenuPos.left}px` }"
       >
-        <button
-          v-for="a in AI_BUTTONS"
-          :key="a.action"
-          type="button"
-          role="menuitem"
-          class="ai-dropdown__item"
-          :disabled="!cursorSentence"
-          :title="`对光标所在句：${AI_TITLES[a.action]}`"
-          @click="runAiAction(a.action)"
-        >
-          <span class="ai-dropdown__icon">{{ a.icon }}</span>
-          <span>{{ AI_TITLES[a.action] }}</span>
-        </button>
+        <template v-if="aiEnabled">
+          <button
+            v-for="a in AI_BUTTONS"
+            :key="a.action"
+            type="button"
+            role="menuitem"
+            class="ai-dropdown__item"
+            :disabled="!cursorSentence"
+            :title="`对光标所在句：${AI_TITLES[a.action]}`"
+            @click="runAiAction(a.action)"
+          >
+            <span class="ai-dropdown__icon">{{ a.icon }}</span>
+            <span>{{ AI_TITLES[a.action] }}</span>
+          </button>
+        </template>
+
+        <!-- 我的指令：用户自己写的那些 -->
+        <template v-if="customPrompts.length">
+          <div class="ai-dropdown__sep" :class="{ 'ai-dropdown__sep--first': !aiEnabled }">
+            我的指令
+          </div>
+          <button
+            v-for="p in customPrompts"
+            :key="p.id"
+            type="button"
+            role="menuitem"
+            class="ai-dropdown__item ai-dropdown__item--prompt"
+            :disabled="!editable"
+            :title="`${p.instruction}（作用于${SCOPE_LABEL[p.scope]}）`"
+            @click="runCustomPrompt(p)"
+          >
+            <span class="ai-dropdown__icon">{{ p.icon }}</span>
+            <span>{{ p.label }}</span>
+            <span class="ai-dropdown__scope">{{ SCOPE_LABEL[p.scope] }}</span>
+          </button>
+        </template>
       </div>
     </Teleport>
 
@@ -769,7 +1010,11 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
           :chinese-sentence="chineseSentence"
           :auto-action="menuAction"
           :allow-ai="aiEnabled"
+          :custom-result="customResult"
+          :custom-busy="customBusy"
+          :custom-error="customError"
           @replace="applyReplacement"
+          @refine="refineCustomPrompt"
           @close="closeMenu"
         />
       </div>

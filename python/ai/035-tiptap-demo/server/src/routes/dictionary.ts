@@ -13,9 +13,19 @@
 
 import { Router } from 'express'
 import type { DictionaryService } from '../services/dictionary.js'
+import type { UserStore } from '../config/userStore.js'
+import { requireAdmin } from './auth.js'
 
 export interface CreateDictionaryRouterOptions {
   dictionaryService: DictionaryService
+  /**
+   * 传了才启用「只有管理员能重新加载词库」的守卫。
+   *
+   * 查词（lookup）和状态（status）谁都能用 —— 它们不花钱也不改配置。
+   * 「重新加载」会重读 .env、重建索引 —— 只有管理员能做。
+   * 不传 = 不鉴权（单元测试靠这个绕开登录）。
+   */
+  userStore?: UserStore
 }
 
 export function createDictionaryRouter(
@@ -23,12 +33,15 @@ export function createDictionaryRouter(
 ): Router {
   const router = Router()
   const service = options.dictionaryService
+  const admin = options.userStore
+    ? requireAdmin(options.userStore)
+    : (_req: unknown, _res: unknown, next: () => void) => next()
 
   router.get('/api/dictionary/status', (_req, res) => {
     res.json(service.status())
   })
 
-  router.post('/api/dictionary/reload', async (_req, res) => {
+  router.post('/api/dictionary/reload', admin, async (_req, res) => {
     try {
       res.json(await service.reload())
     } catch (err) {

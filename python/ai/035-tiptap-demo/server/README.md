@@ -315,7 +315,7 @@ CLI 走的是和 server 一样的配置（同一个 `app.db` 里的当前生效 
 | 方法 | 路径 | 说明 |
 |---|---|---|
 | GET | `/api/dictionary/status` | `{path, count, loaded, error?}` —— 当前词库路径 + 索引状态 |
-| POST | `/api/dictionary/reload` | 重读 `.env` + 重建索引，返回新的 status |
+| POST | `/api/dictionary/reload` | 重读 `.env` + 重建索引，返回新的 status —— **仅管理员** |
 | GET | `/api/dictionary/lookup?word=xxx` | `{found, word, entry?, suggestions?}` —— 词条：音标 / 释义 / 例句 / 短语 / 同反义词 / 记忆法；查不到时 `suggestions` 给几个相近词 |
 
 **「查不到」是 200 + `found: false`**，不是 404 —— 查不到是正常结果。
@@ -325,24 +325,57 @@ CLI 走的是和 server 一样的配置（同一个 `app.db` 里的当前生效 
 
 ### 设置
 
+**读随便读，写只有管理员能写** —— 下表标了 🔒 的接口挂了 `requireAdmin`
+（非管理员 403，本地工具 curl / CLI 也不给放行）。
+
 | 方法 | 路径 | 说明 |
 |---|---|---|
 | GET | `/api/config` | 一次性拿到生效 provider、provider 列表、语气表、能力列表 |
 | GET | `/api/providers` | provider 列表（带 `hasKey`，没有明文 key） |
-| PUT | `/api/providers` | 新增 / 更新。**不收 `apiKey`**（key 在 `.env` 里）—— 带了会 400 |
-| DELETE | `/api/providers/:id` | 删除（连带清掉它的提示词和历史）；当前生效的不给删 |
-| POST | `/api/providers/active` | 切换生效 provider —— **即时生效，不用重启** |
-| POST | `/api/providers/:id/test` | 探活：发一次最小请求 |
+| 🔒 PUT | `/api/providers` | 新增 / 更新。**不收 `apiKey`**（key 在 `.env` 里）—— 带了会 400 |
+| 🔒 DELETE | `/api/providers/:id` | 删除（连带清掉它的提示词和历史）；当前生效的不给删 |
+| 🔒 POST | `/api/providers/active` | 切换生效 provider —— **即时生效，不用重启** |
+| 🔒 POST | `/api/providers/:id/test` | 探活：发一次最小请求 |
 | GET | `/api/providers/:id/models` | 拉模型列表 |
 | GET | `/api/providers/:id/prompts` | 该 provider 的整套提示词 + 语气表 + 变量表 + 示例输入 |
 | GET | `/api/providers/:id/prompts/:capabilityId` | 单个模板 + 版本列表 |
-| PUT | `/api/providers/:id/prompts/:capabilityId` | 保存 → 产生新版本 |
+| 🔒 PUT | `/api/providers/:id/prompts/:capabilityId` | 保存 → 产生新版本 |
 | GET | `/api/providers/:id/prompts/:capabilityId/versions` | 版本列表 |
 | GET | `/api/providers/:id/prompts/:capabilityId/versions/:v` | 某个版本的完整快照 |
-| POST | `/api/providers/:id/prompts/:capabilityId/rollback` | 回滚（复制成新版本） |
-| POST | `/api/providers/:id/prompts/:capabilityId/dry-run` | 试运行：渲染 + 真跑一次，返回 system / user / 原始输出 / 解析结果 |
-| POST | `/api/providers/:id/prompts/copy` | 从别的 provider 复制提示词（整套或单个能力） |
-| GET / PUT | `/api/providers/:id/tones` | 该 provider 的语气表 |
+| 🔒 POST | `/api/providers/:id/prompts/:capabilityId/rollback` | 回滚（复制成新版本） |
+| 🔒 POST | `/api/providers/:id/prompts/:capabilityId/dry-run` | 试运行：渲染 + 真跑一次，返回 system / user / 原始输出 / 解析结果 |
+| 🔒 POST | `/api/providers/:id/prompts/copy` | 从别的 provider 复制提示词（整套或单个能力） |
+| GET / 🔒 PUT | `/api/providers/:id/tones` | 该 provider 的语气表 |
+
+### 用户自定义指令（用户提示词）
+
+和「系统提示词」是两回事：
+
+| | 系统提示词 | 用户自定义指令 |
+|---|---|---|
+| 谁维护 | 管理员 | 用户自己（**付费套餐**才行，管理员不限） |
+| 范围 | 全局，每个 provider 一套 | 每个用户每个 provider 一套 |
+| 长什么样 | system + user 两个模板 | **一段自然语言指令**（比如「改成学术腔」） |
+| 作用范围 | 固定（翻译 / 选区 / 整句 / 语法 / 指令） | 用户选：**当前句 / 当前段 / 所有正文** |
+
+用户指令跑起来时，被塞进**系统提示词的 `rewriteInstruction` 能力**里 ——
+所以 system 那一侧始终是管理员定的，用户只能写指令本身。
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/custom-prompts` | 当前生效 provider 下的（自己的）指令 + `activeProviderId` |
+| POST | `/api/custom-prompts` | 在当前生效 provider 下新建（免费版 403） |
+| GET | `/api/providers/:id/custom-prompts` | 某个 provider 下的（自己的）指令 |
+| POST | `/api/providers/:id/custom-prompts` | 在指定 provider 下新建（免费版 403） |
+| PUT | `/api/custom-prompts/:id` | 改（只有本人） |
+| DELETE | `/api/custom-prompts/:id` | 删（只有本人） |
+| POST | `/api/custom-prompts/:id/run` | 跑一条：body `{text, context?, sourceSentence?, extraInstruction?}` → `{text}` |
+
+`run` 的指令文本**从库里取**，不信客户端传什么；
+客户端只负责按作用范围把 `text`（和自动填的 `context`）送过来。
+`extraInstruction` 是「继续调整」补的那句话，拼在用户指令后面。
+
+指令存在 `user_prompts` 表（`user_id` + `provider_id` 唯一组合）。
 
 ## 登录与 token 统计
 
@@ -361,6 +394,19 @@ CLI 走的是和 server 一样的配置（同一个 `app.db` 里的当前生效 
 ```
 
 不花 token 的（`/api/config`、provider 的增删改、查词、`/api/auth/*`）不需要登录。
+
+### 三档权限
+
+| 档 | 能干什么 | 挂了哪个守卫 |
+|---|---|---|
+| 游客 | 查词、读配置（`/api/config`、`/api/providers`、提示词只读） | 无 |
+| 登录用户 | 用 AI 能力（受配额限制）；改自己的指令；查词 | `requireUser` / `requireLogin` |
+| 管理员 | 改**全局**配置：供应商的增删改、切换生效供应商、语气表、系统提示词（保存 / 回滚 / 复制）、重新加载词库 | `requireAdmin` |
+
+**改全局配置的接口不给本地工具（curl / CLI）放行** —— 管理操作必须有真人身份。
+
+付费功能（用户自定义指令）额外要求套餐不是 `free`（`isPaidPlan`）——
+管理员不受这个限制。
 
 ### 本地工具免登录
 

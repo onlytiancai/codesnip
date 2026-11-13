@@ -69,6 +69,37 @@ export interface PlanRequest {
   reviewNote: string | null
 }
 
+/**
+ * 用户自定义指令（用户提示词）。
+ *
+ * 每个用户每个 provider 一套 —— 换供应商就是另一套自己的指令。
+ *
+ * `instruction` 是用户写的那段自然语言指令；真正跑起来时，
+ * 它被塞进系统提示词（rewriteInstruction 能力）里。
+ */
+export interface UserPrompt {
+  id: string
+  userId: number
+  providerId: string
+  /** 名字（工具栏上显示的） */
+  label: string
+  /** 图标（emoji） */
+  icon: string
+  /** 作用范围：句子 / 段落 / 全文 */
+  scope: UserPromptScope
+  /** 用户写的那段指令文本 */
+  instruction: string
+  /** 要不要在英文编辑器的工具栏上显示 */
+  showInToolbar: boolean
+  /** 排序 */
+  ordinal: number
+  createdAt: string
+  updatedAt: string
+}
+
+/** 指令的作用范围。 */
+export type UserPromptScope = 'sentence' | 'paragraph' | 'full'
+
 export interface Session {
   token: string
   expiresAt: number
@@ -782,11 +813,137 @@ export class UserStore {
     if (approve) this.setUserPlan(req.userId, req.toPlan)
     return this.getPlanRequest(id) ?? null
   }
+
+  // -------------------------------------------------------------------------
+  // 用户自定义指令（用户提示词）
+  // -------------------------------------------------------------------------
+
+  /** 列出某个用户在某个 provider 下的自定义指令（按排序）。 */
+  listUserPrompts(userId: number, providerId: string): UserPrompt[] {
+    const rows = this.db
+      .prepare(
+        `SELECT * FROM user_prompts
+          WHERE user_id = ? AND provider_id = ?
+          ORDER BY ordinal ASC, created_at ASC`,
+      )
+      .all(userId, providerId) as Array<Record<string, unknown>>
+    return rows.map(toUserPrompt)
+  }
+
+  /** 按 id 取一条（不管是谁的 —— 归属由路由层判断）。 */
+  getUserPrompt(id: string): UserPrompt | undefined {
+    const row = this.db
+      .prepare('SELECT * FROM user_prompts WHERE id = ?')
+      .get(id) as Record<string, unknown> | undefined
+    return row ? toUserPrompt(row) : undefined
+  }
+
+  /** 新建一条指令。ordinal 追加到末尾。 */
+  createUserPrompt(input: {
+    userId: number
+    providerId: string
+    label: string
+    icon: string
+    scope: UserPromptScope
+    instruction: string
+    showInToolbar: boolean
+  }): UserPrompt {
+    const id = randomBytes(9).toString('base64url')
+    const now = new Date().toISOString()
+    const next = this.db
+      .prepare(
+        `SELECT COALESCE(MAX(ordinal), -1) + 1 AS n
+           FROM user_prompts WHERE user_id = ? AND provider_id = ?`,
+      )
+      .get(input.userId, input.providerId) as { n: number }
+    this.db
+      .prepare(
+        `INSERT INTO user_prompts
+           (id, user_id, provider_id, label, icon, scope, instruction,
+            show_in_toolbar, ordinal, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        id,
+        input.userId,
+        input.providerId,
+        input.label,
+        input.icon,
+        input.scope,
+        input.instruction,
+        input.showInToolbar ? 1 : 0,
+        Number(next.n),
+        now,
+        now,
+      )
+    return this.getUserPrompt(id)!
+  }
+
+  /** 改一条指令。返回 undefined = 没有这条。 */
+  updateUserPrompt(
+    id: string,
+    patch: {
+      label: string
+      icon: string
+      scope: UserPromptScope
+      instruction: string
+      showInToolbar: boolean
+      ordinal?: number
+    },
+  ): UserPrompt | undefined {
+    const existing = this.getUserPrompt(id)
+    if (!existing) return undefined
+    const ordinal =
+      typeof patch.ordinal === 'number' ? patch.ordinal : existing.ordinal
+    this.db
+      .prepare(
+        `UPDATE user_prompts
+            SET label = ?, icon = ?, scope = ?, instruction = ?,
+                show_in_toolbar = ?, ordinal = ?, updated_at = ?
+          WHERE id = ?`,
+      )
+      .run(
+        patch.label,
+        patch.icon,
+        patch.scope,
+        patch.instruction,
+        patch.showInToolbar ? 1 : 0,
+        ordinal,
+        new Date().toISOString(),
+        id,
+      )
+    return this.getUserPrompt(id)
+  }
+
+  /** 删一条指令。返回有没有删掉。 */
+  deleteUserPrompt(id: string): boolean {
+    const res = this.db.prepare('DELETE FROM user_prompts WHERE id = ?').run(id)
+    return Number(res.changes) > 0
+  }
 }
 
 /** 用户表的公共列（改列的时候只改这一处）。 */
 const USER_COLUMNS =
   'SELECT id, username, created_at, role, plan_id, disabled_at, email FROM users'
+
+/** user_prompts 的一行 → UserPrompt。 */
+function toUserPrompt(row: Record<string, unknown>): UserPrompt {
+  const scope = String(row.scope)
+  return {
+    id: String(row.id),
+    userId: Number(row.user_id),
+    providerId: String(row.provider_id),
+    label: String(row.label),
+    icon: String(row.icon ?? '✨'),
+    scope:
+      scope === 'paragraph' || scope === 'full' ? scope : ('sentence' as const),
+    instruction: String(row.instruction),
+    showInToolbar: Number(row.show_in_toolbar) !== 0,
+    ordinal: Number(row.ordinal ?? 0),
+    createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at),
+  }
+}
 
 function toUser(row: Record<string, unknown>): User {
   return {

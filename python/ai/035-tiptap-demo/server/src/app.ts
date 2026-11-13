@@ -10,6 +10,7 @@ import { createDictionaryRouter } from './routes/dictionary.js'
 import { createPlansRouter } from './routes/plans.js'
 import { createRewriteRouter } from './routes/rewrite.js'
 import { createSettingsRouter } from './routes/settings.js'
+import { createCustomPromptsRouter } from './routes/customPrompts.js'
 import { createTranslateRouter } from './routes/translate.js'
 import type { ConfigStore } from './config/store.js'
 import type { UserStore } from './config/userStore.js'
@@ -64,11 +65,28 @@ export function createApp(options: CreateAppOptions): Express {
         store: options.configStore,
         registry: options.registry,
         recordUsage: options.recordUsage,
+        // 传了 userStore → 「改配置」这类接口只有管理员能动
+        userStore: options.userStore,
       }),
     )
   }
   if (options.dictionaryService) {
-    app.use(createDictionaryRouter({ dictionaryService: options.dictionaryService }))
+    app.use(
+      createDictionaryRouter({
+        dictionaryService: options.dictionaryService,
+        userStore: options.userStore,
+      }),
+    )
+  }
+  // 用户自定义指令（用户提示词）—— 需要登录 + 身份
+  if (options.userStore) {
+    app.use(
+      createCustomPromptsRouter({
+        userStore: options.userStore,
+        aiService: options.aiService,
+        store: options.configStore,
+      }),
+    )
   }
 
   // 前端拿这个开关决定要不要打 console.log（和 server/.env 的 DEBUG 同一个）

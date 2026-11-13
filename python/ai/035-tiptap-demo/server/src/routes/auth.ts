@@ -142,7 +142,10 @@ export function requireUser(userStore: UserStore): RequestHandler {
         return
       }
       debugLog('[auth]', `${req.method} ${req.path}`, '→', user.username)
-      runAsUser({ id: user.id, username: user.username }, next)
+      runAsUser(
+      { id: user.id, username: user.username, role: user.role, planId: user.planId },
+      next,
+    )
       return
     }
 
@@ -173,7 +176,10 @@ export function requireLogin(userStore: UserStore): RequestHandler {
     if (user.disabledAt) {
       return res.status(403).json({ error: '账号已被禁用，请联系管理员' })
     }
-    runAsUser({ id: user.id, username: user.username }, next)
+    runAsUser(
+      { id: user.id, username: user.username, role: user.role, planId: user.planId },
+      next,
+    )
   }
 }
 
@@ -196,7 +202,10 @@ export function requireAdmin(userStore: UserStore): RequestHandler {
       debugLog('[auth]', `${req.method} ${req.path}`, '→ 不是管理员')
       return res.status(403).json({ error: '需要管理员权限' })
     }
-    runAsUser({ id: user.id, username: user.username }, next)
+    runAsUser(
+      { id: user.id, username: user.username, role: user.role, planId: user.planId },
+      next,
+    )
   }
 }
 

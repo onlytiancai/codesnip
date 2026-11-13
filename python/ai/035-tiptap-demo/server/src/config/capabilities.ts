@@ -73,6 +73,8 @@ export interface InstructionInput {
   text: string
   instruction: string
   context?: string
+  /** 选区/句子对应的中文原文（自定义指令跑用户的指令时用得上） */
+  sourceSentence?: string
 }
 
 export type CapabilityInput =
@@ -108,7 +110,13 @@ export const CAPABILITY_VARIABLES: Record<CapabilityId, string[]> = {
     'hasSource',
   ],
   grammarCheck: ['sentence'],
-  rewriteInstruction: ['text', 'instruction', 'context'],
+  rewriteInstruction: [
+    'text',
+    'instruction',
+    'context',
+    'sourceSentence',
+    'hasSource',
+  ],
 }
 
 /** 试运行时的示例输入。 */
@@ -203,11 +211,15 @@ export function buildContext(
     }
     case 'rewriteInstruction': {
       const i = input as InstructionInput
+      const sourceSentence = trimOrUndefined(i.sourceSentence)
       return {
         text: i.text,
         // 旧 builder：Instruction: ${instruction.trim()}
         instruction: i.instruction.trim(),
         context: trimOrUndefined(i.context),
+        // 新加的变量：默认模板不用 → 渲染结果逐字节不变（promptParity 测的就是这个）
+        sourceSentence,
+        hasSource: sourceSentence !== undefined,
       }
     }
   }

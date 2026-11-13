@@ -40,8 +40,19 @@ const props = withDefaults(
     autoAction?: AiAction | null
     /** 改写/语法/指令那几项要不要显示（英译中模式关掉） */
     allowAi?: boolean
+    /**
+     * 自定义指令跑出来的结果。
+     *
+     * 父组件（编辑器）负责跑指令（指令文本在服务器库里），
+     * 跑完把结果塞进来 —— 菜单只负责显示结果卡片。
+     */
+    customResult?: { original: string; rewritten: string } | null
+    /** 自定义指令还在跑 */
+    customBusy?: boolean
+    /** 自定义指令跑失败了 */
+    customError?: string
   }>(),
-  { allowAi: true },
+  { allowAi: true, customResult: null, customBusy: false, customError: '' },
 )
 
 const emit = defineEmits<{
@@ -49,6 +60,12 @@ const emit = defineEmits<{
   replace: [text: string]
   /** 用户关掉菜单 */
   close: []
+  /**
+   * 自定义指令的「继续调整」。
+   *
+   * 指令文本在服务器库里，父组件知道是哪一条 —— 由它去跑。
+   */
+  refine: [extra: string]
 }>()
 
 /** 顶栏的两个 tab（词 / 短语选中时才有） */
@@ -68,7 +85,7 @@ type Panel =
       /** 词库里和它相近的词，点一下直接看那个词的解释 */
       suggestions: string[]
     }
-  | { mode: 'result'; original: string; rewritten: string }
+  | { mode: 'result'; original: string; rewritten: string; custom?: boolean }
 
 const panel = ref<Panel | null>(null)
 /** 当前停在哪个 tab */
@@ -258,6 +275,13 @@ async function submitInstruction() {
 async function refineInstruction() {
   const extra = instruction.value.trim()
   if (!extra || !draft.value) return
+
+  // 自定义指令：指令文本在服务器库里，父组件知道是哪一条 —— 让它去跑
+  if (panel.value?.mode === 'result' && panel.value.custom) {
+    emit('refine', extra)
+    return
+  }
+
   const s = sel.value
 
   const out = await run((signal) =>
@@ -401,6 +425,25 @@ watch(
   },
   { immediate: true },
 )
+
+// 自定义指令的结果：父组件跑完塞进来 → 直接落到结果卡片。
+//
+// ⚠️ 必须排在选区那个 watcher 后面 —— 选区 watcher 会 resetState()，
+// 把面板清干净；结果 watcher 得在它之后把卡片摆出来。
+watch(
+  () => props.customResult,
+  (r) => {
+    if (!r) return
+    draft.value = r.rewritten
+    panel.value = {
+      mode: 'result',
+      original: r.original,
+      rewritten: r.rewritten,
+      custom: true,
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -437,7 +480,7 @@ watch(
     </div>
 
     <!-- ============ 菜单项清单（整句 / 关掉 AI 能力时） ============ -->
-    <nav v-if="!showTabs && !panel" class="ai-menu__items">
+    <nav v-if="!showTabs && !panel && !customBusy && !customError" class="ai-menu__items">
       <template v-if="allowAi && selection.kind === 'sentence'">
         <button
           type="button"
@@ -471,7 +514,19 @@ watch(
     </nav>
 
     <!-- ============ 二级面板 ============ -->
-    <div v-if="panel" class="ai-menu__panel">
+
+    <!-- 自定义指令：正在跑 / 跑失败了 -->
+    <div v-if="customBusy" class="ai-menu__panel">
+      <div class="ai-menu__status">指令生成中…</div>
+    </div>
+    <div v-else-if="customError" class="ai-menu__panel">
+      <div class="ai-menu__error">
+        <p>{{ customError }}</p>
+        <button type="button" @click="emit('close')">关闭</button>
+      </div>
+    </div>
+
+    <div v-else-if="panel" class="ai-menu__panel">
       <!-- loading -->
       <div v-if="loading" class="ai-menu__status">{{ loadingLabel }}</div>
 

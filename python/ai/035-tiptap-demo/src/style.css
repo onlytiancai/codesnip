@@ -725,6 +725,43 @@ h1 {
   opacity: 1; /* 覆盖全局 disabled 透明度 */
 }
 
+/* ===== 用户自定义指令（钉在工具栏上的那些） ===== */
+
+.toolbar .toolbar__btn-prompt {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 140px;
+  padding: 0 9px;
+  border-color: var(--border);
+  background: #fff;
+  font-size: 0.82rem;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.toolbar .toolbar__btn-prompt:hover:not(:disabled) {
+  background: rgba(34, 139, 230, 0.08);
+  border-color: rgba(34, 139, 230, 0.4);
+  color: var(--toolbar-active-bg);
+}
+
+.toolbar .toolbar__btn-prompt:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toolbar__btn-prompt-icon {
+  flex: none;
+  font-size: 0.95em;
+}
+
+.toolbar__btn-prompt-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ===== AI 下拉（Teleport 到 body，position: fixed） ===== */
 .toolbar .toolbar__btn-ai-menu {
   padding: 0 10px;
@@ -787,6 +824,35 @@ h1 {
 .ai-dropdown__icon {
   width: 1.2em;
   text-align: center;
+}
+
+/* 「我的指令」分组标题 */
+.ai-dropdown__sep {
+  margin: 6px 4px 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+/* 上面没有 AI 动作时（英译中模式）不用画分隔线 */
+.ai-dropdown__sep--first {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* 指令条目：右边标着作用范围 */
+.ai-dropdown__item--prompt {
+  gap: 6px;
+}
+
+.ai-dropdown__scope {
+  margin-left: auto;
+  padding-left: 8px;
+  font-size: 0.72rem;
+  color: var(--muted);
 }
 
 /* ===== 选区上下文菜单（Teleport 到 body，position: fixed） ===== */
@@ -1591,6 +1657,153 @@ h1 {
 .editor-shell.is-locked .ProseMirror {
   background: #fbfcfd;
   cursor: progress;
+}
+
+/* ===== 设置页：提示词 tab 的两块 ===== */
+
+.settings__prompts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings__subtabs {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings__subtab {
+  padding: 6px 14px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.settings__subtab:hover {
+  color: var(--fg);
+}
+
+.settings__subtab--on {
+  color: var(--toolbar-active-bg);
+  border-bottom-color: var(--toolbar-active-bg);
+  font-weight: 600;
+}
+
+/* ===== 我的指令 ===== */
+
+.user-prompts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.user-prompts__locked {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--toolbar-bg);
+}
+
+.user-prompts__locked p {
+  margin: 0 0 10px;
+}
+
+.user-prompts__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-prompts__item {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.user-prompts__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-prompts__icon {
+  font-size: 1.05rem;
+}
+
+.user-prompts__label {
+  font-weight: 600;
+}
+
+.user-prompts__scope {
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: rgba(34, 139, 230, 0.1);
+  color: var(--toolbar-active-bg);
+  font-size: 0.75rem;
+}
+
+.user-prompts__pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.user-prompts__spacer {
+  flex: 1;
+}
+
+.user-prompts__body {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  white-space: pre-wrap;
+}
+
+.user-prompts__form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--toolbar-bg);
+}
+
+.user-prompts__icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.user-prompts__icon-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.user-prompts__icon-btn.is-on {
+  border-color: var(--toolbar-active-bg);
+  background: rgba(34, 139, 230, 0.12);
+}
+
+.prompts__hint--warn {
+  color: #e8a200;
 }
 
 /* ===== 设置页（/settings） ===== */

@@ -28,6 +28,13 @@ import {
 const props = defineProps<{
   providers: ProviderConfig[]
   activeProviderId: string
+  /**
+   * 只读模式 —— 非管理员看系统提示词时的样子。
+   *
+   * 系统提示词是全局配置，只有管理员能改；
+   * 其他人能看（知道模型被怎么指示的），但不能保存 / 回滚 / 试运行。
+   */
+  readonly?: boolean
 }>()
 
 const TONES_TAB = '__tones__'
@@ -289,6 +296,9 @@ function insertVar(name: string) {
       <span class="prompts__hint">
         每个 provider 的提示词完全独立 —— 这里改的只影响当前选中的 provider。
       </span>
+      <span v-if="readonly" class="prompts__hint prompts__hint--warn">
+        系统提示词由管理员维护 —— 你可以看，但不能改。
+      </span>
     </div>
 
     <p v-if="error" class="prompts__error">{{ error }}</p>
@@ -335,15 +345,21 @@ function insertVar(name: string) {
           >
             <div class="prompts__tone-head">
               <code>{{ t.id }}</code>
-              <input v-model="t.label" class="field__input field__input--sm" placeholder="中文 label" />
+              <input
+                v-model="t.label"
+                class="field__input field__input--sm"
+                placeholder="中文 label"
+                :readonly="readonly"
+              />
             </div>
             <textarea
               v-model="t.guidance"
               class="field__input field__textarea"
               rows="2"
+              :readonly="readonly"
             />
           </div>
-          <div class="prompts__actions">
+          <div v-if="!readonly" class="prompts__actions">
             <button class="btn" :disabled="busy" @click="saveToneTable">保存语气表</button>
           </div>
         </template>
@@ -366,12 +382,22 @@ function insertVar(name: string) {
 
           <label class="field">
             <span class="field__label">System 模板</span>
-            <textarea v-model="draft.system" class="field__input field__textarea" rows="10" />
+            <textarea
+              v-model="draft.system"
+              class="field__input field__textarea"
+              rows="10"
+              :readonly="readonly"
+            />
           </label>
 
           <label class="field">
             <span class="field__label">User 模板</span>
-            <textarea v-model="draft.user" class="field__input field__textarea" rows="8" />
+            <textarea
+              v-model="draft.user"
+              class="field__input field__textarea"
+              rows="8"
+              :readonly="readonly"
+            />
           </label>
 
           <div class="prompts__modes">
@@ -394,7 +420,7 @@ function insertVar(name: string) {
             <textarea v-model="schemaText" class="field__input field__textarea" rows="10" />
           </label>
 
-          <div class="prompts__actions">
+          <div v-if="!readonly" class="prompts__actions">
             <input v-model="note" class="field__input field__input--sm" placeholder="备注（可选）" />
             <button class="btn" :disabled="busy" @click="save">保存</button>
             <button class="btn btn--ghost" :disabled="busy" @click="copyFrom">从别的 provider 复制</button>
@@ -412,13 +438,19 @@ function insertVar(name: string) {
                 <span class="prompts__version-note">{{ v.note || '（无备注）' }}</span>
                 <span class="prompts__version-time">{{ new Date(v.savedAt).toLocaleString() }}</span>
                 <button class="btn btn--ghost btn--sm" @click="viewVersion(v.version)">查看</button>
-                <button class="btn btn--ghost btn--sm" @click="rollback(v.version)">回滚</button>
+                <button
+                  v-if="!readonly"
+                  class="btn btn--ghost btn--sm"
+                  @click="rollback(v.version)"
+                >
+                  回滚
+                </button>
               </li>
             </ul>
           </div>
 
           <!-- 试运行 -->
-          <div class="prompts__dry">
+          <div v-if="!readonly" class="prompts__dry">
             <h4 class="prompts__subtitle">试运行</h4>
             <p class="prompts__desc">
               用<strong>当前这个 provider</strong>真跑一次 —— 会真的消耗 API 额度。

@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import ProviderPanel from '../components/ProviderPanel.vue'
 import PromptPanel from '../components/PromptPanel.vue'
+import UserPromptsPanel from '../components/UserPromptsPanel.vue'
 import DictionaryPanel from '../components/DictionaryPanel.vue'
 import AccountPanel from '../components/AccountPanel.vue'
 import PlanPanel from '../components/PlanPanel.vue'
@@ -27,6 +28,10 @@ type Tab = 'providers' | 'prompts' | 'dictionary' | 'account' | 'plan' | 'admin'
 
 const TABS: Tab[] = ['providers', 'prompts', 'dictionary', 'account', 'plan', 'admin']
 
+/** 「提示词」tab 里的两块：系统提示词（管理员维护） / 我的指令（用户自己写） */
+type PromptSection = 'system' | 'mine'
+const promptSection = ref<PromptSection>('system')
+
 const route = useRoute()
 const router = useRouter()
 
@@ -43,6 +48,17 @@ function isTab(v: unknown): v is Tab {
   return typeof v === 'string' && (TABS as string[]).includes(v)
 }
 
+/**
+ * 这个 tab 当前用户能不能看。
+ *
+ * 「LLM 供应商」和「词库」是**全局配置** —— 只有管理员能看能改，
+ * 其他用户连 tab 都不给（问他们要也没用）。
+ */
+function canSeeTab(t: Tab): boolean {
+  if (t === 'providers' || t === 'dictionary' || t === 'admin') return isAdmin.value
+  return true
+}
+
 /** 切 tab：同步到 URL（?tab=account 之类）。 */
 function selectTab(next: Tab) {
   tab.value = next
@@ -54,8 +70,8 @@ watch(
   () => route.query.tab,
   (v) => {
     if (!isTab(v)) return
-    if (v === 'admin' && !isAdmin.value) {
-      selectTab('providers')
+    if (!canSeeTab(v)) {
+      selectTab('prompts')
       return
     }
     tab.value = v
@@ -79,8 +95,10 @@ async function load() {
 onMounted(() => {
   // 首屏按 URL 里的 tab 来（侧栏「修改密码」会带 ?tab=account）
   const q = route.query.tab
-  if (isTab(q) && !(q === 'admin' && !isAdmin.value)) {
+  if (isTab(q) && canSeeTab(q)) {
     tab.value = q
+  } else if (!canSeeTab(tab.value)) {
+    tab.value = 'prompts'
   }
   void load()
 })
@@ -100,9 +118,10 @@ onMounted(() => {
 
     <nav class="settings__tabs">
       <button
+        v-if="isAdmin"
         class="settings__tab"
         :class="{ 'settings__tab--on': tab === 'providers' }"
-        @click="tab = 'providers'"
+        @click="selectTab('providers')"
       >
         LLM 供应商
       </button>
@@ -114,6 +133,7 @@ onMounted(() => {
         提示词
       </button>
       <button
+        v-if="isAdmin"
         class="settings__tab"
         :class="{ 'settings__tab--on': tab === 'dictionary' }"
         @click="selectTab('dictionary')"
@@ -154,11 +174,36 @@ onMounted(() => {
         :active-provider-id="activeProviderId"
         @changed="load"
       />
-      <PromptPanel
-        v-else-if="tab === 'prompts'"
-        :providers="providers"
-        :active-provider-id="activeProviderId"
-      />
+      <div v-else-if="tab === 'prompts'" class="settings__prompts">
+        <nav class="settings__subtabs">
+          <button
+            class="settings__subtab"
+            :class="{ 'settings__subtab--on': promptSection === 'system' }"
+            @click="promptSection = 'system'"
+          >
+            系统提示词
+          </button>
+          <button
+            class="settings__subtab"
+            :class="{ 'settings__subtab--on': promptSection === 'mine' }"
+            @click="promptSection = 'mine'"
+          >
+            我的指令
+          </button>
+        </nav>
+
+        <PromptPanel
+          v-if="promptSection === 'system'"
+          :providers="providers"
+          :active-provider-id="activeProviderId"
+          :readonly="!isAdmin"
+        />
+        <UserPromptsPanel
+          v-else
+          :active-provider-id="activeProviderId"
+          :providers="providers"
+        />
+      </div>
       <DictionaryPanel v-else-if="tab === 'dictionary'" />
       <AccountPanel v-else-if="tab === 'account'" />
       <PlanPanel v-else-if="tab === 'plan'" />

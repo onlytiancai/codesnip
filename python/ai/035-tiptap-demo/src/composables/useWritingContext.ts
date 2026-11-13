@@ -274,6 +274,66 @@ export function topBlockContentRanges(doc: PMNode): { from: number; to: number }
   return ranges
 }
 
+/**
+ * 一个块级节点的纯文本 —— 硬换行算成 \n。
+ *
+ * node.textContent 不区分 hardBreak（它在 textContent 里不占字符），
+ * 但「按段落取正文」时要保留换行，所以单独走一遍。
+ */
+export function blockText(node: PMNode): string {
+  let out = ''
+  node.forEach((child) => {
+    if (child.isText) out += child.text ?? ''
+    else if (child.type.name === 'hardBreak') out += '\n'
+  })
+  return out
+}
+
+/**
+ * 光标所在的顶层段落（paragraph / heading）。
+ *
+ * 返回**内容区间**（不含段落节点自身的开闭位置）+ 纯文本。
+ * 自定义指令的「当前段」范围靠它定位。
+ */
+export function findParagraphAt(state: EditorState): {
+  from: number
+  to: number
+  text: string
+} | null {
+  const { $from } = state.selection
+  let depth = -1
+  for (let d = $from.depth; d > 0; d--) {
+    const name = $from.node(d).type.name
+    if (name === 'paragraph' || name === 'heading') {
+      depth = d
+      break
+    }
+  }
+  if (depth === -1) return null
+  const para = $from.node(depth)
+  const paraFrom = $from.before(depth)
+  return {
+    from: paraFrom + 1,
+    to: paraFrom + para.nodeSize - 1,
+    text: blockText(para),
+  }
+}
+
+/**
+ * 整篇文档的正文纯文本（段落之间用换行连）。
+ *
+ * 只取顶层段落 / 标题 —— 列表、代码块这些块类型不算正文。
+ */
+export function docText(doc: PMNode): string {
+  const out: string[] = []
+  doc.forEach((node) => {
+    const name = node.type.name
+    if (name !== 'paragraph' && name !== 'heading') return
+    out.push(blockText(node))
+  })
+  return out.join('\n')
+}
+
 // ===== 句子收集 =====
 
 /**

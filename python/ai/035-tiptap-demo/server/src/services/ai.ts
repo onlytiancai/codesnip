@@ -45,6 +45,8 @@ export interface RewriteSentenceOptions {
 export interface InstructionOptions {
   instruction: string
   context?: string
+  /** 目标文本对应的中文原文（自定义指令跑用户的指令时用得上） */
+  sourceSentence?: string
 }
 
 /** 一次请求用到的 provider 快照 —— 保证 client 和提示词来自同一个 provider。 */
@@ -189,6 +191,7 @@ export function createAiService(deps: CreateAiServiceOptions): AiService {
         text: text.trim(),
         instruction: options.instruction,
         context: options.context,
+        sourceSentence: options.sourceSentence,
       }
       return (await run('rewriteInstruction', input)) as string
     },

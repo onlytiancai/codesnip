@@ -15,6 +15,10 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 export interface AuthUser {
   id: number
   username: string
+  /** 角色 —— 权限判断要用（'user' | 'admin'） */
+  role?: 'user' | 'admin'
+  /** 套餐 id —— 「付费功能」的判断要用（见 config/plans.ts） */
+  planId?: string
 }
 
 const storage = new AsyncLocalStorage<AuthUser>()
