@@ -35,6 +35,8 @@ pnpm dev                   # tsx watch，监听 8787
 | `ADMIN_PASSWORD` | `admin123` | 同上的密码（**只在播种时用一次**；日志里不回显） |
 | `ADMIN_USERS` | — | 额外的管理员，逗号分隔（`alice,bob`）。名单里的人每次启动都会被提成 admin |
 | `AUTH_LOCAL_BYPASS` | `1` | 本地工具（curl / CLI）免登录放行；设 0 = 全部要登录 |
+| `RESEND_API_KEY` | — | **邮件服务**（Resend）的 API Key —— 注册 / 重置密码要发验证码 |
+| `RESEND_FROM` | `翻译工作台 <noreply@ihuhao.com>` | 发件人。域名要在 Resend 后台验证过并配好 DNS，否则发不出去 |
 | `DEBUG` | — | 设 `1` 打开调试日志（server 端 + 浏览器 console 共用一个开关） |
 
 改 `VOCAB_PATH` 不用重启后端 —— 设置页「词库」tab 点「重新加载」即可（后端会重读 `.env` 并重建索引）。
@@ -51,11 +53,12 @@ pnpm dev                   # tsx watch，监听 8787
 | `prompt_templates` | 每个 provider 的 6 个能力模板 |
 | `prompt_tones` | 每个 provider 的语气表 |
 | `prompt_versions` | 提示词的 append-only 版本历史 |
-| `users` | 用户（id / 用户名 / 密码哈希 / 建号时间 / **角色** / **套餐** / **禁用时间**） |
+| `users` | 用户（id / 用户名 / 密码哈希 / 建号时间 / **角色** / **套餐** / **禁用时间** / **邮箱**） |
 | `sessions` | 登录会话（token / user_id / 过期时间） |
 | `token_usage` | **每人每天**的 token 消耗（input / output / 调用次数） |
 | `plan_requests` | **套餐升级申请**（用户 / 原套餐 → 目标套餐 / 状态 / 审核意见） |
 | `invite_codes` | **邀请码池**（码 / 绑定套餐 / 批次 / 用掉的人 / 作废时间） |
+| `email_codes` | **邮箱验证码**（邮箱 / 码 / 用途 / 试错次数 / 过期时间 / 用掉时间） |
 
 > `server/data/config.json` 和 `history.json` 现在只是**首次导入源**：
 > 库里还没有 provider 时会自动把它们导进来（导入后不再回写）。老文件仍在 git 里，
@@ -220,7 +223,8 @@ CLI 走的是和 server 一样的配置（同一个 `app.db` 里的当前生效 
 
 **全部在 `server/.env` 里**（不进 git），启动时自动加载 —— 细节见上面的「配置」一节。
 `PORT` / `OLLAMA_HOST` / `OLLAMA_MODEL` / `MAX_CANDIDATES` / `<PROVIDER_ID>_KEY` / `VOCAB_PATH` /
-`DB_PATH` / `ADMIN_USERNAME` / `ADMIN_PASSWORD` / `AUTH_LOCAL_BYPASS` / `DEBUG`。
+`DB_PATH` / `ADMIN_USERNAME` / `ADMIN_PASSWORD` / `ADMIN_USERS` / `AUTH_LOCAL_BYPASS` /
+`RESEND_API_KEY` / `RESEND_FROM` / `DEBUG`。
 
 > `SERVER_ENV_FILE=/path/to/other.env` 可以换一个 env 文件。
 
@@ -259,11 +263,14 @@ CLI 走的是和 server 一样的配置（同一个 `app.db` 里的当前生效 
 
 | 方法 | 路径 | 说明 |
 |---|---|---|
-| POST | `/api/auth/register` | `{username, password}` → 建号 + 直接发 cookie 登录（201） |
-| POST | `/api/auth/login` | `{username, password}` → 发 cookie；密码错 → `401` |
+| POST | `/api/auth/register` | `{username, email, password, code}` → **校验邮箱验证码** → 建号 + 直接发 cookie 登录（201）。码不对 → `400` |
+| POST | `/api/auth/register/code` | `{email}` → 发**注册验证码**（10 分钟有效，60 秒冷却）。邮箱已注册 → `400` |
+| POST | `/api/auth/login` | `{username, password}` → 发 cookie；**用户名或邮箱**都能登录；密码错 → `401` |
 | POST | `/api/auth/logout` | 删会话 + 清 cookie |
 | POST | `/api/auth/change-password` | `{currentPassword, newPassword}` → 改密码。**要校验当前密码**（错 → `400`）；改完其它设备上的会话作废，当前浏览器保留。挂 `requireLogin`（不查配额） |
-| GET | `/api/auth/me` | `{user, today, month, pendingRequest}` —— 当前用户（**含角色 / 套餐 / 配额**）+ 今日/本月 token 用量；没登录 → `401` |
+| POST | `/api/auth/password-reset` | `{email, code, newPassword}` → 用**邮箱验证码**重置密码（不用记旧密码）。改完**全部**会话作废。邮箱没注册 → `404` |
+| POST | `/api/auth/password-reset/code` | `{email}` → 发**重置密码**的验证码。邮箱没注册 → `404` |
+| GET | `/api/auth/me` | `{user, today, month, pendingRequest}` —— 当前用户（**含角色 / 套餐 / 配额 / 邮箱**）+ 今日/本月 token 用量；没登录 → `401` |
 
 ### 套餐（用户侧）
 
@@ -288,6 +295,7 @@ CLI 走的是和 server 一样的配置（同一个 `app.db` 里的当前生效 
 | GET | `/api/admin/users/:id` | `{user, series}` —— 用户详情 + **近 30 天**每日用量 |
 | POST | `/api/admin/users/:id/disable` | 禁用（**顺手删掉他的所有会话**，立即生效）；不能禁用管理员 |
 | POST | `/api/admin/users/:id/enable` | 启用 |
+| POST | `/api/admin/users/:id/email` | `{email}` —— 给用户补 / 改邮箱（老用户没邮箱就没法用验证码重置密码） |
 | POST | `/api/admin/users/:id/plan` | `{planId}` —— 直接改套餐（不走审核） |
 | GET | `/api/admin/plan-requests` | `{requests, plans}` —— 升级申请列表（`?status=pending\|approved\|rejected`） |
 | POST | `/api/admin/plan-requests/:id/approve` | 通过 → **顺手把用户套餐改掉** |
@@ -379,6 +387,26 @@ CLI 走的是和 server 一样的配置（同一个 `app.db` 里的当前生效 
   （`sid`，HttpOnly / Path=/ / SameSite=Lax / 30 天）。
 - 用户名规则：3-32 位 `[A-Za-z0-9_-]`；密码 ≥ 4 位。
 - 播种：库里一个用户都没有时，用 `ADMIN_USERNAME` / `ADMIN_PASSWORD` 建一个（**日志里不回显密码**）。
+
+### 邮箱与验证码（注册 / 改密码）
+
+**新用户必须用邮箱注册** —— `POST /api/auth/register` 要 `username + email + password + code`，
+`code` 是发到邮箱的 6 位验证码（`POST /api/auth/register/code` 先发码）。
+**老用户不受影响**：没有邮箱的老账号照常用「用户名 + 密码」登录，改密码走「当前密码」那条路。
+
+- **验证码表** `email_codes`（邮箱 / 码 / 用途 `register|reset` / 试错次数 / 过期时间 / 用掉时间）：
+  - 有效期 **10 分钟**，同一邮箱同一用途**只能有一个有效码**（发新码会把旧码作废）
+  - 最多试 **5 次**，错一次 `attempts + 1`，超了就不给了
+  - 同一邮箱 **60 秒**内不能重复发（冷却）
+- **发信**：`src/services/mailer.ts` —— 直接 `fetch` Resend 的 HTTP 接口（**不用 resend SDK**，server 侧保持零第三方依赖）。
+  配置在 `.env`：`RESEND_API_KEY` + `RESEND_FROM`。
+  ⚠️ 发信域名要在 **Resend 后台验证过**并配好 DNS（SPF / DKIM），否则 Resend 会返回
+  `domain is not verified`，代码会把它变成「邮件发送失败：…」的 500。
+- **改密码有两条路**：
+  1. `POST /api/auth/change-password` —— 要**当前密码**，改完只踢**其它**设备（当前浏览器留着）
+  2. `POST /api/auth/password-reset` —— 用**邮箱验证码**重置（忘了旧密码时用），改完**全部**会话作废
+- 管理员可以在 `POST /api/admin/users/:id/email` 给老用户**补邮箱** —— 补了才能用邮箱重置密码。
+- 登录可以填**用户名或邮箱**（`authenticate()` 两边都查）。
 
 ### token 用量怎么记
 
@@ -511,6 +539,10 @@ pnpm type-check      # tsc --noEmit
 
 测试用 `supertest` + `vitest`，通过 `tests/helpers.ts` 注入 mock 打到真实路由层，无需启动真模型。
 
+**手测真实接口（注册 / 改密 / 套餐 / 管理端）时不要用真实库** ——
+看 [`../docs/临时库测试指南.md`](../docs/临时库测试指南.md)：临时 env + 临时 SQLite + 另一个端口的后台 server，
+测完删目录就干净了；里面还记了几个真踩过的坑（60 秒冷却怎么测、SQL 漏一列会静默返回 null 等）。
+
 ### 跑测试为什么这么重（vitest.config.ts）
 
 这套测试**很小**（18 个文件 / 264 个用例 / 全套 ~0.9s），但默认配置下 vitest 会按 CPU 核数开 **9 个 fork worker**（这台 M4 上），每个 worker 都要重做一遍同样的准备工作，CPU 能跑到 540%、磁盘狂转 IO —— 而且 **wall time 反而更慢**（并行拆分的调度 + 重复准备的开销 > 省下的执行时间）。
@@ -575,13 +607,17 @@ server/
 │   │   ├── translate.ts                # TranslateService（中译英 / 英译中）
 │   │   ├── dictionary.ts               # 查词：字节偏移索引 + 本地 JSONL 词库
 │   │   ├── activeProvider.ts           # 把 store + registry 拼成「当前生效 provider」快照
-│   │   └── requestContext.ts           # AsyncLocalStorage：当前请求的登录用户
+│   │   ├── requestContext.ts           # AsyncLocalStorage：当前请求的登录用户
+│   │   ├── mailer.ts                   # 发邮件：直接 fetch Resend（不用 SDK，零第三方依赖）
+│   │   └── quota.ts                    # 套餐配额：已用量 / 上限 / 超额文案
 │   ├── routes/
 │   │   ├── translate.ts                # POST /api/translate（两个方向）
 │   │   ├── rewrite.ts                  # 4 个端点：selection / sentence / grammar / instruction
 │   │   ├── settings.ts                 # provider / 提示词 / 版本 / 回滚 / 试运行
 │   │   ├── dictionary.ts               # /api/dictionary/{status,reload,lookup}
-│   │   ├── auth.ts                     # /api/auth/{register,login,logout,me} + requireUser 守卫
+│   │   ├── auth.ts                     # /api/auth/*（注册 / 登录 / 改密 / 邮箱验证码）+ requireUser 守卫
+│   │   ├── plans.ts                    # /api/plans/*（套餐列表 / 邀请码兑换 / 升级申请）
+│   │   ├── admin.ts                    # /api/admin/*（用户 / 审核 / 邀请码池）
 │   │   └── httpError.ts                # 统一状态码分类
 │   ├── prompts/                        # 只剩解析器（提示词文本已搬到 config/）
 │   │   ├── cleanText.ts                # 共享清洗：围栏 / 前缀 / 引号

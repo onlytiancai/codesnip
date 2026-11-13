@@ -75,9 +75,11 @@ export async function doLogin(username: string, password: string): Promise<void>
 
 export async function doRegister(
   username: string,
+  email: string,
   password: string,
+  code: string,
 ): Promise<void> {
-  const res = await registerApi(username, password)
+  const res = await registerApi(username, email, password, code)
   user.value = res.user
   loaded.value = true
   await refreshUsage()

@@ -12,6 +12,7 @@ import {
   rejectPlanRequest,
   revokeInviteCode,
   setUserPlan,
+  setUserEmail,
   type AdminUser,
   type AdminUserDetail,
   type InviteCode,
@@ -41,6 +42,9 @@ const busy = ref(false)
 /** 展开的用量明细。 */
 const detail = ref<AdminUserDetail | null>(null)
 
+/** 每个用户的邮箱输入框草稿（key = 用户 id）。 */
+const emailDraft = ref<Record<number, string>>({})
+
 /** 生成邀请码的表单。 */
 const genPlanId = ref('')
 const genCount = ref(5)
@@ -60,6 +64,10 @@ async function load() {
     requests.value = r.requests
     codes.value = c.codes
     plans.value = c.plans
+    // 邮箱输入框的初值 = 库里的邮箱（老用户是空）
+    const draft: Record<number, string> = {}
+    for (const row of u.users) draft[row.id] = row.email ?? ''
+    emailDraft.value = draft
     if (!genPlanId.value && c.plans.length) genPlanId.value = c.plans[0].id
   } catch (err) {
     error.value = err instanceof Error ? err.message : String(err)
@@ -98,6 +106,13 @@ function toggleDisable(u: AdminUser) {
 function changePlan(u: AdminUser, planId: string) {
   if (!planId || planId === u.planId) return
   void run(() => setUserPlan(u.id, planId), `${u.username} 的套餐已改成 ${planId}`)
+}
+
+/** 管理员给用户补邮箱。 */
+function saveEmail(u: AdminUser) {
+  const email = (emailDraft.value[u.id] ?? '').trim()
+  if (!email) return
+  void run(() => setUserEmail(u.id, email), `${u.username} 的邮箱已设为 ${email}`)
 }
 
 function showDetail(u: AdminUser) {
@@ -172,6 +187,7 @@ const STATUS_LABEL: Record<PlanRequestInfo['status'], string> = {
         <thead>
           <tr>
             <th>用户名</th>
+            <th>邮箱</th>
             <th>套餐</th>
             <th>今日 token</th>
             <th>本月 token</th>
@@ -184,6 +200,22 @@ const STATUS_LABEL: Record<PlanRequestInfo['status'], string> = {
             <td>
               <strong>{{ u.username }}</strong>
               <span v-if="u.role === 'admin'" class="admin__badge">管理员</span>
+            </td>
+            <td>
+              <div class="admin__email">
+                <input
+                  v-model="emailDraft[u.id]"
+                  class="field__input field__input--sm admin__email-input"
+                  placeholder="未绑定"
+                />
+                <button
+                  class="btn btn--ghost btn--sm"
+                  :disabled="busy || !emailDraft[u.id] || emailDraft[u.id] === (u.email ?? '')"
+                  @click="saveEmail(u)"
+                >
+                  存
+                </button>
+              </div>
             </td>
             <td>
               <select

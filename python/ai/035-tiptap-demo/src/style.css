@@ -423,6 +423,23 @@ h1 {
   text-align: center;
 }
 
+/* 验证码输入框 + 「发送验证码」按钮 */
+.login__code-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.login__code-row .field__input {
+  flex: 1;
+  min-width: 0;
+}
+
+.login__code-row .btn {
+  flex: none;
+  white-space: nowrap;
+}
+
 .login__link {
   border: none;
   background: none;
@@ -2508,6 +2525,17 @@ h1 {
   word-break: break-all;
 }
 
+/* 管理端：邮箱输入格 */
+.admin__email {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin__email-input {
+  min-width: 190px;
+}
+
 /* ===== 账号（修改密码） ===== */
 
 .account__info {
@@ -2543,4 +2571,28 @@ h1 {
 
 .account__form {
   margin-top: 12px;
+}
+
+/* 「当前密码 / 邮箱验证码」两种改法切换 */
+.account__methods {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.account__method {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 12px;
+  background: #fff;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.account__method--on {
+  border-color: var(--toolbar-active-bg);
+  background: var(--toolbar-active-bg);
+  color: #fff;
 }

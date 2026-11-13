@@ -1,11 +1,14 @@
 /**
  * 认证相关路由 + 「消耗 token 的接口」的登录守卫。
  *
- *   POST /api/auth/register   注册（顺带直接登录）
- *   POST /api/auth/login      登录
- *   POST /api/auth/logout     登出
- *   POST /api/auth/change-password  修改密码（要校验当前密码）
- *   GET  /api/auth/me         当前用户 + 今日/本月 token 用量
+ *   POST /api/auth/register        注册（顺带直接登录）—— 要邮箱验证码
+ *   POST /api/auth/register/code   发注册验证码
+ *   POST /api/auth/login           登录（用户名或邮箱）
+ *   POST /api/auth/logout          登出
+ *   POST /api/auth/change-password 修改密码（要校验当前密码）
+ *   POST /api/auth/password-reset       用邮箱验证码重置密码
+ *   POST /api/auth/password-reset/code  发重置密码的验证码
+ *   GET  /api/auth/me              当前用户 + 今日/本月 token 用量
  *
  * **会话**：token 是 32 字节随机数，服务端存 sessions 表，浏览器只拿 cookie
  * （HttpOnly / Path=/ / SameSite=Lax / 30 天）。
@@ -18,12 +21,28 @@
  */
 
 import { Router, type Request, type RequestHandler } from 'express'
-import { SESSION_COOKIE, SESSION_TTL_MS, UserStore } from '../config/userStore.js'
-import type { User } from '../config/userStore.js'
+import {
+  SESSION_COOKIE,
+  SESSION_TTL_MS,
+  UserStore,
+  validateEmail,
+  type EmailCodePurpose,
+  type User,
+} from '../config/userStore.js'
 import { currentUser, runAsUser } from '../services/requestContext.js'
 import { getPlan, publicPlan } from '../config/plans.js'
 import { quotaError, quotaStatus } from '../services/quota.js'
+import { sendMail, verificationMail } from '../services/mailer.js'
 import { debugLog } from '../utils/debug.js'
+
+/** 验证码有效期：10 分钟。 */
+const EMAIL_CODE_TTL_MS = 10 * 60 * 1000
+
+/** 同一个邮箱多久内不能重复发码：60 秒。 */
+const EMAIL_CODE_COOLDOWN_MS = 60 * 1000
+
+/** 一个验证码最多试几次。 */
+const EMAIL_CODE_MAX_ATTEMPTS = 5
 
 export interface CreateAuthRouterOptions {
   userStore: UserStore
@@ -195,6 +214,8 @@ function fullUser(user: User, userStore: UserStore): Record<string, unknown> {
     plan: publicPlan(plan),
     quota: quotaStatus(userStore, user),
     disabled: Boolean(user.disabledAt),
+    /** 邮箱（老用户可能没有） */
+    email: user.email,
   }
 }
 
@@ -213,26 +234,173 @@ export function createAuthRouter(options: CreateAuthRouterOptions): Router {
     })
   }
 
+  /**
+   * 发验证码。
+   *
+   * 两种用途：
+   *   - `register`：注册码。邮箱**不能**已经注册过
+   *   - `reset`：重置密码码。邮箱**必须**已经注册过（不然就是给陌生人发信）
+   */
+  async function sendCode(
+    res: Parameters<RequestHandler>[1],
+    email: string,
+    purpose: EmailCodePurpose,
+  ): Promise<void> {
+    const last = userStore.lastEmailCodeAt(email, purpose)
+    if (last) {
+      const waited = Date.now() - Date.parse(last)
+      if (Number.isFinite(waited) && waited < EMAIL_CODE_COOLDOWN_MS) {
+        const left = Math.ceil((EMAIL_CODE_COOLDOWN_MS - waited) / 1000)
+        res.status(429).json({ error: `发送太频繁，${left} 秒后再试` })
+        return
+      }
+    }
+
+    const { id, code } = userStore.createEmailCode(
+      email,
+      purpose,
+      EMAIL_CODE_TTL_MS,
+    )
+    try {
+      const mail = verificationMail({
+        code,
+        minutes: Math.round(EMAIL_CODE_TTL_MS / 60000),
+        purpose,
+      })
+      await sendMail({ ...mail, to: email })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '邮件发送失败'
+      debugLog('[mail]', '发码失败:', email, '-', message)
+      // 码没发出去 —— 删掉，用户不用等冷却就能重试
+      userStore.deleteEmailCode(id)
+      res.status(500).json({ error: message })
+      return
+    }
+
+    debugLog('[auth]', `已发${purpose === 'register' ? '注册' : '重置'}验证码:`, email)
+    res.json({
+      ok: true,
+      /** 有效期（秒） */
+      expiresIn: Math.round(EMAIL_CODE_TTL_MS / 1000),
+      /** 冷却（秒）—— 前端据此倒计时 */
+      cooldown: Math.round(EMAIL_CODE_COOLDOWN_MS / 1000),
+    })
+  }
+
+  /** 发注册验证码。 */
+  router.post('/api/auth/register/code', async (req, res) => {
+    const body = (req.body ?? {}) as { email?: unknown }
+    const invalid = validateEmail(body.email)
+    if (invalid) {
+      return res.status(400).json({ error: invalid })
+    }
+    const email = (body.email as string).trim().toLowerCase()
+    if (userStore.findUserByEmail(email)) {
+      return res.status(400).json({ error: '这个邮箱已经注册过了，去登录吧' })
+    }
+    await sendCode(res, email, 'register')
+  })
+
   router.post('/api/auth/register', (req, res) => {
-    const body = (req.body ?? {}) as { username?: unknown; password?: unknown }
+    const body = (req.body ?? {}) as {
+      username?: unknown
+      password?: unknown
+      email?: unknown
+      code?: unknown
+    }
     const invalid = UserStore.validateCredentials(body.username, body.password)
     if (invalid) {
       return res.status(400).json({ error: invalid })
     }
+    const emailInvalid = validateEmail(body.email)
+    if (emailInvalid) {
+      return res.status(400).json({ error: emailInvalid })
+    }
+    if (typeof body.code !== 'string' || !body.code.trim()) {
+      return res.status(400).json({ error: '请输入邮箱验证码' })
+    }
     const username = (body.username as string).trim()
     const password = body.password as string
+    const email = (body.email as string).trim().toLowerCase()
+
+    if (userStore.findUserByEmail(email)) {
+      return res.status(400).json({ error: '这个邮箱已经注册过了，去登录吧' })
+    }
+    if (
+      !userStore.consumeEmailCode(
+        email,
+        'register',
+        body.code,
+        EMAIL_CODE_MAX_ATTEMPTS,
+      )
+    ) {
+      return res.status(400).json({ error: '验证码不对或已过期，重新发一个' })
+    }
 
     let user: User
     try {
-      user = userStore.createUser(username, password)
+      user = userStore.createUser(username, password, { email })
     } catch (err) {
       return res.status(400).json({
         error: err instanceof Error ? err.message : '注册失败',
       })
     }
     startSession(res, user)
-    debugLog('[auth]', '注册成功:', username)
+    debugLog('[auth]', '注册成功:', username, '<', email, '>')
     res.status(201).json({ user: fullUser(user, userStore) })
+  })
+
+  /** 发重置密码的验证码（邮箱必须已经注册）。 */
+  router.post('/api/auth/password-reset/code', async (req, res) => {
+    const body = (req.body ?? {}) as { email?: unknown }
+    const invalid = validateEmail(body.email)
+    if (invalid) {
+      return res.status(400).json({ error: invalid })
+    }
+    const email = (body.email as string).trim().toLowerCase()
+    if (!userStore.findUserByEmail(email)) {
+      return res.status(404).json({ error: '这个邮箱没有注册过账号' })
+    }
+    await sendCode(res, email, 'reset')
+  })
+
+  /**
+   * 用邮箱验证码重置密码（不用记当前密码）。
+   *
+   * 重置成功 → 改密码 + **踢掉全部会话**（谁在用旧 cookie 谁都得重新登录）。
+   */
+  router.post('/api/auth/password-reset', (req, res) => {
+    const body = (req.body ?? {}) as {
+      email?: unknown
+      code?: unknown
+      newPassword?: unknown
+    }
+    const emailInvalid = validateEmail(body.email)
+    if (emailInvalid) {
+      return res.status(400).json({ error: emailInvalid })
+    }
+    const invalid = UserStore.validatePassword(body.newPassword)
+    if (invalid) {
+      return res.status(400).json({ error: invalid })
+    }
+    if (typeof body.code !== 'string' || !body.code.trim()) {
+      return res.status(400).json({ error: '请输入邮箱验证码' })
+    }
+    const email = (body.email as string).trim().toLowerCase()
+    const user = userStore.findUserByEmail(email)
+    if (!user) {
+      return res.status(404).json({ error: '这个邮箱没有注册过账号' })
+    }
+    if (
+      !userStore.consumeEmailCode(email, 'reset', body.code, EMAIL_CODE_MAX_ATTEMPTS)
+    ) {
+      return res.status(400).json({ error: '验证码不对或已过期，重新发一个' })
+    }
+
+    userStore.setUserPassword(user.id, body.newPassword as string)
+    userStore.deleteAllSessions(user.id)
+    debugLog('[auth]', '密码已重置（邮件验证码）:', user.username)
+    res.json({ ok: true })
   })
 
   router.post('/api/auth/login', (req, res) => {
@@ -244,7 +412,7 @@ export function createAuthRouter(options: CreateAuthRouterOptions): Router {
     if (!user) {
       // 用户不存在和密码错返回同一个提示 —— 不泄露用户是否存在
       debugLog('[auth]', '登录失败:', body.username.trim())
-      return res.status(401).json({ error: '用户名或密码不对' })
+      return res.status(401).json({ error: '用户名/邮箱或密码不对' })
     }
     if (user.disabledAt) {
       debugLog('[auth]', '登录被拒（账号已禁用）:', user.username)

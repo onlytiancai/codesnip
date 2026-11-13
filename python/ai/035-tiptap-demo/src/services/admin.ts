@@ -17,6 +17,8 @@ export interface AdminUser {
   planLabel: string
   disabled: boolean
   createdAt: string
+  /** 邮箱；老用户可能没有 */
+  email: string | null
   today: UsageTotals
   month: UsageTotals
 }
@@ -68,6 +70,12 @@ export const enableUser = (id: number) =>
 export const setUserPlan = (id: number, planId: string) =>
   http.post<{ ok: boolean; plan: PlanInfo }>(`/api/admin/users/${id}/plan`, {
     planId,
+  })
+
+/** 管理员给用户补 / 改邮箱（老用户要邮箱才能用「验证码重置密码」）。 */
+export const setUserEmail = (id: number, email: string) =>
+  http.post<{ ok: boolean; email: string }>(`/api/admin/users/${id}/email`, {
+    email,
   })
 
 /** 升级申请列表（status 可选：pending / approved / rejected）。 */

@@ -46,8 +46,23 @@ CREATE TABLE IF NOT EXISTS users (
   created_at    TEXT    NOT NULL,
   role          TEXT    NOT NULL DEFAULT 'user',   -- 'user' | 'admin'
   plan_id       TEXT    NOT NULL DEFAULT 'free',    -- 套餐 id（见 config/plans.ts）
-  disabled_at   TEXT                              -- 非空 = 已禁用
+  disabled_at   TEXT,                             -- 非空 = 已禁用
+  email         TEXT                              -- 邮箱；老用户可能没有（NULL）
 );
+
+-- ===== 邮箱验证码 =====
+-- 注册 / 改密码都要发验证码到这个表里
+CREATE TABLE IF NOT EXISTS email_codes (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  email      TEXT    NOT NULL,
+  code       TEXT    NOT NULL,
+  purpose    TEXT    NOT NULL,        -- 'register' | 'reset'
+  attempts   INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT    NOT NULL,
+  expires_at TEXT    NOT NULL,        -- ISO-8601
+  used_at    TEXT                     -- 非空 = 已用过（或被新码顶掉）
+);
+CREATE INDEX IF NOT EXISTS idx_email_codes_lookup ON email_codes(email, purpose);
 
 CREATE TABLE IF NOT EXISTS sessions (
   token      TEXT    PRIMARY KEY,
@@ -164,6 +179,11 @@ function ensureColumns(db: Db): void {
   if (!users.has('disabled_at')) {
     db.exec('ALTER TABLE users ADD COLUMN disabled_at TEXT')
   }
+  if (!users.has('email')) {
+    db.exec('ALTER TABLE users ADD COLUMN email TEXT')
+  }
+  // 邮箱唯一索引 —— 得等 email 列补上才能建（NULL 不算重复，老用户可以都没邮箱）
+  db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)')
 }
 
 /**

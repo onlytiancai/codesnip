@@ -5,6 +5,7 @@
  *   GET  /api/admin/users/:id                   用户详情 + 近 30 天每日用量
  *   POST /api/admin/users/:id/disable           禁用（顺手踢掉他的会话）
  *   POST /api/admin/users/:id/enable            启用
+ *   POST /api/admin/users/:id/email             补 / 改邮箱（老用户要邮箱才能重置密码）
  *   POST /api/admin/users/:id/plan              直接改套餐（管理员手动兜底）
  *   GET  /api/admin/plan-requests               升级申请列表
  *   POST /api/admin/plan-requests/:id/approve   通过
@@ -19,6 +20,7 @@
 import { Router } from 'express'
 import { getPlan, isPlanId, PLANS, publicPlan, publicPlanRequest } from '../config/plans.js'
 import type { PlanRequestStatus, UserStore } from '../config/userStore.js'
+import { validateEmail } from '../config/userStore.js'
 import { currentUser } from '../services/requestContext.js'
 import { requireAdmin } from './auth.js'
 import { debugLog } from '../utils/debug.js'
@@ -59,6 +61,7 @@ export function createAdminRouter(options: CreateAdminRouterOptions): Router {
       planLabel: getPlan(u.planId).label,
       disabled: Boolean(u.disabledAt),
       createdAt: u.createdAt,
+      email: u.email,
       today: u.today,
       month: u.month,
     }))
@@ -79,6 +82,7 @@ export function createAdminRouter(options: CreateAdminRouterOptions): Router {
         planLabel: getPlan(user.planId).label,
         disabled: Boolean(user.disabledAt),
         createdAt: user.createdAt,
+        email: user.email,
       },
       /** 近 30 天每日用量 */
       series: userStore.usageSeries(id, 30),
@@ -106,6 +110,33 @@ export function createAdminRouter(options: CreateAdminRouterOptions): Router {
     userStore.setUserDisabled(id, false)
     debugLog('[admin]', '已启用用户:', user.username)
     res.json({ ok: true })
+  })
+
+  /**
+   * 管理员给用户补 / 改邮箱。
+   *
+   * 老用户没有邮箱就没法用「邮箱验证码重置密码」，管理员在这儿补一个。
+   */
+  router.post('/api/admin/users/:id/email', admin, (req, res) => {
+    const id = userId(req)
+    if (id === undefined) return res.status(400).json({ error: '用户 id 不合法' })
+    const body = (req.body ?? {}) as { email?: unknown }
+    const invalid = validateEmail(body.email)
+    if (invalid) {
+      return res.status(400).json({ error: invalid })
+    }
+    const user = userStore.findUserById(id)
+    if (!user) return res.status(404).json({ error: '用户不存在' })
+    const email = (body.email as string).trim().toLowerCase()
+    try {
+      userStore.setUserEmail(id, email)
+    } catch (err) {
+      return res.status(400).json({
+        error: err instanceof Error ? err.message : '设置邮箱失败',
+      })
+    }
+    debugLog('[admin]', '已设置用户邮箱:', user.username, '<', email, '>')
+    res.json({ ok: true, email })
   })
 
   /** 管理员直接改套餐（不走审核流程）。 */

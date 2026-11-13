@@ -27,6 +27,8 @@ export interface User {
   planId: string
   /** 被禁用的时间；非 null = 已禁用 */
   disabledAt: string | null
+  /** 邮箱；老用户可能没有（null） */
+  email: string | null
 }
 
 /** 管理端用户列表的一行：用户 + 今日/本月用量。 */
@@ -87,6 +89,24 @@ export const SESSION_COOKIE = 'sid'
 
 const USERNAME_RE = /^[A-Za-z0-9_-]{3,32}$/
 const MIN_PASSWORD_LENGTH = 4
+
+/** 邮箱验证码的用途。 */
+export type EmailCodePurpose = 'register' | 'reset'
+
+/** 邮箱格式校验。合法返回 undefined，否则返回错误信息。 */
+export function validateEmail(email: unknown): string | undefined {
+  if (typeof email !== 'string' || !email.trim()) {
+    return '请输入邮箱'
+  }
+  const value = email.trim()
+  if (value.length > 200) {
+    return '邮箱太长了'
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    return '邮箱格式不对'
+  }
+  return undefined
+}
 
 export interface UserStoreOptions {
   db: Db
@@ -162,17 +182,21 @@ export class UserStore {
   createUser(
     username: string,
     password: string,
-    options: { role?: UserRole; planId?: string } = {},
+    options: { role?: UserRole; planId?: string; email?: string } = {},
   ): User {
     const name = username.trim()
     if (this.findUserByUsername(name)) {
       throw new InvalidRequestError(`用户名 "${name}" 已被占用`)
     }
+    const email = options.email ? options.email.trim().toLowerCase() : null
+    if (email && this.findUserByEmail(email)) {
+      throw new InvalidRequestError(`邮箱 "${email}" 已被注册`)
+    }
     const createdAt = new Date().toISOString()
     const info = this.db
       .prepare(
-        `INSERT INTO users (username, password_hash, created_at, role, plan_id)
-         VALUES (?, ?, ?, ?, ?)`,
+        `INSERT INTO users (username, password_hash, created_at, role, plan_id, email)
+         VALUES (?, ?, ?, ?, ?, ?)`,
       )
       .run(
         name,
@@ -180,6 +204,7 @@ export class UserStore {
         createdAt,
         options.role ?? 'user',
         options.planId ?? 'free',
+        email,
       )
     return {
       id: Number(info.lastInsertRowid),
@@ -188,6 +213,7 @@ export class UserStore {
       role: options.role ?? 'user',
       planId: options.planId ?? 'free',
       disabledAt: null,
+      email,
     }
   }
 
@@ -205,14 +231,37 @@ export class UserStore {
     return row ? toUser(row) : undefined
   }
 
+  /** 按邮箱找用户（邮箱统一小写存）。 */
+  findUserByEmail(email: string): User | undefined {
+    const row = this.db
+      .prepare(USER_COLUMNS + ' WHERE email = ?')
+      .get(email.trim().toLowerCase())
+    return row ? toUser(row) : undefined
+  }
+
+  /**
+   * 绑定 / 改邮箱（管理员给老用户补邮箱用）。
+   *
+   * 邮箱被别的账号占了会抛 InvalidRequestError。
+   */
+  setUserEmail(userId: number, email: string): void {
+    const mail = email.trim().toLowerCase()
+    const exists = this.findUserByEmail(mail)
+    if (exists && exists.id !== userId) {
+      throw new InvalidRequestError(`邮箱 "${mail}" 已被注册`)
+    }
+    this.db.prepare('UPDATE users SET email = ? WHERE id = ?').run(mail, userId)
+  }
+
   /** 密码校验：用户不存在和密码错返回同一个结果（不泄露用户是否存在）。 */
-  authenticate(username: string, password: string): User | undefined {
+  authenticate(identifier: string, password: string): User | undefined {
+    const key = identifier.trim()
     const row = this.db
       .prepare(
-        `SELECT id, username, password_hash, created_at, role, plan_id, disabled_at
-           FROM users WHERE username = ?`,
+        `SELECT id, username, password_hash, created_at, role, plan_id, disabled_at, email
+           FROM users WHERE username = ? OR email = ?`,
       )
-      .get(username.trim())
+      .get(key, key.toLowerCase())
     if (!row) return undefined
     if (!UserStore.verifyPassword(password, String(row.password_hash))) {
       return undefined
@@ -241,7 +290,7 @@ export class UserStore {
     if (!token) return undefined
     const row = this.db
       .prepare(
-        `SELECT u.id, u.username, u.created_at, u.role, u.plan_id, u.disabled_at
+        `SELECT u.id, u.username, u.created_at, u.role, u.plan_id, u.disabled_at, u.email
            FROM sessions s JOIN users u ON u.id = s.user_id
           WHERE s.token = ? AND s.expires_at > ?`,
       )
@@ -261,9 +310,113 @@ export class UserStore {
   }
 
   // -------------------------------------------------------------------------
-  // token 用量
+  // 邮箱验证码
   // -------------------------------------------------------------------------
 
+  /**
+   * 生成一个验证码并落库。
+   *
+   * - 6 位数字
+   * - 同一邮箱 + 同一用途的**旧码立即作废**（只留最新的那个能用）
+   * - 返回明文验证码（要发邮件），库里不存明文之外的任何东西 —— 本身也就是明文，
+   *   但过期/用掉就查不到了
+   */
+  createEmailCode(
+    email: string,
+    purpose: EmailCodePurpose,
+    ttlMs: number,
+  ): { id: number; code: string; expiresAt: string } {
+    const mail = email.trim().toLowerCase()
+    const now = new Date()
+    const code = String(Math.floor(Math.random() * 1_000_000)).padStart(6, '0')
+    const expiresAt = new Date(now.getTime() + ttlMs).toISOString()
+
+    // 旧码作废
+    this.db
+      .prepare(
+        `UPDATE email_codes SET used_at = ?
+          WHERE email = ? AND purpose = ? AND used_at IS NULL`,
+      )
+      .run(now.toISOString(), mail, purpose)
+
+    const info = this.db
+      .prepare(
+        `INSERT INTO email_codes (email, code, purpose, attempts, created_at, expires_at)
+         VALUES (?, ?, ?, 0, ?, ?)`,
+      )
+      .run(mail, code, purpose, now.toISOString(), expiresAt)
+
+    return { id: Number(info.lastInsertRowid), code, expiresAt }
+  }
+
+  /** 删掉一个刚建好但**没发出去**的验证码（发信失败时调 —— 不然用户要等冷却才能重试）。 */
+  deleteEmailCode(id: number): void {
+    this.db.prepare('DELETE FROM email_codes WHERE id = ?').run(id)
+  }
+
+  /** 最近一次发码的时间（用来做「60 秒内不能重复发」的冷却）。 */
+  lastEmailCodeAt(email: string, purpose: EmailCodePurpose): string | undefined {
+    const row = this.db
+      .prepare(
+        `SELECT created_at FROM email_codes
+          WHERE email = ? AND purpose = ?
+          ORDER BY id DESC LIMIT 1`,
+      )
+      .get(email.trim().toLowerCase(), purpose) as
+      | { created_at: string }
+      | undefined
+    return row?.created_at
+  }
+
+  /**
+   * 校验验证码。正确就把它标记成用掉，返回 true。
+   *
+   * 失败的情况：没有这个码 / 过期 / 已经被用掉 / 试错超过上限。
+   */
+  consumeEmailCode(
+    email: string,
+    purpose: EmailCodePurpose,
+    code: string,
+    maxAttempts: number,
+  ): boolean {
+    const mail = email.trim().toLowerCase()
+    const row = this.db
+      .prepare(
+        `SELECT id, code, attempts, expires_at, used_at
+           FROM email_codes
+          WHERE email = ? AND purpose = ?
+          ORDER BY id DESC LIMIT 1`,
+      )
+      .get(mail, purpose) as
+      | {
+          id: number
+          code: string
+          attempts: number
+          expires_at: string
+          used_at: string | null
+        }
+      | undefined
+    if (!row) return false
+    if (row.used_at) return false
+    if (Date.parse(row.expires_at) <= Date.now()) return false
+    if (row.attempts >= maxAttempts) return false
+
+    if (row.code !== code.trim()) {
+      this.db
+        .prepare('UPDATE email_codes SET attempts = attempts + 1 WHERE id = ?')
+        .run(row.id)
+      return false
+    }
+
+    this.db
+      .prepare('UPDATE email_codes SET used_at = ? WHERE id = ?')
+      .run(new Date().toISOString(), row.id)
+    return true
+  }
+
+  // -------------------------------------------------------------------------
+  // token 用量
+  // -------------------------------------------------------------------------
   /** 记一次消耗（UPSERT 累加到「用户 × 日」那一行）。 */
   addUsage(userId: number, inputTokens: number, outputTokens: number): void {
     const day = dayNumber()
@@ -358,6 +511,11 @@ export class UserStore {
       .run(userId, keepToken)
   }
 
+  /** 踢掉某个用户的**全部**会话（改密码之后 —— 密码变了，旧 cookie 全作废）。 */
+  deleteAllSessions(userId: number): void {
+    this.db.prepare('DELETE FROM sessions WHERE user_id = ?').run(userId)
+  }
+
   // -------------------------------------------------------------------------
   // 管理员：用户列表 / 用量明细
   // -------------------------------------------------------------------------
@@ -367,7 +525,7 @@ export class UserStore {
     const { from, to } = monthRange()
     const rows = this.db
       .prepare(
-        `SELECT u.id, u.username, u.created_at, u.role, u.plan_id, u.disabled_at,
+        `SELECT u.id, u.username, u.created_at, u.role, u.plan_id, u.disabled_at, u.email,
                 COALESCE(td.input_tokens, 0)  AS t_in,
                 COALESCE(td.output_tokens, 0) AS t_out,
                 COALESCE(td.calls, 0)         AS t_calls,
@@ -628,7 +786,7 @@ export class UserStore {
 
 /** 用户表的公共列（改列的时候只改这一处）。 */
 const USER_COLUMNS =
-  'SELECT id, username, created_at, role, plan_id, disabled_at FROM users'
+  'SELECT id, username, created_at, role, plan_id, disabled_at, email FROM users'
 
 function toUser(row: Record<string, unknown>): User {
   return {
@@ -638,6 +796,7 @@ function toUser(row: Record<string, unknown>): User {
     role: row.role === 'admin' ? 'admin' : 'user',
     planId: String(row.plan_id ?? 'free'),
     disabledAt: row.disabled_at ? String(row.disabled_at) : null,
+    email: row.email ? String(row.email) : null,
   }
 }
 

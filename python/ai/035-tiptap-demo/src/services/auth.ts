@@ -39,6 +39,8 @@ export interface CurrentUser {
   quota: QuotaInfo
   /** 账号被管理员停用了 */
   disabled: boolean
+  /** 邮箱；老用户可能没有 */
+  email: string | null
 }
 
 export interface UsageTotals {
@@ -59,8 +61,45 @@ export interface MeInfo {
 export const login = (username: string, password: string) =>
   http.post<{ user: CurrentUser }>('/api/auth/login', { username, password })
 
-export const register = (username: string, password: string) =>
-  http.post<{ user: CurrentUser }>('/api/auth/register', { username, password })
+/**
+ * 注册：邮箱 + 用户名 + 密码 + 邮箱验证码。
+ *
+ * 验证码要先调 `sendRegisterCode()` 发到邮箱。
+ */
+export const register = (
+  username: string,
+  email: string,
+  password: string,
+  code: string,
+) =>
+  http.post<{ user: CurrentUser }>('/api/auth/register', {
+    username,
+    email,
+    password,
+    code,
+  })
+
+/** 发注册验证码。 */
+export const sendRegisterCode = (email: string) =>
+  http.post<{ ok: boolean; expiresIn: number; cooldown: number }>(
+    '/api/auth/register/code',
+    { email },
+  )
+
+/** 发重置密码的验证码（邮箱得是已注册的）。 */
+export const sendResetCode = (email: string) =>
+  http.post<{ ok: boolean; expiresIn: number; cooldown: number }>(
+    '/api/auth/password-reset/code',
+    { email },
+  )
+
+/** 用邮箱验证码重置密码（不用记当前密码）。 */
+export const resetPassword = (email: string, code: string, newPassword: string) =>
+  http.post<{ ok: boolean }>('/api/auth/password-reset', {
+    email,
+    code,
+    newPassword,
+  })
 
 export const logout = () => http.post<{ ok: boolean }>('/api/auth/logout')
 

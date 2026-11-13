@@ -135,6 +135,16 @@ pnpm cli models
 
 - **会话**：httpOnly cookie（`sid`，30 天）+ `sessions` 表。密码用 `node:crypto` 的 `scryptSync`（零依赖），库里存 `saltHex:hashHex`。
 - **改密码**（`POST /api/auth/change-password`）：必须填**当前密码**（错 → 400）；改完用 `deleteOtherSessions()` 把**其它设备上的会话作废**、当前浏览器的留着。挂 `requireLogin`（不查配额）—— 超配额也得能改密码。
+
+## 邮箱注册与验证码（新增）
+
+- **新用户必须用邮箱注册**：`POST /api/auth/register` 要 `username + email + password + code`，码是从邮箱发来的 6 位验证码（先调 `POST /api/auth/register/code`）。**老用户没邮箱也不受影响** —— 照常登录，改密码走「当前密码」那条路。
+- **验证码表 `email_codes`**（邮箱 / 码 / 用途 `register|reset` / 试错次数 / 过期时间 / 用掉时间）：10 分钟有效、同一邮箱同一用途只留**最新一个**有效码（旧码发新的那一刻就作废）、最多试 5 次、60 秒冷却。
+  关键方法在 `config/userStore.ts`：`createEmailCode()` / `lastEmailCodeAt()`（冷却判断）/ `consumeEmailCode()`（校验 + 作废）。
+- **发信**（`services/mailer.ts`）：直接 `fetch` Resend 的 HTTP 接口 —— **不引 resend SDK**，server 侧保持零第三方依赖。`.env` 里 `RESEND_API_KEY` + `RESEND_FROM`（`翻译工作台 <noreply@ihuhao.com>`）。
+  ⚠️ 发信域名要在 Resend 后台验证过并配好 DNS，否则 Resend 返回 `domain is not verified`，代码会变成 500「邮件发送失败：…」。
+- **改密码两条路**：① `change-password`（要当前密码，只踢其它设备）② `password-reset`（邮箱验证码，不用旧密码，**踢光所有会话**）。
+- 登录可以填**用户名或邮箱**（`authenticate()` 两边都查）。管理员能在「用户管理」里给用户**补邮箱**（`POST /api/admin/users/:id/email`）—— 老用户补了才能用邮箱重置密码。
 - **消耗 token 的接口必须登录**（`routes/auth.ts` 的 `requireUser`）：`/api/translate`、`/api/rewrite-*`、`/api/providers/:id/test`、`.../dry-run`。
 - **本地工具免登录**：浏览器经 Vite 代理过来时后端看到的 IP 也是 127.0.0.1，所以**不能只看 IP** —— 靠浏览器特有的 `Origin` / `Sec-Fetch-Site` 头区分。回环 + 无这两个头 = 本地工具（curl / CLI）→ 放行但不记账。`.env` 的 `AUTH_LOCAL_BYPASS=0` 可关。
 - **用量记账**：`ChatResult.usage` 由三个客户端填充（Ollama `prompt_eval_count`/`eval_count`；OpenAI `prompt_tokens`/`completion_tokens`；Anthropic `input_tokens`/`output_tokens` + cache 两段）→ service 层在 `chat()` 成功后、`extractOutput()` **之前**记 → 落到 `token_usage` 表（每人每天一行，UPSERT 累加）。
@@ -157,7 +167,7 @@ pnpm cli models
 
 ## 配置
 
-- `server/.env`（**不进 git**）：`PORT` / `OLLAMA_HOST` / `OLLAMA_MODEL` / `MAX_CANDIDATES` / `<PROVIDER_ID>_KEY` / `VOCAB_PATH` / `DB_PATH` / `ADMIN_USERNAME` / `ADMIN_PASSWORD` / `ADMIN_USERS` / `AUTH_LOCAL_BYPASS` / `DEBUG`。启动时自动加载（`config/env.ts`），`SERVER_ENV_FILE` 可换文件。
+- `server/.env`（**不进 git**）：`PORT` / `OLLAMA_HOST` / `OLLAMA_MODEL` / `MAX_CANDIDATES` / `<PROVIDER_ID>_KEY` / `VOCAB_PATH` / `DB_PATH` / `ADMIN_USERNAME` / `ADMIN_PASSWORD` / `ADMIN_USERS` / `AUTH_LOCAL_BYPASS` / `RESEND_API_KEY` / `RESEND_FROM` / `DEBUG`。启动时自动加载（`config/env.ts`），`SERVER_ENV_FILE` 可换文件。
 - `server/data/app.db`（**不进 git**）：配置 + 用户 + 会话 + token 用量 + 升级申请 + 邀请码池。库里**永远没有明文 key** —— provider 的 `apiKeyEnv` 只记变量名。
 - 切换生效 provider **即时生效**，不用重启后端（服务层每次请求都重新问 `activeProvider.ts` 的 getter）。
 - 改 `VOCAB_PATH` 后可在设置页「词库」tab 点「重新加载」，不用重启。
@@ -165,6 +175,9 @@ pnpm cli models
 ## 测试约定
 
 后端用 `vitest` + `supertest`，mock 从 `tests/helpers.ts` 注入。
+
+**手测后端别用真实库** —— 看 `docs/临时库测试指南.md`：临时 env + 临时 SQLite + 另一个端口的后台 server，
+测完 `rm -rf` 一下就干净了；里面还记了几个真踩过的坑（冷却测不出来、SQL 漏一列 → 静默 null 等）。
 
 **`tests/promptParity.test.ts` 是迁移安全网**：默认提示词集的渲染结果必须和迁移前的 builder 逐字节相同。它的期望值**不能手抄** —— 期望值取自 `tests/legacy/prompts/` 里冻结的原始实现（**不要改那个目录**）。手抄的期望值会和模板一起错，测试反而是绿的。
 
