@@ -42,12 +42,31 @@ export function htmlToPlainParagraphs(html: string): string {
   const lines: string[] = []
   let buf = ''
 
-  const walk = (node: Node) => {
+  /**
+   * @param preDepth 在 <pre> 里的层数。
+   *   代码块里的换行是**有意义的**（一行代码一行），
+   *   所以在 pre 里面换行要断行；pre 外面换行只是排版空白，不能断
+   *   （网页里 `<p>foo\n  <b>bar</b></p>` 这种缩进换行到处都是，
+   *    断了会把一句话劈成两段）。
+   */
+  const walk = (node: Node, preDepth: number) => {
     node.childNodes.forEach((child) => {
       // 文本
       if (child.nodeType === Node.TEXT_NODE) {
         // 不换行空格当普通空格 —— 复制网页时到处都是
-        buf += (child.textContent ?? '').replace(/\u00a0/g, ' ')
+        const raw = (child.textContent ?? '').replace(/\u00a0/g, ' ')
+        if (preDepth > 0) {
+          // 代码块：一行一段
+          raw.split(/\r\n?|\n/).forEach((piece, i) => {
+            if (i > 0) {
+              lines.push(buf)
+              buf = ''
+            }
+            buf += piece
+          })
+        } else {
+          buf += raw
+        }
         return
       }
       if (child.nodeType !== Node.ELEMENT_NODE) return
@@ -69,7 +88,7 @@ export function htmlToPlainParagraphs(html: string): string {
         lines.push(buf)
         buf = ''
       }
-      walk(el)
+      walk(el, tag === 'PRE' ? preDepth + 1 : preDepth)
       if (isBlock) {
         lines.push(buf)
         buf = ''
@@ -77,7 +96,7 @@ export function htmlToPlainParagraphs(html: string): string {
     })
   }
 
-  walk(doc.body)
+  walk(doc.body, 0)
   lines.push(buf)
 
   // 空行丢掉（粘贴进来的网页经常一堆 <div><br></div>）

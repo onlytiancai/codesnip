@@ -31,7 +31,8 @@ import {
 import { SCOPE_LABEL, type PromptScope } from '../constants/customPrompts'
 import { ApiError } from '../services/http'
 import { matchCase } from '../utils/matchCase'
-import { escapeHtml } from '../utils/html'
+import { escapeHtml, htmlToPlainParagraphs } from '../utils/html'
+import EditorIcon from './EditorIcon.vue'
 import AiContextMenu from './AiContextMenu.vue'
 import type { AiAction } from '../constants/aiActions'
 
@@ -59,6 +60,13 @@ const props = withDefaults(
     editable?: boolean
     /** 每个英文句子对应的中文（按全局句子索引）—— hover 气泡用 */
     chineseSentences?: string[]
+    /**
+     * 极简模式 —— 工具栏只留「清空」。
+     *
+     * 英译中的英文框是**纯输入框**：那边不需要格式、撤销、AI 那些东西，
+     * 只需要一个「清空」。中译英的英文框（译侧）照常。
+     */
+    minimal?: boolean
   }>(),
   {
     aiEnabled: true,
@@ -67,6 +75,7 @@ const props = withDefaults(
     failedIndexes: () => [],
     editable: true,
     chineseSentences: () => [],
+    minimal: false,
   },
 )
 
@@ -82,6 +91,15 @@ const menuPos = ref<{ top: number; left: number } | null>(null)
 const menuAction = ref<AiAction | null>(null)
 /** 光标所在句；为空时工具栏那排 AI 按钮禁用 */
 const cursorSentence = ref<SelectionInfo | null>(null)
+
+/**
+ * 双击的词 —— 菜单一打开就直接查，不用再点一次「📖 查词」。
+ *
+ * 用 mousedown 的 `detail`（点击次数）判双击，而不是 dblclick 事件：
+ * mousedown 发生在浏览器更新选区**之前** —— 这样菜单打开时就知道
+ * 「这次是双击，要直接查词」，不用先跑一遍候选词再改。
+ */
+const lookupWord = ref('')
 
 function detectSelection(editor: Editor | null) {
   // 翻译期间编辑器是锁着的 —— 别弹 AI 菜单（那时的译文还没对齐好）
@@ -104,6 +122,8 @@ function detectSelection(editor: Editor | null) {
     anchorBox.value = null
     menuAction.value = null
     autoWordKey = ''
+    // 没有选区 → 双击查词的标记也作废（下次打开菜单别又查一遍）
+    lookupWord.value = ''
     return
   }
   // 手动选中的 → 走主菜单（不要自动接着上次的动作跑）
@@ -314,6 +334,8 @@ function closeMenu() {
   menuPos.value = null
   menuAction.value = null
   autoWordKey = ''
+  // 双击查词的标记也清掉 —— 下次打开菜单别又查一遍
+  lookupWord.value = ''
   // 自定义指令那套状态也一起收掉
   customResult.value = null
   customError.value = ''
@@ -384,6 +406,19 @@ defineExpose({
   },
 })
 
+// ===== 双击查词 =====
+
+function onEditorMouseDown(event: MouseEvent) {
+  if (event.detail < 2) return
+  const ed = editor.value
+  if (!ed) return
+  const pos = ed.view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos
+  if (pos == null) return
+  const info = getWordInfoAt(ed, pos, 'any')
+  if (!info) return
+  lookupWord.value = info.text
+}
+
 // ===== 跨面板高亮 =====
 const highlightRef = ref(props.highlightedEnIndex)
 watch(
@@ -423,18 +458,7 @@ watch(
   },
 )
 
-// ===== 鼠标悬停单词 → 气泡显示这句的中文原文 =====
-
-/** 气泡内容与位置；null = 不显示 */
-const hoverTip = ref<{
-  top: number
-  bottom: number
-  left: number
-  word: string
-  chinese: string
-  sentence: string
-  below: boolean
-} | null>(null)
+// ===== 鼠标悬停单词 → 高亮这个词 =====
 
 /** 悬停单词在 doc 里的区间 —— 给装饰扩展读 */
 let hoverRange: { from: number; to: number } | null = null
@@ -453,7 +477,6 @@ function setHoverRange(r: { from: number; to: number } | null) {
 
 function clearHover() {
   setHoverRange(null)
-  hoverTip.value = null
 }
 
 /** 鼠标移动 —— 一帧算一次，别每个 mousemove 都扫一遍文档 */
@@ -472,7 +495,12 @@ function onMouseMove(e: MouseEvent) {
 function updateHover(x: number, y: number) {
   const ed = editor.value
   if (!ed) return
-  // AI 菜单开着的时候不弹气泡 —— 两个浮层叠在一起太乱
+  // 极简模式（英译中的英文输入框）：那边就是纯输入，连高亮都不要
+  if (props.minimal) {
+    clearHover()
+    return
+  }
+  // AI 菜单开着的时候不高亮 —— 两个浮层叠在一起太乱
   if (selection.value) {
     clearHover()
     return
@@ -487,29 +515,7 @@ function updateHover(x: number, y: number) {
     clearHover()
     return
   }
-
-  // 这个词属于第几句（全局句子索引）→ 对齐表里就是它的中文原文
-  const spans = collectSentences(ed.state.doc, splitEnglishSentences)
-  const span = spans.find((s) => info.from >= s.from && info.to <= s.to)
-  const chinese = span ? (props.chineseSentences[span.index] ?? '') : ''
-
   setHoverRange({ from: info.from, to: info.to })
-
-  const coords = ed.view.coordsAtPos(info.from)
-  // 气泡锚在单词左端（CSS 里 translateX(-50%)），左右各留一半宽度
-  const half = 180
-  const maxLeft = Math.max(half, window.innerWidth - half)
-  const left = Math.min(Math.max(coords.left, half), maxLeft)
-  hoverTip.value = {
-    top: coords.top,
-    bottom: coords.bottom,
-    left,
-    word: info.text,
-    chinese,
-    sentence: info.sentence,
-    // 顶到屏幕上方就翻到单词下面
-    below: coords.top < 90,
-  }
 }
 
 // ===== 用户自定义指令 =====
@@ -785,6 +791,9 @@ function runAiAction(action: AiAction) {
   runOnCursorSentence(action)
 }
 
+/** 编辑区有没有焦点 —— 撤销/重做只在输入框被点着的时候才露出来 */
+const focused = ref(false)
+
 const editor = useEditor({
   content: '<p></p>',
   extensions: [
@@ -802,10 +811,23 @@ const editor = useEditor({
     html.value = editor.getHTML()
     sentenceIndex.value = getSentenceIndex(editor.state, splitEnglishSentences)
     detectSelection(editor)
-    // 内容变了 → 气泡里的中文原文可能已经对不上，收掉
+    // 内容变了 → 悬停高亮的区间可能已经对不上，收掉
     clearHover()
   },
+  // 聚焦状态 —— 撤销/重做只在输入框被点着的时候才露出来
+  onFocus() {
+    focused.value = true
+  },
+  onBlur() {
+    focused.value = false
+  },
   editorProps: {
+    // 粘贴去格式 —— 和中文框一个待遇。
+    //
+    // 不去格式的话，复制一段代码块（<pre>）进来会变成代码块节点，
+    // 而取段落的逻辑只认 <p>/<h1..h6> → 源侧「看着有字」但取不到段落，
+    // 点翻译就报「编辑器为空」。
+    transformPastedHTML: (html) => htmlToPlainParagraphs(html),
     // 点在某个词上 → 直接给出这个词能换成什么（不用先拖选）
     //
     // ProseMirror 的 handleClick 跑在**选区更新之前**（mouseup 里先调它，
@@ -820,6 +842,11 @@ const editor = useEditor({
       mousemove: (_view, event) => {
         const e = event as MouseEvent
         onMouseMove(e)
+        return false
+      },
+      // 双击 → 直接查这个词
+      mousedown: (_view, event) => {
+        onEditorMouseDown(event as MouseEvent)
         return false
       },
     },
@@ -856,95 +883,165 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
     @scroll.capture="clearHover"
   >
     <div v-if="editor" class="toolbar">
-      <!-- 文本格式 -->
-      <div class="toolbar__group">
-        <button type="button" :class="{ active: editor.isActive('bold') }"
-          :disabled="!editable || !editor.can().chain().focus().toggleBold().run()"
-          @click="editor.chain().focus().toggleBold().run()" title="加粗 (Ctrl+B)">
-          <strong>B</strong>
-        </button>
-        <button type="button" :class="{ active: editor.isActive('italic') }"
-          :disabled="!editable || !editor.can().chain().focus().toggleItalic().run()"
-          @click="editor.chain().focus().toggleItalic().run()" title="斜体 (Ctrl+I)">
-          <em>I</em>
-        </button>
-        <button type="button" :class="{ active: editor.isActive('strike') }"
-          :disabled="!editable || !editor.can().chain().focus().toggleStrike().run()"
-          @click="editor.chain().focus().toggleStrike().run()" title="删除线">
-          <s>S</s>
-        </button>
-        <button type="button" :class="{ active: editor.isActive('underline') }"
-          :disabled="!editable || !editor.can().chain().focus().toggleUnderline().run()"
-          @click="editor.chain().focus().toggleUnderline().run()" title="下划线 (Ctrl+U)">
-          <u>U</u>
-        </button>
-      </div>
+      <!-- 极简模式（英译中的英文输入框）：撤销/重做 + 复制/清空 -->
+      <template v-if="minimal">
+        <!-- 左：撤销 / 重做 —— 只在输入框被点着（聚焦）的时候才显示。
+             @mousedown.prevent —— 不然鼠标一点按钮焦点就跑了，
+             按钮当场消失，点一下像没点着。 -->
+        <div v-if="isSource && focused" class="toolbar__group">
+          <button
+            type="button"
+            class="toolbar__icon-btn"
+            data-tip="撤销 Ctrl+Z"
+            aria-label="撤销 (Ctrl+Z)"
+            :disabled="!editable || !editor.can().chain().focus().undo().run()"
+            @mousedown.prevent
+            @click="editor.commands.undo()"
+          >
+            <EditorIcon name="undo" />
+          </button>
+          <button
+            type="button"
+            class="toolbar__icon-btn"
+            data-tip="重做 Ctrl+Shift+Z"
+            aria-label="重做 (Ctrl+Shift+Z)"
+            :disabled="!editable || !editor.can().chain().focus().redo().run()"
+            @mousedown.prevent
+            @click="editor.commands.redo()"
+          >
+            <EditorIcon name="redo" />
+          </button>
+        </div>
 
-      <!-- 历史 -->
-      <div class="toolbar__group">
-        <button type="button" :disabled="!editable || !editor.can().chain().focus().undo().run()"
-          @click="editor.chain().focus().undo().run()" title="撤销 (Ctrl+Z)">↶</button>
-        <button type="button" :disabled="!editable || !editor.can().chain().focus().redo().run()"
-          @click="editor.chain().focus().redo().run()" title="重做 (Ctrl+Shift+Z)">↷</button>
-      </div>
+        <!-- 右：复制 / 清空 -->
+        <div class="toolbar__group toolbar__group--end">
+          <template v-if="isSource">
+            <button
+              type="button"
+              class="toolbar__icon-btn"
+              :class="{ 'is-copied': copied }"
+              :data-tip="copied ? '已复制到剪贴板' : '复制英文内容'"
+              :aria-label="copied ? '已复制到剪贴板' : '复制英文内容'"
+              :disabled="!editor.getText().trim()"
+              @mousedown.prevent
+              @click="copyContent"
+            >
+              <EditorIcon :name="copied ? 'check' : 'copy'" />
+            </button>
+            <button
+              type="button"
+              class="toolbar__icon-btn toolbar__icon-btn--danger"
+              data-tip="清空英文内容"
+              aria-label="清空英文内容"
+              :disabled="!editable || !editor.getText().trim()"
+              @mousedown.prevent
+              @click="editor.commands.clearContent()"
+            >
+              <EditorIcon name="trash" />
+            </button>
+          </template>
 
-      <!-- 用户自定义指令：钉在工具栏上的那些 -->
-      <div v-if="toolbarPrompts.length" class="toolbar__group toolbar__group--prompts">
-        <button
-          v-for="p in toolbarPrompts"
-          :key="p.id"
-          type="button"
-          class="toolbar__btn-prompt"
-          :disabled="!editable"
-          :title="`${p.label}（${SCOPE_LABEL[p.scope]}）`"
-          @click="runCustomPrompt(p)"
-        >
-          <span class="toolbar__btn-prompt-icon">{{ p.icon }}</span>
-          <span class="toolbar__btn-prompt-label">{{ p.label }}</span>
-        </button>
-      </div>
+          <!-- 译侧：只留「复制」 -->
+          <button
+            v-else
+            type="button"
+            class="toolbar__icon-btn"
+            :class="{ 'is-copied': copied }"
+            :data-tip="copied ? '已复制到剪贴板' : '复制英文内容'"
+            :aria-label="copied ? '已复制到剪贴板' : '复制英文内容'"
+            :disabled="!editor.getText().trim()"
+            @mousedown.prevent
+            @click="copyContent"
+          >
+            <EditorIcon :name="copied ? 'check' : 'copy'" />
+          </button>
+        </div>
+      </template>
 
-      <!-- 源侧：清空；译侧：复制 -->
-      <div class="toolbar__group" :class="{ 'toolbar__group--end': !aiEnabled }">
-        <button
-          v-if="isSource"
-          type="button"
-          class="toolbar__btn-clear"
-          title="清空英文内容"
-          :disabled="!editable || !editor.getText().trim()"
-          @click="editor.commands.clearContent()"
-        >
-          清空
-        </button>
-        <button
-          v-else
-          type="button"
-          class="toolbar__btn-copy"
-          :class="{ 'is-copied': copied }"
-          :disabled="!editor.getText().trim()"
-          :title="copied ? '已复制到剪贴板' : '复制英文内容'"
-          @click="copyContent"
-        >
-          {{ copied ? '✓ 已复制' : '复制' }}
-        </button>
-      </div>
+      <!-- 其余功能（极简模式下全都没有） -->
+      <template v-else>
+        <!-- 历史 -->
+        <div class="toolbar__group">
+          <button type="button" class="toolbar__icon-btn"
+            data-tip="撤销 Ctrl+Z" aria-label="撤销 (Ctrl+Z)"
+            :disabled="!editable || !editor.can().chain().focus().undo().run()"
+            @mousedown.prevent
+            @click="editor.chain().focus().undo().run()">
+            <EditorIcon name="undo" />
+          </button>
+          <button type="button" class="toolbar__icon-btn"
+            data-tip="重做 Ctrl+Shift+Z" aria-label="重做 (Ctrl+Shift+Z)"
+            :disabled="!editable || !editor.can().chain().focus().redo().run()"
+            @mousedown.prevent
+            @click="editor.chain().focus().redo().run()">
+            <EditorIcon name="redo" />
+          </button>
+        </div>
 
-      <!-- 整句操作：收在一个下拉里，作用于光标所在句，不需要选中 -->
-      <div v-if="aiEnabled || customPrompts.length" class="toolbar__group toolbar__group--ai">
-        <button
-          ref="aiBtnRef"
-          type="button"
-          class="toolbar__btn-ai-menu"
-          :class="{ active: aiMenuOpen }"
-          :aria-expanded="aiMenuOpen"
-          aria-haspopup="menu"
-          :disabled="!editable"
-          title="AI 指令（作用于光标所在句）"
-          @click="toggleAiMenu"
-        >
-          ✨ AI ▾
-        </button>
-      </div>
+        <!-- 用户自定义指令：钉在工具栏上的那些 -->
+        <div v-if="toolbarPrompts.length" class="toolbar__group toolbar__group--prompts">
+          <button
+            v-for="p in toolbarPrompts"
+            :key="p.id"
+            type="button"
+            class="toolbar__btn-prompt"
+            :disabled="!editable"
+            :data-tip="`${p.label}（${SCOPE_LABEL[p.scope]}）`"
+            :aria-label="`${p.label}（${SCOPE_LABEL[p.scope]}）`"
+            @click="runCustomPrompt(p)"
+          >
+            <span class="toolbar__btn-prompt-icon">{{ p.icon }}</span>
+            <span class="toolbar__btn-prompt-label">{{ p.label }}</span>
+          </button>
+        </div>
+
+        <!-- 右：复制 / 清空（图标） -->
+        <div class="toolbar__group toolbar__group--end">
+          <button
+            v-if="isSource"
+            type="button"
+            class="toolbar__icon-btn toolbar__icon-btn--danger"
+            data-tip="清空英文内容"
+            aria-label="清空英文内容"
+            :disabled="!editable || !editor.getText().trim()"
+            @mousedown.prevent
+            @click="editor.commands.clearContent()"
+          >
+            <EditorIcon name="trash" />
+          </button>
+          <button
+            v-else
+            type="button"
+            class="toolbar__icon-btn"
+            :class="{ 'is-copied': copied }"
+            :data-tip="copied ? '已复制到剪贴板' : '复制英文内容'"
+            :aria-label="copied ? '已复制到剪贴板' : '复制英文内容'"
+            :disabled="!editor.getText().trim()"
+            @mousedown.prevent
+            @click="copyContent"
+          >
+            <EditorIcon :name="copied ? 'check' : 'copy'" />
+          </button>
+        </div>
+
+        <!-- 整句操作：收在一个下拉里，作用于光标所在句，不需要选中 -->
+        <div v-if="aiEnabled || customPrompts.length" class="toolbar__group toolbar__group--ai">
+          <button
+            ref="aiBtnRef"
+            type="button"
+            class="toolbar__btn-ai-menu"
+            :class="{ active: aiMenuOpen }"
+            :aria-expanded="aiMenuOpen"
+            aria-haspopup="menu"
+            :disabled="!editable"
+            data-tip="AI 指令（作用于光标所在句）"
+            aria-label="AI 指令（作用于光标所在句）"
+            @click="toggleAiMenu"
+          >
+            ✨ AI ▾
+          </button>
+        </div>
+      </template>
     </div>
 
     <EditorContent :editor="editor" />
@@ -1013,27 +1110,11 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
           :custom-result="customResult"
           :custom-busy="customBusy"
           :custom-error="customError"
+          :auto-lookup="lookupWord"
           @replace="applyReplacement"
           @refine="refineCustomPrompt"
           @close="closeMenu"
         />
-      </div>
-    </Teleport>
-
-    <!-- 悬停气泡：鼠标停在单词上 → 显示这句的中文原文 -->
-    <Teleport to="body">
-      <div
-        v-if="hoverTip"
-        class="hover-tip"
-        :style="{
-          left: `${hoverTip.left}px`,
-          top: `${hoverTip.below ? hoverTip.bottom : hoverTip.top}px`,
-          transform: hoverTip.below ? 'translate(-50%, 0)' : 'translate(-50%, -100%)',
-        }"
-      >
-        <div class="hover-tip__word">{{ hoverTip.word }}</div>
-        <div v-if="hoverTip.chinese" class="hover-tip__zh">{{ hoverTip.chinese }}</div>
-        <div v-else class="hover-tip__zh hover-tip__zh--empty">{{ hoverTip.sentence }}</div>
       </div>
     </Teleport>
   </div>

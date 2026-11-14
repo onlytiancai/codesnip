@@ -13,6 +13,7 @@ import {
 } from '../composables/highlightContext'
 import { useCopyContent } from '../composables/useCopyContent'
 import { escapeHtml, htmlToPlainParagraphs } from '../utils/html'
+import EditorIcon from './EditorIcon.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -107,6 +108,9 @@ defineExpose({
   },
 })
 
+/** 编辑区有没有焦点 —— 撤销/重做只在聚焦时显示 */
+const focused = ref(false)
+
 const editor = useEditor({
   content: '<p></p>',
   extensions: [
@@ -143,6 +147,13 @@ const editor = useEditor({
   onSelectionUpdate({ editor }) {
     sentenceIndex.value = getSentenceIndex(editor.state, splitChineseSentences)
   },
+  // 聚焦状态 —— 撤销/重做只在输入框被点着的时候才露出来
+  onFocus() {
+    focused.value = true
+  },
+  onBlur() {
+    focused.value = false
+  },
   onCreate({ editor }) {
     editor.setEditable(props.editable)
     html.value = editor.getHTML()
@@ -157,56 +168,76 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
 <template>
   <div class="editor-shell zh-shell" :class="{ 'is-locked': !editable }">
     <div v-if="editor" class="toolbar">
-      <div class="toolbar__group">
-        <button type="button" :class="{ active: editor.isActive('bold') }"
-          :disabled="!editable || !editor.can().chain().focus().toggleBold().run()"
-          @click="editor.chain().focus().toggleBold().run()" title="加粗 (Ctrl+B)">
-          <strong>B</strong>
-        </button>
-        <button type="button" :class="{ active: editor.isActive('italic') }"
-          :disabled="!editable || !editor.can().chain().focus().toggleItalic().run()"
-          @click="editor.chain().focus().toggleItalic().run()" title="斜体 (Ctrl+I)">
-          <em>I</em>
-        </button>
-        <button type="button" :class="{ active: editor.isActive('strike') }"
-          :disabled="!editable || !editor.can().chain().focus().toggleStrike().run()"
-          @click="editor.chain().focus().toggleStrike().run()" title="删除线">
-          <s>S</s>
-        </button>
-        <button type="button" :class="{ active: editor.isActive('underline') }"
-          :disabled="!editable || !editor.can().chain().focus().toggleUnderline().run()"
-          @click="editor.chain().focus().toggleUnderline().run()" title="下划线 (Ctrl+U)">
-          <u>U</u>
-        </button>
-      </div>
-      <div class="toolbar__group">
-        <button type="button" :disabled="!editable || !editor.can().chain().focus().undo().run()"
-          @click="editor.chain().focus().undo().run()" title="撤销 (Ctrl+Z)">↶</button>
-        <button type="button" :disabled="!editable || !editor.can().chain().focus().redo().run()"
-          @click="editor.chain().focus().redo().run()" title="重做 (Ctrl+Shift+Z)">↷</button>
-      </div>
-      <div class="toolbar__group toolbar__group--end">
-        <!-- 源侧：清空；译侧：复制 -->
+      <!-- 左：撤销 / 重做 —— 只在输入框被点着（聚焦）的时候才显示。
+           按钮上 @mousedown.prevent —— 不然鼠标一点按钮，焦点就跑了，
+           按钮当场消失，点一下像没点着。 -->
+      <div v-if="isSource && focused" class="toolbar__group">
         <button
-          v-if="isSource"
           type="button"
-          class="toolbar__btn-clear"
-          title="清空中文内容"
-          :disabled="!editable || !editor.getText().trim()"
-          @click="editor.commands.clearContent()"
+          class="toolbar__icon-btn"
+          data-tip="撤销 Ctrl+Z"
+          aria-label="撤销 (Ctrl+Z)"
+          :disabled="!editable || !editor.can().chain().focus().undo().run()"
+          @mousedown.prevent
+          @click="editor.commands.undo()"
         >
-          清空
+          <EditorIcon name="undo" />
         </button>
+        <button
+          type="button"
+          class="toolbar__icon-btn"
+          data-tip="重做 Ctrl+Shift+Z"
+          aria-label="重做 (Ctrl+Shift+Z)"
+          :disabled="!editable || !editor.can().chain().focus().redo().run()"
+          @mousedown.prevent
+          @click="editor.commands.redo()"
+        >
+          <EditorIcon name="redo" />
+        </button>
+      </div>
+
+      <!-- 右：复制 / 清空 -->
+      <div class="toolbar__group toolbar__group--end">
+        <!-- 源侧（输入框）：复制 + 清空，两个小图标 -->
+        <template v-if="isSource">
+          <button
+            type="button"
+            class="toolbar__icon-btn"
+            :class="{ 'is-copied': copied }"
+            :data-tip="copied ? '已复制到剪贴板' : '复制中文内容'"
+            :aria-label="copied ? '已复制到剪贴板' : '复制中文内容'"
+            :disabled="!editor.getText().trim()"
+            @mousedown.prevent
+            @click="copyContent"
+          >
+            <EditorIcon :name="copied ? 'check' : 'copy'" />
+          </button>
+          <button
+            type="button"
+            class="toolbar__icon-btn toolbar__icon-btn--danger"
+            data-tip="清空中文内容"
+            aria-label="清空中文内容"
+            :disabled="!editable || !editor.getText().trim()"
+            @mousedown.prevent
+            @click="editor.commands.clearContent()"
+          >
+            <EditorIcon name="trash" />
+          </button>
+        </template>
+
+        <!-- 译侧：只留「复制」 -->
         <button
           v-else
           type="button"
-          class="toolbar__btn-copy"
+          class="toolbar__icon-btn"
           :class="{ 'is-copied': copied }"
+          :data-tip="copied ? '已复制到剪贴板' : '复制中文内容'"
+          :aria-label="copied ? '已复制到剪贴板' : '复制中文内容'"
           :disabled="!editor.getText().trim()"
-          :title="copied ? '已复制到剪贴板' : '复制中文内容'"
+          @mousedown.prevent
           @click="copyContent"
         >
-          {{ copied ? '✓ 已复制' : '复制' }}
+          <EditorIcon :name="copied ? 'check' : 'copy'" />
         </button>
       </div>
     </div>

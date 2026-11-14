@@ -315,7 +315,8 @@ async function doTranslate() {
 
     await translateSentencesStream(
       flat,
-      isToneId(tone.value) ? tone.value : undefined,
+      // 英译中没有语气（那边就是普通翻译）—— 不传 tone 走后端默认 prompt
+      srcLang === 'zh' && isToneId(tone.value) ? tone.value : undefined,
       srcLang,
       tgtLang,
       ctl.signal,
@@ -410,8 +411,17 @@ async function doTranslate() {
 function extractParagraphs(html: string): string[] {
   if (!html) return []
   const doc = new DOMParser().parseFromString(`<root>${html}</root>`, 'text/html')
-  return Array.from(doc.querySelectorAll('p, h1, h2, h3, h4, h5, h6'))
+  const paras = Array.from(doc.querySelectorAll('p, h1, h2, h3, h4, h5, h6'))
     .map((p) => p.textContent ?? '')
+    .filter(Boolean)
+  if (paras.length) return paras
+  // 兜底：一个 <p> 都没有 —— 内容全在代码块 / 引用 / 列表里。
+  // （粘贴已经去格式了，这里是防手敲 ``` 或历史内容）
+  // 按顶层块取文字，至少别报「编辑器为空」。
+  const root = doc.body.firstElementChild
+  if (!root) return []
+  return Array.from(root.children)
+    .map((el) => el.textContent ?? '')
     .filter(Boolean)
 }
 
@@ -758,10 +768,7 @@ function onSideBlur(side: 'source' | 'target') {
         <div class="app__col-header">
           <span class="app__col-label">英文</span>
           <div v-if="sourceLang === 'en'" class="app__col-actions">
-            <select v-model="tone" class="tone-select" title="翻译语气" :disabled="translating">
-              <option value="">默认语气</option>
-              <option v-for="t in tones" :key="t.id" :value="t.id">{{ t.label }}</option>
-            </select>
+            <!-- 英译中不选语气 —— 就是普通翻译 -->
             <button
               type="button"
               class="btn-translate"
@@ -783,6 +790,7 @@ function onSideBlur(side: 'source' | 'target') {
           :chinese-sentence="currentChineseSentence"
           :ai-enabled="mode === 'zh2en'"
           :is-source="enSide === 'source'"
+          :minimal="mode === 'en2zh'"
           :loading-indexes="enSide === 'source' ? loadingIndexes : []"
           :failed-indexes="enSide === 'source' ? failedIndexes : []"
           :editable="!translating"

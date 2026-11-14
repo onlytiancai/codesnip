@@ -90,6 +90,12 @@ pnpm cli models
 - **点词即候选**（只中译英的英文框，`aiEnabled` 时才开）：光标停在某个词的**最左侧**、或鼠标点在这个词上 → 直接弹这个词的**候选词**面板（不用先拖选），点候选词就替换掉原词。找词用 `useSelectionKind.getWordInfoAt(editor, pos, mode)`，`mode` = `'leftEdge'`（只认词首，词在光标右边）/ `'any'`（点击取整个词，词内撇号算一个词）。
   ⚠️ ProseMirror 的 `handleClick` 跑在**选区更新之前**（mouseup 里先调它再更新选区）—— 点击那条路必须用它给的 `pos`；选区更新那条路要用 `lastClickAt`（500ms 内）让开，否则「词首」规则会把点击的结果顶掉。另外打字时 transaction 改了文档，要靠 `transaction.docChanged` 挡掉，不然每敲一个字都会弹一次。
   ⚠️ **菜单不许「闪」**：点词时菜单要**原地换内容**，不能先关掉再弹出来。所以 `onShellMousedownCapture` 遇到「点在词上」时**不关菜单**，`detectSelection` 遇到「只有光标 + 刚点过鼠标」时也**不关**。
+- **双击 = 直接查词**（`TiptapEditor.vue`）：双击单词 → 菜单直接落到「查词」面板（本地词库）。
+  ⚠️ 判双击用 **mousedown 的 `event.detail`**（点击次数），不是 `dblclick` 事件 —— mousedown 发生在浏览器更新选区**之前**，
+  这样菜单打开时就知道「这次是双击」，**不用先跑一遍候选词再改**（省一次模型调用）。
+  `AiContextMenu.vue` 的 `autoLookup` prop 收这个词；选区 watcher 里 `if (showTabs && !props.autoLookup) openCandidates()` —— 有 autoLookup 就不跑候选词。
+  ⚠️ `autoLookup` 的 watcher 必须排在选区 watcher **后面**（选区那个会 `resetState()`，反过来会把查词请求掐掉）。
+  ⚠️ `lookupWord` 是 `const` —— 它被 `detectSelection()` 用到，声明得在 `useEditor()` 之前（TDZ）。
 - **工具栏的 AI 指令收在下拉里**（`TiptapEditor.vue`）：工具栏只留一个「✨ AI」按钮，点开才是 6 项清单。下拉**必须 Teleport 到 body** —— `.editor-shell` 是 `overflow: hidden`，放在工具栏里会被裁掉；用 `position: fixed` + 按钮的 `getBoundingClientRect()` 定位（右对齐、下方放不下就往上翻）。点外面 / Esc / 选一项都收起。
   ⚠️ 工具栏按钮的样式要用 `.toolbar .xxx` **复合选择器**：`.toolbar button` 的特异性比单个类高，只写 `.toolbar__btn-copy` 会被盖掉。
 - **浮动菜单定位**（`AiContextMenu.vue`）：`editor.view.coordsAtPos()` 取选区上下两条 client rect → `Teleport` 到 body → `position: fixed` 定位。**定位必须按菜单实测高度算**（`ResizeObserver` 盯高度），不能用估计值，否则查词词条 / 语法结果卡片会被裁到视口外。菜单整体在 `mousedown` 上 `preventDefault`，否则 ProseMirror 先吃掉选区，点候选时 range 已经没了。
@@ -106,12 +112,30 @@ pnpm cli models
 - **手动翻译是流式的**（`EditorPage.vue` 的 `doTranslate`）：走 `services/translate.ts` 的 `translateSentencesStream`，**每句一回调**。译侧先铺一层占位（每句一个 `…`），翻完一句就把那一段重写一次（`applyParagraphs`，只改一段）；源侧正在翻的句子用 Decoration 画 `.sentence-loading`（琥珀色脉冲 + 句尾转圈，伪元素不进编辑器内容），失败的画 `.sentence-failed`。
 - **loading 索引 = 源侧的全局句子索引**：跟 `collectSentences`（`useWritingContext.ts`）同一套编号（跨段落累计），所以装饰能直接对上。索引来源是 `extractParagraphs` + 切句后的**摊平下标** —— 中文框只有段落（heading/list 都禁了），两者对得上；英文框有列表时列表里的句子不参与编号（老问题）。
 - **翻译期间锁编辑器**：两个编辑器组件都有 `editable` prop → `editor.setEditable(false)`；成功/失败都在 `finally` 里解锁。整体失败（401/403）时译侧还原回原来的内容。`loadingOwner` 标记谁在占用 loading 状态 —— 手动翻译会掐掉实时翻译，没有这个标记会互相清空。
-- **中文框粘贴去格式**：`ChineseEditor.vue` 的 `editorProps.transformPastedHTML` → `utils/html.ts` 的 `htmlToPlainParagraphs`（DOMParser 取纯文本 + 段落划分，加粗/代码块/引用/列表全丢）。只对中文框生效。
-- **英文框悬停气泡**：`TiptapEditor.vue` 的 mousemove → `posAtCoords` → `getWordInfoAt` → 用 `aligned` 对齐表查这句的中文原文；rAF 节流，AI 菜单开着时不弹（免得两个浮层叠一起）。装饰 `.hover-word`。
+- **粘贴去格式（两个框都做）**：`ChineseEditor.vue` 和 `TiptapEditor.vue` 的 `editorProps.transformPastedHTML` → `utils/html.ts` 的 `htmlToPlainParagraphs`（DOMParser 取纯文本 + 段落划分，加粗/代码块/引用/列表全丢）。
+  ⚠️ **英文框也必须去格式**：英译中时复制一段代码块进来会变成 `codeBlock` 节点，而 `extractParagraphs` 只认 `p, h1..h6` → 源侧看着有字但取不到段落，点翻译报「英文编辑器为空」。
+  ⚠️ `htmlToPlainParagraphs` 里 `<pre>` 内部的换行要**断行**（一行代码一段），pre 外的换行**不能断** —— 网页里 `<p>foo\n  <b>bar</b></p>` 这种缩进换行到处都是，断了会把一句话劈成两段。
+  ⚠️ `extractParagraphs` 有兜底：一个 `p` 都没有时按顶层块取文字（防手敲 ``` 或历史内容），别直接报「编辑器为空」。
+- **英文框悬停只高亮**：`TiptapEditor.vue` 的 mousemove → `posAtCoords` → `getWordInfoAt` → `setHoverRange()`，装饰 `.hover-word`（淡蓝高亮）。**没有气泡了** —— 以前会弹个浮层显示「这句对应的中文原文」，现在去掉了。rAF 节流，AI 菜单开着时不高亮（免得两个浮层叠一起）。
 - **工具栏的清空/复制跟着源译侧走**：两个编辑器组件都有 `isSource` prop —— **源侧渲染「清空」，译侧渲染「复制」**，切方向时自动互换（中译英：中文=清空 / 英文=复制；英译中反过来）。复制逻辑抽在 `composables/useCopyContent.ts`（纯文本提取 + 剪贴板 + 「✓ 已复制」提示），两个框共用。
+  ⚠️ **源侧输入框的工具栏 = 四个小图标**：`[↶ 撤销][↷ 重做]`（左，**只有聚焦时才显示**）+ `[📋 复制][🗑 清空]`（右）。图标是内联 SVG（`components/EditorIcon.vue`，`name` = undo/redo/copy/trash/check）。**译侧的「复制」也是图标**了（原来是一行文字）。
+  ⚠️ **撤销/重做「聚焦才显示」靠 `useEditor` 的 `onFocus` / `onBlur`**（两个编辑器组件各有一个 `focused` ref）。
+  ⚠️ **这四个按钮必须加 `@mousedown.prevent`** —— 不然鼠标一点，焦点跑到按钮上 → `onBlur` → 撤销/重做当场消失，点一下像没点着。按钮上的 `@click` 用 `editor.commands.undo()`（不是 chain），focus 不会丢。
+  ⚠️ **tooltip 用 `data-tip` 属性 + CSS `::after`**（`.toolbar [data-tip]::after`），**不用原生 `title`** —— 原生那个要悬停 1 秒才出、样式不可控、还会挡住按钮。
+    tooltip **往下弹**（不是往上）—— `.editor-shell` 是 `overflow: hidden`，往上的会被裁掉。按钮上再写个 `aria-label`（给读屏用，也当 title 的替代）。
+  ⚠️ **`.toolbar__group--ai` 不能有 `margin-left: auto`** —— 前面「复制」那组已经有 auto（`toolbar__group--end`），两个 auto 各分一半空间，复制和 AI 之间会裂一道缝。
+  ⚠️ **英文框（译侧）没有 B/I/S/U 了** —— 译文是机器翻的，加粗没意义。英文框保留：撤销/重做（图标）、自定义指令、复制、✨ AI。
+  ⚠️ **中文框只有「复制」**（译侧）或那四个图标（源侧）—— 中文这边要么是你敲的、要么是机器翻的。快捷键还在（Ctrl+B / Ctrl+Z），只是没按钮。
+  ⚠️ 「复制」按钮**没挂 `editable`**（译侧复制不受翻译锁影响）—— 这是有意为之，别顺手加上。
+  ⚠️ 工具栏按钮的样式用 `.toolbar .xxx` **复合选择器**（`.toolbar button` 特异性更高）。
 - **源侧清空 → 译侧跟着清**：译文没意义了，`EditorPage.vue` 里清掉译侧和对齐表。
   ⚠️ **不能 `watch(sourceHtml)`**（它是随 mode 变的 computed）—— 切方向的瞬间新方向的源侧通常是空的，会把另一栏的用户内容误清掉。要**分别 watch `zhHtml` / `enHtml`**，再按当前 `sourceLang` 判断该不该联动。
 - 英译中模式下英文侧 `aiEnabled=false` —— 改写 / 润色 / 语法 / 指令全部关掉，只留「查词」。
+- **英译中的英文框是「纯输入框」**：英文侧多一个 `minimal` prop（`mode === 'en2zh'` 时为 true）——
+  工具栏只留四个小图标（撤销 / 重做 / 复制 / 清空），其余（B/I/S/U、✨ AI 下拉、自定义指令按钮、悬停高亮）全没了。
+  ⚠️ **查词不受影响** —— 查词在**浮动菜单**里（选中单词 → 菜单 → 「📖 查词」），不在工具栏上，所以 `minimal` 不用管它。
+  ⚠️ 工具栏那排分组是 `<template v-else>` 包着的 —— **一个 v-if 链只能有一个 v-else**，别把它们改成 v-else-if（编译直接报错）。
+- **英译中不带语气**：`doTranslate()` 里只有 `srcLang === 'zh'` 才传 tone —— 英译中就是普通翻译，走后端默认 prompt。
 - **设置页的 tab**（`SettingsPage.vue`）：LLM 供应商 / 提示词 / 词库 / **账号** / **我的套餐** / **用户管理**。
   ⚠️ **tab 按权限显隐**：`canSeeTab()` —— 「LLM 供应商」「词库」「用户管理」只有 `user.role === 'admin'` 才渲染，其他 tab 谁都能看。
   「提示词」tab 里面再分两块：**系统提示词**（`PromptPanel.vue`，非管理员 `readonly` —— 能看不能改）和**我的指令**（`UserPromptsPanel.vue`）。`AccountPanel.vue` 管账号信息和改密码，`PlanPanel.vue` 管自己的套餐和申请，`AdminPanel.vue` 管用户 / 审核 / 邀请码池。

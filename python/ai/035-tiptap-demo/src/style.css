@@ -697,9 +697,10 @@ h1 {
   border-color: var(--toolbar-active-bg);
 }
 
-/* AI 按钮推到工具栏最右 */
+/* AI 按钮在最右一组
+   （不写 margin-left:auto —— 前面那组「复制」已经有 auto，把整排顶到右边，
+    两个 auto 会各分一半空间，复制和 AI 之间会裂开一道缝） */
 .toolbar__group--ai {
-  margin-left: auto;
   padding-right: 0;
   margin-right: 0;
   border-right: none;
@@ -1305,22 +1306,84 @@ h1 {
   margin-top: 6px;
 }
 
-/* ---- 「清空」按钮 ---- */
-/* 注意用 `.toolbar xxx` 复合选择器：`.toolbar button` 的特异性更高，
-   单写 `.toolbar__btn-clear` 会被盖掉。 */
-.toolbar .toolbar__btn-clear {
-  padding: 0 10px;
-  border: 1px solid var(--border);
+/* ---- 「清空 / 复制」现在是图标按钮（.toolbar__icon-btn），没有文字版了 ---- */
+
+/* ---- 小图标按钮（撤销 / 重做 / 复制 / 清空）----
+   注意用 `.toolbar xxx` 复合选择器：`.toolbar button` 的特异性更高。 */
+.toolbar .toolbar__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
   border-radius: 6px;
-  background: #fff;
+  background: transparent;
   color: var(--muted);
-  font-size: 0.85rem;
 }
 
-.toolbar .toolbar__btn-clear:hover:not(:disabled) {
+.toolbar .toolbar__icon-btn:hover:not(:disabled) {
+  background: #e9ecef;
+  color: var(--fg);
+}
+
+/* 清空：悬停时飘红，跟「删」的危险语义对上 */
+.toolbar .toolbar__icon-btn--danger:hover:not(:disabled) {
   background: #fff5f5;
   border-color: #ffa8a8;
   color: #c92a2a;
+}
+
+/* 复制成功：图标换成对勾 + 变绿 */
+.toolbar .toolbar__icon-btn.is-copied {
+  background: #ebfbee;
+  border-color: #69db7c;
+  color: var(--en-accent);
+}
+
+/* ---- 工具栏 tooltip（中文）----
+   按钮上写 data-tip="撤销"，鼠标停上去在按钮下面弹一个小条。
+
+   为什么不用原生 title：
+   - 原生那个要悬停 1 秒左右才出，慢
+   - 样式完全由浏览器决定，深浅不可控
+   - 挡在按钮正上方，挡住旁边的按钮
+
+   tooltip 往下弹（不是往上）—— `.editor-shell` 是 overflow:hidden，
+   往上的话会被裁掉。 */
+.toolbar [data-tip] {
+  position: relative;
+}
+
+.toolbar [data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-3px);
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: #1f2933;
+  color: #fff;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  z-index: 30;
+}
+
+.toolbar [data-tip]:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* 禁用状态的按钮不给 tooltip */
+.toolbar [data-tip]:disabled::after {
+  display: none;
 }
 
 /* 工具栏最右侧的一组（AI 按钮 / 清空 / 复制） */
@@ -1331,9 +1394,8 @@ h1 {
   border-right: none;
 }
 
-/* AI 按钮推到工具栏最右 */
+/* AI 按钮在最右一组（见上面那条） */
 .toolbar__group--ai {
-  margin-left: auto;
   padding-right: 0;
   margin-right: 0;
   border-right: none;
@@ -1348,33 +1410,6 @@ h1 {
   font-size: 0.82rem;
   color: var(--fg);
   white-space: nowrap;
-}
-
-.toolbar .toolbar__btn-clear:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-/* ---- 英文框「复制」按钮 ---- */
-/* 注意用 `.toolbar xxx` 复合选择器：`.toolbar button` 的特异性更高，
-   单写 `.toolbar__btn-copy` 会被它盖掉。 */
-.toolbar .toolbar__btn-copy {
-  padding: 0 10px;
-  font-size: 0.85rem;
-  /* 「复制」→「✓ 已复制」宽度不变，工具栏不抖 */
-  min-width: 76px;
-}
-
-.toolbar .toolbar__btn-copy:hover:not(:disabled) {
-  background: #ebfbee;
-  border-color: #69db7c;
-  color: var(--en-accent);
-}
-
-.toolbar .toolbar__btn-copy.is-copied {
-  background: #ebfbee;
-  border-color: #69db7c;
-  color: var(--en-accent);
 }
 
 /* ===== ProseMirror 编辑区 ===== */
@@ -1620,37 +1655,6 @@ h1 {
   background: rgba(34, 139, 230, 0.12);
   border-bottom: 2px solid rgba(34, 139, 230, 0.5);
   border-radius: 2px;
-}
-
-/* 悬停气泡（Teleport 到 body，position: fixed） */
-.hover-tip {
-  position: fixed;
-  z-index: 900;
-  max-width: 360px;
-  padding: 8px 12px;
-  background: #fff;
-  border: 1px solid var(--border-strong);
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  font-size: 0.85rem;
-  line-height: 1.5;
-  pointer-events: none;
-}
-
-.hover-tip__word {
-  margin-bottom: 2px;
-  font-weight: 600;
-  color: var(--toolbar-active-bg);
-  word-break: break-all;
-}
-
-.hover-tip__zh {
-  color: var(--fg);
-  word-break: break-word;
-}
-
-.hover-tip__zh--empty {
-  color: var(--muted);
 }
 
 /* 翻译期间锁住的编辑器 */

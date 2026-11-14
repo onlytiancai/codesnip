@@ -51,8 +51,20 @@ const props = withDefaults(
     customBusy?: boolean
     /** 自定义指令跑失败了 */
     customError?: string
+    /**
+     * 非空 = 直接查这个词（双击查词）。
+     *
+     * 菜单一打开就查好，用户不用再点一次「📖 查词」。
+     */
+    autoLookup?: string
   }>(),
-  { allowAi: true, customResult: null, customBusy: false, customError: '' },
+  {
+    allowAi: true,
+    customResult: null,
+    customBusy: false,
+    customError: '',
+    autoLookup: '',
+  },
 )
 
 const emit = defineEmits<{
@@ -412,7 +424,8 @@ watch(
   () => {
     resetState()
     tab.value = 'candidates'
-    if (showTabs.value) void openCandidates()
+    // 双击查词：直接查词，不跑候选词（省一次模型调用）
+    if (showTabs.value && !props.autoLookup) void openCandidates()
   },
   { immediate: true },
 )
@@ -422,6 +435,20 @@ watch(
   () => props.autoAction,
   (action) => {
     if (action) void runAction(action)
+  },
+  { immediate: true },
+)
+
+// 双击查词：直接落到「查词」面板。
+//
+// ⚠️ 必须排在选区那个 watcher 后面 —— 选区 watcher 会 resetState()
+// （顺手 abort 在飞的请求），反过来会把这里刚发起的查词掐掉。
+watch(
+  () => props.autoLookup,
+  (word) => {
+    if (!word) return
+    tab.value = 'lookup'
+    void lookupWordInto(word)
   },
   { immediate: true },
 )
@@ -480,7 +507,10 @@ watch(
     </div>
 
     <!-- ============ 菜单项清单（整句 / 关掉 AI 能力时） ============ -->
-    <nav v-if="!showTabs && !panel && !customBusy && !customError" class="ai-menu__items">
+    <nav
+      v-if="!showTabs && !panel && !customBusy && !customError && !loading"
+      class="ai-menu__items"
+    >
       <template v-if="allowAi && selection.kind === 'sentence'">
         <button
           type="button"
@@ -524,6 +554,11 @@ watch(
         <p>{{ customError }}</p>
         <button type="button" @click="emit('close')">关闭</button>
       </div>
+    </div>
+
+    <!-- 请求在飞：先显示状态，别闪一下菜单项 -->
+    <div v-else-if="loading" class="ai-menu__panel">
+      <div class="ai-menu__status">{{ loadingLabel }}</div>
     </div>
 
     <div v-else-if="panel" class="ai-menu__panel">
