@@ -40,8 +40,13 @@ export function useMode() {
   return { mode, setMode }
 }
 
-/** 每个方向的展示信息 —— 侧栏菜单用。 */
-export const MODES: Record<TranslationMode, { label: string; icon: string }> = {
-  zh2en: { label: '中译英', icon: '中→英' },
-  en2zh: { label: '英译中', icon: '英→中' },
+/**
+ * 每个方向的展示信息 —— 侧栏菜单用。
+ *
+ * 图标不放这儿 —— 侧栏自己有一张「方向 → 图标」的表（AppSidebar.vue 的 MODE_ICONS），
+ * 免得这个 composable 去依赖 components。
+ */
+export const MODES: Record<TranslationMode, { label: string }> = {
+  zh2en: { label: '中译英' },
+  en2zh: { label: '英译中' },
 }

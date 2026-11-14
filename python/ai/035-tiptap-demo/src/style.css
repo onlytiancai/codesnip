@@ -62,6 +62,8 @@ h1 {
 .sidebar {
   position: sticky;
   top: 0;
+  /* tooltip 是侧栏的子元素 —— 侧栏要压过内容区，否则气泡会被内容盖住 */
+  z-index: 5;
   flex: 0 0 auto;
   width: 196px;
   height: 100vh;
@@ -83,20 +85,30 @@ h1 {
 .sidebar__top {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
   min-height: 30px;
 }
 
+/* 收缩态：图标和开关竖着叠 */
+.sidebar--collapsed .sidebar__top {
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
 .sidebar__toggle {
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 30px;
   height: 30px;
+  padding: 0;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: #fff;
   color: var(--fg);
-  font: inherit;
-  line-height: 1;
   cursor: pointer;
 }
 
@@ -106,7 +118,23 @@ h1 {
   color: #fff;
 }
 
+/* 品牌：网站图标 + 标题 */
 .sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.sidebar__logo {
+  flex: 0 0 auto;
+  display: block;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+}
+
+.sidebar__brand-name {
   font-weight: 600;
   font-size: 0.95rem;
   white-space: nowrap;
@@ -159,9 +187,10 @@ h1 {
 
 .sidebar__icon {
   flex: 0 0 auto;
-  min-width: 2.2em;
-  text-align: center;
-  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
 }
 
 .sidebar--collapsed .sidebar__item {
@@ -226,8 +255,14 @@ h1 {
 .sidebar__caret {
   margin-left: auto;
   flex: none;
-  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
   color: var(--muted);
+}
+
+/* 菜单打开时箭头朝上 */
+.sidebar__caret--up {
+  transform: rotate(180deg);
 }
 
 /* 用户菜单：从下往上弹（用户块贴着底边） */
@@ -328,9 +363,10 @@ h1 {
   font-variant-numeric: tabular-nums;
 }
 
-/* 收缩态：只留一个图标 */
+/* 收缩态：只留一个图标（居中） */
 .sidebar--collapsed .sidebar__user {
   align-items: center;
+  justify-content: center;
   padding-left: 0;
   padding-right: 0;
 }
@@ -367,8 +403,10 @@ h1 {
 }
 
 .login__logo {
-  font-size: 1.35rem;
-  line-height: 1;
+  display: block;
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
 }
 
 .login__brand-title {
@@ -472,6 +510,21 @@ h1 {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+}
+
+/* 页面标题：网站图标 + 文字 */
+.app__title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.site-logo {
+  display: block;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
 }
 
 /* 实时翻译开关 */
@@ -1342,26 +1395,24 @@ h1 {
   color: var(--en-accent);
 }
 
-/* ---- 工具栏 tooltip（中文）----
-   按钮上写 data-tip="撤销"，鼠标停上去在按钮下面弹一个小条。
+/* ---- tooltip（自定义小气泡，中文）----
+   元素上写 data-tip="撤销"，鼠标停上去弹一个小条。
 
    为什么不用原生 title：
    - 原生那个要悬停 1 秒左右才出，慢
    - 样式完全由浏览器决定，深浅不可控
    - 挡在按钮正上方，挡住旁边的按钮
 
-   tooltip 往下弹（不是往上）—— `.editor-shell` 是 overflow:hidden，
-   往上的话会被裁掉。 */
-.toolbar [data-tip] {
+   方向按容器分：
+   - 工具栏往下弹 —— `.editor-shell` 是 overflow:hidden，往上的会被裁掉
+   - 侧栏往右弹 —— 侧栏太窄，气泡只能甩到内容区那边 */
+[data-tip] {
   position: relative;
 }
 
-.toolbar [data-tip]::after {
+[data-tip]::after {
   content: attr(data-tip);
   position: absolute;
-  top: calc(100% + 7px);
-  left: 50%;
-  transform: translateX(-50%) translateY(-3px);
   padding: 3px 8px;
   border-radius: 5px;
   background: #1f2933;
@@ -1375,14 +1426,35 @@ h1 {
   z-index: 30;
 }
 
-.toolbar [data-tip]:hover::after {
+[data-tip]:hover::after {
   opacity: 1;
+}
+
+/* 工具栏：往下弹 */
+.toolbar [data-tip]::after {
+  top: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-3px);
+}
+
+.toolbar [data-tip]:hover::after {
   transform: translateX(-50%) translateY(0);
 }
 
 /* 禁用状态的按钮不给 tooltip */
 .toolbar [data-tip]:disabled::after {
   display: none;
+}
+
+/* 侧栏：往右弹 */
+.sidebar [data-tip]::after {
+  top: 50%;
+  left: calc(100% + 8px);
+  transform: translateY(-50%) translateX(-3px);
+}
+
+.sidebar [data-tip]:hover::after {
+  transform: translateY(-50%) translateX(0);
 }
 
 /* 工具栏最右侧的一组（AI 按钮 / 清空 / 复制） */

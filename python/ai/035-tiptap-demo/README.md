@@ -100,6 +100,10 @@ pnpm cli sentence --text "Education is very important for children." --operation
 ## 主要功能
 
 - **可收缩的左侧栏**：菜单项切换翻译方向（**中译英** / **英译中**），左下角是**用户名 + 套餐徽标**，点它弹出菜单（**设置** / **退出登录**）。收缩状态存 localStorage。侧栏在所有路由常驻。
+  - 菜单项是**图标**（Lucide）：**中译英 = 文A**（`languages`）、**英译中 = Aa**（`case-sensitive`）；收缩后**只留图标**，鼠标停上去弹 tooltip（自定义小气泡，不是原生 title）
+  - 收起 / 展开按钮是**面板图标**（`panel-left-close` / `panel-left-open`），展开时**放在标题的右边**，收缩时叠在网站图标下面
+  - 侧栏顶部是**网站图标 + 「翻译工作台」**
+- **网站图标**：**蓝色小池塘上的一只小青蛙**。**浏览器标签页标题左边、收藏夹里显示的就是它**（`public/favicon.svg` + 生成的 PNG 兜底），页面标题（编辑器页 / 登录页）的**左边**也放同一个图标
 - **登录 + 用户信息**：消耗 token 的功能都要登录（见下面的「登录」一节）。侧栏左下角显示用户名 + 套餐徽标，上面是今日配额条 + 今日/本月 token 消耗（输入 / 输出分开）。
 - **左右两栏**（宽屏），左边是源文、右边是译文 —— 方向随侧栏菜单切
 - **两个方向互不继承**：中译英和英译中是**两套独立状态** —— 在中译英的中文框输入的字，切到英译中不会带过去（英译中的中文框是空的），英文框同理；每个方向各自存着内容，切回来还在
@@ -122,7 +126,7 @@ pnpm cli sentence --text "Education is very important for children." --operation
   - 那套改写/润色/语法 AI 能力全部关掉 —— 但**「📖 查词」保留**：选中一个单词 → 弹出菜单 → 点「📖 查词」
 - **查词**：在英文框里**双击一个单词** → 直接出查词结果（音标 / 词性释义 / 例句 / 短语 / 同反义词 / 记忆法），不用再点一次「查词」按钮；也可以选中单词 → 菜单里点「📖 查词」。纯本地，不经过模型
 - **清空 / 复制跟着源译侧走**：工具栏右侧那个按钮是**源侧给「清空」、译侧给「复制」**，切方向时两个框的按钮自动互换 —— 中译英时中文框是「清空」、英文框是「复制」，英译中反过来
-- **源侧输入框只有四个小图标**：**撤销 / 重做**（左边，输入框获得焦点时才出现）、**复制 / 清空**（右边）。都是纯图标 + 悬停 tooltip。译侧（英文框 / 中文框）保留文字「复制」按钮和完整工具栏
+- **源侧输入框只有四个小图标**：**撤销 / 重做**（左边，输入框获得焦点时才出现）、**复制 / 清空**（右边）。都是纯图标 + 悬停 tooltip。译侧（英文框 / 中文框）的「复制」也是图标了
 - **选区上下文菜单**：在英文框里选中内容，菜单**自动弹出**并贴着选区定位；菜单项随选区类型变化（详见下表）
 - **点词即候选**：中译英的英文框里，**光标停在某个词的最左侧**（词在光标右边）或**鼠标点在这个词上**（不用先拖选），直接弹出这个词的**可替换候选词**面板，点一下候选词就替换掉原词（保留原大小写）。弹出的悬浮框顶栏是两个 tab：**其它候选单词** / **查词**。英译中模式不开候选词（那边只留查词）
 - **左右光标联动**：在源文框点击 → 译文框对应句高亮；反之亦然。仅在另一侧获焦时才显示
@@ -312,6 +316,10 @@ Escape 逐层退出：面板 → 菜单 → 关闭菜单（tab 模式下没有�
 ## 目录
 
 ```
+public/
+├── favicon.svg                          # 网站图标（蓝底小青蛙）—— 标签页 / 收藏夹 / 页面标题左边
+├── favicon-32.png                       # PNG 兜底（老浏览器不支持 SVG favicon）
+└── apple-touch-icon.png                 # iOS 主屏图标（180×180）
 src/
 ├── Root.vue                             # 根组件，只有 <router-view />
 ├── App.vue                              # 应用外壳：AppSidebar + <RouterView />
@@ -323,7 +331,9 @@ src/
 │   ├── SettingsPage.vue                 # 设置页（路由 /settings）：供应商 / 提示词 / 词库 / 账号 / 我的套餐 / 用户管理
 │   └── LoginPage.vue                    # 登录页（路由 /login，不套侧栏外壳）+ 注册切换
 ├── components/
-│   ├── AppSidebar.vue                   # 左侧栏：方向切换 + 用量 + 左下角用户块（点用户名弹菜单：设置/退出登录）
+│   ├── AppSidebar.vue                   # 左侧栏：方向切换（图标）+ 用量 + 左下角用户块（点用户名弹菜单：设置/退出登录）
+│   ├── AppIcon.vue                      # 图标组件：转发给 lucide-vue-next
+│   ├── appIcons.ts                      # 图标名 → lucide 组件的映射表 + AppIconName 类型
 │   ├── ChineseEditor.vue                # Tiptap 中文编辑器（中文切句 + 清空/复制按钮 + setHtml）
 │   ├── TiptapEditor.vue                 # Tiptap 英文编辑器 + 选区菜单锚点（aiEnabled 控制 AI 那套）
 │   ├── AiContextMenu.vue                # 选区上下文菜单 / 面板 / 结果卡片 / 查词面板
@@ -357,6 +367,16 @@ src/
     ├── matchCase.ts                     # Good→Great / good→great / GOOD→GREAT
     └── debug.ts                         # 调试日志开关（跟后端共用 server/.env 的 DEBUG）
 ```
+
+> **图标从哪来**：应用级图标用 **lucide-vue-next**（ISC 协议，<https://lucide.dev>）——
+> 映射表在 `src/components/appIcons.ts`，要加新图标就加一个分支；编辑器工具栏那几个（撤销/重做/复制/清空/对勾）
+> 还是自己内联的 `components/EditorIcon.vue`。
+> 网站图标 `public/favicon.svg` 是自己画的（蓝底小青蛙），PNG 兜底用 `rsvg-convert` 生成：
+>
+> ```bash
+> rsvg-convert -w 32 -h 32 public/favicon.svg -o public/favicon-32.png
+> rsvg-convert -w 180 -h 180 public/favicon.svg -o public/apple-touch-icon.png
+> ```
 
 ## 脚本
 

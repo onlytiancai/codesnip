@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { MODES, setMode, useMode, type TranslationMode } from '../composables/useMode'
 import { doLogout, refreshUsage, useAuth } from '../composables/useAuth'
 import { debugLog } from '../utils/debug'
+import AppIcon from './AppIcon.vue'
+import type { AppIconName } from './appIcons'
 
 /**
  * 左侧栏：可收缩，收纳翻译方向切换。
@@ -12,6 +14,8 @@ import { debugLog } from '../utils/debug'
  *
  * **左下角是用户块**：用户名 + 套餐徽标，点它弹出菜单（设置 / 退出登录）。
  * 用户块**上面**是用量（今日配额条 + 今日/本月 token）。
+ *
+ * 收缩态只留图标，鼠标停上去有 tooltip（靠 data-tip 属性 + CSS ::after 弹气泡）。
  */
 
 const STORAGE_KEY = 'tiptap-demo.sidebar-collapsed'
@@ -29,6 +33,12 @@ const { mode } = useMode()
 const route = useRoute()
 const router = useRouter()
 const { user, usage } = useAuth()
+
+/** 每个方向一个图标（Lucide）：文A = 中译英，Aa = 英译中 */
+const MODE_ICONS: Record<TranslationMode, AppIconName> = {
+  zh2en: 'languages',
+  en2zh: 'case-sensitive',
+}
 
 watch(collapsed, (v) => {
   try {
@@ -124,21 +134,24 @@ function percent(used: number | undefined, limit: number | undefined): number {
 
 <template>
   <aside class="sidebar" :class="{ 'sidebar--collapsed': collapsed }">
-    <!-- 顶部：收缩按钮 + 标题 -->
+    <!-- 顶部：网站图标 + 标题（展开时收缩按钮在标题右边） -->
     <div class="sidebar__top">
+      <div class="sidebar__brand">
+        <img class="sidebar__logo" src="/favicon.svg" alt="" width="22" height="22" />
+        <span v-if="!collapsed" class="sidebar__brand-name">翻译工作台</span>
+      </div>
       <button
         type="button"
         class="sidebar__toggle"
-        :title="collapsed ? '展开侧边栏' : '收起侧边栏'"
+        :data-tip="collapsed ? '展开侧边栏' : '收起侧边栏'"
         :aria-label="collapsed ? '展开侧边栏' : '收起侧边栏'"
         @click="toggle"
       >
-        {{ collapsed ? '☰' : '«' }}
+        <AppIcon :name="collapsed ? 'panel-left-open' : 'panel-left-close'" />
       </button>
-      <span v-if="!collapsed" class="sidebar__brand">翻译工作台</span>
     </div>
 
-    <!-- 中部：方向切换 -->
+    <!-- 中部：方向切换（收缩态只留图标，hover 出 tooltip） -->
     <nav class="sidebar__nav">
       <button
         v-for="m in ORDER"
@@ -146,10 +159,13 @@ function percent(used: number | undefined, limit: number | undefined): number {
         type="button"
         class="sidebar__item"
         :class="{ 'sidebar__item--on': mode === m }"
-        :title="collapsed ? MODES[m].label : undefined"
+        :data-tip="MODES[m].label"
+        :aria-label="MODES[m].label"
         @click="setMode(m)"
       >
-        <span class="sidebar__icon">{{ MODES[m].icon }}</span>
+        <span class="sidebar__icon">
+          <AppIcon :name="MODE_ICONS[m]" :size="17" />
+        </span>
         <span v-if="!collapsed" class="sidebar__label">{{ MODES[m].label }}</span>
       </button>
     </nav>
@@ -197,24 +213,26 @@ function percent(used: number | undefined, limit: number | undefined): number {
         <button
           type="button"
           class="sidebar__user"
-          :title="collapsed ? user?.username ?? '未登录' : '点击打开菜单'"
+          :data-tip="collapsed ? user?.username ?? '未登录' : '点击打开菜单'"
           :aria-haspopup="'menu'"
           :aria-expanded="menuOpen"
           @click="toggleMenu"
         >
-          <span class="sidebar__icon">👤</span>
+          <span class="sidebar__icon">
+            <AppIcon name="user" :size="17" />
+          </span>
           <span v-if="!collapsed" class="sidebar__user-name">
             {{ user?.username ?? '未登录' }}
           </span>
           <span v-if="!collapsed && user" class="sidebar__plan">
             {{ user.plan.label }}
           </span>
-          <span v-if="!collapsed" class="sidebar__caret">{{
-            menuOpen ? '▴' : '▾'
-          }}</span>
+          <span v-if="!collapsed" class="sidebar__caret" :class="{ 'sidebar__caret--up': menuOpen }">
+            <AppIcon name="chevron-down" :size="14" />
+          </span>
         </button>
 
-        <!-- 菜单：设置 / 退出登录（向上弹，因为贴着底边） -->
+        <!-- 菜单：设置 / 退出登录（向上弹，因为贴着底边；收缩时往右开，文字照常显示） -->
         <div v-if="menuOpen" class="sidebar__menu" role="menu">
           <button
             type="button"
@@ -222,8 +240,10 @@ function percent(used: number | undefined, limit: number | undefined): number {
             role="menuitem"
             @click="goSettings"
           >
-            <span class="sidebar__icon">⚙️</span>
-            <span v-if="!collapsed">设置</span>
+            <span class="sidebar__icon">
+              <AppIcon name="settings" :size="16" />
+            </span>
+            <span>设置</span>
           </button>
           <button
             type="button"
@@ -231,8 +251,10 @@ function percent(used: number | undefined, limit: number | undefined): number {
             role="menuitem"
             @click="logout"
           >
-            <span class="sidebar__icon">⏻</span>
-            <span v-if="!collapsed">退出登录</span>
+            <span class="sidebar__icon">
+              <AppIcon name="power" :size="16" />
+            </span>
+            <span>退出登录</span>
           </button>
         </div>
       </div>

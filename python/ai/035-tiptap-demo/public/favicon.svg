@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="翻译工作台">
+  <defs>
+    <linearGradient id="water" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4dabf7" />
+      <stop offset="1" stop-color="#1971c2" />
+    </linearGradient>
+  </defs>
+  <!-- 蓝色小池塘 -->
+  <rect x="0" y="0" width="32" height="32" rx="7" fill="url(#water)" />
+  <!-- 青蛙：身子 + 两只眼睛鼓包 -->
+  <g fill="#69db7c">
+    <circle cx="9.6" cy="12.2" r="5.2" />
+    <circle cx="22.4" cy="12.2" r="5.2" />
+    <ellipse cx="16" cy="19.4" rx="11.6" ry="9.4" />
+  </g>
+  <!-- 眼睛 -->
+  <g fill="#ffffff">
+    <circle cx="9.6" cy="12.4" r="3.2" />
+    <circle cx="22.4" cy="12.4" r="3.2" />
+  </g>
+  <g fill="#1f2933">
+    <circle cx="9.9" cy="13" r="1.6" />
+    <circle cx="22.7" cy="13" r="1.6" />
+  </g>
+  <!-- 微笑 -->
+  <path
+    d="M11 20.2Q16 23.6 21 20.2"
+    fill="none"
+    stroke="#1f2933"
+    stroke-width="1.6"
+    stroke-linecap="round"
+  />
+</svg>

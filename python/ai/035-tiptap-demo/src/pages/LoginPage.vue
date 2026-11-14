@@ -163,7 +163,7 @@ const TITLE: Record<Mode, string> = {
   <div class="login">
     <form class="login__card" @submit.prevent="submit">
       <div class="login__brand">
-        <span class="login__logo">🌐</span>
+        <img class="login__logo" src="/favicon.svg" alt="" width="34" height="34" />
         <h1 class="login__brand-title">翻译工作台</h1>
       </div>
       <p class="login__subtitle">中英双向逐句翻译 · 写作 AI 助手</p>

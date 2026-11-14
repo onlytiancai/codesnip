@@ -82,6 +82,23 @@ pnpm cli models
 - **外壳 + 嵌套路由**：`App.vue` = `AppSidebar` + `<RouterView>`；子路由 `/`（编辑器）、`/settings`（设置页）。侧栏在两个页面常驻。**`/login` 是顶层路由**（不套外壳）—— 必须排在 `'/'` 之前，否则会被父路由吃掉。
 - **登录守卫**：`router.beforeEach` 里 `await loadAuth()`，没登录就跳 `/login`。`useAuth` 是模块级单例，**不 import router**（避免 `router → pages → services → useAuth → router` 的循环）—— 跳转逻辑放在 `router.ts` 里。标签页标题在 `router.afterEach` 里按路由名设（`TITLES` 表）。
 - **侧栏底部**：**用量在上、用户块在下**。用户块 = 用户名 + 套餐徽标，**点它弹菜单**（设置 / 退出登录），菜单用 `position: absolute` 相对 `.sidebar__user-wrap` **向上弹**（用户块贴着底边）。点外面 / Esc / 换路由都收起。
+- **侧栏顶部 = 网站图标 + 标题，收起/展开按钮在标题右边**（展开态）；收缩态两者竖着叠（图标在上、按钮在下）。
+  ⚠️ **`.sidebar` 有 `z-index: 5`** —— `position: sticky` 自带层叠上下文，侧栏的 tooltip 是侧栏的子元素，不给 z-index 会被后面的内容区盖住。
+  ⚠️ **侧栏图标用 `components/AppIcon.vue`**（转发给 **lucide-vue-next**）：中译英 = `languages`（文A）、英译中 = `case-sensitive`（Aa）、收起/展开 = `panel-left-close` / `panel-left-open`。
+    图标名到方向的映射放在 `AppSidebar.vue` 的 `MODE_ICONS` —— **不要塞进 `composables/useMode.ts`**（那个 composable 不该依赖 components）。`MODES` 里原来那个 `icon: '中→英'` 字段已删。
+  ⚠️ **侧栏菜单的文字任何时候都显示** —— 收缩态菜单是往右开的（`.sidebar--collapsed .sidebar__menu`），文字被 `v-if="!collapsed"` 藏了就只剩图标，看不出是什么。
+  ⚠️ **收缩态的用户图标要居中** —— `.sidebar--collapsed .sidebar__user` 得同时写 `align-items` **和** `justify-content: center`（只写前者是上下居中，图标还是贴左边）。
+- **网站图标**：`public/favicon.svg`（**蓝色小池塘 + 一只小青蛙**）—— 浏览器标签页标题左边 / 收藏夹显示的就是它（`index.html` 里三行 `<link rel="icon">` / `apple-touch-icon`），页面标题（编辑器页 / 登录页）的**左边**也用 `<img src="/favicon.svg">` 放同一个。
+  PNG 兜底（`favicon-32.png` / `apple-touch-icon.png`）用 `rsvg-convert` 从 SVG 生成 —— **改了 SVG 记得重新生成**：
+  ```bash
+  rsvg-convert -w 32 -h 32 public/favicon.svg -o public/favicon-32.png
+  rsvg-convert -w 180 -h 180 public/favicon.svg -o public/apple-touch-icon.png
+  ```
+- **两个图标组件，别混**：`components/EditorIcon.vue` = 编辑器工具栏那几个（undo/redo/copy/trash/check，自己内联的 SVG）；
+  `components/AppIcon.vue` = 应用级图标，**转发给 `lucide-vue-next`**。
+  ⚠️ **映射表和类型放在 `components/appIcons.ts`**（单独的 .ts）—— `AppIcon.vue` 里 `defineProps` 用的是**外部 import 的类型**，
+  外部引类型也从这儿引：`import type { AppIconName } from './appIcons'`。
+  加新图标：在 `appIcons.ts` 里 import 对应的 lucide 组件 + 加一个分支（lucide 是**按需 import**，tree-shaking 后只多几 KB）。
 - **跨组件状态用模块级单例 composable**（`useMode` / `useTones` / `useAuth`），不是 Pinia。原因是侧栏在 `App.vue`、编辑器在 `EditorPage.vue`，不是父子关系；状态同时写 localStorage（刷新保留）。
 - **双栏方向**：两个编辑器的 DOM 位置固定，靠 CSS `order` 排源/译 —— 切方向不重建编辑器。**两个方向各存一份两栏内容**（`EditorPage.vue` 的 `modeHtml`）：切方向时把旧方向的存下、装上新方向的 —— 中译英里输入的中文不会带进英译中，各自独立。装内容期间用 `restoring` 标志屏蔽「源侧清空 → 译侧跟着清」和实时翻译。`mode` 只有 `zh2en` / `en2zh` 两个值。
 - **句子对齐是双栏联动的唯一依据**：`useWritingContext.ts` 按标点切句（中文 `。！？.!?`、英文 `.!?`，换行也算边界），`sentenceIndex` 是**文档级全局索引**（跨段落累计）。源侧和译侧的句子必须**数量相同、顺序一致** —— 任何一边多句/少句，高亮和「对应中文原文」就全错位。
@@ -122,8 +139,9 @@ pnpm cli models
   ⚠️ **「复制」永远是工具栏最右那个** —— 在 AI 按钮的右边、清空按钮的右边。所以英文框（译侧）的顺序是 `[↶][↷] [自定义指令…] [✨ AI ▾][📋]`。
   ⚠️ **撤销/重做「聚焦才显示」靠 `useEditor` 的 `onFocus` / `onBlur`**（两个编辑器组件各有一个 `focused` ref）。
   ⚠️ **这四个按钮必须加 `@mousedown.prevent`** —— 不然鼠标一点，焦点跑到按钮上 → `onBlur` → 撤销/重做当场消失，点一下像没点着。按钮上的 `@click` 用 `editor.commands.undo()`（不是 chain），focus 不会丢。
-  ⚠️ **tooltip 用 `data-tip` 属性 + CSS `::after`**（`.toolbar [data-tip]::after`），**不用原生 `title`** —— 原生那个要悬停 1 秒才出、样式不可控、还会挡住按钮。
-    tooltip **往下弹**（不是往上）—— `.editor-shell` 是 `overflow: hidden`，往上的会被裁掉。按钮上再写个 `aria-label`（给读屏用，也当 title 的替代）。
+  ⚠️ **tooltip 用 `data-tip` 属性 + CSS `::after`**（全局 `[data-tip]::after`），**不用原生 `title`** —— 原生那个要悬停 1 秒才出、样式不可控、还会挡住按钮。
+    **方向按容器分**：工具栏**往下弹**（`.editor-shell` 是 `overflow: hidden`，往上的会被裁掉），侧栏**往右弹**（侧栏窄，气泡只能甩到内容区那边）。
+    按钮上再写个 `aria-label`（给读屏用，也当 title 的替代）。
   ⚠️ **`.toolbar__group--ai` 有 `margin-left: auto`** —— 把 AI 按钮推到右边，「复制」那组跟在它后面（没有 auto），所以复制落在最右。两个 auto 会各分一半空间、把它们之间裂开一道缝 —— 别给复制那组也加 auto（除非 AI 组压根没渲染，那时才用 `toolbar__group--end` 兜底）。
   ⚠️ **英文框（译侧）没有 B/I/S/U 了** —— 译文是机器翻的，加粗没意义。英文框保留：撤销/重做（图标）、自定义指令、复制、✨ AI。
   ⚠️ **中文框只有「复制」**（译侧）或那四个图标（源侧）—— 中文这边要么是你敲的、要么是机器翻的。快捷键还在（Ctrl+B / Ctrl+Z），只是没按钮。
