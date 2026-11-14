@@ -913,26 +913,14 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
           </button>
         </div>
 
-        <!-- 右：复制 / 清空 -->
+        <!-- 右：清空 / 复制（复制永远在最右） -->
         <div class="toolbar__group toolbar__group--end">
           <template v-if="isSource">
             <button
               type="button"
-              class="toolbar__icon-btn"
-              :class="{ 'is-copied': copied }"
-              :data-tip="copied ? '已复制到剪贴板' : '复制英文内容'"
-              :aria-label="copied ? '已复制到剪贴板' : '复制英文内容'"
-              :disabled="!editor.getText().trim()"
-              @mousedown.prevent
-              @click="copyContent"
-            >
-              <EditorIcon :name="copied ? 'check' : 'copy'" />
-            </button>
-            <button
-              type="button"
               class="toolbar__icon-btn toolbar__icon-btn--danger"
-              data-tip="清空英文内容"
-              aria-label="清空英文内容"
+              data-tip="清空内容"
+              aria-label="清空内容"
               :disabled="!editable || !editor.getText().trim()"
               @mousedown.prevent
               @click="editor.commands.clearContent()"
@@ -941,14 +929,12 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
             </button>
           </template>
 
-          <!-- 译侧：只留「复制」 -->
           <button
-            v-else
             type="button"
             class="toolbar__icon-btn"
             :class="{ 'is-copied': copied }"
-            :data-tip="copied ? '已复制到剪贴板' : '复制英文内容'"
-            :aria-label="copied ? '已复制到剪贴板' : '复制英文内容'"
+            :data-tip="copied ? '已复制' : '复制内容'"
+            :aria-label="copied ? '已复制' : '复制内容'"
             :disabled="!editor.getText().trim()"
             @mousedown.prevent
             @click="copyContent"
@@ -995,35 +981,6 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
           </button>
         </div>
 
-        <!-- 右：复制 / 清空（图标） -->
-        <div class="toolbar__group toolbar__group--end">
-          <button
-            v-if="isSource"
-            type="button"
-            class="toolbar__icon-btn toolbar__icon-btn--danger"
-            data-tip="清空英文内容"
-            aria-label="清空英文内容"
-            :disabled="!editable || !editor.getText().trim()"
-            @mousedown.prevent
-            @click="editor.commands.clearContent()"
-          >
-            <EditorIcon name="trash" />
-          </button>
-          <button
-            v-else
-            type="button"
-            class="toolbar__icon-btn"
-            :class="{ 'is-copied': copied }"
-            :data-tip="copied ? '已复制到剪贴板' : '复制英文内容'"
-            :aria-label="copied ? '已复制到剪贴板' : '复制英文内容'"
-            :disabled="!editor.getText().trim()"
-            @mousedown.prevent
-            @click="copyContent"
-          >
-            <EditorIcon :name="copied ? 'check' : 'copy'" />
-          </button>
-        </div>
-
         <!-- 整句操作：收在一个下拉里，作用于光标所在句，不需要选中 -->
         <div v-if="aiEnabled || customPrompts.length" class="toolbar__group toolbar__group--ai">
           <button
@@ -1039,6 +996,25 @@ const { copied, copyContent } = useCopyContent(() => editor.value)
             @click="toggleAiMenu"
           >
             ✨ AI ▾
+          </button>
+        </div>
+
+        <!-- 复制：整个工具栏最右（AI 的右边） -->
+        <div
+          class="toolbar__group"
+          :class="{ 'toolbar__group--end': !(aiEnabled || customPrompts.length) }"
+        >
+          <button
+            type="button"
+            class="toolbar__icon-btn"
+            :class="{ 'is-copied': copied }"
+            :data-tip="copied ? '已复制' : '复制内容'"
+            :aria-label="copied ? '已复制' : '复制内容'"
+            :disabled="!editor.getText().trim()"
+            @mousedown.prevent
+            @click="copyContent"
+          >
+            <EditorIcon :name="copied ? 'check' : 'copy'" />
           </button>
         </div>
       </template>

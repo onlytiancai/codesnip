@@ -697,10 +697,9 @@ h1 {
   border-color: var(--toolbar-active-bg);
 }
 
-/* AI 按钮在最右一组
-   （不写 margin-left:auto —— 前面那组「复制」已经有 auto，把整排顶到右边，
-    两个 auto 会各分一半空间，复制和 AI 之间会裂开一道缝） */
+/* AI 按钮推到工具栏右边 —— 后面紧跟着「复制」，复制永远在最右 */
 .toolbar__group--ai {
+  margin-left: auto;
   padding-right: 0;
   margin-right: 0;
   border-right: none;
@@ -1394,8 +1393,9 @@ h1 {
   border-right: none;
 }
 
-/* AI 按钮在最右一组（见上面那条） */
+/* AI 按钮推到工具栏右边（见上面那条） */
 .toolbar__group--ai {
+  margin-left: auto;
   padding-right: 0;
   margin-right: 0;
   border-right: none;

@@ -118,12 +118,13 @@ pnpm cli models
   ⚠️ `extractParagraphs` 有兜底：一个 `p` 都没有时按顶层块取文字（防手敲 ``` 或历史内容），别直接报「编辑器为空」。
 - **英文框悬停只高亮**：`TiptapEditor.vue` 的 mousemove → `posAtCoords` → `getWordInfoAt` → `setHoverRange()`，装饰 `.hover-word`（淡蓝高亮）。**没有气泡了** —— 以前会弹个浮层显示「这句对应的中文原文」，现在去掉了。rAF 节流，AI 菜单开着时不高亮（免得两个浮层叠一起）。
 - **工具栏的清空/复制跟着源译侧走**：两个编辑器组件都有 `isSource` prop —— **源侧渲染「清空」，译侧渲染「复制」**，切方向时自动互换（中译英：中文=清空 / 英文=复制；英译中反过来）。复制逻辑抽在 `composables/useCopyContent.ts`（纯文本提取 + 剪贴板 + 「✓ 已复制」提示），两个框共用。
-  ⚠️ **源侧输入框的工具栏 = 四个小图标**：`[↶ 撤销][↷ 重做]`（左，**只有聚焦时才显示**）+ `[📋 复制][🗑 清空]`（右）。图标是内联 SVG（`components/EditorIcon.vue`，`name` = undo/redo/copy/trash/check）。**译侧的「复制」也是图标**了（原来是一行文字）。
+  ⚠️ **源侧输入框的工具栏 = 四个小图标**：`[↶ 撤销][↷ 重做]`（左，**只有聚焦时才显示**）+ `[🗑 清空][📋 复制]`（右）。图标是内联 SVG（`components/EditorIcon.vue`，`name` = undo/redo/copy/trash/check）。**译侧的「复制」也是图标**了（原来是一行文字）。
+  ⚠️ **「复制」永远是工具栏最右那个** —— 在 AI 按钮的右边、清空按钮的右边。所以英文框（译侧）的顺序是 `[↶][↷] [自定义指令…] [✨ AI ▾][📋]`。
   ⚠️ **撤销/重做「聚焦才显示」靠 `useEditor` 的 `onFocus` / `onBlur`**（两个编辑器组件各有一个 `focused` ref）。
   ⚠️ **这四个按钮必须加 `@mousedown.prevent`** —— 不然鼠标一点，焦点跑到按钮上 → `onBlur` → 撤销/重做当场消失，点一下像没点着。按钮上的 `@click` 用 `editor.commands.undo()`（不是 chain），focus 不会丢。
   ⚠️ **tooltip 用 `data-tip` 属性 + CSS `::after`**（`.toolbar [data-tip]::after`），**不用原生 `title`** —— 原生那个要悬停 1 秒才出、样式不可控、还会挡住按钮。
     tooltip **往下弹**（不是往上）—— `.editor-shell` 是 `overflow: hidden`，往上的会被裁掉。按钮上再写个 `aria-label`（给读屏用，也当 title 的替代）。
-  ⚠️ **`.toolbar__group--ai` 不能有 `margin-left: auto`** —— 前面「复制」那组已经有 auto（`toolbar__group--end`），两个 auto 各分一半空间，复制和 AI 之间会裂一道缝。
+  ⚠️ **`.toolbar__group--ai` 有 `margin-left: auto`** —— 把 AI 按钮推到右边，「复制」那组跟在它后面（没有 auto），所以复制落在最右。两个 auto 会各分一半空间、把它们之间裂开一道缝 —— 别给复制那组也加 auto（除非 AI 组压根没渲染，那时才用 `toolbar__group--end` 兜底）。
   ⚠️ **英文框（译侧）没有 B/I/S/U 了** —— 译文是机器翻的，加粗没意义。英文框保留：撤销/重做（图标）、自定义指令、复制、✨ AI。
   ⚠️ **中文框只有「复制」**（译侧）或那四个图标（源侧）—— 中文这边要么是你敲的、要么是机器翻的。快捷键还在（Ctrl+B / Ctrl+Z），只是没按钮。
   ⚠️ 「复制」按钮**没挂 `editable`**（译侧复制不受翻译锁影响）—— 这是有意为之，别顺手加上。
