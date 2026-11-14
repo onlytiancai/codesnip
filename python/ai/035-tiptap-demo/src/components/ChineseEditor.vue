@@ -10,6 +10,7 @@ import {
 import {
   createContextHighlightExtension,
   rerenderDecorations,
+  type HighlightLayers,
 } from '../composables/highlightContext'
 import { useCopyContent } from '../composables/useCopyContent'
 import { escapeHtml, htmlToPlainParagraphs } from '../utils/html'
@@ -30,8 +31,16 @@ const props = withDefaults(
     failedIndexes?: number[]
     /** 能不能编辑。翻译期间会被锁住 */
     editable?: boolean
+    /** 段落 / 句子 / 单词三层高亮的开关（右侧工具栏控制） */
+    highlightLayers?: HighlightLayers
   }>(),
-  { isSource: true, loadingIndexes: () => [], failedIndexes: () => [], editable: true },
+  {
+    isSource: true,
+    loadingIndexes: () => [],
+    failedIndexes: () => [],
+    editable: true,
+    highlightLayers: () => ({ paragraph: true, sentence: true, word: true }),
+  },
 )
 
 const html = defineModel<string>('html', { default: '' })
@@ -67,6 +76,16 @@ watch(
     failedSet = new Set(v)
     if (editor.value) rerenderDecorations(editor.value)
   },
+)
+
+// ===== 三层高亮的开关 =====
+// 改了开关不会产生 transaction → 得手动让 ProseMirror 重画装饰
+watch(
+  () => props.highlightLayers,
+  () => {
+    if (editor.value) rerenderDecorations(editor.value)
+  },
+  { deep: true },
 )
 
 // ===== 翻译期间锁住编辑器 =====
@@ -125,8 +144,12 @@ const editor = useEditor({
     createContextHighlightExtension({
       splitFn: splitChineseSentences,
       getCrossIndex: () => highlightRef.value,
-      // 中文框只要紫色的跨栏高亮，不要段落/句子/单词三层
-      showContextLayers: () => false,
+      // 中文没有词级切分（\S+ 会把一整句当成一个"词"）→ 单词那层永远关
+      getLayers: () => ({
+        paragraph: props.highlightLayers.paragraph,
+        sentence: props.highlightLayers.sentence,
+        word: false,
+      }),
       getLoadingIndexes: () => loadingSet,
       getFailedIndexes: () => failedSet,
     }),

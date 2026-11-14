@@ -109,7 +109,19 @@ pnpm cli models
   跑指令走 `POST /api/custom-prompts/:id/run`（**指令文本从库里取**，客户端只送 text/context/sourceSentence）→ 结果卡片复用 `AiContextMenu.vue` 的 `customResult` prop（`✓接受/✕拒绝/继续调整`）。
   ⚠️ 接受时按范围替换：句子/段落用 `insertContentAt` 局部替换，**「所有正文」要整篇 `setContent`**（按换行拆回段落，别把结构拍平）。
 - **API 调用**统一走 `src/services/http.ts`（`http.get/post/put/del`），它会把后端 `{error}` 字段捞成 `ApiError`。`services/translate.ts` 是例外（自带 `pLimit` 并发 3）。
-- **实时翻译**（`EditorPage.vue`，默认关，只中译英方向）：中文改了停手 800ms 自动翻，**以句子为单位** —— `liveCache`（源句→译文，语气算进 key）复用没改过的句子，只翻新增/改动的；写回时 `TiptapEditor.applyParagraphs()` **只替换变了的那几段**（从后往前改，避免前面段落的 doc 位置被带偏），整篇 `setContent` 会让译文框闪一下、滚动跳回顶部。段落数变了才整体重建。
+- **实时翻译**（`EditorPage.vue`，默认关，**两个方向都支持**）：源侧改了停手 800ms 自动翻，**以句子为单位** —— `liveCache`（源句→译文，**语气和方向算进 key**）复用没改过的句子，只翻新增/改动的；写回时 `targetEditor.applyParagraphs()` **只替换变了的那几段**（从后往前改，避免前面段落的 doc 位置被带偏），整篇 `setContent` 会让译文框闪一下、滚动跳回顶部。段落数变了才整体重建。
+  ⚠️ 源/译侧跟着 `mode` 走（`sourceHtml` / `targetEditor`），**别写死中文侧**；英译中时源侧是英文、译侧是中文，切句用 `splitEnglishSentences`。
+  ⚠️ 触发时机挂在**源侧**的 watcher 上（`watch(zhHtml)` / `watch(enHtml)` 里按 `sourceLang` 判断）—— 不能 `watch(sourceHtml)`（computed 随 mode 变，切方向也会触发）。
+  ⚠️ **实时翻译开着的时候「翻译 →」按钮是隐藏的**（`v-if="!liveTranslate"`）—— 自动翻了就不用手动点。
+- **右侧工具栏**（`components/EditorRail.vue`）：语气下拉 + 实时翻译开关 + 三个高亮开关 + 两个查词开关。
+  ⚠️ 语气 / 实时翻译 / 高亮开关**由 `EditorPage.vue` 持有**（`tone` / `liveTranslate`）并用 `v-model` 传给 rail；高亮与查词开关在 `composables/useEditorSettings.ts`（模块级单例 + localStorage）。
+  ⚠️ **实时翻译的开关状态靠 `watch(liveTranslate)` 存 localStorage** —— rail 是直接改 model 的，没有 `toggleLiveTranslate()` 那个函数了。
+  ⚠️ **英译中方向语气下拉是禁用的**（`toneDisabled`）—— 那边本来就不带 tone。
+- **三层高亮可分别开关**：`composables/highlightContext.ts` 的 `getLayers()` 返回 `{paragraph, sentence, word}`。
+  ⚠️ 改了开关**不会产生 transaction** → 编辑器组件里要 `watch(() => props.highlightLayers, ...)` + `rerenderDecorations()`，否则高亮不变。
+  ⚠️ **中文框没有词级切分**（`findWordAt` 用 `\S+`，中文里会把一整句当成一个"词"）→ 中文框的 word 那层固定传 false。
+- **双击查词 / 单击候选词** 两个开关：`TiptapEditor.vue` 的 `enableDoubleClickLookup` / `enableClickCandidates` 两个 prop。
+  ⚠️ 关掉「单击候选」时，`detectSelection()` 里「刚点过鼠标就别关菜单」那条也得一起关（`props.aiEnabled && props.enableClickCandidates`），否则菜单会留着不关。
 - **手动翻译是流式的**（`EditorPage.vue` 的 `doTranslate`）：走 `services/translate.ts` 的 `translateSentencesStream`，**每句一回调**。译侧先铺一层占位（每句一个 `…`），翻完一句就把那一段重写一次（`applyParagraphs`，只改一段）；源侧正在翻的句子用 Decoration 画 `.sentence-loading`（琥珀色脉冲 + 句尾转圈，伪元素不进编辑器内容），失败的画 `.sentence-failed`。
 - **loading 索引 = 源侧的全局句子索引**：跟 `collectSentences`（`useWritingContext.ts`）同一套编号（跨段落累计），所以装饰能直接对上。索引来源是 `extractParagraphs` + 切句后的**摊平下标** —— 中文框只有段落（heading/list 都禁了），两者对得上；英文框有列表时列表里的句子不参与编号（老问题）。
 - **翻译期间锁编辑器**：两个编辑器组件都有 `editable` prop → `editor.setEditable(false)`；成功/失败都在 `finally` 里解锁。整体失败（401/403）时译侧还原回原来的内容。`loadingOwner` 标记谁在占用 loading 状态 —— 手动翻译会掐掉实时翻译，没有这个标记会互相清空。
@@ -129,7 +141,7 @@ pnpm cli models
   工具栏只留撤销 / 重做 / 复制 / 清空，其余 AI 能力（改写、语气下拉、自定义指令、悬停高亮）全没了。
   ⚠️ **查词不受影响** —— 查词在**浮动菜单**里（选中单词 → 菜单 → 「📖 查词」），不在工具栏上，所以 `minimal` 不用管它。
   ⚠️ 工具栏那排分组是 `<template v-else>` 包着的 —— **一个 v-if 链只能有一个 v-else**，别把它们改成 v-else-if（编译直接报错）。
-- **英译中不带语气**：`doTranslate()` 里只有 `srcLang === 'zh'` 才传 tone —— 英译中就是普通翻译，走后端默认 prompt。
+- **英译中不带语气**：`doTranslate()` 和实时翻译里都只有 `srcLang === 'zh'` 才传 tone —— 英译中就是普通翻译，走后端默认 prompt。
 - **设置页的 tab**（`SettingsPage.vue`）：LLM 供应商 / 提示词 / 词库 / **账号** / **我的套餐** / **用户管理**。
   ⚠️ **tab 按权限显隐**：`canSeeTab()` —— 「LLM 供应商」「词库」「用户管理」只有 `user.role === 'admin'` 才渲染，其他 tab 谁都能看。
   「提示词」tab 里面再分两块：**系统提示词**（`PromptPanel.vue`，非管理员 `readonly` —— 能看不能改）和**我的指令**（`UserPromptsPanel.vue`）。`AccountPanel.vue` 管账号信息和改密码，`PlanPanel.vue` 管自己的套餐和申请，`AdminPanel.vue` 管用户 / 审核 / 邀请码池。

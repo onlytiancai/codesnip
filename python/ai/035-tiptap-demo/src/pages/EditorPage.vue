@@ -2,19 +2,21 @@
 import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import ChineseEditor from '../components/ChineseEditor.vue'
 import TiptapEditor from '../components/TiptapEditor.vue'
+import EditorRail from '../components/EditorRail.vue'
 import {
   splitChineseSentences,
   splitEnglishSentences,
 } from '../composables/useWritingContext'
 import { loadTones, useTones } from '../composables/useTones'
 import { useMode } from '../composables/useMode'
+import { useEditorSettings } from '../composables/useEditorSettings'
 import {
   translateSentences,
   translateSentencesStream,
   TranslateHttpError,
   type AlignedSentence,
 } from '../services/translate'
-import { isToneId, type ToneId } from '../constants/tones'
+import { isToneId } from '../constants/tones'
 import { escapeHtml } from '../utils/html'
 
 /**
@@ -125,10 +127,20 @@ let loadingOwner: 'manual' | 'live' | null = null
 let translateAbort: AbortController | null = null
 
 /** 翻译语气；空串 = 不指定，走后端默认 prompt */
-const tone = ref<'' | ToneId>('')
+const tone = ref<string>('')
 
 /** 语气列表（label 从后端拉，各 provider 可改；拉不到用内置的） */
 const { tones } = useTones()
+
+/** 右侧工具栏上的行为开关（高亮哪几层、双击查词、单击候选词） */
+const { settings } = useEditorSettings()
+
+/** 三层高亮的开关 —— 传给两个编辑器 */
+const highlightLayers = computed(() => ({
+  paragraph: settings.value.highlightParagraph,
+  sentence: settings.value.highlightSentence,
+  word: settings.value.highlightWord,
+}))
 
 onMounted(() => {
   void loadTones()
@@ -375,13 +387,11 @@ async function doTranslate() {
     aligned.value[modeAtStart] = flat.map((s, i) => ({ source: s, target: targets[i] }))
 
     // 顺手把实时翻译的缓存也填上 —— 否则开实时翻译会把刚翻过的句子再翻一遍
-    if (mode.value === 'zh2en') {
-      liveCache.clear()
-      for (let i = 0; i < flat.length; i++) {
-        if (done[i]) liveCache.set(liveCacheKey(flat[i]), targets[i])
-      }
-      lastLiveSentences = sentencesPerParagraph
+    liveCache.clear()
+    for (let i = 0; i < flat.length; i++) {
+      if (done[i]) liveCache.set(liveCacheKey(flat[i]), targets[i])
     }
+    lastLiveSentences = sentencesPerParagraph
 
     if (fatalMsg) errorMsg.value = fatalMsg
   } catch (err) {
@@ -448,26 +458,26 @@ function readLiveFlag(): boolean {
 
 const liveTranslate = ref(readLiveFlag())
 
-function toggleLiveTranslate() {
-  liveTranslate.value = !liveTranslate.value
+// 开关变了（右侧工具栏上点的）→ 存下来 + 立刻排一轮翻译
+watch(liveTranslate, (v) => {
   try {
-    localStorage.setItem(LIVE_KEY, liveTranslate.value ? '1' : '0')
+    localStorage.setItem(LIVE_KEY, v ? '1' : '0')
   } catch {
     // 存不了就算了，内存里的状态照样能用
   }
-  if (liveTranslate.value) scheduleLiveTranslate()
-}
+  if (v) scheduleLiveTranslate()
+})
 
 /**
  * 源句 → 译文 的缓存。
  *
  * 同一句话不重复翻（打字过程中句子经常只改一两个字，没改过的句子直接复用）。
- * 语气算进 key —— 换了语气译文就变了。
+ * 语气和方向算进 key —— 换了语气译文就变了，换了方向源句译文也变了。
  */
 const liveCache = new Map<string, string>()
 
 function liveCacheKey(sentence: string): string {
-  return `${tone.value}\u0000${sentence}`
+  return `${mode.value}\u0000${tone.value}\u0000${sentence}`
 }
 
 /** 上一次写回译侧的源段落句子结构 —— 用来算哪几段变了。 */
@@ -483,10 +493,9 @@ onBeforeUnmount(() => {
   translateAbort?.abort()
 })
 
-/** 中文改了 → 排一次实时翻译（防抖）。 */
+/** 源侧改了 → 排一次实时翻译（防抖）。 */
 function scheduleLiveTranslate() {
   if (!liveTranslate.value) return
-  if (mode.value !== 'zh2en') return
   if (liveTimer) clearTimeout(liveTimer)
   liveTimer = setTimeout(() => {
     liveTimer = undefined
@@ -497,20 +506,24 @@ function scheduleLiveTranslate() {
 /**
  * 跑一轮实时翻译：只翻没翻过的句子，只改变了的段落。
  *
+ * **两个方向都支持** —— 源侧/译侧跟着 mode 走（中译英：中文→英文；英译中：英文→中文）。
+ *
  * 写回是「按段落替换」而不是整篇 setContent —— 整篇重写会让译文框闪一下、
  * 滚动位置跳回顶部；只换改动的段落就没这些问题。
  */
 async function runLiveTranslate() {
-  if (!liveTranslate.value || mode.value !== 'zh2en') return
+  if (!liveTranslate.value) return
   if (translating.value) return // 手动翻译在跑，不插队
 
-  const srcAtStart = zhHtml.value
+  const modeAtStart = mode.value
+  const srcLang = sourceLang.value
+  const tgtLang = targetLang.value
+  const srcAtStart = sourceHtml.value
   const paragraphs = extractParagraphs(srcAtStart)
   if (paragraphs.length === 0) return // 源侧空了 → 交给「源侧清空 → 译侧清空」那条规则
 
-  const sentencesPerParagraph = paragraphs.map((p) =>
-    splitChineseSentences(p).map((s) => s.text),
-  )
+  const split = srcLang === 'zh' ? splitChineseSentences : splitEnglishSentences
+  const sentencesPerParagraph = paragraphs.map((p) => split(p).map((s) => s.text))
 
   // 哪些句子还没翻过（顺便记下它们在全文里的下标 —— 那是源侧的全局句子索引）
   const flatSentences: string[] = []
@@ -537,9 +550,10 @@ async function runLiveTranslate() {
       const results = await translateSentences(
         missing,
         undefined,
-        isToneId(tone.value) ? tone.value : undefined,
-        'zh',
-        'en',
+        // 英译中不带语气（那边就是普通翻译）
+        srcLang === 'zh' && isToneId(tone.value) ? tone.value : undefined,
+        srcLang,
+        tgtLang,
         ctl.signal,
       )
       for (const r of results) liveCache.set(liveCacheKey(r.source), r.target)
@@ -562,8 +576,9 @@ async function runLiveTranslate() {
     }
   }
 
-  // 翻译期间又改字了 → 这轮结果已经过期，交给下一轮
-  if (zhHtml.value !== srcAtStart) return
+  // 翻译期间又改字了（或切了方向）→ 这轮结果已经过期，交给下一轮
+  if (sourceHtml.value !== srcAtStart) return
+  if (mode.value !== modeAtStart) return
 
   // 哪些段落变了
   const changed: number[] = []
@@ -577,33 +592,26 @@ async function runLiveTranslate() {
   }
   if (!structureChanged && changed.length === 0) return
 
-  // 拼译文段落（英文用空格连接）
+  // 拼译文段落（英文用空格连接，中文直接接）
+  const sep = tgtLang === 'zh' ? '' : ' '
   const targetParagraphs = sentencesPerParagraph.map((list) =>
-    list.map((s) => liveCache.get(liveCacheKey(s)) ?? '').join(' '),
+    list.map((s) => liveCache.get(liveCacheKey(s)) ?? '').join(sep),
   )
 
   if (structureChanged) {
     // 段落数变了 → 整体重建
-    enRef.value?.setHtml(targetParagraphs.map((t) => `<p>${t}</p>`).join(''))
+    targetEditor.value?.setHtml(targetParagraphs.map((t) => `<p>${t}</p>`).join(''))
   } else {
-    enRef.value?.applyParagraphs(targetParagraphs, changed)
+    targetEditor.value?.applyParagraphs(targetParagraphs, changed)
   }
   lastLiveSentences = sentencesPerParagraph
 
   // 对齐表：跨栏高亮、「对应中文原文」都靠它
-  aligned.value.zh2en = sentencesPerParagraph.flatMap((list) =>
+  aligned.value[modeAtStart] = sentencesPerParagraph.flatMap((list) =>
     list.map((s) => ({ source: s, target: liveCache.get(liveCacheKey(s)) ?? '' })),
   )
 }
 
-// 中文改了 → 实时翻译（中译英方向）
-watch(zhHtml, () => {
-  // 换方向时两栏内容会整体替换 —— 那不是用户编辑，别触发实时翻译
-  if (restoring) return
-  if (!liveTranslate.value) return
-  if (mode.value !== 'zh2en') return
-  scheduleLiveTranslate()
-})
 
 // 换语气 → 译文全变，缓存作废重来
 watch(tone, () => {
@@ -651,6 +659,8 @@ watch(mode, (next, prev) => {
   // 6. 装完再放开联动规则 —— 两栏 html 突变触发的 watcher 跟这一轮 flush 一起跑
   void nextTick(() => {
     restoring = false
+    // 新方向如果已经有内容 → 实时翻译开着就补一轮
+    if (liveTranslate.value) scheduleLiveTranslate()
   })
 })
 
@@ -674,11 +684,15 @@ function onSourceCleared(html: string) {
 
 watch(zhHtml, (html) => {
   if (restoring) return
-  if (sourceLang.value === 'zh') onSourceCleared(html)
+  if (sourceLang.value !== 'zh') return
+  onSourceCleared(html)
+  scheduleLiveTranslate()
 })
 watch(enHtml, (html) => {
   if (restoring) return
-  if (sourceLang.value === 'en') onSourceCleared(html)
+  if (sourceLang.value !== 'en') return
+  onSourceCleared(html)
+  scheduleLiveTranslate()
 })
 
 /**
@@ -692,29 +706,6 @@ function onSideBlur(side: 'source' | 'target') {
 
 <template>
   <div class="app">
-    <header class="app__header">
-      <div class="app__header-row">
-        <div class="app__header-actions">
-          <button
-            type="button"
-            class="btn-live-toggle"
-            :aria-pressed="liveTranslate"
-            :disabled="mode !== 'zh2en'"
-            :title="
-              mode !== 'zh2en'
-                ? '实时翻译目前只支持中译英方向'
-                : liveTranslate
-                  ? '实时翻译已开启：中文改完自动翻英文'
-                  : '实时翻译已关闭：需要点「翻译 →」'
-            "
-            @click="toggleLiveTranslate"
-          >
-            {{ liveTranslate ? '实时翻译 ●' : '实时翻译 ○' }}
-          </button>
-        </div>
-      </div>
-    </header>
-
     <div class="app__main" :class="`app__main--${mode}`">
       <!-- 中文栏 -->
       <section
@@ -725,11 +716,9 @@ function onSideBlur(side: 'source' | 'target') {
         <div class="app__col-header">
           <span class="app__col-label">中文</span>
           <div v-if="sourceLang === 'zh'" class="app__col-actions">
-            <select v-model="tone" class="tone-select" title="翻译语气" :disabled="translating">
-              <option value="">默认语气</option>
-              <option v-for="t in tones" :key="t.id" :value="t.id">{{ t.label }}</option>
-            </select>
+            <!-- 实时翻译开着的时候不用手动翻译 —— 隐藏按钮 -->
             <button
+              v-if="!liveTranslate"
               type="button"
               class="btn-translate"
               :disabled="translating"
@@ -751,6 +740,7 @@ function onSideBlur(side: 'source' | 'target') {
           :loading-indexes="zhSide === 'source' ? loadingIndexes : []"
           :failed-indexes="zhSide === 'source' ? failedIndexes : []"
           :editable="!translating"
+          :highlight-layers="highlightLayers"
           v-model:html="zhHtml"
           v-model:sentence-index="zhSentenceIndex"
         />
@@ -767,8 +757,9 @@ function onSideBlur(side: 'source' | 'target') {
         <div class="app__col-header">
           <span class="app__col-label">英文</span>
           <div v-if="sourceLang === 'en'" class="app__col-actions">
-            <!-- 英译中不选语气 —— 就是普通翻译 -->
+            <!-- 实时翻译开着的时候不用手动翻译 —— 隐藏按钮 -->
             <button
+              v-if="!liveTranslate"
               type="button"
               class="btn-translate"
               :disabled="translating"
@@ -794,10 +785,26 @@ function onSideBlur(side: 'source' | 'target') {
           :failed-indexes="enSide === 'source' ? failedIndexes : []"
           :editable="!translating"
           :chinese-sentences="chineseSentences"
+          :highlight-layers="highlightLayers"
+          :enable-double-click-lookup="settings.doubleClickLookup"
+          :enable-click-candidates="settings.clickCandidates"
           v-model:html="enHtml"
           v-model:sentence-index="enSentenceIndex"
         />
       </section>
+
+      <!-- 右侧工具栏：语气 / 实时翻译 / 高亮与查词开关 -->
+      <EditorRail
+        v-model:tone="tone"
+        v-model:live-translate="liveTranslate"
+        v-model:highlight-word="settings.highlightWord"
+        v-model:highlight-sentence="settings.highlightSentence"
+        v-model:highlight-paragraph="settings.highlightParagraph"
+        v-model:double-click-lookup="settings.doubleClickLookup"
+        v-model:click-candidates="settings.clickCandidates"
+        :tones="tones"
+        :tone-disabled="mode === 'en2zh'"
+      />
     </div>
   </div>
 </template>

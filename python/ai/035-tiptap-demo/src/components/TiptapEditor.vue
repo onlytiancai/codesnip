@@ -14,6 +14,7 @@ import {
 import {
   createContextHighlightExtension,
   rerenderDecorations,
+  type HighlightLayers,
 } from '../composables/highlightContext'
 import {
   getSelectionInfo,
@@ -67,6 +68,12 @@ const props = withDefaults(
      * 只需要一个「清空」。中译英的英文框（译侧）照常。
      */
     minimal?: boolean
+    /** 段落 / 句子 / 单词三层高亮的开关（右侧工具栏控制） */
+    highlightLayers?: HighlightLayers
+    /** 双击单词 → 直接查词（右侧工具栏控制） */
+    enableDoubleClickLookup?: boolean
+    /** 单击单词 → 弹出其它候选词（右侧工具栏控制） */
+    enableClickCandidates?: boolean
   }>(),
   {
     aiEnabled: true,
@@ -76,6 +83,9 @@ const props = withDefaults(
     editable: true,
     chineseSentences: () => [],
     minimal: false,
+    highlightLayers: () => ({ paragraph: true, sentence: true, word: true }),
+    enableDoubleClickLookup: true,
+    enableClickCandidates: true,
   },
 )
 
@@ -116,7 +126,8 @@ function detectSelection(editor: Editor | null) {
     // 只有光标（没选中东西）→ 菜单该关。
     // 但刚点过鼠标的那一下例外：点词会自动换成那个词的候选词，
     // 先关掉、过一会儿再弹出来 —— 中间那半秒看着就是「一闪而过」。
-    if (!info && props.aiEnabled && Date.now() - lastClickAt < 500) return
+    if (!info && props.aiEnabled && props.enableClickCandidates && Date.now() - lastClickAt < 500)
+      return
     selection.value = null
     menuPos.value = null
     anchorBox.value = null
@@ -281,6 +292,7 @@ function openWordCandidates(info: SelectionInfo) {
  */
 function scheduleWordCandidates(pos: number, mode: WordPickMode) {
   if (!props.aiEnabled) return
+  if (!props.enableClickCandidates) return
   if (!props.editable) return
   const ed = editor.value
   if (!ed) return
@@ -351,7 +363,7 @@ function onShellMousedownCapture(e: MouseEvent) {
 
   // 点在某个词上 → 别关：等下会自动换成那个词的候选词。
   // 关了再弹出来，中间那半秒看着就是「一闪而过」。
-  if (props.aiEnabled) {
+  if (props.aiEnabled && props.enableClickCandidates) {
     const ed = editor.value
     if (!ed) {
       closeMenu()
@@ -409,6 +421,7 @@ defineExpose({
 // ===== 双击查词 =====
 
 function onEditorMouseDown(event: MouseEvent) {
+  if (!props.enableDoubleClickLookup) return
   if (event.detail < 2) return
   const ed = editor.value
   if (!ed) return
@@ -448,6 +461,16 @@ watch(
     failedSet = new Set(v)
     if (editor.value) rerenderDecorations(editor.value)
   },
+)
+
+// ===== 三层高亮的开关 =====
+// 改了开关不会产生 transaction → 得手动让 ProseMirror 重画装饰
+watch(
+  () => props.highlightLayers,
+  () => {
+    if (editor.value) rerenderDecorations(editor.value)
+  },
+  { deep: true },
 )
 
 // ===== 翻译期间锁住编辑器 =====
@@ -801,7 +824,7 @@ const editor = useEditor({
     createContextHighlightExtension({
       splitFn: splitEnglishSentences,
       getCrossIndex: () => highlightRef.value,
-      showContextLayers: () => true,
+      getLayers: () => props.highlightLayers,
       getLoadingIndexes: () => loadingSet,
       getFailedIndexes: () => failedSet,
       getHoverRange: () => hoverRange,

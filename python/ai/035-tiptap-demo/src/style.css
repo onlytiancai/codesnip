@@ -495,60 +495,16 @@ h1 {
   padding: 1.5rem 1.25rem 4rem;
 }
 
-.app__header {
-  margin-bottom: 1.25rem;
-}
-
 .app__hint {
   color: var(--muted);
   margin: 0;
   font-size: 0.95rem;
 }
 
-.app__header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-/* 页面标题挪到侧栏后，头部只剩右侧的操作区 —— 靠 auto 顶到右边 */
-.app__header-actions {
-  margin-left: auto;
-}
-
-/* 实时翻译开关 */
-.btn-live-toggle {
-  padding: 5px 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--fg);
-  font: inherit;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: background-color 0.12s ease, border-color 0.12s ease;
-}
-
-.btn-live-toggle:hover {
-  background: var(--toolbar-bg);
-}
-
-.btn-live-toggle[aria-pressed='true'] {
-  background: var(--en-accent);
-  border-color: var(--en-accent);
-  color: #fff;
-}
-
-.btn-live-toggle:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-/* 宽屏两栏 */
+/* 宽屏两栏 + 右侧工具栏 */
 .app__main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) auto;
   gap: 1.25rem;
   align-items: start;
 }
@@ -574,6 +530,14 @@ h1 {
 @media (max-width: 1100px) {
   .app__main {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* 窄屏：工具栏掉到下面一整行 */
+  .rail {
+    order: 3;
+    width: auto;
+    margin-top: 0;
+    align-self: stretch;
   }
 }
 
@@ -638,14 +602,131 @@ h1 {
   cursor: not-allowed;
 }
 
-/* 中文栏头部右侧：语气下拉 + 翻译按钮 */
+/* 栏头部右侧：翻译按钮 */
 .app__col-actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.tone-select {
+/* ===== 右侧工具栏（rail）===== */
+/* 高度跟着两个输入框走（跟栏头 + 间距对齐），宽度固定 */
+.rail {
+  order: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 178px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  /* 跟输入框等高：跳过栏头那一行 */
+  margin-top: calc(36px + 0.75rem);
+  align-self: stretch;
+}
+
+.rail--collapsed {
+  width: 48px;
+  padding: 8px 6px;
+  align-items: center;
+}
+
+.rail__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 26px;
+}
+
+.rail--collapsed .rail__head {
+  justify-content: center;
+}
+
+.rail__title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--fg);
+}
+
+.rail__toggle,
+.rail__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 30px;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.rail--collapsed .rail__toggle,
+.rail--collapsed .rail__btn {
+  width: 32px;
+  padding: 5px 0;
+}
+
+.rail__toggle {
+  width: 28px;
+  min-height: 28px;
+  padding: 4px;
+  color: var(--muted);
+}
+
+.rail--collapsed .rail__toggle {
+  width: 32px;
+}
+
+.rail__toggle:hover,
+.rail__btn:hover {
+  background: var(--toolbar-bg);
+}
+
+.rail__btn.is-on {
+  background: var(--toolbar-active-bg);
+  border-color: var(--toolbar-active-bg);
+  color: var(--toolbar-active-fg);
+}
+
+.rail__text {
+  white-space: nowrap;
+}
+
+/* 开关按钮之间要有缝 —— 点亮的时候连成一片就分不清哪个是哪个了 */
+.rail__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rail__row--tone {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rail__label {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.rail__label--group {
+  padding-left: 2px;
+  margin-top: 2px;
+}
+
+.rail__select {
   padding: 5px 8px;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -656,13 +737,19 @@ h1 {
   cursor: pointer;
 }
 
-.tone-select:hover {
+.rail__select:hover {
   border-color: var(--toolbar-active-bg);
 }
 
-.tone-select:focus-visible {
+.rail__select:focus-visible {
   outline: 2px solid var(--toolbar-active-bg);
   outline-offset: 1px;
+}
+
+.rail__sep {
+  height: 1px;
+  margin: 6px 2px;
+  background: var(--border);
 }
 
 .app__error {
@@ -1444,6 +1531,18 @@ h1 {
 }
 
 .sidebar [data-tip]:hover::after {
+  transform: translateY(-50%) translateX(0);
+}
+
+/* 右侧工具栏：往左弹（它在页面最右边） */
+.rail [data-tip]::after {
+  top: 50%;
+  right: calc(100% + 8px);
+  left: auto;
+  transform: translateY(-50%) translateX(3px);
+}
+
+.rail [data-tip]:hover::after {
   transform: translateY(-50%) translateX(0);
 }
 

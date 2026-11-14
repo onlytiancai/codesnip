@@ -15,8 +15,8 @@ import {
  * - 对侧获焦（getCrossIndex() >= 0）：画**跨栏对齐**的那一句（紫色）+ 它所在段落（淡绿）
  * - 本侧获焦（getCrossIndex() < 0）：画光标自己的段落（淡绿）/ 句子（淡蓝）/ 单词（黄）
  *
- * 中文框只要紫色的跨栏高亮 → showContextLayers 传 false；
- * 英文框三层都要 → 传 true。
+ * 三层分别由 getLayers() 开关控制（右侧工具栏上的三个开关）。
+ * 中文框没有词级切分（\S+ 会把一整句当成一个"词"）→ 那一层传 false。
  *
  * 必须是 Decoration 而不是真的 <mark>：编辑器的 HTML 就是翻译接口的入参，
  * 塞真 mark 会污染发给后端的文本和句子对齐。
@@ -24,13 +24,20 @@ import {
 
 export const HIGHLIGHT_CONTEXT_KEY = new PluginKey<boolean>('contextHighlight')
 
+/** 三层上下文高亮各自的开关 */
+export interface HighlightLayers {
+  paragraph: boolean
+  sentence: boolean
+  word: boolean
+}
+
 export interface ContextHighlightOptions {
   /** 用哪套标点切句 */
   splitFn: SplitFn
   /** 对侧光标对齐到的句子索引，-1 = 没有 */
   getCrossIndex: () => number
-  /** 是否画「上下文三层」（段落 / 句子 / 单词）。中文框传 false */
-  showContextLayers?: () => boolean
+  /** 三层高亮各自的开关；不传 = 全开 */
+  getLayers?: () => HighlightLayers
   /** 正在翻译的句子索引（全局）—— 这些句子画 loading 装饰 */
   getLoadingIndexes?: () => Set<number>
   /** 翻译失败的句子索引（全局）—— 这些句子画 failed 装饰 */
@@ -40,7 +47,7 @@ export interface ContextHighlightOptions {
 }
 
 export function createContextHighlightExtension(options: ContextHighlightOptions) {
-  const showLayers = options.showContextLayers ?? (() => true)
+  const getLayers = options.getLayers ?? (() => ({ paragraph: true, sentence: true, word: true }))
 
   return Extension.create({
     name: 'contextHighlight',
@@ -54,6 +61,7 @@ export function createContextHighlightExtension(options: ContextHighlightOptions
             decorations(state) {
               const decorations: Decoration[] = []
               const crossIndex = options.getCrossIndex()
+              const layers = getLayers()
 
               if (crossIndex >= 0) {
                 // 对侧获焦 → 高亮跨栏对齐到的那一句
@@ -61,7 +69,7 @@ export function createContextHighlightExtension(options: ContextHighlightOptions
                   (s) => s.index === crossIndex,
                 )
                 if (span) {
-                  if (showLayers()) {
+                  if (layers.paragraph) {
                     decorations.push(
                       Decoration.node(span.paraFrom, span.paraTo, {
                         class: 'cur-paragraph',
@@ -76,23 +84,23 @@ export function createContextHighlightExtension(options: ContextHighlightOptions
                     )
                   }
                 }
-              } else if (showLayers()) {
+              } else {
                 // 本侧获焦 → 高亮光标自己的段落 / 句子 / 单词
                 const ctx = resolveContext(state, options.splitFn)
                 if (ctx) {
                   // 空段落不画段落底色 —— 否则编辑器一打开，光标所在的空 <p>
                   // 就顶着一条淡绿底，看起来像凭空多了一行浅色背景
-                  if (ctx.paragraph.trim()) {
+                  if (layers.paragraph && ctx.paragraph.trim()) {
                     decorations.push(
                       Decoration.node(ctx.paraFrom, ctx.paraTo, { class: 'cur-paragraph' }),
                     )
                   }
-                  if (ctx.sentFrom < ctx.sentTo) {
+                  if (layers.sentence && ctx.sentFrom < ctx.sentTo) {
                     decorations.push(
                       Decoration.inline(ctx.sentFrom, ctx.sentTo, { class: 'cur-sentence' }),
                     )
                   }
-                  if (ctx.wordFrom < ctx.wordTo) {
+                  if (layers.word && ctx.wordFrom < ctx.wordTo) {
                     decorations.push(
                       Decoration.inline(ctx.wordFrom, ctx.wordTo, { class: 'cur-word' }),
                     )
