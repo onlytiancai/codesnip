@@ -694,10 +694,6 @@ function onSideBlur(side: 'source' | 'target') {
   <div class="app">
     <header class="app__header">
       <div class="app__header-row">
-        <h1 class="app__title">
-          <img class="site-logo" src="/favicon.svg" alt="" width="28" height="28" />
-          翻译工作台
-        </h1>
         <div class="app__header-actions">
           <button
             type="button"

@@ -512,19 +512,9 @@ h1 {
   gap: 1rem;
 }
 
-/* 页面标题：网站图标 + 文字 */
-.app__title {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  margin: 0;
-}
-
-.site-logo {
-  display: block;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+/* 页面标题挪到侧栏后，头部只剩右侧的操作区 —— 靠 auto 顶到右边 */
+.app__header-actions {
+  margin-left: auto;
 }
 
 /* 实时翻译开关 */
