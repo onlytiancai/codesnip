@@ -266,6 +266,28 @@ nginx 设置密码
     auth_basic "Restricted Access";
     auth_basic_user_file /etc/nginx/.htpasswd;
 
+nginx proxy
+
+    server {
+        listen 80;
+        server_name epub.qing.ihuhao.com;
+
+        auth_basic "Restricted Access";
+        auth_basic_user_file /etc/nginx/.htpasswd;
+
+        access_log  /var/log/nginx/epub.log;
+        error_log  /var/log/nginx/epub.log error;
+
+        location / {
+            proxy_pass http://127.0.0.1:3002;
+
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+
 tcpdump
 
     # 发送端抓包
@@ -339,3 +361,125 @@ apt-get 自动更新锁问题检查
 查看日志
 
     sudo journalctl -u unattended-upgrades --since "7 days ago"
+
+打包不压缩
+
+    tar -cvf backup.tar /home/user/data 
+
+ssh-agent
+
+    eval "$(ssh-agent -s)"
+    ssh-add ~/.ssh/id_rsa
+    ssh-add ~/.ssh/id_ed25519
+    ssh-add -l
+    ssh-add -L
+    ssh-add -d ~/.ssh/id_ed25519 # 删除
+    ssh-add -D # 删除所有
+    echo $SSH_AUTH_SOCK
+    export SSH_AUTH_SOCK=/tmp/ssh-XXXXXX/agent.12345
+
+    
+mysql 查看库和表的大小
+
+    SELECT
+        table_schema AS database_name,
+        ROUND(SUM(data_length) / 1024 / 1024, 2) AS data_size_mb,
+        ROUND(SUM(index_length) / 1024 / 1024, 2) AS index_size_mb,
+        ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS total_size_mb,
+        COUNT(*) AS table_count
+    FROM information_schema.tables
+    GROUP BY table_schema
+    ORDER BY SUM(data_length + index_length) DESC;
+
+    SELECT
+        table_name,
+        engine,
+        table_rows,
+        ROUND(data_length / 1024 / 1024, 2) AS data_size_mb,
+        ROUND(index_length / 1024 / 1024, 2) AS index_size_mb,
+        ROUND((data_length + index_length) / 1024 / 1024, 2) AS total_size_mb
+    FROM information_schema.tables
+    WHERE table_schema = 'db_prod'
+    ORDER BY (data_length + index_length) DESC;
+
+git 误提交文件
+
+    # 方法一: 彻底删除这次提交记录
+    # 1. 回退最近一次提交，但保留工作区文件改动
+    git reset HEAD~1
+
+    # 2. 恢复误提交文件到上一次提交的状态
+    git restore 路径/文件名
+
+    # 3. 重新提交其他需要保留的改动
+    git add .
+    git commit -m "重新提交正确的改动"
+
+    # 4. 强制推送到远程
+    git push --force-with-lease
+
+    # 方法二：只撤销这个文件的改动，保留提交记录
+    # 恢复文件到上一个提交的状态
+    git restore --source=HEAD~1 -- 路径/文件名
+
+    # 提交恢复操作
+    git add 路径/文件名
+    git commit -m "Revert accidental file changes"
+
+    # 推送
+    git push
+
+    # 方案一会改写远程 Git 历史。如果其他人已经拉取了这个 Commit，可能需要协调他们同步分支，避免产生冲突。共享分支、主分支尤其要谨慎。
+
+临时禁用外键
+
+    SET FOREIGN_KEY_CHECKS = 0;
+
+    TRUNCATE TABLE login_history;
+    TRUNCATE TABLE core_session;
+
+    SET FOREIGN_KEY_CHECKS = 1;
+
+cat + zcat
+
+    for f in /var/log/nginx/access-*; do
+        [ -f "$f" ] || continue
+        case "$f" in
+            *.gz) zcat "$f" ;;
+            *) cat "$f" ;;
+        esac
+    done | wc -l
+
+revoke mysql 权限
+
+    REVOKE SELECT ON mydb.* FROM 'test_user'@'localhost';
+
+升级 nginx
+
+    sudo apt install curl gnupg2 ca-certificates lsb-release ubuntu-keyring
+    curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor \
+        | sudo tee /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null
+    gpg --dry-run --quiet --no-keyring --import --import-options import-show /usr/share/keyrings/nginx-archive-keyring.gpg
+
+    #To set up the apt repository for stable nginx packages, run the following command:
+    echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] \
+    https://nginx.org/packages/ubuntu `lsb_release -cs` nginx" \
+        | sudo tee /etc/apt/sources.list.d/nginx.list
+
+    # If you would like to use mainline nginx packages, run the following command instead:
+    echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] \
+    https://nginx.org/packages/mainline/ubuntu `lsb_release -cs` nginx" \
+        | sudo tee /etc/apt/sources.list.d/nginx.list
+
+    # Set up repository pinning to prefer our packages over distribution-provided ones:
+    echo -e "Package: *\nPin: origin nginx.org\nPin: release o=nginx\nPin-Priority: 900\n" \
+        | sudo tee /etc/apt/preferences.d/99nginx
+
+    sudo apt update
+   
+    # 查看 Nginx 候选安装版本, Installed：当前已安装的版本。 Candidate：APT 默认选择安装或升级的版本。
+    apt policy nginx
+    apt-cache madison nginx
+
+    sudo apt install --simulate nginx
+

@@ -1,5 +1,11 @@
-/* ===== 全局（明亮配色） ===== */
+/* ===== 全局（亮色主题） ===== */
+/*
+ * 整站配色都走这里的变量 —— 暗色主题在下面 `:root[data-theme='dark']` 里覆盖一遍。
+ * ⚠️ **新增颜色时别再写死十六进制**，加个变量、两个主题各给一个值。
+ */
 :root {
+  color-scheme: light;
+
   --bg: #ffffff;
   --fg: #212529;
   --muted: #868e96;
@@ -12,6 +18,45 @@
   --output-bg: #f8f9fa;
   --zh-accent: #1971c2;
   --en-accent: #2b8a3e;
+
+  /* 表面：卡片 / 面板 / 编辑器底色 */
+  --page-bg: #f8f9fa;
+  --surface: #ffffff;
+  --surface-2: #f8f9fa;
+  --surface-hover: #e9ecef;
+  --surface-active: #fbfcfd;
+
+  /* 强调色 */
+  --accent: #228be6;
+  --accent-solid: #228be6;
+  --accent-solid-hover: #1c7ed6;
+  --accent-fg: #ffffff;
+
+  /* 语义色 */
+  --danger: #c92a2a;
+  --danger-fg: #c92a2a;
+  --danger-bg: #fff5f5;
+  --danger-bg-soft: rgba(201, 42, 42, 0.08);
+  --danger-border: #ffa8a8;
+  --ok-fg: #2b8a3e;
+  --ok-solid: #2f9e44;
+  --ok-solid-hover: #37b24d;
+  --ok-bg: #ebfbee;
+  --ok-bg-soft: rgba(43, 138, 62, 0.14);
+  --ok-border: #bfe3c6;
+  --warn-fg: #997404;
+  --warn-bg: rgba(255, 196, 0, 0.18);
+  --info-fg: #1971c2;
+  --info-bg: rgba(34, 139, 230, 0.1);
+  --info-bg-strong: rgba(34, 139, 230, 0.16);
+  --info-border: rgba(34, 139, 230, 0.3);
+  --info-border-strong: rgba(34, 139, 230, 0.5);
+
+  /* tooltip */
+  --tooltip-bg: #1f2933;
+  --tooltip-fg: #ffffff;
+
+  /* 跨栏对齐高亮 */
   --cross-hl: rgba(168, 50, 168, 0.18);
   --cross-hl-border: rgba(168, 50, 168, 0.35);
   /* 编辑器内上下文高亮：段落（淡绿）> 句子（淡蓝）> 单词（黄） */
@@ -21,6 +66,73 @@
   --cur-word-bg: rgba(255, 196, 0, 0.55);
   --cur-word-ring: rgba(255, 196, 0, 0.6);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ===== 暗色主题 ===== */
+/*
+ * 切换方式：`<html data-theme="dark">` —— 由 `composables/useTheme.ts` 设置，
+ * `index.html` 里的内联脚本会在首屏前先设一次（防闪白）。
+ */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #14161a;
+  --fg: #e4e8ec;
+  --muted: #9aa3ad;
+  --border: #2c3138;
+  --border-strong: #3d444e;
+  --toolbar-bg: #20242b;
+  --toolbar-active-bg: #4dabf7;
+  --toolbar-active-fg: #10151b;
+  --code-bg: #20242b;
+  --output-bg: #20242b;
+  --zh-accent: #4dabf7;
+  --en-accent: #51cf66;
+
+  --surface: #1b1f25;
+  --page-bg: #14161a;
+  --surface-2: #20242b;
+  --surface-hover: #2b313a;
+  --surface-active: #232831;
+
+  --accent: #4dabf7;
+  /* 实心按钮在暗色下要保持够深 —— 白字才看得清 */
+  --accent-solid: #1c7ed6;
+  --accent-solid-hover: #1864ab;
+  --accent-fg: #ffffff;
+
+  --danger: #ff6b6b;
+  --danger-fg: #ff8787;
+  --danger-bg: #2b1a1d;
+  --danger-bg-soft: rgba(255, 107, 107, 0.14);
+  --danger-border: #6d3036;
+  --ok-fg: #69db7c;
+  --ok-solid: #2b8a3e;
+  --ok-solid-hover: #37b24d;
+  --ok-bg: #16261a;
+  --ok-bg-soft: rgba(105, 219, 124, 0.16);
+  --ok-border: #2f5a3a;
+  --warn-fg: #ffd43b;
+  --warn-bg: rgba(255, 212, 59, 0.16);
+  --info-fg: #74c0fc;
+  --info-bg: rgba(77, 171, 247, 0.14);
+  --info-bg-strong: rgba(77, 171, 247, 0.22);
+  --info-border: rgba(77, 171, 247, 0.38);
+  --info-border-strong: rgba(77, 171, 247, 0.6);
+
+  --tooltip-bg: #343a40;
+  --tooltip-fg: #f1f3f5;
+
+  --cross-hl: rgba(212, 100, 212, 0.24);
+  --cross-hl-border: rgba(212, 100, 212, 0.42);
+  --cur-para-bg: rgba(74, 222, 128, 0.12);
+  --cur-sentence-bg: rgba(77, 171, 247, 0.2);
+  --cur-sentence-ring: rgba(77, 171, 247, 0.28);
+  --cur-word-bg: rgba(255, 212, 59, 0.3);
+  --cur-word-ring: rgba(255, 212, 59, 0.45);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -107,7 +219,7 @@ h1 {
   padding: 0;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--surface);
   color: var(--fg);
   cursor: pointer;
 }
@@ -115,7 +227,7 @@ h1 {
 .sidebar__toggle:hover {
   background: var(--toolbar-active-bg);
   border-color: var(--toolbar-active-bg);
-  color: #fff;
+  color: var(--toolbar-active-fg);
 }
 
 /* 品牌：网站图标 + 标题 */
@@ -172,12 +284,12 @@ h1 {
 }
 
 .sidebar__item:hover {
-  background: #e9ecef;
+  background: var(--surface-hover);
 }
 
 .sidebar__item--on {
   background: var(--toolbar-active-bg);
-  color: #fff;
+  color: var(--toolbar-active-fg);
   font-weight: 600;
 }
 
@@ -231,7 +343,7 @@ h1 {
 }
 
 .sidebar__user:hover {
-  background: #e9ecef;
+  background: var(--surface-hover);
 }
 
 .sidebar__user-name {
@@ -246,7 +358,7 @@ h1 {
   flex: none;
   padding: 1px 6px;
   border-radius: 999px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   font-size: 0.68rem;
   color: var(--muted);
@@ -275,7 +387,7 @@ h1 {
   padding: 4px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow);
   z-index: 20;
 }
@@ -298,7 +410,7 @@ h1 {
 }
 
 .sidebar__menu-item:hover {
-  background: #e9ecef;
+  background: var(--surface-hover);
 }
 
 /* 收缩态：菜单往右开，不然塞不下 */
@@ -329,7 +441,7 @@ h1 {
 }
 
 .sidebar__bar-fill--over {
-  background: #c92a2a;
+  background: var(--danger);
 }
 
 .sidebar__quota-num {
@@ -379,7 +491,7 @@ h1 {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: var(--toolbar-bg);
+  background: var(--page-bg);
 }
 
 .login__card {
@@ -391,7 +503,7 @@ h1 {
   padding: 24px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow);
 }
 
@@ -440,18 +552,27 @@ h1 {
   color: var(--muted);
 }
 
-.login__submit {
+/*
+ * 提交按钮（登录 / 注册 / 重置密码）—— 蓝色实心。
+ *
+ * ⚠️ 选择器必须写成 `.btn.login__submit`（不能只写 `.login__submit`）：
+ * 这段样式在文件前面的登录区，而 `.btn` 的通用规则在文件后面 —— 同权重时
+ * 后来者胜，`.btn` 的白底会盖掉这里的蓝底；hover 时 `.login__submit:hover`
+ * 特异性更高把文字改成白色，底色却还是白的 → 白底白字，看不清。
+ */
+.btn.login__submit {
   margin-top: 8px;
   padding: 8px 12px;
   font-size: 0.9rem;
-  background: var(--toolbar-active-bg);
-  border-color: var(--toolbar-active-bg);
-  color: #fff;
+  background: var(--accent-solid);
+  border-color: var(--accent-solid);
+  color: var(--accent-fg);
 }
 
-.login__submit:hover:not(:disabled) {
-  border-color: var(--toolbar-active-bg);
-  color: #fff;
+.btn.login__submit:hover:not(:disabled) {
+  background: var(--accent-solid-hover);
+  border-color: var(--accent-solid-hover);
+  color: var(--accent-fg);
 }
 
 .login__switch {
@@ -598,7 +719,7 @@ h1 {
 }
 
 .btn-translate:disabled {
-  background: #adb5bd;
+  background: var(--surface-hover);
   cursor: not-allowed;
 }
 
@@ -620,7 +741,7 @@ h1 {
   padding: 10px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow);
   /* 跟输入框等高：跳过栏头那一行 */
   margin-top: calc(36px + 0.75rem);
@@ -730,7 +851,7 @@ h1 {
   padding: 5px 8px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--surface);
   color: var(--fg);
   font: inherit;
   font-size: 0.85rem;
@@ -754,11 +875,49 @@ h1 {
 
 .app__error {
   padding: 8px 12px;
-  border: 1px solid #ffa8a8;
-  background: #fff5f5;
-  color: #c92a2a;
+  border: 1px solid var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger-fg);
   border-radius: 6px;
   font-size: 0.88rem;
+}
+
+/* ===== 主题切换按钮（整站一个，固定在右上角）===== */
+button.theme-toggle {
+  position: fixed;
+  top: 12px;
+  right: 14px;
+  /* 别盖住 AI 菜单（z-index 1000） */
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+button.theme-toggle:hover {
+  background: var(--surface-hover);
+}
+
+/* tooltip 往左弹（按钮在页面最右上角） */
+button.theme-toggle[data-tip]::after {
+  top: 50%;
+  right: calc(100% + 8px);
+  left: auto;
+  transform: translateY(-50%) translateX(3px);
+}
+
+button.theme-toggle[data-tip]:hover::after {
+  transform: translateY(-50%) translateX(0);
 }
 
 /* ===== 编辑器外壳 ===== */
@@ -767,7 +926,7 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow);
 }
 
@@ -813,7 +972,7 @@ h1 {
 }
 
 .toolbar button:hover:not(:disabled) {
-  background: #e9ecef;
+  background: var(--surface-hover);
 }
 
 .toolbar button:disabled {
@@ -849,7 +1008,7 @@ h1 {
 }
 
 .toolbar__btn-ai:disabled {
-  background: #f1f3f5;
+  background: var(--surface-2);
   border-color: transparent;
   color: var(--muted);
   opacity: 1; /* 覆盖全局 disabled 透明度 */
@@ -864,7 +1023,7 @@ h1 {
   max-width: 140px;
   padding: 0 9px;
   border-color: var(--border);
-  background: #fff;
+  background: var(--surface);
   font-size: 0.82rem;
   color: var(--fg);
   white-space: nowrap;
@@ -872,8 +1031,8 @@ h1 {
 }
 
 .toolbar .toolbar__btn-prompt:hover:not(:disabled) {
-  background: rgba(34, 139, 230, 0.08);
-  border-color: rgba(34, 139, 230, 0.4);
+  background: var(--info-bg);
+  border-color: var(--info-border);
   color: var(--toolbar-active-bg);
 }
 
@@ -896,13 +1055,13 @@ h1 {
 .toolbar .toolbar__btn-ai-menu {
   padding: 0 10px;
   border-color: var(--border);
-  background: #fff;
+  background: var(--surface);
   font-size: 0.85rem;
   font-weight: 600;
 }
 
 .toolbar .toolbar__btn-ai-menu:hover:not(:disabled) {
-  background: #e9ecef;
+  background: var(--surface-hover);
 }
 
 .toolbar .toolbar__btn-ai-menu.active {
@@ -917,7 +1076,7 @@ h1 {
   z-index: 1000;
   width: 176px;
   padding: 4px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: var(--shadow);
@@ -942,7 +1101,7 @@ h1 {
 }
 
 .ai-dropdown .ai-dropdown__item:hover:not(:disabled) {
-  background: rgba(34, 139, 230, 0.08);
+  background: var(--info-bg);
   color: var(--toolbar-active-bg);
 }
 
@@ -993,10 +1152,10 @@ h1 {
 }
 
 .ai-menu {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
   font-size: 0.9rem;
   animation: ai-menu-in 0.1s ease-out;
@@ -1050,7 +1209,7 @@ h1 {
 }
 
 .ai-menu__close:hover {
-  background: #e9ecef;
+  background: var(--surface-hover);
   color: var(--fg);
 }
 
@@ -1076,7 +1235,7 @@ h1 {
 }
 
 .ai-menu__item:hover:not(:disabled) {
-  background: rgba(34, 139, 230, 0.1);
+  background: var(--info-bg);
 }
 
 .ai-menu__item:disabled {
@@ -1147,7 +1306,7 @@ h1 {
   padding: 6px 12px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--surface);
   color: var(--fg);
   font: inherit;
   cursor: pointer;
@@ -1155,7 +1314,7 @@ h1 {
 
 .ai-menu__status > button:hover:not(:disabled),
 .ai-menu__refine > button:hover:not(:disabled) {
-  background: #f8f9fa;
+  background: var(--surface-2);
 }
 
 .ai-menu__status > button:disabled,
@@ -1165,7 +1324,7 @@ h1 {
 }
 
 .ai-menu__error {
-  color: #c92a2a;
+  color: var(--danger-fg);
 }
 
 /* ---- 候选列表 ---- */
@@ -1196,8 +1355,8 @@ h1 {
 }
 
 .ai-menu__cand:hover {
-  background: rgba(34, 139, 230, 0.08);
-  border-color: rgba(34, 139, 230, 0.3);
+  background: var(--info-bg);
+  border-color: var(--info-border);
 }
 
 /* ---- 语法结果 ---- */
@@ -1286,7 +1445,7 @@ h1 {
   padding: 4px 10px;
   border: 1px solid var(--border);
   border-radius: 5px;
-  background: #fff;
+  background: var(--surface);
   color: var(--fg);
   font: inherit;
   font-size: 0.82rem;
@@ -1308,7 +1467,7 @@ h1 {
   font-size: 0.88rem;
   resize: vertical;
   color: var(--fg);
-  background: #fff;
+  background: var(--surface);
 }
 
 .ai-menu__textarea:focus {
@@ -1326,7 +1485,7 @@ h1 {
   padding: 3px 8px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: #f8f9fa;
+  background: var(--surface-2);
   color: var(--muted);
   font: inherit;
   font-size: 0.75rem;
@@ -1334,7 +1493,7 @@ h1 {
 }
 
 .ai-menu__chip:hover {
-  background: #e9ecef;
+  background: var(--surface-hover);
   color: var(--fg);
 }
 
@@ -1350,15 +1509,15 @@ h1 {
 }
 
 .ai-menu__chip--word {
-  background: rgba(34, 139, 230, 0.08);
-  border-color: rgba(34, 139, 230, 0.3);
+  background: var(--info-bg);
+  border-color: var(--info-border);
   color: var(--toolbar-active-bg);
   font-weight: 600;
 }
 
 .ai-menu__chip--word:hover {
-  background: rgba(34, 139, 230, 0.16);
-  border-color: rgba(34, 139, 230, 0.5);
+  background: var(--info-bg-strong);
+  border-color: var(--info-border-strong);
   color: var(--toolbar-active-bg);
 }
 
@@ -1377,16 +1536,16 @@ h1 {
 }
 
 .ai-menu__original {
-  background: #f8f9fa;
+  background: var(--surface-2);
   color: var(--muted);
   text-decoration: line-through;
-  text-decoration-color: #ced4da;
+  text-decoration-color: var(--border-strong);
 }
 
 .ai-menu__rewritten {
-  background: #ebfbee;
-  color: #212529;
-  border-left: 3px solid #2f9e44;
+  background: var(--ok-bg);
+  color: var(--fg);
+  border-left: 3px solid var(--ok-solid);
 }
 
 .ai-menu__actions {
@@ -1399,7 +1558,7 @@ h1 {
   padding: 6px 12px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--surface);
   color: var(--fg);
   font: inherit;
   font-weight: 600;
@@ -1407,17 +1566,17 @@ h1 {
 }
 
 .ai-menu__actions button:hover {
-  background: #f8f9fa;
+  background: var(--surface-2);
 }
 
 .ai-menu__actions .ai-menu__accept {
-  border-color: #2f9e44;
-  background: #2f9e44;
+  border-color: var(--ok-solid);
+  background: var(--ok-solid);
   color: #fff;
 }
 
 .ai-menu__actions .ai-menu__accept:hover {
-  background: #37b24d;
+  background: var(--ok-solid-hover);
 }
 
 .ai-menu__refine {
@@ -1454,21 +1613,21 @@ h1 {
 }
 
 .toolbar .toolbar__icon-btn:hover:not(:disabled) {
-  background: #e9ecef;
+  background: var(--surface-hover);
   color: var(--fg);
 }
 
 /* 清空：悬停时飘红，跟「删」的危险语义对上 */
 .toolbar .toolbar__icon-btn--danger:hover:not(:disabled) {
-  background: #fff5f5;
-  border-color: #ffa8a8;
-  color: #c92a2a;
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger-fg);
 }
 
 /* 复制成功：图标换成对勾 + 变绿 */
 .toolbar .toolbar__icon-btn.is-copied {
-  background: #ebfbee;
-  border-color: #69db7c;
+  background: var(--ok-bg);
+  border-color: var(--ok-border);
   color: var(--en-accent);
 }
 
@@ -1492,8 +1651,8 @@ h1 {
   position: absolute;
   padding: 3px 8px;
   border-radius: 5px;
-  background: #1f2933;
-  color: #fff;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-fg);
   font-size: 0.75rem;
   line-height: 1.6;
   white-space: nowrap;
@@ -1652,7 +1811,7 @@ h1 {
   border-left: 3px solid var(--border-strong);
   padding-left: 1rem;
   margin: 0.6em 0;
-  color: #495057;
+  color: var(--muted);
 }
 
 .ProseMirror hr {
@@ -1681,7 +1840,7 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow);
 }
 
@@ -1701,7 +1860,7 @@ h1 {
   font-family: 'SF Mono', Menlo, Consolas, 'Courier New', monospace;
   font-size: 0.85rem;
   line-height: 1.55;
-  color: #495057;
+  color: var(--muted);
   max-height: 220px;
   overflow: auto;
   white-space: pre-wrap;
@@ -1781,7 +1940,7 @@ h1 {
   display: inline-block;
   margin-left: 0.25em;
   font-size: 0.85em;
-  color: #e8a200;
+  color: var(--warn-fg);
   vertical-align: 2px;
   animation: sentence-spin 1s linear infinite;
 }
@@ -1813,14 +1972,14 @@ h1 {
 /* ===== 鼠标悬停单词 ===== */
 
 .hover-word {
-  background: rgba(34, 139, 230, 0.12);
-  border-bottom: 2px solid rgba(34, 139, 230, 0.5);
+  background: var(--info-bg);
+  border-bottom: 2px solid var(--info-border-strong);
   border-radius: 2px;
 }
 
 /* 翻译期间锁住的编辑器 */
 .editor-shell.is-locked .ProseMirror {
-  background: #fbfcfd;
+  background: var(--surface-active);
   cursor: progress;
 }
 
@@ -1891,7 +2050,7 @@ h1 {
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--surface);
 }
 
 .user-prompts__head {
@@ -1911,7 +2070,7 @@ h1 {
 .user-prompts__scope {
   padding: 1px 8px;
   border-radius: 10px;
-  background: rgba(34, 139, 230, 0.1);
+  background: var(--info-bg);
   color: var(--toolbar-active-bg);
   font-size: 0.75rem;
 }
@@ -1957,18 +2116,18 @@ h1 {
   height: 30px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--surface);
   font-size: 1rem;
   cursor: pointer;
 }
 
 .user-prompts__icon-btn.is-on {
   border-color: var(--toolbar-active-bg);
-  background: rgba(34, 139, 230, 0.12);
+  background: var(--info-bg);
 }
 
 .prompts__hint--warn {
-  color: #e8a200;
+  color: var(--warn-fg);
 }
 
 /* ===== 设置页（/settings） ===== */
@@ -1986,7 +2145,8 @@ h1 {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 20px;
+  /* 右边给固定的主题切换按钮让位 */
+  padding: 14px 56px 14px 20px;
   border-bottom: 1px solid var(--border);
   background: var(--toolbar-bg);
 }
@@ -2138,9 +2298,9 @@ h1 {
   margin: 8px 0;
   padding: 8px 12px;
   border-radius: 6px;
-  background: #fdecec;
-  border: 1px solid #f5c2c2;
-  color: #a02020;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger-fg);
   font-size: 0.88rem;
 }
 
@@ -2149,9 +2309,9 @@ h1 {
   margin: 8px 0;
   padding: 8px 12px;
   border-radius: 6px;
-  background: #eaf6ec;
-  border: 1px solid #bfe3c6;
-  color: #1f6b30;
+  background: var(--ok-bg);
+  border: 1px solid var(--ok-border);
+  color: var(--ok-fg);
   font-size: 0.88rem;
 }
 
@@ -2192,7 +2352,7 @@ h1 {
   padding: 6px 9px;
   font: inherit;
   font-size: 0.88rem;
-  background: #fff;
+  background: var(--surface);
   color: var(--fg);
   width: 100%;
 }
@@ -2225,7 +2385,7 @@ h1 {
   padding: 6px 12px;
   font: inherit;
   font-size: 0.86rem;
-  background: #fff;
+  background: var(--surface);
   color: var(--fg);
   cursor: pointer;
   text-decoration: none;
@@ -2247,8 +2407,8 @@ h1 {
 }
 
 .btn--danger:hover:not(:disabled) {
-  border-color: #d05050;
-  color: #b03030;
+  border-color: var(--danger-border);
+  color: var(--danger-fg);
 }
 
 .btn--sm {
@@ -2287,7 +2447,7 @@ h1 {
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface);
 }
 
 .providers__item--active {
@@ -2314,13 +2474,13 @@ h1 {
 .providers__badge--on {
   border-color: var(--en-accent);
   color: var(--en-accent);
-  background: #fff;
+  background: var(--surface);
 }
 
 .providers__badge--key {
-  border-color: #bfe3c6;
-  color: #1f6b30;
-  background: #f2fbf4;
+  border-color: var(--ok-border);
+  color: var(--ok-fg);
+  background: var(--ok-bg);
 }
 
 .providers__meta {
@@ -2347,7 +2507,7 @@ h1 {
   padding: 16px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface);
 }
 
 .providers__form-title {
@@ -2462,7 +2622,7 @@ h1 {
 .prompts__editor {
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface);
   padding: 16px;
   min-width: 0;
 }
@@ -2641,11 +2801,11 @@ h1 {
 }
 
 .plans__error {
-  color: #c92a2a;
+  color: var(--danger-fg);
 }
 
 .plans__ok {
-  color: #2b8a3e;
+  color: var(--ok-fg);
 }
 
 .plans__title {
@@ -2718,7 +2878,7 @@ h1 {
 }
 
 .plans__bar-fill--over {
-  background: #c92a2a;
+  background: var(--danger);
 }
 
 .plans__quota-num {
@@ -2733,8 +2893,8 @@ h1 {
   margin: 10px 0 0;
   padding: 8px 10px;
   border-radius: 8px;
-  background: rgba(201, 42, 42, 0.08);
-  color: #c92a2a;
+  background: var(--danger-bg-soft);
+  color: var(--danger-fg);
   font-size: 0.82rem;
 }
 
@@ -2798,18 +2958,18 @@ h1 {
 }
 
 .plans__req-status--pending {
-  background: rgba(255, 196, 0, 0.18);
-  color: #997404;
+  background: var(--warn-bg);
+  color: var(--warn-fg);
 }
 
 .plans__req-status--approved {
-  background: rgba(43, 138, 62, 0.14);
-  color: #2b8a3e;
+  background: var(--ok-bg-soft);
+  color: var(--ok-fg);
 }
 
 .plans__req-status--rejected {
-  background: rgba(201, 42, 42, 0.1);
-  color: #c92a2a;
+  background: var(--danger-bg-soft);
+  color: var(--danger-fg);
 }
 
 .plans__req-time {
@@ -2831,11 +2991,11 @@ h1 {
 }
 
 .admin__error {
-  color: #c92a2a;
+  color: var(--danger-fg);
 }
 
 .admin__ok {
-  color: #2b8a3e;
+  color: var(--ok-fg);
 }
 
 .admin__title {
@@ -2898,18 +3058,18 @@ h1 {
 }
 
 .admin__badge--on {
-  background: rgba(43, 138, 62, 0.14);
-  color: #2b8a3e;
+  background: var(--ok-bg-soft);
+  color: var(--ok-fg);
 }
 
 .admin__badge--off {
-  background: rgba(201, 42, 42, 0.1);
-  color: #c92a2a;
+  background: var(--danger-bg-soft);
+  color: var(--danger-fg);
 }
 
 .admin__badge--used {
-  background: rgba(34, 139, 230, 0.12);
-  color: #1971c2;
+  background: var(--info-bg);
+  color: var(--info-fg);
 }
 
 .admin__detail {
@@ -2954,8 +3114,8 @@ h1 {
   padding: 1px 7px;
   border-radius: 999px;
   font-size: 0.72rem;
-  background: rgba(255, 196, 0, 0.18);
-  color: #997404;
+  background: var(--warn-bg);
+  color: var(--warn-fg);
 }
 
 .admin__req-time,
@@ -3058,7 +3218,7 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 3px 12px;
-  background: #fff;
+  background: var(--surface);
   color: var(--muted);
   font: inherit;
   font-size: 0.8rem;
@@ -3068,5 +3228,5 @@ h1 {
 .account__method--on {
   border-color: var(--toolbar-active-bg);
   background: var(--toolbar-active-bg);
-  color: #fff;
+  color: var(--toolbar-active-fg);
 }

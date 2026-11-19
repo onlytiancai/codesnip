@@ -8,6 +8,27 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <title>翻译工作台</title>
+    <script>
+      /*
+       * 主题预置：首屏渲染前就把 data-theme 设上 —— 不然暗色模式下会先闪一下白。
+       * key 要跟 src/composables/useTheme.ts 里的 THEME_STORAGE_KEY 一致。
+       */
+      ;(function () {
+        var KEY = 'tiptap-demo.theme'
+        var t = null
+        try {
+          t = localStorage.getItem(KEY)
+          if (t !== 'light' && t !== 'dark') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+            localStorage.setItem(KEY, t)
+          }
+        } catch (e) {
+          t = 'light'
+        }
+        document.documentElement.dataset.theme = t
+        document.documentElement.style.colorScheme = t
+      })()
+    </script>
   </head>
   <body>
     <div id="app"></div>

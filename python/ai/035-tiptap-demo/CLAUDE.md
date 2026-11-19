@@ -85,6 +85,11 @@ pnpm cli models
 - **侧栏底部**：**用量在上、用户块在下**。用户块 = 用户名 + 套餐徽标，**点它弹菜单**（设置 / 退出登录），菜单相对用户块向上弹（用户块贴着底边）。点外面 / Esc / 换路由都收起。
 - **应用图标统一走 `components/AppIcon.vue`** → 转发给 **lucide-vue-next**；映射表和 `AppIconName` 类型放在单独的 `components/appIcons.ts`（`<script setup>` 里不能 export，外部要 import 类型只能从 .ts 引）。编辑器工具栏那几个（undo/redo/copy/trash/check）是另一套 `components/EditorIcon.vue`（内联 SVG），别混。
 - **跨组件状态用模块级单例 composable**（`useMode` / `useTones` / `useAuth`），不是 Pinia。原因是侧栏在 `App.vue`、编辑器在 `EditorPage.vue`，不是父子关系；状态同时写 localStorage（刷新保留）。
+- **主题（亮色 / 暗色）**：`<html data-theme="light|dark">`，配色全走 `src/style.css` 顶部的 CSS 变量 —— `:root` 是亮色，`:root[data-theme='dark']` 把同一批变量覆盖一遍。
+  ⚠️ **新增颜色一律加变量**，别再写死十六进制 —— 写死了暗色下就翻车。变量清单在 `:root` 块里，两个主题各一份。
+  ⚠️ **实心按钮的底色用 `--accent-solid`**（不是 `--toolbar-active-bg`）—— 暗色下后者是亮蓝，白字看不清。
+  ⚠️ **localStorage key = `tiptap-demo.theme`** —— `index.html` 的内联脚本要在首屏渲染前先设一次 `data-theme`（不然暗色下会闪一下白），它跟 `composables/useTheme.ts` 用同一个 key，**改名要两处一起改**。
+  主题按钮挂在 `Root.vue` 里 —— 整站只有一个（`/login` 是顶层路由，不经过 `App.vue`，所以挂 `App.vue` 登录页就没有）。
 - **双栏方向**：两个编辑器的 DOM 位置固定，靠 CSS `order` 排源/译 —— 切方向不重建编辑器。**两个方向各存一份两栏内容**（`EditorPage.vue` 的 `modeHtml`）：切方向时把旧方向的存下、装上新方向的 —— 中译英里输入的中文不会带进英译中，各自独立。装内容期间用 `restoring` 标志屏蔽「源侧清空 → 译侧跟着清」和实时翻译。`mode` 只有 `zh2en` / `en2zh` 两个值。
 - **句子对齐是双栏联动的唯一依据**：`useWritingContext.ts` 按标点切句（中文 `。！？.!?`、英文 `.!?`，换行也算边界），`sentenceIndex` 是**文档级全局索引**（跨段落累计）。源侧和译侧的句子必须**数量相同、顺序一致** —— 任何一边多句/少句，高亮和「对应中文原文」就全错位。
   **点不是见到就断句**：`PHP8.4` / `3.14` / `www.a.com` / `Mr. Smith` / `e.g.` / `U.S.` 里的点都不是句号 —— 规则：点后面（跳过右括号引号）得是空白、中日韩字符或结尾，且点前面那个词不能是缩写。

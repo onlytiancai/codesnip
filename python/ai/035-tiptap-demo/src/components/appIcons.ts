@@ -19,6 +19,8 @@ import {
   Replace,
   Settings,
   SlidersHorizontal,
+  Sun,
+  Moon,
   TextAlignStart,
   Type,
   User,
@@ -46,6 +48,9 @@ export type AppIconName =
   | 'text-align-start'
   | 'book-open'
   | 'replace'
+  // 主题切换
+  | 'sun'
+  | 'moon'
 
 /** name → lucide 图标组件 */
 export const APP_ICONS: Record<AppIconName, Component> = {
@@ -69,4 +74,7 @@ export const APP_ICONS: Record<AppIconName, Component> = {
   'text-align-start': TextAlignStart,
   'book-open': BookOpen,
   replace: Replace,
+  // 主题切换
+  sun: Sun,
+  moon: Moon,
 }
