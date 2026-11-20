@@ -1,0 +1,6 @@
+{
+  "name": "gomp3",
+  "identifier": "com.huhao.gomp3",
+  "version": "0.1.0",
+  "out": "build"
+}
