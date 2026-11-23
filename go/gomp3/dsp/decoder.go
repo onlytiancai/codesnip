@@ -20,6 +20,14 @@ type Decoder struct {
 	limiter  *Limiter
 	spectrum *Spectrum
 
+	// Gains are smoothed per sample so balance / channel / preamp / boost
+	// edits never produce a discontinuity (the "click" noise).
+	smPreamp  smoother
+	smBoost   smoother
+	smBalance smoother
+	smLeft    smoother
+	smRight   smoother
+
 	left, right []float64
 	mono        []float32
 }
@@ -27,17 +35,36 @@ type Decoder struct {
 // NewDecoder wraps src with a neutral or provided pipeline.
 func NewDecoder(src audio.Decoder, p Pipeline) *Decoder {
 	clone := p.Clone()
+	sr := float64(src.SampleRate())
+	lg, rg := channelGains(clone.FX)
 	d := &Decoder{
-		src:      src,
-		chain:    NewFilterChain(clone, src.SampleRate()),
-		surround: NewSurroundProcessor(),
-		limiter:  NewLimiter(src.SampleRate(), p.FX.Limiter),
-		spectrum: NewSpectrum(src.SampleRate()),
+		src:       src,
+		chain:     NewFilterChain(clone, src.SampleRate()),
+		surround:  NewSurroundProcessor(),
+		limiter:   NewLimiter(src.SampleRate(), p.FX.Limiter),
+		spectrum:  NewSpectrum(src.SampleRate()),
+		smPreamp:  newSmoother(DBToGain(clone.FX.PreampDB), sr),
+		smBoost:   newSmoother(Clamp(clone.FX.Boost, 1, 2), sr),
+		smBalance: newSmoother(Clamp(clone.FX.Balance, -1, 1), sr),
+		smLeft:    newSmoother(lg, sr),
+		smRight:   newSmoother(rg, sr),
 	}
 	d.applied = &clone
 	d.config.Store(&clone)
 	d.surround.Update(clone.Surround, src.SampleRate())
 	return d
+}
+
+// channelGains maps the channel switches to 0/1 gain targets.
+func channelGains(fx Effects) (float64, float64) {
+	lg, rg := 1.0, 1.0
+	if !fx.LeftOn {
+		lg = 0
+	}
+	if !fx.RightOn {
+		rg = 0
+	}
+	return lg, rg
 }
 
 // SetPipeline publishes a new immutable DSP snapshot to the audio goroutine.
@@ -89,6 +116,13 @@ func (d *Decoder) Read(buf []float32) (int, error) {
 		d.surround.Update(cfg.Surround, sr)
 		d.limiter.Update(cfg.FX.Limiter, sr)
 		d.spectrum.SetSampleRate(sr)
+		// Retarget the smoothed gains; the audio thread ramps to them below.
+		d.smPreamp.set(DBToGain(cfg.FX.PreampDB))
+		d.smBoost.set(Clamp(cfg.FX.Boost, 1, 2))
+		d.smBalance.set(Clamp(cfg.FX.Balance, -1, 1))
+		lg, rg := channelGains(cfg.FX)
+		d.smLeft.set(lg)
+		d.smRight.set(rg)
 		d.applied = cfg
 	}
 
@@ -123,20 +157,25 @@ func (d *Decoder) Read(buf []float32) (int, error) {
 		r[i] = float64(buf[i*2+1])
 	}
 
-	preamp := DBToGain(cfg.FX.PreampDB)
-	boost := Clamp(cfg.FX.Boost, 1, 2)
+	// Preamp is applied per sample with smoothing so it cannot click.
 	for i := range l {
-		l[i] *= preamp
-		r[i] *= preamp
+		g := d.smPreamp.next()
+		l[i] *= g
+		r[i] *= g
 	}
 
 	d.chain.ProcessBlock(l, r)
 	d.surround.ProcessBlock(l, r)
 
 	for i := range l {
-		lv, rv := ApplyBalance(l[i], r[i], cfg.FX.Balance, cfg.FX.LeftOn, cfg.FX.RightOn)
-		lv *= boost
-		rv *= boost
+		// Balance, boost and the channel switches all ramp smoothly. The
+		// channel switches are folded into the per-channel gain here instead
+		// of being hard 0/1 multipliers inside ApplyBalance.
+		balance := d.smBalance.next()
+		boost := d.smBoost.next()
+		lv, rv := ApplyBalance(l[i], r[i], balance, true, true)
+		lv *= boost * d.smLeft.next()
+		rv *= boost * d.smRight.next()
 		lv, rv = d.limiter.Process(lv, rv)
 		l[i], r[i] = lv, rv
 		d.spectrum.Push(lv, rv)
@@ -160,6 +199,13 @@ func (d *Decoder) resetDSP() {
 	d.surround.Reset()
 	d.limiter.Reset()
 	d.spectrum.Reset()
+	// Snap the smoothed gains to their targets: after a real seek we want the
+	// new position to play at the current settings immediately.
+	d.smPreamp.current = d.smPreamp.target
+	d.smBoost.current = d.smBoost.target
+	d.smBalance.current = d.smBalance.target
+	d.smLeft.current = d.smLeft.target
+	d.smRight.current = d.smRight.target
 }
 
 func (d *Decoder) ensureScratch(frames int) {

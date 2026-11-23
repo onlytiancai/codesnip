@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/egoist/mygo/ui"
+
+	"gomp3/dsp"
 )
 
 // View returns a MyGo view function bound to a model.
@@ -20,7 +22,7 @@ func View(m *Model) func(c *ui.Context) {
 		ui.Column(c).Fill().Padding(14).Gap(10).Background(colorPanel).Children(func() {
 			toolbar(c, m)
 			trackInfo(c, m)
-			SpectrumView(c, m.Spectrum)
+			analyzer(c, m)
 
 			ui.Segmented(c.Key("eq-tab"), &m.EQTab, "基础", "高级", "专家", "3D").Label("EQ 页面")
 
@@ -48,6 +50,14 @@ func View(m *Model) func(c *ui.Context) {
 			presetModal(c, m)
 		})
 	}
+}
+
+// analyzer guards the analyzer view when no file is open yet.
+func analyzer(c *ui.Context, m *Model) {
+	if m.Spectrum == nil {
+		m.Spectrum = dsp.NewSpectrum(m.SampleRate)
+	}
+	AnalyzerView(c, m)
 }
 
 func toolbar(c *ui.Context, m *Model) {
@@ -115,8 +125,20 @@ func trackInfo(c *ui.Context, m *Model) {
 	})
 }
 
+// panelHeader renders a title with a reset button that restores the panel's
+// defaults through the model callback.
+func panelHeader(c *ui.Context, m *Model, title string, panel int) {
+	ui.Row(c).Gap(10).AlignItems(ui.Center).Children(func() {
+		ui.Text(c, title).Bold().FontSize(14).Grow(1)
+		if ui.Button(c.Key(fmt.Sprintf("reset-%d", panel)), "重置").Clicked() && m.OnReset != nil {
+			m.OnReset(panel)
+		}
+	})
+}
+
 func basicPage(c *ui.Context, m *Model) {
-	ui.Column(c).Fill().Gap(10).Children(func() {
+	panelHeader(c, m, "基础音效", 0)
+	ui.Column(c).Fill().Gap(8).Children(func() {
 		ui.Row(c).Gap(12).AlignItems(ui.Center).Children(func() {
 			ui.Text(c, "前置放大器").Width(80).FontSize(13).TextColor(colorText)
 			preamp := m.Pipeline.FX.PreampDB
@@ -128,19 +150,23 @@ func basicPage(c *ui.Context, m *Model) {
 			ui.Text(c, fmt.Sprintf("%+.1f dB", preamp)).Width(74).TextAlign(ui.Center).FontSize(12)
 		})
 
-		ui.Row(c).Gap(18).AlignItems(ui.Center).Padding(4, 0).Children(func() {
+		ui.Column(c).Gap(4).Children(func() {
 			Knob(c, m, "bass", "低音", &m.Pipeline.Basic.Bass, -12, 12, 0.5, "dB", nil)
 			Knob(c, m, "mid", "中音", &m.Pipeline.Basic.Mid, -12, 12, 0.5, "dB", nil)
 			Knob(c, m, "treble", "高音", &m.Pipeline.Basic.Treble, -12, 12, 0.5, "dB", nil)
-			ui.Spacer(c)
-			ui.Column(c).Gap(8).Width(260).Children(func() {
+		})
+
+		ui.Row(c).Gap(24).AlignItems(ui.Center).Padding(4, 0).Children(func() {
+			ui.Column(c).Gap(8).Grow(1).Children(func() {
 				boost := m.Pipeline.FX.Boost * 100
 				s := ui.Slider(c.Key("boost"), &boost, 100, 200).Step(5).Label("音量增强")
 				if s.Changed() {
 					m.Pipeline.FX.Boost = boost / 100
 					m.MarkDirty()
 				}
-				ui.Text(c, fmt.Sprintf("音量增强（仅本应用） %.0f%%", boost)).FontSize(12).TextColor(colorMuted)
+				ui.Text(c, fmt.Sprintf("音量增强（仅本应用） %.0f%%", boost)).FontSize(11).TextColor(colorMuted)
+			})
+			ui.Column(c).Gap(8).Grow(1).Children(func() {
 				vol := m.Volume * 100
 				sv := ui.Slider(c.Key("volume"), &vol, 0, 100).Step(1).Label("普通音量")
 				if sv.Changed() && m.OnVolume != nil {
@@ -163,13 +189,16 @@ func basicPage(c *ui.Context, m *Model) {
 			if ui.Switch(c.Key("right"), &m.Pipeline.FX.RightOn).Label("右声道").Changed() {
 				m.MarkDirty()
 			}
+		})
+		ui.Row(c).Gap(12).AlignItems(ui.Center).Children(func() {
+			ui.Text(c, "左右平衡").Width(64).FontSize(12).TextColor(colorText)
 			balance := m.Pipeline.FX.Balance
-			s := ui.Slider(c.Key("balance"), &balance, -1, 1).Step(0.05).Width(220).Label("左右平衡")
+			s := ui.Slider(c.Key("balance"), &balance, -1, 1).Step(0.05).Grow(1).Label("左右平衡")
 			if s.Changed() {
 				m.Pipeline.FX.Balance = balance
 				m.MarkDirty()
 			}
-			ui.Text(c, balanceLabel(balance)).FontSize(12).TextColor(colorMuted)
+			ui.Text(c, balanceLabel(balance)).Width(60).FontSize(12).TextAlign(ui.Center).TextColor(colorMuted)
 		})
 	})
 }
@@ -191,7 +220,9 @@ func advancedPage(c *ui.Context, m *Model) {
 				}
 			}
 			ui.Spacer(c)
-			ui.Text(c, "拖动推子实时调整，频响曲线同步更新").FontSize(11).TextColor(colorMuted)
+			if ui.Button(c.Key("reset-1"), "重置").Clicked() && m.OnReset != nil {
+				m.OnReset(1)
+			}
 		})
 		ResponseGraph(c, m)
 		if m.AdvancedMode == 0 {
@@ -205,23 +236,23 @@ func advancedPage(c *ui.Context, m *Model) {
 func surroundPage(c *ui.Context, m *Model) {
 	low := m.Pipeline.Surround.LowFreq * 100
 	strength := m.Pipeline.Surround.Strength * 100
-	ui.Column(c).Fill().Gap(14).Padding(8).Children(func() {
+	ui.Column(c).Fill().Gap(12).Padding(8).Children(func() {
+		panelHeader(c, m, "虚拟 3D 环绕", 3)
 		ui.Row(c).Gap(12).AlignItems(ui.Center).Children(func() {
-			if ui.Switch(c.Key("surround-on"), &m.Pipeline.Surround.Enabled).Label("虚拟 3D 环绕").Changed() {
+			if ui.Switch(c.Key("surround-on"), &m.Pipeline.Surround.Enabled).Label("启用环绕").Changed() {
 				m.MarkDirty()
 			}
 			ui.Text(c, "通过虚拟声场处理，让普通耳机获得更宽的听感").FontSize(12).TextColor(colorMuted)
 		})
-		ui.Row(c).Gap(28).AlignItems(ui.Center).Padding(10, 0).Children(func() {
+		ui.Column(c).Gap(6).Padding(6, 0).Children(func() {
 			Knob(c, m, "surround-low", "低频效果", &low, 0, 100, 1, "%", func() {
 				m.Pipeline.Surround.LowFreq = low / 100
 			})
 			Knob(c, m, "surround-strength", "环绕强度", &strength, 0, 100, 1, "%", func() {
 				m.Pipeline.Surround.Strength = strength / 100
 			})
-			ui.Spacer(c)
-			ui.Text(c, "建议从较低强度开始，避免过强的空间感造成疲劳。").FontSize(12).TextColor(colorMuted)
 		})
+		ui.Text(c, "建议从较低强度开始，避免过强的空间感造成疲劳。").FontSize(12).TextColor(colorMuted)
 	})
 }
 

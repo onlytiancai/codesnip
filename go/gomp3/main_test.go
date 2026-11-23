@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/egoist/mygo/ui"
+
+	"gomp3/dsp"
 )
 
 func testApp(t *testing.T) *app {
@@ -34,6 +36,47 @@ func TestViewSwitchesToExpertAndAddsBand(t *testing.T) {
 	}
 	if !a.model.PresetModified {
 		t.Fatal("adding a band should mark the preset modified")
+	}
+}
+
+func TestApplyNoneThenSwitchModeKeepsEffectsOff(t *testing.T) {
+	a := testApp(t)
+	a.applyPreset(PresetNone)
+	if a.model.Pipeline.Basic.Enabled || a.model.Pipeline.Fixed10.Enabled || a.model.Pipeline.Fixed31.Enabled || a.model.Pipeline.Surround.Enabled {
+		t.Fatalf("none preset did not disable effects: %+v", a.model.Pipeline)
+	}
+	a.setAdvancedMode(1)
+	if a.model.Pipeline.Fixed10.Enabled || a.model.Pipeline.Fixed31.Enabled {
+		t.Fatal("switching EQ mode should not enable graphic EQ under the 无 preset")
+	}
+}
+
+func TestResetPanels(t *testing.T) {
+	a := testApp(t)
+	// Dirty every panel.
+	a.model.Pipeline.Basic.Bass = 9
+	a.model.Pipeline.FX.PreampDB = 6
+	a.model.Pipeline.Fixed10.Gains[0] = 7
+	a.model.Pipeline.Params = append(a.model.Pipeline.Params, dsp.NewParametricBand())
+	a.model.Pipeline.Surround.Enabled = true
+	a.model.Pipeline.Surround.Strength = 0.8
+
+	a.resetPanel(0)
+	if a.model.Pipeline.Basic.Bass != 0 || a.model.Pipeline.FX.PreampDB != 0 {
+		t.Fatal("basic reset did not restore defaults")
+	}
+	a.resetPanel(1)
+	if a.model.Pipeline.Fixed10.Gains[0] != 0 {
+		t.Fatal("advanced reset did not clear graphic EQ gains")
+	}
+	a.resetPanel(2)
+	if len(a.model.Pipeline.Params) != 0 {
+		t.Fatal("expert reset did not clear parametric bands")
+	}
+	a.resetPanel(3)
+	def := dsp.DefaultPipeline()
+	if a.model.Pipeline.Surround.Enabled || a.model.Pipeline.Surround.Strength != def.Surround.Strength {
+		t.Fatal("surround reset did not restore defaults")
 	}
 }
 

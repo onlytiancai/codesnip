@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/egoist/mygo/ui"
+
+	"gomp3/dsp"
 )
 
 func TestScreenshot(t *testing.T) {
@@ -22,6 +24,18 @@ func TestScreenshot(t *testing.T) {
 		a.model.EQTab = i
 		if i == 1 {
 			a.model.AdvancedMode = 0
+			a.model.Pipeline.Fixed10.Enabled = true
+			a.model.Pipeline.Fixed10.Gains = [10]float64{4, 3, 1, -2, -4, 2, 5, 3, 1, -1}
+		}
+		if i == 2 {
+			b1 := dsp.NewParametricBand()
+			b1.Type = dsp.Lowpass
+			b1.Freq = 320
+			b2 := dsp.NewParametricBand()
+			b2.UseBandwidth = true
+			b2.Freq = 2500
+			b2.GainDB = 3.5
+			a.model.Pipeline.Params = []dsp.ParametricBand{b1, b2}
 		}
 		img := ui.Render(a.view, 1080, 760, 2)
 		path := filepath.Join("docs", "screenshot-"+name+".png")

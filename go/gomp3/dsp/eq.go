@@ -61,8 +61,8 @@ func (c *FilterChain) Update(p Pipeline, sampleRate int) {
 	for i, d := range descs {
 		if !sameCoefficients(c.items[i].coeff, d.coeff) {
 			c.items[i].coeff = d.coeff
-			c.items[i].l.SetCoefficients(d.coeff)
-			c.items[i].r.SetCoefficients(d.coeff)
+			c.items[i].l.SetCoefficients(d.coeff, float64(sampleRate))
+			c.items[i].r.SetCoefficients(d.coeff, float64(sampleRate))
 		}
 	}
 }

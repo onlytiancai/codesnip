@@ -198,16 +198,15 @@ func (p *Player) SetVolume(v float64) {
 // Volume returns the normal 0..1 gain.
 func (p *Player) Volume() float64 { return p.volume }
 
-// SetPipeline publishes new DSP settings and flushes the prefetch buffer so
-// changes are heard immediately.
+// SetPipeline publishes new DSP settings. The decoder ramps coefficients and
+// gains over a few milliseconds, so we deliberately do not seek here: seeking
+// on every slider change would interrupt playback and click. New settings are
+// heard as soon as the already-buffered frames drain (~tens of ms).
 func (p *Player) SetPipeline(pipeline dsp.Pipeline) {
 	if p.decoder == nil {
 		return
 	}
 	p.decoder.SetPipeline(pipeline)
-	if p.state != nil {
-		p.state.Seek(p.state.Position())
-	}
 	p.notify()
 }
 

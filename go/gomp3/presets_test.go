@@ -69,6 +69,29 @@ func TestCustomPresetCRUD(t *testing.T) {
 	}
 }
 
+func TestNonePresetDisablesAllEffects(t *testing.T) {
+	p := NonePipeline()
+	if p.Basic.Enabled || p.Fixed10.Enabled || p.Fixed31.Enabled || p.Surround.Enabled {
+		t.Fatalf("none preset still enables an EQ/surround: %+v", p)
+	}
+	if len(p.Params) != 0 {
+		t.Fatalf("none preset has parametric bands: %d", len(p.Params))
+	}
+	if p.FX.Boost != 1 || p.FX.PreampDB != 0 || p.FX.Balance != 0 {
+		t.Fatalf("none preset has active gain: %+v", p.FX)
+	}
+	found := false
+	for _, preset := range BuiltinPresets() {
+		if preset.Name == PresetNone {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatal("built-in presets should include the 无 preset")
+	}
+}
+
 func TestApplyPresetMode(t *testing.T) {
 	p := dsp.DefaultPipeline()
 	p = ApplyPresetMode(p, 1)

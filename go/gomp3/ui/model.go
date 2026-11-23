@@ -40,6 +40,7 @@ type Model struct {
 	OnDeletePreset func()
 	OnPipeline     func()
 	OnAdvancedMode func(int)
+	OnReset        func(panel int) // 0 basic, 1 advanced, 2 expert, 3 surround
 }
 
 // MarkDirty flags the active preset as edited and publishes the DSP snapshot.

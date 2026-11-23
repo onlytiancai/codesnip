@@ -34,7 +34,11 @@ func newApp() *app {
 
 	pipeline := dsp.DefaultPipeline()
 	if preset, ok := cfg.FindPreset(cfg.ActivePreset); ok {
-		pipeline = ApplyPresetMode(preset.Pipeline, cfg.AdvancedMode)
+		if cfg.ActivePreset == PresetNone {
+			pipeline = NonePipeline()
+		} else {
+			pipeline = ApplyPresetMode(preset.Pipeline, cfg.AdvancedMode)
+		}
 	}
 
 	a.model = gomp3ui.Model{
@@ -56,6 +60,7 @@ func newApp() *app {
 		OnDeletePreset: a.deletePreset,
 		OnPipeline:     a.applyPipeline,
 		OnAdvancedMode: a.setAdvancedMode,
+		OnReset:        a.resetPanel,
 	}
 
 	a.player = NewPlayer(func() {
@@ -146,7 +151,11 @@ func (a *app) applyPreset(name string) {
 	}
 	a.cfg.ActivePreset = name
 	a.model.ActivePreset = name
-	a.model.Pipeline = ApplyPresetMode(preset.Pipeline, a.cfg.AdvancedMode)
+	if name == PresetNone {
+		a.model.Pipeline = NonePipeline()
+	} else {
+		a.model.Pipeline = ApplyPresetMode(preset.Pipeline, a.cfg.AdvancedMode)
+	}
 	a.model.PresetModified = false
 	_ = SaveConfig(a.cfg)
 	a.player.SetPipeline(a.model.Pipeline)
@@ -189,10 +198,39 @@ func (a *app) setAdvancedMode(mode int) {
 		return
 	}
 	a.cfg.AdvancedMode = mode
-	a.model.Pipeline.Fixed10.Enabled = mode == 0
-	a.model.Pipeline.Fixed31.Enabled = mode == 1
+	if a.model.ActivePreset != PresetNone {
+		a.model.Pipeline.Fixed10.Enabled = mode == 0
+		a.model.Pipeline.Fixed31.Enabled = mode == 1
+	}
 	_ = SaveConfig(a.cfg)
 	a.player.SetPipeline(a.model.Pipeline)
+}
+
+// resetPanel restores one panel's controls to their default values. Other
+// panels are left untouched. Volumes are UI/player state, not part of the DSP
+// pipeline, so they are not affected here.
+func (a *app) resetPanel(panel int) {
+	def := dsp.DefaultPipeline()
+	switch panel {
+	case 0: // 基础
+		a.model.Pipeline.Basic = def.Basic
+		a.model.Pipeline.FX = def.FX
+	case 1: // 高级：清空当前图形 EQ 的增益，保留启用开关状态
+		if a.model.AdvancedMode == 0 {
+			a.model.Pipeline.Fixed10.Gains = def.Fixed10.Gains
+		} else {
+			a.model.Pipeline.Fixed31.Gains = def.Fixed31.Gains
+		}
+	case 2: // 专家：移除全部参数波段
+		a.model.Pipeline.Params = []dsp.ParametricBand{}
+	case 3: // 3D 环绕
+		a.model.Pipeline.Surround = def.Surround
+	default:
+		return
+	}
+	a.model.PresetModified = true
+	a.player.SetPipeline(a.model.Pipeline)
+	a.model.Status = "已重置该面板为默认值"
 }
 
 func isBuiltinPreset(name string) bool {

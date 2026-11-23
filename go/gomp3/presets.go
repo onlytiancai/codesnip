@@ -14,6 +14,9 @@ import (
 
 const configVersion = 1
 
+// PresetNone disables every EQ and effect, restoring a flat, unprocessed sound.
+const PresetNone = "无"
+
 // Preset stores a complete snapshot of the DSP settings.
 type Preset struct {
 	Name     string       `json:"name"`
@@ -114,6 +117,26 @@ func SaveConfig(cfg Config) error {
 	return os.Rename(tmpName, path)
 }
 
+// NonePipeline returns a completely flat pipeline with every EQ and effect
+// switched off. The limiter stays on only as a safety net against clipping.
+func NonePipeline() dsp.Pipeline {
+	p := dsp.DefaultPipeline()
+	p.Basic.Enabled = false
+	p.Basic.Bass, p.Basic.Mid, p.Basic.Treble = 0, 0, 0
+	p.Fixed10.Enabled = false
+	p.Fixed31.Enabled = false
+	p.Fixed10.Gains = [10]float64{}
+	p.Fixed31.Gains = [31]float64{}
+	p.Params = []dsp.ParametricBand{}
+	p.Surround = dsp.Surround{Enabled: false, LowFreq: 0, Strength: 0}
+	p.FX.PreampDB = 0
+	p.FX.Boost = 1
+	p.FX.Balance = 0
+	p.FX.LeftOn, p.FX.RightOn = true, true
+	p.FX.Limiter = true
+	return p
+}
+
 // BuiltinPresets returns the factory presets.
 func BuiltinPresets() []Preset {
 	type spec struct {
@@ -138,7 +161,8 @@ func BuiltinPresets() []Preset {
 		{"Vocal", [10]float64{-2, -1.5, -1, 0, 2, 3.5, 3, 1.5, -1, -2}, -1, 2, 0.5, 1, 0},
 	}
 
-	out := make([]Preset, 0, len(specs))
+	out := make([]Preset, 0, len(specs)+1)
+	out = append(out, Preset{Name: PresetNone, Builtin: true, Pipeline: NonePipeline()})
 	for _, s := range specs {
 		p := dsp.DefaultPipeline()
 		p.Basic.Enabled = true

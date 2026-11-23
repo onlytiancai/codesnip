@@ -8,20 +8,61 @@ type Coefficients struct {
 	A1, A2     float64
 }
 
-// Biquad is a stateful transposed-direct-form-II biquad.
+// Biquad is a stateful transposed-direct-form-II biquad. Coefficient changes
+// are ramped per sample so editing EQ while playing does not click.
 type Biquad struct {
 	c      Coefficients
+	target Coefficients
+	step   float64
 	z1, z2 float64
 }
 
 // NewBiquad creates a biquad with the given coefficients.
 func NewBiquad(c Coefficients) *Biquad {
-	return &Biquad{c: c}
+	return &Biquad{c: c, target: c}
 }
 
-// SetCoefficients updates the filter while keeping its state.
-func (b *Biquad) SetCoefficients(c Coefficients) {
-	b.c = c
+// SetCoefficients updates the filter while keeping its state. When sampleRate
+// is positive the new coefficients are approached gradually; passing 0 applies
+// them immediately (used by tests and one-shot setup).
+func (b *Biquad) SetCoefficients(c Coefficients, sampleRate float64) {
+	if sampleRate <= 0 {
+		b.c = c
+		b.target = c
+		b.step = 0
+		return
+	}
+	b.target = c
+	b.step = 1 / (smoothSeconds * sampleRate)
+}
+
+// settle advances the coefficient ramp one sample towards the target.
+func (b *Biquad) settle() {
+	if b.step <= 0 {
+		return
+	}
+	c := &b.c
+	done := true
+	approach := func(cur, tgt float64) float64 {
+		d := tgt - cur
+		if d > b.step {
+			done = false
+			return cur + b.step
+		}
+		if d < -b.step {
+			done = false
+			return cur - b.step
+		}
+		return tgt
+	}
+	c.B0 = approach(c.B0, b.target.B0)
+	c.B1 = approach(c.B1, b.target.B1)
+	c.B2 = approach(c.B2, b.target.B2)
+	c.A1 = approach(c.A1, b.target.A1)
+	c.A2 = approach(c.A2, b.target.A2)
+	if done {
+		b.step = 0
+	}
 }
 
 // Reset clears the filter history.
@@ -31,6 +72,7 @@ func (b *Biquad) Reset() {
 
 // Process filters one sample.
 func (b *Biquad) Process(x float64) float64 {
+	b.settle()
 	y := b.c.B0*x + b.z1
 	b.z1 = b.c.B1*x - b.c.A1*y + b.z2
 	b.z2 = b.c.B2*x - b.c.A2*y

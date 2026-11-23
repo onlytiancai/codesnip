@@ -11,13 +11,13 @@ import (
 
 // GraphicEQ10 draws the classic ten vertical faders.
 func GraphicEQ10(c *ui.Context, m *Model) {
-	graphicFaders(c, m, dsp.Fixed10Freqs[:], m.Pipeline.Fixed10.Gains[:], "eq10", 58, 152)
+	graphicFaders(c, m, dsp.Fixed10Freqs[:], m.Pipeline.Fixed10.Gains[:], "eq10", 58, 128)
 }
 
 // GraphicEQ31 draws the third-octave faders inside a horizontal scroller.
 func GraphicEQ31(c *ui.Context, m *Model) {
-	ui.ScrollHorizontal(c).Height(244).Children(func() {
-		graphicFaders(c, m, dsp.Fixed31Freqs[:], m.Pipeline.Fixed31.Gains[:], "eq31", 44, 152)
+	ui.ScrollHorizontal(c).Height(220).Children(func() {
+		graphicFaders(c, m, dsp.Fixed31Freqs[:], m.Pipeline.Fixed31.Gains[:], "eq31", 44, 128)
 	})
 }
 

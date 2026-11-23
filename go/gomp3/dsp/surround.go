@@ -57,8 +57,8 @@ func (s *SurroundProcessor) Update(cfg Surround, sampleRate int) {
 		s.lowL = NewBiquad(lowCoeff)
 		s.lowR = NewBiquad(lowCoeff)
 	} else {
-		s.lowL.SetCoefficients(lowCoeff)
-		s.lowR.SetCoefficients(lowCoeff)
+		s.lowL.SetCoefficients(lowCoeff, float64(sampleRate))
+		s.lowR.SetCoefficients(lowCoeff, float64(sampleRate))
 	}
 
 	s.tap1 = int((0.008 + 0.010*strength) * float64(sampleRate))

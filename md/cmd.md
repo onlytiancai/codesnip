@@ -1,3 +1,7 @@
+端口测试
+
+    nc -zvw2 192.168.1.100 8080
+
 启动带 cdp 的chrome
 
     /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir=/Users/huhao/chrome-profile-for-ai
@@ -483,3 +487,21 @@ revoke mysql 权限
 
     sudo apt install --simulate nginx
 
+mysql group 逗号分割
+
+    SELECT
+        group_id,
+        GROUP_CONCAT(name SEPARATOR ',') AS name_list
+    FROM user
+    GROUP BY group_id;
+
+docker 
+
+    #查看 docker 容器入口
+    docker inspect name --format '{{json .Config.Entrypoint}}'
+    docker top nam 
+
+    docker exec -it name java -XshowSettings:properties -version 2>&1 | grep -E 'os.arch|java.version|java.vendor'
+
+    # 查看文件改动
+    docker diff name

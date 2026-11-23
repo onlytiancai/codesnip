@@ -177,6 +177,37 @@ func (f *fakeDecoder) Read(buf []float32) (int, error) {
 	return int(n), nil
 }
 
+func TestSmootherRampsWithoutJumping(t *testing.T) {
+	s := newSmoother(0, 48000)
+	s.set(1)
+	if got := s.next(); got <= 0 || got > 0.01 {
+		t.Fatalf("first ramp step = %.4f, want a small positive value", got)
+	}
+	prev := s.next()
+	for i := 0; i < 2000; i++ {
+		cur := s.next()
+		if cur < prev-1e-12 {
+			t.Fatalf("smoother went backwards at %d: %.6f -> %.6f", i, prev, cur)
+		}
+		prev = cur
+	}
+	if math.Abs(prev-1) > 1e-9 {
+		t.Fatalf("smoother did not settle at target: %.6f", prev)
+	}
+}
+
+func TestBiquadCoefficientRampStaysFinite(t *testing.T) {
+	sr := 48000.0
+	b := NewBiquad(DesignCoefficients(Peaking, 1000, 0, 1, sr))
+	b.SetCoefficients(DesignCoefficients(Peaking, 1000, 12, 1, sr), sr)
+	for i := 0; i < 4000; i++ {
+		y := b.Process(math.Sin(float64(i) * 0.1))
+		if math.IsNaN(y) || math.IsInf(y, 0) {
+			t.Fatalf("non-finite output during coefficient ramp at %d", i)
+		}
+	}
+}
+
 func TestDecoderWrapsStereoAndMono(t *testing.T) {
 	p := DefaultPipeline()
 	st := NewDecoder(&fakeDecoder{sr: 48000, ch: 2, len: 100}, p)
