@@ -1,3 +1,7 @@
+nginx 配置了哪些域名
+
+    sudo nginx -T 2>/dev/null | grep -E '^\s*server_name'
+
 端口测试
 
     nc -zvw2 192.168.1.100 8080
@@ -246,6 +250,7 @@ find
 
 ufw
     sudo ufw allow 22
+    sudo ufw allow from 1.1.1.1 to any port 9200,9300 proto tcp
 
 certbot
 
@@ -505,3 +510,14 @@ docker
 
     # 查看文件改动
     docker diff name
+
+markdown 转 html
+
+    pandoc input.md -o output.html
+
+查看 mp4 信息
+
+    ffprobe -v error \
+    -show_entries format=filename,duration,size,bit_rate,format_name \
+    -show_entries stream=index,codec_name,codec_type,width,height,r_frame_rate,avg_frame_rate,bit_rate,pix_fmt \
+    -of json input.mp4
